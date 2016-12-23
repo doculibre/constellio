@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.joda.time.LocalDate;
+
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -23,6 +25,7 @@ public class AuthorizationBuilder {
 	private List<String> principals;
 	private List<String> targets;
 	private Authorization existingAuthorization;
+	private LocalDate start, end;
 
 	public AuthorizationBuilder(String collection) {
 		this(collection, UUID.randomUUID().toString());
@@ -64,6 +67,22 @@ public class AuthorizationBuilder {
 		return this;
 	}
 
+	public AuthorizationBuilder startingOn(LocalDate date) {
+		this.start = date;
+		return this;
+	}
+
+	public AuthorizationBuilder endingOn(LocalDate date) {
+		this.end = date;
+		return this;
+	}
+
+	public AuthorizationBuilder during(LocalDate start, LocalDate end) {
+		this.start = start;
+		this.end = end;
+		return this;
+	}
+
 	public AuthorizationBuilder on(Record... targetsRecords) {
 		this.targets = new RecordUtils().toIdList(asList(targetsRecords));
 		return this;
@@ -75,7 +94,7 @@ public class AuthorizationBuilder {
 	}
 
 	private Authorization withRoles(List<String> roles) {
-		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, collection, false);
+		AuthorizationDetails details = AuthorizationDetails.create(id, roles, start, end, collection, false);
 		return new Authorization(details, principals, targets);
 	}
 

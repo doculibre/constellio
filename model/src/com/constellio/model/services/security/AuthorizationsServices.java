@@ -4,6 +4,7 @@ import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
+import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -386,17 +387,21 @@ public class AuthorizationsServices {
 	}
 
 	void refreshAuthorizationBasedOnDates(AuthorizationDetails authDetail) {
-		if (authDetail.getStartDate() != null && authDetail.getEndDate() != null) {
-			String authId = authDetail.getId();
-			LocalDate localDateNow = TimeProvider.getLocalDate();
-			if (localDateNow.isAfter(authDetail.getStartDate()) && localDateNow.isBefore(authDetail.getEndDate())
-					&& authId.startsWith("-")) {
-				String newCode = authId.subSequence(1, authId.length()).toString();
-				changeAuthorizationCode(authDetail, newCode);
-			} else if (localDateNow.isAfter(authDetail.getEndDate())) {
-				delete(authDetail, null);
-			}
+		LocalDate now = TimeProvider.getLocalDate();
+		String authId = authDetail.getId();
+
+		if (authId.startsWith("-")
+				&& authDetail.getStartDate() != null
+				&& !now.isBefore(authDetail.getStartDate())
+				&& (authDetail.getEndDate() == null || !now.isAfter(authDetail.getEndDate()))) {
+			String newCode = authId.subSequence(1, authId.length()).toString();
+			changeAuthorizationCode(authDetail, newCode);
 		}
+
+		if (authDetail.getEndDate() != null && now.isAfter(authDetail.getEndDate())) {
+			delete(authDetail, null);
+		}
+
 	}
 
 	void changeAuthorizationCode(AuthorizationDetails authorization, String newCode) {
@@ -580,46 +585,53 @@ public class AuthorizationsServices {
 		Authorization authorization = getAuthorization(request.getCollection(), request.getAuthorizationId());
 		Record record = recordServices.getDocumentById(request.getRecordId());
 
-		List<String> recordAuthorizations = record.getList(Schemas.ALL_AUTHORIZATIONS);
-		if (!recordAuthorizations.contains(request.getAuthorizationId())) {
-			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(request.getAuthorizationId(),
-					record);
-		}
-
-		boolean recordDetached = Boolean.TRUE == record.get(IS_DETACHED_AUTHORIZATIONS);
-		if (request.getRecordId().equals(authorization.getGrantedOnRecord())) {
-			executeOnAuthorization(request, authorization, record);
+		if (request.isRemovedOnRecord()) {
+			removeAuthorizationOnRecord(authorization, record, KEEP_ATTACHED);
 			return new AuthorizationModificationResponse(false, null, Collections.<String, String>emptyMap());
 
 		} else {
-			if (request.getBehavior() == CustomizedAuthorizationsBehavior.DETACH && !recordDetached) {
-				Map<String, String> originalToCopyMap = detach(record);
-				String authCopy = originalToCopyMap.get(request.getAuthorizationId());
-				Authorization authorizationCopy = getAuthorization(request.getCollection(), authCopy);
-				executeOnAuthorization(request, authorizationCopy, record);
-				return new AuthorizationModificationResponse(false, authCopy, originalToCopyMap);
 
-			} else {
-				String copyId = inheritedToSpecific(record.getCollection(), authorization.getDetail().getId());
-				record.addValueToList(Schemas.REMOVED_AUTHORIZATIONS, authorization.getDetail().getId());
-				record.addValueToList(Schemas.AUTHORIZATIONS, copyId);
-
-				Transaction transaction = new Transaction();
-				transaction.getRecordUpdateOptions().setValidationsEnabled(false);
-				transaction.add(record);
-				try {
-					recordServices.execute(transaction);
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
-
-				Authorization authorizationCopy = getAuthorization(record.getCollection(), copyId);
-				executeOnAuthorization(request, authorizationCopy, record);
-
-				return new AuthorizationModificationResponse(false, copyId,
-						Collections.singletonMap(authorization.getDetail().getId(), copyId));
+			List<String> recordAuthorizations = record.getList(Schemas.ALL_AUTHORIZATIONS);
+			if (!recordAuthorizations.contains(request.getAuthorizationId())) {
+				throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(request.getAuthorizationId(),
+						record);
 			}
 
+			boolean recordDetached = Boolean.TRUE == record.get(IS_DETACHED_AUTHORIZATIONS);
+			if (request.getRecordId().equals(authorization.getGrantedOnRecord())) {
+				executeOnAuthorization(request, authorization, record);
+				return new AuthorizationModificationResponse(false, null, Collections.<String, String>emptyMap());
+
+			} else {
+				if (request.getBehavior() == CustomizedAuthorizationsBehavior.DETACH && !recordDetached) {
+					Map<String, String> originalToCopyMap = detach(record);
+					String authCopy = originalToCopyMap.get(request.getAuthorizationId());
+					Authorization authorizationCopy = getAuthorization(request.getCollection(), authCopy);
+					executeOnAuthorization(request, authorizationCopy, record);
+					return new AuthorizationModificationResponse(false, authCopy, originalToCopyMap);
+
+				} else {
+					String copyId = inheritedToSpecific(record.getCollection(), authorization.getDetail().getId());
+					record.addValueToList(Schemas.REMOVED_AUTHORIZATIONS, authorization.getDetail().getId());
+					record.addValueToList(Schemas.AUTHORIZATIONS, copyId);
+
+					Transaction transaction = new Transaction();
+					transaction.getRecordUpdateOptions().setValidationsEnabled(false);
+					transaction.add(record);
+					try {
+						recordServices.execute(transaction);
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
+
+					Authorization authorizationCopy = getAuthorization(record.getCollection(), copyId);
+					executeOnAuthorization(request, authorizationCopy, record);
+
+					return new AuthorizationModificationResponse(false, copyId,
+							Collections.singletonMap(authorization.getDetail().getId(), copyId));
+				}
+
+			}
 		}
 
 	}

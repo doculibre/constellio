@@ -69,7 +69,7 @@ public class AuthorizationDetailsManager
 		if ((startDate != null && endDate != null) && startDate.isAfter(endDate)) {
 			throw new AuthorizationDetailsManagerRuntimeException.StartDateGreaterThanEndDate(startDate, endDate);
 		}
-		if (endDate != null && !endDate.isAfter(now)) {
+		if (endDate != null && endDate.isBefore(now)) {
 			throw new AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate(endDate.toString());
 		}
 	}

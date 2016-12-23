@@ -1,13 +1,10 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2;
@@ -24,226 +21,42 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2_1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1_1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.assertj.core.api.BooleanAssert;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
-import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
-import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
-import com.constellio.model.services.security.SecurityAcceptanceTestSetup.Records;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
 
-public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
-	String anotherCollection = "anotherCollection";
-	SecurityAcceptanceTestSetup anothercollectionSetup = new SecurityAcceptanceTestSetup(anotherCollection);
-	String ZE_ROLE = "zeRoleCode";
-	String ZE_GROUP = "zeGroupCode";
-	String zeUnusedRoleCode = "zeNotUsed";
-	SecurityAcceptanceTestSetup setup = new SecurityAcceptanceTestSetup(zeCollection);
-	MetadataSchemasManager schemasManager;
-	SearchServices searchServices;
-	RecordServices recordServices;
-	TaxonomiesManager taxonomiesManager;
-	CollectionsListManager collectionsListManager;
-	AuthorizationsServices services;
-	UserServices userServices;
-	SchemasRecordsServices schemas;
-
-	Records records;
-	Records otherCollectionRecords;
-	Users users = new Users();
-	RolesManager roleManager;
-
-	String ROLE1 = "role1";
-	String ROLE2 = "role2";
-	String ROLE3 = "role3";
-
-	String PERMISSION_OF_NO_ROLE = "permissionOfNoRole";
-	String PERMISSION_OF_ROLE1 = "permissionOfRole1";
-	String PERMISSION_OF_ROLE2 = "permissionOfRole2";
-	String PERMISSION_OF_ROLE3 = "permissionOfRole3";
-	String PERMISSION_OF_ROLE1_AND_ROLE2 = "permissionOfRole1AndRole2";
-
-	final String VERSION_HISTORY_READ = "VERSION_HISTORY_READ";
-	final String VERSION_HISTORY = "VERSION_HISTORY";
-
-	AuthorizationModificationResponse request1, request2, request3;
-
-	List<String> initialFinishedBatchProcesses;
-
-	String auth1, auth2, auth3, auth4, auth5;
-
-	@Before
-	public void setUp()
-			throws Exception {
-
-		customSystemPreparation(new CustomSystemPreparation() {
-			@Override
-			public void prepare() {
-
-				givenCollection(zeCollection).withAllTestUsers();
-				givenCollection(anotherCollection).withAllTestUsers();
-
-				setServices();
-
-				defineSchemasManager().using(setup);
-				taxonomiesManager.addTaxonomy(setup.getTaxonomy1(), schemasManager);
-				taxonomiesManager.addTaxonomy(setup.getTaxonomy2(), schemasManager);
-
-				defineSchemasManager().using(anothercollectionSetup);
-				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy1(), schemasManager);
-				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy2(), schemasManager);
-
-				RolesManager rolesManager = getModelLayerFactory().getRolesManager();
-				rolesManager.addRole(
-						new Role(zeCollection, ROLE1, "Ze role 1", asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE1_AND_ROLE2)));
-				rolesManager.addRole(
-						new Role(zeCollection, ROLE2, "Ze role 2", asList(PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE1_AND_ROLE2)));
-				rolesManager.addRole(new Role(zeCollection, ROLE3, "Ze role 3", asList(PERMISSION_OF_ROLE3)));
-
-				try {
-					givenChuckNorrisSeesEverything();
-					givenAliceCanModifyEverythingAndBobCanDeleteEverythingAndDakotaReadEverythingInAnotherCollection();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-
-			private void setServices() {
-				recordServices = getModelLayerFactory().newRecordServices();
-				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-				searchServices = getModelLayerFactory().newSearchServices();
-				services = getModelLayerFactory().newAuthorizationsServices();
-				schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-				roleManager = getModelLayerFactory().getRolesManager();
-				collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-				userServices = getModelLayerFactory().newUserServices();
-				schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
-				users.setUp(getModelLayerFactory().newUserServices());
-			}
-
-			@Override
-			public void initializeFromCache() {
-				setServices();
-				setup.refresh(schemasManager);
-				anothercollectionSetup.refresh(schemasManager);
-			}
-		});
-
-		waitForBatchProcess();
-		initialFinishedBatchProcesses = new ArrayList<>();
-		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
-			initialFinishedBatchProcesses.add(batchProcess.getId());
-		}
-
-	}
-
-	private ListAssert<String> assertThatBatchProcessDuringTest() {
-
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		List<String> allBatchProcesses = new ArrayList<>();
-		List<String> batchProcessesUsingTests = new ArrayList<>();
-		List<BatchProcess> finishedBatchProcesses = getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses();
-		for (BatchProcess batchProcess : finishedBatchProcesses) {
-			allBatchProcesses.add(batchProcess.getId());
-			if (!initialFinishedBatchProcesses.contains(batchProcess.getId())) {
-				batchProcessesUsingTests.add(batchProcess.getQuery());
-			}
-		}
-
-		initialFinishedBatchProcesses = allBatchProcesses;
-
-		return assertThat(batchProcessesUsingTests);
-
-	}
-
-	private void givenTaxonomy1IsThePrincipalAndSomeRecords() {
-		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1");
-		taxonomiesManager.setPrincipalTaxonomy(taxonomy, schemasManager);
-		records = setup.givenRecords(recordServices);
-		otherCollectionRecords = anothercollectionSetup.givenRecords(recordServices);
-	}
-
-	private void givenTaxonomy2IsThePrincipalAndSomeRecords() {
-		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo2");
-		taxonomiesManager.setPrincipalTaxonomy(taxonomy, schemasManager);
-		records = setup.givenRecords(recordServices);
-		otherCollectionRecords = anothercollectionSetup.givenRecords(recordServices);
-	}
-
-	static int totalBatchProcessCount = 0;
+public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
 	@After
-	public void checkIfNoBatchProcessRequired() {
-		List<String> finishedBatchProcesses = new ArrayList<>();
-		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
-			finishedBatchProcesses.add(batchProcess.getId());
-		}
-
-		int batchProcessCount = finishedBatchProcesses.size() - initialFinishedBatchProcesses.size();
-		totalBatchProcessCount += batchProcessCount;
-	}
-
-	@AfterClass
-	public static void tearDown()
-			throws Exception {
-
-		System.out.println("Total batch process count : " + totalBatchProcessCount);
-
+	public void checkIfARecordHasAnInvalidAuthorization() {
+		ensureNoRecordsHaveAnInvalidAuthorization();
 	}
 
 	@After
@@ -315,442 +128,6 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(foundRecords).containsOnly(records.folder1().getId(), records.folder2().getId(), records.folder2_1().getId(),
 				records.folder2_2().getId(), records.folder1_doc1().getId(), records.folder2_2_doc1().getId(),
 				records.folder2_2_doc2().getId());
-	}
-
-	private RecordVerifier forRecord(String id) {
-		return new RecordVerifier(id);
-	}
-
-	private class RecordVerifier {
-		String recordId;
-
-		public RecordVerifier(String recordId) {
-			this.recordId = recordId;
-		}
-
-		public ListAssert<Object> usersWithRole(String role) {
-			return assertThat(services.getUsersWithRoleForRecord(role, get(recordId)))
-					.describedAs("users with role '" + role + "' on record '" + recordId + "'").extracting("username");
-		}
-
-		public ListAssert<Object> assertThatUsersWithPermission(String permission) {
-			return assertThat(services.getUsersWithPermissionOnRecord(permission, get(recordId)))
-					.describedAs("users with permission '" + permission + "' on record '" + recordId + "'")
-					.extracting("username");
-		}
-
-		public ListAssert<Object> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission) {
-			return assertThat(
-					services.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(permission, get(recordId)))
-					.describedAs("users with permission '" + permission + "' on record '" + recordId + "'")
-					.extracting("username");
-		}
-
-		public ListAssert<String> usersWithReadAccess() {
-
-			Record record = get(recordId);
-			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
-
-			List<String> usersWithReadAccess = new ArrayList<>();
-			for (User user : allUsers) {
-				if (hasReadAccess(user, record)) {
-					usersWithReadAccess.add(user.getUsername());
-				}
-			}
-
-			return assertThat(usersWithReadAccess).describedAs("read access on record '" + recordId + "'");
-		}
-
-		public ListAssert<String> usersWithWriteAccess() {
-
-			Record record = get(recordId);
-			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
-
-			List<String> usersWithWriteAccess = new ArrayList<>();
-			for (User user : allUsers) {
-				if (hasWriteAccess(user, record)) {
-					usersWithWriteAccess.add(user.getUsername());
-				}
-			}
-
-			return assertThat(usersWithWriteAccess).describedAs("write access on record '" + recordId + "'");
-		}
-
-		public ListAssert<String> usersWithDeleteAccess() {
-
-			Record record = get(recordId);
-			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
-
-			List<String> usersWithDeleteAccess = new ArrayList<>();
-			for (User user : allUsers) {
-				if (hasDeleteAccess(user, record)) {
-					usersWithDeleteAccess.add(user.getUsername());
-				}
-			}
-
-			return assertThat(usersWithDeleteAccess).describedAs("delete access on record '" + recordId + "'");
-		}
-
-		public BooleanAssert detachedAuthorizationFlag() {
-			Record record = get(recordId);
-			return assertThat(Boolean.TRUE == record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))
-					.describedAs("detach authorization flag on record '" + recordId + "'");
-		}
-	}
-
-	private boolean hasReadAccess(User user, Record record) {
-		boolean hasAccessUsingWrapperMethod = user.hasReadAccess().on(record);
-
-		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUser(user)
-				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
-
-		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
-			fail("User has read access using wrapper method, but not using search");
-		}
-
-		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
-			fail("User has read access using search, but not using wrapper method");
-		}
-		return hasAccessUsingWrapperMethod;
-	}
-
-	private boolean hasWriteAccess(User user, Record record) {
-		boolean hasAccessUsingWrapperMethod = user.hasWriteAccess().on(record);
-
-		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserWrite(user)
-				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
-
-		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
-			fail("User has read access using wrapper method, but not using search");
-		}
-
-		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
-			fail("User has read access using search, but not using wrapper method");
-		}
-		return hasAccessUsingWrapperMethod;
-	}
-
-	private boolean hasDeleteAccess(User user, Record record) {
-		boolean hasAccessUsingWrapperMethod = user.hasDeleteAccess().on(record);
-
-		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserDelete(user)
-				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
-
-		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
-			fail("User has read access using wrapper method, but not using search");
-		}
-
-		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
-			fail("User has read access using search, but not using wrapper method");
-		}
-		return hasAccessUsingWrapperMethod;
-	}
-
-	private AuthorizationBuilder authorization() {
-		return new AuthorizationBuilder(zeCollection);
-	}
-
-	private AuthorizationBuilder authorization(String existingAuthorizationId) {
-
-		return new AuthorizationBuilder(zeCollection);
-	}
-
-	private AuthorizationBuilder authorizationForUsers(String... usernames) {
-
-		User[] usersArray = new User[usernames.length];
-
-		for (int i = 0; i < usernames.length; i++) {
-			usersArray[i] = userServices.getUserInCollection(usernames[i], zeCollection);
-		}
-
-		return new AuthorizationBuilder(zeCollection).forUsers(usersArray);
-	}
-
-	private AuthorizationBuilder authorizationForGroups(String... groups) {
-
-		Group[] groupsArray = new Group[groups.length];
-
-		for (int i = 0; i < groups.length; i++) {
-			groupsArray[i] = userServices.getGroupInCollection(groups[i], zeCollection);
-		}
-
-		return new AuthorizationBuilder(zeCollection).forGroups(groupsArray);
-	}
-
-	private AuthorizationBuilder authorizationForUser(String username) {
-
-		User[] usersArray = new User[] { userServices.getUserInCollection(username, zeCollection) };
-		return new AuthorizationBuilder(zeCollection).forUsers(usersArray);
-	}
-
-	private AuthorizationBuilder authorizationForGroup(String group) {
-
-		Group[] groupsArray = new Group[] { userServices.getGroupInCollection(group, zeCollection) };
-		return new AuthorizationBuilder(zeCollection).forGroups(groupsArray);
-	}
-
-	private long fetchEventCount() {
-		LogicalSearchCondition condition = from(schemasManager.getSchemaTypes(zeCollection).getSchemaType(Event.SCHEMA_TYPE))
-				.returnAll();
-		return searchServices.getResultsCount(condition);
-	}
-
-	private RecordVerifier verifyRecord(String id) {
-		return new RecordVerifier(id);
-	}
-
-	private List<RecordVerifier> $(String... ids) {
-		List<RecordVerifier> verifiers = new ArrayList<>();
-
-		for (String id : ids) {
-			verifiers.add(new RecordVerifier(id));
-		}
-
-		return verifiers;
-	}
-
-	private VerifiedAuthorization authOnRecord(String recordId) {
-		return new VerifiedAuthorization(recordId);
-	}
-
-	private class VerifiedAuthorization {
-
-		String recordId;
-
-		Set<String> principals;
-
-		Set<String> removedOnRecords = new HashSet<>();
-
-		List<String> roles;
-
-		LocalDate start;
-
-		LocalDate end;
-
-		private VerifiedAuthorization(String recordId) {
-			this.recordId = recordId;
-		}
-
-		private VerifiedAuthorization forPrincipals(String... principals) {
-			this.principals = new HashSet<>(asList(principals));
-			return this;
-		}
-
-		private VerifiedAuthorization forPrincipalIds(List<String> principals) {
-			this.principals = new HashSet<>(toPrincipalCodes(principals.toArray(new String[] {})));
-			return this;
-		}
-
-		private VerifiedAuthorization removedOnRecords(String... removedOnRecords) {
-			this.removedOnRecords = new HashSet<>(asList(removedOnRecords));
-			return this;
-		}
-
-		private VerifiedAuthorization givingRoles(String... roles) {
-			this.roles = asList(roles);
-			return this;
-		}
-
-		private VerifiedAuthorization givingRead() {
-			this.roles = asList(READ);
-			return this;
-		}
-
-		private VerifiedAuthorization givingReadWrite() {
-			this.roles = asList(READ, WRITE);
-			return this;
-		}
-
-		private VerifiedAuthorization givingReadWriteDelete() {
-			this.roles = asList(READ, WRITE, DELETE);
-			return this;
-		}
-
-		private VerifiedAuthorization startingOn(LocalDate start) {
-			this.start = start;
-			return this;
-		}
-
-		private VerifiedAuthorization endingOn(LocalDate end) {
-			this.end = end;
-			return this;
-		}
-
-		public String getRecordId() {
-			return recordId;
-		}
-
-		public Set<String> getPrincipals() {
-			return principals;
-		}
-
-		public Set<String> getRemovedOnRecords() {
-			return removedOnRecords;
-		}
-
-		public List<String> getRoles() {
-			return roles;
-		}
-
-		public LocalDate getStart() {
-			return start;
-		}
-
-		public LocalDate getEnd() {
-			return end;
-		}
-
-		@Override
-		public String toString() {
-			return "{recordId='" + recordId + '\'' +
-					",  principals=" + principals +
-					",  removedOnRecords=" + removedOnRecords +
-					",  roles=" + roles +
-					",  start=" + start +
-					",  end=" + end +
-					'}';
-		}
-	}
-
-	private ListAssert<VerifiedAuthorization> assertThatAllAuthorizations() {
-
-		List<VerifiedAuthorization> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
-				.getAuthorizationsDetails(zeCollection).values()) {
-			Authorization authorization = services.getAuthorization(zeCollection, details.getId());
-
-			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(
-					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getDetail().getId()));
-
-			authorizations.add(authOnRecord(authorization.getGrantedOnRecord())
-					.forPrincipalIds(authorization.getGrantedToPrincipals())
-					.givingRoles(details.getRoles().toArray(new String[0]))
-					.removedOnRecords(removedOnRecords.toArray(new String[0])));
-		}
-		return assertThat(authorizations).usingFieldByFieldElementComparator();
-
-	}
-
-	private class AuthorizationVerifier {
-
-		String authId;
-
-		public AuthorizationVerifier(String authId) {
-			this.authId = authId;
-		}
-
-		public AuthorizationVerifier isDeleted() {
-			assertThat(getModelLayerFactory().getAuthorizationDetailsManager().get(zeCollection, authId))
-					.describedAs("Authorization supposed to be deleted").isNull();
-			return this;
-		}
-
-		public AuthorizationVerifier isTargetting(String recordId) {
-			return this;
-		}
-
-		public AuthorizationVerifier isOnlyRemovedOn(String... recordIds) {
-			return this;
-		}
-
-		public AuthorizationVerifier hasPrincipals(String... principals) {
-			List<String> expectedPrincipals = toPrincipalIds(principals);
-			com.constellio.model.entities.security.Authorization authorization = services
-					.getAuthorization(zeCollection, authId);
-			assertThat(authorization.getGrantedToPrincipals()).describedAs("principals")
-					.containsOnly(expectedPrincipals.toArray(new String[0]));
-			return this;
-		}
-
-	}
-
-	private List<String> toPrincipalCodes(String... principalIds) {
-		List<String> codes = new ArrayList<>();
-		for (String principalId : principalIds) {
-			Record record = recordServices.getDocumentById(principalId);
-			if (record.getSchemaCode().startsWith("user")) {
-				codes.add(schemas.wrapUser(record).getUsername());
-			} else {
-				codes.add(schemas.wrapGroup(record).getCode());
-			}
-		}
-
-		return codes;
-	}
-
-	private List<String> toPrincipalIds(String... principals) {
-		List<String> ids = new ArrayList<>();
-		for (String principal : principals) {
-			try {
-				ids.add(userServices.getUserInCollection(principal, zeCollection).getId());
-			} catch (Exception e) {
-				ids.add(userServices.getGroupInCollection(principal, zeCollection).getId());
-			}
-		}
-		return ids;
-	}
-
-	private AuthorizationVerifier assertThatAuth(String id) {
-		return new AuthorizationVerifier(id);
-	}
-
-	private UserAction givenUser(String username) {
-		return new UserAction(username);
-	}
-
-	private class UserAction {
-
-		String username;
-
-		public UserAction(String username) {
-			this.username = username;
-		}
-
-		public UserAction isRemovedFromGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).withRemovedGlobalGroup(group));
-			try {
-				waitForBatchProcess();
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-			return this;
-		}
-
-		public UserAction isAddedInGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).withNewGlobalGroup(group));
-			try {
-				waitForBatchProcess();
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-			return this;
-		}
-	}
-
-	private AuthorizationModificationRequest authorizationOnRecord(String authorizationId, String recordId) {
-		return new AuthorizationModificationRequest(authorizationId, recordId, zeCollection);
-	}
-
-	private AuthorizationModificationResponse modify(AuthorizationModificationRequest request) {
-		return services.execute(request);
-	}
-
-	private Condition<? super AuthorizationModificationResponse> deleted() {
-		return new Condition<AuthorizationModificationResponse>() {
-			@Override
-			public boolean matches(AuthorizationModificationResponse value) {
-				return value.isAuthorizationDeleted();
-			}
-		};
-	}
-
-	private Condition<? super AuthorizationModificationResponse> creatingACopy() {
-		return new Condition<AuthorizationModificationResponse>() {
-			@Override
-			public boolean matches(AuthorizationModificationResponse value) {
-				return value.getIdOfAuthorizationCopy() != null;
-			}
-		};
 	}
 
 	//Notes :
@@ -1028,81 +405,6 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			} else {
 				verifyRecord.detachedAuthorizationFlag().isFalse();
 			}
-		}
-
-	}
-
-	@Test
-	public void givenAuthRemovedOnRecordOfAuthorizationThenDeletedAndRemovedOnAllRecordHierarchy()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
-		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
-
-		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).removingItOnRecord()))
-				.isNot(creatingACopy()).is(deleted());
-		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).removingItOnRecord()))
-				.isNot(creatingACopy()).is(deleted());
-
-		assertThatAuth(auth1).isDeleted();
-		assertThatAuth(auth2).isDeleted();
-
-		//TODO Bug! Robin should have ROLE3
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER4, FOLDER4_1_DOC1, FOLDER3_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(alice);
-		}
-
-	}
-
-	@Test
-	public void givenAuthDisabledOnRecordInheritingItThenNotDeletedAndDisabledOnAllRecordHierarchy()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
-		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
-
-		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).removingItOnRecord()))
-				.isNot(creatingACopy()).isNot(deleted());
-		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).removingItOnRecord()))
-				.isNot(creatingACopy()).isNot(deleted());
-		assertThat(modify(authorizationOnRecord(auth1, FOLDER4_1).removingItOnRecord()))
-				.isNot(creatingACopy()).isNot(deleted());
-		assertThat(modify(authorizationOnRecord(auth2, FOLDER4_1).removingItOnRecord()))
-				.isNot(creatingACopy()).isNot(deleted());
-
-		assertThatAuth(auth1).isTargetting(TAXO1_CATEGORY2).isOnlyRemovedOn(TAXO1_CATEGORY2_1, FOLDER4_1);
-		assertThatAuth(auth2).isTargetting(TAXO1_CATEGORY2).isOnlyRemovedOn(TAXO1_CATEGORY2_1, FOLDER4_1);
-
-		//TODO Bug! Robin should have ROLE3
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
-		}
-
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1, FOLDER4_1, FOLDER4_1_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(alice);
-		}
-
-	}
-
-	@Test
-	public void givenAuthDisabledByOnRecordInheritingItThenNotDeletedAndDisabledOnAllRecordHierarchy()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
-		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
-
-		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).removingItOnRecord().detaching()))
-				.isNot(creatingACopy()).isNot(deleted());
-		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).removingItOnRecord().detaching()))
-				.isNot(creatingACopy()).isNot(deleted());
-
-		//TODO Bug! Robin should have ROLE3
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
-		}
-
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(alice);
 		}
 
 	}
@@ -1504,7 +806,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()), asList(records.folder4().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		services.removeAuthorizationOnRecord(authorizationHeroes, records.folder4(),
 				CustomizedAuthorizationsBehavior.DETACH);
 		waitForBatchProcess();
@@ -1576,7 +878,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder4().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()), asList(records.folder4_1().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		services.removeAuthorizationOnRecord(authorizationHeroes, records.folder4_1(),
 				CustomizedAuthorizationsBehavior.DETACH);
 		services.reset(records.folder4());
@@ -1611,7 +913,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(users.heroesIn(zeCollection).getId(), users.bobIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		services.removeAuthorizationOnRecord(writeAuthorizationHeroesAndLegends, records.folder4_1(),
 				CustomizedAuthorizationsBehavior.DETACH);
 		waitForBatchProcess();
@@ -1645,7 +947,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		Authorization authorizationBob = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		services.removeAuthorizationOnRecord(authorizationBob, records.folder4_2(),
 				KEEP_ATTACHED);
 		addAuthorizationWithoutDetaching(roles, asList(users.charlesIn(zeCollection).getId()),
@@ -1676,12 +978,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		Authorization authorizationBob = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		services.removeAuthorizationOnRecord(authorizationBob, records.folder4_2(),
 				KEEP_ATTACHED);
 		addAuthorizationDetaching(roles, asList(users.charlesIn(zeCollection).getId()), asList(records.folder4_2().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		services.removeAuthorizationOnRecord(authorizationAlice, records.folder4_2(),
 				KEEP_ATTACHED);
 		addAuthorizationWithoutDetaching(roles, asList(users.dakotaIn(zeCollection).getId()),
@@ -1777,34 +1079,6 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(services.getRecordAuthorizations(get(edouard))).hasSize(1)
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(folder4), asList(legends)));
-	}
-
-	private Condition<? super List<Authorization>> authorizationGrantingRolesOnTo(final List<String> roles,
-			final List<String> records, final List<String> principals) {
-		return new Condition<List<Authorization>>() {
-
-			@Override
-			public boolean matches(List<Authorization> value) {
-				for (Authorization authorization : value) {
-
-					try {
-
-						assertThat(authorization.getDetail().getRoles()).containsAll(roles).hasSize(roles.size());
-						assertThat(authorization.getGrantedToPrincipals()).containsAll(principals).hasSize(principals.size());
-						assertThat(authorization.getGrantedOnRecords()).containsAll(records).hasSize(records.size());
-
-						return true;
-					} catch (Throwable e) {
-						//Continue
-					}
-				}
-				return false;
-			}
-		};
-	}
-
-	private Record get(String recordId) {
-		return recordServices.getDocumentById(recordId);
 	}
 
 	@Test
@@ -1904,7 +1178,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.taxo2_station2().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		for (Authorization recordAuth : services.getRecordAuthorizations(records.folder2())) {
 			if (recordAuth.getGrantedToPrincipals().contains(users.bobIn(zeCollection).getId())) {
 				services.removeAuthorizationOnRecord(recordAuth, records.folder2(),
@@ -1925,7 +1199,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.taxo2_station2().getId()));
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+
 		for (Authorization recordAuth : services.getRecordAuthorizations(records.folder2())) {
 			if (recordAuth.getGrantedToPrincipals().contains(users.bobIn(zeCollection).getId())) {
 				services.removeAuthorizationOnRecord(recordAuth, records.folder2(),
@@ -1942,632 +1216,264 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenLegendsHaveAuthsInTheFutureThenAuthsNotActiveNow()
+	public void givenAuthorizationsWithStartAndEndDateThenOnlyActiveDuringSpecifiedTimerange()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationForDates(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.taxo1_category1().getId()),
-				new LocalDate(2032, 10, 22), new LocalDate(2033, 10, 22));
-		waitForBatchProcess();
+		givenTimeIs(date(2016, 4, 4));
 
-		recordServices.update(users.aliceIn(zeCollection).setUserGroups(new ArrayList<String>()));
+		//A daily authorizaiton
+		auth1 = addKeepingAttached(authorizationForUser(aliceWonderland).on(TAXO1_FOND1_1)
+				.startingOn(date(2016, 4, 5)).endingOn(date(2016, 4, 5)).givingReadWriteAccess());
 
-		List<String> foundRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
-		assertThat(foundRecords).isEmpty();
-		foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
-		assertThat(foundRecords).isEmpty();
-	}
+		//A 4 day authorizaiton
+		auth2 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_FOND1_1)
+				.startingOn(date(2016, 4, 5)).endingOn(date(2016, 4, 8)).givingReadWriteAccess());
 
-	@Test
-	public void givenLegendsHaveAuthsInTheFutureWhenTimePassesToItsActivePeriodThenAuthsActive()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationForDates(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.taxo1_category1().getId()),
-				new LocalDate(2032, 10, 22), new LocalDate(2033, 10, 22));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+		//A future authorization
+		auth3 = addKeepingAttached(authorizationForUser(charles).on(TAXO1_FOND1_1)
+				.startingOn(date(2016, 4, 7)).givingReadWriteAccess());
 
-		List<String> foundRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
-		assertThat(foundRecords).isEmpty();
-		foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
-		assertThat(foundRecords).isEmpty();
+		//An authorization with an end
+		auth4 = addKeepingAttached(authorizationForUser(dakota).on(TAXO1_FOND1_1)
+				.endingOn(date(2016, 4, 6)).givingReadWriteAccess());
 
-		givenTimeIs(new LocalDate(2032, 12, 22));
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		foundRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder1().getId(), records.folder2().getId());
-		foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder1().getId(), records.folder2().getId());
-	}
+		auth5 = addKeepingAttached(authorizationForUser(edouard).on(TAXO1_FOND1_1).givingReadWriteAccess());
 
-	@Test
-	public void givenLegendsHaveExpiredAuthsThenAuthsNotActiveNow()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		givenTimeIs(new LocalDate(2013, 10, 21));
-		addAuthorizationForDates(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.taxo1_category1().getId()),
-				new LocalDate(2013, 10, 22), new LocalDate(2017, 10, 22));
+		//An authorization started in the past
+		auth6 = addKeepingAttached(authorizationForUser(gandalf).on(TAXO1_FOND1_1)
+				.during(date(2016, 4, 3), date(2016, 4, 6)).givingReadWriteAccess());
 
-		waitForBatchProcess();
-		assertThat(findAllFoldersAndDocuments(users.aliceIn(zeCollection))).isEmpty();
-		assertThat(findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection))).isEmpty();
-
-		givenTimeIs(new LocalDate(2013, 10, 23));
-		//givenTimeIs(new LocalDate(2013, 10, 22));
-		//TODO Authorization should become effective the first day!
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
-		assertThat(findAllFoldersAndDocuments(users.aliceIn(zeCollection))).isNotEmpty();
-		assertThat(findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection))).isNotEmpty();
-
-		givenTimeIs(new LocalDate(2017, 10, 23));
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
-		assertThat(findAllFoldersAndDocuments(users.aliceIn(zeCollection))).isEmpty();
-		assertThat(findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection))).isEmpty();
-
-	}
-
-	@Test
-	public void givenBobHasReadAccessToStation2ThenBobSeesFolder1AndFolder2()
-			throws Exception {
-		givenTaxonomy2IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo2_station2().getId()));
-		waitForBatchProcess();
-
-		List<String> foundRecords = findAllFoldersAndDocuments(users.bobIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder1().getId(), records.folder2().getId(), records.folder2_1().getId(),
-				records.folder2_2().getId(), records.folder1_doc1().getId(), records.folder2_2_doc1().getId(),
-				records.folder2_2_doc2().getId());
-	}
-
-	@Test
-	public void givenLegendsHaveReadAuthToFolder2WhenGivingWriteAuthToAliceThenEdouardReadsFolder2AndAliceWritesFolder2()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = Arrays.asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder2().getId()));
-		roles = Arrays.asList(Role.WRITE);
-		addAuthorizationDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList(records.folder2().getId()));
-		waitForBatchProcess();
-
-		List<String> foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder2().getId(), records.folder2_1().getId(), records.folder2_2().getId(),
-				records.folder2_2_doc1().getId(), records.folder2_2_doc2().getId());
-		foundRecords = findAllFoldersAndDocumentsWithWritePermission(users.aliceIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder2().getId(), records.folder2_1().getId(), records.folder2_2().getId(),
-				records.folder2_2_doc1().getId(), records.folder2_2_doc2().getId());
-	}
-
-	@Test
-	public void givenHeroesAndAliceHaveAuthToCategory2AndEdouardHasAuthToCategory2_1ThenAllButBobSeeFolder3()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		addAuthorizationWithoutDetaching(roles, asList(users.edouardLechatIn(zeCollection).getId()),
-				asList(records.taxo1_category2_1().getId()));
-		waitForBatchProcess();
-
-		List<String> foundRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder3().getId(), records.folder3_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder3().getId(), records.folder3_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder3().getId(), records.folder3_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.dakotaLIndienIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder3().getId(), records.folder3_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.gandalfIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder3().getId(), records.folder3_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.bobIn(zeCollection));
-		assertThat(foundRecords).isEmpty();
-	}
-
-	@Test
-	public void givenHeroesAndAliceHaveAuthToCategory2AndEdouardHasAuthToFolder4ThenAllButBobSeeFolder4()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		addAuthorizationWithoutDetaching(roles, asList(users.edouardLechatIn(zeCollection).getId()),
-				asList(records.folder4().getId()));
-		waitForBatchProcess();
-
-		// List<String> foundRecords = findAllFoldersAndDocuments(users.chuckNorrisIn(zeCollection));
-		// assertThat(foundRecords).containsOnly(records.folder4().getId(), records.folder4_1().getId(), records.folder4_2().getId(),
-		// records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
-
-		List<String> foundRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder4().getId(), records.folder4_1().getId(), records.folder4_2().getId(),
-				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder4().getId(), records.folder4_1().getId(), records.folder4_2().getId(),
-				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder4().getId(), records.folder4_1().getId(), records.folder4_2().getId(),
-				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.dakotaLIndienIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder4().getId(), records.folder4_1().getId(), records.folder4_2().getId(),
-				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.gandalfIn(zeCollection));
-		assertThat(foundRecords).contains(records.folder4().getId(), records.folder4_1().getId(), records.folder4_2().getId(),
-				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.bobIn(zeCollection));
-		assertThat(foundRecords).isEmpty();
-	}
-
-	@Test
-	public void givenLegendsAndHeroesHaveAuthToCategory2WhenRemovingHeroesAuthAndAddingDakotaAuthOnCategory2ThenHeroesSeeFolder3ButNot4()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles,
-				asList(users.legendsIn(zeCollection).getId(), users.heroesIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		for (Authorization recordAuth : services.getRecordAuthorizations(records.folder4())) {
-			if (recordAuth.getGrantedToPrincipals().contains(users.heroesIn(zeCollection).getId())) {
-				services.removeAuthorizationOnRecord(recordAuth, records.folder4(),
-						CustomizedAuthorizationsBehavior.DETACH);
-			}
+		//An authorization already finished
+		try {
+			auth7 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_FOND1_1)
+					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
+			fail("Exception expected");
+		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+			//OK
 		}
+
+		givenTimeIs(date(2016, 4, 4));
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		addAuthorizationWithoutDetaching(roles, asList(users.dakotaIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
+		assertThatAllAuthorizationIds().containsOnly("-" + auth1, "-" + auth2, "-" + auth3, auth4, auth5, auth6);
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
+		}
+
+		givenTimeIs(date(2016, 4, 5));
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
+		assertThatAllAuthorizationIds().containsOnly(auth1, auth2, "-" + auth3, auth4, auth5, auth6);
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
+		}
 
-		List<String> foundRecords = findAllFoldersAndDocuments(users.dakotaLIndienIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder3().getId(), records.folder3_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder3().getId(), records.folder3_doc1().getId());
-	}
-
-	@Test
-	public void givenBobWithCollectionReadAccessOnlyHasGlobalRoleThenHasTheRolePermissionsOnTheCollectionRecords()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		Role version = getRoleWithPermissions(VERSION_HISTORY_READ);
-
-		User bob = users.bobIn(zeCollection);
-		bob.setCollectionReadAccess(true);
-		bob.setUserRoles(asList(version.getCode()));
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord()));
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
-	}
-
-	private Role getRoleWithPermissions(String operation) {
-
-		Role role = new Role(zeCollection, "ze", "ze", Arrays.asList(operation));
-
-		return role;
-	}
-
-	@Test
-	public void givenBobOnlyHasGlobalRoleWithoutReadAccessThenHasNoPermissionsOnTheCollectionRecords()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		User bob = users.bobIn(zeCollection);
-
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(bob.getId()),
-				asList(records.taxo1_category1().getId()));
+		givenTimeIs(date(2016, 4, 6));
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
+		assertThatAllAuthorizationIds().containsOnly(auth2, "-" + auth3, auth4, auth5, auth6);
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
+		}
 
-		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
-	}
-
-	@Test
-	public void givenBobOnlyHasGlobalRoleWithReadAccessThenHasNoPermissionsOnTheCollectionRecords()
-			throws RolesManagerRuntimeException, RecordServicesException, InterruptedException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		Role version = getRoleWithPermissions(VERSION_HISTORY_READ);
-		User bob = users.bobIn(zeCollection);
-		bob.setUserRoles(asList(version.getCode()));
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord()));
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
-	}
-
-	@Test
-	public void givenBobHasCollectionReadAccessAndIsInAGroupWhichHasGlobalRoleWithoutReadAccessThenHasTheRolePermissionsOnTheCollectionRecords()
-			throws RolesManagerRuntimeException, RecordServicesException, InterruptedException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		Group group = createGroup("HEROES");
-		group.setRoles(asList("zeRole"));
-
-		User bob = users.bobIn(zeCollection);
-		bob.setCollectionReadAccess(true);
-		bob.setUserGroups(asList(group.getId()));
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord()));
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
-	}
-
-	@Test
-	public void givenBobHasCollectionReadAccessAndAnAuthorizationGivingHimARoleWithoutReadAccessThenHasTheRolePermissionsOnTargetRecordsAndTheirDescendants()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		Role version = getRoleWithPermissions(VERSION_HISTORY);
-		User bob = users.bobIn(zeCollection);
-		bob.setCollectionReadAccess(true);
-
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(bob.getId()),
-				asList(records.taxo1_category1().getId()));
+		givenTimeIs(date(2016, 4, 7));
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
+		assertThatAllAuthorizationIds().containsOnly(auth2, auth3, auth5);
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
+		}
 
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), records.taxo1_category1(), records.folder1(), records.folder2()));
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
-		assertThat(services.canRead(bob, records.folder1())).isTrue();
-		assertThat(services.canRead(bob, records.folder2())).isTrue();
-	}
-
-	@Test
-	public void givenBobHasCollectionReadAccessAndAnAuthorizationOnAGroupGivingHimARoleWithoutReadAccessThenHasTheRolePermissionsOnTargetRecordsAndTheirDescendants
-			()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		Group group = createGroup("HEROES");
-
-		User bob = users.bobIn(zeCollection);
-		bob.setCollectionReadAccess(true);
-		bob.setUserGroups(asList(group.getId()));
-
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()),
-				asList(records.taxo1_category1().getId()));
+		givenTimeIs(date(2016, 4, 8));
 		waitForBatchProcess();
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		assertThatAllAuthorizationIds().containsOnly(auth2, auth3, auth5);
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
+		}
 
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord(), records.taxo1_category1(),
-				records.folder1(), records.folder2()));
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
-		assertThat(services.canRead(bob, records.folder1())).isTrue();
-		assertThat(services.canRead(bob, records.folder2())).isTrue();
-
-	}
-
-	@Test
-	public void givenBobHasAnAuthorizationGivingHimARoleWithReadAccessHasTheHasTheRolePermissionsOnTargetRecordsAndTheirDescendants
-			()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		User bob = users.bobIn(zeCollection);
-
-		addAuthorizationWithoutDetaching(asList("zeRole", READ), asList(bob.getId()),
-				asList(records.taxo1_category1().getId()));
+		givenTimeIs(date(2016, 4, 9));
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), records.taxo1_category1(), records.folder1(), records.folder2()));
-
-		assertThat(services.canRead(bob, records.folder1())).isTrue();
-		assertThat(services.canRead(bob, records.folder2())).isTrue();
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
-	}
-
-	@Test
-	public void givenBobHasAnAuthorizationOnAGroupGivingHimARoleWithReadAccessHasTheRolePermissionsOnTargetRecordsAndTheirDescendants
-			()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		Group group = createGroup("HEROES");
-
-		User bob = users.bobIn(zeCollection);
-		bob.setCollectionReadAccess(true);
-		bob.setUserGroups(asList(group.getId()));
-
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord(), records.taxo1_category1(),
-				records.folder1(), records.folder2()));
-
-		assertThat(services.canRead(bob, records.folder1())).isTrue();
-		assertThat(services.canRead(bob, records.folder2())).isTrue();
+		assertThatAllAuthorizationIds().containsOnly(auth3, auth5);
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
+		}
 
 	}
 
 	@Test
-	public void givenBobHasAnAuthorizationGivingHimARoleWithoutReadAccessThenHasNoPermissionsOnTheCollectionRecords()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		User bob = users.bobIn(zeCollection);
-
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(bob.getId()),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord()));
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
-	}
-
-	@Test
-	public void givenBobHasAnAuthorizationOnAGroupGivingHimARoleWithoutReadAccessThenHasNoPermissionsOnTheCollectionRecords()
-			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		Group group = createGroup("HEROES");
-
-		User bob = users.bobIn(zeCollection);
-		// bob.setCollectionReadAccess(true);
-		bob.setUserGroups(asList(group.getId()));
-
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord()));
-
-		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
-	}
-
-	@Test
-	public void givenUserWithDeletePermissionWhenHasDeletePermissionOnHierarchyThenReturnTrue()
+	public void givenUserWithCollectionAccessThenHasAccessNoMatterTheRecordsAuthorizationAndHasNoRolePermissions()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+		//Valider que ça ne donne pas un accès permission
 
-		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
-				records.folder4());
+		Transaction transaction = new Transaction();
+		transaction.add(users.edouardIn(zeCollection).setCollectionReadAccess(true).setSystemAdmin(true));
+		transaction.add(users.charlesIn(zeCollection).setCollectionReadAccess(true));
+		transaction.add(users.dakotaIn(zeCollection).setCollectionWriteAccess(true));
+		transaction.add(users.aliceIn(zeCollection).setCollectionDeleteAccess(true));
+		recordServices.execute(transaction);
+		auth1 = addKeepingAttached(authorizationForUser(charles).on(TAXO1_FOND1_1).givingReadWriteAccess());
+		auth2 = addKeepingAttached(authorizationForUser(dakota).on(TAXO1_FOND1_1).givingReadAccess());
 
-		assertThat(hasDeletePermissionOnHierarchy).isTrue();
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, alice, chuck, edouard);
+			verifyRecord.usersWithWriteAccess().containsOnly(charles, dakota, chuck);
+			verifyRecord.usersWithDeleteAccess().containsOnly(alice, chuck);
+			verifyRecord.usersWithPermission("aPermission").containsOnly(admin, edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1, TAXO1_CATEGORY2_1, FOLDER3)) {
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, alice, chuck, edouard);
+			verifyRecord.usersWithWriteAccess().containsOnly(dakota, chuck);
+			verifyRecord.usersWithDeleteAccess().containsOnly(alice, chuck);
+			verifyRecord.usersWithPermission("aPermission").containsOnly(admin, edouard);
+		}
+
 	}
 
 	@Test
-	public void givenNoDeletePermissionToUserWhenHasDeletePermissionOnHierarchyThenReturnFalse()
+	public void givenGroupWithCollectionAccessThenHasAccessNoMatterTheRecordsAuthorizationAndHasNoRolePermissions()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
+		//Valider que ça ne donne pas un accès permission
 
-		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
-				records.folder4());
+		//Donner au groupe Heroes, une permission globale RW
+		//Donner au groupe Legends, une permission globale RD
+		//Donner au groupe Rumors, une permission globale RW
+		//Donner à Charles (groupe Heroes) une permission globale R
+		//Donner à Dakota (groupe Heroes) une permission globale RD
+		//Donner à Alice (groupe Legends) aucune permission
 
-		assertThat(hasDeletePermissionOnHierarchy).isFalse();
+		//Sur quelques records :
+
+		//Valider que Charles (groupe Heroes) a RW
+		//Valider que Dakota (groupe Heroes) a RWD
+		//Valider que Gandalf (groupe Heroes et Legends) a RWD
+
+		//Valider que Alice (Legends) a RD
+		//Valider que Édouard (Legends) a RD
+		//Valider que Sasquatch (Rumors) a RWD - toutes les permissions globales données dans Legends sont héritées par le sous-groupe rumors
+		//Valider que Bob n'a rien (aucun groupe)
+
+		fail("todo");
 	}
 
 	@Test
-	public void givenDeletePermissionToUserAndRemoveItFromSubFolderWhenHasDeletePermissionOnHierarchyThenReturnFalse()
+	public void givenUserWithDeletePermissionOnRecordsThenCanOnlyDeleteRecordsIfHasPermissionOnWholeHierarchy()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		services.removeAuthorizationOnRecord(authorization, records.folder4_2(),
-				KEEP_ATTACHED);
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
-				records.folder4());
+		recordServices.logicallyDelete(records.folder2(), users.chuckNorrisIn(zeCollection));
 
-		assertThat(hasDeletePermissionOnHierarchy).isFalse();
+		//Bob has no delete permission
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER4).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_FOND1_1).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_CATEGORY1).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER1).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER2).isFalse();
+
+		//Bob has a delete permission the whole hierarchy
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_FOND1).givingReadWriteDeleteAccess());
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER4).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_FOND1_1).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_CATEGORY1).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER1).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER2).isFalse();
+
+		//Bob has a delete permission on folder 4
+		modify(authorizationOnRecord(auth1, FOLDER4).removingItOnRecord());
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER4).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_FOND1_1).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_CATEGORY1).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER1).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER2).isFalse();
+
+		//Bob has a delete permission on category 1
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER4).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_FOND1_1).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(TAXO1_CATEGORY1).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER1).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnHierarchyOf(FOLDER2).isFalse();
+
 	}
 
 	@Test
-	public void givenUserWithDeletePermissionWhenHasRestaurationPermissionOnHierarchyThenReturnTrue()
+	public void givenUserWithDeletePermissionOnRecordsThenCanOnlyRestoreRecordsIfHasPermissionOnWholeHierarchy()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
 
-		recordServices.logicallyDelete(records.folder4(), users.bobIn(zeCollection));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		boolean hasRestaurationPermissionOnHierarchy = services.hasRestaurationPermissionOnHierarchy(
-				users.bobIn(zeCollection), records.folder4());
+		recordServices.logicallyDelete(records.folder1(), users.chuckNorrisIn(zeCollection));
+		recordServices.logicallyDelete(records.folder4(), users.chuckNorrisIn(zeCollection));
+		recordServices.logicallyDelete(records.taxo1_fond1_1(), users.chuckNorrisIn(zeCollection));
 
-		assertThat(hasRestaurationPermissionOnHierarchy).isTrue();
+		//Bob has no delete permission
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER4).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_FOND1_1).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_CATEGORY1).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER1).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER2).isFalse();
+
+		//Bob has a delete permission the whole hierarchy
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_FOND1).givingReadWriteDeleteAccess());
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER4).isTrue();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_FOND1_1).isTrue();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_CATEGORY1).isTrue();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER1).isTrue();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER2).isFalse();
+
+		//Bob has a delete permission on folder 4
+		modify(authorizationOnRecord(auth1, FOLDER4).removingItOnRecord());
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER4).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_FOND1_1).isTrue();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_CATEGORY1).isTrue();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER1).isTrue();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER2).isFalse();
+
+		//Bob has a delete permission on category 1
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER4).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_FOND1_1).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(TAXO1_CATEGORY1).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER1).isFalse();
+		forUserInZeCollection(bob).assertHasRestorePermissionOnHierarchyOf(FOLDER2).isFalse();
+
 	}
 
 	@Test
-	public void givenNoDeletePermissionToUserWhenHasRestaurationOnHierarchyThenReturnFalse()
+	public void givenUserWithDeletePermissionOnPrincipalConceptButNotOnSomeRecordsThenCanOnlyDeleteConceptIfExcludingRecords()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		recordServices.logicallyDelete(records.folder4(), users.bobIn(zeCollection));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = services.hasRestaurationPermissionOnHierarchy(
-				users.aliceIn(zeCollection), records.folder4());
+		//Bob has no delete permission
+		forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptExcludingRecords(TAXO1_CATEGORY2).isFalse();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptIncludingRecords(TAXO1_CATEGORY2).isFalse();
 
-		assertThat(hasDeletePermissionOnHierarchy).isFalse();
-	}
+		//Bob has a delete permission the whole category2 hierarchy
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteDeleteAccess());
+		forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptExcludingRecords(TAXO1_CATEGORY2).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptIncludingRecords(TAXO1_CATEGORY2).isTrue();
 
-	@Test
-	public void givenDeletePermissionToUserAndRemoveItFromSubFolderWhenHasRestaurationOnHierarchyThenReturnFalse()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
+		//Bob has a delete permission on category2, but not the whole hierarchy
+		modify(authorizationOnRecord(auth1, FOLDER4).removingItOnRecord());
+		forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptExcludingRecords(TAXO1_CATEGORY2).isTrue();
+		forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptIncludingRecords(TAXO1_CATEGORY2).isFalse();
 
-		recordServices.refresh(records.allRecords());
-		recordServices.logicallyDelete(records.folder4(), users.bobIn(zeCollection));
+		try {
+			forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptExcludingRecords(FOLDER1);
+			fail("Exception expected");
+		} catch (AuthorizationsServicesRuntimeException.RecordIsNotAConceptOfPrincipalTaxonomy e) {
+			//OK
+		}
 
-		recordServices.refresh(records.allRecords());
-		services.removeAuthorizationOnRecord(authorization, records.folder4_2(),
-				KEEP_ATTACHED);
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-
-		boolean hasDeletePermissionOnHierarchy = services
-				.hasRestaurationPermissionOnHierarchy(users.bobIn(zeCollection),
-						records.folder4());
-
-		assertThat(hasDeletePermissionOnHierarchy).isFalse();
-	}
-
-	@Test
-	public void givenUserWithDeletePermissionOnPrincipalConceptIncludingRecordsWhenHasDeletePermissionOnPrincipalConceptHierarchyThenReturnTrue
-			()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-
-		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
-				users.bobIn(zeCollection), records.taxo1_category2(), true, schemasManager);
-
-		assertThat(hasDeletePermissionOnHierarchy).isTrue();
-	}
-
-	@Test(expected = AuthorizationsServicesRuntimeException.RecordIsNotAConceptOfPrincipalTaxonomy.class)
-	public void givenANotConceptRecordInAPrincipalTaxonomyIncludingRecordsWhenHasDeletePermissionOnPrincipalConceptHierarchyThenException()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-
-		services.hasDeletePermissionOnPrincipalConceptHierarchy(users.bobIn(zeCollection), records.folder2(), true,
-				schemasManager);
-	}
-
-	@Test(expected = AuthorizationsServicesRuntimeException.RecordIsNotAConceptOfPrincipalTaxonomy.class)
-	public void givenANotConceptRecordInASecondaryTaxonomyIncludingRecordsWhenHasDeletePermissionOnPrincipalConceptHierarchyThenException()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-
-		services.hasDeletePermissionOnPrincipalConceptHierarchy(users.bobIn(zeCollection), records.folder1(), true,
-				schemasManager);
-	}
-
-	@Test
-	public void givenUserWithDeletePermissionOnPrincipalConceptAndWithoutPermissionToDeleteRecordsIncludingRecordsWhenHasDeletePermissionOnPrincipalConceptHierarchyThenReturnFalse
-			()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		services.removeAuthorizationOnRecord(authorization, records.folder3(),
-				KEEP_ATTACHED);
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-
-		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
-				users.bobIn(zeCollection), records.taxo1_category2(), true, schemasManager);
-
-		assertThat(hasDeletePermissionOnHierarchy).isFalse();
-	}
-
-	@Test
-	public void givenUserWithDeletePermissionOnPrincipalConceptNotIncludingRecordsWhenHasDeletePermissionOnPrincipalConceptHierarchyThenReturnTrue
-			()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-
-		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
-				users.bobIn(zeCollection), records.taxo1_category2(), false, schemasManager);
-
-		assertThat(hasDeletePermissionOnHierarchy).isTrue();
-	}
-
-	@Test
-	public void givenUserWithDeletePermissionOnPrincipalConceptAndWithoutPermissionToDeleteRecordsNotIncludingRecordsWhenHasDeletePermissionOnPrincipalConceptHierarchyThenReturnTrue
-			()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
-		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-		services.removeAuthorizationOnRecord(authorization, records.folder4(),
-				KEEP_ATTACHED);
-		waitForBatchProcess();
-		recordServices.refresh(records.allRecords());
-
-		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
-				users.bobIn(zeCollection), records.taxo1_category2(), false, schemasManager);
-
-		assertThat(hasDeletePermissionOnHierarchy).isTrue();
-	}
-
-	@Test
-	public void givenAddAuthorizationWhenGetAuthorizationThenReturnIt()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-
-		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-		String authId = authorization.getDetail().getId();
-
-		Authorization retrievedAuthorization = services
-				.getAuthorization(authorization.getDetail().getCollection(),
-						authId);
-
-		assertThat(authorization.getDetail()).isEqualToComparingFieldByField(retrievedAuthorization.getDetail());
-		assertThat(authorization.getGrantedOnRecords()).isEqualTo(retrievedAuthorization.getGrantedOnRecords());
-		assertThat(authorization.getGrantedToPrincipals()).isEqualTo(retrievedAuthorization.getGrantedToPrincipals());
-	}
-
-	@Test
-	public void givenGroupHasAuthsThenAuthsInheritedToSubGroupAndItsUsers()
-			throws InterruptedException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ, Role.WRITE);
-
-		assertThat(users.robinIn(zeCollection)).is(notAllowedToWrite(records.taxo1_category2()));
-
-		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-
-		waitForBatchProcess();
-
-		assertThat(users.robinIn(zeCollection)).is(allowedToWrite(records.taxo1_category2()));
+		try {
+			forUserInZeCollection(bob).assertHasDeletePermissionOnPrincipalConceptExcludingRecords(TAXO2_STATION2);
+			fail("Exception expected");
+		} catch (AuthorizationsServicesRuntimeException.RecordIsNotAConceptOfPrincipalTaxonomy e) {
+			//OK
+		}
 
 	}
 
@@ -2575,42 +1481,30 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenGetConceptsForWhichUserHasPermissionThenReturnTheGoodConcepts()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		String sasquatchId = users.sasquatchIn(zeCollection).getId();
+		recordServices.update(users.dakotaIn(zeCollection).setUserRoles(asList(ROLE3)));
+		auth1 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_CATEGORY1).giving(ROLE1));
+		auth2 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth3 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_FOND1_1).giving(ROLE2));
 
-		getModelLayerFactory().newRecordServices().update(
-				users.dakotaIn(zeCollection).setUserRoles(asList(ROLE3)));
+		forUserInZeCollection(dakota).assertThatConceptsForWhichUserHas(PERMISSION_OF_NO_ROLE).isEmpty();
+		forUserInZeCollection(dakota).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE1).isEmpty();
+		forUserInZeCollection(dakota).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE1_AND_ROLE2).isEmpty();
+		forUserInZeCollection(dakota).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE2).isEmpty();
+		forUserInZeCollection(dakota).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE3).containsOnly(
+				TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1);
 
-		addAuthorizationWithoutDetaching(asList(ROLE1), asList(sasquatchId),
-				asList(records.taxo1_category1().getId()));
-		addAuthorizationWithoutDetaching(asList(ROLE1), asList(sasquatchId),
-				asList(records.taxo1_category2().getId()));
-		addAuthorizationWithoutDetaching(asList(ROLE2), asList(sasquatchId),
-				asList(records.taxo1_fond1_1().getId()));
-		waitForBatchProcess();
-
-		User dakotaInZeCollection = users.dakotaIn(zeCollection);
-		User sasquatchInZeCollection = users.sasquatchIn(zeCollection);
-		User sasquatchInAnotherCollection = users.sasquatchIn(anotherCollection);
-
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_NO_ROLE, dakotaInZeCollection)).isEmpty();
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1, dakotaInZeCollection)).isEmpty();
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1_AND_ROLE2, dakotaInZeCollection)).isEmpty();
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE2, dakotaInZeCollection)).isEmpty();
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE3, dakotaInZeCollection))
-				.containsOnly(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1);
-
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_NO_ROLE, sasquatchInZeCollection)).isEmpty();
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1, sasquatchInZeCollection))
-				.containsOnly(TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1);
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1_AND_ROLE2, sasquatchInZeCollection))
-				.containsOnly(TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, TAXO1_FOND1_1);
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE2, sasquatchInZeCollection))
-				.containsOnly(TAXO1_FOND1_1, TAXO1_CATEGORY1);
-		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE3, sasquatchInZeCollection)).isEmpty();
+		forUserInZeCollection(sasquatch).assertThatConceptsForWhichUserHas(PERMISSION_OF_NO_ROLE).isEmpty();
+		forUserInZeCollection(sasquatch).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE1).containsOnly(
+				TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1);
+		forUserInZeCollection(sasquatch).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE1_AND_ROLE2).containsOnly(
+				TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, TAXO1_FOND1_1);
+		forUserInZeCollection(sasquatch).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE2).containsOnly(
+				TAXO1_FOND1_1, TAXO1_CATEGORY1);
+		forUserInZeCollection(sasquatch).assertThatConceptsForWhichUserHas(PERMISSION_OF_ROLE3).isEmpty();
 
 		for (String permission : asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE1_AND_ROLE2, PERMISSION_OF_ROLE2,
 				PERMISSION_OF_ROLE3)) {
-			assertThat(services.getConceptsForWhichUserHasPermission(permission, sasquatchInAnotherCollection)).isEmpty();
+			forUserInAnotherCollection(sasquatch).assertThatConceptsForWhichUserHas(permission).isEmpty();
 		}
 
 	}
@@ -2620,27 +1514,17 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		getModelLayerFactory().newRecordServices().update(
-				users.sasquatchIn(zeCollection).setUserRoles(asList(ROLE1)));
+		Transaction transaction = new Transaction();
+		transaction.add(users.sasquatchIn(zeCollection).setUserRoles(asList(ROLE1)));
+		transaction.add(users.robinIn(zeCollection).setUserRoles(asList(ROLE2)));
+		recordServices.execute(transaction);
+		auth1 = addKeepingAttached(authorizationForUser(robin).on(TAXO1_FOND1).giving(ROLE3));
 
-		getModelLayerFactory().newRecordServices().update(
-				users.robinIn(zeCollection).setUserRoles(asList(ROLE2)));
-
-		addAuthorizationWithoutDetaching(asList(ROLE3),
-				asList(users.robinIn(zeCollection).getId()),
-				asList(records.taxo1_fond1().getId()));
-		waitForBatchProcess();
-
-		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_NO_ROLE, zeCollection))
-				.extracting("username").isEmpty();
-		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE1, zeCollection))
-				.extracting("username").containsOnly(sasquatch);
-		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE1_AND_ROLE2, zeCollection))
-				.extracting("username").containsOnly(sasquatch, robin);
-		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE2, zeCollection))
-				.extracting("username").containsOnly(robin);
-		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE3, zeCollection))
-				.extracting("username").isEmpty();
+		assertThatUsersWithGlobalPermissionInZeCollection(PERMISSION_OF_NO_ROLE).isEmpty();
+		assertThatUsersWithGlobalPermissionInZeCollection(PERMISSION_OF_ROLE1).containsOnly(sasquatch);
+		assertThatUsersWithGlobalPermissionInZeCollection(PERMISSION_OF_ROLE1_AND_ROLE2).containsOnly(sasquatch, robin);
+		assertThatUsersWithGlobalPermissionInZeCollection(PERMISSION_OF_ROLE2).containsOnly(robin);
+		assertThatUsersWithGlobalPermissionInZeCollection(PERMISSION_OF_ROLE3).isEmpty();
 	}
 
 	@Test
@@ -2648,11 +1532,10 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		getModelLayerFactory().newRecordServices().update(users.aliceIn(zeCollection).setUserRoles(asList(ROLE3)));
+		recordServices.update(users.aliceIn(zeCollection).setUserRoles(asList(ROLE3)));
 		auth1 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).giving(ROLE2));
 		auth2 = addKeepingAttached(authorizationForUser(robin).on(TAXO1_FOND1).giving(ROLE1));
 		auth3 = addKeepingAttached(authorizationForUser(gandalf).on(FOLDER1).giving(ROLE1));
-		waitForBatchProcess();
 
 		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
 			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_NO_ROLE).isEmpty();
@@ -2684,11 +1567,10 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		getModelLayerFactory().newRecordServices().update(users.aliceIn(zeCollection).setUserRoles(asList(ROLE3)));
+		recordServices.update(users.aliceIn(zeCollection).setUserRoles(asList(ROLE3)));
 		auth1 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).giving(ROLE2));
 		auth2 = addKeepingAttached(authorizationForUser(robin).on(TAXO1_FOND1).giving(ROLE1));
 		auth3 = addKeepingAttached(authorizationForUser(gandalf).on(FOLDER1).giving(ROLE1));
-		waitForBatchProcess();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1)) {
 			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_NO_ROLE).isEmpty();
@@ -2732,38 +1614,25 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserHasAuthorizationsWithRolesThenHasTheRolesPermissionsOnRecords()
+	public void givenUserHasAuthorizationsWithRolesThenHasValidPermissionsOnRecords()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		String sasquatchId = users.sasquatchIn(zeCollection).getId();
-		Role roleA = new Role(zeCollection, "roleA", "First role", asList("operation1", "operation2"));
-		Role roleB = new Role(zeCollection, "roleB", "Second role", asList("operation3", "operation4"));
-		Role roleC = new Role(zeCollection, "roleC", "Third role", asList("operation5", "operation6"));
+		roleManager.addRole(new Role(zeCollection, "roleA", "First role", asList("operation1", "operation2")));
+		roleManager.addRole(new Role(zeCollection, "roleB", "Second role", asList("operation3", "operation4")));
+		roleManager.addRole(new Role(zeCollection, "roleC", "Third role", asList("operation5", "operation6")));
 
-		roleManager.addRole(roleA);
-		roleManager.addRole(roleB);
-		roleManager.addRole(roleC);
+		recordServices.update(users.sasquatchIn(zeCollection).setUserRoles(asList("roleA")));
 
-		getModelLayerFactory().newRecordServices().update(
-				users.sasquatchIn(zeCollection).setUserRoles(asList("roleA")));
-
-		addAuthorizationWithoutDetaching(asList("roleB", READ), asList(sasquatchId),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
-
-		User sasquatchInZeCollection = users.sasquatchIn(zeCollection);
-		User sasquatchInAnotherCollection = users.sasquatchIn(anotherCollection);
+		auth1 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_CATEGORY1).giving("roleB"));
 
 		Record folder1Inside = refreshed(records.folder1());
 		Record folder2Inside = refreshed(records.folder2());
 		Record folder3Outside = refreshed(records.folder3());
 		Record folder4Outside = refreshed(records.folder4());
 
-		assertThat(sasquatchInZeCollection.has("operation1").onSomething()).isTrue();
+		User sasquatchInZeCollection = users.sasquatchIn(zeCollection);
 		assertThat(sasquatchInZeCollection.has("operation1").onSomething()).isTrue();
 		assertThat(sasquatchInZeCollection.has("operation3").onSomething()).isTrue();
-		assertThat(sasquatchInZeCollection.has("operation3").onSomething()).isTrue();
-		assertThat(sasquatchInZeCollection.has("operation5").onSomething()).isFalse();
 		assertThat(sasquatchInZeCollection.has("operation5").onSomething()).isFalse();
 
 		assertThat(sasquatchInZeCollection.has("operation1").on(folder1Inside)).isTrue();
@@ -2804,7 +1673,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(sasquatchInZeCollection.hasAll("operation1", "operation4").onAll(folder1Inside, folder3Outside)).isFalse();
 		assertThat(sasquatchInZeCollection.hasAll("operation1", "operation2").onAll(folder1Inside, folder3Outside)).isTrue();
 
-		assertThat(sasquatchInAnotherCollection.hasAny("operation1", "operation2", "operation3", "operation4",
+		assertThat(users.sasquatchIn(anotherCollection).hasAny("operation1", "operation2", "operation3", "operation4",
 				"operation5", "operation6", "otherPermission").globally()).isFalse();
 
 		assertThat(userServices.has(sasquatch).globalPermissionInAnyCollection("operation1")).isTrue();
@@ -2812,250 +1681,4 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-	// ---------------------------------------------------------------------------------------------------------
-
-	private Condition<? super User> allowedToWrite(final Record record) {
-		recordServices.refresh(record);
-		return new Condition<User>() {
-			@Override
-			public boolean matches(User user) {
-				assertThat(services.canWrite(user, record))
-						.describedAs("can write '" + record.getId() + "'")
-						.isTrue();
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super User> notAllowedToWrite(final Record record) {
-		recordServices.refresh(record);
-		return new Condition<User>() {
-			@Override
-			public boolean matches(User user) {
-				assertThat(services.canWrite(user, record))
-						.describedAs("can write '" + record.getId() + "'")
-						.isFalse();
-				return true;
-			}
-		};
-	}
-
-	private Record refreshed(Record record) {
-		recordServices.refresh(record);
-		return record;
-	}
-
-	private void saveRefreshRecord(List<Record> records)
-			throws RecordServicesException, InterruptedException {
-		Transaction transaction = new Transaction();
-		for (Record oldRecord : records) {
-			transaction.addUpdate(oldRecord);
-		}
-
-		recordServices.execute(transaction);
-		waitForBatchProcess();
-
-		recordServices.refresh(records);
-	}
-
-	private List<Record> findRecords(LogicalSearchCondition condition, User user) {
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
-		query.filteredWithUser(user);
-		return searchServices.search(query);
-	}
-
-	private List<String> findAllFoldersAndDocumentsWithWritePermission(User user) {
-		MetadataSchema folderSchema, documentSchema;
-		if (user.getCollection().endsWith("zeCollection")) {
-			folderSchema = setup.folderSchema.instance();
-			documentSchema = setup.documentSchema.instance();
-		} else {
-			folderSchema = anothercollectionSetup.folderSchema.instance();
-			documentSchema = anothercollectionSetup.documentSchema.instance();
-		}
-
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(folderSchema).returnAll());
-		query.filteredWithUserWrite(user);
-		List<String> recordIds = searchServices.searchRecordIds(query);
-
-		query.setCondition(from(documentSchema).returnAll());
-		recordIds.addAll(searchServices.searchRecordIds(query));
-		return recordIds;
-	}
-
-	private List<String> findAllFoldersAndDocumentsWithDeletePermission(User user) {
-		MetadataSchema folderSchema, documentSchema;
-		if (user.getCollection().endsWith("zeCollection")) {
-			folderSchema = setup.folderSchema.instance();
-			documentSchema = setup.documentSchema.instance();
-		} else {
-			folderSchema = anothercollectionSetup.folderSchema.instance();
-			documentSchema = anothercollectionSetup.documentSchema.instance();
-		}
-
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(folderSchema).returnAll());
-		query.filteredWithUserDelete(user);
-		List<String> recordIds = searchServices.searchRecordIds(query);
-
-		query.setCondition(from(documentSchema).returnAll());
-		recordIds.addAll(searchServices.searchRecordIds(query));
-		return recordIds;
-	}
-
-	private List<String> findAllFoldersAndDocuments(User user) {
-		List<String> recordIds = new ArrayList<>();
-
-		MetadataSchema folderSchema, documentSchema;
-		if (user.getCollection().endsWith("zeCollection")) {
-			folderSchema = setup.folderSchema.instance();
-			documentSchema = setup.documentSchema.instance();
-		} else {
-			folderSchema = anothercollectionSetup.folderSchema.instance();
-			documentSchema = anothercollectionSetup.documentSchema.instance();
-		}
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(folderSchema).returnAll());
-		query.filteredWithUser(user);
-		recordIds.addAll(searchServices.searchRecordIds(query));
-
-		query = new LogicalSearchQuery();
-		query.setCondition(from(documentSchema).returnAll());
-		query.filteredWithUser(user);
-		recordIds.addAll(searchServices.searchRecordIds(query));
-		return recordIds;
-	}
-
-	private Authorization addAuthorizationWithoutDetaching(String role, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		return addAuthorizationWithoutDetaching(aString(), asList(role), grantedToPrincipals, grantedOnRecords);
-	}
-
-	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		return addAuthorizationWithoutDetaching(aString(), roles, grantedToPrincipals, grantedOnRecords);
-	}
-
-	private Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, zeCollection);
-
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		services.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
-		return authorization;
-	}
-
-	private String addKeepingAttached(Authorization authorization) {
-		services.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-
-		return authorization.getDetail().getId();
-	}
-
-	private void addDetaching(Authorization authorization) {
-		services.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private Authorization addAuthorizationDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		services.add(authorization, CustomizedAuthorizationsBehavior.DETACH, users.dakotaLIndienIn(zeCollection));
-		return authorization;
-	}
-
-	private void addAuthorizationForDates(List<String> roles, List<String> grantedToPrincipals, List<String> grantedOnRecords,
-			LocalDate startDate, LocalDate endDate) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, startDate, endDate, zeCollection);
-
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		services.add(authorization, KEEP_ATTACHED, null);
-	}
-
-	private void modifyAuthorizationWithoutDetaching(Authorization authorization) {
-		services
-				.modify(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
-	}
-
-	private Group createGroup(String name) {
-		return userServices.createCustomGroupInCollectionWithCodeAndName(zeCollection, ZE_GROUP, name);
-	}
-
-	private void givenChuckNorrisSeesEverything()
-			throws Exception {
-
-		User chuck = users.chuckNorrisIn(zeCollection);
-		chuck.setCollectionReadAccess(true);
-		chuck.setCollectionWriteAccess(true);
-		chuck.setCollectionDeleteAccess(true);
-
-		recordServices.update(chuck.getWrappedRecord());
-	}
-
-	private void givenAliceCanModifyEverythingAndBobCanDeleteEverythingAndDakotaReadEverythingInAnotherCollection()
-			throws RecordServicesException {
-
-		User alice = users.aliceIn(anotherCollection);
-		alice.setCollectionWriteAccess(true);
-		recordServices.update(alice.getWrappedRecord());
-
-		User bob = users.bobIn(anotherCollection);
-		bob.setCollectionDeleteAccess(true);
-		recordServices.update(bob.getWrappedRecord());
-
-		User dakota = users.dakotaIn(anotherCollection);
-		dakota.setCollectionReadAccess(true);
-		recordServices.update(dakota.getWrappedRecord());
-
-	}
-
-	private Condition<? super User> authorizationsToRead(final Record... records) {
-		final List<String> recordIds = new RecordUtils().toIdList(asList(records));
-		return new Condition<User>() {
-			@Override
-			public boolean matches(User user) {
-
-				LogicalSearchQuery query = new LogicalSearchQuery()
-						.setCondition(fromAllSchemasIn(user.getCollection()).returnAll())
-						.filteredWithUser(user);
-				List<String> results = searchServices.searchRecordIds(query);
-
-				assertThat(results).containsAll(recordIds);
-
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super User> noAuthorizationsToRead(final Record... records) {
-		final List<String> recordIds = new RecordUtils().toIdList(asList(records));
-		return new Condition<User>() {
-			@Override
-			public boolean matches(User user) {
-
-				LogicalSearchQuery query = new LogicalSearchQuery()
-						.setCondition(fromAllSchemasIn(user.getCollection()).returnAll())
-						.filteredWithUser(user);
-				List<String> results = searchServices.searchRecordIds(query);
-
-				assertThat(results).doesNotContainAnyElementsOf(recordIds);
-
-				return true;
-			}
-		};
-	}
 }
