@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.reports.model.labels;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.RectangleReadOnly;
+import com.itextpdf.text.Utilities;
 
 public enum LabelsReportLayout {
 
@@ -18,7 +19,7 @@ public enum LabelsReportLayout {
 	AVERY_5162_V1(2, 7, PageSize.LETTER, 12, 12, 57f, 57f),//60, 60),OK
 	//AVERY_5162(2, 7, PageSize.LETTER, 2, 3, 60, 60),
 
-	AVERY_5163(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
+	AVERY_5163(2, 5, PageSize.LETTER, Utilities.inchesToPoints(0.1f), Utilities.inchesToPoints(0.1f), Utilities.inchesToPoints(0.4f), Utilities.inchesToPoints(0f)),
 	LABEL_1_5_X_5_25(2, 5, PageSize.LETTER.rotate(), 16.0f, 20.f, 36.0f, 37.0f),
 	AVERY_5168(2, 2, PageSize.LETTER, 22.0f, 0f, 20.0f, 20.0f);
 
