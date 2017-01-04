@@ -12977,11 +12977,16 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-has-caption {
-	width: 70%;
+	width: 100%;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-has-caption .list-add-remove-comment {
 	width: 100%;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display {
+	white-space: normal;
+	height: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .copy-retention-rule-table-medium-types-field {
@@ -13329,7 +13334,11 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 }
 
-.constellio .ui-with-top-menu[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
+.constellio .ui-with-top-menu[width-range~="1101px-"] .action-menu-wrapper .base-display .record-comments-editor {
+	width: 100%;
+}
+
+.constellio .ui-with-top-menu[width-range~="1101px-"] .action-menu-wrapper .base-display .record-comments-editor .v-slot-list-add-remove-comment {
 	width: 100%;
 }
 

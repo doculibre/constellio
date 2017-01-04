@@ -868,7 +868,7 @@ $popup-view-z-index: 3;
 							}
 							
 							.v-has-caption {
-								width: 70%;
+								width: 100%;
 								.list-add-remove-comment {
 									width: 100%;
 								}
@@ -1232,8 +1232,12 @@ $popup-view-z-index: 3;
 				.v-slot-display-value {
 				}
 
-				.v-slot-list-add-remove-comment {
+				.record-comments-editor {
 					width: 100%;
+					
+					.v-slot-list-add-remove-comment {
+						width: 100%;
+					}
 				}
 			}
         }
