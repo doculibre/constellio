@@ -1,10 +1,11 @@
 package com.constellio.app.modules.es.connectors.smb.cache;
 
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
-import org.apache.commons.codec.binary.StringUtils;
 
 import java.io.Serializable;
 import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class SmbConnectorContext implements Serializable {
 
