@@ -483,13 +483,13 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		AuthorizationDetails zeCollectionAuth = AuthorizationDetails
 				.create("1", asList(Role.READ), zeCollection);
 		authorizationsServices.add(new Authorization(zeCollectionAuth, asList(users.gandalfLeblancIn(zeCollection).getId()),
-				asList(zeCollectionRecord1)), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+				asList(zeCollectionRecord1)), null);
 
 		AuthorizationDetails anotherCollectionAuth = AuthorizationDetails
 				.create("2", asList(Role.READ), anotherCollection);
 		authorizationsServices
 				.add(new Authorization(anotherCollectionAuth, asList(users.gandalfLeblancIn(anotherCollection).getId()),
-						asList(anotherCollectionRecord1)), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+						asList(anotherCollectionRecord1)), null);
 
 		try {
 			waitForBatchProcess();

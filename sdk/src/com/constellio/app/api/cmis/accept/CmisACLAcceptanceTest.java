@@ -281,7 +281,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 				usersWithAccess.put(subSubFolder.getId(), usersWithAccess(subSubFolderAces));
 			}
 		}
-
+		waitForBatchProcess();
 		for (Map.Entry<String, List<String>> entry : usersWithAccess.entrySet()) {
 			Record record = recordServices.getDocumentById(entry.getKey());
 
@@ -403,72 +403,6 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, true);
 		session.getDefaultContext().setIncludeAcls(true);
 		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated2()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated3()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated4()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated5()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated6()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated7()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated8()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated9()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated10()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated11()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
-	}
-
-	@Test
-	public void whenSetACLThenAuthorizationsCreated12()
-			throws Exception {
-		whenSetACLThenAuthorizationsCreated();
 	}
 
 	@Test

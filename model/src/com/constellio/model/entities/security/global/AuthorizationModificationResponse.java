@@ -25,11 +25,11 @@ public class AuthorizationModificationResponse {
 		return idOfAuthorizationCopy;
 	}
 
-	public Map<String, String> getIdOfAuthorizationCopies() {
-		return idOfAuthorizationCopies;
-	}
-
-	public String getIdOfAuthorizationCopy(String originalId) {
-		return idOfAuthorizationCopies.get(originalId);
-	}
+//	public Map<String, String> getIdOfAuthorizationCopies() {
+	//		return idOfAuthorizationCopies;
+	//	}
+	//
+	//	public String getIdOfAuthorizationCopy(String originalId) {
+//		return idOfAuthorizationCopies.get(originalId);
+//	}
 }

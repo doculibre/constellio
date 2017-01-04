@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorization;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 
@@ -52,11 +55,13 @@ public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizatio
 
 	@Override
 	protected void removeAuthorization(Authorization authorization) {
+
 		if (authorization.getGrantedToPrincipals().size() == 1) {
 			authorizationsServices().delete(authorization.getDetail(), getCurrentUser());
 		} else {
-			authorization.getGrantedToPrincipals().remove(recordId);
-			authorizationsServices().modify(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, getCurrentUser());
+			List<String> principals = authorization.getGrantedToPrincipals();
+			principals.remove(recordId);
+			authorizationsServices().execute(modifyAuthorization(authorization).withNewPrincipalIds(principals));
 		}
 	}
 

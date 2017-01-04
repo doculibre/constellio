@@ -407,7 +407,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+		authorizationsServices.add(authorization, null);
 	}
 
 	private List<Record> findRecords(LogicalSearchCondition condition, User user) {
@@ -449,16 +449,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-		return authorization;
-	}
-
-	private Authorization addAuthorizationDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.DETACH, null);
+		authorizationsServices.add(authorization, null);
 		return authorization;
 	}
 
@@ -468,11 +459,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-	}
-
-	private void modifyAuthorizationWithoutDetaching(Authorization authorization) {
-		authorizationsServices.modify(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+		authorizationsServices.add(authorization, null);
 	}
 
 }

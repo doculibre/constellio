@@ -280,7 +280,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		List<String> doculibreUserAuthorizationRecords = Arrays.asList(doculibreTaxos.taxo1_firstTypeItem1.getId(),
 				doculibreTaxos.taxo1_firstTypeItem2.getId());
 		authorizationsServices.add(new Authorization(doculibreUserAuthorizationDetails, doculibreUserAuthorizationPrincipals,
-				doculibreUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+				doculibreUserAuthorizationRecords), null);
 	}
 
 	private void givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
@@ -293,7 +293,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		List<String> constellioUserAuthorizationRecords = Arrays.asList(constellioTaxos.taxo1_firstTypeItem1.getId(),
 				constellioTaxos.taxo1_firstTypeItem2.getId());
 		authorizationsServices.add(new Authorization(constellioUserAuthorizationDetails, constellioUserAuthorizationPrincipals,
-				constellioUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+				constellioUserAuthorizationRecords), null);
 	}
 
 	private void givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre() {

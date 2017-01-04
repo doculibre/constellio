@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -87,6 +88,7 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 	@Mock LoggingServices loggingServices;
 	@Mock UniqueIdGenerator uniqueIdGenerator;
 	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock DataLayerFactory dataLayerFactory;
 
 	@Before
 	public void setUp()
@@ -99,7 +101,10 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 		when(modelLayerFactory.newUserServices()).thenReturn(userServices);
 		when(modelLayerFactory.newLoggingServices()).thenReturn(loggingServices);
-		when(modelLayerFactory.getDataLayerFactory().getSecondaryUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+		when(dataLayerFactory.getSecondaryUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
+		when(modelLayerFactory.newLoggingServices()).thenReturn(loggingServices);
+		authorizationsServices = new AuthorizationsServices(modelLayerFactory);
 
 		recordIds = new ArrayList<>();
 		recordIds.add(record1id);
@@ -198,57 +203,6 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenRemovingAuthOnRecordThenAuthRemovedAndBehaviorSet()
-			throws Exception {
-		List<String> auths = new ArrayList<>();
-		auths.add("oldAuth1");
-		auths.add("oldAuth2");
-
-		Authorization auth = mock(Authorization.class, "oldAuth2");
-		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
-		when(authDetails.getId()).thenReturn("oldAuth2");
-		when(auth.getDetail()).thenReturn(authDetails);
-
-		doReturn(auths).when(record1).getList(Schemas.AUTHORIZATIONS);
-
-		authorizationsServices.removeAuthorizationOnRecord(auth, record1, CustomizedAuthorizationsBehavior.KEEP_ATTACHED);
-
-		verify(authorizationsServices).removeAuthorizationOnRecord("oldAuth2", record1, true);
-		verify(authorizationsServices).setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.KEEP_ATTACHED, record1);
-	}
-
-	@Test
-	public void whenRemovingInheritedAuthOnRecordThenAuthRemovedAndBehaviorSet()
-			throws Exception {
-		List<String> inheritedAuths = new ArrayList<>();
-		inheritedAuths.add("inheritedAuth1");
-		inheritedAuths.add("inheritedAuth2");
-
-		Authorization auth = mock(Authorization.class, "inheritedAuth2");
-		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
-		when(authDetails.getId()).thenReturn("inheritedAuth2");
-		when(auth.getDetail()).thenReturn(authDetails);
-
-		doReturn(inheritedAuths).when(record1).getList(Schemas.INHERITED_AUTHORIZATIONS);
-
-		authorizationsServices.removeAuthorizationOnRecord(auth, record1, CustomizedAuthorizationsBehavior.KEEP_ATTACHED);
-
-		verify(authorizationsServices).removeInheritedAuthorizationOnRecord("inheritedAuth2", record1);
-		verify(authorizationsServices).setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.KEEP_ATTACHED, record1);
-	}
-
-	@Test
-	public void whenSettingAuthBehaviorToRecordThenBehaviorSetAndAuthsAdjusted()
-			throws Exception {
-		authorizationsServices.setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.DETACH, record1);
-		verify(authorizationsServices).setupAuthorizationsForDetachedRecord(record1);
-		verify(record1).set(Schemas.IS_DETACHED_AUTHORIZATIONS, true);
-
-		authorizationsServices.setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.KEEP_ATTACHED, record2);
-		verify(record2).set(Schemas.IS_DETACHED_AUTHORIZATIONS, false);
-	}
-
-	@Test
 	public void whenDeletingAuthThenAuthRemovedOnAllRecords()
 			throws Exception {
 		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
@@ -325,24 +279,6 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 
 		verify(authorizationsServices).refreshAuthorizationBasedOnDates(auth1);
 		verify(authorizationsServices).refreshAuthorizationBasedOnDates(auth2);
-	}
-
-	@Test
-	public void whenRemovingMultipleAuthsThenAllAuthsRemoved()
-			throws Exception {
-		Authorization auth1 = mock(Authorization.class);
-		Authorization auth2 = mock(Authorization.class);
-
-		doNothing().when(authorizationsServices).removeAuthorizationOnRecord(any(Authorization.class), any(Record.class),
-				any(CustomizedAuthorizationsBehavior.class));
-		authorizationsServices.removeMultipleAuthorizationsOnRecord(Arrays.asList(auth1, auth2), record1,
-				CustomizedAuthorizationsBehavior.KEEP_ATTACHED);
-
-		verify(authorizationsServices)
-				.removeAuthorizationOnRecord(auth1, record1, CustomizedAuthorizationsBehavior.KEEP_ATTACHED);
-		verify(authorizationsServices)
-				.removeAuthorizationOnRecord(auth2, record1, CustomizedAuthorizationsBehavior.KEEP_ATTACHED);
-
 	}
 
 }

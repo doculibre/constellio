@@ -40,7 +40,11 @@ public class Authorization {
 	}
 
 	public String getGrantedOnRecord() {
-		return grantedOnRecords.get(0);
+		if (grantedOnRecords.size() > 1) {
+			throw new RuntimeException("Authorization '" + getDetail().getId() + "' has multiple records : " + grantedOnRecords);
+		}
+
+		return grantedOnRecords.isEmpty() ? null : grantedOnRecords.get(0);
 	}
 
 	public List<String> getGrantedOnRecords() {

@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
@@ -32,6 +33,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
@@ -1973,7 +1975,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			List<String> grantedTo = asList(user.getId());
 			List<String> grantedOn = asList(record.getId());
 			Authorization authorization = new Authorization(authorizationDetails, grantedTo, grantedOn);
-			authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+			authorizationsServices.add(authorization, null);
 			waitForBatchProcess();
 		}
 
@@ -1985,16 +1987,15 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			List<String> grantedTo = asList(user.getId());
 			List<String> grantedOn = asList(record.getId());
 			Authorization authorization = new Authorization(authorizationDetails, grantedTo, grantedOn);
-			authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+			authorizationsServices.add(authorization, null);
 			waitForBatchProcess();
 		}
 
 		public void hasRemovedDeletePermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			Authorization authorizationDetails = authorizationsServices.getRecordAuthorizations(record).get(0);
-			authorizationsServices.removeAuthorizationOnRecord(authorizationDetails, record,
-					CustomizedAuthorizationsBehavior.KEEP_ATTACHED);
+			String authorizationDetailId = authorizationsServices.getRecordAuthorizations(record).get(0).getDetail().getId();
+			authorizationsServices.execute(modifyAuthorizationOnRecord(authorizationDetailId, record).removingItOnRecord());
 			waitForBatchProcess();
 		}
 

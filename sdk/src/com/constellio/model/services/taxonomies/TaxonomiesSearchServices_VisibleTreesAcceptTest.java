@@ -840,8 +840,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		authorization.setDetail(AuthorizationDetails.create("zeAuthorization", asList(Role.READ), zeCollection));
 		authorization.setGrantedOnRecords(asList(ids));
 		authorization.setGrantedToPrincipals(asList(alice.getId()));
-		getModelLayerFactory().newAuthorizationsServices().add(
-				authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+		getModelLayerFactory().newAuthorizationsServices().add(authorization, null);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);

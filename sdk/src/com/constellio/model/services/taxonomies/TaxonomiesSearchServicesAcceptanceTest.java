@@ -856,7 +856,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+		authorizationsServices.add(authorization, null);
 		return authorization;
 	}
 

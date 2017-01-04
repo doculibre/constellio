@@ -5,11 +5,12 @@ import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
 import static com.constellio.data.utils.LangUtils.isEqual;
-import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
@@ -24,11 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
@@ -107,10 +106,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_APPLY_ACL);
 		if (hasCommandToRemoveAllInheritedAuthorizations()) {
 
-			for (Authorization auth : getInheritedObjectAuthorizationsWithPermission(objectId)) {
-				authorizationsServices.removeAuthorizationOnRecord(auth, record, DETACH);
-			}
-
+			authorizationsServices.detach(record);
 		}
 
 		List<Ace> currentAces = new GetAclRequest(repository, appLayerFactory, callContext, objectId).process().getAces();
@@ -181,7 +177,6 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
-
 
 		}
 		for (String auth : authorizationsPotentiallyEmpty) {

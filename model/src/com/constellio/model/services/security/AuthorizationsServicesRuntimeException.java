@@ -66,6 +66,14 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class NoSuchPrincipalWithUsername extends AuthorizationsServicesRuntimeException {
+
+		public NoSuchPrincipalWithUsername(String code) {
+			super("No such principal with code/username : " + code);
+		}
+
+	}
+
 	public static class CannotDetachConcept extends AuthorizationsServicesRuntimeException {
 
 		public CannotDetachConcept(String concept) {

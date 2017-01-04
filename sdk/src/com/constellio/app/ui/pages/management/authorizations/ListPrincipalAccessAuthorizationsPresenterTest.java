@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -12,9 +13,12 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.sdk.tests.MockedNavigation;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import com.constellio.app.ui.application.CoreViews;
@@ -59,6 +63,8 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Before
 	public void setUp()
 			throws Exception {
+		when(authorizationVO.getAuthId()).thenReturn("zeAuth");
+		when(details.getId()).thenReturn("zeAuth");
 		navigator = new MockedNavigation();
 
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
@@ -103,11 +109,14 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 
 	@Test
 	public void givenAuthorizationDeletedWhenMultiPrincipalThenRemoveThePrincipalAndRefreshTheView() {
+		ArgumentCaptor<AuthorizationModificationRequest> captor = forClass(AuthorizationModificationRequest.class);
 		givenAuthorizationWithId(aString(), true);
 		presenter.deleteButtonClicked(authorizationVO);
-		assertThat(authorization.getGrantedToPrincipals()).containsOnly(ZENOTHER_PRINCIPAL);
-		verify(authorizationsServices, times(1)).modify(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, user);
+		verify(authorizationsServices, times(1)).execute(captor.capture());
 		verify(view, times(1)).removeAuthorization(authorizationVO);
+
+		assertThat(captor.getValue().getAuthorizationId()).isEqualTo("zeAuth");
+		assertThat(captor.getValue().getNewPrincipalIds()).containsOnly(ZENOTHER_PRINCIPAL);
 	}
 
 	private void givenPrincipalWithTwoInheritedAndTwoOwnAuthorizations() {

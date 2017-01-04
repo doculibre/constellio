@@ -79,13 +79,13 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 		if (user.has(CorePermissions.MANAGE_SECURITY).globally()) {
 			results.addAll(Arrays.asList(Role.READ, Role.WRITE, Role.DELETE));
 		} else {
-			if (authorizationsServices().canRead(user, record)) {
+			if (user.hasReadAccess().on(record)) {
 				results.add(Role.READ);
 			}
-			if (authorizationsServices().canWrite(user, record)) {
+			if (user.hasWriteAccess().on(record)) {
 				results.add(Role.WRITE);
 			}
-			if (authorizationsServices().canDelete(user, record)) {
+			if (user.hasDeleteAccess().on(record)) {
 				results.add(Role.DELETE);
 			}
 		}

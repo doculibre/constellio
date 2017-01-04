@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
@@ -72,15 +75,15 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
-		Authorization authorization = toAuthorization(authorizationVO);
+		Authorization authorization = toNewAuthorization(authorizationVO);
 		String id = authorizationsServices().add(authorization, getCurrentUser());
 		authorizationVO.setAuthId(id);
 		view.addAuthorization(authorizationVO);
 	}
 
 	public void authorizationModificationRequested(AuthorizationVO authorizationVO) {
-		Authorization authorization = toAuthorization(authorizationVO);
-		authorizationsServices().modify(authorization, getCurrentUser());
+		AuthorizationModificationRequest request = toAuthorizationModificationRequest(authorizationVO);
+		authorizationsServices().execute(request);
 		authorizations = null;
 		view.refresh();
 	}
@@ -118,30 +121,41 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 	protected abstract void removeAuthorization(Authorization authorization);
 
-	private Authorization toAuthorization(AuthorizationVO authorizationVO) {
+	private Authorization toNewAuthorization(AuthorizationVO authorizationVO) {
 		String code = authorizationVO.getAuthId();
-		AuthorizationDetails details;
-		if (StringUtils.isBlank(code)) {
-			code = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator().next();
+		code = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator().next();
 
-			ArrayList<String> roles = new ArrayList<>();
-			roles.addAll(authorizationVO.getAccessRoles());
+		ArrayList<String> roles = new ArrayList<>();
+		roles.addAll(authorizationVO.getAccessRoles());
 
-			for (String roleCode : authorizationVO.getUserRoles()) {
-				roles.add(roleCode);
-			}
-
-			details = AuthorizationDetails.create(
-					code, roles, authorizationVO.getStartDate(), authorizationVO.getEndDate(), view.getCollection());
-		} else {
-			details = modelLayerFactory.getAuthorizationDetailsManager().get(view.getCollection(), code);
+		for (String roleCode : authorizationVO.getUserRoles()) {
+			roles.add(roleCode);
 		}
+
+		AuthorizationDetails details = AuthorizationDetails.create(
+				code, roles, authorizationVO.getStartDate(), authorizationVO.getEndDate(), view.getCollection());
 
 		List<String> principals = new ArrayList<>();
 		principals.addAll(authorizationVO.getUsers());
 		principals.addAll(authorizationVO.getGroups());
-
 		return new Authorization(details, principals, authorizationVO.getRecords());
+	}
+
+	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
+		String authId = authorizationVO.getAuthId();
+
+		AuthorizationModificationRequest request = modifyAuthorizationOnRecord(authId, collection, recordId);
+		request = request.withNewAccessAndRoles(authorizationVO.getAccessRoles());
+		request = request.withNewStartDate(authorizationVO.getStartDate());
+		request = request.withNewEndDate(authorizationVO.getEndDate());
+
+		List<String> principals = new ArrayList<>();
+		principals.addAll(authorizationVO.getUsers());
+		principals.addAll(authorizationVO.getGroups());
+		request = request.withNewPrincipalIds(principals);
+
+		return request;
+
 	}
 
 	protected AuthorizationsServices authorizationsServices() {
@@ -153,8 +167,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 	protected List<Authorization> getAllAuthorizations() {
 		//if (authorizations == null) {
-			Record record = presenterService().getRecord(recordId);
-			authorizations = authorizationsServices().getRecordAuthorizations(record);
+		Record record = presenterService().getRecord(recordId);
+		authorizations = authorizationsServices().getRecordAuthorizations(record);
 		//}
 		return authorizations;
 	}

@@ -26,6 +26,7 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidRole;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidTargetType;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -99,11 +100,12 @@ public class AuthorizationImportServices {
 				try {
 					authorizationServices
 							.getAuthorizationIdByIdWithoutPrefix(collection, importedAuthorization.getId());
-					authorizationServices.modify(authorization, null);
+					authorizationServices.delete(authorization.getDetail(), User.GOD);
 				} catch (NoSuchAuthorizationWithId e) {
 					//new authorization
-					authorizationServices.add(authorization, null);
+
 				}
+				authorizationServices.add(authorization);
 			} catch (ImportedAuthorizationBuilderRuntimeException e) {
 				deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
 			}

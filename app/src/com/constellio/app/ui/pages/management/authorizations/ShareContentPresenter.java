@@ -64,13 +64,13 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 
 		User user = getCurrentUser();
 		Record record = presenterService().getRecord(recordId);
-		if (authorizationsServices().canRead(user, record)) {
+		if (user.hasReadAccess().on(record)) {
 			results.add(Role.READ);
 		}
-		if (authorizationsServices().canWrite(user, record)) {
+		if (user.hasWriteAccess().on(record)) {
 			results.add(Role.WRITE);
 		}
-		if (authorizationsServices().canDelete(user, record)) {
+		if (user.hasDeleteAccess().on(record)) {
 			results.add(Role.DELETE);
 		}
 

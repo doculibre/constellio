@@ -1,5 +1,6 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
 import static com.constellio.model.entities.security.Role.READ;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,18 +17,77 @@ import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
+@SlowTest
 public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
+	@Test
+	//Basic security test
+	public void givenHeroesHaveReadAccessToCategory2ThenTheySeeFolder3AndFolder4()
+			throws Exception {
+
+		List<String> roles = asList(READ);
+
+		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
+				asList(records.taxo1_category2().getId()));
+
+		waitForBatchProcess();
+
+		List<String> foundRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
+		assertThat(foundRecords).containsOnly(records.folder3().getId(), records.folder4().getId(), records.folder4_1().getId(),
+				records.folder4_2().getId(), records.folder3_doc1().getId(), records.folder4_1_doc1().getId(),
+				records.folder4_2_doc1().getId());
+		foundRecords = findAllFoldersAndDocuments(users.dakotaLIndienIn(zeCollection));
+		assertThat(foundRecords).containsOnly(records.folder3().getId(), records.folder4().getId(), records.folder4_1().getId(),
+				records.folder4_2().getId(), records.folder3_doc1().getId(), records.folder4_1_doc1().getId(),
+				records.folder4_2_doc1().getId());
+	}
+
+	@Test
+	//Basic security test
+	public void givenLegendsAndHeroesHaveAuthsWhenAddingAuthToGandalfThenGandalfInheritsBothGroupsAuthsAlongsideHisOwn()
+			throws Exception {
+
+		List<String> roles = asList(READ);
+		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder4().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), asList(records.folder2().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.gandalfIn(zeCollection).getId()),
+				asList(records.taxo1_category1().getId()));
+		waitForBatchProcess();
+
+		List<String> foundRecords = findAllFoldersAndDocuments(users.gandalfIn(zeCollection));
+
+		assertThat(foundRecords).containsOnly(records.folder1().getId(), records.folder2().getId(), records.folder2_1().getId(),
+				records.folder2_2().getId(), records.folder1_doc1().getId(), records.folder2_2_doc1().getId(),
+				records.folder2_2_doc2().getId(), records.folder4().getId(), records.folder4_1().getId(),
+				records.folder4_2().getId(),
+				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
+	}
+
+	@Test
+	//Basic security test
+	public void givenBobHasReadAccessToFolder2_2_doc2ThenBobSeesOnlyFolder2_2_doc2()
+			throws Exception {
+
+		List<String> roles = asList(READ);
+		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
+				asList(records.folder2_2_doc2().getId()));
+		waitForBatchProcess();
+
+		List<String> foundRecords = findAllFoldersAndDocuments(users.bobIn(zeCollection));
+		assertThat(foundRecords).containsOnly(records.folder2_2_doc2().getId());
+	}
 
 	@Test
 	public void givenLegendsHaveReadAuthToFolder2WhenGivingWriteAuthToAliceThenEdouardReadsFolder2AndAliceWritesFolder2()
 			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		List<String> roles = Arrays.asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder2().getId()));
 		roles = Arrays.asList(Role.WRITE);
-		addAuthorizationDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList(records.folder2().getId()));
+		detach(records.folder2().getId());
+		addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList(records.folder2().getId()));
 		waitForBatchProcess();
 
 		List<String> foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
@@ -38,12 +98,11 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 				records.folder2_2_doc1().getId(), records.folder2_2_doc2().getId());
 	}
 
-
 	@Test
 	//Basic security test
 	public void givenHeroesAndAliceHaveAuthToCategory2AndEdouardHasAuthToCategory2_1ThenAllButBobSeeFolder3()
 			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
@@ -69,7 +128,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 	//Basic security test
 	public void givenHeroesAndAliceHaveAuthToCategory2AndEdouardHasAuthToFolder4ThenAllButBobSeeFolder4()
 			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
@@ -101,49 +160,16 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 	}
 
 	@Test
-	//Removing detached + add new auth
-	public void givenLegendsAndHeroesHaveAuthToCategory2WhenRemovingHeroesAuthAndAddingDakotaAuthOnCategory2ThenHeroesSeeFolder3ButNot4()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles,
-				asList(users.legendsIn(zeCollection).getId(), users.heroesIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-
-		for (Authorization recordAuth : services.getRecordAuthorizations(records.folder4())) {
-			if (recordAuth.getGrantedToPrincipals().contains(users.heroesIn(zeCollection).getId())) {
-				services.removeAuthorizationOnRecord(recordAuth, records.folder4(),
-						CustomizedAuthorizationsBehavior.DETACH);
-			}
-		}
-		waitForBatchProcess();
-
-		addAuthorizationWithoutDetaching(roles, asList(users.dakotaIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
-		waitForBatchProcess();
-
-		List<String> foundRecords = findAllFoldersAndDocuments(users.dakotaLIndienIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder3().getId(), records.folder3_doc1().getId());
-		foundRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder3().getId(), records.folder3_doc1().getId());
-	}
-
-
-
-	@Test
 	public void givenBobHasAnAuthorizationGivingHimARoleWithReadAccessHasTheHasTheRolePermissionsOnTargetRecordsAndTheirDescendants
 			()
 			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		User bob = users.bobIn(zeCollection);
 
+		User bob = users.bobIn(zeCollection);
 		addAuthorizationWithoutDetaching(asList("zeRole", READ), asList(bob.getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), records.taxo1_category1(), records.folder1(), records.folder2()));
-
+		bob = users.bobIn(zeCollection);
 		assertThat(services.canRead(bob, records.folder1())).isTrue();
 		assertThat(services.canRead(bob, records.folder2())).isTrue();
 
@@ -154,7 +180,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 	public void givenBobHasAnAuthorizationOnAGroupGivingHimARoleWithReadAccessHasTheRolePermissionsOnTargetRecordsAndTheirDescendants
 			()
 			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		Group group = createGroup("HEROES");
 
 		User bob = users.bobIn(zeCollection);
@@ -165,9 +191,6 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord(), records.taxo1_category1(),
-				records.folder1(), records.folder2()));
-
 		assertThat(services.canRead(bob, records.folder1())).isTrue();
 		assertThat(services.canRead(bob, records.folder2())).isTrue();
 
@@ -176,14 +199,12 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 	@Test
 	public void givenBobHasAnAuthorizationGivingHimARoleWithoutReadAccessThenHasNoPermissionsOnTheCollectionRecords()
 			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		User bob = users.bobIn(zeCollection);
 
 		addAuthorizationWithoutDetaching(asList("zeRole"), asList(bob.getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
-
-		this.saveRefreshRecord(asList(bob.getWrappedRecord()));
 
 		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
 	}
@@ -191,7 +212,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 	@Test
 	public void givenBobHasAnAuthorizationOnAGroupGivingHimARoleWithoutReadAccessThenHasNoPermissionsOnTheCollectionRecords()
 			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		Group group = createGroup("HEROES");
 
 		User bob = users.bobIn(zeCollection);
@@ -202,15 +223,13 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 
-		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord()));
-
 		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
 	}
 
 	@Test
 	public void givenGroupHasAuthsThenAuthsInheritedToSubGroupAndItsUsers()
 			throws InterruptedException {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		List<String> roles = asList(READ, Role.WRITE);
 
 		assertThat(users.robinIn(zeCollection)).is(notAllowedToWrite(records.taxo1_category2()));
@@ -227,7 +246,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 	@Test
 	public void givenAddAuthorizationWhenGetAuthorizationThenReturnIt()
 			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
 		List<String> roles = asList(READ);
 
 		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),

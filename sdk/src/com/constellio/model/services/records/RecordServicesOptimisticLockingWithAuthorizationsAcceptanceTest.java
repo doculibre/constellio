@@ -232,7 +232,7 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 			List<String> grantedOnRecords) {
 		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, zeCollection);
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
+		authorizationsServices.add(authorization, users.dakotaLIndienIn(zeCollection));
 		return authorization;
 	}
 

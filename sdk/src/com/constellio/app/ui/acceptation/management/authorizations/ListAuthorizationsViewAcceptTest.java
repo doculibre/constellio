@@ -104,7 +104,7 @@ public class ListAuthorizationsViewAcceptTest extends ConstellioTest {
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> principals, String record) {
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, principals, Arrays.asList(record));
-		authorizationsService.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+		authorizationsService.add(authorization, null);
 		return authorization;
 	}
 

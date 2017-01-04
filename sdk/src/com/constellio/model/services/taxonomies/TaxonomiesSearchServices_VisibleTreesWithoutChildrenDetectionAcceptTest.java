@@ -840,7 +840,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		authorization.setGrantedOnRecords(asList(ids));
 		authorization.setGrantedToPrincipals(asList(alice.getId()));
 		getModelLayerFactory().newAuthorizationsServices().add(
-				authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+				authorization, null);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
