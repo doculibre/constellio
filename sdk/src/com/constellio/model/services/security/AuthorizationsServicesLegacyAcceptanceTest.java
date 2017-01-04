@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.wrappers.Group;
@@ -21,6 +22,77 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 
 @SlowTest
 public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
+
+	@After
+	public void checkIfARecordHasAnInvalidAuthorization() {
+		ensureNoRecordsHaveAnInvalidAuthorization();
+	}
+
+	@After
+	public void checkIfChuckNorrisHasAccessToEverythingInZeCollection()
+			throws Exception {
+
+		if (records != null) {
+			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.chuckNorrisIn(zeCollection));
+			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(
+					users.chuckNorrisIn(zeCollection));
+			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(
+					users.chuckNorrisIn(zeCollection));
+
+			assertThat(foldersWithReadFound).containsOnly(records.allFoldersAndDocumentsIds().toArray(new String[0]));
+			assertThat(foldersWithWriteFound).containsOnly(records.allFoldersAndDocumentsIds().toArray(new String[0]));
+			assertThat(foldersWithDeleteFound).containsOnly(records.allFoldersAndDocumentsIds().toArray(new String[0]));
+		}
+	}
+
+	@After
+	public void checkIfAliceSeeAndCanModifyEverythingInCollection2()
+			throws Exception {
+		if (otherCollectionRecords != null) {
+			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.aliceIn(anotherCollection));
+			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.aliceIn(anotherCollection));
+			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(
+					users.aliceIn(anotherCollection));
+
+			assertThat(foldersWithReadFound)
+					.containsOnly(otherCollectionRecords.allFoldersAndDocumentsIds().toArray(new String[0]));
+			assertThat(foldersWithWriteFound)
+					.containsOnly(otherCollectionRecords.allFoldersAndDocumentsIds().toArray(new String[0]));
+			assertThat(foldersWithDeleteFound).hasSize(0);
+		}
+	}
+
+	@After
+	public void checkIfBobSeeAndCanDeleteEverythingInCollection2()
+			throws Exception {
+		if (otherCollectionRecords != null) {
+			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.bobIn(anotherCollection));
+			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.bobIn(anotherCollection));
+			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(users.bobIn(anotherCollection));
+
+			assertThat(foldersWithReadFound)
+					.containsOnly(otherCollectionRecords.allFoldersAndDocumentsIds().toArray(new String[0]));
+			assertThat(foldersWithWriteFound).hasSize(0);
+			assertThat(foldersWithDeleteFound)
+					.containsOnly(otherCollectionRecords.allFoldersAndDocumentsIds().toArray(new String[0]));
+		}
+	}
+
+	@After
+	public void checkIfDakotaSeeAndCanDeleteEverythingInCollection2()
+			throws Exception {
+		if (otherCollectionRecords != null) {
+			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.dakotaIn(anotherCollection));
+			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.dakotaIn(anotherCollection));
+			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(
+					users.dakotaIn(anotherCollection));
+
+			assertThat(foldersWithReadFound)
+					.containsOnly(otherCollectionRecords.allFoldersAndDocumentsIds().toArray(new String[0]));
+			assertThat(foldersWithWriteFound).hasSize(0);
+			assertThat(foldersWithDeleteFound).hasSize(0);
+		}
+	}
 
 	@Test
 	//Basic security test

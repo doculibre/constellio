@@ -56,6 +56,8 @@ import com.constellio.model.services.security.roles.RolesManagerRuntimeException
 public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
 	//TODO Test when detaching twice
+	//TODO Test with all modified fields
+	//TODO Test when requests fields set, but no changes
 
 	@After
 	public void checkIfARecordHasAnInvalidAuthorization() {
@@ -149,7 +151,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	//TODO TestgetUsersWithPermission
 
 	@Test
-	//Case 1
 	public void givenRoleAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
 
@@ -193,7 +194,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	//TODO Support this usecase @Test
-	//Case 2
 	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
@@ -222,7 +222,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	//Case 4
 	public void givenAccessAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
 
@@ -261,7 +260,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	//TODO Support this usecase @Test
-	//Case 5
 	public void givenAccessTypesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
@@ -293,7 +291,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	//Case 7
 	public void givenPrincipalsAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
@@ -769,69 +766,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throw new RuntimeException(e);
 		}
 	}
-
-	/**
-	 @Test public void whenRemovingAnAuthorizationOnAChildRecordDetachingThenOtherAuthorizationsCopied()
-	 throws Exception {
-
-	 List<String> writePermissionRoles = Arrays.asList(Role.WRITE);
-	 List<String> readPermissionRoles = Arrays.asList(READ);
-
-	 auth1 = add(authorizationForGroups(legends).on(TAXO1_CATEGORY2).givingReadAccess());
-	 auth2 = add(authorizationForUser(gandalf).on(FOLDER4).givingReadWriteAccess());
-	 auth3 = add(authorizationForPrincipals(heroes).on(FOLDER4).givingReadAccess());
-
-	 //		addAuthorizationWithoutDetaching(readPermissionRoles, asList(users.heroesIn(zeCollection).getId()),
-	 //				asList(records.folder4().getId()));
-	 //		Authorization writeAuthorizationHeroesAndLegends = addAuthorizationWithoutDetaching(writePermissionRoles,
-	 //				asList(users.heroesIn(zeCollection).getId(), users.legendsIn(zeCollection).getId()),
-	 //				asList(records.folder4().getId()));
-	 //		addAuthorizationWithoutDetaching(readPermissionRoles,
-	 //				asList(users.heroesIn(zeCollection).getId(), users.bobIn(zeCollection).getId()),
-	 //				asList(records.folder4().getId()));
-	 //		waitForBatchProcess();
-
-	 AuthorizationModificationResponse response = modify(
-	 authorizationOnRecord(auth2, FOLDER4_1).detaching().removingItOnRecord());
-	 assertThat(response.getIdOfAuthorizationCopies().keySet()).containsOnly(auth1, auth3);
-	 assertThat(response).isNot(deleted());
-
-	 //verifyRecord.detachedAuthorizationFlag().isFalse();
-
-	 assertThatAllAuthorizations().containsOnly(
-	 authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(legends),
-	 authOnRecord(FOLDER4).givingReadWrite().forPrincipals(gandalf),
-	 authOnRecord(FOLDER4).givingRead().forPrincipals(heroes),
-	 authOnRecord(FOLDER4_1).givingRead().forPrincipals(legends),
-	 authOnRecord(FOLDER4_1).givingRead().forPrincipals(heroes)
-	 );
-
-	 verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
-	 verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(allUsers);
-	 verifyRecord(FOLDER4).usersWithWriteAccess().containsOnly(gandalf, chuck);
-	 verifyRecord(FOLDER4_1).usersWithReadAccess().containsOnly(allUsers);
-	 verifyRecord(FOLDER4_1).usersWithWriteAccess().containsOnly(chuck);
-	 //
-	 //		List<String> foundReadPermissionLegendsRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
-	 //		List<String> foundReadPermissionHeroesRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
-	 //		List<String> foundReadPermissionBobRecords = findAllFoldersAndDocuments(users.bobIn(zeCollection));
-	 //		List<String> foundWritePermissionLegendsRecords = findAllFoldersAndDocumentsWithWritePermission(
-	 //				users.aliceIn(zeCollection));
-	 //		List<String> foundWritePermissionHeroesRecords = findAllFoldersAndDocumentsWithWritePermission(
-	 //				users.charlesIn(zeCollection));
-	 //		List<String> foundWritePermissionBobRecords = findAllFoldersAndDocumentsWithWritePermission(users.bobIn(zeCollection));
-	 //		assertThat(foundReadPermissionLegendsRecords).containsOnly(records.folder4().getId(), records.folder4_2().getId(),
-	 //				records.folder4_2_doc1().getId());
-	 //		assertThat(foundWritePermissionLegendsRecords).containsOnly(records.folder4().getId(), records.folder4_2().getId(),
-	 //				records.folder4_2_doc1().getId());
-	 //		assertThat(foundWritePermissionHeroesRecords).containsOnly(records.folder4().getId(), records.folder4_2().getId(),
-	 //				records.folder4_2_doc1().getId());
-	 //		assertThat(foundWritePermissionBobRecords).isEmpty();
-	 //		assertThat(foundReadPermissionHeroesRecords).contains(records.folder4().getId(), records.folder4_1().getId(),
-	 //				records.folder4_1_doc1().getId(), records.folder4_2().getId(), records.folder4_2_doc1().getId()).isEqualTo(
-	 //				foundReadPermissionBobRecords);
-	 }
-	 **/
 
 	@Test
 	public void whenModifyingAuthorizationPrincipalsThenCreateCopyIfInherited()
