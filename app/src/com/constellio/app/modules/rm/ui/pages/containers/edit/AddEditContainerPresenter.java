@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -20,6 +16,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import org.apache.commons.lang3.StringUtils;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEditContainerView> {
 	protected RecordVO container;
@@ -110,5 +109,8 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		}
 		return linkedSchemaCode;
 	}
-	
+
+	public boolean isEditMode() {
+		return editMode;
+	}
 }

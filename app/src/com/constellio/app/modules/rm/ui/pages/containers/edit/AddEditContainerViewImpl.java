@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
@@ -15,6 +13,8 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.VerticalLayout;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditContainerView {
 	protected AddEditContainerPresenter presenter;
@@ -63,7 +63,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 	@Override
 	protected String getTitle() {
-		return $("EditContainerViewImpl.editViewTitle");
+		return presenter.isEditMode() ? $("EditContainerViewImpl.editViewTitle"):$("EditContainerViewImpl.addViewTitle");
 	}
 
 	@Override
