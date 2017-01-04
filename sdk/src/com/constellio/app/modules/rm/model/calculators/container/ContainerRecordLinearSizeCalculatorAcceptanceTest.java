@@ -58,7 +58,7 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
 
         assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
-        when(parameters.get(calculator.enteredLinearSizeSumParam)).thenReturn(new Double(9001));
+        when(parameters.get(calculator.linearSizeSumParam)).thenReturn(new Double(9001));
 
         assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
@@ -66,7 +66,7 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
 
         assertThat(calculator.calculate(parameters)).isEqualTo(9001);
 
-        when(parameters.get(calculator.enteredLinearSizeSumParam)).thenReturn(null);
+        when(parameters.get(calculator.linearSizeSumParam)).thenReturn(null);
 
         assertThat(calculator.calculate(parameters)).isNull();
     }

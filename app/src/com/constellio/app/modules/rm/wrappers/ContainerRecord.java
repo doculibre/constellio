@@ -39,6 +39,8 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";
 	public static final String LINEAR_SIZE = "linearSize";
 	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
+	public static final String AVAILABLE_SIZE = "availableSize";
+
 
 
 	public ContainerRecord(Record record,
@@ -318,5 +320,9 @@ public class ContainerRecord extends RecordWrapper {
 
 	public Double getLinearSize() {
 		return get(LINEAR_SIZE);
+	}
+
+	public Double getAvailableSize() {
+		return get(AVAILABLE_SIZE);
 	}
 }
