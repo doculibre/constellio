@@ -1,5 +1,7 @@
 package com.constellio.model.services.logging;
 
+import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
+
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
@@ -74,8 +76,8 @@ public class LoggingServices {
 	}
 
 	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, Record record, User user) {
-		Event event = eventFactory
-				.eventPermission(authorization, authorizationBefore, user, record.getId(), EventType.MODIFY_PERMISSION);
+		String recordId = record == null ? null : record.getId();
+		Event event = eventFactory.eventPermission(authorization, authorizationBefore, user, recordId, MODIFY_PERMISSION);
 		executeTransaction(event);
 	}
 
