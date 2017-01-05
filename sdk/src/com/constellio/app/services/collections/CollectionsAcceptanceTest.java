@@ -275,10 +275,10 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 				.legendsIn("doculibre").getId(), users.heroesIn("doculibre").getId());
 
 		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
-				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem1));
+				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem1));
 
 		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
-				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem2));
+				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem2));
 	}
 
 	private void givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
