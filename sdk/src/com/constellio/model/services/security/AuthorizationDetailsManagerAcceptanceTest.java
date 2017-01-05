@@ -116,10 +116,10 @@ public class AuthorizationDetailsManagerAcceptanceTest extends ConstellioTest {
 		manager.add(authorizationDetails);
 	}
 
-	@Test(expected = AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate.class)
-	public void whenAddAuthorizationWithEndDateEqualToCurrentDateThenException()
+	@Test
+	public void whenAddAuthorizationWithEndDateEqualToCurrentDateThenOK()
 			throws Exception {
-		AuthorizationDetails authorizationDetails = newAuthorizationValidFromTo(YESTERDAY, NOW);
+		AuthorizationDetails authorizationDetails = newAuthorizationValidFromTo(TWO_WEEKS_AGO, NOW);
 
 		manager.add(authorizationDetails);
 	}

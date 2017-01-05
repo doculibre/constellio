@@ -1,12 +1,9 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
-import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -45,8 +42,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -63,6 +60,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotDetachConcept;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
@@ -99,6 +97,7 @@ public class AuthorizationsServices {
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.loggingServices = modelLayerFactory.newLoggingServices();
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
+
 	}
 
 	@Deprecated
@@ -325,38 +324,44 @@ public class AuthorizationsServices {
 
 	@Deprecated
 	public void delete(AuthorizationDetails authorization, User user) {
-		delete(authorization.getId(), authorization.getCollection(), user, true);
+		delete(AuthorizationDeleteRequest.authorization(authorization).setExecutedBy(user));
 	}
 
 	@Deprecated
 	public void delete(String authorizationId, String collection, User user, boolean reattachIfLastAuth) {
+		delete(AuthorizationDeleteRequest.authorization(authorizationId, collection).setExecutedBy(user)
+				.setReattachIfLastAuthDeleted(reattachIfLastAuth));
+	}
 
-		List<String> authId = asList(authorizationId);
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection)
-				.where(AUTHORIZATIONS).isContaining(authId).orWhere(REMOVED_AUTHORIZATIONS).isContaining(authId));
+	public void delete(AuthorizationDeleteRequest request) {
+
+		List<String> authId = asList(request.getAuthId());
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
+				.where(AUTHORIZATIONS).isContaining(authId)
+				.orWhere(REMOVED_AUTHORIZATIONS).isContaining(authId));
 		List<Record> records = searchServices.search(query);
 
-		for (Record record : records) {
-			removeAuthorizationOnRecord(authorizationId, record, reattachIfLastAuth);
-			removeRemovedAuthorizationOnRecord(authorizationId, record);
+		if (request.getExecutedBy() != null) {
+			try {
+				Authorization auth = getAuthorization(request.getCollection(), request.getAuthId());
+				loggingServices.deletePermission(auth, request.getExecutedBy());
+			} catch (NoSuchAuthorizationWithId e) {
+				//No problemo
+			}
 		}
 
+		for (Record record : records) {
+			removeAuthorizationOnRecord(request.getAuthId(), record, request.isReattachIfLastAuthDeleted());
+			removeRemovedAuthorizationOnRecord(request.getAuthId(), record);
+		}
 		try {
 			recordServices.executeHandlingImpactsAsync(new Transaction(records));
-			if (user != null) {
-				try {
-					Authorization auth = getAuthorization(collection, authorizationId);
-					loggingServices.deletePermission(auth, user);
-				} catch (NoSuchAuthorizationWithId e) {
-					//No problemo
-				}
-			}
 		} catch (RecordServicesException e) {
 			throw new RecordServicesErrorDuringOperation("delete", e);
 		}
 
 		try {
-			AuthorizationDetails details = manager.get(collection, authorizationId);
+			AuthorizationDetails details = manager.get(request.getCollection(), request.getAuthId());
 			if (details != null) {
 				manager.remove(details);
 			}
@@ -371,12 +376,35 @@ public class AuthorizationsServices {
 	 * @param request The request to execute
 	 * @return A response with some informations
 	 */
-	public AuthorizationModificationResponse execute(AuthorizationModificationRequest request) {
 
-		//TODO : Exception lorsqu'on modifie une authorisation qu'un record n'a pas
+	public AuthorizationModificationResponse execute(AuthorizationModificationRequest request) {
 
 		Authorization authorization = getAuthorization(request.getCollection(), request.getAuthorizationId());
 		Record record = recordServices.getDocumentById(request.getRecordId());
+
+		AuthorizationModificationResponse response = executeWithoutLogging(request, authorization, record);
+
+		if (request.getExecutedBy() != null) {
+
+			Authorization authorizationAfter;
+			if (response.getIdOfAuthorizationCopy() != null) {
+				authorizationAfter = getAuthorization(request.getCollection(), response.getIdOfAuthorizationCopy());
+			} else {
+				authorizationAfter = getAuthorization(request.getCollection(), authorization.getDetail().getId());
+			}
+
+			try {
+				loggingServices.modifyPermission(authorization, authorizationAfter, record, request.getExecutedBy());
+			} catch (NoSuchAuthorizationWithId e) {
+				//No problemo
+			}
+		}
+
+		return response;
+	}
+
+	private AuthorizationModificationResponse executeWithoutLogging(AuthorizationModificationRequest request,
+			Authorization authorization, Record record) {
 		if (request.isRemovedOnRecord()) {
 			String authId = authorization.getDetail().getId();
 
@@ -429,7 +457,6 @@ public class AuthorizationsServices {
 
 			}
 		}
-
 	}
 
 	/**
@@ -441,14 +468,19 @@ public class AuthorizationsServices {
 	 * @return A mapping of previous authorization ids to the new authorizations created by this service
 	 */
 	public Map<String, String> detach(Record record) {
-		//		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
-		//		if (principalTaxonomy.getSchemaTypes().contains(record.getTypeCode())) {
-		//			throw new CannotDetachConcept(record.getId());
-		//		}
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+		if (principalTaxonomy.getSchemaTypes().contains(record.getTypeCode())) {
+			throw new CannotDetachConcept(record.getId());
+		}
 
-		Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(record);
-		saveRecordsTargettedByAuthorization(Arrays.asList(record), new ArrayList<Record>());
-		return originalToCopyMap;
+		if (Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
+			return Collections.emptyMap();
+
+		} else {
+			Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(record);
+			saveRecordsTargettedByAuthorization(Arrays.asList(record), new ArrayList<Record>());
+			return originalToCopyMap;
+		}
 	}
 
 	/**

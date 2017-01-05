@@ -7,6 +7,7 @@ import java.util.List;
 import org.joda.time.LocalDate;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 
@@ -28,6 +29,8 @@ public class AuthorizationModificationRequest {
 
 	final boolean removedOnRecord;
 
+	final User executedBy;
+
 	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId) {
 		this.authorizationId = authorizationId;
 		this.collection = collection;
@@ -38,11 +41,12 @@ public class AuthorizationModificationRequest {
 
 		this.newAccessAndRoles = null;
 		this.removedOnRecord = false;
+		this.executedBy = null;
 	}
 
 	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId, LocalDate newStartDate,
 			LocalDate newEndDate, List<String> newPrincipalIds, List<String> newAccessAndRoles,
-			boolean removedOnRecord) {
+			boolean removedOnRecord, User executedBy) {
 		this.authorizationId = authorizationId;
 		this.collection = collection;
 		this.recordId = recordId;
@@ -51,42 +55,48 @@ public class AuthorizationModificationRequest {
 		this.newPrincipalIds = newPrincipalIds;
 		this.newAccessAndRoles = newAccessAndRoles;
 		this.removedOnRecord = removedOnRecord;
+		this.executedBy = executedBy;
 
 	}
 
 	public AuthorizationModificationRequest withNewStartDate(LocalDate newStartDate) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
 	}
 
 	public AuthorizationModificationRequest withNewEndDate(LocalDate newEndDate) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
 	}
 
 	public AuthorizationModificationRequest withNewPrincipalIds(List<String> newPrincipalIds) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
 	}
 
 	public AuthorizationModificationRequest withNewPrincipalIds(String... newPrincipalIds) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				asList(newPrincipalIds), newAccessAndRoles, removedOnRecord);
+				asList(newPrincipalIds), newAccessAndRoles, removedOnRecord, executedBy);
 	}
 
 	public AuthorizationModificationRequest withNewAccessAndRoles(List<String> newAccessAndRoles) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
 	}
 
 	public AuthorizationModificationRequest withNewAccessAndRoles(String... newAccessAndRoles) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, asList(newAccessAndRoles), removedOnRecord);
+				newPrincipalIds, asList(newAccessAndRoles), removedOnRecord, executedBy);
 	}
 
 	public AuthorizationModificationRequest removingItOnRecord() {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, true);
+				newPrincipalIds, newAccessAndRoles, true, executedBy);
+	}
+
+	public AuthorizationModificationRequest setExecutedBy(User executedBy) {
+		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
 	}
 
 	public static AuthorizationModificationRequest modifyAuthorization(Authorization authorization) {
@@ -174,4 +184,7 @@ public class AuthorizationModificationRequest {
 		return removedOnRecord;
 	}
 
+	public User getExecutedBy() {
+		return executedBy;
+	}
 }

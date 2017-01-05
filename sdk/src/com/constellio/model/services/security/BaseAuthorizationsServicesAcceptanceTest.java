@@ -960,6 +960,17 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return authorization.getDetail().getId();
 	}
 
+	protected String addWithoutUser(Authorization authorization) {
+		services.add(authorization, null);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		return authorization.getDetail().getId();
+	}
+
 	protected Map<String, String> detach(String recordId) {
 		Map<String, String> copies = services.detach(get(recordId));
 		try {

@@ -201,33 +201,32 @@ public class EventFactory {
 		return false;
 	}
 
-	public List<Record> eventPermission(Authorization authorization, Authorization authorizationBefore, User user,
-			String eventPermissionType) {
+	public Event eventPermission(Authorization authorization, Authorization authorizationBefore, User user,
+			String recordId, String eventPermissionType) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
-		List<Record> returnRecords = new ArrayList<>();
-		List<String> recordsIds = authorization.getGrantedOnRecords();
+
+		if (recordId == null) {
+			recordId = authorization.getGrantedOnRecord();
+		}
 		String deltaString = compareAuthorizations(authorizationBefore, authorization);
 
 		SchemaUtils schemaUtils = new SchemaUtils();
 		String authorizationRolesString = StringUtils.join(authorization.getDetail().getRoles(), "; ");
 		String authorizationPrincipalsString = getAuthorizationPrincipals(authorization);
 		String dateRangeString = getAuthorizationDateRange(authorization);
-		for (String recordId : recordsIds) {
-			Event event = schemasRecords.newEvent();
-			setDefaultMetadata(event, user);
-			event.setPermissionUsers(authorizationPrincipalsString);
-			event.setPermissionDateRange(dateRangeString);
-			event.setPermissionRoles(authorizationRolesString);
-			event.setDelta(deltaString);
-			Record currentRecord = recordServices.getDocumentById(recordId);
-			String recordSchema = currentRecord.getSchemaCode();
+		Event event = schemasRecords.newEvent();
+		setDefaultMetadata(event, user);
+		event.setPermissionUsers(authorizationPrincipalsString);
+		event.setPermissionDateRange(dateRangeString);
+		event.setPermissionRoles(authorizationRolesString);
+		event.setDelta(deltaString);
+		Record currentRecord = recordServices.getDocumentById(recordId);
+		String recordSchema = currentRecord.getSchemaCode();
 
-			String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
-			setRecordMetadata(event, currentRecord);
-			event.setType(eventPermissionType + "_" + recordSchemaType);
-			returnRecords.add(event.getWrappedRecord());
-		}
-		return returnRecords;
+		String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
+		setRecordMetadata(event, currentRecord);
+		event.setType(eventPermissionType + "_" + recordSchemaType);
+		return event;
 	}
 
 	private String compareAuthorizations(Authorization authorizationBefore, Authorization authorization) {

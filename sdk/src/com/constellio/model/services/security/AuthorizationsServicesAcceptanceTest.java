@@ -1,10 +1,19 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.model.entities.records.wrappers.Event.DELTA;
+import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
+import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
+import static com.constellio.model.entities.records.wrappers.Event.TYPE;
+import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorization;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2;
@@ -26,8 +35,10 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1_1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2_1;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -39,13 +50,17 @@ import org.junit.Test;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
@@ -55,9 +70,7 @@ import com.constellio.model.services.security.roles.RolesManagerRuntimeException
 
 public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
-	//TODO Test when detaching twice
-	//TODO Test with all modified fields
-	//TODO Test when requests fields set, but no changes
+	//TODO Mieux tester la journalisation des modifications
 
 	@After
 	public void checkIfARecordHasAnInvalidAuthorization() {
@@ -387,30 +400,30 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
 
-		Map<String, String> copies = detach(TAXO1_CATEGORY2_1);
+		Map<String, String> copies = detach(FOLDER3);
 		String auth1CopyInCategory2_1 = copies.get(auth1);
 		String auth2CopyInCategory2_1 = copies.get(auth2);
 
-		request1 = modify(authorizationOnRecord(auth1CopyInCategory2_1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin));
+		request1 = modify(authorizationOnRecord(auth1CopyInCategory2_1, FOLDER3).withNewPrincipalIds(robin));
 
 		assertThat(request1).isNot(creatingACopy()).isNot(deleted());
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob),
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(heroes),
-				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(robin),
-				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(heroes)
+				authOnRecord(FOLDER3).givingRead().forPrincipals(robin),
+				authOnRecord(FOLDER3).givingRead().forPrincipals(heroes)
 		);
 
-		request2 = modify(authorizationOnRecord(auth2CopyInCategory2_1, TAXO1_CATEGORY2_1)
+		request2 = modify(authorizationOnRecord(auth2CopyInCategory2_1, FOLDER3)
 				.withNewPrincipalIds(legends, bob));
 		assertThat(request2).isNot(creatingACopy()).isNot(deleted());
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob),
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(heroes),
-				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(robin),
-				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(legends, bob)
+				authOnRecord(FOLDER3).givingRead().forPrincipals(robin),
+				authOnRecord(FOLDER3).givingRead().forPrincipals(legends, bob)
 		);
 
 		assertThatAuth(auth1).hasPrincipals(bob);
@@ -418,15 +431,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThatAuth(auth1CopyInCategory2_1).hasPrincipals(robin);
 		assertThatAuth(auth2CopyInCategory2_1).hasPrincipals(legends, bob);
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1_DOC1)) {
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER4, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, chuck);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, chuck, robin);
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
-			if (verifyRecord.recordId.equals(TAXO1_CATEGORY2_1)) {
+			if (verifyRecord.recordId.equals(FOLDER3)) {
 				verifyRecord.detachedAuthorizationFlag().isTrue();
 			} else {
 				verifyRecord.detachedAuthorizationFlag().isFalse();
@@ -609,7 +622,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		);
 
 		detach(FOLDER4_1);
-
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(FOLDER4).givingRead().forPrincipals(alice),
 				authOnRecord(FOLDER4).givingRead().forPrincipals(bob),
@@ -619,6 +631,26 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(dakota)
 		);
 
+		//Detaching it twice, nothing changes...
+		detach(FOLDER4_1);
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(FOLDER4).givingRead().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingReadWriteDelete().forPrincipals(charles),
+				authOnRecord(FOLDER4_1).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingReadWriteDelete().forPrincipals(charles),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(dakota)
+		);
+
+		reset(FOLDER4_1);
+		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isFalse();
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(FOLDER4).givingRead().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingReadWriteDelete().forPrincipals(charles)
+		);
+
+		//Resetting it twice, nothing changes
 		reset(FOLDER4_1);
 		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isFalse();
 		assertThatAllAuthorizations().containsOnly(
@@ -647,7 +679,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		);
 
 		detach(FOLDER4);
-
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(alice),
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob),
@@ -1342,4 +1373,243 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
+	//todo uncomment with new auth system @Test
+	public void whenModifyingMultipleFieldsAtOnceOnAnAuthorizationOfARecordThenAllApplied()
+			throws Exception {
+
+		givenTimeIs(date(2012, 10, 1));
+		auth1 = add(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(sasquatch));
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(sasquatch, chuck);
+
+		modify(modifyAuthorizationOnRecord(auth1, records.taxo1_category2())
+				.withNewStartDate(date(2012, 10, 2))
+				.withNewPrincipalIds(users.bobIn(zeCollection).getId())
+		);
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(bob).startingOn(date(2012, 10, 2)));
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(chuck);
+
+		givenTimeIs(date(2012, 10, 2));
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		waitForBatchProcess();
+
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
+
+	}
+
+	//todo uncomment with new auth system @Test
+	public void whenModifyingMultipleFieldsAtOnceOnAnAuthorizationInheritedByARecordThenAllApplied()
+			throws Exception {
+
+		givenTimeIs(date(2012, 10, 1));
+		auth1 = add(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(sasquatch));
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(sasquatch, chuck);
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(sasquatch, chuck);
+
+		modify(modifyAuthorizationOnRecord(auth1, records.folder4())
+				.withNewStartDate(date(2012, 10, 2))
+				.withNewPrincipalIds(users.bobIn(zeCollection).getId())
+		);
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).removedOnRecords(FOLDER4).givingReadWrite().forPrincipals(sasquatch),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob).startingOn(date(2012, 10, 2)));
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(chuck, sasquatch);
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
+
+		givenTimeIs(date(2012, 10, 2));
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		waitForBatchProcess();
+
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(chuck, sasquatch);
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck, bob);
+	}
+
+	@Test
+	public void whenDeleteAuthorizationThenDeletedFromEveryRecords()
+			throws Exception {
+
+		detach(FOLDER4);
+		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = addWithoutUser(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = addWithoutUser(authorizationForUser(charles).on(FOLDER4).givingReadWriteAccess());
+
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth2, zeCollection)
+				.setReattachIfLastAuthDeleted(false)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth3, zeCollection)
+				.setReattachIfLastAuthDeleted(false)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth1, zeCollection)
+				.setReattachIfLastAuthDeleted(false)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().isEmpty();
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
+
+		recordServices.flush();
+
+		assertThatRecords(schemas.searchEvents(ALL)).extractingMetadatas(RECORD_ID, PERMISSION_USERS, TYPE, USERNAME)
+				.containsOnly(
+						tuple("folder4", "Bob 'Elvis' Gratton", "delete_permission_folder", "chuck"),
+						tuple("taxo1_category2", "Alice Wonderland", "delete_permission_category", "chuck"),
+						tuple("folder4", "Charles-François Xavier", "delete_permission_folder", "chuck")
+				);
+	}
+
+	@Test
+	public void whenDeleteLastAuthorizationOfAttachedRecordThenNoAuthorization()
+			throws Exception {
+
+		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = addWithoutUser(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = addWithoutUser(authorizationForUser(charles).on(FOLDER4).givingReadWriteAccess());
+
+		modify(authorizationOnRecord(auth1, FOLDER4).removingItOnRecord());
+
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth2, zeCollection)
+				.setReattachIfLastAuthDeleted(true)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).removedOnRecords(FOLDER4).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth3, zeCollection)
+				.setReattachIfLastAuthDeleted(true)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).removedOnRecords(FOLDER4).givingReadWrite().forPrincipals(alice));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth1, zeCollection)
+				.setReattachIfLastAuthDeleted(true)
+				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
+
+		assertThatAllAuthorizations().isEmpty();
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
+
+		recordServices.flush();
+
+		assertThatRecords(schemas.searchEvents(ALL)).extractingMetadatas(RECORD_ID, PERMISSION_USERS, TYPE, USERNAME)
+				.containsOnly(
+						tuple("folder4", "Bob 'Elvis' Gratton", "delete_permission_folder", "chuck"),
+						tuple("taxo1_category2", "Alice Wonderland", "delete_permission_category", "chuck"),
+						tuple("folder4", "Charles-François Xavier", "delete_permission_folder", "chuck")
+				);
+	}
+
+	@Test
+	public void whenDeleteLastAuthorizationOfDetachedRecordThenReattachDependingOnOption()
+			throws Exception {
+
+		detach(FOLDER4);
+		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = addWithoutUser(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = addWithoutUser(authorizationForUser(charles).on(FOLDER4).givingReadWriteAccess());
+
+		assertThatRecords(schemas.searchEvents(ALL)).isEmpty();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth2, zeCollection)
+				.setReattachIfLastAuthDeleted(true));
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth3, zeCollection)
+				.setReattachIfLastAuthDeleted(true));
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice));
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(alice, chuck);
+
+		services.delete(AuthorizationDeleteRequest.authorization(auth1, zeCollection)
+				.setReattachIfLastAuthDeleted(true));
+
+		assertThatAllAuthorizations().isEmpty();
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
+
+		recordServices.flush();
+
+		assertThatRecords(schemas.searchEvents(ALL)).isEmpty();
+	}
+
+	@Test
+	public void whenCreatingAndModifyingAuthWithoutUserThenNoEventCreated()
+			throws Exception {
+
+		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = addWithoutUser(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = addWithoutUser(authorizationForUser(charles).on(FOLDER4).givingReadWriteAccess());
+
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewPrincipalIds(users.dakotaIn(zeCollection).getId()));
+		modify(authorizationOnRecord(auth1, FOLDER4).withNewPrincipalIds(users.edouardLechatIn(zeCollection).getId()));
+
+		assertThatRecords(schemas.searchEvents(ALL)).isEmpty();
+	}
+
+	@Test
+	public void whenCreatingAndModifyingAuthWithUserThenNoEventCreated()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER4).givingReadWriteAccess());
+
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewPrincipalIds(users.dakotaIn(zeCollection).getId())
+				.setExecutedBy(users.gandalfIn(zeCollection)));
+		modify(authorizationOnRecord(auth1, FOLDER4).withNewPrincipalIds(users.edouardLechatIn(zeCollection).getId())
+				.setExecutedBy(users.gandalfIn(zeCollection)));
+		modify(authorizationOnRecord(auth2, FOLDER4).withNewPrincipalIds(users.edouardLechatIn(zeCollection).getId())
+				.setExecutedBy(users.gandalfIn(zeCollection)));
+
+		assertThatRecords(schemas.searchEvents(ALL)).extractingMetadatas(RECORD_ID, PERMISSION_USERS, TYPE, USERNAME)
+				.containsOnly(
+						tuple("folder4", "Bob 'Elvis' Gratton", "grant_permission_folder", "dakota"),
+						tuple("taxo1_category2", "Alice Wonderland", "grant_permission_category", "dakota"),
+						tuple("folder4", "Charles-François Xavier", "grant_permission_folder", "dakota"),
+
+						tuple("folder4", "Dakota L'Indien", "modify_permission_folder", "gandalf"),
+						tuple("folder4", "Bob 'Elvis' Gratton", "modify_permission_folder", "gandalf"),
+						tuple("taxo1_category2", "Alice Wonderland", "modify_permission_category", "gandalf")
+
+				);
+
+		Event event = schemas.searchEvents(where(schemas.eventType()).isEqualTo("modify_permission_category")).get(0);
+		assertThat(event.getDelta().replace("\n", "")).isEqualTo("Utilisateurs :-[Dakota L'Indien]+[Alice Wonderland]");
+	}
 }

@@ -69,19 +69,19 @@ public class LoggingServices {
 	}
 
 	public void grantPermission(Authorization authorization, User user) {
-		List<Record> records = eventFactory.eventPermission(authorization, null, user, EventType.GRANT_PERMISSION);
-		executeTransaction(records);
+		Event event = eventFactory.eventPermission(authorization, null, user, null, EventType.GRANT_PERMISSION);
+		executeTransaction(event);
 	}
 
-	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, User user) {
-		List<Record> records = eventFactory
-				.eventPermission(authorization, authorizationBefore, user, EventType.MODIFY_PERMISSION);
-		executeTransaction(records);
+	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, Record record, User user) {
+		Event event = eventFactory
+				.eventPermission(authorization, authorizationBefore, user, record.getId(), EventType.MODIFY_PERMISSION);
+		executeTransaction(event);
 	}
 
 	public void deletePermission(Authorization authorization, User user) {
-		List<Record> records = eventFactory.eventPermission(authorization, null, user, EventType.DELETE_PERMISSION);
-		executeTransaction(records);
+		Event event = eventFactory.eventPermission(authorization, null, user, null, EventType.DELETE_PERMISSION);
+		executeTransaction(event);
 	}
 
 	public void logRecordView(Record record, User currentUser) {

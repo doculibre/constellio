@@ -991,7 +991,7 @@ public class RMTestRecords {
 		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
 
 		User charles = users.charlesIn(collection);
-		loggingServices.modifyPermission(authorization, authorizationBefore, charles);
+		loggingServices.modifyPermission(authorization, authorizationBefore, null, charles);
 	}
 
 	private void setupLists(Transaction transaction) {

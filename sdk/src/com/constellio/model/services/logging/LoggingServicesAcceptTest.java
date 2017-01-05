@@ -371,7 +371,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 				false);
 		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
 
-		loggingServices.modifyPermission(authorization, authorizationBefore, alice);
+		loggingServices.modifyPermission(authorization, authorizationBefore, null, alice);
 		recordServices.flush();
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
