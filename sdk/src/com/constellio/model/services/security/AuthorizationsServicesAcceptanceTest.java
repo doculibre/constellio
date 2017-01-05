@@ -1,16 +1,14 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.model.entities.records.wrappers.Event.DELTA;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
 import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
-import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorization;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
@@ -53,21 +51,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
-import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 
 public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
@@ -502,17 +493,24 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throws Exception {
 
 		String aliceId = users.aliceIn(zeCollection).getId();
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), asList(READ), zeCollection);
 
 		try {
-			add(new Authorization(details, new ArrayList<String>(), asList(FOLDER4)));
+			add(authorizationInCollection(zeCollection).givingReadAccess().on(FOLDER4));
 			fail("Exception expected");
 		} catch (AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords e) {
 			//OK
 		}
 
 		try {
-			add(new Authorization(details, asList(aliceId), new ArrayList<String>()));
+			add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds(new ArrayList<String>())
+					.on(FOLDER4));
+			fail("Exception expected");
+		} catch (AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords e) {
+			//OK
+		}
+
+		try {
+			add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds(asList(aliceId)));
 			fail("Exception expected");
 		} catch (AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords e) {
 			//OK
@@ -541,9 +539,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		//Cannot add an authorization with an invalid principal id
 		try {
-			AuthorizationDetails details = AuthorizationDetails.create(aString(), asList(READ), zeCollection);
-			Authorization authorization = new Authorization(details, asList("inexistentId"), asList(TAXO1_CATEGORY1));
-			auth1 = add(authorization);
+			auth1 = add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds("inexistentId")
+					.on(TAXO1_CATEGORY1));
 			fail("Exception expected");
 		} catch (InvalidPrincipalsIds e) {
 			//OK
@@ -551,7 +548,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		try {
 			List<String> roles = asList(READ);
-			addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList("inexistentId"));
+			addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), "inexistentId");
 			fail("Exception expected");
 		} catch (InvalidTargetRecordsIds e) {
 			//OK
@@ -915,7 +912,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenTimeIs(date(2016, 4, 4));
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
-		assertThatAllAuthorizationIds().containsOnly("-" + auth1, "-" + auth2, "-" + auth3, auth4, auth5, auth6);
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
 		}
@@ -923,7 +919,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenTimeIs(date(2016, 4, 5));
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
-		assertThatAllAuthorizationIds().containsOnly(auth1, auth2, "-" + auth3, auth4, auth5, auth6);
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
 		}
@@ -931,7 +926,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenTimeIs(date(2016, 4, 6));
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
-		assertThatAllAuthorizationIds().containsOnly(auth2, "-" + auth3, auth4, auth5, auth6);
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
 		}
@@ -939,7 +933,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenTimeIs(date(2016, 4, 7));
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
-		assertThatAllAuthorizationIds().containsOnly(auth2, auth3, auth5);
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
 		}
@@ -947,7 +940,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenTimeIs(date(2016, 4, 8));
 		waitForBatchProcess();
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		assertThatAllAuthorizationIds().containsOnly(auth2, auth3, auth5);
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
 		}
@@ -955,7 +947,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenTimeIs(date(2016, 4, 9));
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
-		assertThatAllAuthorizationIds().containsOnly(auth3, auth5);
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
 		}

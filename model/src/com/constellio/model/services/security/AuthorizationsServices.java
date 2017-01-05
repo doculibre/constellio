@@ -4,6 +4,7 @@ import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
+import static com.constellio.model.entities.security.AuthorizationDetails.create;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
@@ -288,8 +289,21 @@ public class AuthorizationsServices {
 	 * @param authorization
 	 * @return
 	 */
-	public String add(Authorization authorization) {
-		return add(authorization, null);
+	public String add(AuthorizationAddRequest request) {
+
+		String id = request.getId();
+
+		if (id == null) {
+			id = uniqueIdGenerator.next();
+		}
+
+		AuthorizationDetails details = create(id, request.getRoles(), request.getStart(), request.getEnd(),
+				request.getCollection());
+		return add(new Authorization(details, request.getPrincipals(), asList(request.getTarget())), request.getExecutedBy());
+	}
+
+	public String add(AuthorizationAddRequest request, User userAddingTheAuth) {
+		return add(request.setExecutedBy(userAddingTheAuth));
 	}
 
 	/**
@@ -298,7 +312,7 @@ public class AuthorizationsServices {
 	 * @param userAddingTheAuth
 	 * @return The new authorization's id
 	 */
-	public String add(Authorization authorization, User userAddingTheAuth) {
+	private String add(Authorization authorization, User userAddingTheAuth) {
 		List<Record> records = getAuthorizationGrantedOnRecords(authorization);
 		List<Record> principals = getAuthorizationGrantedToPrincipals(authorization);
 
@@ -310,6 +324,7 @@ public class AuthorizationsServices {
 			authorizationDetail = new AuthorizationDetails(authorizationDetail.getCollection(), authId,
 					authorizationDetail.getRoles(), authorizationDetail.getStartDate(), authorizationDetail.getEndDate(), false);
 		}
+		//validateDates(authorizationDetail.getStartDate(), authorizationDetail.getEndDate());
 		manager.add(authorizationDetail);
 
 		addAuthorizationToRecords(records, authId);
@@ -837,6 +852,10 @@ public class AuthorizationsServices {
 	}
 
 	private List<Record> getAuthorizationGrantedToPrincipals(Authorization authorization) {
+		if (authorization.getGrantedToPrincipals() == null) {
+			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
+		}
+
 		List<String> principalIds = withoutDuplicatesAndNulls(authorization.getGrantedToPrincipals());
 		if (principalIds.isEmpty() && !authorization.getDetail().isSynced()) {
 			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
@@ -983,7 +1002,7 @@ public class AuthorizationsServices {
 	String inheritedToSpecific(String collection, String id) {
 		String newId = uniqueIdGenerator.next();
 		AuthorizationDetails inherited = manager.get(collection, id);
-		AuthorizationDetails detail = AuthorizationDetails.create(
+		AuthorizationDetails detail = create(
 				newId, inherited.getRoles(), inherited.getStartDate(), inherited.getEndDate(), collection);
 		manager.add(detail);
 		List<Record> principals = findAllPrincipalsWithAuthorization(inherited);
@@ -1025,6 +1044,16 @@ public class AuthorizationsServices {
 		removedAuths.addAll(record.getList(REMOVED_AUTHORIZATIONS));
 		removedAuths.add(authorizationId);
 		record.set(REMOVED_AUTHORIZATIONS, removedAuths);
+	}
+
+	void validateDates(LocalDate startDate, LocalDate endDate) {
+		LocalDate now = TimeProvider.getLocalDate();
+		if ((startDate != null && endDate != null) && startDate.isAfter(endDate)) {
+			throw new AuthorizationDetailsManagerRuntimeException.StartDateGreaterThanEndDate(startDate, endDate);
+		}
+		if (endDate != null && endDate.isBefore(now)) {
+			throw new AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate(endDate.toString());
+		}
 	}
 
 	SchemaUtils newSchemaUtils() {

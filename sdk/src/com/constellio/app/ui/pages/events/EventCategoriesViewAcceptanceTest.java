@@ -515,20 +515,6 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 		authorizationsServices.canWrite(userToAdd, administrativeUnit.getWrappedRecord());
 	}
 
-	private Authorization newAuthorizationForUserToAccessAdministrativeUnit(User userToAdd,
-			AdministrativeUnit administrativeUnit) {
-		List<String> roles = Arrays.asList(Role.WRITE);
-		String authorizationDetailId = userToAdd + "." + administrativeUnit;
-		AuthorizationDetails detail = AuthorizationDetails
-				.create(authorizationDetailId, roles, testDate.toLocalDate(), testDate.plusDays(1).toLocalDate(),
-						zeCollection);
-		List<String> grantedToPrincipals = new ArrayList<>();
-		grantedToPrincipals.add(userToAdd.getId());
-		List<String> grantedOnRecords = new ArrayList<>();
-		grantedOnRecords.add(administrativeUnit.getId());
-		return new Authorization(detail, grantedToPrincipals, grantedOnRecords);
-	}
-
 	private void validateAllStatValuesAreEmpty(BaseEventCategoryFacade baseEventCategoryFacade) {
 		for (int value : baseEventCategoryFacade.getValues()) {
 			assertThat(value).isEqualTo(0);

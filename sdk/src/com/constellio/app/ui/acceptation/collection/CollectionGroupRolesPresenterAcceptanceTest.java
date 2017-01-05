@@ -1,5 +1,6 @@
 package com.constellio.app.ui.acceptation.collection;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -18,8 +19,7 @@ import com.constellio.app.ui.pages.collection.CollectionGroupRolesPresenter;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesView;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -113,12 +113,12 @@ public class CollectionGroupRolesPresenterAcceptanceTest extends ConstellioTest 
 	@Test
 	public void givenGroupWithRoleAuthWhenDeletingItThenAuthDeleted()
 			throws Exception {
-		Authorization authorization = givenAuthorizationFor(legendsId).on(zeConcept).giving(RMRoles.USER);
+		AuthorizationAddRequest authorization = givenAuthorizationFor(legendsId).on(zeConcept).giving(RMRoles.USER);
 		add(authorization);
 		waitForBatchProcess();
 
 		presenter.deleteRoleButtonClicked(
-				new RoleAuthVO(authorization.getDetail().getId(), authorization.getGrantedOnRecords().get(0),
+				new RoleAuthVO(authorization.getId(), authorization.getTarget(),
 						Arrays.asList(RMRoles.USER)));
 		waitForBatchProcess();
 
@@ -170,12 +170,12 @@ public class CollectionGroupRolesPresenterAcceptanceTest extends ConstellioTest 
 		recordServices.update(aliceUser.getWrappedRecord());
 	}
 
-	private void add(Authorization authorization) {
+	private void add(AuthorizationAddRequest authorization) {
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
 	}
 
-	private AuthorizationBuilder givenAuthorizationFor(String principalId) {
-		return new AuthorizationBuilder(zeCollection).forPrincipalsIds(asList(principalId));
+	private AuthorizationAddRequest givenAuthorizationFor(String principalId) {
+		return authorizationInCollection(zeCollection).forPrincipalsIds(asList(principalId));
 	}
 
 	private void givenAliceIsInLegendsGroup() {

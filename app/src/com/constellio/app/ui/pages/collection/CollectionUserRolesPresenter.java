@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.collection;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 
@@ -129,7 +130,8 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 			}
 		} else {
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-			Authorization authorization = new AuthorizationBuilder(collection).forUsers(recordId).on(roleAuthVO.getTarget())
+			AuthorizationAddRequest authorization = authorizationInCollection(collection).forUsers(recordId)
+					.on(roleAuthVO.getTarget())
 					.giving(roleAuthVO.getRoles().toArray(new String[roleAuthVO.getRoles().size()]));
 			authorizationsServices.add(authorization, getCurrentUser());
 		}

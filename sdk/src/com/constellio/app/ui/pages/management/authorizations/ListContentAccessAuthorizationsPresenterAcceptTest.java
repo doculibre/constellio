@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -16,8 +17,7 @@ import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKViewNavigation;
@@ -152,12 +152,12 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 				.usingElementComparatorIgnoringFields("authId", "userRolesTitles");
 	}
 
-	private void add(Authorization authorization) {
+	private void add(AuthorizationAddRequest authorization) {
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
 	}
 
-	private AuthorizationBuilder givenAuthorizationFor(String principalId) {
-		return new AuthorizationBuilder(zeCollection).forPrincipalsIds(asList(principalId));
+	private AuthorizationAddRequest givenAuthorizationFor(String principalId) {
+		return authorizationInCollection(zeCollection).forPrincipalsIds(asList(principalId));
 	}
 
 	private void givenAliceIsInLegendsGroup() {

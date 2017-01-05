@@ -1,6 +1,7 @@
 package com.constellio.app.api.search;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
@@ -25,6 +26,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -480,16 +482,11 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 			throws RecordServicesException, InterruptedException {
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
-		AuthorizationDetails zeCollectionAuth = AuthorizationDetails
-				.create("1", asList(Role.READ), zeCollection);
-		authorizationsServices.add(new Authorization(zeCollectionAuth, asList(users.gandalfLeblancIn(zeCollection).getId()),
-				asList(zeCollectionRecord1)), null);
+		authorizationsServices.add(authorizationForUsers(users.gandalfLeblancIn(zeCollection))
+				.on(zeCollectionRecord1).givingReadAccess());
 
-		AuthorizationDetails anotherCollectionAuth = AuthorizationDetails
-				.create("2", asList(Role.READ), anotherCollection);
-		authorizationsServices
-				.add(new Authorization(anotherCollectionAuth, asList(users.gandalfLeblancIn(anotherCollection).getId()),
-						asList(anotherCollectionRecord1)), null);
+		authorizationsServices.add(authorizationForUsers(users.gandalfLeblancIn(anotherCollection))
+				.on(anotherCollectionRecord1).givingReadAccess());
 
 		try {
 			waitForBatchProcess();

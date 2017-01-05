@@ -29,6 +29,7 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -98,16 +99,16 @@ public class AuthorizationImportServices {
 			deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
 		} else {
 			try {
-				Authorization authorization = builder.build(importedAuthorization);
+				AuthorizationAddRequest authorizationAddRequest = builder.buildAddRequest(importedAuthorization);
 				try {
-					authorizationServices
+					String id = authorizationServices
 							.getAuthorizationIdByIdWithoutPrefix(collection, importedAuthorization.getId());
-					authorizationServices.execute(authorizationDeleteRequest(authorization));
+					authorizationServices.execute(authorizationDeleteRequest(id, collection));
 				} catch (NoSuchAuthorizationWithId e) {
-					//new authorization
 
 				}
-				authorizationServices.add(authorization);
+
+				authorizationServices.add(authorizationAddRequest);
 			} catch (ImportedAuthorizationBuilderRuntimeException e) {
 				deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
 			}

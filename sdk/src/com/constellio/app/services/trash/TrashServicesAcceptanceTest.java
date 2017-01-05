@@ -1,5 +1,6 @@
 package com.constellio.app.services.trash;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +29,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -103,12 +105,8 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(task);
 		User adminInBusiness = users.adminIn(businessCollection);
 
-		AuthorizationsServices authorizationService = getModelLayerFactory()
-				.newAuthorizationsServices();
-		Authorization deleteTaskAccess = new Authorization(
-				AuthorizationDetails.create("idAuth", asList("d"), businessCollection), asList(adminInBusiness.getId()),
-				asList(task.getId()));
-		authorizationService.add(deleteTaskAccess, adminInBusiness);
+		AuthorizationsServices authorizationService = getModelLayerFactory().newAuthorizationsServices();
+		authorizationService.add(authorizationForUsers(adminInBusiness).on(task).giving("d"));
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 	}
 

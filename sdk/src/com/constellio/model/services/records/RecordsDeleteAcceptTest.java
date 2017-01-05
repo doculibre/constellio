@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
@@ -29,11 +30,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
@@ -1970,24 +1966,14 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		public void hasDeletePermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			AuthorizationDetails authorizationDetails = AuthorizationDetails
-					.create("zeAuthorization", asList(Role.DELETE), zeCollection);
-			List<String> grantedTo = asList(user.getId());
-			List<String> grantedOn = asList(record.getId());
-			Authorization authorization = new Authorization(authorizationDetails, grantedTo, grantedOn);
-			authorizationsServices.add(authorization, null);
+			authorizationsServices.add(authorizationForUsers(user).on(record).givingReadDeleteAccess());
 			waitForBatchProcess();
 		}
 
 		public void hasReadPermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			AuthorizationDetails authorizationDetails = AuthorizationDetails
-					.create("zeAuthorization", asList(Role.READ), zeCollection);
-			List<String> grantedTo = asList(user.getId());
-			List<String> grantedOn = asList(record.getId());
-			Authorization authorization = new Authorization(authorizationDetails, grantedTo, grantedOn);
-			authorizationsServices.add(authorization, null);
+			authorizationsServices.add(authorizationForUsers(user).on(record).givingReadAccess());
 			waitForBatchProcess();
 		}
 

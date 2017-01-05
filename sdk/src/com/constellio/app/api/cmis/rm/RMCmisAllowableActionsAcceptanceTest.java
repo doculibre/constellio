@@ -6,7 +6,7 @@ import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOL
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_DOCUMENT;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_FOLDER;
 import static com.constellio.model.entities.CorePermissions.MANAGE_SECURITY;
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;

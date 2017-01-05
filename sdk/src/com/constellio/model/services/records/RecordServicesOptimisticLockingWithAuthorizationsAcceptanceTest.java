@@ -1,6 +1,6 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -87,9 +86,9 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 		getDataLayerFactory().getDataLayerLogger().monitor("folder2");
 
 		addAuthorizationWithoutDetaching("ZeFirst", asList(Role.READ), asList(users.legendsIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
+				records.taxo1_category2().getId());
 		addAuthorizationWithoutDetaching("ZeSecond", asList(Role.READ), asList(users.aliceIn(zeCollection).getId()),
-				asList(records.folder1().getId()));
+				records.folder1().getId());
 		waitForBatchProcess();
 
 		assertThat(users.aliceIn(zeCollection).getUserTokens()).containsOnly(
@@ -229,11 +228,11 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 	// ---------------------------------------------------------------------------------------------------------
 
 	private Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, zeCollection);
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-		authorizationsServices.add(authorization, users.dakotaLIndienIn(zeCollection));
-		return authorization;
+			String grantedOnRecord) {
+		authorizationsServices.add(authorizationInCollectionWithId(zeCollection, id).forPrincipalsIds(grantedToPrincipals)
+				.on(grantedOnRecord).giving(roles).setExecutedBy(users.dakotaLIndienIn(zeCollection)));
+
+		return authorizationsServices.getAuthorization(zeCollection, id);
 	}
 
 }

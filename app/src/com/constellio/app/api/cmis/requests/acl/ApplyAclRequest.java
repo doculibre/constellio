@@ -5,13 +5,13 @@ import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
 import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
@@ -33,8 +33,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
-import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -197,7 +196,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 				AuthorizationDetails authorizationDetails = getObjectAuthorizationWithPermission(objectId, permissions);
 				Record principal = getPrincipalRecord(ace.getPrincipalId());
 				if (authorizationDetails == null) {
-					Authorization auth = new AuthorizationBuilder(collection)
+					AuthorizationAddRequest auth = authorizationInCollection(collection)
 							.forPrincipalsIds(principal.getId()).on(objectId).giving(permissions);
 					authorizationsServices.add(auth, user);
 

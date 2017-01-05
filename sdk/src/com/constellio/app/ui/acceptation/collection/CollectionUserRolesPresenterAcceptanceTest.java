@@ -1,11 +1,11 @@
 package com.constellio.app.ui.acceptation.collection;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -18,8 +18,7 @@ import com.constellio.app.ui.pages.collection.CollectionUserRolesPresenter;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesView;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -102,7 +101,7 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		presenter.deleteRoleButtonClicked(
-				new RoleAuthVO(null, null, Arrays.asList(RMRoles.MANAGER)));
+				new RoleAuthVO(null, null, asList(RMRoles.MANAGER)));
 
 		List<RoleAuthVO> aliceSpecificRoles = presenter.getSpecificRoles();
 		verifyThat(aliceSpecificRoles).doesNotContainGlobalRole(RMRoles.MANAGER);
@@ -112,13 +111,11 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenUserWithRoleAuthWhenDeletingItThenAuthDeleted()
 			throws Exception {
-		Authorization authorization = givenAuthorizationFor(aliceId).on(zeConcept).giving(RMRoles.USER);
+		AuthorizationAddRequest authorization = givenAuthorizationFor(aliceId).on(zeConcept).giving(RMRoles.USER);
 		add(authorization);
 		waitForBatchProcess();
 
-		presenter.deleteRoleButtonClicked(
-				new RoleAuthVO(authorization.getDetail().getId(), authorization.getGrantedOnRecords().get(0),
-						Arrays.asList(RMRoles.USER)));
+		presenter.deleteRoleButtonClicked(new RoleAuthVO(authorization.getId(), authorization.getTarget(), asList(RMRoles.USER)));
 		waitForBatchProcess();
 
 		List<RoleAuthVO> aliceSpecificRoles = presenter.getSpecificRoles();
@@ -130,7 +127,7 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddingGlobalRoleThenRoleAddedToUser()
 			throws Exception {
-		presenter.addRoleButtonClicked(new RoleAuthVO(null, null, Arrays.asList(RMRoles.MANAGER)));
+		presenter.addRoleButtonClicked(new RoleAuthVO(null, null, asList(RMRoles.MANAGER)));
 		waitForBatchProcess();
 
 		List<RoleAuthVO> aliceSpecificRoles = presenter.getSpecificRoles();
@@ -142,7 +139,7 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddingRoleAuthThenAuthorizationAdded()
 			throws Exception {
-		presenter.addRoleButtonClicked(new RoleAuthVO(null, zeConcept, Arrays.asList(RMRoles.MANAGER)));
+		presenter.addRoleButtonClicked(new RoleAuthVO(null, zeConcept, asList(RMRoles.MANAGER)));
 		waitForBatchProcess();
 
 		List<RoleAuthVO> aliceSpecificRoles = presenter.getSpecificRoles();
@@ -171,12 +168,12 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.update(aliceUser.getWrappedRecord());
 	}
 
-	private void add(Authorization authorization) {
+	private void add(AuthorizationAddRequest authorization) {
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
 	}
 
-	private AuthorizationBuilder givenAuthorizationFor(String principalId) {
-		return new AuthorizationBuilder(zeCollection).forPrincipalsIds(asList(principalId));
+	private AuthorizationAddRequest givenAuthorizationFor(String principalId) {
+		return authorizationInCollection(zeCollection).forPrincipalsIds(asList(principalId));
 	}
 
 	private void givenAliceIsInLegendsGroup() {
@@ -199,13 +196,13 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 
 		public RoleAuthVOListVerifier containsRoleAuths(String... roles) {
 			wantedRoles.clear();
-			wantedRoles.addAll(Arrays.asList(roles));
+			wantedRoles.addAll(asList(roles));
 			return this;
 		}
 
 		public RoleAuthVOListVerifier doesNotContainRoleAuths(String... roles) {
 			wantedRoles.clear();
-			wantedRoles.addAll(Arrays.asList(roles));
+			wantedRoles.addAll(asList(roles));
 			expectedToContain = false;
 			return this;
 		}

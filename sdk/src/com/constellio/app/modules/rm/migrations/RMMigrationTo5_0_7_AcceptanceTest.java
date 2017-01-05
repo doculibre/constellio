@@ -3,11 +3,13 @@ package com.constellio.app.modules.rm.migrations;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.Comparator;
@@ -34,7 +36,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -153,37 +155,38 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 		assertThat(unit10Children).extracting("code").containsOnly("11", "12", "A");
 
 		assertThatAuthorizationsOf(unit10).isEmpty();
-		assertThatAuthorizationsOf(unit10a).containsOnly(
-				authorizationFor(bob, charles, admin).on(unit10a).givingReadWriteAccess(),
-				authorizationFor(dakota, gandalf).on(unit10a).givingReadWriteDeleteAccess()
-		);
+		//		assertThatAuthorizationsOf(unit10a).containsOnly(
+		//				authorizationFor(bob, charles, admin).on(unit10a).givingReadWriteAccess(),
+		//				authorizationFor(dakota, gandalf).on(unit10a).givingReadWriteDeleteAccess()
+		//		);
 
 		assertThatAuthorizationsOf(unit11).isEmpty();
-		assertThatAuthorizationsOf(unit11b).containsOnly(
-				authorizationFor(dakota, admin).on(unit11b).givingReadWriteAccess(),
-				authorizationFor(edouard, gandalf).on(unit11b).givingReadWriteDeleteAccess(),
-				authorizationFor(edouard).on(unit11b).giving(RMRoles.MANAGER)
-		);
+		//		assertThatAuthorizationsOf(unit11b).containsOnly(
+		//				authorizationFor(dakota, admin).on(unit11b).givingReadWriteAccess(),
+		//				authorizationFor(edouard, gandalf).on(unit11b).givingReadWriteDeleteAccess(),
+		//				authorizationFor(edouard).on(unit11b).giving(RMRoles.MANAGER)
+		//		);
 
 		assertThatAuthorizationsOf(unit12).isEmpty();
-		assertThatAuthorizationsOf(unit12b).containsOnly(
-				authorizationFor(dakota, admin).on(unit12b).givingReadWriteAccess(),
-				authorizationFor(edouard, gandalf).on(unit12b).givingReadWriteDeleteAccess(),
-				authorizationFor(edouard).on(unit12b).giving(RMRoles.MANAGER)
-		);
-		assertThatAuthorizationsOf(unit12c).containsOnly(
-				authorizationFor(edouard, bob, admin).on(unit12c).givingReadWriteAccess(),
-				authorizationFor(gandalf).on(unit12c).givingReadWriteDeleteAccess()
-		);
+		//		assertThatAuthorizationsOf(unit12b).containsOnly(
+		//				authorizationFor(dakota, admin).on(unit12b).givingReadWriteAccess(),
+		//				authorizationFor(edouard, gandalf).on(unit12b).givingReadWriteDeleteAccess(),
+		//				authorizationFor(edouard).on(unit12b).giving(RMRoles.MANAGER)
+		//		);
+		//		assertThatAuthorizationsOf(unit12c).containsOnly(
+		//				authorizationFor(edouard, bob, admin).on(unit12c).givingReadWriteAccess(),
+		//				authorizationFor(gandalf).on(unit12c).givingReadWriteDeleteAccess()
+		//		);
 
 		assertThat(authorizationsServices.getRecordAuthorizations(unit20)).isEmpty();
 		assertThat(authorizationsServices.getRecordAuthorizations(unit20d)).isEmpty();
 		assertThat(authorizationsServices.getRecordAuthorizations(unit20e)).isEmpty();
 		assertThat(authorizationsServices.getRecordAuthorizations(unit30)).isEmpty();
-		assertThatAuthorizationsOf(unit30c).containsOnly(
-				authorizationFor(edouard, bob, admin).on(unit30c).givingReadWriteAccess(),
-				authorizationFor(gandalf).on(unit30c).givingReadWriteDeleteAccess()
-		);
+		//		assertThatAuthorizationsOf(unit30c).containsOnly(
+		//				authorizationFor(edouard, bob, admin).on(unit30c).givingReadWriteAccess(),
+		//				authorizationFor(gandalf).on(unit30c).givingReadWriteDeleteAccess()
+		//		);
+		fail("uncomment asserts");
 
 		assertThat(alice.getUserRoles()).containsOnly(RMRoles.USER);
 		assertThat(gandalf.getUserRoles()).containsOnly(RMRoles.MANAGER);
@@ -254,9 +257,9 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 				});
 	}
 
-	private AuthorizationBuilder authorizationFor(User... users) {
+	private AuthorizationAddRequest authorizationFor(User... users) {
 		List<String> principals = new RecordUtils().toWrappedRecordIdsList(asList(users));
-		return new AuthorizationBuilder(zeCollection).forPrincipalsIds(principals);
+		return authorizationInCollection(zeCollection).forPrincipalsIds(principals);
 	}
 
 	private AdministrativeUnit getExistingUnitWithCode(String code) {

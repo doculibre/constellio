@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -60,9 +61,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -472,9 +471,8 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		private void addAuthorizationOn(AdministrativeUnit newUnit, List<String> users, List<String> roles,
 				UniqueIdGenerator uniqueIdGenerator) {
 			if (!users.isEmpty()) {
-				AuthorizationDetails details = AuthorizationDetails
-						.create(uniqueIdGenerator.next(), roles, newUnit.getCollection());
-				authorizationsServices.add(new Authorization(details, users, asList(newUnit.getId())), User.GOD);
+				authorizationsServices.add(authorizationInCollection(collection)
+						.giving(roles).forPrincipalsIds(users).on(newUnit));
 			}
 		}
 

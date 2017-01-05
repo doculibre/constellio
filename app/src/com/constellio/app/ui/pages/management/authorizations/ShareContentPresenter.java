@@ -6,8 +6,6 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -19,9 +17,9 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -45,7 +43,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	}
 
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
-		Authorization authorization = toAuthorization(authorizationVO);
+		AuthorizationAddRequest authorization = toAuthorization(authorizationVO);
 		authorizationsServices().add(authorization, getCurrentUser());
 		view.showMessage($("ShareContentView.shared"));
 		view.returnFromPage();
@@ -85,30 +83,23 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 		return new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).seeUserRolesInAuthorizations();
 	}
 
-	private Authorization toAuthorization(AuthorizationVO authorizationVO) {
-		String code = authorizationVO.getAuthId();
+	private AuthorizationAddRequest toAuthorization(AuthorizationVO authorizationVO) {
 		AuthorizationDetails details;
-		if (StringUtils.isBlank(code)) {
-			code = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator().next();
 
-			ArrayList<String> roles = new ArrayList<>();
-			roles.addAll(authorizationVO.getAccessRoles());
+		ArrayList<String> roles = new ArrayList<>();
+		roles.addAll(authorizationVO.getAccessRoles());
 
-			for (String roleCode : authorizationVO.getUserRoles()) {
-				roles.add(roleCode);
-			}
-
-			details = AuthorizationDetails.create(
-					code, roles, authorizationVO.getStartDate(), authorizationVO.getEndDate(), view.getCollection());
-		} else {
-			details = modelLayerFactory.getAuthorizationDetailsManager().get(view.getCollection(), code);
+		for (String roleCode : authorizationVO.getUserRoles()) {
+			roles.add(roleCode);
 		}
 
 		List<String> principals = new ArrayList<>();
 		principals.addAll(authorizationVO.getUsers());
 		principals.addAll(authorizationVO.getGroups());
 
-		return new Authorization(details, principals, authorizationVO.getRecords());
+		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
+				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
+				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
 	}
 
 	private AuthorizationsServices authorizationsServices() {

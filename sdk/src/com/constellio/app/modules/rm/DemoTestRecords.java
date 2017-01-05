@@ -9,13 +9,13 @@ import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static java.util.Arrays.asList;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -47,7 +47,6 @@ import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -427,11 +426,8 @@ public class DemoTestRecords {
 
 	private void addAuthorization(List<String> roles, String target, List<String> principals) {
 		if (!principals.isEmpty()) {
-			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-			AuthorizationDetails authorizationDetails = AuthorizationDetails
-					.create(UUID.randomUUID().toString(), roles, collection);
-			Authorization authorization = new Authorization(authorizationDetails, principals, asList(target));
-			authorizationsServices.add(authorization, User.GOD);
+			modelLayerFactory.newAuthorizationsServices()
+					.add(authorizationInCollection(collection).forPrincipalsIds(principals).on(target).giving(roles));
 		}
 	}
 

@@ -5,6 +5,8 @@ import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIO
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -13,14 +15,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.assertj.core.api.AbstractBooleanArrayAssert;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
@@ -32,7 +32,6 @@ import org.junit.Before;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -42,7 +41,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -431,16 +430,16 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return hasAccessUsingWrapperMethod;
 	}
 
-	protected AuthorizationBuilder authorization() {
-		return new AuthorizationBuilder(zeCollection);
+	protected AuthorizationAddRequest authorization() {
+		return authorizationInCollection(zeCollection);
 	}
 
-	protected AuthorizationBuilder authorization(String existingAuthorizationId) {
+	protected AuthorizationAddRequest authorization(String existingAuthorizationId) {
 
-		return new AuthorizationBuilder(zeCollection);
+		return authorizationInCollection(zeCollection);
 	}
 
-	protected AuthorizationBuilder authorizationForUsers(String... usernames) {
+	protected AuthorizationAddRequest authorizationForUsers(String... usernames) {
 
 		User[] usersArray = new User[usernames.length];
 
@@ -448,10 +447,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			usersArray[i] = userServices.getUserInCollection(usernames[i], zeCollection);
 		}
 
-		return new AuthorizationBuilder(zeCollection).forUsers(usersArray);
+		return authorizationInCollection(zeCollection).forUsers(usersArray);
 	}
 
-	protected AuthorizationBuilder authorizationForGroups(String... groups) {
+	protected AuthorizationAddRequest authorizationForGroups(String... groups) {
 
 		Group[] groupsArray = new Group[groups.length];
 
@@ -459,16 +458,16 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			groupsArray[i] = userServices.getGroupInCollection(groups[i], zeCollection);
 		}
 
-		return new AuthorizationBuilder(zeCollection).forGroups(groupsArray);
+		return authorizationInCollection(zeCollection).forGroups(groupsArray);
 	}
 
-	protected AuthorizationBuilder authorizationForUser(String username) {
+	protected AuthorizationAddRequest authorizationForUser(String username) {
 
 		User[] usersArray = new User[] { userServices.getUserInCollection(username, zeCollection) };
-		return new AuthorizationBuilder(zeCollection).forUsers(usersArray);
+		return authorizationInCollection(zeCollection).forUsers(usersArray);
 	}
 
-	protected AuthorizationBuilder authorizationForPrincipals(String... principals) {
+	protected AuthorizationAddRequest authorizationForPrincipals(String... principals) {
 
 		List<String> principalIds = new ArrayList<>();
 
@@ -476,13 +475,13 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			principalIds.add(toPrincipalId(principal));
 		}
 
-		return new AuthorizationBuilder(zeCollection).forPrincipalsIds(principalIds);
+		return authorizationInCollection(zeCollection).forPrincipalsIds(principalIds);
 	}
 
-	protected AuthorizationBuilder authorizationForGroup(String group) {
+	protected AuthorizationAddRequest authorizationForGroup(String group) {
 
 		Group[] groupsArray = new Group[] { userServices.getGroupInCollection(group, zeCollection) };
-		return new AuthorizationBuilder(zeCollection).forGroups(groupsArray);
+		return authorizationInCollection(zeCollection).forGroups(groupsArray);
 	}
 
 	protected long fetchEventCount() {
@@ -934,41 +933,41 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	@Deprecated
 	protected Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		return addAuthorizationWithoutDetaching(aString(), roles, grantedToPrincipals, grantedOnRecords);
+			String grantedOnRecord) {
+		return addAuthorizationWithoutDetaching(aString(), roles, grantedToPrincipals, grantedOnRecord);
 	}
 
 	@Deprecated
 	protected Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, zeCollection);
+			String grantedOnRecord) {
 
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
+		id = services.add(authorizationInCollectionWithId(zeCollection, id).forPrincipalsIds(grantedToPrincipals)
+				.on(grantedOnRecord)
+				.giving(roles).setExecutedBy(users.dakotaLIndienIn(zeCollection)));
 
-		services.add(authorization, users.dakotaLIndienIn(zeCollection));
-		return authorization;
+		return services.getAuthorization(zeCollection, id);
 	}
 
-	protected String add(Authorization authorization) {
-		services.add(authorization, users.dakotaLIndienIn(zeCollection));
+	protected String add(AuthorizationAddRequest request) {
+		String id = services.add(request, users.dakotaLIndienIn(zeCollection));
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
-		return authorization.getDetail().getId();
+		return id;
 	}
 
-	protected String addWithoutUser(Authorization authorization) {
-		services.add(authorization, null);
+	protected String addWithoutUser(AuthorizationAddRequest authorization) {
+		String id = services.add(authorization, null);
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
-		return authorization.getDetail().getId();
+		return id;
 	}
 
 	protected Map<String, String> detach(String recordId) {

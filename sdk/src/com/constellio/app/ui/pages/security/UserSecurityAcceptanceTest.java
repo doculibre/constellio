@@ -62,6 +62,7 @@ import static com.constellio.app.ui.application.NavigatorConfigurationService.UP
 import static com.constellio.app.ui.application.NavigatorConfigurationService.USER_ADD_EDIT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.USER_DISPLAY;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.USER_LIST;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -107,6 +108,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -715,19 +717,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	private void giveAReadAccessToAFolderToSasquatch(User user, String recordId) {
-
-		AuthorizationDetails authorizationDetails = AuthorizationDetails
-				.create("auth" + aString(), asList(Role.READ), user.getCollection());
-
-		Record record = getModelLayerFactory().newRecordServices().getDocumentById(recordId);
-		getModelLayerFactory().newAuthorizationsServices().detach(record);
-
-		Authorization authorization = new Authorization();
-		authorization.setGrantedToPrincipals(asList(user.getId()));
-		authorization.setGrantedOnRecords(asList(recordId));
-		authorization.setDetail(authorizationDetails);
-		getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
-
+		getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(user).on(recordId).givingReadAccess());
 	}
 
 	@Test

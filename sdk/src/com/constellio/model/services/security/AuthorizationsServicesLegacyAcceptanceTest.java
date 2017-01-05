@@ -102,7 +102,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 		List<String> roles = asList(READ);
 
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
+				records.taxo1_category2().getId());
 
 		waitForBatchProcess();
 
@@ -122,10 +122,10 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 			throws Exception {
 
 		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder4().getId()));
-		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), asList(records.folder2().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), records.folder4().getId());
+		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), records.folder2().getId());
 		addAuthorizationWithoutDetaching(roles, asList(users.gandalfIn(zeCollection).getId()),
-				asList(records.taxo1_category1().getId()));
+				records.taxo1_category1().getId());
 		waitForBatchProcess();
 
 		List<String> foundRecords = findAllFoldersAndDocuments(users.gandalfIn(zeCollection));
@@ -143,8 +143,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 			throws Exception {
 
 		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.folder2_2_doc2().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()), records.folder2_2_doc2().getId());
 		waitForBatchProcess();
 
 		List<String> foundRecords = findAllFoldersAndDocuments(users.bobIn(zeCollection));
@@ -156,10 +155,10 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 			throws Exception {
 
 		List<String> roles = Arrays.asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder2().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), records.folder2().getId());
 		roles = Arrays.asList(Role.WRITE);
 		detach(records.folder2().getId());
-		addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList(records.folder2().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), records.folder2().getId());
 		waitForBatchProcess();
 
 		List<String> foundRecords = findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection));
@@ -177,9 +176,9 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 
 		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
+				records.taxo1_category2().getId());
 		addAuthorizationWithoutDetaching(roles, asList(users.edouardLechatIn(zeCollection).getId()),
-				asList(records.taxo1_category2_1().getId()));
+				records.taxo1_category2_1().getId());
 		waitForBatchProcess();
 
 		List<String> foundRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
@@ -203,9 +202,9 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 
 		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
+				records.taxo1_category2().getId());
 		addAuthorizationWithoutDetaching(roles, asList(users.edouardLechatIn(zeCollection).getId()),
-				asList(records.folder4().getId()));
+				records.folder4().getId());
 		waitForBatchProcess();
 
 		// List<String> foundRecords = findAllFoldersAndDocuments(users.chuckNorrisIn(zeCollection));
@@ -237,8 +236,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 			throws RolesManagerRuntimeException, InterruptedException, RecordServicesException {
 
 		User bob = users.bobIn(zeCollection);
-		addAuthorizationWithoutDetaching(asList("zeRole", READ), asList(bob.getId()),
-				asList(records.taxo1_category1().getId()));
+		addAuthorizationWithoutDetaching(asList("zeRole", READ), asList(bob.getId()), records.taxo1_category1().getId());
 		waitForBatchProcess();
 
 		bob = users.bobIn(zeCollection);
@@ -259,8 +257,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 		bob.setCollectionReadAccess(true);
 		bob.setUserGroups(asList(group.getId()));
 
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()),
-				asList(records.taxo1_category1().getId()));
+		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()), records.taxo1_category1().getId());
 		waitForBatchProcess();
 
 		assertThat(services.canRead(bob, records.folder1())).isTrue();
@@ -274,8 +271,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 
 		User bob = users.bobIn(zeCollection);
 
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(bob.getId()),
-				asList(records.taxo1_category1().getId()));
+		addAuthorizationWithoutDetaching(asList("zeRole"), asList(bob.getId()), records.taxo1_category1().getId());
 		waitForBatchProcess();
 
 		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
@@ -291,8 +287,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 		// bob.setCollectionReadAccess(true);
 		bob.setUserGroups(asList(group.getId()));
 
-		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()),
-				asList(records.taxo1_category1().getId()));
+		addAuthorizationWithoutDetaching(asList("zeRole"), asList(group.getId()), records.taxo1_category1().getId());
 		waitForBatchProcess();
 
 		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
@@ -306,8 +301,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 
 		assertThat(users.robinIn(zeCollection)).is(notAllowedToWrite(records.taxo1_category2()));
 
-		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), records.taxo1_category2().getId());
 
 		waitForBatchProcess();
 
@@ -322,7 +316,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 		List<String> roles = asList(READ);
 
 		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
-				asList(records.taxo1_category2().getId()));
+				records.taxo1_category2().getId());
 		waitForBatchProcess();
 		String authId = authorization.getDetail().getId();
 

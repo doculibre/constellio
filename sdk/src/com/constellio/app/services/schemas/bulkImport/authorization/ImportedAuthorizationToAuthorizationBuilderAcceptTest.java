@@ -22,6 +22,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -81,10 +82,7 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 				new ImportedAuthorizationPrincipal("group", "heroes"));
 
 		List<ImportedAuthorizationTarget> validTargets = asList(
-				new ImportedAuthorizationTarget("folder", "folderLegacyId"),
-				new ImportedAuthorizationTarget("document", "documentLegacyId"),
-				new ImportedAuthorizationTarget("administrativeUnit", "administrativeUnitLegacyId"),
-				new ImportedAuthorizationTarget("userTask", "userTaskLegacyId"));
+				new ImportedAuthorizationTarget("folder", "folderLegacyId"));
 
 		validAuthorization = new ImportedAuthorization().setId("id").setPrincipals(validPrincipals)
 				.setTargets(validTargets).setAccess("rwd");
@@ -93,26 +91,22 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 	@Test
 	public void givenValidAuthorizationWithAccessWhenBuildThenBuiltCorrectly()
 			throws Exception {
-		Authorization authorization = builder.build(validAuthorization);
-		assertThat(authorization.getGrantedToPrincipals())
+		AuthorizationAddRequest authorization = builder.buildAddRequest(validAuthorization);
+		assertThat(authorization.getPrincipals())
 				.containsExactly(aliceHavingLegacyId.getId(), heroes.getId());
-		assertThat(authorization.getGrantedOnRecords())
-				.containsExactly(folderHavingLegacyId.getId(), documentHavingLegacyId.getId(),
-						administrativeUnitHavingLegacyId.getId(), userTaskHavingLegacyId.getId());
-		AuthorizationDetails detail = authorization.getDetail();
-		assertThat(detail.getId()).isEqualTo("rwd__id");
-		assertThat(detail.getStartDate()).isNull();
-		assertThat(detail.getEndDate()).isNull();
-		assertThat(detail.getCollection()).isEqualTo(zeCollection);
-		assertThat(detail.getRoles()).containsOnly(Role.READ, Role.WRITE, Role.DELETE);
+		assertThat(authorization.getTarget()).isEqualTo(folderHavingLegacyId.getId());
+		assertThat(authorization.getId()).isEqualTo("rwd__id");
+		assertThat(authorization.getStart()).isNull();
+		assertThat(authorization.getEnd()).isNull();
+		assertThat(authorization.getCollection()).isEqualTo(zeCollection);
+		assertThat(authorization.getRoles()).containsOnly(Role.READ, Role.WRITE, Role.DELETE);
 	}
 
 	@Test
 	public void givenValidAuthorizationWithRolesWhenBuildThenBuiltCorrectly()
 			throws Exception {
 		validAuthorization.setAccess(null).setRoles(asList("u", "rgd"));
-		Authorization authorization = builder.build(validAuthorization);
-		AuthorizationDetails detail = authorization.getDetail();
-		assertThat(detail.getRoles()).containsExactly("u", "rgd");
+		AuthorizationAddRequest authorization = builder.buildAddRequest(validAuthorization);
+		assertThat(authorization.getRoles()).containsExactly("u", "rgd");
 	}
 }
