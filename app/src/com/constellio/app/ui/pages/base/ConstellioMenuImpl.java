@@ -118,7 +118,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			menuContent.addComponent(titleComponent);
 		}
 		menuContent.addComponent(buildUserMenu());
-		menuContent.addComponent(buildUserMenu());
 		menuContent.addComponent(buildToggleButton());
 		menuContent.addComponent(buildMainMenu());
 
@@ -154,7 +153,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				}
 			}
 			HorizontalLayout collectionMenuWrapper = new HorizontalLayout(collectionMenu);
-			collectionMenuWrapper.setComponentAlignment(collectionMenu, Alignment.MIDDLE_CENTER);
+//			collectionMenuWrapper.setComponentAlignment(collectionMenu, Alignment.MIDDLE_CENTER);
 			collectionMenuWrapper.addStyleName(ValoTheme.MENU_TITLE);
 			titleComponent = collectionMenuWrapper;
 		} else {

@@ -55,6 +55,7 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
+import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
@@ -93,8 +94,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		}
 
 		Responsive.makeResponsive(this);
-		//		addStyleName(ValoTheme.UI_WITH_MENU);
-		addStyleName("ui-with-top-menu");
+		addStyleName(ValoTheme.UI_WITH_MENU);
 
 		// Some views need to be aware of browser resize events so a
 		// BrowserResizeEvent gets fired to the event but on every occasion.
