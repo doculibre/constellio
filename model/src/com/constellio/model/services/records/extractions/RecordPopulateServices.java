@@ -1,27 +1,12 @@
 package com.constellio.model.services.records.extractions;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.regex.Matcher;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -29,8 +14,14 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
 
 public class RecordPopulateServices {
 
@@ -114,6 +105,9 @@ public class RecordPopulateServices {
 				List<String> values = record.getList(metadata);
 				return values.isEmpty() || isValueWritenBySystem(record, metadata, values, contentMetadatas);
 			} else {
+				if(Schemas.TITLE.equals(metadata.getLocalCode()) && metadata.isSchemaAutocomplete()) {
+					return false;
+				}
 				String value = record.get(metadata);
 				return record.get(metadata) == null || isValueWritenBySystem(record, metadata, value, contentMetadatas);
 			}
