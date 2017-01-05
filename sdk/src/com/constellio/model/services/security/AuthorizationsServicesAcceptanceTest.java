@@ -1590,4 +1590,64 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		Event event = schemas.searchEvents(where(schemas.eventType()).isEqualTo("modify_permission_category")).get(0);
 		assertThat(event.getDelta().replace("\n", "")).isEqualTo("Utilisateurs :-[Dakota L'Indien]+[Alice Wonderland]");
 	}
+
+	@Test
+	public void whenAConceptIsAssignedToANewParentThenTokensUpdated()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
+
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(FOLDER2).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
+		verifyRecord(TAXO1_CATEGORY2_1).usersWithReadAccess().containsOnly(bob, charles, chuck);
+		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(bob, charles, chuck);
+
+		recordServices.update(records.taxo1_category2_1().set(setup.category.parentOfCategory(), TAXO1_CATEGORY1));
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(FOLDER2).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
+		verifyRecord(TAXO1_CATEGORY2_1).usersWithReadAccess().containsOnly(alice, charles, chuck);
+		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(alice, charles, chuck);
+
+		recordServices.update(records.taxo1_category2_1().set(setup.category.parentOfCategory(), null));
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(FOLDER2).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
+		verifyRecord(TAXO1_CATEGORY2_1).usersWithReadAccess().containsOnly(charles, chuck);
+		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(charles, chuck);
+	}
+
+	@Test
+	public void whenARecordIsAssignedToANewConceptThenTokensUpdated()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER3).givingReadWriteAccess());
+		auth4 = add(authorizationForUser(dakota).on(FOLDER4).givingReadWriteAccess());
+
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(FOLDER2).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
+		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(bob, charles, chuck);
+		verifyRecord(FOLDER3_DOC1).usersWithReadAccess().containsOnly(bob, charles, chuck);
+
+		recordServices.update(records.folder3().set(setup.folderSchema.taxonomy1(), TAXO1_CATEGORY1));
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
+		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(alice, charles, chuck);
+		verifyRecord(FOLDER3_DOC1).usersWithReadAccess().containsOnly(alice, charles, chuck);
+
+		recordServices.update(records.folder3()
+				.set(setup.folderSchema.taxonomy1(), null)
+				.set(setup.folderSchema.parent(), FOLDER4));
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
+		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(bob, charles, dakota, chuck);
+		verifyRecord(FOLDER3_DOC1).usersWithReadAccess().containsOnly(bob, charles, dakota, chuck);
+	}
+
 }
