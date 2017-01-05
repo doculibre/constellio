@@ -2,7 +2,7 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -487,10 +487,10 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 					try {
 						Authorization authorization = authorizationsServices.getAuthorization(collection, authorizationId);
 						if (authorization.getDetail().isSynced()) {
-							authorizationsServices.delete(authorization(authorization));
+							authorizationsServices.execute(authorizationDeleteRequest(authorization));
 						}
 					} catch (NoSuchAuthorizationWithId e) {
-						authorizationsServices.delete(AuthorizationDeleteRequest.authorization(authorizationId, collection));
+						authorizationsServices.execute(authorizationDeleteRequest(authorizationId, collection));
 					}
 				}
 

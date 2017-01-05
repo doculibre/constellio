@@ -1,7 +1,7 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,7 +102,7 @@ public class AuthorizationImportServices {
 				try {
 					authorizationServices
 							.getAuthorizationIdByIdWithoutPrefix(collection, importedAuthorization.getId());
-					authorizationServices.delete(authorization(authorization));
+					authorizationServices.execute(authorizationDeleteRequest(authorization));
 				} catch (NoSuchAuthorizationWithId e) {
 					//new authorization
 
@@ -119,7 +119,7 @@ public class AuthorizationImportServices {
 		try {
 			String authorizationId = authorizationServices
 					.getAuthorizationIdByIdWithoutPrefix(collection, id);
-			authorizationServices.delete(AuthorizationDeleteRequest.authorization(authorizationId, collection));
+			authorizationServices.execute(authorizationDeleteRequest(authorizationId, collection));
 		} catch (NoSuchAuthorizationWithId e) {
 			LOGGER.warn("Authorization not deleted : no authorization with id " + id);
 		}

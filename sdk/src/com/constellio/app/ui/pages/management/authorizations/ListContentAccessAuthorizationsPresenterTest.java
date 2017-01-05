@@ -115,7 +115,7 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 		ArgumentCaptor<AuthorizationDeleteRequest> requestArgumentCaptor = forClass(AuthorizationDeleteRequest.class);
 		givenAuthorizationWithId(aString());
 		presenter.deleteButtonClicked(authorizationVO);
-		verify(authorizationsServices, times(1)).delete(requestArgumentCaptor.capture());
+		verify(authorizationsServices, times(1)).execute(requestArgumentCaptor.capture());
 		verify(view, times(1)).removeAuthorization(authorizationVO);
 
 		assertThat(requestArgumentCaptor.getValue().getAuthId()).isEqualTo("zeAuth");

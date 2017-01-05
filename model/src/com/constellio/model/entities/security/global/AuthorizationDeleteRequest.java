@@ -30,16 +30,16 @@ public class AuthorizationDeleteRequest {
 		return new AuthorizationDeleteRequest(authId, collection, executedBy, reattachIfLastAuthDeleted);
 	}
 
-	public static AuthorizationDeleteRequest authorization(String authId, String collection) {
+	public static AuthorizationDeleteRequest authorizationDeleteRequest(String authId, String collection) {
 		return new AuthorizationDeleteRequest(authId, collection, null, true);
 	}
 
-	public static AuthorizationDeleteRequest authorization(Authorization authorization) {
-		return authorization(authorization.getDetail());
+	public static AuthorizationDeleteRequest authorizationDeleteRequest(Authorization authorization) {
+		return authorizationDeleteRequest(authorization.getDetail());
 	}
 
-	public static AuthorizationDeleteRequest authorization(AuthorizationDetails authorizationDetails) {
-		return authorization(authorizationDetails.getId(), authorizationDetails.getCollection());
+	public static AuthorizationDeleteRequest authorizationDeleteRequest(AuthorizationDetails authorizationDetails) {
+		return authorizationDeleteRequest(authorizationDetails.getId(), authorizationDetails.getCollection());
 	}
 
 	public User getExecutedBy() {

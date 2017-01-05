@@ -4,7 +4,7 @@ import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -102,6 +102,7 @@ public class AuthorizationsServices {
 	}
 
 	@Deprecated
+	//TODO Remove this method with new auth system
 	public String getAuthorizationIdByIdWithoutPrefix(String collection, String idWithoutPrefix) {
 		AuthorizationDetails authDetails = manager.getByIdWithoutPrefix(collection, idWithoutPrefix);
 		if (authDetails == null) {
@@ -322,7 +323,7 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
-	public void delete(AuthorizationDeleteRequest request) {
+	public void execute(AuthorizationDeleteRequest request) {
 
 		List<String> authId = asList(request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
@@ -365,7 +366,6 @@ public class AuthorizationsServices {
 	 * @param request The request to execute
 	 * @return A response with some informations
 	 */
-
 	public AuthorizationModificationResponse execute(AuthorizationModificationRequest request) {
 
 		Authorization authorization = getAuthorization(request.getCollection(), request.getAuthorizationId());
@@ -602,20 +602,26 @@ public class AuthorizationsServices {
 		return hasPermissionOnHierarchy(user, record, null);
 	}
 
+	/**
+	 *Use user.hasReadAccess().on(record) instead
+	 */
 	@Deprecated
-	//After user.hasReadAccess instead
 	public boolean canRead(User user, Record record) {
 		return user.hasReadAccess().on(record);
 	}
 
+	/**
+	 *Use user.hasWriteAccess().on(record) instead
+	 */
 	@Deprecated
-	//After user.hasWriteAccess instead
 	public boolean canWrite(User user, Record record) {
 		return user.hasWriteAccess().on(record);
 	}
 
+	/**
+	 *Use user.hasDeleteAccess().on(record) instead
+	 */
 	@Deprecated
-	//After user.hasDeleteAccess instead
 	public boolean canDelete(User user, Record record) {
 		return user.hasDeleteAccess().on(record);
 	}
@@ -920,7 +926,7 @@ public class AuthorizationsServices {
 		}
 
 		if (authDetail.getEndDate() != null && now.isAfter(authDetail.getEndDate())) {
-			delete(authorization(authDetail));
+			execute(authorizationDeleteRequest(authDetail));
 		}
 
 	}

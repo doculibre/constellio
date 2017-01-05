@@ -9,6 +9,7 @@ import static com.constellio.model.entities.security.CustomizedAuthorizationsBeh
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorization;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
@@ -142,8 +143,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(foldersWithDeleteFound).hasSize(0);
 		}
 	}
-
-
 
 	@Test
 	public void givenRoleAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
@@ -1423,7 +1422,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth2, zeCollection)
+		services.execute(authorizationDeleteRequest(auth2, zeCollection)
 				.setReattachIfLastAuthDeleted(false)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
@@ -1433,7 +1432,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth3, zeCollection)
+		services.execute(authorizationDeleteRequest(auth3, zeCollection)
 				.setReattachIfLastAuthDeleted(false)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
@@ -1442,7 +1441,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth1, zeCollection)
+		services.execute(authorizationDeleteRequest(auth1, zeCollection)
 				.setReattachIfLastAuthDeleted(false)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
@@ -1472,7 +1471,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth2, zeCollection)
+		services.execute(authorizationDeleteRequest(auth2, zeCollection)
 				.setReattachIfLastAuthDeleted(true)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
@@ -1482,7 +1481,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth3, zeCollection)
+		services.execute(authorizationDeleteRequest(auth3, zeCollection)
 				.setReattachIfLastAuthDeleted(true)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
@@ -1491,7 +1490,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth1, zeCollection)
+		services.execute(authorizationDeleteRequest(auth1, zeCollection)
 				.setReattachIfLastAuthDeleted(true)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
@@ -1521,8 +1520,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThatRecords(schemas.searchEvents(ALL)).isEmpty();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth2, zeCollection)
-				.setReattachIfLastAuthDeleted(true));
+		services.execute(authorizationDeleteRequest(auth2, zeCollection).setReattachIfLastAuthDeleted(true));
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice),
@@ -1530,16 +1528,14 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth3, zeCollection)
-				.setReattachIfLastAuthDeleted(true));
+		services.execute(authorizationDeleteRequest(auth3, zeCollection).setReattachIfLastAuthDeleted(true));
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice));
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(alice, chuck);
 
-		services.delete(AuthorizationDeleteRequest.authorization(auth1, zeCollection)
-				.setReattachIfLastAuthDeleted(true));
+		services.execute(authorizationDeleteRequest(auth1, zeCollection).setReattachIfLastAuthDeleted(true));
 
 		assertThatAllAuthorizations().isEmpty();
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
