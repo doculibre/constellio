@@ -44,6 +44,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
@@ -298,7 +299,6 @@ public class AuthorizationsServices {
 	 * @return The new authorization's id
 	 */
 	public String add(Authorization authorization, User userAddingTheAuth) {
-
 		List<Record> records = getAuthorizationGrantedOnRecords(authorization);
 		List<Record> principals = getAuthorizationGrantedToPrincipals(authorization);
 
