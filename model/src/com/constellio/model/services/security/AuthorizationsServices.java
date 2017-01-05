@@ -4,6 +4,7 @@ import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -152,7 +153,6 @@ public class AuthorizationsServices {
 	}
 
 	public List<User> getUsersWithPermissionOnRecord(String permission, Record concept) {
-		//Testé, pas utilisé
 		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
 		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
 		List<String> tokens = concept.get(Schemas.TOKENS);
@@ -320,17 +320,6 @@ public class AuthorizationsServices {
 		}
 
 		return authId;
-	}
-
-	@Deprecated
-	public void delete(AuthorizationDetails authorization, User user) {
-		delete(AuthorizationDeleteRequest.authorization(authorization).setExecutedBy(user));
-	}
-
-	@Deprecated
-	public void delete(String authorizationId, String collection, User user, boolean reattachIfLastAuth) {
-		delete(AuthorizationDeleteRequest.authorization(authorizationId, collection).setExecutedBy(user)
-				.setReattachIfLastAuthDeleted(reattachIfLastAuth));
 	}
 
 	public void delete(AuthorizationDeleteRequest request) {
@@ -736,17 +725,6 @@ public class AuthorizationsServices {
 			}
 		}
 
-		//		LogicalSearchQuery query = new LogicalSearchQuery();
-		//		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(authDetails.getCollection());
-		//		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType("user");
-		//		query.setCondition(from(userSchemaType).where(Schemas.AUTHORIZATIONS).isContaining(asList(authDetails.getId())));
-		//		principals.addAll(searchServices.searchRecordIds(query));
-		//		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType("group");
-		//		query.setCondition(from(groupSchemaType).where(Schemas.AUTHORIZATIONS).isContaining(asList(authDetails.getId())));
-		//		principals.addAll(searchServices.searchRecordIds(query));
-		//		for (Record record : findAllPrincipalsWithAuthorization(authDetails)) {
-		//			principals.add(record.getId());
-		//		}
 		return principals;
 	}
 
@@ -788,37 +766,6 @@ public class AuthorizationsServices {
 
 		return allGlobalRole;
 	}
-
-	//	private List<Role> getAllRolesForRecord(Record record) {
-	//		List<Role> allRoleRecord = new ArrayList<>();
-	//
-	//		for (Authorization authorization : getRecordAuthorizations(record)) {
-	//			List<String> rolesId = authorization.getDetail().getRoles();
-	//			allRoleRecord = getRolesFromId(rolesId, record.getCollection());
-	//		}
-	//
-	//		return allRoleRecord;
-	//	}
-	//
-	//	private boolean hasPermissionForRoleRecord(List<Role> userRole, ContentPermission contentPermission,
-	//			User user) {
-	//		for (Role roleUser : userRole) {
-	//			for (Role roleRecord : recordRole) {
-	//				if (roleUser.getCode().equals(roleRecord.getCode())) {
-	//					if (!hasCollectionPermission(user)) {
-	//						if (roleUser.hasContentPermission(contentPermission)) {
-	//							return true;
-	//						}
-	//
-	//					} else {
-	//						return true;
-	//					}
-	//				}
-	//			}
-	//		}
-	//
-	//		return false;
-	//	}
 
 	private List<Role> getRolesFromId(List<String> rolesId, String collection)
 			throws RolesManagerRuntimeException {
@@ -973,7 +920,7 @@ public class AuthorizationsServices {
 		}
 
 		if (authDetail.getEndDate() != null && now.isAfter(authDetail.getEndDate())) {
-			delete(authDetail, null);
+			delete(authorization(authDetail));
 		}
 
 	}
@@ -1004,16 +951,6 @@ public class AuthorizationsServices {
 		query.setCondition(condition);
 		return searchServices.search(query);
 	}
-
-	//	Map<String, String> setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior behavior, Record record) {
-	//		if (behavior == DETACH) {
-	//			return setupAuthorizationsForDetachedRecord(record);
-	//		} else if (behavior == CustomizedAuthorizationsBehavior.KEEP_ATTACHED) {
-	//			record.set(IS_DETACHED_AUTHORIZATIONS, false);
-	//		}
-	//		return null;
-	//
-	//	}
 
 	Map<String, String> setupAuthorizationsForDetachedRecord(Record record) {
 		Map<String, String> originalToCopyMap = new HashMap<>();

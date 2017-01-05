@@ -143,25 +143,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	// TODO @Test Fix event logging
-	public void givenBobHasReadAccessToCategory1ThenBobSeesFolder1AndFolder2()
-			throws Exception {
 
-		List<String> roles = asList(READ);
-		long eventsCount = fetchEventCount();
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category1().getId()));
-		assertThat(fetchEventCount()).isEqualTo(eventsCount + 1);
-		waitForBatchProcess();
-
-		List<String> foundRecords = findAllFoldersAndDocuments(users.bobIn(zeCollection));
-		assertThat(foundRecords).containsOnly(records.folder1().getId(), records.folder2().getId(), records.folder2_1().getId(),
-				records.folder2_2().getId(), records.folder1_doc1().getId(), records.folder2_2_doc1().getId(),
-				records.folder2_2_doc2().getId());
-	}
-
-	//Notes :
-	//TODO TestgetUsersWithPermission
 
 	@Test
 	public void givenRoleAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()

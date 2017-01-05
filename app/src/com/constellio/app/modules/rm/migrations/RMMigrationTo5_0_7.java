@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -61,6 +62,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -485,10 +487,10 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 					try {
 						Authorization authorization = authorizationsServices.getAuthorization(collection, authorizationId);
 						if (authorization.getDetail().isSynced()) {
-							authorizationsServices.delete(authorization.getDetail(), User.GOD);
+							authorizationsServices.delete(authorization(authorization));
 						}
 					} catch (NoSuchAuthorizationWithId e) {
-						authorizationsServices.delete(authorizationId, collection, User.GOD, true);
+						authorizationsServices.delete(AuthorizationDeleteRequest.authorization(authorizationId, collection));
 					}
 				}
 

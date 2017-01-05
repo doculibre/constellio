@@ -5,6 +5,7 @@ import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
 import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -180,9 +182,9 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
 		}
 		for (String auth : authorizationsPotentiallyEmpty) {
-			Authorization authorization = authorizationsServices.getAuthorization(collection, auth);
-			if (authorization.getGrantedToPrincipals().isEmpty()) {
-				authorizationsServices.delete(authorization.getDetail(), user);
+			Authorization anAuthorization = authorizationsServices.getAuthorization(collection, auth);
+			if (anAuthorization.getGrantedToPrincipals().isEmpty()) {
+				authorizationsServices.delete(authorization(anAuthorization).setExecutedBy(user));
 			}
 		}
 

@@ -1,6 +1,7 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
@@ -100,7 +102,7 @@ public class AuthorizationImportServices {
 				try {
 					authorizationServices
 							.getAuthorizationIdByIdWithoutPrefix(collection, importedAuthorization.getId());
-					authorizationServices.delete(authorization.getDetail(), User.GOD);
+					authorizationServices.delete(authorization(authorization));
 				} catch (NoSuchAuthorizationWithId e) {
 					//new authorization
 
@@ -117,7 +119,7 @@ public class AuthorizationImportServices {
 		try {
 			String authorizationId = authorizationServices
 					.getAuthorizationIdByIdWithoutPrefix(collection, id);
-			authorizationServices.delete(authorizationId, collection, null, true);
+			authorizationServices.delete(AuthorizationDeleteRequest.authorization(authorizationId, collection));
 		} catch (NoSuchAuthorizationWithId e) {
 			LOGGER.warn("Authorization not deleted : no authorization with id " + id);
 		}

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.sdk.tests.MockedNavigation;
 
@@ -101,10 +102,14 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 
 	@Test
 	public void givenAuthorizationDeletedWhenSinglePrincipalThenRemoveTheAuthorizationAndRefreshTheView() {
+		ArgumentCaptor<AuthorizationDeleteRequest> requestArgumentCaptor = forClass(AuthorizationDeleteRequest.class);
 		givenAuthorizationWithId(aString(), false);
 		presenter.deleteButtonClicked(authorizationVO);
-		verify(authorizationsServices, times(1)).delete(details, user);
+		verify(authorizationsServices, times(1)).delete(requestArgumentCaptor.capture());
 		verify(view, times(1)).removeAuthorization(authorizationVO);
+
+		assertThat(requestArgumentCaptor.getValue().getAuthId()).isEqualTo("zeAuth");
+		assertThat(requestArgumentCaptor.getValue().getExecutedBy()).isEqualTo(user);
 	}
 
 	@Test

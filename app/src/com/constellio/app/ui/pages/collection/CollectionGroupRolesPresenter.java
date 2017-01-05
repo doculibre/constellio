@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.collection;
 
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorization;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -128,7 +130,7 @@ public class CollectionGroupRolesPresenter extends SingleSchemaBasePresenter<Col
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 			AuthorizationDetails authorizationDetails = authorizationsServices.getAuthorization(collection, roleAuthVO.getId())
 					.getDetail();
-			authorizationsServices.delete(authorizationDetails, getCurrentUser());
+			authorizationsServices.delete(authorization(authorizationDetails).setExecutedBy(getCurrentUser()));
 		}
 		view.refreshTable();
 	}

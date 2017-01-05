@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -12,9 +13,12 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.sdk.tests.SDKViewNavigation;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -62,6 +66,8 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Before
 	public void setUp()
 			throws Exception {
+		when(authorizationVO.getAuthId()).thenReturn("zeAuth");
+		when(details.getId()).thenReturn("zeAuth");
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		SessionContext context = FakeSessionContext.gandalfInCollection(zeCollection);
 		when(view.getSessionContext()).thenReturn(context);
@@ -106,10 +112,14 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 
 	@Test
 	public void givenAuthorizationDeletedThenRemoveTheAuthorizationAndRefreshTheView() {
+		ArgumentCaptor<AuthorizationDeleteRequest> requestArgumentCaptor = forClass(AuthorizationDeleteRequest.class);
 		givenAuthorizationWithId(aString());
 		presenter.deleteButtonClicked(authorizationVO);
-		verify(authorizationsServices, times(1)).delete(details, user);
+		verify(authorizationsServices, times(1)).delete(requestArgumentCaptor.capture());
 		verify(view, times(1)).removeAuthorization(authorizationVO);
+
+		assertThat(requestArgumentCaptor.getValue().getAuthId()).isEqualTo("zeAuth");
+		assertThat(requestArgumentCaptor.getValue().getExecutedBy()).isEqualTo(user);
 	}
 
 	private void givenObjectWithTwoInheritedAndTwoOwnAuthorizations() {
