@@ -470,10 +470,10 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void addAuthorizationOn(AdministrativeUnit newUnit, List<String> users, List<String> roles,
 				UniqueIdGenerator uniqueIdGenerator) {
-			if (!users.isEmpty()) {
+			/*if (!users.isEmpty()) {
 				authorizationsServices.add(authorizationInCollection(collection)
 						.giving(roles).forPrincipalsIds(users).on(newUnit));
-			}
+			}*/
 		}
 
 		private void removedSyncedAuthorizations() {

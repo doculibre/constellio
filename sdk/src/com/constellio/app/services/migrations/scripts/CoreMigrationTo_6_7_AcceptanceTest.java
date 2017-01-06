@@ -23,7 +23,7 @@ public class CoreMigrationTo_6_7_AcceptanceTest extends ConstellioTest {
         RecordPopulateServices.LOG_CONTENT_MISSING = false;
         givenTransactionLogIsEnabled();
 
-        getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(getTestResourceFile("saveState.zip")).withPasswordsReset()
+        getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(getTestResourceFile("savestate.zip")).withPasswordsReset()
                 .withFakeEncryptionServices();
 
         SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -33,7 +33,7 @@ public class CoreMigrationTo_6_7_AcceptanceTest extends ConstellioTest {
 
         assertThat(solrAuthorizationDetailsList).extracting(
                 Schemas.IDENTIFIER.getLocalCode(), SolrAuthorizationDetails.SYNCED, SolrAuthorizationDetails.START_DATE,
-                SolrAuthorizationDetails.END_DATE, SolrAuthorizationDetails.ROLES).containsExactly(
+                SolrAuthorizationDetails.END_DATE, SolrAuthorizationDetails.ROLES).containsOnly(
 
                 tuple("rwd__3995bc0f-5b1e-4a57-aec9-bbb8a6f1d5fb", false, null, null, asList("READ", "WRITE", "DELETE")),
                 tuple("rwd__2e91f83c-36ca-41ac-aa68-d493aa85f408", false, null, null, asList("READ", "WRITE", "DELETE")),
