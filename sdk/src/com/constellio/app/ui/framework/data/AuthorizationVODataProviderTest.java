@@ -16,7 +16,7 @@ import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -39,7 +39,8 @@ public class AuthorizationVODataProviderTest extends ConstellioTest {
 	@Mock RecordServicesImpl recordServices;
 	@Mock Record record1, record2;
 	@Mock Authorization authorization1, authorization2;
-	@Mock AuthorizationDetails authorizationDetails1;
+	@Mock
+	XMLAuthorizationDetails xmlAuthorizationDetails1;
 	@Mock Role role;
 	List<Authorization> authorizations1;
 	List<String> principals1, records1, roles1;
@@ -69,8 +70,8 @@ public class AuthorizationVODataProviderTest extends ConstellioTest {
 
 		when(authorization1.getGrantedToPrincipals()).thenReturn(principals1);
 		when(authorization1.getGrantedOnRecords()).thenReturn(records1);
-		when(authorization1.getDetail()).thenReturn(authorizationDetails1);
-		when(authorizationDetails1.getRoles()).thenReturn(roles1);
+		when(authorization1.getDetail()).thenReturn(xmlAuthorizationDetails1);
+		when(xmlAuthorizationDetails1.getRoles()).thenReturn(roles1);
 
 		when(authorizationsServices.getRecordAuthorizations(record1)).thenReturn(authorizations1);
 		when(record1.getId()).thenReturn(RECORD_ID_1);

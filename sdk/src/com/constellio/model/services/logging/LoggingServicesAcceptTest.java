@@ -25,7 +25,7 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -302,7 +302,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		roles.add(zRole);
 		LocalDate startDate = new LocalDate();
 		LocalDate endDate = new LocalDate();
-		AuthorizationDetails detail = new AuthorizationDetails(zeCollection, "42", roles, startDate, endDate, false);
+		XMLAuthorizationDetails detail = new XMLAuthorizationDetails(zeCollection, "42", roles, startDate, endDate, false);
 		List<String> grantedToPrincipals = new ArrayList<>();
 		for (User user : users) {
 			grantedToPrincipals.add(user.getId());
@@ -352,7 +352,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		roles.add(zRole);
 		LocalDate startDate = new LocalDate();
 		LocalDate endDate = new LocalDate();
-		AuthorizationDetails detail = new AuthorizationDetails(zeCollection, "42", roles, startDate, endDate, false);
+		XMLAuthorizationDetails detail = new XMLAuthorizationDetails(zeCollection, "42", roles, startDate, endDate, false);
 		List<String> grantedToPrincipals = new ArrayList<>();
 		User alice = users.aliceIn(zeCollection);
 		User bob = users.bobIn(zeCollection);
@@ -367,7 +367,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		List<String> grantedOnRecordsBefore = new ArrayList<>();
 		grantedOnRecordsBefore.addAll(
 				Arrays.asList(new String[] { records.getFolder_A01().getId(), records.getFolder_A02().getId() }));
-		AuthorizationDetails detailBefore = new AuthorizationDetails(zeCollection, "43", roles, startDate, endDate.minusDays(1),
+		XMLAuthorizationDetails detailBefore = new XMLAuthorizationDetails(zeCollection, "43", roles, startDate, endDate.minusDays(1),
 				false);
 		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
 

@@ -23,7 +23,6 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -34,7 +33,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -58,7 +57,8 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Mock AuthorizationVO own1;
 	@Mock AuthorizationVO own2;
 	@Mock Authorization authorization;
-	@Mock AuthorizationDetails details;
+	@Mock
+	XMLAuthorizationDetails details;
 	MockedFactories factories = new MockedFactories();
 
 	ListAuthorizationsPresenter presenter;

@@ -1,21 +1,17 @@
 package com.constellio.model.entities.security;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
+import java.util.*;
 
-public class AuthorizationDetails {
+public class XMLAuthorizationDetails implements AuthorizationDetails {
 
 	private final String id;
 
@@ -29,8 +25,8 @@ public class AuthorizationDetails {
 
 	private final boolean synced;
 
-	public AuthorizationDetails(String collection, String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-			boolean synced) {
+	public XMLAuthorizationDetails(String collection, String id, List<String> roles, LocalDate startDate, LocalDate endDate,
+								   boolean synced) {
 		this.collection = collection;
 		this.id = id;
 		this.roles = Collections.unmodifiableList(roles);
@@ -39,21 +35,21 @@ public class AuthorizationDetails {
 		this.synced = synced;
 	}
 
-	public static AuthorizationDetails create(String id, List<String> roles, String zeCollection) {
+	public static XMLAuthorizationDetails create(String id, List<String> roles, String zeCollection) {
 		return create(id, roles, null, null, zeCollection);
 	}
 
-	public static AuthorizationDetails createSynced(String id, List<String> roles, String zeCollection) {
+	public static XMLAuthorizationDetails createSynced(String id, List<String> roles, String zeCollection) {
 		return create(id, roles, null, null, zeCollection, true);
 	}
 
-	public static AuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-			String zeCollection) {
+	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
+												 String zeCollection) {
 		return create(id, roles, startDate, endDate, zeCollection, false);
 	}
 
-	public static AuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-			String zeCollection, boolean synced) {
+	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
+												 String zeCollection, boolean synced) {
 
 		if (roles.isEmpty()) {
 			throw new AuthorizationDetailsRuntimeException_RoleRequired();
@@ -99,7 +95,7 @@ public class AuthorizationDetails {
 		idBuilder.append(StringUtils.join(operationRolesCodes, ","));
 		idBuilder.append("_");
 		idBuilder.append(id);
-		return new AuthorizationDetails(collection, idBuilder.toString(), rolesCodes, startDate, endDate, synced);
+		return new XMLAuthorizationDetails(collection, idBuilder.toString(), rolesCodes, startDate, endDate, synced);
 	}
 
 	public List<String> getRoles() {
@@ -126,8 +122,8 @@ public class AuthorizationDetails {
 		return collection;
 	}
 
-	public AuthorizationDetails withNewEndDate(LocalDate endate) {
-		return new AuthorizationDetails(this.collection, this.id, this.roles, this.startDate, endate, synced);
+	public XMLAuthorizationDetails withNewEndDate(LocalDate endate) {
+		return new XMLAuthorizationDetails(this.collection, this.id, this.roles, this.startDate, endate, synced);
 	}
 
 	public boolean isSynced() {

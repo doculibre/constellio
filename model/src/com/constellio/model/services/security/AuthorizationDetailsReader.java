@@ -9,7 +9,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 
 public class AuthorizationDetailsReader {
 
@@ -25,9 +25,9 @@ public class AuthorizationDetailsReader {
 		this.document = document;
 	}
 
-	public Map<String, AuthorizationDetails> readAll() {
-		AuthorizationDetails authorizationDetail;
-		Map<String, AuthorizationDetails> authorizationDetails = new HashMap<>();
+	public Map<String, XMLAuthorizationDetails> readAll() {
+		XMLAuthorizationDetails authorizationDetail;
+		Map<String, XMLAuthorizationDetails> authorizationDetails = new HashMap<>();
 		Element authorizationsElements = document.getRootElement();
 		for (Element authorizationElement : authorizationsElements.getChildren()) {
 			authorizationDetail = createAuthorizationObject(authorizationElement);
@@ -36,8 +36,8 @@ public class AuthorizationDetailsReader {
 		return authorizationDetails;
 	}
 
-	private AuthorizationDetails createAuthorizationObject(Element authorizationElement) {
-		AuthorizationDetails authorizationDetails;
+	private XMLAuthorizationDetails createAuthorizationObject(Element authorizationElement) {
+		XMLAuthorizationDetails xmlAuthorizationDetails;
 		String id = authorizationElement.getAttributeValue(ID);
 		String collection = authorizationElement.getChildText(COLLECTION);
 		String startDate = authorizationElement.getChildText(START_DATE);
@@ -56,7 +56,7 @@ public class AuthorizationDetailsReader {
 		if (endDateDt.isEqual(new LocalDate(Integer.MAX_VALUE))) {
 			endDateDt = null;
 		}
-		authorizationDetails = new AuthorizationDetails(collection, id, roles, startDateDt, endDateDt, synced);
-		return authorizationDetails;
+		xmlAuthorizationDetails = new XMLAuthorizationDetails(collection, id, roles, startDateDt, endDateDt, synced);
+		return xmlAuthorizationDetails;
 	}
 }

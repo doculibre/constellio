@@ -12,10 +12,10 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class AuthorizationDetailsWriterTest extends ConstellioTest {
+public class XMLAuthorizationDetailsWriterTest extends ConstellioTest {
 
 	private static final String END_DATE = "endDate";
 	private static final String ID = "id";
@@ -44,22 +44,22 @@ public class AuthorizationDetailsWriterTest extends ConstellioTest {
 	public void whenAddTaxonomyThenItIsInEnableList()
 			throws Exception {
 
-		AuthorizationDetails authorizationDetails = newAuthorization();
+		XMLAuthorizationDetails xmlAuthorizationDetails = newAuthorization();
 
-		writer.add(authorizationDetails);
+		writer.add(xmlAuthorizationDetails);
 
 		authorizationsElement = document.getRootElement();
 		assertThat(authorizationsElement.getChildren()).hasSize(1);
-		assertThat(authorizationsElement.getChildren().get(0).getAttributeValue(ID)).isEqualTo(authorizationDetails.getId());
+		assertThat(authorizationsElement.getChildren().get(0).getAttributeValue(ID)).isEqualTo(xmlAuthorizationDetails.getId());
 	}
 
 	@Test
 	public void whenRemoveAuthorizationsThenItIsRemoved()
 			throws Exception {
-		AuthorizationDetails authorizationDetails = newAuthorization();
-		writer.add(authorizationDetails);
+		XMLAuthorizationDetails xmlAuthorizationDetails = newAuthorization();
+		writer.add(xmlAuthorizationDetails);
 
-		writer.remove(authorizationDetails.getId());
+		writer.remove(xmlAuthorizationDetails.getId());
 
 		authorizationsElement = document.getRootElement();
 		assertThat(authorizationsElement.getChildren()).isEmpty();
@@ -69,13 +69,13 @@ public class AuthorizationDetailsWriterTest extends ConstellioTest {
 	@Test
 	public void givenIdListWhenClearAuthorizationsThenRemoveAuthorizationsWithIds()
 			throws Exception {
-		AuthorizationDetails authorizationDetails = newAuthorization();
-		AuthorizationDetails authorizationDetails2 = newAuthorization();
-		writer.add(authorizationDetails);
-		writer.add(authorizationDetails2);
+		XMLAuthorizationDetails xmlAuthorizationDetails = newAuthorization();
+		XMLAuthorizationDetails xmlAuthorizationDetails2 = newAuthorization();
+		writer.add(xmlAuthorizationDetails);
+		writer.add(xmlAuthorizationDetails2);
 		List<String> authorizationsIdsToRemove = new ArrayList<>();
-		authorizationsIdsToRemove.add(authorizationDetails.getId());
-		authorizationsIdsToRemove.add(authorizationDetails2.getId());
+		authorizationsIdsToRemove.add(xmlAuthorizationDetails.getId());
+		authorizationsIdsToRemove.add(xmlAuthorizationDetails2.getId());
 
 		writer.clearAuthorizations(authorizationsIdsToRemove);
 
@@ -86,21 +86,21 @@ public class AuthorizationDetailsWriterTest extends ConstellioTest {
 	@Test
 	public void givenAuthorizationWhenModifyEndDateAuthorizationsThenItIsModified()
 			throws Exception {
-		AuthorizationDetails authorizationDetails = newAuthorization();
-		writer.add(authorizationDetails);
+		XMLAuthorizationDetails xmlAuthorizationDetails = newAuthorization();
+		writer.add(xmlAuthorizationDetails);
 
 		LocalDate endate = new LocalDate(2020, 1, 1);
-		authorizationDetails = authorizationDetails.withNewEndDate(endate);
-		writer.modifyEndDate(authorizationDetails.getId(), authorizationDetails.getEndDate());
+		xmlAuthorizationDetails = xmlAuthorizationDetails.withNewEndDate(endate);
+		writer.modifyEndDate(xmlAuthorizationDetails.getId(), xmlAuthorizationDetails.getEndDate());
 
 		authorizationsElement = document.getRootElement();
 		assertThat(authorizationsElement.getChildren()).hasSize(1);
 		assertThat(authorizationsElement.getChild("authorization").getChildText(END_DATE)).isEqualTo(
-				authorizationDetails.getEndDate().toString());
+				xmlAuthorizationDetails.getEndDate().toString());
 
 	}
 
-	private AuthorizationDetails newAuthorization() {
-		return AuthorizationDetails.create(aString(), asList("role1"), zeCollection);
+	private XMLAuthorizationDetails newAuthorization() {
+		return XMLAuthorizationDetails.create(aString(), asList("role1"), zeCollection);
 	}
 }
