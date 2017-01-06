@@ -6,9 +6,11 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.security.global.AuthorizationDetails;
+
 public class Authorization {
 
-	XMLAuthorizationDetails detail;
+	AuthorizationDetails detail;
 
 	List<String> grantedToPrincipals = new ArrayList<>();
 	List<String> grantedOnRecords = new ArrayList<>();
@@ -16,14 +18,14 @@ public class Authorization {
 	public Authorization() {
 	}
 
-	public Authorization(XMLAuthorizationDetails detail, List<String> grantedToPrincipals,
-						 List<String> grantedOnRecords) {
+	public Authorization(AuthorizationDetails detail, List<String> grantedToPrincipals,
+			List<String> grantedOnRecords) {
 		this.detail = detail;
 		this.grantedToPrincipals = grantedToPrincipals;
 		this.grantedOnRecords = grantedOnRecords;
 	}
 
-	public XMLAuthorizationDetails getDetail() {
+	public AuthorizationDetails getDetail() {
 		return detail;
 	}
 

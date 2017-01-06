@@ -9,15 +9,19 @@ import java.util.List;
  */
 public interface AuthorizationDetails {
 
-    public List<String> getRoles();
+	public List<String> getRoles();
 
-    public LocalDate getStartDate();
+	public LocalDate getStartDate();
 
-    public LocalDate getEndDate();
+	public LocalDate getEndDate();
 
-    public String getId();
+	public String getId();
 
-    public String getCollection();
+	public String getCollection();
 
-    public boolean isSynced();
+	public boolean isSynced();
+
+	AuthorizationDetails withNewEndDate(LocalDate endate);
+
+	boolean isFutureAuthorization();
 }

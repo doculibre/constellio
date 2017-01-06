@@ -36,8 +36,9 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -807,7 +808,7 @@ public class DemoTestRecords {
 		roles.add(zRole);
 		LocalDate startDate = new LocalDate();
 		LocalDate endDate = new LocalDate();
-		AuthorizationDetails detail = new AuthorizationDetails(collection, "42", roles, startDate, endDate, false);
+		AuthorizationDetails detail = new XMLAuthorizationDetails(collection, "42", roles, startDate, endDate, false);
 		List<String> grantedToPrincipals = new ArrayList<>();
 		User dakota = users.gandalfLeblancIn(collection);
 		User bob = users.bobIn(collection);
@@ -822,7 +823,7 @@ public class DemoTestRecords {
 		List<String> grantedOnRecordsBefore = new ArrayList<>();
 		grantedOnRecordsBefore.addAll(
 				Arrays.asList(folder_A01, folder_A02));
-		AuthorizationDetails detailBefore = new AuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
+		AuthorizationDetails detailBefore = new XMLAuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
 				false);
 		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
 

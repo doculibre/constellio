@@ -16,8 +16,8 @@ import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -40,7 +40,7 @@ public class AuthorizationVODataProviderTest extends ConstellioTest {
 	@Mock Record record1, record2;
 	@Mock Authorization authorization1, authorization2;
 	@Mock
-	XMLAuthorizationDetails xmlAuthorizationDetails1;
+	AuthorizationDetails xmlAuthorizationDetails1;
 	@Mock Role role;
 	List<Authorization> authorizations1;
 	List<String> principals1, records1, roles1;

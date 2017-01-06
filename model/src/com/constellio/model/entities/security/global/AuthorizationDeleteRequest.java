@@ -2,7 +2,6 @@ package com.constellio.model.entities.security.global;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 
 public class AuthorizationDeleteRequest {
 

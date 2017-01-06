@@ -8,6 +8,7 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
@@ -34,12 +35,13 @@ import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
@@ -631,6 +633,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			authorizations.add(details.getId());
 		}
 
+		for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+			authorizations.add(details.getId());
+		}
+
 		Iterator<Record> recordIterator = searchServices.recordsIterator(query(fromAllSchemasIn(zeCollection).returnAll()));
 
 		while (recordIterator.hasNext()) {
@@ -662,8 +668,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected ListAssert<VerifiedAuthorization> assertThatAllAuthorizations() {
 
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
-				.getAuthorizationsDetails(zeCollection).values()) {
+		for (AuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(ALL)) {
 			Authorization authorization = services.getAuthorization(zeCollection, details.getId());
 
 			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(

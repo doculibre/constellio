@@ -10,6 +10,7 @@ import org.jdom2.Element;
 import org.joda.time.LocalDate;
 
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 public class AuthorizationDetailsReader {
 
@@ -25,9 +26,9 @@ public class AuthorizationDetailsReader {
 		this.document = document;
 	}
 
-	public Map<String, XMLAuthorizationDetails> readAll() {
-		XMLAuthorizationDetails authorizationDetail;
-		Map<String, XMLAuthorizationDetails> authorizationDetails = new HashMap<>();
+	public Map<String, AuthorizationDetails> readAll() {
+		AuthorizationDetails authorizationDetail;
+		Map<String, AuthorizationDetails> authorizationDetails = new HashMap<>();
 		Element authorizationsElements = document.getRootElement();
 		for (Element authorizationElement : authorizationsElements.getChildren()) {
 			authorizationDetail = createAuthorizationObject(authorizationElement);
@@ -36,7 +37,7 @@ public class AuthorizationDetailsReader {
 		return authorizationDetails;
 	}
 
-	private XMLAuthorizationDetails createAuthorizationObject(Element authorizationElement) {
+	private AuthorizationDetails createAuthorizationObject(Element authorizationElement) {
 		XMLAuthorizationDetails xmlAuthorizationDetails;
 		String id = authorizationElement.getAttributeValue(ID);
 		String collection = authorizationElement.getChildText(COLLECTION);

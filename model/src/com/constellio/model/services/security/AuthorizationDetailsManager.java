@@ -1,27 +1,29 @@
 package com.constellio.model.services.security;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.jdom2.Document;
+import org.joda.time.LocalDate;
+
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.security.AuthorizationDetailsManagerRuntimeException.AuthorizationDetailsAlreadyExists;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
-import org.jdom2.Document;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class AuthorizationDetailsManager
-		implements StatefulService, OneXMLConfigPerCollectionManagerListener<Map<String, XMLAuthorizationDetails>> {
+		implements StatefulService, OneXMLConfigPerCollectionManagerListener<Map<String, AuthorizationDetails>> {
 
 	static String AUTHORIZATIONS_CONFIG = "/authorizations.xml";
-	private OneXMLConfigPerCollectionManager<Map<String, XMLAuthorizationDetails>> oneXMLConfigPerCollectionManager;
+	private OneXMLConfigPerCollectionManager<Map<String, AuthorizationDetails>> oneXMLConfigPerCollectionManager;
 	private ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;
 
@@ -35,7 +37,7 @@ public class AuthorizationDetailsManager
 		this.oneXMLConfigPerCollectionManager = newOneXMLConfigPerCollectionManager();
 	}
 
-	protected OneXMLConfigPerCollectionManager<Map<String, XMLAuthorizationDetails>> newOneXMLConfigPerCollectionManager() {
+	protected OneXMLConfigPerCollectionManager<Map<String, AuthorizationDetails>> newOneXMLConfigPerCollectionManager() {
 		return new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager, AUTHORIZATIONS_CONFIG,
 				xmlConfigReader(), this, newCreateEmptyDocumentDocumentAlteration());
 	}
@@ -45,7 +47,7 @@ public class AuthorizationDetailsManager
 
 	}
 
-	public Map<String, XMLAuthorizationDetails> getAuthorizationsDetails(String collection) {
+	public Map<String, AuthorizationDetails> getAuthorizationsDetails(String collection) {
 		return oneXMLConfigPerCollectionManager.get(collection);
 	}
 
@@ -54,7 +56,7 @@ public class AuthorizationDetailsManager
 		oneXMLConfigPerCollectionManager.createCollectionFile(collection, newCreateEmptyDocumentDocumentAlteration());
 	}
 
-	public void add(XMLAuthorizationDetails xmlAuthorizationDetails) {
+	public void add(AuthorizationDetails xmlAuthorizationDetails) {
 		if (getAuthorizationsDetails(xmlAuthorizationDetails.getCollection()).containsKey(xmlAuthorizationDetails.getId())) {
 			throw new AuthorizationDetailsAlreadyExists(xmlAuthorizationDetails.getId());
 		}
@@ -73,19 +75,19 @@ public class AuthorizationDetailsManager
 		}
 	}
 
-	public void remove(XMLAuthorizationDetails xmlAuthorizationDetails) {
+	public void remove(AuthorizationDetails xmlAuthorizationDetails) {
 		String collection = xmlAuthorizationDetails.getCollection();
 		oneXMLConfigPerCollectionManager.updateXML(collection, newRemoveAuthorizationDocumentAlteration(xmlAuthorizationDetails));
 	}
 
-	public void modifyEndDate(XMLAuthorizationDetails xmlAuthorizationDetails, LocalDate endate) {
+	public void modifyEndDate(AuthorizationDetails xmlAuthorizationDetails, LocalDate endate) {
 		String collection = xmlAuthorizationDetails.getCollection();
 		xmlAuthorizationDetails = xmlAuthorizationDetails.withNewEndDate(endate);
 		oneXMLConfigPerCollectionManager
 				.updateXML(collection, newModifyEndDateAuthorizationDocumentAlteration(xmlAuthorizationDetails));
 	}
 
-	public XMLAuthorizationDetails get(String collection, String id) {
+	public AuthorizationDetails get(String collection, String id) {
 		return getAuthorizationsDetails(collection).get(id);
 	}
 
@@ -106,7 +108,7 @@ public class AuthorizationDetailsManager
 
 	public List<String> getListOfFinishedAuthorizationsIds(String collection) {
 		List<String> finishedAuthorizations = new ArrayList<>();
-		for (XMLAuthorizationDetails xmlAuthorizationDetails : getAuthorizationsDetails(collection).values()) {
+		for (AuthorizationDetails xmlAuthorizationDetails : getAuthorizationsDetails(collection).values()) {
 			if (xmlAuthorizationDetails.getEndDate() != null && xmlAuthorizationDetails.getEndDate()
 					.isBefore(TimeProvider.getLocalDate())) {
 				finishedAuthorizations.add(xmlAuthorizationDetails.getId());
@@ -119,7 +121,7 @@ public class AuthorizationDetailsManager
 		return new AuthorizationDetailsWriter(document);
 	}
 
-	DocumentAlteration newAddAuthorizationDocumentAlteration(final XMLAuthorizationDetails xmlAuthorizationDetails) {
+	DocumentAlteration newAddAuthorizationDocumentAlteration(final AuthorizationDetails xmlAuthorizationDetails) {
 		return new DocumentAlteration() {
 
 			@Override
@@ -129,7 +131,7 @@ public class AuthorizationDetailsManager
 		};
 	}
 
-	DocumentAlteration newRemoveAuthorizationDocumentAlteration(final XMLAuthorizationDetails xmlAuthorizationDetails) {
+	DocumentAlteration newRemoveAuthorizationDocumentAlteration(final AuthorizationDetails xmlAuthorizationDetails) {
 		return new DocumentAlteration() {
 
 			@Override
@@ -139,12 +141,13 @@ public class AuthorizationDetailsManager
 		};
 	}
 
-	DocumentAlteration newModifyEndDateAuthorizationDocumentAlteration(final XMLAuthorizationDetails xmlAuthorizationDetails) {
+	DocumentAlteration newModifyEndDateAuthorizationDocumentAlteration(final AuthorizationDetails xmlAuthorizationDetails) {
 		return new DocumentAlteration() {
 
 			@Override
 			public void alter(Document document) {
-				newAuthorizationsWriter(document).modifyEndDate(xmlAuthorizationDetails.getId(), xmlAuthorizationDetails.getEndDate());
+				newAuthorizationsWriter(document)
+						.modifyEndDate(xmlAuthorizationDetails.getId(), xmlAuthorizationDetails.getEndDate());
 			}
 		};
 	}
@@ -167,22 +170,22 @@ public class AuthorizationDetailsManager
 		};
 	}
 
-	private XMLConfigReader<Map<String, XMLAuthorizationDetails>> xmlConfigReader() {
-		return new XMLConfigReader<Map<String, XMLAuthorizationDetails>>() {
+	private XMLConfigReader<Map<String, AuthorizationDetails>> xmlConfigReader() {
+		return new XMLConfigReader<Map<String, AuthorizationDetails>>() {
 			@Override
-			public Map<String, XMLAuthorizationDetails> read(String collection, Document document) {
+			public Map<String, AuthorizationDetails> read(String collection, Document document) {
 				return newAuthorizationReader(document).readAll();
 			}
 		};
 	}
 
 	@Override
-	public void onValueModified(String collection, Map<String, XMLAuthorizationDetails> newValue) {
+	public void onValueModified(String collection, Map<String, AuthorizationDetails> newValue) {
 
 	}
 
-	public XMLAuthorizationDetails getByIdWithoutPrefix(String collection, String idWithoutPrefix) {
-		Map<String, XMLAuthorizationDetails> collectionDetails = getAuthorizationsDetails(collection);
+	public AuthorizationDetails getByIdWithoutPrefix(String collection, String idWithoutPrefix) {
+		Map<String, AuthorizationDetails> collectionDetails = getAuthorizationsDetails(collection);
 		for (String currentId : collectionDetails.keySet()) {
 			if (currentId.endsWith("_" + idWithoutPrefix)) {
 				return collectionDetails.get(currentId);

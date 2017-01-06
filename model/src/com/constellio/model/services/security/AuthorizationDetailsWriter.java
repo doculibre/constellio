@@ -6,7 +6,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 public class AuthorizationDetailsWriter {
 
@@ -30,7 +30,7 @@ public class AuthorizationDetailsWriter {
 		document.setRootElement(authorizations);
 	}
 
-	public void add(XMLAuthorizationDetails xmlAuthorizationDetails) {
+	public void add(AuthorizationDetails xmlAuthorizationDetails) {
 		Element rolesElements = new Element(ROLES);
 		for (String role : xmlAuthorizationDetails.getRoles()) {
 			Element roleElement = new Element(ROLE).setText(role);
