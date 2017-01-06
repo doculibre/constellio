@@ -94,7 +94,7 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 
 	private Authorization grantReadForAliceOnFolderA01(String authorizationId) {
 
-		authorizationsServices.add(authorizationInCollectionWithId(zeCollection, authorizationId)
+		authorizationId = authorizationsServices.add(authorizationInCollectionWithId(zeCollection, authorizationId)
 				.forUsers(users.aliceIn(zeCollection)).on(records.getFolder_A01()).givingReadAccess());
 
 		return authorizationsServices.getAuthorization(zeCollection, authorizationId);

@@ -95,7 +95,7 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 		assertThat(authorization.getPrincipals())
 				.containsExactly(aliceHavingLegacyId.getId(), heroes.getId());
 		assertThat(authorization.getTarget()).isEqualTo(folderHavingLegacyId.getId());
-		assertThat(authorization.getId()).isEqualTo("rwd__id");
+		assertThat(authorization.getId()).isEqualTo("id");
 		assertThat(authorization.getStart()).isNull();
 		assertThat(authorization.getEnd()).isNull();
 		assertThat(authorization.getCollection()).isEqualTo(zeCollection);

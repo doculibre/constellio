@@ -229,7 +229,7 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 
 	private Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
 			String grantedOnRecord) {
-		authorizationsServices.add(authorizationInCollectionWithId(zeCollection, id).forPrincipalsIds(grantedToPrincipals)
+		id = authorizationsServices.add(authorizationInCollectionWithId(zeCollection, id).forPrincipalsIds(grantedToPrincipals)
 				.on(grantedOnRecord).giving(roles).setExecutedBy(users.dakotaLIndienIn(zeCollection)));
 
 		return authorizationsServices.getAuthorization(zeCollection, id);
