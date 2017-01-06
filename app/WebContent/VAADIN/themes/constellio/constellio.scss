@@ -866,9 +866,14 @@ $popup-view-z-index: 3;
 						    		width: 100%;
 						    	}
 							}
+								
+							.record-comments-layout {
+								width: 100%;
+							}
 							
 							.v-has-caption {
-								width: 70%;
+								width: 100%;
+								
 								.list-add-remove-comment {
 									width: 100%;
 								}

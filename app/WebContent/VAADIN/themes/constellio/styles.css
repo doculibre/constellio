@@ -12978,6 +12978,10 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .record-comments-layout {
+	width: 100%;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-has-caption {
 	width: 100%;
 }
@@ -13331,11 +13335,7 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .record-comments-editor {
-	width: 100%;
-}
-
-.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .record-comments-editor .v-slot-list-add-remove-comment {
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
 	width: 100%;
 }
 
