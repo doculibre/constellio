@@ -316,12 +316,18 @@ public class DefaultLabelsTemplate {
 		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
 				null, 16, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
-				LabelTemplateFieldHorizontalAlignment.LEFT,
+				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField folderTitleField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE,
 				null, 1, 4, 29, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
+				LabelTemplateFieldHorizontalAlignment.CENTER,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField administrativeUnitCodeField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_CODE,
+				null, 1, 10, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
@@ -340,6 +346,7 @@ public class DefaultLabelsTemplate {
 		labelTemplateFields.add(categoryCodeField);
 		labelTemplateFields.add(folderIdField);
 		labelTemplateFields.add(folderTitleField);
+		labelTemplateFields.add(administrativeUnitCodeField);
 		labelTemplateFields.add(copyStatusCodeField);
 		labelTemplateFields.add(openDateField);
 
@@ -358,7 +365,7 @@ public class DefaultLabelsTemplate {
 		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
 				null, 0, 1, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
-				LabelTemplateFieldHorizontalAlignment.CENTER,
+				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField categoryCodeField = new LabelTemplateField(
@@ -371,6 +378,12 @@ public class DefaultLabelsTemplate {
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE,
 				null, 0, 8, 29, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField administrativeUnitCodeField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_CODE,
+				null, 0, 15, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField copyStatusCodeField = new LabelTemplateField(
@@ -388,6 +401,7 @@ public class DefaultLabelsTemplate {
 		labelTemplateFields.add(folderIdField);
 		labelTemplateFields.add(categoryCodeField);
 		labelTemplateFields.add(folderTitleField);
+		labelTemplateFields.add(administrativeUnitCodeField);
 		labelTemplateFields.add(copyStatusCodeField);
 		labelTemplateFields.add(openDateField);
 

@@ -511,6 +511,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		assertThatRecord(rm.getFolder(folder.getId()))
 				.hasMetadata(Folder.CATEGORY_CODE, "X13")
+				.hasMetadata(Folder.ADMINISTRATIVE_UNIT_CODE, "10A")
 				.hasMetadata("zeCalculatedMetadata", "Ze ultimate X13");
 
 		recordServices.update(rm.getCategoryWithCode("X13").setCode("X-13"));

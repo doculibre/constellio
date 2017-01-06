@@ -25,6 +25,7 @@ public class Folder extends RMObject {
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 	public static final String ADMINISTRATIVE_UNIT_ENTERED = "administrativeUnitEntered";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
+	public static final String ADMINISTRATIVE_UNIT_CODE = "administrativeUnitCode";
 	public static final String ADMINISTRATIVE_UNIT_ANCESTORS = "administrativeUnitAncestors";
 	public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
 	public static final String PERMISSION_STATUS = "permissionStatus";
@@ -186,6 +187,10 @@ public class Folder extends RMObject {
 
 	public String getAdministrativeUnit() {
 		return get(ADMINISTRATIVE_UNIT);
+	}
+
+	public String getAdministrativeUnitCode() {
+		return get(ADMINISTRATIVE_UNIT_CODE);
 	}
 
 	public String getAdministrativeUnitEntered() {
