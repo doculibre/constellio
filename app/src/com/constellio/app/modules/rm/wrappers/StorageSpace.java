@@ -129,4 +129,25 @@ public class StorageSpace extends RecordWrapper {
 		set(COMMENTS, comments);
 		return this;
 	}
+
+	public Double getLinearSizeEntered() {
+		return get(LINEAR_SIZE_ENTERED);
+	}
+
+	public StorageSpace setLinearSizeEntered(double linearSizeEntered) {
+		set(LINEAR_SIZE_ENTERED, linearSizeEntered);
+		return this;
+	}
+
+	public Double getLinearSizeSum() {
+		return get(LINEAR_SIZE_SUM);
+	}
+
+	public Double getLinearSize() {
+		return get(LINEAR_SIZE);
+	}
+
+	public Double getAvailableSize() {
+		return get(AVAILABLE_SIZE);
+	}
 }
