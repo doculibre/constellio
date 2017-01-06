@@ -112,10 +112,10 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 	public void givenUserWithRoleAuthWhenDeletingItThenAuthDeleted()
 			throws Exception {
 		AuthorizationAddRequest authorization = givenAuthorizationFor(aliceId).on(zeConcept).giving(RMRoles.USER);
-		add(authorization);
+		String id = add(authorization);
 		waitForBatchProcess();
 
-		presenter.deleteRoleButtonClicked(new RoleAuthVO(authorization.getId(), authorization.getTarget(), asList(RMRoles.USER)));
+		presenter.deleteRoleButtonClicked(new RoleAuthVO(id, authorization.getTarget(), asList(RMRoles.USER)));
 		waitForBatchProcess();
 
 		List<RoleAuthVO> aliceSpecificRoles = presenter.getSpecificRoles();
@@ -168,8 +168,8 @@ public class CollectionUserRolesPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.update(aliceUser.getWrappedRecord());
 	}
 
-	private void add(AuthorizationAddRequest authorization) {
-		getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
+	private String add(AuthorizationAddRequest authorization) {
+		return getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
 	}
 
 	private AuthorizationAddRequest givenAuthorizationFor(String principalId) {
