@@ -34,8 +34,12 @@ public class RMMigrationTo6_7 implements MigrationScript {
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+            buildContainerRecordMetadatas(typesBuilder);
+            buildStorageSpaceMetadatas(typesBuilder);
+        }
+
+        private void buildContainerRecordMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).defineValidators().add(ContainerRecordValidator.class);
-            typesBuilder.getSchema(StorageSpace.DEFAULT_SCHEMA).defineValidators().add(StorageSpaceValidator.class);
 
             typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(ContainerRecord.LINEAR_SIZE_ENTERED)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
@@ -53,6 +57,12 @@ public class RMMigrationTo6_7 implements MigrationScript {
             typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(ContainerRecord.AVAILABLE_SIZE)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
                     .defineDataEntry().asCalculated(ContainerRecordAvailableSizeCalculator.class);
+
+            typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.FILL_RATIO_ENTRED).setEnabled(false);
+        }
+
+        private void buildStorageSpaceMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
+            typesBuilder.getSchema(StorageSpace.DEFAULT_SCHEMA).defineValidators().add(StorageSpaceValidator.class);
         }
     }
 }
