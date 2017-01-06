@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.reports.model.labels;
 
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.RectangleReadOnly;
 import com.itextpdf.text.Utilities;
 
 public enum LabelsReportLayout {

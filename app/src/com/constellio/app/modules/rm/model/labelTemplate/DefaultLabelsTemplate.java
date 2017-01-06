@@ -315,7 +315,7 @@ public class DefaultLabelsTemplate {
 
 		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 16, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 21, 0, 8, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
