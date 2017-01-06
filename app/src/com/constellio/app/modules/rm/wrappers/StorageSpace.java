@@ -29,6 +29,14 @@ public class StorageSpace extends RecordWrapper {
 
 	public static final String COMMENTS = "comments";
 
+	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";
+
+	public static final String LINEAR_SIZE = "linearSize";
+
+	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
+
+	public static final String AVAILABLE_SIZE = "availableSize";
+
 	public StorageSpace(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);

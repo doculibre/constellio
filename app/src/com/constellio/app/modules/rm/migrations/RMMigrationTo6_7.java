@@ -5,6 +5,8 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
+import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
+import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceLinearSizeCalculator;
 import com.constellio.app.modules.rm.model.validators.ContainerRecordValidator;
 import com.constellio.app.modules.rm.model.validators.StorageSpaceValidator;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -34,11 +36,11 @@ public class RMMigrationTo6_7 implements MigrationScript {
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            buildContainerRecordMetadatas(typesBuilder);
-            buildStorageSpaceMetadatas(typesBuilder);
+            migrateContainerRecordMetadatas(typesBuilder);
+            migrateStorageSpaceMetadatas(typesBuilder);
         }
 
-        private void buildContainerRecordMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
+        private void migrateContainerRecordMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).defineValidators().add(ContainerRecordValidator.class);
 
             typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(ContainerRecord.LINEAR_SIZE_ENTERED)
@@ -61,8 +63,25 @@ public class RMMigrationTo6_7 implements MigrationScript {
             typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.FILL_RATIO_ENTRED).setEnabled(false);
         }
 
-        private void buildStorageSpaceMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
+        private void migrateStorageSpaceMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getSchema(StorageSpace.DEFAULT_SCHEMA).defineValidators().add(StorageSpaceValidator.class);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE_ENTERED)
+                    .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE_SUM)
+                    .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
+                    typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.STORAGE_SPACE),
+                    typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.LINEAR_SIZE)
+            );
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE)
+                    .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+                    .defineDataEntry().asCalculated(StorageSpaceLinearSizeCalculator.class);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.AVAILABLE_SIZE)
+                    .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+                    .defineDataEntry().asCalculated(StorageSpaceAvailableSizeCalculator.class);
         }
     }
 }
