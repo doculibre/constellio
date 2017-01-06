@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
 import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
@@ -18,11 +11,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.ContentButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.ReportButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -31,16 +20,16 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListViewImpl extends BaseViewImpl implements DecommissioningListView {
 	public static final String PROCESS = "process";
@@ -48,6 +37,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	public static final String APPROVAL_REQUEST_BUTTON = "approvalRequest";
 	public static final String VALIDATION_BUTTON = "validation";
 	public static final String VALIDATION_REQUEST_BUTTON = "sendValidationRequest";
+	public static final String REMOVE_FOLDERS_BUTTON = "removeFolders";
+	public static final String ADD_FOLDERS_BUTTON = "addFolders";
 
 	private final DecommissioningListPresenter presenter;
 
@@ -70,6 +61,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private Button validation;
 	private Button approval;
 	private Button approvalRequest;
+	private Button removeFolders;
+	private Button addFolders;
 
 	public DecommissioningListViewImpl() {
 		presenter = new DecommissioningListPresenter(this);
@@ -168,6 +161,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildPrintButton());
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildFoldersCertificateButton());
+		buttons.add(buildRemoveFoldersButton());
+		buttons.add(buildAddFoldersButton());
 		return buttons;
 	}
 
@@ -242,6 +237,63 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		validationRequest.setEnabled(presenter.canSendValidationRequest());
 		validationRequest.addStyleName(VALIDATION_REQUEST_BUTTON);
 		return validationRequest;
+	}
+
+	private Button buildRemoveFoldersButton() {
+		removeFolders = new DeleteButton($("DecommissioningListView.removeFromList")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				List<FolderDetailVO> selected = new ArrayList<>();
+				for (Object itemId : packageableFolders.getItemIds()) {
+					FolderDetailVO folder = (FolderDetailVO) itemId;
+					if (folder.isSelected()) {
+						folder.setSelected(false);
+						selected.add(folder);
+					}
+				}
+				for (Object itemId : processableFolders.getItemIds()) {
+					FolderDetailVO folder = (FolderDetailVO) itemId;
+					if (folder.isSelected()) {
+						folder.setSelected(false);
+						selected.add(folder);
+					}
+				}
+				for (Object itemId : excludedFolders.getItemIds()) {
+					FolderDetailVO folder = (FolderDetailVO) itemId;
+					if (folder.isSelected()) {
+						folder.setSelected(false);
+						selected.add(folder);
+					}
+				}
+				presenter.removeFoldersButtonClicked(selected);
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DecommissioningListView.removeFromListConfirmation");
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
+			}
+		};
+		return removeFolders;
+	}
+
+	private Button buildAddFoldersButton() {
+		addFolders = new AddButton($("DecommissioningListView.addToList")) {
+			@Override
+			protected void buttonClick(ClickEvent clickEvent) {
+				presenter.addFoldersButtonClicked();
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
+			}
+		};
+		return addFolders;
 	}
 
 	private Button buildValidationButton() {

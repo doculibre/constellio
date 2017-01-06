@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.navigation;
 
-import static com.constellio.app.ui.params.ParamUtils.addParams;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.vaadin.navigator.Navigator;
+import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class RMViews extends CoreViews {
 	public RMViews(Navigator navigator) {
@@ -123,6 +123,10 @@ public class RMViews extends CoreViews {
 
 	public void decommissioningListBuilder(String type) {
 		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type);
+	}
+
+	public void editDecommissioningListBuilder(String decommissioningListID, String type) {
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type + "/id/" + decommissioningListID);
 	}
 
 	public void decommissioningListBuilderReplay(String type, String searchId) {
