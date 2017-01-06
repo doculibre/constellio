@@ -194,7 +194,6 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Test
 	public void whenNewAuthorizationsServicesThenNotNull() {
 		assertThat(modelLayerFactory.newAuthorizationsServices()).isNotNull();
-		verify(modelLayerFactory).getAuthorizationDetailsManager();
 		verify(modelLayerFactory, times(2)).getRolesManager();
 		verify(modelLayerFactory).getTaxonomiesManager();
 	}

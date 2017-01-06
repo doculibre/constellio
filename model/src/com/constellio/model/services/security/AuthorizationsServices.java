@@ -2,12 +2,14 @@ package com.constellio.model.services.security;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.RecordServicesErrorDuringOperation;
@@ -114,12 +116,15 @@ public class AuthorizationsServices {
 	@Deprecated
 	//TODO Remove this method with new auth system
 	public String getAuthorizationIdByIdWithoutPrefix(String collection, String idWithoutPrefix) {
-		//		AuthorizationDetails authDetails = manager.getByIdWithoutPrefix(collection, idWithoutPrefix);
-		//		if (authDetails == null) {
-		//			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(idWithoutPrefix);
-		//		}
-		//		return authDetails.getId();
-		return idWithoutPrefix;
+
+		SchemasRecordsServices schemas = schemas(collection);
+		List<SolrAuthorizationDetails> authorizationDetails = schemas.searchSolrAuthorizationDetailss(
+				where(IDENTIFIER).isEndingWithText(idWithoutPrefix));
+
+		if (authorizationDetails.isEmpty()) {
+			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(idWithoutPrefix);
+		}
+		return authorizationDetails.get(0).getId();
 	}
 
 	public Authorization getAuthorization(String collection, String id) {
@@ -826,7 +831,7 @@ public class AuthorizationsServices {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
 		MetadataSchema groupSchema = schemaTypes.getSchema(Group.SCHEMA_TYPE + "_default");
 
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(groupSchema).where(Schemas.IDENTIFIER).is(groupId);
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(groupSchema).where(IDENTIFIER).is(groupId);
 
 		return Group.wrapNullable(searchServices.searchSingleResult(condition), schemaTypes);
 	}
