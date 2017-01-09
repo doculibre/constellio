@@ -156,7 +156,7 @@ public class ModelLayerFactory extends LayerFactory {
 		//this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
 		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
-		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));
+		this.rolesManager = add(new RolesManager(this));
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
 
@@ -168,7 +168,7 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.workflowExecutor = new WorkflowExecutor(this);
 
-		securityTokenManager = add(new SecurityTokenManager());
+		securityTokenManager = add(new SecurityTokenManager(this));
 
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(

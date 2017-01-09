@@ -1,9 +1,11 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
 import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -26,7 +28,7 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 	private final boolean synced;
 
 	public XMLAuthorizationDetails(String collection, String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-								   boolean synced) {
+			boolean synced) {
 		this.collection = collection;
 		this.id = id;
 		this.roles = Collections.unmodifiableList(roles);
@@ -44,12 +46,12 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 	}
 
 	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-												 String zeCollection) {
+			String zeCollection) {
 		return create(id, roles, startDate, endDate, zeCollection, false);
 	}
 
 	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-												 String zeCollection, boolean synced) {
+			String zeCollection, boolean synced) {
 
 		if (roles.isEmpty()) {
 			throw new AuthorizationDetailsRuntimeException_RoleRequired();
@@ -116,6 +118,23 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 
 	public boolean isFutureAuthorization() {
 		return startDate != null && TimeProvider.getLocalDate().isBefore(startDate);
+	}
+
+	@Override
+	public boolean isActiveAuthorization() {
+		LocalDate now = TimeProvider.getLocalDate();
+		if (startDate != null && endDate == null) {
+			return !startDate.isAfter(now);
+
+		} else if (startDate == null && endDate != null) {
+			return !endDate.isBefore(now);
+
+		} else if (startDate != null && endDate != null) {
+			return !startDate.isAfter(now) && !endDate.isBefore(now);
+
+		} else {
+			return true;
+		}
 	}
 
 	public String getCollection() {

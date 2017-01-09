@@ -19,6 +19,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String ROLES = "roles";
 	public static final String START_DATE = "startDate";
 	public static final String END_DATE = "endDate";
+	public static final String TARGET = "target";
 	public static final String SYNCED = "synced";
 
 	public SolrAuthorizationDetails(Record record,
@@ -89,5 +90,24 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public SolrAuthorizationDetails setSynced(Boolean isSynced) {
 		set(SYNCED, isSynced);
 		return this;
+	}
+
+	@Override
+	public boolean isActiveAuthorization() {
+		LocalDate now = TimeProvider.getLocalDate();
+		LocalDate startDate = getStartDate();
+		LocalDate endDate = getEndDate();
+		if (startDate != null && endDate == null) {
+			return !startDate.isAfter(now);
+
+		} else if (startDate == null && endDate != null) {
+			return !endDate.isBefore(now);
+
+		} else if (startDate != null && endDate != null) {
+			return !startDate.isAfter(now) && !endDate.isBefore(now);
+
+		} else {
+			return true;
+		}
 	}
 }

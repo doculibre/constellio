@@ -3,14 +3,21 @@ package com.constellio.app.services.migrations.scripts;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
@@ -19,6 +26,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 
 public class CoreMigrationTo_6_7 implements MigrationScript {
@@ -42,40 +50,74 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 		Map<String, AuthorizationDetails> xmlAuthorizationDetailsList = manager.getAuthorizationsDetails(collection);
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 				appLayerFactory.getModelLayerFactory());
-		Iterator iterator = xmlAuthorizationDetailsList.values().iterator();
+
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+
+		List<AuthToConvert> authToConverts = new ArrayList<>();
+
+		for (AuthorizationDetails details : xmlAuthorizationDetailsList.values()) {
+
+			AuthToConvert authToConvert = new AuthToConvert();
+			authToConvert.details = (XMLAuthorizationDetails) details;
+			authToConvert.targetId = findTargetId(searchServices, schemasRecordsServices, details);
+			if (authToConvert.targetId != null) {
+				authToConverts.add(authToConvert);
+			}
+		}
+
+		Iterator<List<AuthToConvert>> iterator = new BatchBuilderIterator<>(authToConverts.iterator(), 1000);
+
 		while (iterator.hasNext()) {
-			XMLAuthorizationDetails xmlAuthorizationDetails = (XMLAuthorizationDetails) iterator.next();
-			buildSolrAuthorizationDetails(xmlAuthorizationDetails, schemasRecordsServices, appLayerFactory);
+			buildSolrAuthorizationDetails(iterator.next(), schemasRecordsServices, appLayerFactory);
 
 		}
 	}
 
-	private void buildSolrAuthorizationDetails(XMLAuthorizationDetails xmlAuthorizationDetails,
-			SchemasRecordsServices schemasRecordsServices, AppLayerFactory appLayerFactory)
+	private String findTargetId(SearchServices searchServices, SchemasRecordsServices schemas, AuthorizationDetails details) {
+		Record record = searchServices.searchSingleResult(
+				fromAllSchemasIn(details.getCollection()).where(AUTHORIZATIONS).isEqualTo(details.getId()));
+		return record == null ? null : record.getId();
+	}
+
+	private static class AuthToConvert {
+
+		XMLAuthorizationDetails details;
+		String targetId;
+
+	}
+
+	private void buildSolrAuthorizationDetails(List<AuthToConvert> authsToConvert, SchemasRecordsServices schemasRecordsServices,
+			AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
 
-		SolrAuthorizationDetails solrAuthorizationDetails = schemasRecordsServices
-				.newSolrAuthorizationDetailsWithId(xmlAuthorizationDetails.getId());
-		if (xmlAuthorizationDetails.getStartDate() == null || xmlAuthorizationDetails.getStartDate().getYear() < 2007) {
-			solrAuthorizationDetails.setStartDate(null);
-		} else {
-			solrAuthorizationDetails.setStartDate(xmlAuthorizationDetails.getStartDate());
-		}
+		Transaction transaction = new Transaction();
 
-		if (xmlAuthorizationDetails.getEndDate() == null || xmlAuthorizationDetails.getEndDate().getYear() < 2007) {
-			solrAuthorizationDetails.setEndDate(null);
-		} else {
-			solrAuthorizationDetails.setEndDate(xmlAuthorizationDetails.getEndDate());
-		}
+		for (AuthToConvert authToConvert : authsToConvert) {
+			SolrAuthorizationDetails solrAuthorizationDetails = schemasRecordsServices
+					.newSolrAuthorizationDetailsWithId(authToConvert.details.getId());
 
-		if (!xmlAuthorizationDetails.isSynced()) {
-			solrAuthorizationDetails.setSynced(null);
-		} else {
-			solrAuthorizationDetails.setSynced(true);
-		}
+			if (authToConvert.details.getStartDate() == null || authToConvert.details.getStartDate().getYear() < 2007) {
+				solrAuthorizationDetails.setStartDate(null);
+			} else {
+				solrAuthorizationDetails.setStartDate(authToConvert.details.getStartDate());
+			}
 
-		solrAuthorizationDetails.setRoles(xmlAuthorizationDetails.getRoles());
-		appLayerFactory.getModelLayerFactory().newRecordServices().add(solrAuthorizationDetails);
+			if (authToConvert.details.getEndDate() == null || authToConvert.details.getEndDate().getYear() < 2007) {
+				solrAuthorizationDetails.setEndDate(null);
+			} else {
+				solrAuthorizationDetails.setEndDate(authToConvert.details.getEndDate());
+			}
+
+			if (!authToConvert.details.isSynced()) {
+				solrAuthorizationDetails.setSynced(null);
+			} else {
+				solrAuthorizationDetails.setSynced(true);
+			}
+
+			solrAuthorizationDetails.setRoles(authToConvert.details.getRoles());
+			transaction.add(solrAuthorizationDetails);
+		}
+		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
 	private class CoreSchemaAlterationFor6_7 extends MetadataSchemasAlterationHelper {
@@ -93,14 +135,11 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.ROLES).setType(STRING).setMultivalue(true)
-					.setUndeletable(false);
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.SYNCED).setType(BOOLEAN).setUndeletable(false);
-			;
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.START_DATE).setType(DATE).setUndeletable(false);
-			;
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.END_DATE).setType(DATE).setUndeletable(false);
-			;
+			defaultSchema.createUndeletable(SolrAuthorizationDetails.ROLES).setType(STRING).setMultivalue(true);
+			defaultSchema.createUndeletable(SolrAuthorizationDetails.SYNCED).setType(BOOLEAN);
+			defaultSchema.createUndeletable(SolrAuthorizationDetails.START_DATE).setType(DATE);
+			defaultSchema.createUndeletable(SolrAuthorizationDetails.END_DATE).setType(DATE);
+			defaultSchema.createUndeletable(SolrAuthorizationDetails.TARGET).setType(STRING);
 
 			return type;
 		}

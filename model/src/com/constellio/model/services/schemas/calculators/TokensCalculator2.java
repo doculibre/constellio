@@ -21,24 +21,30 @@ public class TokensCalculator2 implements MetadataValueCalculator<List<String>> 
 	public static List<String> getTokensForAuthorizationIds(List<String> authorizationIds, List<String> manualTokens) {
 		List<String> calculatedTokens = new ArrayList<>();
 		for (String auth : authorizationIds) {
-			if (auth != null && !auth.startsWith("-")) {
-				String[] authSplitted = auth.split("_");
-				String accessCode = authSplitted[0];
-				String roles = authSplitted[1];
-				String authId = authSplitted[2];
-				if (accessCode.length() <= 1) {
-					calculatedTokens.add(accessCode + "_" + roles + "_" + authId);
-
-				} else {
-					for (int i = 0; i < accessCode.length(); i++) {
-						calculatedTokens.add(accessCode.charAt(i) + "_" + roles + "_" + authId);
-					}
-
-				}
-			}
+			calculatedTokens.addAll(getTokensForAuthId(auth));
 		}
 		calculatedTokens.addAll(manualTokens);
 
+		return calculatedTokens;
+	}
+
+	public static List<String> getTokensForAuthId(String auth) {
+		List<String> calculatedTokens = new ArrayList<>();
+		if (auth != null && !auth.startsWith("-")) {
+			String[] authSplitted = auth.split("_");
+			String accessCode = authSplitted[0];
+			String roles = authSplitted[1];
+			String authId = authSplitted[2];
+			if (accessCode.length() <= 1) {
+				calculatedTokens.add(accessCode + "_" + roles + "_" + authId);
+
+			} else {
+				for (int i = 0; i < accessCode.length(); i++) {
+					calculatedTokens.add(accessCode.charAt(i) + "_" + roles + "_" + authId);
+				}
+
+			}
+		}
 		return calculatedTokens;
 	}
 

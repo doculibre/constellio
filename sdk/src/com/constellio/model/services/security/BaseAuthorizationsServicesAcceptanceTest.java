@@ -51,6 +51,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -167,6 +168,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			initialFinishedBatchProcesses.add(batchProcess.getId());
 		}
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		recordServices.getRecordsCaches().getCache(zeCollection)
+				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
+		recordServices.getRecordsCaches().getCache(anotherCollection)
+				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
 	}
 
 	protected ListAssert<String> assertThatBatchProcessDuringTest() {
@@ -663,6 +668,14 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		return assertThat(authorizations);
 
+	}
+
+	protected ListAssert<String> assertThatAllAuthorizationsIds() {
+		List<String> authorizations = new ArrayList<>();
+		for (AuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+			authorizations.add(details.getId());
+		}
+		return assertThat(authorizations);
 	}
 
 	protected ListAssert<VerifiedAuthorization> assertThatAllAuthorizations() {

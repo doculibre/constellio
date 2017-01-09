@@ -1,9 +1,13 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
 import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
+import static com.constellio.model.entities.schemas.Schemas.ANCESTORS;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
@@ -12,6 +16,7 @@ import static com.constellio.model.entities.security.global.AuthorizationDeleteR
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1_DOC1;
@@ -47,13 +52,18 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Test;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
@@ -63,6 +73,7 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
 	//TODO Mieux tester la journalisation des modifications
+	//TODO Tester les services trouvant des utilisateurs en fonction de record avec des autorisations inactives
 
 	@After
 	public void checkIfARecordHasAnInvalidAuthorization() {
@@ -133,6 +144,35 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(foldersWithWriteFound).hasSize(0);
 			assertThat(foldersWithDeleteFound).hasSize(0);
 		}
+	}
+
+	@Test
+	public void whenRecordIsSecurizedThenHasAncestors()
+			throws Exception {
+
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).where(PRINCIPAL_PATH).isNotNull());
+
+		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, ANCESTORS).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1)),
+				tuple(FOLDER4_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
+				tuple(FOLDER4_2, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
+				tuple(FOLDER2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
+				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
+				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER2_2_DOC2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
+				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
+				tuple(FOLDER4, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
+				tuple(FOLDER2_2_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
+				tuple(FOLDER4_2_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_2)),
+				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
+				tuple(FOLDER2_1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
+				tuple(FOLDER2_2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
+				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1)),
+				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
+				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
+				tuple(FOLDER4_1_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_1))
+		);
 	}
 
 	@Test
@@ -910,46 +950,50 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		givenTimeIs(date(2016, 4, 4));
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
+		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
 		}
 
 		givenTimeIs(date(2016, 4, 5));
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
+		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
 		}
 
 		givenTimeIs(date(2016, 4, 6));
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
+		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
 		}
 
 		givenTimeIs(date(2016, 4, 7));
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
+		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
 		}
 
 		givenTimeIs(date(2016, 4, 8));
-		waitForBatchProcess();
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		//		waitForBatchProcess();
+		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
 		}
 
 		givenTimeIs(date(2016, 4, 9));
-		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		waitForBatchProcess();
+		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
 		}
+
+		assertThatAllAuthorizationsIds().containsOnly(auth1, auth2, auth3, auth4, auth5, auth6);
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		assertThatAllAuthorizationsIds().containsOnly("todo");
 
 	}
 
@@ -1641,4 +1685,18 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER3_DOC1).usersWithReadAccess().containsOnly(bob, charles, dakota, chuck);
 	}
 
+	//@Test
+	//	public void testLoadingOfAuths()
+	//			throws Exception {
+	//
+	//		List<SolrAuthorizationDetails> records = new ArrayList<>();
+	//		for (int i = 0; i < 10000000; i++) {
+	//			System.out.println(i);
+	//			records.add(schemas.newSolrAuthorizationDetails().setRoles(asList("READ", "WRITE")).setTitle(newRandomId()));
+	//		}
+	//
+	//		System.out.println("finished");
+	//		Thread.sleep(1000000);
+	//
+	//	}
 }

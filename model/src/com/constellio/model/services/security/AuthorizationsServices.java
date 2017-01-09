@@ -334,7 +334,7 @@ public class AuthorizationsServices {
 		//			new XMLAuthorizationDetails(authorizationDetail.getCollection(), authId,
 		//					authorizationDetail.getRoles(), authorizationDetail.getStartDate(), authorizationDetail.getEndDate(), false);
 		//		}
-		//validateDates(authorizationDetail.getStartDate(), authorizationDetail.getEndDate());
+		validateDates(authorizationDetail.getStartDate(), authorizationDetail.getEndDate());
 		try {
 			recordServices.add(authorizationDetail);
 		} catch (RecordServicesException e) {
@@ -952,12 +952,9 @@ public class AuthorizationsServices {
 	}
 
 	void refreshActivationForAllAuths(List<String> collections) {
-		//		for (String collection : collections) {
-		//			Map<String, AuthorizationDetails> authDetails = manager.getAuthorizationsDetails(collection);
-		//			for (AuthorizationDetails authDetail : authDetails.values()) {
-		//				refreshAuthorizationBasedOnDates(authDetail);
-		//			}
-		//		}
+		for (String collection : collections) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		}
 	}
 
 	void refreshAuthorizationBasedOnDates(AuthorizationDetails authDetail) {

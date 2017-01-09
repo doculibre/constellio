@@ -17,6 +17,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
+import com.constellio.model.services.schemas.calculators.AncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
@@ -57,6 +58,7 @@ public class CommonMetadataBuilder {
 	public static final String ERROR_ON_PHYSICAL_DELETION = "errorOnPhysicalDeletion";
 	public static final String ALL_REFERENCES = "allReferences";
 	public static final String MARKED_FOR_REINDEXING = "markedForReindexing";
+	public static final String ANCESTORS = "ancestors";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -391,6 +393,17 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(MARKED_FOR_REINDEXING).setType(BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(ANCESTORS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ANCESTORS).setType(STRING).setMultivalue(true)
+						.defineDataEntry().asCalculated(AncestorsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

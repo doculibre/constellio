@@ -14,8 +14,10 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.security.roles.Roles;
 
 public class User extends RecordWrapper {
@@ -266,17 +268,38 @@ public class User extends RecordWrapper {
 	}
 
 	public List<String> getUserTokens() {
-		List<String> recordTokens = getList(USER_TOKENS);
-		List<String> tokens = new ArrayList<String>(recordTokens);
-		tokens.add("r_" + getId());
-		tokens.add("w_" + getId());
-		tokens.add("d_" + getId());
+		//		List<String> recordTokens = getList(USER_TOKENS);
+		//		List<String> tokens = new ArrayList<String>(recordTokens);
+		//		tokens.add("r_" + getId());
+		//		tokens.add("w_" + getId());
+		//		tokens.add("d_" + getId());
+		//		for (String groupId : getUserGroups()) {
+		//			tokens.add("r_" + groupId);
+		//			tokens.add("w_" + groupId);
+		//			tokens.add("d_" + groupId);
+		//		}
+		//		return tokens;
+
+		List<String> activeAuthsTokens = new ArrayList<>();
+
+		activeAuthsTokens.add("r_" + getId());
+		activeAuthsTokens.add("w_" + getId());
+		activeAuthsTokens.add("d_" + getId());
+
 		for (String groupId : getUserGroups()) {
-			tokens.add("r_" + groupId);
-			tokens.add("w_" + groupId);
-			tokens.add("d_" + groupId);
+			activeAuthsTokens.add("r_" + groupId);
+			activeAuthsTokens.add("w_" + groupId);
+			activeAuthsTokens.add("d_" + groupId);
 		}
-		return tokens;
+
+		for (String auth : getAllUserAuthorizations()) {
+			AuthorizationDetails authorizationDetails = roles.getSchemasRecordsServices().getSolrAuthorizationDetails(auth);
+			if (authorizationDetails.isActiveAuthorization()) {
+				activeAuthsTokens.addAll(TokensCalculator2.getTokensForAuthId(auth));
+			}
+		}
+
+		return activeAuthsTokens;
 	}
 
 	public String getCollection() {

@@ -24,4 +24,6 @@ public interface AuthorizationDetails {
 	AuthorizationDetails withNewEndDate(LocalDate endate);
 
 	boolean isFutureAuthorization();
+
+	boolean isActiveAuthorization();
 }
