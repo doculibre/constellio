@@ -7,22 +7,14 @@ import com.constellio.app.modules.rm.model.calculators.container.ContainerRecord
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceLinearSizeCalculator;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.validators.ContainerRecordValidator;
 import com.constellio.app.modules.rm.model.validators.StorageSpaceValidator;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 
 public class RMMigrationTo6_7 implements MigrationScript {
     @Override
@@ -46,56 +38,6 @@ public class RMMigrationTo6_7 implements MigrationScript {
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             migrateContainerRecordMetadatas(typesBuilder);
             migrateStorageSpaceMetadatas(typesBuilder);
-        }
-
-        private void migrateDecommissioningListMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
-            typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).create(DecommissioningList.SEARCH_TYPE)
-                    .setType(MetadataValueType.ENUM).setEssential(true).setUndeletable(true);
-
-            RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-            List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(ALL);
-            for(DecommissioningList decommissioningList: decommissioningLists) {
-                if(decommissioningList.getSearchType() == null) {
-                    FolderStatus folderStatus = null;
-                    if(!decommissioningList.getFolderDetails().isEmpty()) {
-                        folderStatus = new RMSchemasRecordsServices(collection, appLayerFactory).getFolder(decommissioningList.getFolderDetails().get(0).getFolderId()).getArchivisticStatus();
-                    }
-
-                    if(folderStatus != null) {
-                        if(folderStatus.isActive()) {
-                            switch (decommissioningList.getDecommissioningListType()) {
-                                case FOLDERS_TO_DEPOSIT:
-                                    break;
-                                case FOLDERS_TO_DESTROY:
-                                    break;
-                                case FOLDERS_TO_TRANSFER:
-                                    break;
-                                case DOCUMENTS_TO_DEPOSIT:
-                                    break;
-                                case DOCUMENTS_TO_DESTROY:
-                                    break;
-                                case DOCUMENTS_TO_TRANSFER:
-                                    break;
-                            }
-                        } else if(folderStatus.isSemiActive()) {
-                            switch (decommissioningList.getDecommissioningListType()) {
-                                case FOLDERS_TO_DEPOSIT:
-                                    break;
-                                case FOLDERS_TO_DESTROY:
-                                    break;
-                                case DOCUMENTS_TO_DEPOSIT:
-                                    break;
-                                case DOCUMENTS_TO_DESTROY:
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private SearchType calculateDecommissioningListSearchType(DecommissioningList decommissioningList) {
-            return null;
         }
 
         private void migrateContainerRecordMetadatas(MetadataSchemaTypesBuilder typesBuilder) {

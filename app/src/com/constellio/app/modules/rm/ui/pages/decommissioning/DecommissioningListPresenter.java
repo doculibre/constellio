@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -14,7 +14,6 @@ import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.ui.entities.RecordVO;
@@ -457,54 +456,41 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void addFoldersButtonClicked() {
-		boolean isFirstCheck = true;
-		FolderStatus lastFolderStatus = null;
-		for(DecomListFolderDetail folderDetail: decommissioningList().getFolderDetails()) {
-			if(isFirstCheck) {
-				lastFolderStatus = rmRecordsServices().getFolder(folderDetail.getFolderId()).getArchivisticStatus();
+		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.activeToDeposit.toString());
+					break;
+				case FOLDERS_TO_DESTROY:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.activeToDestroy.toString());
+					break;
+				case FOLDERS_TO_TRANSFER:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.transfer.toString());
+					break;
+				case DOCUMENTS_TO_DEPOSIT:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentActiveToDeposit.toString());
+					break;
+				case DOCUMENTS_TO_DESTROY:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentActiveToDestroy.toString());
+					break;
+				case DOCUMENTS_TO_TRANSFER:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentTransfer.toString());
+					break;
 			}
-			else if (!lastFolderStatus.equals(rmRecordsServices().getFolder(folderDetail.getFolderId()).getArchivisticStatus())){
-				throw new RuntimeException();
-			}
-		}
-
-		if(lastFolderStatus != null) {
-			if(lastFolderStatus.isActive()) {
-				switch (decommissioningList().getDecommissioningListType()) {
-					case FOLDERS_TO_DEPOSIT:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.activeToDeposit.toString());
-						break;
-					case FOLDERS_TO_DESTROY:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.activeToDestroy.toString());
-						break;
-					case FOLDERS_TO_TRANSFER:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.transfer.toString());
-						break;
-					case DOCUMENTS_TO_DEPOSIT:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentActiveToDeposit.toString());
-						break;
-					case DOCUMENTS_TO_DESTROY:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentActiveToDestroy.toString());
-						break;
-					case DOCUMENTS_TO_TRANSFER:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentTransfer.toString());
-						break;
-				}
-			} else if(lastFolderStatus.isSemiActive()) {
-				switch (decommissioningList().getDecommissioningListType()) {
-					case FOLDERS_TO_DEPOSIT:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.semiActiveToDeposit.toString());
-						break;
-					case FOLDERS_TO_DESTROY:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.semiActiveToDestroy.toString());
-						break;
-					case DOCUMENTS_TO_DEPOSIT:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentSemiActiveToDeposit.toString());
-						break;
-					case DOCUMENTS_TO_DESTROY:
-						view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentSemiActiveToDestroy.toString());
-						break;
-				}
+		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.semiActiveToDeposit.toString());
+					break;
+				case FOLDERS_TO_DESTROY:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.semiActiveToDestroy.toString());
+					break;
+				case DOCUMENTS_TO_DEPOSIT:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentSemiActiveToDeposit.toString());
+					break;
+				case DOCUMENTS_TO_DESTROY:
+					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentSemiActiveToDestroy.toString());
+					break;
 			}
 		}
 	}

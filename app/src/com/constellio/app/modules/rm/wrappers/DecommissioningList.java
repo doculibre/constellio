@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.*;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.structures.*;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -49,7 +48,6 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String COMMENTS = "comments";
 	public static final String DOCUMENTS_REPORT_CONTENT = "documentsReportContent";
 	public static final String FOLDERS_REPORT_CONTENT = "foldersReportContent";
-	public static final String SEARCH_TYPE = "searchType";
 
 	// Disabled fields
 	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
@@ -78,10 +76,6 @@ public class DecommissioningList extends RecordWrapper {
 	//Description
 	public DecommissioningListType getDecommissioningListType() {
 		return get(TYPE);
-	}
-
-	public SearchType getSearchType() {
-		return get(SEARCH_TYPE);
 	}
 
 	public DecommissioningList setDecommissioningListType(DecommissioningListType type) {
