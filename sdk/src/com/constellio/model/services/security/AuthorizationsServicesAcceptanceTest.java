@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.Record;
@@ -142,6 +143,12 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(foldersWithWriteFound).hasSize(0);
 			assertThat(foldersWithDeleteFound).hasSize(0);
 		}
+	}
+
+	@Before
+	public void printQueries()
+			throws Exception {
+		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 	}
 
 	@Test
@@ -1064,6 +1071,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			//OK
 		}
 
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+
 		givenTimeIs(date(2016, 4, 4));
 		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		//		waitForBatchProcess();
@@ -1108,7 +1117,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatAllAuthorizationsIds().containsOnly(auth1, auth2, auth3, auth4, auth5, auth6);
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		assertThatAllAuthorizationsIds().containsOnly("todo");
+		assertThatAllAuthorizationsIds().containsOnly(auth3, auth5);
 
 	}
 

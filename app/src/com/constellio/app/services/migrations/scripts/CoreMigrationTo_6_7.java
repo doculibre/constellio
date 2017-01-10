@@ -9,6 +9,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
@@ -28,9 +29,11 @@ import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.calculators.TokensCalculator3;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 
@@ -134,19 +137,27 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			createReportSchemaType(typesBuilder);
+			setNewTokenCalculator(typesBuilder);
+		}
+
+		private void setNewTokenCalculator(MetadataSchemaTypesBuilder typesBuilder) {
+			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
+				typeBuilder.getDefaultSchema().get(TOKENS).defineDataEntry().asCalculated(TokensCalculator3.class);
+			}
 		}
 
 		private MetadataSchemaTypeBuilder createReportSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
-			defaultSchema.createUndeletable(ROLES).setType(STRING).setMultivalue(true);
+			defaultSchema.createUndeletable(ROLES).setType(STRING).setMultivalue(true).setDefaultRequirement(true);
 			defaultSchema.createUndeletable(SYNCED).setType(BOOLEAN);
 			defaultSchema.createUndeletable(START_DATE).setType(DATE);
 			defaultSchema.createUndeletable(END_DATE).setType(DATE);
-			defaultSchema.createUndeletable(TARGET).setType(STRING);
+			defaultSchema.createUndeletable(TARGET).setType(STRING).setDefaultRequirement(true);
 
 			return type;
+
 		}
 	}
 }

@@ -485,4 +485,11 @@ public class User extends RecordWrapper {
 
 	}
 
+	public AuthorizationDetails getAuthorizationDetail(String id) {
+		return roles.getSchemasRecordsServices().getSolrAuthorizationDetails(id);
+	}
+
+	public Roles getRolesDetails() {
+		return roles;
+	}
 }

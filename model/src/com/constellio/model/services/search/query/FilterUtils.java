@@ -1,10 +1,17 @@
 package com.constellio.model.services.search.query;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils;
+import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -49,6 +56,7 @@ public class FilterUtils {
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
+		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.WRITE_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'w');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'w');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
@@ -67,6 +75,7 @@ public class FilterUtils {
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
+		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.READ_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
@@ -74,6 +83,17 @@ public class FilterUtils {
 		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
 		stringBuilder.append(":");
 		stringBuilder.append(Record.PUBLIC_TOKEN);
+		return stringBuilder.toString();
+	}
+
+	public static String permissionFilter(User user, String permission) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		if (!user.has(permission).globally()) {
+			addTokenA38(stringBuilder);
+			List<String> rolesGivingPermission = Role.toCodes(user.getRolesDetails().getRolesGivingPermission(permission));
+			addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
+		}
 		return stringBuilder.toString();
 	}
 
@@ -90,10 +110,37 @@ public class FilterUtils {
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
+		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.DELETE_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'd');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'd');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
 		return stringBuilder.toString();
+	}
+
+	private static void addAuthsTokens(StringBuilder stringBuilder, User user, AuthorizationDetailsFilter filter) {
+		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, filter);
+
+		for (Map.Entry<String, Set<String>> token : tokens.getNestedMap().entrySet()) {
+			stringBuilder.append(" OR (");
+			stringBuilder.append(Schemas.ATTACHED_ANCESTORS.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(token.getKey());
+			stringBuilder.append(" AND -(");
+			//TODO Tester!
+			for (Iterator<String> iterator = token.getValue().iterator(); iterator.hasNext(); ) {
+				String removedAuth = iterator.next();
+				stringBuilder.append(Schemas.ALL_REMOVED_AUTHS.getDataStoreCode());
+				stringBuilder.append(":");
+				stringBuilder.append(removedAuth);
+				if (iterator.hasNext()) {
+					stringBuilder.append(" AND ");
+				}
+
+			}
+			stringBuilder.append(")");
+			stringBuilder.append(")");
+		}
+
 	}
 
 	public static String statusFilter(StatusFilter status) {

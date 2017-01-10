@@ -71,6 +71,15 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return this;
 	}
 
+	public String getTarget() {
+		return get(TARGET);
+	}
+
+	public SolrAuthorizationDetails setTarget(String target) {
+		set(TARGET, target);
+		return this;
+	}
+
 	@Override
 	public boolean isSynced() {
 		return Boolean.TRUE.equals(get(SYNCED));

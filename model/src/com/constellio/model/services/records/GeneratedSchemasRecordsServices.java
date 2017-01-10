@@ -715,6 +715,10 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("startDate");
 		}
 
+		public Metadata target() {
+			return metadata("target");
+		}
+
 		public Metadata synced() {
 			return metadata("synced");
 		}

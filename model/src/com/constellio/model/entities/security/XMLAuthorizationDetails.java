@@ -137,6 +137,11 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 		}
 	}
 
+	@Override
+	public String getTarget() {
+		return null;
+	}
+
 	public String getCollection() {
 		return collection;
 	}

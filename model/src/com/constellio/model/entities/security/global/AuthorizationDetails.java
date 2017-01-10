@@ -26,4 +26,6 @@ public interface AuthorizationDetails {
 	boolean isFutureAuthorization();
 
 	boolean isActiveAuthorization();
+
+	String getTarget();
 }

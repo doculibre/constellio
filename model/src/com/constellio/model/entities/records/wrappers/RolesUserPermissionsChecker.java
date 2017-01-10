@@ -47,19 +47,13 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 	private Set<String> getUserPermissionsOnRecord(Record record) {
 		Set<String> permissions = new HashSet<>();
-		List<String> tokens = record.getList(Schemas.TOKENS);
-		List<String> userTokens = user.getUserTokens();
-		for (String token : tokens) {
 
-			if (userTokens.contains(token)) {
-				for (String authorizationRoleCode : token.split("_")[1].split(",")) {
-					Role role = roles.getRole(authorizationRoleCode);
-					if (role != null) {
-						permissions.addAll(role.getOperationPermissions());
-					}
-				}
-			}
+		Set<String> allRolesOnRecord = UserAuthorizationsUtils.getRolesOnRecord(user, record);
+
+		for (String role : allRolesOnRecord) {
+			permissions.addAll(roles.getRole(role).getOperationPermissions());
 		}
+
 		for (String userRoleCode : user.getAllRoles()) {
 			Role role = roles.getRole(userRoleCode);
 			permissions.addAll(role.getOperationPermissions());

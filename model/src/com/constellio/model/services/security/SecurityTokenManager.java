@@ -36,7 +36,7 @@ public class SecurityTokenManager implements StatefulService {
 
 	public UserTokens getTokens(final User user) {
 
-		UserTokens tokens = new UserTokens(user.getUserTokens());
+		UserTokens tokens = new UserTokens();
 		for (TokenProvider provider : providers) {
 			tokens.add(provider.getTokensFor(user.getUsername(), user.getCollection()));
 		}

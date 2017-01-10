@@ -24,6 +24,7 @@ import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
+import com.constellio.model.services.schemas.calculators.TokensCalculator3;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 
 public class CommonMetadataBuilder {
@@ -207,7 +208,7 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 						.setMultivalue(true)
-						.defineDataEntry().asCalculated(TokensCalculator2.class);
+						.defineDataEntry().asCalculated(TokensCalculator3.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -403,7 +404,8 @@ public class CommonMetadataBuilder {
 		metadata.put(ATTACHED_ANCESTORS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING).setMultivalue(true)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING)
+						.setMultivalue(true)
 						.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
