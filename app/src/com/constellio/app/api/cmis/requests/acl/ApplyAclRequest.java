@@ -8,6 +8,7 @@ import static com.constellio.data.utils.LangUtils.isEqual;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
@@ -169,23 +171,37 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 			Record principal = getPrincipalRecord(ace.getPrincipalId());
 			List<String> authorizationsIds = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
 			for (AuthorizationDetails authDetails : getObjectAuthorizationsWithPermission(objectId, permissions)) {
-				authorizationsIds.remove(authDetails.getId());
-				authorizationsPotentiallyEmpty.add(authDetails.getId());
+
+				Authorization authorization = authorizationsServices.getAuthorization(collection, authDetails.getId());
+				if (authorization.getGrantedToPrincipals().contains(principal.getId())) {
+					if (authorization.getGrantedToPrincipals().size() == 1) {
+						authorizationsServices.execute(authorizationDeleteRequest(authDetails).setExecutedBy(user));
+
+					} else {
+						List<String> principals = new ArrayList<>(authorization.getGrantedToPrincipals());
+						principals.remove(principal.getId());
+
+						authorizationsServices.execute(modifyAuthorizationOnRecord(authorization, objectId)
+								.withNewPrincipalIds(principals).setExecutedBy(user));
+					}
+				}
+				//authorizationsIds.remove(authDetails.getId());
+				//authorizationsPotentiallyEmpty.add(authDetails.getId());
 			}
 
-			try {
-				recordServices.updateAsync(principal.set(Schemas.AUTHORIZATIONS, authorizationsIds));
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
+			//			try {
+			//				recordServices.updateAsync(principal.set(Schemas.AUTHORIZATIONS, authorizationsIds));
+			//			} catch (RecordServicesException e) {
+			//				throw new RuntimeException(e);
+			//			}
 
 		}
-		for (String auth : authorizationsPotentiallyEmpty) {
-			Authorization anAuthorization = authorizationsServices.getAuthorization(collection, auth);
-			if (anAuthorization.getGrantedToPrincipals().isEmpty()) {
-				authorizationsServices.execute(authorizationDeleteRequest(anAuthorization).setExecutedBy(user));
-			}
-		}
+		//		for (String auth : authorizationsPotentiallyEmpty) {
+		//			Authorization anAuthorization = authorizationsServices.getAuthorization(collection, auth);
+		//			if (anAuthorization.getGrantedToPrincipals().isEmpty()) {
+		//				authorizationsServices.execute(authorizationDeleteRequest(anAuthorization).setExecutedBy(user));
+		//			}
+		//		}
 
 	}
 
@@ -201,14 +217,23 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 					authorizationsServices.add(auth, user);
 
 				} else {
-					List<String> authorizations = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
-					authorizations.add(authorizationDetails.getId());
-					principal.set(Schemas.AUTHORIZATIONS, authorizations);
-					try {
-						recordServices.updateAsync(principal);
-					} catch (RecordServicesException e) {
-						throw new RuntimeException(e);
-					}
+
+					Authorization authorization = authorizationsServices
+							.getAuthorization(collection, authorizationDetails.getId());
+
+					List<String> principals = new ArrayList<>(authorization.getGrantedToPrincipals());
+					principals.add(principal.getId());
+					authorizationsServices.execute(modifyAuthorizationOnRecord(authorization, objectId)
+							.withNewPrincipalIds(principals));
+
+					//					List<String> authorizations = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
+					//					authorizations.add(authorizationDetails.getId());
+					//					principal.set(Schemas.AUTHORIZATIONS, authorizations);
+					//					try {
+					//						recordServices.updateAsync(principal);
+					//					} catch (RecordServicesException e) {
+					//						throw new RuntimeException(e);
+					//					}
 				}
 			}
 		}
@@ -221,31 +246,25 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
 	List<AuthorizationDetails> getObjectAuthorizationsWithPermission(String objectId, List<String> permissions) {
 		Record record = recordServices.getDocumentById(objectId);
-		List<String> authorizations = record.get(Schemas.AUTHORIZATIONS);
+		//List<String> authorizations = record.get(Schemas.AUTHORIZATIONS);
 		List<AuthorizationDetails> detailses = new ArrayList<>();
 
-		for (String authorization : authorizations) {
-			AuthorizationDetails details = modelLayerFactory.getAuthorizationDetailsManager().get(collection, authorization);
+		//		for (String authorization : authorizations) {
+		//			AuthorizationDetails details = modelLayerFactory.getAuthorizationDetailsManager().get(collection, authorization);
+		//
+		//			if (details != null && hasSameElementsNoMatterTheOrder(details.getRoles(), permissions)) {
+		//				detailses.add(details);
+		//			}
+		//		}
 
-			if (details != null && hasSameElementsNoMatterTheOrder(details.getRoles(), permissions)) {
-				detailses.add(details);
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		for (AuthorizationDetails authDetails : schemas
+				.searchSolrAuthorizationDetailss(where(schemas.authorizationDetails.target()).isEqualTo(objectId))) {
+
+			if (authDetails != null && hasSameElementsNoMatterTheOrder(authDetails.getRoles(), permissions)) {
+				detailses.add(authDetails);
 			}
-		}
 
-		return detailses;
-	}
-
-	List<Authorization> getInheritedObjectAuthorizationsWithPermission(String objectId) {
-		Record record = recordServices.getDocumentById(objectId);
-		List<String> authorizations = record.get(Schemas.INHERITED_AUTHORIZATIONS);
-		List<Authorization> detailses = new ArrayList<>();
-
-		for (String authorization : authorizations) {
-			Authorization details = authorizationsServices.getAuthorization(collection, authorization);
-
-			if (details != null) {
-				detailses.add(details);
-			}
 		}
 
 		return detailses;

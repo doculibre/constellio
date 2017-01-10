@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
@@ -423,6 +424,14 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 
 		public Metadata inheritedAuthorizations() {
 			return getMetadata(code() + "_inheritedauthorizations");
+		}
+
+		public Metadata allRemovedAuths() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.ALL_REMOVED_AUTHS);
+		}
+
+		public Metadata attachedAncestors() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.ATTACHED_ANCESTORS);
 		}
 
 		public Metadata taxonomy1() {

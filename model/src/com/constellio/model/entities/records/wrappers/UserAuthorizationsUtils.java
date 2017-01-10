@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
@@ -18,6 +19,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.services.security.SecurityTokenManager;
 
 public class UserAuthorizationsUtils {
 
@@ -35,7 +37,7 @@ public class UserAuthorizationsUtils {
 			prefix = role;
 		}
 
-		List<String> tokens = record.getList(Schemas.TOKENS);
+		List<String> tokens = record.getList(TOKENS);
 
 		if (tokens.contains(prefix + user.getId())) {
 			return true;
@@ -43,6 +45,18 @@ public class UserAuthorizationsUtils {
 
 		for (String aGroup : user.getUserGroups()) {
 			if (tokens.contains(prefix + aGroup)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean containsAUserToken(User user, Record record) {
+		SecurityTokenManager securityTokenManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
+				.getSecurityTokenManager();
+		for (String token : securityTokenManager.getTokens(user).getAllowTokens()) {
+			if (record.getList(TOKENS).contains(token)) {
 				return true;
 			}
 		}

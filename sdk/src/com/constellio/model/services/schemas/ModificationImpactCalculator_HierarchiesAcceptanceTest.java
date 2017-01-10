@@ -1,5 +1,11 @@
 package com.constellio.model.services.schemas;
 
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PARENT_PATH;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -26,6 +32,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -287,20 +294,14 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	private void assertPathAndAuthorizationsImpactInFirstAndSecondSchema(TestRecord record, List<ModificationImpact> impacts) {
-		Metadata taxo1FirstSchemaMetaWithTaxoDependency = schemas
-				.getMetadata(taxonomy1FirstSchema.code() + "_taxo1FirstSchemaMetaWithTaxoDependency");
-		Metadata taxo1SecondSchemaMetaWithTaxoDependency = schemas
-				.getMetadata(taxonomy1SecondSchema.code() + "_taxo1SecondSchemaMetaWithTaxoDependency");
-		Metadata taxo1FirstSchemaPath = taxonomy1FirstSchema.parentpath();
-		Metadata taxo1FirstSchemaAuthorizations = taxonomy1FirstSchema.inheritedAuthorizations();
-		Metadata taxo1SecondSchemaPath = taxonomy1SecondSchema.parentpath();
-		Metadata taxo1SecondSchemaAuthorizations = taxonomy1SecondSchema.inheritedAuthorizations();
 
 		assertThat(impacts).hasSize(2);
-		assertThat(impacts.get(0).getMetadataToReindex())
-				.containsOnly(taxo1FirstSchemaMetaWithTaxoDependency, taxo1FirstSchemaPath, taxo1FirstSchemaAuthorizations);
-		assertThat(impacts.get(1).getMetadataToReindex())
-				.containsOnly(taxo1SecondSchemaMetaWithTaxoDependency, taxo1SecondSchemaPath, taxo1SecondSchemaAuthorizations);
+		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "attachedAncestors", "parentpath", "taxo1FirstSchemaMetaWithTaxoDependency",
+						"inheritedauthorizations");
+		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "parentpath",
+						"inheritedauthorizations");
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1FirstSchema.type()).whereAny(
 						Arrays.asList(taxonomy1FirstSchema.parent())).isIn(Arrays.asList(record)));
@@ -311,20 +312,14 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 	private void assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(TestRecord record,
 			List<ModificationImpact> impacts) {
-		Metadata folderPath = folderSchema.parentpath();
-		Metadata folderAuthorizations = folderSchema.inheritedAuthorizations();
-		Metadata folderMetaWithTaxoDependency = schemas
-				.getMetadata(folderSchema.code() + "_folderMetaWithTaxoDependency");
-		Metadata taxo1SecondSchemaPath = taxonomy1SecondSchema.parentpath();
-		Metadata taxo1SecondSchemaAuthorizations = taxonomy1SecondSchema.inheritedAuthorizations();
-		Metadata taxo1SecondSchemaMetaWithTaxoDependency = schemas
-				.getMetadata(taxonomy1SecondSchema.code() + "_taxo1SecondSchemaMetaWithTaxoDependency");
 
 		assertThat(impacts).hasSize(2);
-		assertThat(impacts.get(1).getMetadataToReindex())
-				.containsOnly(taxo1SecondSchemaMetaWithTaxoDependency, taxo1SecondSchemaPath, taxo1SecondSchemaAuthorizations);
-		assertThat(impacts.get(0).getMetadataToReindex())
-				.containsOnly(folderMetaWithTaxoDependency, folderPath, folderAuthorizations);
+		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "parentpath",
+						"inheritedauthorizations");
+		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "parentpath",
+						"inheritedauthorizations");
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
 						Arrays.asList(taxonomy1SecondSchema.parentOfType2())).isIn(Arrays.asList(record)));
@@ -335,20 +330,14 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 	private void assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(TestRecord record,
 			List<ModificationImpact> impacts) {
-		Metadata folderMetaWithTaxoDependency = schemas
-				.getMetadata(folderSchema.code() + "_folderMetaWithTaxoDependency");
-		Metadata documentMetaWithTaxoDependency = schemas
-				.getMetadata(documentSchema.code() + "_documentMetaWithTaxoDependency");
-		Metadata folderPath = folderSchema.parentpath();
-		Metadata documentPath = documentSchema.parentpath();
-		Metadata folderAuthorizations = folderSchema.inheritedAuthorizations();
-		Metadata documentAuthorizations = documentSchema.inheritedAuthorizations();
 
 		assertThat(impacts).hasSize(2);
-		assertThat(impacts.get(1).getMetadataToReindex())
-				.containsOnly(folderMetaWithTaxoDependency, folderPath, folderAuthorizations);
-		assertThat(impacts.get(0).getMetadataToReindex())
-				.containsOnly(documentMetaWithTaxoDependency, documentPath, documentAuthorizations);
+		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("folderMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
+						ATTACHED_ANCESTORS, PARENT_PATH);
+		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
+						ATTACHED_ANCESTORS, PARENT_PATH);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
 						Arrays.asList(folderSchema.parent())).isIn(Arrays.asList(record)));
