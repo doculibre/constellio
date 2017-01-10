@@ -293,6 +293,7 @@ public class RecordAutomaticMetadataServices {
 
 		List<String> paths = new ArrayList<>();
 		List<String> authorizations = new ArrayList<>();
+		List<String> removedAuthorizations = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
@@ -301,8 +302,9 @@ public class RecordAutomaticMetadataServices {
 				Record referencedRecord = recordProvider.getRecord(referenceValue);
 				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
 				paths.addAll(parentPaths);
-				List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
-				authorizations.addAll(parentAuthorizations);
+				authorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_AUTHORIZATIONS));
+				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHORIZATIONS));
+
 			}
 		}
 		List<Metadata> metadataReferencingTaxonomy = recordSchema
@@ -322,12 +324,12 @@ public class RecordAutomaticMetadataServices {
 					Record referencedRecord = recordProvider.getRecord(referenceValue);
 					List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
 					paths.addAll(parentPaths);
-					List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
-					authorizations.addAll(parentAuthorizations);
+					authorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_AUTHORIZATIONS));
+					removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHORIZATIONS));
 				}
 			}
 		}
-		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, authorizations);
+		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, authorizations, removedAuthorizations);
 		values.put(dependency, value);
 		return true;
 	}

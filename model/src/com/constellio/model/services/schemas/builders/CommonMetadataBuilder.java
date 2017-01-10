@@ -12,11 +12,11 @@ import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
+import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
 import com.constellio.model.services.schemas.calculators.AncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
@@ -59,6 +59,7 @@ public class CommonMetadataBuilder {
 	public static final String ALL_REFERENCES = "allReferences";
 	public static final String MARKED_FOR_REINDEXING = "markedForReindexing";
 	public static final String ANCESTORS = "ancestors";
+	public static final String ALL_REMOVED_AUTHS = "allRemovedAuths";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -404,6 +405,18 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ANCESTORS).setType(STRING).setMultivalue(true)
 						.defineDataEntry().asCalculated(AncestorsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(ALL_REMOVED_AUTHS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REMOVED_AUTHS).setType(STRING)
+						.setMultivalue(true)
+						.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

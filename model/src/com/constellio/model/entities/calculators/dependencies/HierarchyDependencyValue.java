@@ -14,12 +14,14 @@ public class HierarchyDependencyValue {
 
 	private List<String> paths;
 	private List<String> authorizationIds;
+	private List<String> removedAuthorizationIds;
 
 	public HierarchyDependencyValue(Taxonomy taxonomy, List<String> paths,
-			List<String> authorizationIds) {
+			List<String> authorizationIds, List<String> removedAuthorizationIds) {
 		this.taxonomy = taxonomy;
 		this.paths = paths;
 		this.authorizationIds = authorizationIds;
+		this.removedAuthorizationIds = removedAuthorizationIds;
 	}
 
 	public Taxonomy getTaxonomy() {
@@ -32,5 +34,9 @@ public class HierarchyDependencyValue {
 
 	public List<String> getParentAuthorizations() {
 		return authorizationIds;
+	}
+
+	public List<String> getRemovedAuthorizationIds() {
+		return removedAuthorizationIds;
 	}
 }

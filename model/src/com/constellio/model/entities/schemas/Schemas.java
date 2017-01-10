@@ -41,6 +41,7 @@ public class Schemas {
 			new Metadata("inheritedauthorizations_ss", STRING,
 					true));
 	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
+	public static final Metadata ALL_REMOVED_AUTHORIZATIONS = add(new Metadata("allremoved_ss", STRING, true));
 	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(
 			new Metadata("detachedauthorizations_s", STRING,
 					false));

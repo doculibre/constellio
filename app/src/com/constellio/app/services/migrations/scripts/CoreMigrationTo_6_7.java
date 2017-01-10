@@ -1,5 +1,10 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.END_DATE;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.ROLES;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.START_DATE;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.SYNCED;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.TARGET;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -135,11 +140,11 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.ROLES).setType(STRING).setMultivalue(true);
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.SYNCED).setType(BOOLEAN);
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.START_DATE).setType(DATE);
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.END_DATE).setType(DATE);
-			defaultSchema.createUndeletable(SolrAuthorizationDetails.TARGET).setType(STRING);
+			defaultSchema.createUndeletable(ROLES).setType(STRING).setMultivalue(true);
+			defaultSchema.createUndeletable(SYNCED).setType(BOOLEAN);
+			defaultSchema.createUndeletable(START_DATE).setType(DATE);
+			defaultSchema.createUndeletable(END_DATE).setType(DATE);
+			defaultSchema.createUndeletable(TARGET).setType(STRING);
 
 			return type;
 		}

@@ -1,10 +1,10 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
 import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
@@ -52,17 +52,12 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Test;
 
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
@@ -74,6 +69,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	//TODO Mieux tester la journalisation des modifications
 	//TODO Tester les services trouvant des utilisateurs en fonction de record avec des autorisations inactives
+
+	LogicalSearchQuery recordsWithPrincipalPath = new LogicalSearchQuery(
+			fromAllSchemasIn(zeCollection).where(PRINCIPAL_PATH).isNotNull());
 
 	@After
 	public void checkIfARecordHasAnInvalidAuthorization() {
@@ -150,9 +148,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void whenRecordIsSecurizedThenHasAncestors()
 			throws Exception {
 
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).where(PRINCIPAL_PATH).isNotNull());
-
-		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, ANCESTORS).containsOnly(
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, ANCESTORS).containsOnly(
 				tuple(TAXO1_FOND1, new ArrayList<>()),
 				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1)),
 				tuple(FOLDER4_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
@@ -173,6 +170,72 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
 				tuple(FOLDER4_1_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_1))
 		);
+	}
+
+	@Test
+	public void whenRecordIsSecurizedThenHasInheritedRemovedAuths()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
+
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				fromAllSchemasIn(zeCollection).where(ALL_REMOVED_AUTHORIZATIONS).isNotNull());
+		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHORIZATIONS).isEmpty();
+
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
+		modify(authorizationOnRecord(auth2, FOLDER3).removingItOnRecord());
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHORIZATIONS).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY1, asList(auth1)),
+				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
+
+				tuple(FOLDER1, asList(auth1)),
+				tuple(FOLDER1_DOC1, asList(auth1)),
+				tuple(FOLDER2, asList(auth1)),
+				tuple(FOLDER2_1, asList(auth1)),
+				tuple(FOLDER2_2, asList(auth1)),
+				tuple(FOLDER2_2_DOC2, asList(auth1)),
+				tuple(FOLDER2_2_DOC1, asList(auth1)),
+				tuple(FOLDER3, asList(auth2)),
+				tuple(FOLDER3_DOC1, asList(auth2)),
+				tuple(FOLDER4, new ArrayList<>()),
+				tuple(FOLDER4_1, new ArrayList<>()),
+				tuple(FOLDER4_1_DOC1, new ArrayList<>()),
+				tuple(FOLDER4_2, new ArrayList<>()),
+				tuple(FOLDER4_2_DOC1, new ArrayList<>())
+		);
+
+		detach(FOLDER2_2);
+		detach(FOLDER3_DOC1);
+
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHORIZATIONS).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY1, asList(auth1)),
+				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
+
+				tuple(FOLDER1, asList(auth1)),
+				tuple(FOLDER1_DOC1, asList(auth1)),
+				tuple(FOLDER2, asList(auth1)),
+				tuple(FOLDER2_1, asList(auth1)),
+				tuple(FOLDER2_2, new ArrayList<>()),
+				tuple(FOLDER2_2_DOC2, new ArrayList<>()),
+				tuple(FOLDER2_2_DOC1, new ArrayList<>()),
+				tuple(FOLDER3, asList(auth2)),
+				tuple(FOLDER3_DOC1, new ArrayList<>()),
+				tuple(FOLDER4, new ArrayList<>()),
+				tuple(FOLDER4_1, new ArrayList<>()),
+				tuple(FOLDER4_1_DOC1, new ArrayList<>()),
+				tuple(FOLDER4_2, new ArrayList<>()),
+				tuple(FOLDER4_2_DOC1, new ArrayList<>())
+		);
+
 	}
 
 	@Test
