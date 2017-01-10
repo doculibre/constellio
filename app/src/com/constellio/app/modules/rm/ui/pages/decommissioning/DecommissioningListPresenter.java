@@ -313,7 +313,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return folderDetailToVOBuilder;
 	}
 
-	private DecommissioningList decommissioningList() {
+	public DecommissioningList decommissioningList() {
 		if (decommissioningList == null) {
 			decommissioningList = rmRecordsServices().getDecommissioningList(recordId);
 		}
@@ -456,43 +456,40 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void addFoldersButtonClicked() {
+		if(calculateSearchType() != null) {
+			view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, calculateSearchType().toString());
+		}
+	}
+
+	public SearchType calculateSearchType() {
 		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
 				case FOLDERS_TO_DEPOSIT:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.activeToDeposit.toString());
-					break;
+					return SearchType.activeToDeposit;
 				case FOLDERS_TO_DESTROY:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.activeToDestroy.toString());
-					break;
+					return SearchType.activeToDestroy;
 				case FOLDERS_TO_TRANSFER:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.transfer.toString());
-					break;
+					return SearchType.transfer;
 				case DOCUMENTS_TO_DEPOSIT:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentActiveToDeposit.toString());
-					break;
+					return SearchType.documentActiveToDeposit;
 				case DOCUMENTS_TO_DESTROY:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentActiveToDestroy.toString());
-					break;
+					return SearchType.documentActiveToDestroy;
 				case DOCUMENTS_TO_TRANSFER:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentTransfer.toString());
-					break;
+					return SearchType.documentTransfer;
 			}
 		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
 				case FOLDERS_TO_DEPOSIT:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.semiActiveToDeposit.toString());
-					break;
+					return SearchType.semiActiveToDeposit;
 				case FOLDERS_TO_DESTROY:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.semiActiveToDestroy.toString());
-					break;
+					return SearchType.semiActiveToDestroy;
 				case DOCUMENTS_TO_DEPOSIT:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentSemiActiveToDeposit.toString());
-					break;
+					return SearchType.documentSemiActiveToDeposit;
 				case DOCUMENTS_TO_DESTROY:
-					view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, SearchType.documentSemiActiveToDestroy.toString());
-					break;
+					return SearchType.documentSemiActiveToDestroy;
 			}
 		}
+		return null;
 	}
 
 	public void removeFoldersButtonClicked(List<FolderDetailVO> selected) {

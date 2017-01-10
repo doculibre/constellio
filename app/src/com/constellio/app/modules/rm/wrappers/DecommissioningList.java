@@ -501,7 +501,33 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
+	public DecommissioningList addDocuments(String... documents) {
+		List<String> documentIDs = new ArrayList<>();
+		documentIDs.addAll(getDocuments());
+		List<String> existingDocuments = getDocuments();
+		for (String document : documents) {
+			if(!existingDocuments.contains(document)) {
+				documentIDs.add(document);
+			}
+		}
+		return setDocuments(documentIDs);
+	}
+
 	public List<String> getDocuments() {
 		return getList(DOCUMENTS);
+	}
+
+	public DecommissioningList removeDocuments(String... idsToRemove) {
+		ArrayList<String> ids = new ArrayList<>(getDocuments());
+		for(int i = 0; i < idsToRemove.length; i++) {
+			ids.remove(idsToRemove[i]);
+		}
+		return setDocuments(ids);
+	}
+
+	public DecommissioningList removeDocument(String id) {
+		ArrayList<String> ids = new ArrayList<>(getDocuments());
+		ids.remove(id);
+		return setDocuments(ids);
 	}
 }

@@ -190,11 +190,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public void addToListButtonClicked(List<String> selected) {
 		try {
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
-			decommissioningList.addFolderDetailsFor(selected.toArray(new String[0]));
-			recordServices().update(decommissioningList.getWrappedRecord());
 			if (decommissioningList.getDecommissioningListType().isFolderList()) {
+				decommissioningList.addFolderDetailsFor(selected.toArray(new String[0]));
+				recordServices().update(decommissioningList.getWrappedRecord());
 				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 			} else {
+				decommissioningList.addDocuments(selected.toArray(new String[0]));
+				recordServices().update(decommissioningList.getWrappedRecord());
 				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
 			}
 		} catch (Exception e) {
