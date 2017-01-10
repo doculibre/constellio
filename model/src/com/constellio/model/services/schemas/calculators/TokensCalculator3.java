@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.calculators;
 
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ANCESTORS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class TokensCalculator3 implements MetadataValueCalculator<List<String>> {
 
-	LocalDependency<List<String>> ancestorsParam = LocalDependency.toAStringList(ANCESTORS);
+	LocalDependency<List<String>> ancestorsParam = LocalDependency.toAStringList(ATTACHED_ANCESTORS);
 	LocalDependency<List<String>> allRemovedParams = LocalDependency.toAStringList(ALL_REMOVED_AUTHS);
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(MANUAL_TOKENS);
 

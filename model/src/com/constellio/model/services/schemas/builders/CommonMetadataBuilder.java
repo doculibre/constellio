@@ -17,7 +17,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
-import com.constellio.model.services.schemas.calculators.AncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
@@ -58,7 +58,7 @@ public class CommonMetadataBuilder {
 	public static final String ERROR_ON_PHYSICAL_DELETION = "errorOnPhysicalDeletion";
 	public static final String ALL_REFERENCES = "allReferences";
 	public static final String MARKED_FOR_REINDEXING = "markedForReindexing";
-	public static final String ANCESTORS = "ancestors";
+	public static final String ATTACHED_ANCESTORS = "attachedAncestors";
 	public static final String ALL_REMOVED_AUTHS = "allRemovedAuths";
 
 	private interface MetadataCreator {
@@ -400,11 +400,11 @@ public class CommonMetadataBuilder {
 			}
 		});
 
-		metadata.put(ANCESTORS, new MetadataCreator() {
+		metadata.put(ATTACHED_ANCESTORS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(ANCESTORS).setType(STRING).setMultivalue(true)
-						.defineDataEntry().asCalculated(AncestorsCalculator.class);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING).setMultivalue(true)
+						.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

@@ -4,8 +4,8 @@ import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_US
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
 import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
-import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_ANCESTORS;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
 import static com.constellio.model.entities.security.Role.DELETE;
@@ -149,26 +149,78 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throws Exception {
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, PRINCIPAL_ANCESTORS).containsOnly(
-				tuple(TAXO1_FOND1, new ArrayList<>()),
-				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1)),
-				tuple(FOLDER4_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
-				tuple(FOLDER4_2, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
-				tuple(FOLDER2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
-				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
-				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
-				tuple(FOLDER2_2_DOC2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
-				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
-				tuple(FOLDER4, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
-				tuple(FOLDER2_2_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
-				tuple(FOLDER4_2_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_2)),
-				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
-				tuple(FOLDER2_1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
-				tuple(FOLDER2_2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
-				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1)),
-				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
-				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
-				tuple(FOLDER4_1_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_1))
+				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
+				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
+				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER4_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_1)),
+				tuple(FOLDER4_2, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_2)),
+				tuple(FOLDER2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
+				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
+				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
+				tuple(FOLDER2_2_DOC2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
+				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
+				tuple(FOLDER4, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
+				tuple(FOLDER2_2_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
+				tuple(FOLDER4_2_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
+				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
+				tuple(FOLDER2_1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_1)),
+				tuple(FOLDER2_2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
+				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
+				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
+				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
+				tuple(FOLDER4_1_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1))
+		);
+
+		detach(FOLDER4);
+		detach(FOLDER2);
+
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
+				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
+				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER4_1, asList(FOLDER4, FOLDER4_1)),
+				tuple(FOLDER4_2, asList(FOLDER4, FOLDER4_2)),
+				tuple(FOLDER2, asList(FOLDER2)),
+				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
+				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
+				tuple(FOLDER2_2_DOC2, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
+				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
+				tuple(FOLDER4, asList(FOLDER4)),
+				tuple(FOLDER2_2_DOC1, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
+				tuple(FOLDER4_2_DOC1, asList(FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
+				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
+				tuple(FOLDER2_1, asList(FOLDER2, FOLDER2_1)),
+				tuple(FOLDER2_2, asList(FOLDER2, FOLDER2_2)),
+				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
+				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
+				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
+				tuple(FOLDER4_1_DOC1, asList(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1))
+		);
+
+		reset(FOLDER2);
+		detach(FOLDER4_1);
+
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
+				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
+				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
+				tuple(FOLDER4_1, asList(FOLDER4_1)),
+				tuple(FOLDER4_2, asList(FOLDER4, FOLDER4_2)),
+				tuple(FOLDER2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
+				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
+				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
+				tuple(FOLDER2_2_DOC2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
+				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
+				tuple(FOLDER4, asList(FOLDER4)),
+				tuple(FOLDER2_2_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
+				tuple(FOLDER4_2_DOC1, asList(FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
+				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
+				tuple(FOLDER2_1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_1)),
+				tuple(FOLDER2_2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
+				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
+				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
+				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
+				tuple(FOLDER4_1_DOC1, asList(FOLDER4_1, FOLDER4_1_DOC1))
 		);
 	}
 
@@ -180,13 +232,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
 
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				fromAllSchemasIn(zeCollection).where(ALL_REMOVED_AUTHORIZATIONS).isNotNull());
-		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHORIZATIONS).isEmpty();
+				fromAllSchemasIn(zeCollection).where(ALL_REMOVED_AUTHS).isNotNull());
+		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHS).isEmpty();
 
 		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
 		modify(authorizationOnRecord(auth2, FOLDER3).removingItOnRecord());
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHORIZATIONS).containsOnly(
+				.extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHS).containsOnly(
 				tuple(TAXO1_FOND1, new ArrayList<>()),
 				tuple(TAXO1_FOND1_1, new ArrayList<>()),
 				tuple(TAXO1_CATEGORY1, asList(auth1)),
@@ -213,7 +265,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		detach(FOLDER3_DOC1);
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHORIZATIONS).containsOnly(
+				.extractingMetadatas(IDENTIFIER, ALL_REMOVED_AUTHS).containsOnly(
 				tuple(TAXO1_FOND1, new ArrayList<>()),
 				tuple(TAXO1_FOND1_1, new ArrayList<>()),
 				tuple(TAXO1_CATEGORY1, asList(auth1)),

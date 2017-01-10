@@ -2,6 +2,7 @@ package com.constellio.model.services.schemas;
 
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.REMOVED_AUTHORIZATIONS;
@@ -273,7 +274,7 @@ public class ModificationImpactCalculator {
 	private boolean modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(Metadata automaticMeta,
 			Metadata modifiedMeta) {
 
-		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH)
+		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH) || modifiedMeta.isLocalCode(ATTACHED_ANCESTORS)
 				|| (modifiedMeta.isLocalCode(ALL_AUTHORIZATIONS) && automaticMeta.isLocalCode(INHERITED_AUTHORIZATIONS))
 				|| (modifiedMeta.isLocalCode(REMOVED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
 				|| (modifiedMeta.isLocalCode(DETACHED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS));

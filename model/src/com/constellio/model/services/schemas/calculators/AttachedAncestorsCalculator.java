@@ -1,6 +1,8 @@
 package com.constellio.model.services.schemas.calculators;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PRINCIPAL_PATH;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.substringAfter;
 
@@ -13,32 +15,29 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
+import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
-public class AncestorsCalculator implements MetadataValueCalculator<List<String>> {
+public class AttachedAncestorsCalculator implements MetadataValueCalculator<List<String>> {
 
-	LocalDependency<String> principalPathParam = LocalDependency.toAString(Schemas.PRINCIPAL_PATH.getLocalCode());
+	SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
+	LocalDependency<Boolean> isDetachedAuthsParams = LocalDependency.toABoolean(DETACHED_AUTHORIZATIONS);
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		String path = parameters.get(principalPathParam);
+		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
+		boolean isDetachedAuths = Boolean.TRUE == parameters.get(isDetachedAuthsParams);
 
 		List<String> ancestors = new ArrayList<>();
-		if (path != null) {
-			String[] splittedPath = path.split("/");
-			if (splittedPath.length >= 3) {
-				String taxonomyCode = splittedPath[1];
-				for (int i = 2; i < splittedPath.length; i++) {
-					String id = splittedPath[i];
-					if (!parameters.getId().equals(id)) {
-						ancestors.add(id);
-					}
-
-				}
-			}
+		if (hierarchyDependencyValue != null && !isDetachedAuths) {
+			ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
 		}
+		ancestors.add(parameters.getId());
 		return ancestors;
 	}
 
@@ -59,6 +58,6 @@ public class AncestorsCalculator implements MetadataValueCalculator<List<String>
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(principalPathParam);
+		return asList(taxonomiesParam, isDetachedAuthsParams);
 	}
 }
