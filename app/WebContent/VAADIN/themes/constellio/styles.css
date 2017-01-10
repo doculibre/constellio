@@ -10810,6 +10810,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .valo-menu-part.large-icons {
 	background-color: #414B56;
+	min-width: 110px;
+	max-width: 110px;
 	overflow-x: hidden;
 }
 
@@ -10826,6 +10828,8 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .valo-menu-part.large-icons .v-menubar-user-menu {
 	margin-left: 0;
 	margin-right: 0;
+	margin-top: 5px;
+	margin-bottom: 10px;
 	font-size: 11px;
 }
 
@@ -10858,8 +10862,8 @@ div.v-layout.v-horizontal.v-widget {
 	display: block;
 	font-size: 26px;
 	line-height: 1;
-	padding: 12px;
-	text-align: left;
+	padding: 5px;
+	text-align: center;
 	border-top: 1px solid #4c5560;
 }
 
@@ -10882,6 +10886,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .valo-menu-part.large-icons .valo-menu-item span.v-icon {
 	opacity: 0.8;
+	font-size: 19px;
 }
 
 .constellio .valo-menu-part.large-icons .valo-menu-item.selected {
@@ -10928,6 +10933,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .valo-menu-responsive[width-range~="801px-1100px"] .valo-menu-part {
 	background-color: #414B56;
+	min-width: 110px;
+	max-width: 110px;
 	overflow-x: hidden;
 }
 
@@ -10944,6 +10951,8 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .valo-menu-responsive[width-range~="801px-1100px"] .valo-menu-part .v-menubar-user-menu {
 	margin-left: 0;
 	margin-right: 0;
+	margin-top: 5px;
+	margin-bottom: 10px;
 	font-size: 11px;
 }
 
@@ -10976,8 +10985,8 @@ div.v-layout.v-horizontal.v-widget {
 	display: block;
 	font-size: 26px;
 	line-height: 1;
-	padding: 12px;
-	text-align: left;
+	padding: 5px;
+	text-align: center;
 	border-top: 1px solid #4c5560;
 }
 
@@ -11000,6 +11009,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .valo-menu-responsive[width-range~="801px-1100px"] .valo-menu-part .valo-menu-item span.v-icon {
 	opacity: 0.8;
+	font-size: 19px;
 }
 
 .constellio .valo-menu-responsive[width-range~="801px-1100px"] .valo-menu-part .valo-menu-item.selected {
@@ -11829,6 +11839,14 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .v-tabsheet-tabitemcell .v-caption {
+	font-size: 16px;
+}
+
+.constellio .v-label-h1 {
+	margin-bottom: 0px;
+}
+
 .constellio .v-tooltip {
 	font-weight: bold;
 	background-color: #197de1;
@@ -12557,7 +12575,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .base-display .display-value, .constellio .base-display .v-caption-display-value {
 	text-align: left;
 	font-size: inherit;
-	word-break: break-word;
+	word-break: break-all;
 	padding-left: 10px;
 }
 
@@ -12776,6 +12794,7 @@ div.v-layout.v-horizontal.v-widget {
 	position: absolute;
 	margin-top: 20px;
 	right: 20px;
+	z-index: 10000;
 }
 
 .constellio .collection-menu {
@@ -12809,6 +12828,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 	opacity: 10%;
 	color: black;
+}
+
+.constellio .v-table .v-table-body .v-slot-icon-only .v-disabled {
+	text-align: center;
 }
 
 .constellio .base-form .v-slot-base-form-field .v-has-caption {
@@ -12950,6 +12973,18 @@ div.v-layout.v-horizontal.v-widget {
 	border: none;
 }
 
+.constellio .constellio-layout .header .header-collection-menu {
+	position: fixed;
+	right: 80px;
+	margin-top: 15px;
+}
+
+.constellio .constellio-layout .header .header-action-menu {
+	position: fixed;
+	right: 10px;
+	margin-top: 15px;
+}
+
 .constellio .constellio-layout .content-footer-wrapper {
 	overflow-y: auto;
 }
@@ -13086,7 +13121,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .v-checkbox > label {
 	max-width: 260px;
-	word-break: break-word;
+	word-break: break-all;
 	white-space: normal;
 	display: inline-block;
 	color: #197de1;
@@ -13212,6 +13247,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .valo-menu-part {
 	background-color: #414B56;
+	min-width: 110px;
+	max-width: 110px;
 	overflow-x: hidden;
 }
 
@@ -13228,6 +13265,8 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-ui[width-range~="1101px-"] .valo-menu-part .v-menubar-user-menu {
 	margin-left: 0;
 	margin-right: 0;
+	margin-top: 5px;
+	margin-bottom: 10px;
 	font-size: 11px;
 }
 
@@ -13260,8 +13299,8 @@ div.v-layout.v-horizontal.v-widget {
 	display: block;
 	font-size: 26px;
 	line-height: 1;
-	padding: 12px;
-	text-align: left;
+	padding: 5px;
+	text-align: center;
 	border-top: 1px solid #4c5560;
 }
 
@@ -13284,6 +13323,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .valo-menu-part .valo-menu-item span.v-icon {
 	opacity: 0.8;
+	font-size: 19px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .valo-menu-part .valo-menu-item.selected {
@@ -13335,6 +13375,14 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+	padding-right: 300px;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+	padding-right: 300px;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
 	width: 100%;
 }
@@ -13352,6 +13400,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .connector-report-table .v-scrollable {
 	overflow-x: auto;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .sidebar {
+	overflow-y: auto;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .header {
@@ -13412,6 +13464,20 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-search {
 	width: 270px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .header .header-collection-menu {
+	top: 0px;
+	right: 220px;
+	z-index: 1000;
+	margin: 0;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .header .header-action-menu {
+	top: 0px;
+	right: 150px;
+	z-index: 1000;
+	margin: 0;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-caption {

@@ -62,6 +62,16 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.v-tabsheet-tabitemcell {
+		.v-caption {
+			font-size: $v-font-size;
+		}
+	}
+	
+	.v-label-h1 {
+		margin-bottom: 0px;
+	}
+
 	.v-tooltip {
 	    font-weight: bold;
 	    background-color: #197de1;
@@ -380,7 +390,7 @@ $popup-view-z-index: 3;
 	    .display-value, .v-caption-display-value {
 	    	text-align: left;
 	    	font-size: inherit;
-	    	word-break: break-word;
+	    	word-break: break-all;
 	    	padding-left: 10px;
 	    }
 
@@ -641,6 +651,7 @@ $popup-view-z-index: 3;
 		position: absolute;
 		margin-top: 20px;
 		right: 20px;
+		z-index: 10000;
 	}
 
 	.collection-menu {
@@ -680,6 +691,12 @@ $popup-view-z-index: 3;
 				text-align: left;
 				opacity: 10%;
 				color: black;
+			}
+				
+			.v-slot-icon-only {
+				.v-disabled {
+					text-align: center;
+				}
 			}
 		}
 	}
@@ -835,6 +852,18 @@ $popup-view-z-index: 3;
 
 			.header-advanced-search-form {
 			}
+			
+			.header-collection-menu {
+				position: fixed;
+				right: 80px;
+				margin-top: 15px;
+			}
+			
+			.header-action-menu {
+				position: fixed;
+				right: 10px;
+				margin-top: 15px;
+			}
 		}
 
 	    .content-footer-wrapper {
@@ -983,7 +1012,7 @@ $popup-view-z-index: 3;
 
 					    	.v-checkbox > label {
 					    		max-width: 260px;
-					    		word-break: break-word;
+					    		word-break: break-all;
 					    		white-space: normal;
 					    		display: inline-block;
 					    		color: #197de1;
@@ -1157,6 +1186,16 @@ $popup-view-z-index: 3;
 
 			.base-display {
 				.v-slot-display-value {
+					.display-value {
+					}
+				
+					.v-label-display-value {
+            			padding-right: 300px;
+					}
+					
+					.reference-display {
+            			padding-right: 300px;
+					}
 				}
 
 				.v-slot-list-add-remove-comment {
@@ -1186,6 +1225,10 @@ $popup-view-z-index: 3;
     }
 
     .v-ui[width-range~="801-1100px"] {
+    
+    	.sidebar {
+    		overflow-y: auto;
+    	}
 		
     	.header {
 			padding-right: 95px;
@@ -1268,6 +1311,20 @@ $popup-view-z-index: 3;
 
 			.header-search {
 				width: 270px;
+			}
+			
+			.header-collection-menu {
+				top: 0px;
+				right: 220px;
+			    z-index: 1000;
+			    margin: 0;
+			}
+			
+			.header-action-menu {
+				top: 0px;
+				right: 150px;
+			    z-index: 1000;
+			    margin: 0;
 			}
     	}
 
@@ -1400,10 +1457,13 @@ $popup-view-z-index: 3;
  *
  * @group valo-menu
  */
+ 
 @mixin valo-menu-large-icons-style ($bg: darken($valo-menu-background-color, 4%)) {
   background-color: $bg;
   //min-width: $v-unit-size * 2;
   //max-width: $v-unit-size * 3;
+  min-width: 110px;
+  max-width: 110px;
   overflow-x: hidden;
 
   .valo-menu-title {
@@ -1419,6 +1479,8 @@ $popup-view-z-index: 3;
   .v-menubar-user-menu {
     margin-left: 0;
     margin-right: 0;
+    margin-top: 5px;
+    margin-bottom: 10px;
     font-size: round($v-font-size * 0.7);
 
     img.v-icon {
@@ -1446,13 +1508,14 @@ $popup-view-z-index: 3;
       border-top: none;
     }
   }
-
+  
   .valo-menu-item {
     display: block;
     font-size: round($v-font-size * 1.6);
     line-height: 1;
-    padding: round($v-unit-size/3);
-    text-align: left;
+    //padding: round($v-unit-size/3);
+    padding: round($v-unit-size/7);
+    text-align: center;
     border-top: valo-border($color: $bg, $strength: 0.2, $border: first-number($v-border) solid v-tone);
 
     &:first-child {
@@ -1474,6 +1537,7 @@ $popup-view-z-index: 3;
 
     span.v-icon {
       opacity: 0.8;
+      font-size: round($v-font-size * 1.2);
     }
 
     &.selected {

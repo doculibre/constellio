@@ -18,11 +18,13 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 
 public class ReportSelector extends HorizontalLayout {
+	
 	private final NewReportPresenter presenter;
 	private AbstractSelect selector;
 	private final Button button;
 
 	public ReportSelector(NewReportPresenter presenter) {
+		setSpacing(true);
 		this.presenter = presenter;
 		button = buildActivationButton();
 		selector = buildSelector();

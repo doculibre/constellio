@@ -11,10 +11,8 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
@@ -22,14 +20,12 @@ import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
@@ -53,8 +49,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private CssLayout menuContent;
 
-	private Component titleComponent;
-
 	private MenuBar userMenu;
 
 	private Button valoMenuToggleButton;
@@ -62,10 +56,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private CssLayout menuItemsLayout;
 
 	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
-
-	private List<String> collections = new ArrayList<>();
-    
-    private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 
 	public ConstellioMenuImpl() {
 		this.presenter = new ConstellioMenuPresenter(this);
@@ -81,11 +71,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//				hideMenu();
 		//			}
 		//		});
-	}
-
-	@Override
-	public void setCollections(List<String> collections) {
-		this.collections = collections;
 	}
 
 	protected void hideMenu() {
@@ -113,53 +98,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		menuContent.setWidth(null);
 		menuContent.setHeight("100%");
 
-		Component titleComponent = buildTitle();
-		if (titleComponent != null) {
-			menuContent.addComponent(titleComponent);
-		}
 		menuContent.addComponent(buildUserMenu());
 		menuContent.addComponent(buildToggleButton());
 		menuContent.addComponent(buildMainMenu());
 
 		return menuContent;
-	}
-
-	protected Component buildTitle() {
-		if (!collections.isEmpty()) {
-			MenuBar collectionMenu = new MenuBar();
-			collectionMenu.addStyleName("collection-menu");
-
-			SessionContext sessionContext = getSessionContext();
-			String currentCollection = sessionContext.getCurrentCollection();
-			MenuItem collectionSubMenu = collectionMenu.addItem(
-					$("ConstellioMenu.collection", collectionCodeToLabelConverter.getCollectionCaption(currentCollection)), null);
-			for (final String collection : collections) {
-
-				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
-					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
-					MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
-						@Override
-						public void menuSelected(MenuItem selectedItem) {
-							presenter.collectionClicked(collection);
-							List<MenuItem> menuItems = selectedItem.getParent().getChildren();
-							for (MenuItem menuItem : menuItems) {
-								menuItem.setChecked(false);
-							}
-							selectedItem.setChecked(true);
-						}
-					});
-					collectionMenuItem.setCheckable(true);
-					collectionMenuItem.setChecked(currentCollection.equals(collection));
-				}
-			}
-			HorizontalLayout collectionMenuWrapper = new HorizontalLayout(collectionMenu);
-//			collectionMenuWrapper.setComponentAlignment(collectionMenu, Alignment.MIDDLE_CENTER);
-			collectionMenuWrapper.addStyleName(ValoTheme.MENU_TITLE);
-			titleComponent = collectionMenuWrapper;
-		} else {
-			titleComponent = null;
-		}
-		return titleComponent;
 	}
 
 	protected Component buildUserMenu() {

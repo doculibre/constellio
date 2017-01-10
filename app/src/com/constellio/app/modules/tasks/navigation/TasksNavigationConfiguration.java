@@ -19,11 +19,11 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
-import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.vaadin.server.FontAwesome;
 
 public class TasksNavigationConfiguration implements Serializable {
 	public static final String TASK_MANAGEMENT = "taskManagement";
@@ -41,7 +41,7 @@ public class TasksNavigationConfiguration implements Serializable {
 
     public static void configureNavigation(NavigationConfig config) {
 		configureMainLayoutNavigation(config);
-		configureHomeActionMenu(config);
+		configureHeaderActionMenu(config);
 		configureCollectionAdmin(config);
 	}
 
@@ -58,8 +58,8 @@ public class TasksNavigationConfiguration implements Serializable {
         service.register(DISPLAY_WORKFLOW_INSTANCE, DisplayWorkflowInstanceViewImpl.class);
     }
 
-    private static void configureHomeActionMenu(NavigationConfig config) {
-		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_TASK) {
+    private static void configureHeaderActionMenu(NavigationConfig config) {
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_TASK) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(TaskViews.class).addTask();
@@ -73,7 +73,7 @@ public class TasksNavigationConfiguration implements Serializable {
 	}
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(TASK_MANAGEMENT, TasksViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(TASK_MANAGEMENT, FontAwesome.TASKS, TasksViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(TaskViews.class).taskManagement();
