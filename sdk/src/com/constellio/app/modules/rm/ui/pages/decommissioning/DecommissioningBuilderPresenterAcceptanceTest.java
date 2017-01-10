@@ -8,7 +8,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
@@ -18,7 +18,8 @@ import org.mockito.Mock;
 
 import java.util.Locale;
 
-import static org.assertj.core.api.Assertions.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +34,6 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
     DecommissioningBuilderPresenter presenter;
     SessionContext sessionContext;
     RMSchemasRecordsServices rm;
-    MetadataSchemasManager metadataSchemasManager;
     RecordServices recordServices;
     DecommissioningList decommissioningList;
 
@@ -43,7 +43,7 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
 
         prepareSystem(
                 withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-                        .withFoldersAndContainersOfEveryStatus().withEvents()
+                        .withFoldersAndContainersOfEveryStatus().withEvents().withDocumentsHavingContent()
         );
 
         inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -60,7 +60,7 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
         when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
         when(view.navigate()).thenReturn(navigator);
 
-        decommissioningList = buildDefaultDecommissioningList();
+        decommissioningList = buildDefaultFolderDecommissioningList();
         recordServices.add(decommissioningList.getWrappedRecord());
         presenter = spy(new DecommissioningBuilderPresenter(view));
     }
@@ -83,10 +83,34 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
         assertThat(presenter.isAddMode()).isTrue();
     }
 
-    private DecommissioningList buildDefaultDecommissioningList() {
+    @Test
+    public void givenBuilderInEditModeThenAddRecordsCorrectly() throws RecordServicesException {
+        presenter.forParams("transfer/id/decomTest");
+        presenter.forRequestParameters("transfer/id/decomTest");
+        presenter.addToListButtonClicked(asList(records.folder_A01, records.folder_A05));
+
+        assertThat(rm.getDecommissioningList("decomTest").getFolders()).containsOnly(records.folder_A01,
+                records.folder_A02, records.folder_A03, records.folder_A04, records.folder_A05);
+
+        recordServices.add(buildDefaultDocumentDecommissioningList().getWrappedRecord());
+        presenter.forParams("documentTransfer/id/decomTestDoc");
+        presenter.forRequestParameters("documentTransfer/id/decomTestDoc");
+        presenter.addToListButtonClicked(asList(records.document_A19, records.document_B33));
+
+        assertThat(rm.getDecommissioningList("decomTestDoc").getDocuments()).containsOnly(records.document_A19, records.document_A49,
+                records.document_A79, records.document_B30, records.document_B33);
+    }
+
+    private DecommissioningList buildDefaultFolderDecommissioningList() {
         return rm.newDecommissioningListWithId("decomTest").setTitle("decomTest").setOriginArchivisticStatus(OriginStatus.ACTIVE)
                 .setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setAdministrativeUnit(records.unitId_10)
                 .addFolderDetailsFor(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04);
+    }
+
+    private DecommissioningList buildDefaultDocumentDecommissioningList() {
+        return rm.newDecommissioningListWithId("decomTestDoc").setTitle("decomTestDoc").setOriginArchivisticStatus(OriginStatus.ACTIVE)
+                .setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_TRANSFER).setAdministrativeUnit(records.unitId_10)
+                .setDocuments(asList(records.document_A19, records.document_A49, records.document_A79, records.document_B30));
     }
 }
 

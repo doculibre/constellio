@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -60,6 +61,14 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	public boolean isProcessed() {
 		return decommissioningList().isProcessed();
+	}
+
+	public boolean isApproved() {
+		return decommissioningList().isApproved();
+	}
+
+	public boolean isInValidation() {
+		return decommissioningList().getStatus() == DecomListStatus.IN_VALIDATION;
 	}
 
 	public boolean isEditable() {

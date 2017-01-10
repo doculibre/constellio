@@ -70,7 +70,6 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 		buttons.add(buildDeleteButton());
 		buttons.add(buildProcessButton());
 		buttons.add(buildDocumentsCertificateButton());
-		buttons.add(buildRemoveDocumentsButton());
 		buttons.add(buildAddDocumentsButton());
 		return buttons;
 	}
@@ -88,7 +87,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 		});
 
 		RecordVODataProvider dataProvider = presenter.getDocuments();
-		VerticalLayout layout = new VerticalLayout(display, buildDocumentTable(dataProvider), comments);
+		VerticalLayout layout = new VerticalLayout(display, buildRemoveDocumentsButton(), buildDocumentTable(dataProvider), comments);
 		for(int i = 0; i < dataProvider.size(); i++) {
 			selected.put(new Integer(i), false);
 		}
@@ -201,10 +200,10 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 
 			@Override
 			public boolean isEnabled() {
-				return true;
-//				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
+				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
+		removeDocuments.addStyleName(ValoTheme.BUTTON_LINK);
 		return removeDocuments;
 	}
 
@@ -217,8 +216,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 
 			@Override
 			public boolean isEnabled() {
-				return true;
-//				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
+				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
 		return addDocuments;
