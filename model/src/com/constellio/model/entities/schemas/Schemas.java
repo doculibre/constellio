@@ -86,7 +86,7 @@ public class Schemas {
 	public static final Metadata LINKED_SCHEMA = new Metadata("linkedSchema_s", STRING, false);
 	public static final Metadata ALL_REFERENCES = add(new Metadata("allReferences_ss", STRING, true));
 	public static final Metadata MARKED_FOR_REINDEXING = add(new Metadata("markedForReindexing_s", BOOLEAN, false));
-	public static final Metadata ANCESTORS = add(new Metadata("ancestors_ss", STRING, true));
+	public static final Metadata PRINCIPAL_ANCESTORS = add(new Metadata("ancestors_ss", STRING, true));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

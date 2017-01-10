@@ -5,7 +5,7 @@ import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
 import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.ANCESTORS;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
 import static com.constellio.model.entities.security.Role.DELETE;
@@ -149,7 +149,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throws Exception {
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, ANCESTORS).containsOnly(
+				.extractingMetadatas(IDENTIFIER, PRINCIPAL_ANCESTORS).containsOnly(
 				tuple(TAXO1_FOND1, new ArrayList<>()),
 				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1)),
 				tuple(FOLDER4_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, FOLDER4)),
