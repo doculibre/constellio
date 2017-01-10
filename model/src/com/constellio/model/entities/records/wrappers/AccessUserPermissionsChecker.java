@@ -1,12 +1,18 @@
 package com.constellio.model.entities.records.wrappers;
 
+import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsAnyUserGroupTokens;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.hasMatchingAuthorization;
+import static com.constellio.model.entities.schemas.Schemas.TOKENS;
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
 
 public class AccessUserPermissionsChecker extends UserPermissionsChecker {
@@ -49,7 +55,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		boolean access = true;
 
 		if (readAccess) {
-			boolean publicRecord = record.getList(Schemas.TOKENS).contains(Record.PUBLIC_TOKEN);
+			boolean publicRecord = record.getList(TOKENS).contains(Record.PUBLIC_TOKEN);
 			boolean globalReadAccess =
 					user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
 			access = globalReadAccess || publicRecord || hasReadAccessOn(record) || hasWriteAccessOn(record) ||
@@ -68,15 +74,18 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 	}
 
 	private boolean hasDeleteAccessOn(Record record) {
-		return hasMatchingAuthorization(user, record, UserAuthorizationsUtils.DELETE_ACCESS);
+		return containsAnyUserGroupTokens(user, record, DELETE)
+				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.DELETE_ACCESS);
 	}
 
 	private boolean hasWriteAccessOn(Record record) {
-		return hasMatchingAuthorization(user, record, UserAuthorizationsUtils.WRITE_ACCESS);
+		return containsAnyUserGroupTokens(user, record, WRITE)
+				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.WRITE_ACCESS);
 	}
 
 	private boolean hasReadAccessOn(Record record) {
-		return hasMatchingAuthorization(user, record, UserAuthorizationsUtils.READ_ACCESS);
+		return containsAnyUserGroupTokens(user, record, READ)
+				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.READ_ACCESS);
 	}
 
 	@Override

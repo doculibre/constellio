@@ -55,6 +55,18 @@ public class FilterUtils {
 			stringBuilder.append(user.getCollection());
 		}
 
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+		stringBuilder.append(":w_");
+		stringBuilder.append(user.getId());
+
+		for (String aGroup : user.getUserGroups()) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+			stringBuilder.append(":w_");
+			stringBuilder.append(aGroup);
+		}
+
 		UserTokens tokens = securityTokenManager.getTokens(user);
 		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.WRITE_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'w');
@@ -72,6 +84,18 @@ public class FilterUtils {
 			stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
 			stringBuilder.append(":");
 			stringBuilder.append(user.getCollection());
+		}
+
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+		stringBuilder.append(":r_");
+		stringBuilder.append(user.getId());
+
+		for (String aGroup : user.getUserGroups()) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+			stringBuilder.append(":r_");
+			stringBuilder.append(aGroup);
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
@@ -107,6 +131,18 @@ public class FilterUtils {
 			stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
 			stringBuilder.append(":");
 			stringBuilder.append(user.getCollection());
+		}
+
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+		stringBuilder.append(":d_");
+		stringBuilder.append(user.getId());
+
+		for (String aGroup : user.getUserGroups()) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+			stringBuilder.append(":d_");
+			stringBuilder.append(aGroup);
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);

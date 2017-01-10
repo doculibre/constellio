@@ -11,13 +11,44 @@ import java.util.Set;
 
 import org.joda.time.LocalDate;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 public class UserAuthorizationsUtils {
+
+	public static boolean containsAnyUserGroupTokens(User user, Record record, String role) {
+
+		String prefix;
+
+		if (READ.equals(role)) {
+			prefix = "r_";
+		} else if (WRITE.equals(role)) {
+			prefix = "w_";
+		} else if (DELETE.equals(role)) {
+			prefix = "d_";
+		} else {
+			prefix = role;
+		}
+
+		List<String> tokens = record.getList(Schemas.TOKENS);
+
+		if (tokens.contains(prefix + user.getId())) {
+			return true;
+		}
+
+		for (String aGroup : user.getUserGroups()) {
+			if (tokens.contains(prefix + aGroup)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	public static interface AuthorizationDetailsFilter {
 

@@ -109,6 +109,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		}
 
 		authServices = getModelLayerFactory().newAuthorizationsServices();
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 	}
 
 	private List<String> getFolderDocuments(String id) {

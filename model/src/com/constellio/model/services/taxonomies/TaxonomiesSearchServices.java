@@ -1,9 +1,13 @@
 package com.constellio.model.services.taxonomies;
 
 import static com.constellio.data.utils.LangUtils.isTrueOrNull;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.PARENT_PATH;
 import static com.constellio.model.entities.schemas.Schemas.PATH;
+import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIs;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
@@ -98,7 +102,7 @@ public class TaxonomiesSearchServices {
 				.setStartRow(taxonomiesSearchOptions.getStartRow())
 				.setNumberOfRows(taxonomiesSearchOptions.getRows())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(taxonomiesSearchOptions.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
+				.setReturnedMetadatas(taxonomiesSearchOptions.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 	}
 
 	public LogicalSearchQuery getChildConceptsQuery(String taxonomyCode, Record record, TaxonomiesSearchOptions options) {
@@ -114,7 +118,7 @@ public class TaxonomiesSearchServices {
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 	}
 
 	public List<TaxonomySearchRecord> getVisibleRootConcept(User user, String collection, String taxonomyCode,
@@ -248,7 +252,7 @@ public class TaxonomiesSearchServices {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 
 		return searchServices.query(query);
 	}
@@ -347,7 +351,7 @@ public class TaxonomiesSearchServices {
 
 		mainQuery.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 
 		int level = inRecord == null ? 0 : getRecordLevelInTaxonomy(inRecord, taxonomy);
 
