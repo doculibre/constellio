@@ -119,6 +119,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public void executeWithoutImpactHandling(Transaction transaction)
+			throws RecordServicesException {
+		recordServices.executeWithoutImpactHandling(transaction);
+	}
+
+	@Override
 	public void executeWithImpactHandler(Transaction transaction,
 			RecordModificationImpactHandler handler)
 			throws RecordServicesException {

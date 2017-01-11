@@ -10,26 +10,33 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.KeySetMap;
+import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -49,6 +56,8 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 			throws Exception {
 		new CoreSchemaAlterationFor6_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		convertXMLAuthorizationDetailsToSolrAuthorizationDetails(collection, appLayerFactory);
+
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	private void convertXMLAuthorizationDetailsToSolrAuthorizationDetails(String collection, AppLayerFactory appLayerFactory)
@@ -67,65 +76,118 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 
 			AuthToConvert authToConvert = new AuthToConvert();
 			authToConvert.details = (XMLAuthorizationDetails) details;
-			authToConvert.targetId = findTargetId(searchServices, schemasRecordsServices, details);
-			if (authToConvert.targetId != null) {
-				authToConverts.add(authToConvert);
-			}
+			authToConvert.targets = findTargets(searchServices, schemasRecordsServices, details);
+			authToConverts.add(authToConvert);
 		}
 
+		KeySetMap<String, String> authCopies = new KeySetMap<>();
 		Iterator<List<AuthToConvert>> iterator = new BatchBuilderIterator<>(authToConverts.iterator(), 1000);
 
-		while (iterator.hasNext()) {
-			buildSolrAuthorizationDetails(iterator.next(), schemasRecordsServices, appLayerFactory);
+		buildSolrAuthorizationDetails(iterator, schemasRecordsServices, appLayerFactory, authCopies);
 
+		try {
+			convertUsersAndGroupAuths(appLayerFactory, schemasRecordsServices, authCopies);
+		} catch (Exception e) {
+			throw new RuntimeException("Migration failed", e);
 		}
 	}
 
-	private String findTargetId(SearchServices searchServices, SchemasRecordsServices schemas, AuthorizationDetails details) {
-		Record record = searchServices.searchSingleResult(
+	private void convertUsersAndGroupAuths(final AppLayerFactory appLayerFactory, SchemasRecordsServices schemasRecordsServices,
+			final KeySetMap<String, String> authCopies)
+			throws Exception {
+
+		final Set<String> oldAuths = new HashSet<>();
+
+		new ActionExecutorInBatch(appLayerFactory.getModelLayerFactory().newSearchServices(), "Convert users/group auths", 1000) {
+			@Override
+			public void doActionOnBatch(List<Record> records)
+					throws Exception {
+
+				Transaction transaction = new Transaction();
+				transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+				transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+
+				for (Record record : records) {
+					oldAuths.addAll(convertAuthsOf(record, authCopies));
+					transaction.add(record);
+				}
+
+				appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
+			}
+		}.execute(from(schemasRecordsServices.group.schemaType(), schemasRecordsServices.user.schemaType()).returnAll());
+
+	}
+
+	private List<String> convertAuthsOf(Record record, KeySetMap<String, String> authCopies) {
+		List<String> oldAuths = record.getList(Schemas.AUTHORIZATIONS);
+		List<String> newAuths = new ArrayList<>();
+
+		for (String oldAuth : oldAuths) {
+			Set<String> newCopies = authCopies.get(oldAuth);
+			newAuths.addAll(newCopies);
+		}
+
+		record.set(Schemas.AUTHORIZATIONS, newAuths);
+		return oldAuths;
+	}
+
+	private List<String> findTargets(SearchServices searchServices, SchemasRecordsServices schemas,
+			AuthorizationDetails details) {
+		return searchServices.searchRecordIds(
 				fromAllSchemasIn(details.getCollection()).where(AUTHORIZATIONS).isEqualTo(details.getId()));
-		return record == null ? null : record.getId();
 	}
 
 	private static class AuthToConvert {
 
 		XMLAuthorizationDetails details;
-		String targetId;
+		List<String> targets;
 
 	}
 
-	private void buildSolrAuthorizationDetails(List<AuthToConvert> authsToConvert, SchemasRecordsServices schemasRecordsServices,
-			AppLayerFactory appLayerFactory)
+	private void buildSolrAuthorizationDetails(Iterator<List<AuthToConvert>> authsToConvertIterator,
+			SchemasRecordsServices schemasRecordsServices, AppLayerFactory appLayerFactory, KeySetMap<String, String> authCopies)
 			throws RecordServicesException {
 
-		Transaction transaction = new Transaction();
+		while (authsToConvertIterator.hasNext()) {
+			List<AuthToConvert> authsToConvert = authsToConvertIterator.next();
+			Transaction transaction = new Transaction();
+			transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
-		for (AuthToConvert authToConvert : authsToConvert) {
-			SolrAuthorizationDetails solrAuthorizationDetails = schemasRecordsServices
-					.newSolrAuthorizationDetailsWithId(authToConvert.details.getId());
+			for (AuthToConvert authToConvert : authsToConvert) {
+				for (String target : authToConvert.targets) {
+					SolrAuthorizationDetails solrAuthorizationDetails = schemasRecordsServices
+							.newSolrAuthorizationDetails();
 
-			if (authToConvert.details.getStartDate() == null || authToConvert.details.getStartDate().getYear() < 2007) {
-				solrAuthorizationDetails.setStartDate(null);
-			} else {
-				solrAuthorizationDetails.setStartDate(authToConvert.details.getStartDate());
+					if (authToConvert.details.getStartDate() == null
+							|| authToConvert.details.getStartDate().getYear() < 2007) {
+						solrAuthorizationDetails.setStartDate(null);
+					} else {
+						solrAuthorizationDetails.setStartDate(authToConvert.details.getStartDate());
+					}
+
+					if (authToConvert.details.getEndDate() == null || authToConvert.details.getEndDate().getYear() < 2007) {
+						solrAuthorizationDetails.setEndDate(null);
+					} else {
+						solrAuthorizationDetails.setEndDate(authToConvert.details.getEndDate());
+					}
+
+					if (!authToConvert.details.isSynced()) {
+						solrAuthorizationDetails.setSynced(null);
+					} else {
+						solrAuthorizationDetails.setSynced(true);
+					}
+
+					solrAuthorizationDetails.setRoles(authToConvert.details.getRoles());
+					solrAuthorizationDetails.setTarget(target);
+
+					transaction.add(solrAuthorizationDetails);
+					authCopies.add(authToConvert.details.getId(), solrAuthorizationDetails.getId());
+				}
 			}
 
-			if (authToConvert.details.getEndDate() == null || authToConvert.details.getEndDate().getYear() < 2007) {
-				solrAuthorizationDetails.setEndDate(null);
-			} else {
-				solrAuthorizationDetails.setEndDate(authToConvert.details.getEndDate());
-			}
+			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 
-			if (!authToConvert.details.isSynced()) {
-				solrAuthorizationDetails.setSynced(null);
-			} else {
-				solrAuthorizationDetails.setSynced(true);
-			}
-
-			solrAuthorizationDetails.setRoles(authToConvert.details.getRoles());
-			transaction.add(solrAuthorizationDetails);
 		}
-		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
 	private class CoreSchemaAlterationFor6_7 extends MetadataSchemasAlterationHelper {
