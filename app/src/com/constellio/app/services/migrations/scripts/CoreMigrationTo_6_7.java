@@ -13,6 +13,7 @@ import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCUL
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,7 +33,9 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -74,26 +77,62 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 
-		List<AuthToConvert> authToConverts = new ArrayList<>();
-
-		for (AuthorizationDetails details : xmlAuthorizationDetailsList.values()) {
-
-			AuthToConvert authToConvert = new AuthToConvert();
-			authToConvert.details = (XMLAuthorizationDetails) details;
-			authToConvert.targets = findTargets(searchServices, schemasRecordsServices, details);
-			authToConverts.add(authToConvert);
-		}
-
-		KeySetMap<String, String> authCopies = new KeySetMap<>();
-		Iterator<List<AuthToConvert>> iterator = new BatchBuilderIterator<>(authToConverts.iterator(), 1000);
-
-		buildSolrAuthorizationDetails(iterator, schemasRecordsServices, appLayerFactory, authCopies);
-
 		try {
+			KeySetMap<String, String> authsTargets = getAuthsTargets(collection, appLayerFactory);
+
+			List<AuthToConvert> authToConverts = new ArrayList<>();
+
+			for (AuthorizationDetails details : xmlAuthorizationDetailsList.values()) {
+
+				AuthToConvert authToConvert = new AuthToConvert();
+				authToConvert.details = (XMLAuthorizationDetails) details;
+				authToConvert.targets = authsTargets.get(details.getId());
+				authToConverts.add(authToConvert);
+			}
+
+			KeySetMap<String, String> authCopies = new KeySetMap<>();
+			Iterator<List<AuthToConvert>> iterator = new BatchBuilderIterator<>(authToConverts.iterator(), 1000);
+
+			buildSolrAuthorizationDetails(iterator, schemasRecordsServices, appLayerFactory, authCopies);
+
 			convertUsersAndGroupAuths(appLayerFactory, schemasRecordsServices, authCopies);
 		} catch (Exception e) {
 			throw new RuntimeException("Migration failed", e);
 		}
+	}
+
+	private KeySetMap<String, String> getAuthsTargets(String collection, final AppLayerFactory appLayerFactory)
+			throws Exception {
+		final KeySetMap<String, String> authsTargets = new KeySetMap<>();
+
+		final List<String> restrictedSchemaTypes = asList(User.SCHEMA_TYPE, Group.SCHEMA_TYPE);
+
+		new ActionExecutorInBatch(appLayerFactory.getModelLayerFactory().newSearchServices(), "Find auth targets", 1000) {
+			@Override
+			public void doActionOnBatch(List<Record> records)
+					throws Exception {
+
+				Transaction transaction = new Transaction();
+				transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+				transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+
+				for (Record record : records) {
+					if (!restrictedSchemaTypes.contains(record.getTypeCode())) {
+						for (String auth : record.<String>getList(Schemas.AUTHORIZATIONS)) {
+							authsTargets.add(auth, record.getId());
+						}
+
+						record.set(Schemas.AUTHORIZATIONS, new ArrayList<>());
+						transaction.add(record);
+					}
+
+				}
+
+				appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
+			}
+		}.execute(fromAllSchemasIn(collection).where(Schemas.AUTHORIZATIONS).isNotNull());
+
+		return authsTargets;
 	}
 
 	private void convertUsersAndGroupAuths(final AppLayerFactory appLayerFactory, SchemasRecordsServices schemasRecordsServices,
@@ -144,7 +183,7 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 	private static class AuthToConvert {
 
 		XMLAuthorizationDetails details;
-		List<String> targets;
+		Set<String> targets;
 
 	}
 
