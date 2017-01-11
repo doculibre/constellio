@@ -61,7 +61,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
@@ -608,7 +608,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithRole(ROLE2).containsOnly(charles, dakota, gandalf);
 		}
 
-		assertThatBatchProcessDuringTest().hasSize(12);
+		//TODO
+		assertThatBatchProcessDuringTest().hasSize(8);
 
 		givenUser(charles).isRemovedFromGroup(heroes);
 		givenUser(robin).isRemovedFromGroup(sidekicks);
@@ -701,7 +702,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		//Cannot add an authorization with an invalid principal id
 		try {
-			auth1 = add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds("inexistentId")
+			auth1 = add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds("inexistentId1")
 					.on(TAXO1_CATEGORY1));
 			fail("Exception expected");
 		} catch (InvalidPrincipalsIds e) {
@@ -710,9 +711,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		try {
 			List<String> roles = asList(READ);
-			addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), "inexistentId");
+			addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), "inexistentId2");
 			fail("Exception expected");
-		} catch (InvalidTargetRecordsIds e) {
+		} catch (InvalidTargetRecordId e) {
 			//OK
 		}
 
@@ -720,13 +721,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		//Cannot modify an authorization with an invalid principal id
 		try {
-			modify(authorizationOnRecord(auth1, FOLDER4).withNewPrincipalIds(asList("inexistentId")));
+			modify(authorizationOnRecord(auth1, FOLDER4).withNewPrincipalIds(asList("inexistentId3")));
 			fail("Exception expected");
 		} catch (NoSuchPrincipalWithUsername e) {
 			//OK
 		}
 		try {
-			modify(authorizationOnRecord(auth1, FOLDER4_1).withNewPrincipalIds(asList("inexistentId")));
+			modify(authorizationOnRecord(auth1, FOLDER4_1).withNewPrincipalIds(asList("inexistentId4")));
 			fail("Exception expected");
 		} catch (NoSuchPrincipalWithUsername e) {
 			//OK

@@ -38,18 +38,12 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class InvalidTargetRecordsIds extends AuthorizationsServicesRuntimeException {
+	public static class InvalidTargetRecordId extends AuthorizationsServicesRuntimeException {
 
-		public InvalidTargetRecordsIds(List<Record> records, List<String> recordIds) {
-			super(buildMessage(records, recordIds));
+		public InvalidTargetRecordId(String id) {
+			super("Invalid target record with id : " + id);
 		}
 
-		private static String buildMessage(List<Record> records, List<String> recordIds) {
-			List<String> notfoundIds = new ArrayList<>(recordIds);
-			notfoundIds.removeAll(new RecordUtils().toIdList(records));
-
-			return "Invalid target records ids : " + notfoundIds;
-		}
 	}
 
 	public static class InvalidPrincipalsIds extends AuthorizationsServicesRuntimeException {

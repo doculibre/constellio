@@ -255,6 +255,10 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_inheritedauthorizations");
 		}
 
+		public Metadata allRemovedAuths() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.ALL_REMOVED_AUTHS);
+		}
+
 	}
 
 	public class Taxonomy2DefaultSchema implements SchemaShortcuts {
@@ -480,6 +484,10 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 
 		public Metadata inheritedAuthorizations() {
 			return getMetadata(code() + "_inheritedauthorizations");
+		}
+
+		public Metadata attachedAncestors() {
+			return getMetadata(code() + "_attachedAncestors");
 		}
 
 		public Metadata title() {

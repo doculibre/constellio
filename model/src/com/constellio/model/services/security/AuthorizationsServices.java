@@ -18,13 +18,10 @@ import static com.constellio.model.services.security.AuthorizationsServicesRunti
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -49,9 +46,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
@@ -73,7 +68,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotDetachConcept;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
 import com.constellio.model.services.security.roles.Roles;
@@ -141,8 +136,7 @@ public class AuthorizationsServices {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
 		}
 		List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
-		List<String> grantedOnRecords = findAllRecordIdsWithAuthorizations(authDetails);
-		return new Authorization(authDetails, grantedToPrincipals, grantedOnRecords);
+		return new Authorization(authDetails, grantedToPrincipals);
 	}
 
 	public List<User> getUsersWithGlobalPermissionInCollection(String permission, String collection) {
@@ -200,38 +194,6 @@ public class AuthorizationsServices {
 	}
 
 	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission, Record concept) {
-		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
-		//		List<String> authorizationsGivingPermission = new ArrayList<>();
-		//		List<String> authorizationIds = concept.get(AUTHORIZATIONS);
-		//		for (String authorizationId : authorizationIds) {
-		//			Authorization authorization = getAuthorization(concept.getCollection(), authorizationId);
-		//			for (String authorizationRoleCode : authorization.getDetail().getRoles()) {
-		//				Role role = roles.getRole(authorizationRoleCode);
-		//				if (role != null && role.getOperationPermissions().contains(permission)) {
-		//					authorizationsGivingPermission.add(authorizationId);
-		//					break;
-		//				}
-		//			}
-		//
-		//		}
-		//
-		//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
-		//		MetadataSchemaType userSchemaType = types.getSchemaType(User.SCHEMA_TYPE);
-		//		Metadata userAllAuthorizations = userSchemaType.getDefaultSchema().getMetadata(User.ALL_USER_AUTHORIZATIONS);
-		//
-		//		List<User> users = new ArrayList<>();
-		//
-		//		for (Record record : searchServices.search(new LogicalSearchQuery()
-		//				.setCondition(from(userSchemaType).where(userAllAuthorizations).isIn(authorizationsGivingPermission)))) {
-		//
-		//			User user = new User(record, types, roles);
-		//			if (!user.has(permission).on(record)) {
-		//				throw new RuntimeException("has method is failing");
-		//			}
-		//
-		//			users.add(user);
-		//		}
-		//		return users;
 
 		SchemasRecordsServices schemas = schemas(concept.getCollection());
 		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
@@ -285,34 +247,7 @@ public class AuthorizationsServices {
 
 			return searchServices.searchRecordIds(query);
 		}
-		/*
 
-		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(user.getCollection());
-		if (principalTaxonomy == null) {
-			return new ArrayList<>();
-		}
-		List<MetadataSchemaType> conceptTypes = schemasManager.getSchemaTypes(user.getCollection())
-				.getSchemaTypesWithCode(principalTaxonomy.getSchemaTypes());
-
-		if (user.has(permission).globally()) {
-			return searchServices.searchRecordIds(new LogicalSearchQuery(from(conceptTypes).returnAll()));
-		}
-
-		Roles roles = rolesManager.getCollectionRoles(user.getCollection());
-		List<String> userTokens = user.getUserTokens();
-		List<String> tokensGivingPermission = new ArrayList<>();
-		for (String userToken : userTokens) {
-			for (String authorizationRoleCode : userToken.split("_")[1].split(",")) {
-				Role role = roles.getRole(authorizationRoleCode);
-				if (role != null && role.getOperationPermissions().contains(permission)) {
-					tokensGivingPermission.add(userToken);
-				}
-			}
-		}
-
-		return searchServices.searchRecordIds(new LogicalSearchQuery()
-				.setCondition(from(conceptTypes).where(Schemas.TOKENS).isIn(tokensGivingPermission)));
-				*/
 	}
 
 	public List<User> getUsersWithRoleForRecord(String role, Record record) {
@@ -358,9 +293,20 @@ public class AuthorizationsServices {
 	 */
 	public String add(AuthorizationAddRequest request) {
 
+		if (request.getTarget() == null) {
+			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
+		}
+
+		try {
+			Record record = recordServices.getDocumentById(request.getTarget());
+			validateCanAssignAuthorization(record);
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			throw new InvalidTargetRecordId(request.getTarget());
+		}
+
 		SolrAuthorizationDetails details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
-				request.getStart(), request.getEnd());
-		return add(new Authorization(details, request.getPrincipals(), asList(request.getTarget())), request.getExecutedBy());
+				request.getStart(), request.getEnd()).setTarget(request.getTarget());
+		return add(new Authorization(details, request.getPrincipals()), request.getExecutedBy());
 	}
 
 	public String add(AuthorizationAddRequest request, User userAddingTheAuth) {
@@ -374,20 +320,12 @@ public class AuthorizationsServices {
 	 * @return The new authorization's id
 	 */
 	private String add(Authorization authorization, User userAddingTheAuth) {
-		List<Record> records = getAuthorizationGrantedOnRecords(authorization);
 		List<Record> principals = getAuthorizationGrantedToPrincipals(authorization);
 
 		SolrAuthorizationDetails authorizationDetail = (SolrAuthorizationDetails) authorization.getDetail();
 		authorizationDetail.setTarget(authorization.getGrantedOnRecord());
 		String authId = authorizationDetail.getId();
 
-		//		if (authorizationDetail.isFutureAuthorization()) {
-		//			authId = "-" + authId;
-		//			authorizationDetail = schemas(authorizationDetail.getCollection()).newSolrAuthorizationDetails()
-		//
-		//			new XMLAuthorizationDetails(authorizationDetail.getCollection(), authId,
-		//					authorizationDetail.getRoles(), authorizationDetail.getStartDate(), authorizationDetail.getEndDate(), false);
-		//		}
 		validateDates(authorizationDetail.getStartDate(), authorizationDetail.getEndDate());
 		try {
 			recordServices.add(authorizationDetail);
@@ -395,9 +333,8 @@ public class AuthorizationsServices {
 			throw new RuntimeException(e);
 		}
 
-		addAuthorizationToRecords(records, authId);
 		addAuthorizationToPrincipals(principals, authId);
-		saveRecordsTargettedByAuthorization(records, principals);
+		saveRecordsTargettedByAuthorization(principals);
 
 		if (userAddingTheAuth != null) {
 			loggingServices.grantPermission(authorization, userAddingTheAuth);
@@ -410,9 +347,9 @@ public class AuthorizationsServices {
 
 		List<String> authId = asList(request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
-				.where(AUTHORIZATIONS).isContaining(authId)
+				.where(Schemas.AUTHORIZATIONS).isContaining(authId)
 				.orWhere(REMOVED_AUTHORIZATIONS).isContaining(authId));
-		List<Record> records = searchServices.search(query);
+		List<Record> recordsWithRemovedAuth = searchServices.search(query);
 
 		if (request.getExecutedBy() != null) {
 			try {
@@ -423,12 +360,15 @@ public class AuthorizationsServices {
 			}
 		}
 
-		for (Record record : records) {
-			removeAuthorizationOnRecord(request.getAuthId(), record, request.isReattachIfLastAuthDeleted());
-			removeRemovedAuthorizationOnRecord(request.getAuthId(), record);
+		for (Record record : recordsWithRemovedAuth) {
+			if (record.getTypeCode().equals(User.SCHEMA_TYPE) || record.getTypeCode().equals(Group.SCHEMA_TYPE)) {
+				removeAuthorizationToPrincipal(request.getAuthId(), record);
+			} else {
+				removeRemovedAuthorizationOnRecord(request.getAuthId(), record);
+			}
 		}
 		try {
-			recordServices.executeHandlingImpactsAsync(new Transaction(records));
+			recordServices.executeHandlingImpactsAsync(new Transaction(recordsWithRemovedAuth));
 		} catch (RecordServicesException e) {
 			throw new RecordServicesErrorDuringOperation("delete", e);
 		}
@@ -438,9 +378,16 @@ public class AuthorizationsServices {
 			if (details != null) {
 				remove(details);
 			}
+
+			Record target = recordServices.getDocumentById(details.getTarget());
+			if (request.isReattachIfLastAuthDeleted() && getRecordAuthorizations(target).isEmpty()
+					&& Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
+				reset(target);
+			}
 		} catch (NoSuchAuthorizationWithId e) {
 			//No problemo
 		}
+
 	}
 
 	private AuthorizationDetails getDetails(String collection, String id) {
@@ -489,21 +436,42 @@ public class AuthorizationsServices {
 		return response;
 	}
 
+	private List<AuthorizationDetails> getInheritedAuths(Record record) {
+		SchemasRecordsServices schemas = schemas(record.getCollection());
+		return (List) schemas.searchSolrAuthorizationDetailss(
+				where(schemas.authorizationDetails.target()).isNotEqual(record.getId())
+						.andWhere(schemas.authorizationDetails.target()).isIn(record.getList(ATTACHED_ANCESTORS)));
+	}
+
+	private List<String> toIds(List<AuthorizationDetails> authorizationDetailses) {
+		List<String> ids = new ArrayList<>();
+
+		for (AuthorizationDetails authorizationDetails : authorizationDetailses) {
+			ids.add(authorizationDetails.getId());
+		}
+
+		return ids;
+	}
+
 	private AuthorizationModificationResponse executeWithoutLogging(AuthorizationModificationRequest request,
 			Authorization authorization, Record record) {
+
+		String authTarget = authorization.getDetail().getTarget();
+		String authId = authorization.getDetail().getId();
+		boolean directlyTargetted = authTarget.equals(record.getId());
+		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
+
+		if (!directlyTargetted && !inherited) {
+			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(authId, record);
+		}
+
 		if (request.isRemovedOnRecord()) {
 			Transaction transaction = new Transaction(record);
-			String authId = authorization.getDetail().getId();
 
-			if (record.getList(AUTHORIZATIONS).contains(authId)) {
+			if (directlyTargetted) {
 				execute(authorizationDeleteRequest(authorization.getDetail()).setExecutedBy(request.getExecutedBy()));
 
-				//removeAuthorizationOnRecord(authId, record, true);
-				//remove(authorization.getDetail());
-
-			}
-			List<Object> inheritedAuths = record.getList(Schemas.INHERITED_AUTHORIZATIONS);
-			if (inheritedAuths.contains(authId)) {
+			} else {
 				removeInheritedAuthorizationOnRecord(authId, record);
 			}
 
@@ -516,20 +484,13 @@ public class AuthorizationsServices {
 
 		} else {
 
-			List<String> recordAuthorizations = record.getList(Schemas.ALL_AUTHORIZATIONS);
-			if (!recordAuthorizations.contains(request.getAuthorizationId())) {
-				throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(request.getAuthorizationId(),
-						record);
-			}
-
-			if (request.getRecordId().equals(authorization.getGrantedOnRecord())) {
+			if (directlyTargetted) {
 				executeOnAuthorization(request, authorization, record);
 				return new AuthorizationModificationResponse(false, null, Collections.<String, String>emptyMap());
 
 			} else {
 				String copyId = inheritedToSpecific(record.getId(), record.getCollection(), authorization.getDetail().getId());
 				record.addValueToList(REMOVED_AUTHORIZATIONS, authorization.getDetail().getId());
-				record.addValueToList(AUTHORIZATIONS, copyId);
 
 				Transaction transaction = new Transaction();
 				transaction.getRecordUpdateOptions().setValidationsEnabled(false);
@@ -569,7 +530,7 @@ public class AuthorizationsServices {
 
 		} else {
 			Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(record);
-			saveRecordsTargettedByAuthorization(Arrays.asList(record), new ArrayList<Record>());
+			saveRecordsTargettedByAuthorization(asList(record));
 			return originalToCopyMap;
 		}
 	}
@@ -602,8 +563,14 @@ public class AuthorizationsServices {
 
 			authIds = record.getList(allUserAuthorizations);
 
-		} else {
+		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 			authIds = record.getList(Schemas.ALL_AUTHORIZATIONS);
+
+		} else {
+			SchemasRecordsServices schemas = schemas(record.getCollection());
+			authIds = searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+					.where(schemas.authorizationDetails.target()).isIn(record.<String>getList(ATTACHED_ANCESTORS))
+					.andWhere(Schemas.IDENTIFIER).isNotIn(record.getList(ALL_REMOVED_AUTHS)));
 
 		}
 
@@ -612,8 +579,7 @@ public class AuthorizationsServices {
 			AuthorizationDetails authDetails = getDetails(record.getCollection(), authId);
 			if (authDetails != null) {
 				List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
-				List<String> grantedOnRecords = findAllRecordIdsWithAuthorizations(authDetails);
-				authorizations.add(new Authorization(authDetails, grantedToPrincipals, grantedOnRecords));
+				authorizations.add(new Authorization(authDetails, grantedToPrincipals));
 			} else {
 				LOGGER.error("Missing authorization '" + authId + "'");
 			}
@@ -627,38 +593,20 @@ public class AuthorizationsServices {
 	 * @param record The securized record
 	 */
 	public void reset(Record record) {
-
-		List<String> authorizationIds = record.getList(AUTHORIZATIONS);
+		SchemasRecordsServices schemas = schemas(record.getCollection());
 		List<AuthorizationDetails> authorizationDetailses = new ArrayList<>();
-		record.set(AUTHORIZATIONS, null);
 		record.set(REMOVED_AUTHORIZATIONS, null);
 		record.set(IS_DETACHED_AUTHORIZATIONS, false);
 
-		Transaction transaction = new Transaction();
-		transaction.add(record);
-
-		Set<String> principalIds = new HashSet<>();
-		for (String authId : authorizationIds) {
-			Authorization authorization = getAuthorization(record.getCollection(), authId);
-			authorizationDetailses.add(authorization.getDetail());
-			principalIds.addAll(authorization.getGrantedToPrincipals());
-		}
-
-		for (String principalId : principalIds) {
-			Record principal = recordServices.getDocumentById(principalId);
-			List<String> newAuth = new ArrayList<>(principal.<String>getList(AUTHORIZATIONS));
-			newAuth.removeAll(authorizationIds);
-			transaction.add(principal.set(Schemas.AUTHORIZATIONS, newAuth));
-		}
-
 		try {
-			recordServices.execute(transaction);
+			recordServices.update(record);
 		} catch (RecordServicesException e) {
-			throw new RecordServicesErrorDuringOperation("reset", e);
+			throw new RuntimeException(e);
 		}
 
-		for (AuthorizationDetails authorizationDetails : authorizationDetailses) {
-			remove(authorizationDetails);
+		for (AuthorizationDetails authorizationDetails : schemas.searchSolrAuthorizationDetailss(
+				where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
+			execute(authorizationDeleteRequest(authorizationDetails));
 		}
 
 	}
@@ -837,11 +785,9 @@ public class AuthorizationsServices {
 	}
 
 	private List<Record> findAllPrincipalsWithAuthorization(AuthorizationDetails detail) {
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(detail.getCollection());
-		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(Arrays.asList(types.getSchemaType(User.SCHEMA_TYPE), types.getSchemaType(Group.SCHEMA_TYPE)))
-						.where(AUTHORIZATIONS).isEqualTo(detail.getId()));
-		return searchServices.search(query);
+		SchemasRecordsServices schemas = schemas(detail.getCollection());
+		return searchServices.search(new LogicalSearchQuery(from(asList(schemas.user.schemaType(), schemas.group.schemaType()))
+				.where(AUTHORIZATIONS).isEqualTo(detail.getId())));
 	}
 
 	private List<Role> getAllAuthorizationRoleForUser(User user) {
@@ -964,18 +910,6 @@ public class AuthorizationsServices {
 
 	}
 
-	private List<Record> getAuthorizationGrantedOnRecords(Authorization authorization) {
-		List<String> recordIds = withoutDuplicatesAndNulls(authorization.getGrantedOnRecords());
-		if (recordIds.isEmpty()) {
-			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
-		}
-		List<Record> records = recordServices.getRecordsById(authorization.getDetail().getCollection(), recordIds);
-		if (recordIds.size() != records.size()) {
-			throw new InvalidTargetRecordsIds(records, recordIds);
-		}
-		return records;
-	}
-
 	private List<String> toRolesCodes(List<Role> rolesGivingPermission) {
 		List<String> roleCodes = new ArrayList<>();
 
@@ -986,9 +920,8 @@ public class AuthorizationsServices {
 		return roleCodes;
 	}
 
-	private void saveRecordsTargettedByAuthorization(List<Record> records, List<Record> principals) {
+	private void saveRecordsTargettedByAuthorization(List<Record> principals) {
 		Transaction transaction = new Transaction();
-		transaction.addUpdate(records);
 		transaction.addUpdate(principals);
 		try {
 			recordServices.executeHandlingImpactsAsync(transaction);
@@ -999,14 +932,7 @@ public class AuthorizationsServices {
 
 	private void addAuthorizationToPrincipals(List<Record> principals, String authId) {
 		for (Record principal : principals) {
-			addAuthorizationToRecord(authId, principal);
-		}
-	}
-
-	private void addAuthorizationToRecords(List<Record> records, String authId) {
-		for (Record record : records) {
-			validateCanAssignAuthorization(record);
-			addAuthorizationToRecord(authId, record);
+			addAuthorizationToPrincipal(authId, principal);
 		}
 	}
 
@@ -1061,31 +987,24 @@ public class AuthorizationsServices {
 		//		}
 	}
 
-	List<Record> getRecordsWithAuth(String collection, String oldAuthCode) {
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(AUTHORIZATIONS).isContaining(
-				asList(oldAuthCode));
-		query.setCondition(condition);
-		return searchServices.search(query);
+	Record getRecordWithAuth(String collection, String oldAuthCode) {
+		return recordServices.getDocumentById(schemas(collection).getSolrAuthorizationDetails(oldAuthCode).getTarget());
 	}
 
 	Map<String, String> setupAuthorizationsForDetachedRecord(Record record) {
 		Map<String, String> originalToCopyMap = new HashMap<>();
-		List<String> inheritedAuthorizations = new ArrayList<>(record.<String>getList(Schemas.INHERITED_AUTHORIZATIONS));
+		List<AuthorizationDetails> inheritedAuthorizations = getInheritedAuths(record);
 		List<String> removedAuthorizations = record.getList(REMOVED_AUTHORIZATIONS);
-		inheritedAuthorizations.removeAll(removedAuthorizations);
 
-		List<String> auths = new ArrayList<>(record.<String>getList(AUTHORIZATIONS));
-		for (String id : inheritedAuthorizations) {
-			String copyId = inheritedToSpecific(record.getId(), record.getCollection(), id);
-			if (copyId != null) {
-				auths.add(copyId);
-				originalToCopyMap.put(id, copyId);
+		for (AuthorizationDetails inheritedAuthorization : inheritedAuthorizations) {
+			if (!removedAuthorizations.contains(inheritedAuthorization.getId())) {
+				String copyId = inheritedToSpecific(record.getId(), record.getCollection(), inheritedAuthorization.getId());
+				if (copyId != null) {
+					originalToCopyMap.put(inheritedAuthorization.getId(), copyId);
+				}
 			}
 		}
-		auths.removeAll(removedAuthorizations);
 
-		record.set(AUTHORIZATIONS, auths);
 		record.set(REMOVED_AUTHORIZATIONS, new ArrayList<>());
 		record.set(IS_DETACHED_AUTHORIZATIONS, true);
 		return originalToCopyMap;
@@ -1106,26 +1025,23 @@ public class AuthorizationsServices {
 			return null;
 		} else {
 			addAuthorizationToPrincipals(principals, detail.getId());
-			saveRecordsTargettedByAuthorization(new ArrayList<Record>(), principals);
+			saveRecordsTargettedByAuthorization(principals);
 			return detail.getId();
 		}
 	}
 
-	void addAuthorizationToRecord(String authorizationId, Record record) {
+	void addAuthorizationToPrincipal(String authorizationId, Record record) {
 		List<Object> recordAuths = new ArrayList<>();
 		recordAuths.addAll(record.getList(AUTHORIZATIONS));
 		recordAuths.add(authorizationId);
 		record.set(AUTHORIZATIONS, recordAuths);
 	}
 
-	void removeAuthorizationOnRecord(String authorizationId, Record record, boolean reattachIfLastAuth) {
+	void removeAuthorizationToPrincipal(String authorizationId, Record record) {
 		List<Object> recordAuths = new ArrayList<>();
 		recordAuths.addAll(record.getList(AUTHORIZATIONS));
 		recordAuths.remove(authorizationId);
 		record.set(AUTHORIZATIONS, recordAuths);
-		if (reattachIfLastAuth && recordAuths.isEmpty() && Boolean.TRUE.equals(record.get(IS_DETACHED_AUTHORIZATIONS))) {
-			record.set(IS_DETACHED_AUTHORIZATIONS, false);
-		}
 	}
 
 	void removeRemovedAuthorizationOnRecord(String authorizationId, Record record) {

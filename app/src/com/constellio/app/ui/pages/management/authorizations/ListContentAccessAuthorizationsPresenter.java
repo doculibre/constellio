@@ -97,7 +97,7 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 
 	@Override
 	protected boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getGrantedOnRecords().contains(recordId);
+		return authorization.getGrantedOnRecord().equals(recordId);
 	}
 
 	@Override

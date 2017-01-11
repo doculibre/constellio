@@ -2,16 +2,14 @@ package com.constellio.model.services.schemas;
 
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PARENT_PATH;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PATH;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,7 +30,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -132,19 +129,6 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	@Test
-	public void givenAllAuthorizationsModifiedOfTaxonomyConceptThenHasImpactOnTaxonomyChildren()
-			throws Exception {
-
-		TestRecord record = (TestRecord) records.taxo1_firstTypeItem2_firstTypeItem1;
-
-		record.markAsModified(taxonomy1FirstSchema.allAuthorizations());
-		List<ModificationImpact> impacts = impactCalculator
-				.findTransactionImpact(new Transaction(record), true);
-
-		assertAuthorizationsImpactInFirstAndSecondSchema(record, impacts);
-	}
-
-	@Test
 	public void givenTrivialMetadataModifiedOfTaxonomyConceptThenNoImpactOnTaxonomyChildren()
 			throws Exception {
 
@@ -171,16 +155,16 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	@Test
-	public void givenAllAuthorizationsMetadataModifiedOfTaxonomyConceptUsedByFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
+	public void givenAllRemovedAuthsMetadataModifiedOfTaxonomyConceptUsedByFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
 			throws Exception {
 
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
-		record.markAsModified(folderSchema.allAuthorizations());
+		record.markAsModified(folderSchema.allRemovedAuths());
 		List<ModificationImpact> impacts = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertAuthorizationsImpactInSecondSchemaAndFolderSchema(record, impacts);
+		assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(record, impacts);
 	}
 
 	@Test
@@ -211,17 +195,17 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	@Test
-	public void givenARecordAllAuthorizationsModifiedThenHasImpactOnChildren()
+	public void givenARecordAttachedAncestorsModifiedThenHasImpactOnChildren()
 			throws Exception {
 
 		TestRecord record = new TestRecord(folderSchema, "zeFolder");
 		recordServices.add(record);
 
-		record.markAsModified(folderSchema.allAuthorizations());
+		record.markAsModified(folderSchema.attachedAncestors());
 		List<ModificationImpact> impacts = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertAuthorizationsImpactInFolderAndDocumentSchema(record, impacts);
+		assertAttachedAncestorsImpactInFolderAndDocumentSchema(record, impacts);
 	}
 
 	@Test
@@ -251,34 +235,31 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 				.containsOnly(taxo1SecondSchemaAuthorizations);
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1FirstSchema.type()).whereAny(
-						Arrays.asList(taxonomy1FirstSchema.parent())).isIn(Arrays.asList(record)));
+						asList(taxonomy1FirstSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type())
-						.whereAny(Arrays.asList(taxonomy1SecondSchema.parentOfType1())).isIn(Arrays.asList(record)));
+						.whereAny(asList(taxonomy1SecondSchema.parentOfType1())).isIn(asList(record)));
 	}
 
-	private void assertAuthorizationsImpactInSecondSchemaAndFolderSchema(TestRecord record,
+	private void assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(TestRecord record,
 			List<ModificationImpact> impacts) {
-		Metadata folderAuthorizations = folderSchema.inheritedAuthorizations();
-		Metadata taxo1SecondSchemaAuthorizations = taxonomy1SecondSchema.inheritedAuthorizations();
+		Metadata folderAllRemovedAuths = folderSchema.allRemovedAuths();
+		Metadata taxo1SecondSchemaAllRemovedAuths = taxonomy1SecondSchema.allRemovedAuths();
 
-		assertThat(impacts).hasSize(2);
-		assertThat(impacts.get(1).getMetadataToReindex())
-				.containsOnly(taxo1SecondSchemaAuthorizations);
-		assertThat(impacts.get(0).getMetadataToReindex())
-				.containsOnly(folderAuthorizations);
+		assertThat(impacts).extracting("metadataToReindex")
+				.containsExactly(asList(folderAllRemovedAuths), asList(taxo1SecondSchemaAllRemovedAuths));
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
-						Arrays.asList(taxonomy1SecondSchema.parentOfType2())).isIn(Arrays.asList(record)));
+						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
-						.whereAny(Arrays.asList(folderSchema.taxonomy1())).isIn(Arrays.asList(record)));
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
 	}
 
-	private void assertAuthorizationsImpactInFolderAndDocumentSchema(TestRecord record,
+	private void assertAttachedAncestorsImpactInFolderAndDocumentSchema(TestRecord record,
 			List<ModificationImpact> impacts) {
-		Metadata folderAuthorizations = folderSchema.inheritedAuthorizations();
-		Metadata documentAuthorizations = documentSchema.inheritedAuthorizations();
+		Metadata folderAuthorizations = folderSchema.attachedAncestors();
+		Metadata documentAuthorizations = documentSchema.attachedAncestors();
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex())
@@ -287,10 +268,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 				.containsOnly(documentAuthorizations);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
-						Arrays.asList(folderSchema.parent())).isIn(Arrays.asList(record)));
+						asList(folderSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(documentSchema.type())
-						.whereAny(Arrays.asList(documentSchema.parent())).isIn(Arrays.asList(record)));
+						.whereAny(asList(documentSchema.parent())).isIn(asList(record)));
 	}
 
 	private void assertPathAndAuthorizationsImpactInFirstAndSecondSchema(TestRecord record, List<ModificationImpact> impacts) {
@@ -304,10 +285,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 						"inheritedauthorizations");
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1FirstSchema.type()).whereAny(
-						Arrays.asList(taxonomy1FirstSchema.parent())).isIn(Arrays.asList(record)));
+						asList(taxonomy1FirstSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type())
-						.whereAny(Arrays.asList(taxonomy1SecondSchema.parentOfType1())).isIn(Arrays.asList(record)));
+						.whereAny(asList(taxonomy1SecondSchema.parentOfType1())).isIn(asList(record)));
 	}
 
 	private void assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(TestRecord record,
@@ -322,10 +303,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 						"inheritedauthorizations");
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
-						Arrays.asList(taxonomy1SecondSchema.parentOfType2())).isIn(Arrays.asList(record)));
+						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
-						.whereAny(Arrays.asList(folderSchema.taxonomy1())).isIn(Arrays.asList(record)));
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
 	}
 
 	private void assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(TestRecord record,
@@ -340,10 +321,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 						ATTACHED_ANCESTORS, PARENT_PATH);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
-						Arrays.asList(folderSchema.parent())).isIn(Arrays.asList(record)));
+						asList(folderSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(documentSchema.type())
-						.whereAny(Arrays.asList(documentSchema.parent())).isIn(Arrays.asList(record)));
+						.whereAny(asList(documentSchema.parent())).isIn(asList(record)));
 	}
 
 	private Record newFolder(String title, Record parentFolder, Record taxonomy1, Record... taxonomy2s) {
@@ -351,7 +332,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		record.set(folderSchema.title(), title);
 		record.set(folderSchema.parent(), parentFolder);
 		record.set(folderSchema.taxonomy1(), taxonomy1);
-		record.set(folderSchema.taxonomy2(), Arrays.asList(taxonomy2s));
+		record.set(folderSchema.taxonomy2(), asList(taxonomy2s));
 		return record;
 	}
 
@@ -388,7 +369,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		@Override
 		public List<? extends Dependency> getDependencies() {
-			return Arrays.asList(taxonomies);
+			return asList(taxonomies);
 		}
 	}
 

@@ -71,7 +71,8 @@ public class LoggingServices {
 	}
 
 	public void grantPermission(Authorization authorization, User user) {
-		Event event = eventFactory.eventPermission(authorization, null, user, null, EventType.GRANT_PERMISSION);
+		Event event = eventFactory
+				.eventPermission(authorization, null, user, authorization.getGrantedOnRecord(), EventType.GRANT_PERMISSION);
 		executeTransaction(event);
 	}
 

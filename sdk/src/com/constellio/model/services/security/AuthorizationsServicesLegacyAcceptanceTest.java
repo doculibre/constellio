@@ -325,7 +325,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 						authId);
 
 		assertThat(authorization.getDetail()).isEqualToComparingFieldByField(retrievedAuthorization.getDetail());
-		assertThat(authorization.getGrantedOnRecords()).isEqualTo(retrievedAuthorization.getGrantedOnRecords());
+		assertThat(authorization.getGrantedOnRecord()).isEqualTo(retrievedAuthorization.getGrantedOnRecord());
 		assertThat(authorization.getGrantedToPrincipals()).isEqualTo(retrievedAuthorization.getGrantedToPrincipals());
 	}
 

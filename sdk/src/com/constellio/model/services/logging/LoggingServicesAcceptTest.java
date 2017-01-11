@@ -26,6 +26,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -280,7 +281,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		Authorization authorization = newAuthorization("MANAGER", Arrays.asList(users.bobIn(zeCollection)),
-				Arrays.asList(records.getFolder_A01().getWrappedRecord()));
+				records.getFolder_A01().getWrappedRecord());
 		User alice = users.aliceIn(zeCollection);
 		loggingServices.grantPermission(authorization, alice);
 		recordServices.flush();
@@ -296,22 +297,21 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		assertThat(event.getType()).isEqualTo(EventType.GRANT_PERMISSION_FOLDER);
 	}
 
-	private Authorization newAuthorization(String role, List<User> users, List<Record> records) {
+	private Authorization newAuthorization(String role, List<User> users, Record record) {
 		List<String> roles = new ArrayList<>();
 		String zRole = role;
 		roles.add(zRole);
 		LocalDate startDate = new LocalDate();
 		LocalDate endDate = new LocalDate();
-		XMLAuthorizationDetails detail = new XMLAuthorizationDetails(zeCollection, "42", roles, startDate, endDate, false);
+		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+
+		AuthorizationDetails detail = schemas.newSolrAuthorizationDetails().setRoles(roles).setStartDate(startDate)
+				.setEndDate(endDate).setTarget(record.getId());
 		List<String> grantedToPrincipals = new ArrayList<>();
 		for (User user : users) {
 			grantedToPrincipals.add(user.getId());
 		}
-		List<String> grantedOnRecords = new ArrayList<>();
-		for (Record record : records) {
-			grantedOnRecords.add(record.getId());
-		}
-		return new Authorization(detail, grantedToPrincipals, grantedOnRecords);
+		return new Authorization(detail, grantedToPrincipals);
 	}
 
 	@Test
@@ -362,14 +362,15 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		/*AdministrativeUnit administrativeUnit = records.getUnit10();
 		Folder folder = createFolder(administrativeUnit);*/
 		grantedOnRecords.addAll(Arrays.asList(new String[] { records.getFolder_A01().getId() }));
-		Authorization authorization = new Authorization(detail, grantedToPrincipals, grantedOnRecords);
+		Authorization authorization = new Authorization(detail, grantedToPrincipals);
 
 		List<String> grantedOnRecordsBefore = new ArrayList<>();
 		grantedOnRecordsBefore.addAll(
 				Arrays.asList(new String[] { records.getFolder_A01().getId(), records.getFolder_A02().getId() }));
-		XMLAuthorizationDetails detailBefore = new XMLAuthorizationDetails(zeCollection, "43", roles, startDate, endDate.minusDays(1),
+		XMLAuthorizationDetails detailBefore = new XMLAuthorizationDetails(zeCollection, "43", roles, startDate,
+				endDate.minusDays(1),
 				false);
-		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
+		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals);
 
 		loggingServices.modifyPermission(authorization, authorizationBefore, null, alice);
 		recordServices.flush();

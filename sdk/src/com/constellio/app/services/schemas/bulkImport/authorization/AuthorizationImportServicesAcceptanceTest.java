@@ -151,7 +151,7 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 		Authorization newValidAuthorization = authorizationsServices.getAuthorization(zeCollection, newValidAuthorizationId);
 		assertThat(newValidAuthorization.getDetail().getRoles()).containsExactly("u", "m", "rgd");
 		assertThat(newValidAuthorization.getGrantedToPrincipals()).containsOnly(alice.getId(), heroes.getId());
-		assertThat(newValidAuthorization.getGrantedOnRecords()).containsOnly(documentHavingLegacyId.getId());
+		assertThat(newValidAuthorization.getGrantedOnRecord()).isEqualTo(documentHavingLegacyId.getId());
 	}
 
 	private Map<String, ImportError> getErrorsMap(List<ImportError> importErrors) {

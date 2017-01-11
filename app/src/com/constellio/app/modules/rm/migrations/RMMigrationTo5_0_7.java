@@ -407,10 +407,6 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			recordServices.executeHandlingImpactsAsync(transaction);
 			batchProcessesManager.waitUntilAllFinished();
 
-			removedSyncedAuthorizations();
-
-			createAuthorizationsForFilingSpaceUsersAndAdministrators();
-
 			moveFoldersToNewAdministrativeUnits();
 
 			boolean hasAdministrativeUnits = searchServices.hasResults(from(rm.administrativeUnit.schemaType()).returnAll());
@@ -474,27 +470,6 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 				authorizationsServices.add(authorizationInCollection(collection)
 						.giving(roles).forPrincipalsIds(users).on(newUnit));
 			}*/
-		}
-
-		private void removedSyncedAuthorizations() {
-			for (AdministrativeUnit administrativeUnit : rm.wrapAdministrativeUnits(
-					search(from(rm.administrativeUnit.schemaType()).returnAll()))) {
-
-				List<String> authorizationIds = administrativeUnit.getAuthorizations();
-				for (String authorizationId : authorizationIds) {
-					try {
-						Authorization authorization = authorizationsServices.getAuthorization(collection, authorizationId);
-						if (authorization.getDetail().isSynced()) {
-							authorizationsServices.execute(authorizationDeleteRequest(authorization));
-						}
-					} catch (NoSuchAuthorizationWithId e) {
-						authorizationsServices.execute(authorizationDeleteRequest(authorizationId, collection));
-					}
-				}
-
-			}
-			batchProcessesManager.waitUntilAllFinished();
-
 		}
 
 		private void physicallyDeleteFilingSpaces() {

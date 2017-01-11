@@ -15,6 +15,7 @@ import java.util.Map;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.users.UserServices;
+
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -55,6 +56,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -82,7 +84,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	SearchServices searchServices;
 	DisplayFolderPresenter presenter;
 	SessionContext sessionContext;
-	@Mock UIContext uiContext;	
+	@Mock UIContext uiContext;
 	LocalDate nowDate = new LocalDate();
 	RMEventsSearchServices rmEventsSearchServices;
 	RolesManager rolesManager;
@@ -350,7 +352,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenImportedFolderAndRemovedPermissionToShareImportedFolderAndGivenBackThenOk()
 			throws Exception {
-		recordServices.update(record("A16").set(Schemas.LEGACY_ID,"ChatLegacy"));
+		recordServices.update(record("A16").set(Schemas.LEGACY_ID, "ChatLegacy"));
 
 		Map<String, String> params = new HashMap<>();
 		params.put("id", "A16");
@@ -644,13 +646,15 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
 		assertThat(emailToSend.getParameters()).hasSize(6);
 		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
-		assertThat(emailToSend.getParameters().get(1)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock.toString("yyyy-MM-dd  HH:mm:ss"));
+		assertThat(emailToSend.getParameters().get(1))
+				.isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock.toString("yyyy-MM-dd  HH:mm:ss"));
 		assertThat(emailToSend.getParameters().get(2))
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + folderC30.getTitle());
 		assertThat(emailToSend.getParameters().get(3))
 				.isEqualTo("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/");
 		assertThat(emailToSend.getParameters().get(4))
-				.isEqualTo("recordURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/#!displayFolder/C30");
+				.isEqualTo(
+						"recordURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/#!displayFolder/C30");
 		assertThat(emailToSend.getParameters().get(5))
 				.isEqualTo("recordType" + EmailToSend.PARAMETER_SEPARATOR + "dossier");
 	}
@@ -675,15 +679,20 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEventsThenEventsDataProviderReturnValidEvents() throws Exception {
+	public void givenEventsThenEventsDataProviderReturnValidEvents()
+			throws Exception {
 		getDataLayerFactory().newEventsDao().flush();
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A01))).isEqualTo(2);
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A05))).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A01)))
+				.isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A05)))
+				.isEqualTo(1);
 
 		presenter.forParams(rmRecords.folder_A01);
 		RecordVODataProvider provider = presenter.getEventsDataProvider();
 		List<RecordVO> eventList = provider.listRecordVOs(0, 100);
-		assertThat(eventList).hasSize(2);
+		assertThat(eventList).hasSize(1);
 	}
 
 	//
@@ -781,7 +790,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		displayFolderView.selectFolderContentTab();
-
 
 	}
 }

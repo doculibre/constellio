@@ -57,10 +57,6 @@ public class AuthorizationVODataProviderTest extends ConstellioTest {
 		principals1.add(USER_1);
 		principals1.add(USER_2);
 
-		records1 = new ArrayList<>();
-		records1.add(RECORD_ID_1);
-		records1.add(RECORD_ID_1);
-
 		roles1 = new ArrayList<>();
 		roles1.add(ROLE_1);
 		roles1.add(ROLE_2);
@@ -69,7 +65,7 @@ public class AuthorizationVODataProviderTest extends ConstellioTest {
 		when(mockedFactories.getModelLayerFactory().newRecordServices()).thenReturn(recordServices);
 
 		when(authorization1.getGrantedToPrincipals()).thenReturn(principals1);
-		when(authorization1.getGrantedOnRecords()).thenReturn(records1);
+		when(authorization1.getGrantedOnRecord()).thenReturn(RECORD_ID_1);
 		when(authorization1.getDetail()).thenReturn(xmlAuthorizationDetails1);
 		when(xmlAuthorizationDetails1.getRoles()).thenReturn(roles1);
 

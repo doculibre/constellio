@@ -139,20 +139,16 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return wrappedRecord.getList(Schemas.PARENT_PATH);
 	}
 
-	public List<String> getAuthorizations() {
-		return wrappedRecord.getList(Schemas.AUTHORIZATIONS);
-	}
-
 	public List<String> getRemovedAuthorizations() {
 		return wrappedRecord.getList(Schemas.REMOVED_AUTHORIZATIONS);
 	}
 
-	public List<String> getInheritedAuthorizations() {
-		return wrappedRecord.getList(Schemas.INHERITED_AUTHORIZATIONS);
+	public List<String> getAllRemovedAuths() {
+		return wrappedRecord.getList(Schemas.ALL_REMOVED_AUTHS);
 	}
 
-	public List<String> getAllAuthorizations() {
-		return wrappedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
+	public List<String> getAttachedAncestors() {
+		return wrappedRecord.getList(Schemas.ATTACHED_ANCESTORS);
 	}
 
 	public List<String> getTokens() {

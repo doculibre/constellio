@@ -19,24 +19,15 @@ public class AllAuthorizationsCalculator implements MetadataValueCalculator<List
 
 	LocalDependency<List<String>> authorizationsParam = LocalDependency.toAStringList("authorizations");
 	LocalDependency<List<String>> inheritedAuthorizationsParam = LocalDependency.toAStringList("inheritedauthorizations");
-	LocalDependency<List<String>> removedAuthorizationsParam = LocalDependency.toAStringList("removedauthorizations");
-	LocalDependency<Boolean> detachedAuthorizationsParam = LocalDependency.toABoolean("detachedauthorizations");
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		Set<String> calculatedAuthorizations = new HashSet<>();
 		List<String> authorizations = parameters.get(authorizationsParam);
 		List<String> inheritedAuthorizations = parameters.get(inheritedAuthorizationsParam);
-		List<String> removedAuthorizations = parameters.get(removedAuthorizationsParam);
-		Boolean detachedAuthorizations = parameters.get(detachedAuthorizationsParam);
 
-		if (detachedAuthorizations != null && parameters.get(detachedAuthorizationsParam)) {
-			calculatedAuthorizations.addAll(authorizations);
-		} else {
-			calculatedAuthorizations.addAll(inheritedAuthorizations);
-			calculatedAuthorizations.addAll(authorizations);
-			calculatedAuthorizations.removeAll(removedAuthorizations);
-		}
+		calculatedAuthorizations.addAll(authorizations);
+		calculatedAuthorizations.addAll(inheritedAuthorizations);
 		return new ArrayList<>(calculatedAuthorizations);
 	}
 
@@ -57,7 +48,6 @@ public class AllAuthorizationsCalculator implements MetadataValueCalculator<List
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(authorizationsParam, inheritedAuthorizationsParam, removedAuthorizationsParam,
-				detachedAuthorizationsParam);
+		return Arrays.asList(authorizationsParam, inheritedAuthorizationsParam);
 	}
 }
