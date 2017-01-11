@@ -45,6 +45,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView, BatchProcessingView {
+	
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
@@ -67,6 +68,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		header.setAdvancedSearchCriteria(criteria);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void downloadBatchProcessingResults(final InputStream stream) {
 		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
@@ -187,7 +189,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	protected SearchResultTable buildResultTable() {
-		// TODO Table should take all space, since facets and sort are hidden.
 		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
 			return buildSimpleResultsTable();
 		} else {

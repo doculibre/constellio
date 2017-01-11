@@ -400,7 +400,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		});
 
 		layout.addComponent(table);
-		layout.setVisible(!facet.getValues().isEmpty() && isDetailedView());
+		layout.setVisible(!facet.getValues().isEmpty());
 		layout.addStyleName(FACET_BOX_STYLE);
 		return layout;
 	}

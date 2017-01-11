@@ -18,6 +18,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -117,7 +118,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		titleBackButtonLayout.setWidth("100%");
 
 		String title = getTitle();
-		if (title != null) {
+		if (breadcrumbTrail == null && collection != null && title != null) {
+			breadcrumbTrail = new TitleBreadcrumbTrail(collection, this, title);
+		} else if (title != null) {
 			titleLabel = new Label(title);
 			titleLabel.addStyleName(ValoTheme.LABEL_H1);
 		}
@@ -143,9 +146,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		mainComponent = buildMainComponent(event);
 		mainComponent.addStyleName("main-component");
 
-		if (titleLabel != null || backButton.isVisible()) {
+//		if (titleLabel != null || backButton.isVisible()) {
 			addComponent(titleBackButtonLayout);
-		}
+//		}
 
 		if (breadcrumbTrail != null) {
 			addComponent(breadcrumbTrail);

@@ -79,6 +79,7 @@ public class ButtonsContainer<T extends Container & Indexed & Sortable> extends 
 
 	private Property<?> newButtonsLayout(final Object itemId) {
 		HorizontalLayout horizontalLayout = new HorizontalLayout();
+		horizontalLayout.addStyleName("buttons-container");
 
 		for (ContainerButton containerButton : containerButtons) {
 			Button button = containerButton.newButton(itemId);

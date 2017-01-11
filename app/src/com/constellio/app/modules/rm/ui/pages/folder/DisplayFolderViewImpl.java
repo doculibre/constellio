@@ -471,7 +471,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			protected Button newButtonInstance(Object itemId) {
 				int index = (int) itemId;
 				final RecordVO record = nestedContainer.getRecordVO(index);
-				Button button = new IconButton(new ThemeResource("images/icons/actions/save.png"),
+				Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
 						$("DisplayFolderView.download")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
