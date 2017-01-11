@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -29,6 +31,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 	RecordServices recordServices;
 
+	RMSchemasRecordsServices rm;
+
 	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
 	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
 
@@ -41,6 +45,20 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+	}
+
+	@Override
+	public boolean tryRepairAutomaticValue(TryRepairAutomaticValueParams params) {
+		if (params.isMetadata(DecommissioningList.SCHEMA_TYPE, DecommissioningList.FOLDERS)) {
+			DecommissioningList list = rm.wrapDecommissioningList(params.getRecord());
+			for (String folderToRemove : params.getValuesToRemove()) {
+				list.removeFolderDetail(folderToRemove);
+			}
+
+			return true;
+		}
+		return false;
 	}
 
 	@Override
