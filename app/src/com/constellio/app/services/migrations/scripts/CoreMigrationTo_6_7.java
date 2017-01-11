@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -53,6 +56,8 @@ import com.constellio.model.services.security.AuthorizationDetailsManager;
 
 public class CoreMigrationTo_6_7 implements MigrationScript {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_6_7.class);
+
 	@Override
 	public String getVersion() {
 		return "6.7";
@@ -77,25 +82,34 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 
+		Set<String> convertedAuthDetails = new HashSet<>();
+
 		try {
 			KeySetMap<String, String> authsTargets = getAuthsTargets(collection, appLayerFactory);
 
 			List<AuthToConvert> authToConverts = new ArrayList<>();
 
 			for (AuthorizationDetails details : xmlAuthorizationDetailsList.values()) {
-
+				convertedAuthDetails.add(details.getId());
 				AuthToConvert authToConvert = new AuthToConvert();
 				authToConvert.details = (XMLAuthorizationDetails) details;
 				authToConvert.targets = authsTargets.get(details.getId());
 				authToConverts.add(authToConvert);
 			}
 
-			KeySetMap<String, String> authCopies = new KeySetMap<>();
+			for (Map.Entry<String, Set<String>> authTarget : authsTargets.getNestedMap().entrySet()) {
+				if (!convertedAuthDetails.contains(authTarget.getKey())) {
+					LOGGER.warn("No such authorization detail for auth id '" + authTarget.getKey() + "' on targets '" + authTarget
+							.getValue() + "'");
+				}
+			}
+
 			Iterator<List<AuthToConvert>> iterator = new BatchBuilderIterator<>(authToConverts.iterator(), 1000);
 
-			buildSolrAuthorizationDetails(iterator, schemasRecordsServices, appLayerFactory, authCopies);
+			KeySetMap<String, String> authCopies = buildSolrAuthorizationDetails(iterator, schemasRecordsServices,
+					appLayerFactory);
 
-			convertUsersAndGroupAuths(appLayerFactory, schemasRecordsServices, authCopies);
+			convertUsersAndGroupAuths(appLayerFactory, schemasRecordsServices, authCopies, convertedAuthDetails);
 		} catch (Exception e) {
 			throw new RuntimeException("Migration failed", e);
 		}
@@ -135,8 +149,9 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 		return authsTargets;
 	}
 
-	private void convertUsersAndGroupAuths(final AppLayerFactory appLayerFactory, SchemasRecordsServices schemasRecordsServices,
-			final KeySetMap<String, String> authCopies)
+	private void convertUsersAndGroupAuths(final AppLayerFactory appLayerFactory,
+			final SchemasRecordsServices schemasRecordsServices, final KeySetMap<String, String> authCopies,
+			final Set<String> convertedAuthDetails)
 			throws Exception {
 
 		final Set<String> oldAuths = new HashSet<>();
@@ -151,7 +166,7 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 				transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
 				for (Record record : records) {
-					oldAuths.addAll(convertAuthsOf(record, authCopies));
+					oldAuths.addAll(convertAuthsOf(record, authCopies, schemasRecordsServices, convertedAuthDetails));
 					transaction.add(record);
 				}
 
@@ -161,13 +176,20 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 
 	}
 
-	private List<String> convertAuthsOf(Record record, KeySetMap<String, String> authCopies) {
+	private List<String> convertAuthsOf(Record record, KeySetMap<String, String> authCopies, SchemasRecordsServices schemas,
+			Set<String> convertedAuthDetails) {
 		List<String> oldAuths = record.getList(Schemas.AUTHORIZATIONS);
 		List<String> newAuths = new ArrayList<>();
 
 		for (String oldAuth : oldAuths) {
 			Set<String> newCopies = authCopies.get(oldAuth);
 			newAuths.addAll(newCopies);
+
+			if (!convertedAuthDetails.contains(oldAuth)) {
+				String code = record.getTypeCode().equals(User.SCHEMA_TYPE) ? record.<String>get(schemas.user.username()) :
+						("group " + record.get(schemas.group.code()));
+				LOGGER.warn("No such authorization detail for auth id '" + oldAuth + "' on principal '" + code + "'");
+			}
 		}
 
 		record.set(Schemas.AUTHORIZATIONS, newAuths);
@@ -187,9 +209,11 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 
 	}
 
-	private void buildSolrAuthorizationDetails(Iterator<List<AuthToConvert>> authsToConvertIterator,
-			SchemasRecordsServices schemasRecordsServices, AppLayerFactory appLayerFactory, KeySetMap<String, String> authCopies)
+	private KeySetMap<String, String> buildSolrAuthorizationDetails(Iterator<List<AuthToConvert>> authsToConvertIterator,
+			SchemasRecordsServices schemasRecordsServices, AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
+
+		KeySetMap<String, String> authCopies = new KeySetMap<>();
 
 		while (authsToConvertIterator.hasNext()) {
 			List<AuthToConvert> authsToConvert = authsToConvertIterator.next();
@@ -231,6 +255,7 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 
 		}
+		return authCopies;
 	}
 
 	private class CoreSchemaAlterationFor6_7 extends MetadataSchemasAlterationHelper {
