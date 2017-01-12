@@ -85,25 +85,19 @@ public class AuthorizationsServices {
 	ModelLayerFactory modelLayerFactory;
 	MetadataSchemasManager schemasManager;
 	private LoggingServices loggingServices;
-	UserServices userServices;
-	//AuthorizationDetailsManager manager;
 	RolesManager rolesManager;
 	TaxonomiesManager taxonomiesManager;
 	RecordServices recordServices;
 	SearchServices searchServices;
-	UniqueIdGenerator uniqueIdGenerator;
 
 	public AuthorizationsServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
-		//this.manager = modelLayerFactory.getAuthorizationDetailsManager();
 		this.rolesManager = modelLayerFactory.getRolesManager();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
-		this.userServices = modelLayerFactory.newUserServices();
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.loggingServices = modelLayerFactory.newLoggingServices();
-		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 
 	}
 

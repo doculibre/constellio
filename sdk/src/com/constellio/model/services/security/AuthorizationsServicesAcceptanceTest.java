@@ -1049,43 +1049,31 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 
 		givenTimeIs(date(2016, 4, 4));
-		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
 		}
 
 		givenTimeIs(date(2016, 4, 5));
-		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
 		}
 
 		givenTimeIs(date(2016, 4, 6));
-		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
 		}
 
 		givenTimeIs(date(2016, 4, 7));
-		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
 		}
 
 		givenTimeIs(date(2016, 4, 8));
-		//		waitForBatchProcess();
-		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
 		}
 
 		givenTimeIs(date(2016, 4, 9));
-		//		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
-		//		waitForBatchProcess();
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
 		}
@@ -1099,8 +1087,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserWithCollectionAccessThenHasAccessNoMatterTheRecordsAuthorizationAndHasNoRolePermissions()
 			throws Exception {
-
-		//Valider que ça ne donne pas un accès permission
 
 		Transaction transaction = new Transaction();
 		transaction.add(users.edouardIn(zeCollection).setCollectionReadAccess(true).setSystemAdmin(true));
@@ -1781,18 +1767,4 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER3_DOC1).usersWithReadAccess().containsOnly(bob, charles, dakota, chuck);
 	}
 
-	//@Test
-	//	public void testLoadingOfAuths()
-	//			throws Exception {
-	//
-	//		List<SolrAuthorizationDetails> records = new ArrayList<>();
-	//		for (int i = 0; i < 10000000; i++) {
-	//			System.out.println(i);
-	//			records.add(schemas.newSolrAuthorizationDetails().setRoles(asList("READ", "WRITE")).setTitle(newRandomId()));
-	//		}
-	//
-	//		System.out.println("finished");
-	//		Thread.sleep(1000000);
-	//
-	//	}
 }
