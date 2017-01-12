@@ -31,6 +31,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -139,7 +140,10 @@ public class MetadataDisplayFactory implements Serializable {
 				}
 				break;
 			case NUMBER:
-				String strDisplayValue = displayValue.toString();
+				NumberFormat numberFormat = NumberFormat.getInstance();
+				numberFormat.setGroupingUsed(false);
+
+				String strDisplayValue = numberFormat.format(displayValue);
 				if (strDisplayValue.endsWith(".0")) {
 					strDisplayValue = StringUtils.substringBefore(strDisplayValue, ".");
 				}
@@ -147,7 +151,9 @@ public class MetadataDisplayFactory implements Serializable {
 				((Label) displayComponent).setConverter(new StringToDoubleConverter());
 				break;
 			case INTEGER:
-				displayComponent = new Label(displayValue.toString());
+				NumberFormat intFormat = NumberFormat.getInstance();
+				intFormat.setGroupingUsed(false);
+				displayComponent = new Label(intFormat.format(displayValue));
 				((Label) displayComponent).setConverter(new StringToIntegerConverter());
 				break;
 			case STRING:
