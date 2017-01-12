@@ -30,7 +30,6 @@ public class CoreMigrationTo_6_7_AcceptanceTest extends ConstellioTest {
 
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
 		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
-		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
 
 		String securityReport = SecurityUtils.printSecurityReport(zeCollection, getAppLayerFactory());
 		assertThat(securityReport).isEqualTo(expectedSecurityReport);
