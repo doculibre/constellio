@@ -236,7 +236,7 @@ public class SchemasDisplayWriter {
 		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
 		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
-		if (config.getDisplayType() != null ) {
+		if (config.getDisplayType() != null && config.getDisplayType() != MetadataDisplayType.VERTICAL) {
 			metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
 		}
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);

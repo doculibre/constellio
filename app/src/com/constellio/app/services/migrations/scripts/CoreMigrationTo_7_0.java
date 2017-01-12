@@ -295,10 +295,10 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 		private void setNewTokenCalculator(MetadataSchemaTypesBuilder typesBuilder) {
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				DataEntry dataEntry = typeBuilder.getDefaultSchema().get(TOKENS).getDataEntry();
-				if (dataEntry.getType() == CALCULATED
-						&& ((CalculatedDataEntry) dataEntry).getCalculator() instanceof TokensCalculator2) {
-					typeBuilder.getDefaultSchema().get(TOKENS).defineDataEntry().asCalculated(TokensCalculator3.class);
-				}
+				//				if (dataEntry.getType() == CALCULATED
+				//						&& ((CalculatedDataEntry) dataEntry).getCalculator() instanceof TokensCalculator2) {
+				//					typeBuilder.getDefaultSchema().get(TOKENS).defineDataEntry().asCalculated(TokensCalculator3.class);
+				//				} else {
 			}
 		}
 
