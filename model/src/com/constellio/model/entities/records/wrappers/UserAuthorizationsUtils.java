@@ -10,18 +10,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeySetMap;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.security.SecurityTokenManager;
 
 public class UserAuthorizationsUtils {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserAuthorizationsUtils.class);
 
 	public static boolean containsAnyUserGroupTokens(User user, Record record, String role) {
 
@@ -152,9 +153,13 @@ public class UserAuthorizationsUtils {
 		KeySetMap<String, String> tokens = new KeySetMap<>();
 
 		for (String authId : user.getAllUserAuthorizations()) {
-			AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
-			if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)) {
-				tokens.add(authorizationDetails.getTarget(), authId);
+			try {
+				AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
+				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)) {
+					tokens.add(authorizationDetails.getTarget(), authId);
+				}
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.warn("User " + user.getUsername() + "' has an authorization without details : " + authId);
 			}
 		}
 

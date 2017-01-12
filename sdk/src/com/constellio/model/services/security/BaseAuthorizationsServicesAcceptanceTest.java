@@ -7,6 +7,7 @@ import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -46,6 +47,7 @@ import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -1068,5 +1070,18 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected ListAssert<Object> assertThatUsersWithGlobalPermissionInZeCollection(String permission) {
 		return assertThatUsersWithGlobalPermissionInCollection(permission, zeCollection);
+	}
+
+	protected List<String> createDummyUsersInLegendsGroup(int qty) {
+		List<String> users = new ArrayList<>();
+		for (int i = 1; i <= qty; i++) {
+			System.out.println("adding user " + i + "/" + qty);
+			String username = "grim.patron." + i;
+			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+					username + "@constellio.com", asList("legends"), asList(zeCollection), ACTIVE);
+			userServices.addUpdateUserCredential(userCredential);
+			users.add(username);
+		}
+		return users;
 	}
 }

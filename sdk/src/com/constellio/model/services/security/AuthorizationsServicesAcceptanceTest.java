@@ -58,6 +58,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
@@ -65,6 +66,7 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
@@ -1765,6 +1767,34 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(bob, chuck);
 		verifyRecord(FOLDER3).usersWithReadAccess().containsOnly(bob, charles, dakota, chuck);
 		verifyRecord(FOLDER3_DOC1).usersWithReadAccess().containsOnly(bob, charles, dakota, chuck);
+	}
+
+	//@Test
+	@SlowTest
+	public void givenAGroupHasALotOfUsersThenBAtchProcessUsedWhenGivingAuth()
+			throws Exception {
+
+		createDummyUsersInLegendsGroup(1000);
+		getModelLayerFactory().getBatchProcessesController().close();
+
+		try {
+			auth1 = services.add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+			verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1);
+		} finally {
+			getModelLayerFactory().getBatchProcessesController().initialize();
+		}
+		waitForBatchProcess();
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1005);
+
+		getModelLayerFactory().getBatchProcessesController().close();
+		try {
+			services.execute(authorizationDeleteRequest(auth1, zeCollection));
+			verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1);
+		} finally {
+			getModelLayerFactory().getBatchProcessesController().initialize();
+		}
+		waitForBatchProcess();
+		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1);
 	}
 
 }
