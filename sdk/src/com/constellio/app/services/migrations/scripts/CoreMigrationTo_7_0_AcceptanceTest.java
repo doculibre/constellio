@@ -15,7 +15,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.dev.tools.SecurityUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class CoreMigrationTo_6_7_AcceptanceTest extends ConstellioTest {
+public class CoreMigrationTo_7_0_AcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void startApplicationWithSaveState()

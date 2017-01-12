@@ -11,8 +11,10 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -36,9 +38,11 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -54,22 +58,40 @@ import com.constellio.model.services.schemas.calculators.TokensCalculator3;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 
-public class CoreMigrationTo_6_7 implements MigrationScript {
+public class CoreMigrationTo_7_0 implements MigrationScript {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_6_7.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_0.class);
 
 	@Override
 	public String getVersion() {
-		return "6.7";
+		return "7.0";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		new CoreSchemaAlterationFor6_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		removeQueryFacet(collection, appLayerFactory);
+		new CoreSchemaAlterationFor7_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
 		convertXMLAuthorizationDetailsToSolrAuthorizationDetails(collection, appLayerFactory);
 
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+	}
+
+	private void removeQueryFacet(String collection, AppLayerFactory appLayerFactory)
+			throws Exception {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		List<Facet> facetList = schemas.wrapFacets(searchServices.search(query(from(schemas.facetSchemaType()).whereAllConditions(
+				where(schemas.facetQuerySchema().getMetadata(Facet.FACET_TYPE)).isEqualTo(FacetType.QUERY),
+				where(schemas.facetQuerySchema().getMetadata(Facet.TITLE)).isEqualTo("Création/Modification date")
+		))));
+
+		Transaction transaction = new Transaction();
+		for (Facet facet : facetList) {
+			transaction.update(facet.setActive(false).getWrappedRecord());
+		}
+		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
 	private void convertXMLAuthorizationDetailsToSolrAuthorizationDetails(String collection, AppLayerFactory appLayerFactory)
@@ -258,8 +280,8 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
 		return authCopies;
 	}
 
-	private class CoreSchemaAlterationFor6_7 extends MetadataSchemasAlterationHelper {
-		public CoreSchemaAlterationFor6_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class CoreSchemaAlterationFor7_0 extends MetadataSchemasAlterationHelper {
+		public CoreSchemaAlterationFor7_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
 				AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
