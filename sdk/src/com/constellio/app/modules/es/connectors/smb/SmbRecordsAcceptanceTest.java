@@ -23,6 +23,8 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.security.SecurityTokenManager.TokenProvider;
+import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.sdk.SDKPasswords;
@@ -83,9 +85,6 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		domain = SDKPasswords.testSmbDomain();
 		username = SDKPasswords.testSmbUsername();
 		password = SDKPasswords.testSmbPassword();
-
-		recordServices.update(users.bobIn(zeCollection).setManualTokens("rtoken1"));
-		recordServices.update(users.chuckNorrisIn(zeCollection).setManualTokens("rtoken1", "rtoken2"));
 
 		userWithoutTokens = users.sasquatchIn(zeCollection);
 		userWithCollectionReadAccess = users.gandalfIn(zeCollection);
@@ -219,6 +218,22 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenFetchedFoldersAndDocuments();
+
+		getModelLayerFactory().getSecurityTokenManager().registerProvider(new TokenProvider() {
+			@Override
+			public UserTokens getTokensFor(String username, String collection) {
+				if (username.equals(bob)) {
+					return new UserTokens(asList("rtoken1"));
+				} else if (username.equals(chuck)) {
+					return new UserTokens(asList("rtoken1", "rtoken2"));
+				} else {
+					return new UserTokens();
+				}
+
+				//				recordServices.update(users.bobIn(zeCollection).setManualTokens("rtoken1"));
+				//				recordServices.update(users.chuckNorrisIn(zeCollection).setManualTokens("rtoken1", "rtoken2"));
+			}
+		});
 
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 

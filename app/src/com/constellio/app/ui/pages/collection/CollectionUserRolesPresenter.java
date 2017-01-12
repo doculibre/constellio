@@ -170,8 +170,7 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 	}
 
 	public RoleAuthVO toRoleAuthVO(Authorization roleAuth) {
-		String firstRecord = roleAuth.getGrantedOnRecords().isEmpty() ? null : roleAuth.getGrantedOnRecords().get(0);
-		return new RoleAuthVO(roleAuth.getDetail().getId(), firstRecord, roleAuth.getDetail().getRoles());
+		return new RoleAuthVO(roleAuth.getDetail().getId(), roleAuth.getGrantedOnRecord(), roleAuth.getDetail().getRoles());
 	}
 
 	boolean isTargetFieldVisible() {

@@ -155,7 +155,7 @@ public class CollectionGroupRolesPresenter extends SingleSchemaBasePresenter<Col
 	}
 
 	public RoleAuthVO toRoleAuthVO(Authorization roleAuth) {
-		return new RoleAuthVO(roleAuth.getDetail().getId(), roleAuth.getGrantedOnRecords().get(0),
+		return new RoleAuthVO(roleAuth.getDetail().getId(), roleAuth.getGrantedOnRecord(),
 				roleAuth.getDetail().getRoles());
 	}
 

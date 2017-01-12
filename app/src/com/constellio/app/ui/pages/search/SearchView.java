@@ -5,6 +5,7 @@ import java.util.List;
 import com.constellio.app.ui.pages.base.BaseView;
 
 public interface SearchView extends BaseView {
+	
 	void refreshSearchResultsAndFacets();
 
 	void refreshSearchResults(boolean temporarySave);

@@ -292,7 +292,6 @@ public class RecordAutomaticMetadataServices {
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), schemaTypeCode);
 
 		List<String> paths = new ArrayList<>();
-		List<String> authorizations = new ArrayList<>();
 		List<String> removedAuthorizations = new ArrayList<>();
 		List<String> attachedAncestors = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
@@ -303,7 +302,6 @@ public class RecordAutomaticMetadataServices {
 				Record referencedRecord = recordProvider.getRecord(referenceValue);
 				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
 				paths.addAll(parentPaths);
-				authorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_AUTHORIZATIONS));
 				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
 				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
 			}
@@ -324,7 +322,6 @@ public class RecordAutomaticMetadataServices {
 						Record referencedRecord = recordProvider.getRecord(referenceValue);
 						List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
 						paths.addAll(parentPaths);
-						authorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_AUTHORIZATIONS));
 						removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
 						if (aTaxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
 							attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
@@ -333,7 +330,7 @@ public class RecordAutomaticMetadataServices {
 				}
 			}
 		}
-		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, authorizations, removedAuthorizations,
+		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
 				attachedAncestors);
 		values.put(dependency, value);
 		return true;

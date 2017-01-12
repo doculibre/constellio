@@ -5,7 +5,6 @@ import com.constellio.app.ui.pages.base.BaseView;
 
 public interface HomeView extends BaseView, RecordsManagementViewGroup {
 	
-	String ACTION_MENU = "home.actionMenu";
 	String TABS = "home.tabs";
 
 	void openURL(String url);

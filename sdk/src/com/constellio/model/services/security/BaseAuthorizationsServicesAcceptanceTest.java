@@ -7,6 +7,7 @@ import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -41,14 +42,17 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
@@ -56,6 +60,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.Records;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -633,13 +638,15 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throw new RuntimeException(e);
 		}
 		List<String> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
-				.getAuthorizationsDetails(zeCollection).values()) {
-			authorizations.add(details.getId());
-		}
 
 		for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(ALL)) {
 			authorizations.add(details.getId());
+			try {
+				recordServices.getDocumentById(details.getTarget());
+			} catch (NoSuchRecordWithId e) {
+				throw new RuntimeException(
+						"Auth '" + details.getId() + "' is targetting an inexistent record : " + details.getTarget());
+			}
 		}
 
 		Iterator<Record> recordIterator = searchServices.recordsIterator(query(fromAllSchemasIn(zeCollection).returnAll()));
@@ -647,23 +654,12 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		while (recordIterator.hasNext()) {
 			Record record = recordIterator.next();
 
-			for (String auth : record.<String>getList(Schemas.AUTHORIZATIONS)) {
-				if (!authorizations.contains(auth)) {
-					throw new RuntimeException("Record '" + record.getIdTitle() + "' has an invalid authorization : " + auth);
-				}
-			}
-
 			for (String auth : record.<String>getList(Schemas.REMOVED_AUTHORIZATIONS)) {
 				if (!authorizations.contains(auth)) {
 					throw new RuntimeException("Record '" + record.getIdTitle() + "' has an invalid authorization : " + auth);
 				}
 			}
 
-			for (String auth : record.<String>getList(Schemas.ALL_AUTHORIZATIONS)) {
-				if (!authorizations.contains(auth)) {
-					throw new RuntimeException("Record '" + record.getIdTitle() + "' has an invalid authorization : " + auth);
-				}
-			}
 		}
 
 		return assertThat(authorizations);
@@ -690,6 +686,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			authorizations.add(authOnRecord(authorization.getGrantedOnRecord())
 					.forPrincipalIds(authorization.getGrantedToPrincipals())
 					.givingRoles(details.getRoles().toArray(new String[0]))
+					.startingOn(details.getStartDate()).endingOn(details.getEndDate())
 					.removedOnRecords(removedOnRecords.toArray(new String[0])));
 		}
 		return assertThat(authorizations).usingFieldByFieldElementComparator();
@@ -1073,5 +1070,18 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected ListAssert<Object> assertThatUsersWithGlobalPermissionInZeCollection(String permission) {
 		return assertThatUsersWithGlobalPermissionInCollection(permission, zeCollection);
+	}
+
+	protected List<String> createDummyUsersInLegendsGroup(int qty) {
+		List<String> users = new ArrayList<>();
+		for (int i = 1; i <= qty; i++) {
+			System.out.println("adding user " + i + "/" + qty);
+			String username = "grim.patron." + i;
+			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+					username + "@constellio.com", asList("legends"), asList(zeCollection), ACTIVE);
+			userServices.addUpdateUserCredential(userCredential);
+			users.add(username);
+		}
+		return users;
 	}
 }

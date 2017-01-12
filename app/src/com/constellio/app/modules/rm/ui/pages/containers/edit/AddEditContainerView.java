@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseView;
 
 public interface AddEditContainerView extends BaseView, ArchivesManagementViewGroup {
+	
 	void reloadWithContainer(RecordVO container);
 
 	void setType(String type);

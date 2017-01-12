@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.vaadin.ui.Button;
 
 public class RobotBreadcrumbTrail extends BaseBreadcrumbTrail {
+	
 	private final RobotBreadcrumbTrailPresenter presenter;
 
 	public RobotBreadcrumbTrail(String robotId) {

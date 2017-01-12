@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
@@ -32,7 +33,9 @@ public class ConstellioAgentLink extends HorizontalLayout {
 			}
 		});
 		if (downloadLink) {
-			addComponent(new DownloadContentVersionLink(contentVersionVO, new ThemeResource("images/icons/down.gif")));
+			DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, new ThemeResource("images/icons/actions/download.png"));
+			downloadContentLink.setDescription($("download"));
+			addComponent(downloadContentLink);
 		}
 	}
 

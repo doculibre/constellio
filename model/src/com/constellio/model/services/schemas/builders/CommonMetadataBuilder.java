@@ -208,7 +208,7 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 						.setMultivalue(true)
-						.defineDataEntry().asCalculated(TokensCalculator3.class);
+						.defineDataEntry().asCalculated(TokensCalculator2.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -405,7 +405,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING)
-						.setMultivalue(true)
+						.setMultivalue(true).setEssential(true)
 						.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
@@ -417,7 +417,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REMOVED_AUTHS).setType(STRING)
-						.setMultivalue(true)
+						.setMultivalue(true).setEssential(true)
 						.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());

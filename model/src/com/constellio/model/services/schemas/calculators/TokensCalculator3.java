@@ -17,16 +17,13 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class TokensCalculator3 implements MetadataValueCalculator<List<String>> {
 
-	LocalDependency<List<String>> attachedAncestorsParam = LocalDependency.toAStringList(ATTACHED_ANCESTORS);
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(MANUAL_TOKENS);
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		List<String> attachedAncestors = parameters.get(attachedAncestorsParam);
 		List<String> manualTokens = parameters.get(manualTokensParam);
 
 		List<String> tokens = new ArrayList<>();
-		tokens.addAll(attachedAncestors);
 		tokens.addAll(manualTokens);
 		return new ArrayList<>();
 	}
@@ -48,6 +45,6 @@ public class TokensCalculator3 implements MetadataValueCalculator<List<String>> 
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(attachedAncestorsParam, manualTokensParam);
+		return Arrays.asList(manualTokensParam);
 	}
 }

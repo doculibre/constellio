@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsAnyUserGroupTokens;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.hasMatchingAuthorization;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
@@ -37,7 +38,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		boolean access = true;
 
 		if (readAccess) {
-			access &= user.hasCollectionReadAccess();
+			access &= user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
 		}
 
 		if (writeAccess) {
@@ -55,7 +56,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		boolean access = true;
 
 		if (readAccess) {
-			boolean publicRecord = record.getList(TOKENS).contains(Record.PUBLIC_TOKEN);
+			boolean publicRecord = record.getList(TOKENS).contains(PUBLIC_TOKEN);
 			boolean globalReadAccess =
 					user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
 			access = globalReadAccess || publicRecord || hasReadAccessOn(record) || hasWriteAccessOn(record) ||
@@ -85,6 +86,8 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 	private boolean hasReadAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, READ)
+				|| record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
+				|| UserAuthorizationsUtils.containsAUserToken(user, record)
 				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.READ_ACCESS);
 	}
 

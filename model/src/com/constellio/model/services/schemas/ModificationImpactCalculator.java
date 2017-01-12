@@ -274,10 +274,11 @@ public class ModificationImpactCalculator {
 	private boolean modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(Metadata automaticMeta,
 			Metadata modifiedMeta) {
 
-		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH) || modifiedMeta.isLocalCode(ATTACHED_ANCESTORS)
-				|| (modifiedMeta.isLocalCode(ALL_AUTHORIZATIONS) && automaticMeta.isLocalCode(INHERITED_AUTHORIZATIONS))
-				|| (modifiedMeta.isLocalCode(REMOVED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
-				|| (modifiedMeta.isLocalCode(DETACHED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS));
+		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH)
+				|| (modifiedMeta.isLocalCode(ATTACHED_ANCESTORS) && automaticMeta.isLocalCode(ATTACHED_ANCESTORS))
+//				|| (modifiedMeta.isLocalCode(REMOVED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
+				//				|| (modifiedMeta.isLocalCode(DETACHED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
+				|| (modifiedMeta.isLocalCode(ALL_REMOVED_AUTHS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS));
 	}
 
 	private List<Metadata> getReferenceMetadatasUsedByTheGivenReferenceDependencyToObtainValuesOfTheModifiedMetadata(

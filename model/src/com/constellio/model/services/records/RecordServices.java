@@ -38,6 +38,9 @@ public interface RecordServices {
 	void execute(Transaction transaction)
 			throws RecordServicesException;
 
+	void executeWithoutImpactHandling(Transaction transaction)
+			throws RecordServicesException;
+
 	void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
 			throws RecordServicesException;
 

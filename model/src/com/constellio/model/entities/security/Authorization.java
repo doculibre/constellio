@@ -13,16 +13,13 @@ public class Authorization {
 	AuthorizationDetails detail;
 
 	List<String> grantedToPrincipals = new ArrayList<>();
-	List<String> grantedOnRecords = new ArrayList<>();
 
 	public Authorization() {
 	}
 
-	public Authorization(AuthorizationDetails detail, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
+	public Authorization(AuthorizationDetails detail, List<String> grantedToPrincipals) {
 		this.detail = detail;
 		this.grantedToPrincipals = grantedToPrincipals;
-		this.grantedOnRecords = grantedOnRecords;
 	}
 
 	public AuthorizationDetails getDetail() {
@@ -42,19 +39,7 @@ public class Authorization {
 	}
 
 	public String getGrantedOnRecord() {
-		if (grantedOnRecords.size() > 1) {
-			throw new RuntimeException("Authorization '" + getDetail().getId() + "' has multiple records : " + grantedOnRecords);
-		}
-
-		return grantedOnRecords.isEmpty() ? null : grantedOnRecords.get(0);
-	}
-
-	public List<String> getGrantedOnRecords() {
-		return grantedOnRecords;
-	}
-
-	public void setGrantedOnRecords(List<String> grantedOnRecords) {
-		this.grantedOnRecords = grantedOnRecords;
+		return detail.getTarget();
 	}
 
 	@Override
@@ -69,6 +54,6 @@ public class Authorization {
 
 	@Override
 	public String toString() {
-		return "Authorization{ " + detail + " granted to" + grantedToPrincipals + " on " + grantedOnRecords + "}";
+		return "Authorization{ " + detail + " granted to" + grantedToPrincipals + " on " + detail.getTarget() + "}";
 	}
 }

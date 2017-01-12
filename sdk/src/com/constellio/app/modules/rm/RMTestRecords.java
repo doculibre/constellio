@@ -978,17 +978,17 @@ public class RMTestRecords {
 		/*AdministrativeUnit administrativeUnit = records.getUnit10();
 		Folder folder = createFolder(administrativeUnit);*/
 		grantedOnRecords.addAll(Arrays.asList(getFolder_A01().getId()));
-		Authorization authorization = new Authorization(detail, grantedToPrincipals, grantedOnRecords);
+		Authorization authorization = new Authorization(detail, grantedToPrincipals);
 
 		List<String> grantedOnRecordsBefore = new ArrayList<>();
 		grantedOnRecordsBefore.addAll(
 				Arrays.asList(getFolder_A01().getId(), getFolder_A02().getId()));
 		AuthorizationDetails detailBefore = new XMLAuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
 				false);
-		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
+		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals);
 
 		User charles = users.charlesIn(collection);
-		loggingServices.modifyPermission(authorization, authorizationBefore, null, charles);
+		//loggingServices.modifyPermission(authorization, authorizationBefore, null, charles);
 	}
 
 	private void setupLists(Transaction transaction) {

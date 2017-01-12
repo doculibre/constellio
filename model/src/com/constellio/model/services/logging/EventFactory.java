@@ -232,10 +232,6 @@ public class EventFactory {
 	private String compareAuthorizations(Authorization authorizationBefore, Authorization authorization) {
 		StringBuilder deltaStringBuilder = new StringBuilder("");
 		if (authorizationBefore != null) {
-			String recordsDelta = getAuthorizationsRecordsDelta(authorizationBefore, authorization);
-			if (StringUtils.isNotBlank(recordsDelta)) {
-				deltaStringBuilder.append(recordsDelta);
-			}
 			String principalsDelta = getAuthorizationsPrincipalsDelta(authorizationBefore, authorization);
 			if (StringUtils.isNotBlank(principalsDelta)) {
 				deltaStringBuilder.append("\n" + principalsDelta);
@@ -283,21 +279,6 @@ public class EventFactory {
 		principalsDelta.append(StringUtils.join(addPrincipals, "; "));
 		principalsDelta.append("]\n");
 		return principalsDelta.toString();
-	}
-
-	private String getAuthorizationsRecordsDelta(Authorization authorizationBefore, Authorization authorization) {
-		ListComparisonResults<String> recordsComparisonResults = new LangUtils()
-				.compare(authorizationBefore.getGrantedOnRecords(), authorization.getGrantedOnRecords());
-		if (recordsComparisonResults.getRemovedItems().size() == 0 && recordsComparisonResults.getNewItems().size() == 0) {
-			return "";
-		}
-		//FIXME
-		StringBuilder recordsDelta = new StringBuilder(("Enregistrements :\n -["));
-		recordsDelta.append(StringUtils.join(recordsComparisonResults.getRemovedItems(), "; "));
-		recordsDelta.append("]\n+[");
-		recordsDelta.append(StringUtils.join(recordsComparisonResults.getNewItems(), "; "));
-		recordsDelta.append("]\n");
-		return recordsDelta.toString();
 	}
 
 	private String getAuthorizationDateRange(Authorization authorization) {

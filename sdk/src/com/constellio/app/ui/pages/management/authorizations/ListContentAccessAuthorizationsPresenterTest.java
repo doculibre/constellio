@@ -129,22 +129,22 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 		Authorization authorization5 = mock(Authorization.class, "Authorization5");
 		Authorization authorization6 = mock(Authorization.class, "Authorization6");
 
-		when(authorization1.getGrantedOnRecords()).thenReturn(Arrays.asList(ZE_SECURED_OBJECT));
+		when(authorization1.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
 		when(authorization1.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization2.getGrantedOnRecords()).thenReturn(Arrays.asList(ZENOTHER_SECURED_OBJECT));
+		when(authorization2.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
 		when(authorization2.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization3.getGrantedOnRecords()).thenReturn(Arrays.asList(ZE_SECURED_OBJECT));
+		when(authorization3.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
 		when(authorization3.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization4.getGrantedOnRecords()).thenReturn(Arrays.asList(ZENOTHER_SECURED_OBJECT));
+		when(authorization4.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
 		when(authorization4.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization5.getGrantedOnRecords()).thenReturn(Arrays.asList(ZE_SECURED_OBJECT));
+		when(authorization5.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
 		when(authorization5.getGrantedToPrincipals()).thenReturn(new ArrayList<String>());
 
-		when(authorization6.getGrantedOnRecords()).thenReturn(Arrays.asList(ZENOTHER_SECURED_OBJECT));
+		when(authorization6.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
 		when(authorization6.getGrantedToPrincipals()).thenReturn(new ArrayList<String>());
 
 		Record record = mock(Record.class, "Record");

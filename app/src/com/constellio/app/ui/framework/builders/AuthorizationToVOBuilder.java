@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.builders;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,7 +38,7 @@ public class AuthorizationToVOBuilder implements Serializable {
 
 	public AuthorizationVO build(Authorization authorization) {
 		List<String> principals = authorization.getGrantedToPrincipals();
-		List<String> records = authorization.getGrantedOnRecords();
+		List<String> records = asList(authorization.getGrantedOnRecord());
 		List<String> roles = authorization.getDetail().getRoles();
 
 		List<String> users = new ArrayList<>();

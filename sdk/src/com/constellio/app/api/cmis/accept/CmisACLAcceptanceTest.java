@@ -507,7 +507,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 			Tuple tuple = new Tuple();
 			tuple.addData(new HashSet<>(authorization.getDetail().getRoles()));
 			tuple.addData(new HashSet<>(authorization.getGrantedToPrincipals()));
-			tuple.addData(new HashSet<>(authorization.getGrantedOnRecords()));
+			tuple.addData(new HashSet<>(asList(authorization.getGrantedOnRecord())));
 			tuples.add(tuple);
 		}
 

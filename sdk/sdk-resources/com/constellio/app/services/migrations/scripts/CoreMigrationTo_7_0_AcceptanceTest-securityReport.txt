@@ -1,0 +1,373 @@
+00000000064  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000065  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000066  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000067  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000068  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000069  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000070  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000071  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000072  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000073  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000074  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000075  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000076  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000077  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000078  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000079  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000080  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000081  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000082  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000083  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000084  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000085  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000086  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000087  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000088  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000089  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000090  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000091  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000092  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000093  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000094  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000095  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000096  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000097  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000098  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000099  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000100  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000101  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000102  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000103  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000104  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000105  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000106  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000107  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000108  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000109  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000110  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000111  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000112  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000113  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000114  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000115  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000116  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000117  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000118  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000119  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000120  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000121  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000122  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000123  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000124  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000125  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000126  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000127  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000128  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000129  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000130  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000131  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000132  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000133  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000134  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000135  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000136  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000137  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000138  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000139  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000140  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000141  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000142  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000143  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000144  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000145  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000146  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000147  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000148  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000149  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000150  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000151  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000152  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000153  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000154  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000155  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000156  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000157  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000158  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000159  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000160  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000161  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000162  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000163  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000164  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000165  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000166  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000167  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000168  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000169  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000170  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000171  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000172  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000173  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000174  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000175  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000176  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000177  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000178  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000179  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000180  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000181  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000182  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000183  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000184  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000185  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000186  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000187  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000188  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000189  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000190  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000191  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000192  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000193  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000194  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000195  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000196  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000197  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000198  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000199  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000200  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000201  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000202  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000203  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000204  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000205  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000206  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000207  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000208  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000209  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000210  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000211  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000212  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000213  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000214  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000215  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000216  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000217  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+00000000218  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000219  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000220  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000221  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000222  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000223  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000224  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000225  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000226  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000227  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000228  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000229  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000230  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000231  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000232  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000233  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000234  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000235  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000236  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000237  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000238  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000239  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000240  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000241  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000242  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000243  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000244  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000245  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000246  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000247  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000248  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000249  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000250  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000251  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000252  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000253  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000254  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000255  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000256  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000257  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000258  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000259  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000260  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000261  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000262  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000263  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000264  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000265  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000266  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000267  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000268  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000269  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000270  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000271  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000272  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000273  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000274  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+00000000275  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000276  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000277  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000278  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000279  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000280  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000281  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000282  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000283  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000284  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000285  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000286  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000287  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000288  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000289  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000290  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000291  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000292  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000293  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000294  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000295  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000296  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000297  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000298  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000299  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000300  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000301  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000302  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000303  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000304  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000305  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000306  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000307  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000308  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000309  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000310  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000311  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000312  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000313  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000314  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000315  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000316  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000317  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000318  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000319  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000320  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000321  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000322  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000323  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000324  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000325  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000326  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000327  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000328  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000329  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000330  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+00000000331  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+A01  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A02  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A03  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A04  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A05  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A06  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A07  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A08  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A09  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A10  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A11  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A12  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A13  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A14  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A15  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A16  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A17  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A18  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A19  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A20  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A21  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A22  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A23  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A24  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A25  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A26  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A27  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A42  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A43  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A44  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A45  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A46  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A47  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A48  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A49  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A50  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A51  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A52  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A53  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A54  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A55  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A56  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A57  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A58  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A59  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A79  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A80  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A81  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A82  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A83  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A84  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A85  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A86  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A87  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A88  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A89  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A90  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A91  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A92  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A93  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A94  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A95  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+A96  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	gandalf:RWD	
+B01  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B02  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B03  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B04  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B05  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B06  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B07  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B08  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B09  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B30  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B31  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B32  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B33  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B34  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B35  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B50  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B51  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B52  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B53  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B54  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+B55  admin:RWD	alice:RWD	bob:RW	charles:RW	chuck:RWD	dakota:RWD	edouard:RWD	gandalf:RWD	
+C01  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C02  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C03  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C04  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C05  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C06  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C07  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C08  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C09  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C30  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C31  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C32  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C33  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C34  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C35  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C50  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C51  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C52  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C53  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C54  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	
+C55  admin:RWD	alice:R	bob:RW	chuck:RWD	edouard:RW	gandalf:RWD	

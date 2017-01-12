@@ -1,9 +1,7 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,11 +9,9 @@ import java.util.List;
 import java.util.Locale;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -24,10 +20,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.parser.FileParser;
-import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -35,8 +28,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultReportPresenter {
 	static int LIMIT = 10000;

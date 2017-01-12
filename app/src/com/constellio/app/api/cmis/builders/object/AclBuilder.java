@@ -63,7 +63,7 @@ public class AclBuilder {
 				cmisPermissions.add(CMIS_DELETE);
 			}
 
-			boolean direct = authorization.getGrantedOnRecords().contains(record.getId());
+			boolean direct = authorization.getGrantedOnRecord().equals(record.getId());
 			for (String principalId : authorization.getGrantedToPrincipals()) {
 				AccessControlPrincipalDataImpl principal = toPrincipal(principalId);
 				AccessControlEntryImpl ace = new AccessControlEntryImpl(principal, cmisPermissions);

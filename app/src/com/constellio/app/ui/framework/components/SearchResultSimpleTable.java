@@ -9,20 +9,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.extensions.records.RecordNavigationExtension;
-import com.constellio.app.extensions.records.params.NavigationParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.server.Page;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -35,6 +28,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchResultSimpleTable extends RecordVOTable implements SearchResultTable {
+	
 	public static final String TABLE_STYLE = "search-result-table";
 	public static final String CHECKBOX_PROPERTY = "checkbox";
 
