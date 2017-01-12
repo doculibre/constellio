@@ -25,6 +25,7 @@ import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.HttpRequestUtils;
+import com.constellio.data.utils.UnicodeUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -169,6 +170,7 @@ public class ConstellioAgentUtils {
 		} else {
 			passthroughPath = smbPath;
 		}
+		passthroughPath = UnicodeUtils.unicodeEscape(passthroughPath);
 
 		String agentBaseURL = getAgentBaseURL();
 		StringBuffer sb = new StringBuffer();
@@ -189,15 +191,16 @@ public class ConstellioAgentUtils {
 
 		Record record = recordServices.getDocumentById(recordVO.getId());
 		String schemaCode = record.getSchemaCode();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 
 		String collectionName = record.getCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
 		String currentUsername = currentUserVO.getUsername();
 		String currentUserId = currentUserVO.getId();
+		String filename = contentVersionVO.getFileName();
+		filename = UnicodeUtils.unicodeEscape(filename);
 
 		MetadataSchemaTypes types = types(sessionContext);
-
 		if (UserDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			UserDocument userDocument = new UserDocument(record, types);
 			if (currentUserId.equals(userDocument.getUser())) {
@@ -210,7 +213,7 @@ public class ConstellioAgentUtils {
 				sb.append("/");
 				sb.append(userDocument.getId());
 				sb.append("/");
-				sb.append(contentVersionVO.getFileName());
+				sb.append(filename);
 				resourcePath = sb.toString();
 			} else {
 				resourcePath = null;
@@ -230,7 +233,7 @@ public class ConstellioAgentUtils {
 				sb.append("/");
 				sb.append(document.getId());
 				sb.append("/");
-				sb.append(contentVersionVO.getFileName());
+				sb.append(filename);
 				resourcePath = sb.toString();
 			} else {
 				StringBuffer sb = new StringBuffer();
@@ -242,7 +245,7 @@ public class ConstellioAgentUtils {
 				sb.append("/");
 				sb.append(document.getId());
 				sb.append("/");
-				sb.append(contentVersionVO.getFileName());
+				sb.append(filename);
 				resourcePath = sb.toString();
 			}
 		} else {
@@ -251,7 +254,7 @@ public class ConstellioAgentUtils {
 
 		return resourcePath;
 	}
-
+	
 	private static final MetadataSchemaTypes types(SessionContext sessionContext) {
 		String collectionName = sessionContext.getCurrentCollection();
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
@@ -269,26 +272,12 @@ public class ConstellioAgentUtils {
 			if (request == null) {
 				request = VaadinServletService.getCurrentServletRequest();
 			}
-			String encoding;
-			if (isWindows(request)) {
-				encoding = "cp1252";
-			} else {
-				// TODO Validate after implementing the agent for other OS.
-				encoding = "UTF-8";
-			}
+			String encoding = "UTF-8";
 			String encodedURL;
 			try {
 				encodedURL = URLEncoder.encode(url, encoding);
 			} catch (UnsupportedEncodingException e) {
-				if ("cp1252".equals(encoding)) {
-					try {
-						encodedURL = URLEncoder.encode(url, "ISO-8859-1");
-					} catch (UnsupportedEncodingException e2) {
-						throw new RuntimeException(e2);
-					}
-				} else {
-					throw new RuntimeException(e);
-				}
+				throw new RuntimeException(e);
 			}
 			agentURL = "constellio://" + encodedURL;
 		} else {

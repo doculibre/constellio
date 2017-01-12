@@ -13,7 +13,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
-import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -134,8 +133,6 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle()));
 			}
 		}
-		
-		breadcrumbItems.add(0, new CollectionBreadcrumbItem(collection));
 		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);

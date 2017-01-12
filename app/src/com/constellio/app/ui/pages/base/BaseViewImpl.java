@@ -118,8 +118,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		titleBackButtonLayout.setWidth("100%");
 
 		String title = getTitle();
-		if (breadcrumbTrail == null && collection != null && title != null) {
-			breadcrumbTrail = new TitleBreadcrumbTrail(collection, this, title);
+		if (breadcrumbTrail == null && title != null) {
+			breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
 		} else if (title != null) {
 			titleLabel = new Label(title);
 			titleLabel.addStyleName(ValoTheme.LABEL_H1);

@@ -29,6 +29,7 @@ public class ConstellioAgentLink extends HorizontalLayout {
 		agentLink.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
+				System.out.println(agentURL);
 				new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
 			}
 		});

@@ -12552,7 +12552,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-slot-login-panel .login-logo, .constellio .v-slot-setup-panel .login-logo {
-	float: right;
+	width: 100%;
+	text-align: center;
 	vertical-align: bottom;
 }
 
@@ -13376,11 +13377,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
-	padding-right: 300px;
+	margin-right: 300px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
-	padding-right: 300px;
+	margin-right: 300px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
@@ -13391,7 +13392,7 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 	top: 63px;
 	right: 20px;
-	margin-top: 120px;
+	margin-top: 70px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .v-slot-suggestions-summary-results {
@@ -13447,7 +13448,7 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 	top: 63px;
 	right: 20px;
-	margin-top: 120px;
+	margin-top: 70px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .v-slot-suggestions-summary-results {
@@ -13496,6 +13497,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .v-panel-content-content-view-wrapper {
 	overflow-y: hidden;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .back-button {
+	right: 0px;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .back-button .v-button-caption {

@@ -364,7 +364,8 @@ $popup-view-z-index: 3;
 		background-repeat: no-repeat;
 
 		.login-logo {
-			float: right;
+			width: 100%;
+			text-align: center;
 			vertical-align: bottom;
 		}
     }
@@ -1190,11 +1191,11 @@ $popup-view-z-index: 3;
 					}
 				
 					.v-label-display-value {
-            			padding-right: 300px;
+            			margin-right: 300px;
 					}
 					
 					.reference-display {
-            			padding-right: 300px;
+            			margin-right: 300px;
 					}
 				}
 
@@ -1208,7 +1209,7 @@ $popup-view-z-index: 3;
 	        position: fixed;
 	        top: $header-height;
 	        right: 20px;
-	        margin-top: 120px;
+	        margin-top: 70px;
 	    }
 
     	.v-slot-suggestions-summary-results {
@@ -1285,7 +1286,7 @@ $popup-view-z-index: 3;
 	        position: fixed;
 	        top: $header-height;
 	        right: 20px;
-	        margin-top: 120px;
+	        margin-top: 70px;
 	    }
 
     	.v-slot-suggestions-summary-results {
@@ -1349,6 +1350,7 @@ $popup-view-z-index: 3;
 	    }
 
 		.back-button {
+			right: 0px;
 			.v-button-caption {
 				display: none;
 			}

@@ -83,7 +83,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		welcomeLabel.setSizeUndefined();
 		welcomeLabel.addStyleName(ValoTheme.LABEL_H2);
 		welcomeLabel.addStyleName(ValoTheme.LABEL_COLORED);
-		hLayout.addComponent(welcomeLabel);
+//		hLayout.addComponent(welcomeLabel);
 
 		String linkTarget = presenter.getLogoTarget();
 		Link logo = new Link(null, new ExternalResource(linkTarget));
