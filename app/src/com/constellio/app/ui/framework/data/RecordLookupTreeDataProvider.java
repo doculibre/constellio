@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
-import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.LookupTreeDataProvider;
@@ -27,6 +18,15 @@ import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
 
 public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<String> {
 	private String taxonomyCode;
@@ -79,7 +79,7 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 
-	private String saveResultInCacheAndReturnId(TaxonomySearchRecord searchRecord) {
+	protected String saveResultInCacheAndReturnId(TaxonomySearchRecord searchRecord) {
 		RecordDataTreeNode treeNode = toTreeNode(searchRecord);
 		boolean selectable = ignoreLinkability || searchRecord.isLinkable();
 
@@ -88,7 +88,7 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 		return searchRecord.getId();
 	}
 
-	private User getCurrentUser(ModelLayerFactory modelLayerFactory) {
+	protected User getCurrentUser(ModelLayerFactory modelLayerFactory) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String currentCollection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -97,7 +97,7 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 		return userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
 	}
 
-	private Record getRecord(ModelLayerFactory modelLayerFactory, String id) {
+	protected Record getRecord(ModelLayerFactory modelLayerFactory, String id) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		return recordServices.getDocumentById(id);

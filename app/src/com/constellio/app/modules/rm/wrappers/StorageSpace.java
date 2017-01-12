@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -36,6 +37,8 @@ public class StorageSpace extends RecordWrapper {
 	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
 
 	public static final String AVAILABLE_SIZE = "availableSize";
+
+	public static final String CONTAINER_TYPE = "containerType";
 
 	public StorageSpace(Record record,
 			MetadataSchemaTypes types) {
@@ -149,5 +152,14 @@ public class StorageSpace extends RecordWrapper {
 
 	public Double getAvailableSize() {
 		return get(AVAILABLE_SIZE);
+	}
+
+	public StorageSpace setContainerType(List<ContainerRecordType> containerRecordType) {
+		set(CONTAINER_TYPE, containerRecordType);
+		return this;
+	}
+
+	public List<ContainerRecordType> getContainerType() {
+		return get(CONTAINER_TYPE);
 	}
 }

@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
@@ -12,7 +13,10 @@ import com.constellio.app.modules.rm.model.validators.StorageSpaceValidator;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -26,6 +30,7 @@ public class RMMigrationTo6_7 implements MigrationScript {
     public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory factory)
             throws Exception {
         new SchemaAlterationsFor6_7(collection, provider, factory).migrate();
+        migrateDisplayConfigs(factory, collection);
     }
 
     public static class SchemaAlterationsFor6_7 extends MetadataSchemasAlterationHelper {
@@ -82,6 +87,20 @@ public class RMMigrationTo6_7 implements MigrationScript {
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.AVAILABLE_SIZE)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
                     .defineDataEntry().asCalculated(StorageSpaceAvailableSizeCalculator.class);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.CONTAINER_TYPE)
+                    .setType(MetadataValueType.REFERENCE).setMultivalue(true).setEssential(false).setUndeletable(true)
+                    .defineReferencesTo(typesBuilder.getSchemaType(ContainerRecordType.SCHEMA_TYPE));
         }
+    }
+
+    public void migrateDisplayConfigs(AppLayerFactory appLayerFactory, String collection) {
+        SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+        SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
+
+        transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.CONTAINER_TYPE)
+                .withInputType(MetadataInputType.LOOKUP));
+        transactionBuilder.add(manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.CONTAINER_TYPE));
+        manager.execute(transactionBuilder.build());
     }
 }
