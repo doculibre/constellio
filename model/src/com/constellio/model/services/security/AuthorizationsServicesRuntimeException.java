@@ -103,10 +103,10 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class RecordServicesErrorDuringOperation extends AuthorizationsServicesRuntimeException {
+	public static class AuthServices_RecordServicesException extends AuthorizationsServicesRuntimeException {
 
-		public RecordServicesErrorDuringOperation(String operation, Throwable cause) {
-			super("RecordServicesException on operation '" + operation + "'", cause);
+		public AuthServices_RecordServicesException(Throwable cause) {
+			super("Record service exception", cause);
 		}
 	}
 }

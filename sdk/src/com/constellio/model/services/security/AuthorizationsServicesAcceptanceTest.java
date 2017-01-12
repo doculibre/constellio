@@ -69,7 +69,6 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 
 	//TODO Mieux tester la journalisation des modifications
-	//TODO Tester les services trouvant des utilisateurs en fonction de record avec des autorisations inactives
 
 	LogicalSearchQuery recordsWithPrincipalPath = new LogicalSearchQuery(
 			fromAllSchemasIn(zeCollection).where(PRINCIPAL_PATH).isNotNull());
@@ -143,12 +142,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(foldersWithWriteFound).hasSize(0);
 			assertThat(foldersWithDeleteFound).hasSize(0);
 		}
-	}
-
-	@Before
-	public void printQueries()
-			throws Exception {
-		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 	}
 
 	@Test
@@ -301,10 +294,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenRoleAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
 
-		//Replacing
-		// givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
-		// givenLegendsHaveReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenAliceAndEdouardReturned
-
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
 		auth3 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
@@ -340,42 +329,36 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	//TODO Support this usecase @Test
+	@Test
 	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
 
-		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE2)))
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE2, ROLE3)))
 				.isNot(creatingACopy()).isNot(deleted());
 		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE1, ROLE3)))
 				.isNot(creatingACopy()).isNot(deleted());
 
 		assertThatAllAuthorizations().containsOnly(
-				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE2).forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE2, ROLE3).forPrincipals(bob),
 				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE1, ROLE3).forPrincipals(heroes)
 		);
 
 		//TODO Bug! Robin should have ROLE1 and ROLE3
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3_DOC1, FOLDER4_1_DOC1, FOLDER4_2)) {
-			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf);
 			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
 			verifyRecord.usersWithRole(ROLE3).containsOnly(bob, charles, dakota, gandalf);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
-		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
 	@Test
 	public void givenAccessAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
-
-		//Replacing
-		//- givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
-		//- whenAddingAndRemovingAuthorizationToAGroupThenAppliedToAllUsers
-		//- givenLegendsHaveAuthWhenAddingAuthToAliceThenAliceInheritsLegendsAuthsAlongsideHerOwn
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -585,10 +568,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenGroupAuthorizationsWhenAddOrRemoveUsersInGroupThenInstantaneousEffectOnSecurity()
 			throws Exception {
-
-		//Replacing
-		//- whenAddingAndRemovingGroupToAUserThenHeReceivesAndLoseGroupAuthorizations
-		//- whenAddingAndRemovingUserToAGroupThenHeReceivesAndLoseGroupAuthorizations
 
 		add(authorizationForGroup(heroes).on(TAXO1_CATEGORY1).givingReadWriteAccess());
 		add(authorizationForGroup(heroes).on(TAXO1_CATEGORY1).giving(ROLE1));

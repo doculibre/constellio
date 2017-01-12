@@ -292,13 +292,6 @@ public class User extends RecordWrapper {
 			activeAuthsTokens.add("d_" + groupId);
 		}
 
-		for (String auth : getAllUserAuthorizations()) {
-			AuthorizationDetails authorizationDetails = roles.getSchemasRecordsServices().getSolrAuthorizationDetails(auth);
-			if (authorizationDetails.isActiveAuthorization()) {
-				activeAuthsTokens.addAll(TokensCalculator2.getTokensForAuthId(auth));
-			}
-		}
-
 		return activeAuthsTokens;
 	}
 
