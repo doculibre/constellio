@@ -142,16 +142,6 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 				.get("newInvalidAuthorizationWithInvalidRole");
 		assertThat(newInvalidAuthorizationWithInvalidRole.getErrorMessage()).isEqualTo($(INVALID_ROLE));
 
-		validateNewAuthorization();
-	}
-
-	private void validateNewAuthorization() {
-		String newValidAuthorizationId = authorizationsServices.getAuthorizationIdByIdWithoutPrefix(zeCollection,
-				"newValidAuthorization");
-		Authorization newValidAuthorization = authorizationsServices.getAuthorization(zeCollection, newValidAuthorizationId);
-		assertThat(newValidAuthorization.getDetail().getRoles()).containsExactly("u", "m", "rgd");
-		assertThat(newValidAuthorization.getGrantedToPrincipals()).containsOnly(alice.getId(), heroes.getId());
-		assertThat(newValidAuthorization.getGrantedOnRecord()).isEqualTo(documentHavingLegacyId.getId());
 	}
 
 	private Map<String, ImportError> getErrorsMap(List<ImportError> importErrors) {

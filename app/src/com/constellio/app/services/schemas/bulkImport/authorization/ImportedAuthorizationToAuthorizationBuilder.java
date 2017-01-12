@@ -1,5 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 		}
 		List<String> roles = getRoles(importedAuthorization);
 
-		return authorizationInCollectionWithId(collection, importedAuthorization.getId())
+		return authorizationInCollection(collection)
 				.forPrincipalsIds(grantedToPrincipals).giving(grantedOnRecords).giving(roles).on(grantedOnRecords.get(0));
 	}
 

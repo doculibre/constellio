@@ -111,20 +111,6 @@ public class AuthorizationsServices {
 		return new SchemasRecordsServices(collection, modelLayerFactory);
 	}
 
-	@Deprecated
-	//TODO Remove this method with new auth system
-	public String getAuthorizationIdByIdWithoutPrefix(String collection, String idWithoutPrefix) {
-
-		SchemasRecordsServices schemas = schemas(collection);
-		List<SolrAuthorizationDetails> authorizationDetails = schemas.searchSolrAuthorizationDetailss(
-				where(IDENTIFIER).isEndingWithText(idWithoutPrefix));
-
-		if (authorizationDetails.isEmpty()) {
-			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(idWithoutPrefix);
-		}
-		return authorizationDetails.get(0).getId();
-	}
-
 	public Authorization getAuthorization(String collection, String id) {
 		if (collection == null) {
 			throw new IllegalArgumentException("Collection is null");
@@ -614,11 +600,15 @@ public class AuthorizationsServices {
 	}
 
 	private void executeTransaction(AuthTransaction transaction) {
+		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		try {
-			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-			recordServices.executeHandlingImpactsAsync(transaction);
-		} catch (com.constellio.model.services.records.RecordServicesException e) {
-			throw new AuthServices_RecordServicesException(e);
+			recordServices.execute(transaction);
+		} catch (Exception e) {
+			try {
+				recordServices.executeHandlingImpactsAsync(transaction);
+			} catch (com.constellio.model.services.records.RecordServicesException e2) {
+				throw new AuthServices_RecordServicesException(e2);
+			}
 		}
 
 		for (AuthorizationDetails details : transaction.authsDetailsToDelete) {
@@ -750,8 +740,23 @@ public class AuthorizationsServices {
 
 		}
 		if (request.getNewAccessAndRoles() != null) {
-			((SolrAuthorizationDetails) authorizationDetails).setRoles(request.getNewAccessAndRoles());
-			transaction.add((SolrAuthorizationDetails) authorizationDetails);
+			List<String> accessAndRoles = new ArrayList<String>(request.getNewAccessAndRoles());
+			if (accessAndRoles.contains(Role.DELETE) && !accessAndRoles.contains(Role.READ)) {
+				accessAndRoles.add(0, Role.READ);
+			}
+			if (accessAndRoles.contains(Role.WRITE) && !accessAndRoles.contains(Role.READ)) {
+				accessAndRoles.add(0, Role.READ);
+			}
+
+			transaction.add((SolrAuthorizationDetails) authorizationDetails).setRoles(accessAndRoles);
+		}
+
+		if (request.getNewStartDate() != null || request.getNewEndDate() != null) {
+			LocalDate startDate = request.getNewStartDate() == null ?
+					authorizationDetails.getStartDate() : request.getNewStartDate();
+			LocalDate endDate = request.getNewEndDate() == null ? authorizationDetails.getEndDate() : request.getNewEndDate();
+			validateDates(startDate, endDate);
+			transaction.add((SolrAuthorizationDetails) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
 		}
 	}
 
@@ -1068,7 +1073,10 @@ public class AuthorizationsServices {
 
 	private SolrAuthorizationDetails newAuthorizationDetails(String collection, String id, List<String> roles,
 			LocalDate startDate, LocalDate endDate) {
-		return schemas(collection).newSolrAuthorizationDetails().setRoles(roles).setStartDate(startDate).setEndDate(endDate);
+		SolrAuthorizationDetails details = id == null ? schemas(collection).newSolrAuthorizationDetails()
+				: schemas(collection).newSolrAuthorizationDetailsWithId(id);
+
+		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate);
 	}
 
 }

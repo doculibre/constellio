@@ -38,7 +38,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		boolean access = true;
 
 		if (readAccess) {
-			access &= user.hasCollectionReadAccess();
+			access &= user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
 		}
 
 		if (writeAccess) {

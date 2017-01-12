@@ -306,7 +306,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER1).givingRoles(ROLE2).forPrincipals(sasquatch)
 		);
 
-		//TODO Bug! Robin should have ROLE1
+		//TODO Should be inherited in child groups : Robin would have ROLE1
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
 			verifyRecord.usersWithRole(ROLE2).isEmpty();
@@ -346,7 +346,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE1, ROLE3).forPrincipals(heroes)
 		);
 
-		//TODO Bug! Robin should have ROLE1 and ROLE3
+		//TODO Should be inherited in child groups : Robin should have ROLE1 and ROLE3
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3_DOC1, FOLDER4_1_DOC1, FOLDER4_2)) {
 			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf);
 			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
@@ -389,7 +389,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	//TODO Support this usecase @Test
+	@Test
 	public void givenAccessTypesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
@@ -397,8 +397,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2)) {
-			verifyRecord.usersWithDeleteAccess().isEmpty();
-			verifyRecord.usersWithWriteAccess().isEmpty();
+			verifyRecord.usersWithDeleteAccess().containsOnly(chuck);
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
 		}
 
 		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewAccessAndRoles(WRITE, DELETE)))
@@ -412,12 +412,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		);
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER4, FOLDER4_1_DOC1, FOLDER3_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(charles, dakota, gandalf, bob, robin);
-			verifyRecord.usersWithDeleteAccess().containsOnly(bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(charles, dakota, gandalf, bob, robin, chuck);
+			verifyRecord.usersWithDeleteAccess().containsOnly(bob, chuck);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
-		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
 	@Test
@@ -576,19 +575,16 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(charles, dakota, gandalf, chuck, robin);
-			//TODO Bug : Robin expected
+			//TODO Should be inherited in child groups : Robin would be expected
 			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithDeleteAccess().containsOnly(charles, dakota, gandalf, chuck, robin);
 
-			//TODO Bug : Robin expected
+			//TODO Should be inherited in child groups : Robin would be expected
 			verifyRecord.usersWithRole(ROLE2).containsOnly(charles, dakota, gandalf);
 		}
-
-		//TODO
-		assertThatBatchProcessDuringTest().hasSize(8);
 
 		givenUser(charles).isRemovedFromGroup(heroes);
 		givenUser(robin).isRemovedFromGroup(sidekicks);
@@ -597,14 +593,14 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
-			//TODO Bug : Edouard expected
+			//TODO Should be inherited in child groups : Edouard would be expected
 			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithDeleteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
 
-			//TODO Bug : Edouard expected
+			//TODO Should be inherited in child groups : Edouard would expected
 			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf);
 		}
 
@@ -679,7 +675,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenAuthorizationWhenModifyingAuthorizationWithInvalidPrincipalsThenValidationException()
 			throws Exception {
 
-		//Cannot add an authorization with an invalid principal id
 		try {
 			auth1 = add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds("inexistentId1")
 					.on(TAXO1_CATEGORY1));
@@ -1135,18 +1130,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(users.edouardIn(zeCollection).hasWriteAccess().globally()).isFalse();
 		assertThat(users.edouardIn(zeCollection).hasDeleteAccess().globally()).isFalse();
 
-		//Found a bug!
-		//assertThat(users.dakotaIn(zeCollection).hasReadAccess().globally()).isTrue();
+		assertThat(users.dakotaIn(zeCollection).hasReadAccess().globally()).isTrue();
 		assertThat(users.dakotaIn(zeCollection).hasWriteAccess().globally()).isTrue();
 		assertThat(users.dakotaIn(zeCollection).hasDeleteAccess().globally()).isFalse();
 
-		//Found a bug!
-		//assertThat(users.aliceIn(zeCollection).hasReadAccess().globally()).isTrue();
+		assertThat(users.aliceIn(zeCollection).hasReadAccess().globally()).isTrue();
 		assertThat(users.aliceIn(zeCollection).hasWriteAccess().globally()).isFalse();
 		assertThat(users.aliceIn(zeCollection).hasDeleteAccess().globally()).isTrue();
 
-		//Found a bug!
-		//assertThat(users.sasquatchIn(zeCollection).hasReadAccess().globally()).isTrue();
+		assertThat(users.sasquatchIn(zeCollection).hasReadAccess().globally()).isTrue();
 		assertThat(users.sasquatchIn(zeCollection).hasWriteAccess().globally()).isTrue();
 		assertThat(users.sasquatchIn(zeCollection).hasDeleteAccess().globally()).isTrue();
 	}
@@ -1493,7 +1485,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	//todo uncomment with new auth system @Test
+	@Test
 	public void whenModifyingMultipleFieldsAtOnceOnAnAuthorizationOfARecordThenAllApplied()
 			throws Exception {
 
@@ -1520,7 +1512,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	//todo uncomment with new auth system @Test
+	@Test
 	public void whenModifyingMultipleFieldsAtOnceOnAnAuthorizationInheritedByARecordThenAllApplied()
 			throws Exception {
 

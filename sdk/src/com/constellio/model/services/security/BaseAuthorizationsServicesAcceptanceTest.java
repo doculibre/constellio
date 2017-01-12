@@ -684,6 +684,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			authorizations.add(authOnRecord(authorization.getGrantedOnRecord())
 					.forPrincipalIds(authorization.getGrantedToPrincipals())
 					.givingRoles(details.getRoles().toArray(new String[0]))
+					.startingOn(details.getStartDate()).endingOn(details.getEndDate())
 					.removedOnRecords(removedOnRecords.toArray(new String[0])));
 		}
 		return assertThat(authorizations).usingFieldByFieldElementComparator();
@@ -952,8 +953,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	@Deprecated
 	protected Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
 			String grantedOnRecord) {
-
-
 
 		id = services.add(authorizationInCollectionWithId(zeCollection, id).forPrincipalsIds(grantedToPrincipals)
 				.on(grantedOnRecord)
