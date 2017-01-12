@@ -913,6 +913,11 @@ $popup-view-z-index: 3;
             					white-space: normal;
             					height: inherit;
 							}
+							
+							.download-content-version-link {
+            					white-space: normal;
+            					height: inherit;
+							}
 
 							.copy-retention-rule-table-medium-types-field {
 								border: none;
@@ -937,6 +942,18 @@ $popup-view-z-index: 3;
 									padding-left: 5px;
 								}
 							}
+							
+							.search-result-and-facets-container {
+								.search-result-area {
+								}
+							
+								.v-slot-search-result-facets {
+									
+									.search-result-facets {
+									}	
+								}
+							
+							} 
 
 							.search-result-table {
 								* {
