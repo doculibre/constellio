@@ -645,7 +645,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		assertThat(metadatas).extracting("localCode")
 				.isEqualTo(asList("allReferences", "allRemovedAuths", "attachedAncestors", "inheritedauthorizations", "m2",
-						"parentpath", "allauthorizations", "m1", "path", "tokens", "pathParts", "principalpath"));
+						"parentpath", "tokens", "allauthorizations", "m1", "path", "pathParts", "principalpath"));
 
 	}
 
