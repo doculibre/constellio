@@ -19,11 +19,9 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Property;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -60,12 +58,12 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
     @Override
     protected Component initContent() {
         HorizontalLayout horizontalLayout = ((HorizontalLayout) super.initContent());
-        horizontalLayout.addComponent(buildNewLookupButton(), 1);
+        horizontalLayout.addComponent(buildNewLookupButton(), 2);
         return horizontalLayout;
     }
 
     private Component buildNewLookupButton() {
-        final WindowButton lookupButton = new WindowButton(null, $("asd")) {
+        final WindowButton lookupButton = new WindowButton($("ContainerStorageLookupField.suggested"), $("ContainerStorageLookupField.suggested")) {
             @Override
             protected Component buildWindowContent() {
                 return new LookupWindowContent(getWindow()) {
@@ -76,8 +74,6 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
                 };
             }
         };
-        lookupButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
-        lookupButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
         lookupButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
 
         addValueChangeListener(new ValueChangeListener() {
