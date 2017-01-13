@@ -123,4 +123,8 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 		return service.isActive(recordVO);
 	}
 
+	public void backButtonClicked() {
+		view.navigate().to().adminModule();
+	}
+
 }

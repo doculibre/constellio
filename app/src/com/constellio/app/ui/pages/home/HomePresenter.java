@@ -56,11 +56,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 
 	public void recordClicked(String id, String taxonomyCode) {
 		if (id != null && !id.startsWith("dummy")) {
-			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 			try {
 				Record record = getRecord(id);
 				String schemaCode = record.getSchemaCode();
-				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.getUIContext().setAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
 					view.navigate().to(RMViews.class).displayFolder(id);

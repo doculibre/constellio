@@ -78,7 +78,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 		String username = getSessionContext().getCurrentUser().getUsername();
 		presenter.setUsername(username);
-		profileVO = presenter.getProfilVO(username);
+		profileVO = presenter.getProfileVO(username);
 	}
 
 	@Override
@@ -270,7 +270,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		taxonomyField.setId("defaultTaxonomy");
 		taxonomyField.setMultiSelect(false);
 		taxonomyField.setRequired(false);
-		for (TaxonomyVO value : presenter.getEnableTaxonomies()) {
+		for (TaxonomyVO value : presenter.getEnabledTaxonomies()) {
 			taxonomyField.addItem(value.getCode());
 			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
 		}

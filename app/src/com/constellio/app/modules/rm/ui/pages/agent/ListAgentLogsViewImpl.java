@@ -120,4 +120,14 @@ public class ListAgentLogsViewImpl extends BaseViewImpl implements ListAgentLogs
 		}
 	}
 
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
+	}
+
 }

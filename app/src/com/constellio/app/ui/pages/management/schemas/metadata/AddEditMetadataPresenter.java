@@ -13,6 +13,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -87,17 +88,24 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public List<String> getMetadataTypesCode() {
-		List<String> typeCode = new ArrayList<>();
-		for (MetadataSchemaType type : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchemaTypes()) {
+		List<String> typeCodes = new ArrayList<>();
+		final Map<String, String> typeCodesAndLabels = new HashMap<>();
+		for (MetadataSchemaType type : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
 			if (this.isAllowedReferenceType(type)) {
-				typeCode.add(type.getCode());
+				typeCodes.add(type.getCode());
+				Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+				typeCodesAndLabels.put(type.getCode(), type.getLabel(language));
 			}
 		}
-
-		return typeCode;
+		Collections.sort(typeCodes, new AbstractTextComparator<String>() {
+			@Override
+			protected String getText(String typeCode) {
+				return typeCodesAndLabels.get(typeCode);
+			}
+		});
+		return typeCodes;
 	}
-
+	
 	public String getMetadataTypesCaption(String code) {
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(code);
 		return type.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));

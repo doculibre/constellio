@@ -11843,10 +11843,6 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 16px;
 }
 
-.constellio .v-label-h1 {
-	margin-bottom: 0px;
-}
-
 .constellio .v-tooltip {
 	font-weight: bold;
 	background-color: #197de1;
@@ -12547,7 +12543,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-slot-login-panel, .constellio .v-slot-setup-panel {
-	background-image: url(images/back-const-1920x1358.jpg);
+	background-image: url(images/background.jpg);
 	background-repeat: no-repeat;
 }
 
@@ -12628,6 +12624,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-disabled:hover {
 	text-decoration: none;
+}
+
+.constellio .v-filterselect {
+	width: 100%;
 }
 
 .constellio .v-filterselect-suggestmenu .gwt-MenuItem {

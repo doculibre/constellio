@@ -72,6 +72,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName("records-management");
@@ -179,6 +184,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
+		subTabSheet.setSelectedTab(recordTree.getDefaultDataProvider());
 		return subTabSheet;
 	}
 

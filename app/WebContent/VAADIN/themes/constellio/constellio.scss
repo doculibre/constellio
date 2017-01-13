@@ -69,7 +69,6 @@ $popup-view-z-index: 3;
 	}
 	
 	.v-label-h1 {
-		margin-bottom: 0px;
 	}
 
 	.v-tooltip {
@@ -360,7 +359,7 @@ $popup-view-z-index: 3;
     }
 
     .v-slot-login-panel, .v-slot-setup-panel {
-    	background-image: url(images/back-const-1920x1358.jpg);
+    	background-image: url(images/background.jpg);
 		background-repeat: no-repeat;
 
 		.login-logo {
@@ -446,6 +445,10 @@ $popup-view-z-index: 3;
 
     .v-disabled:hover {
     	text-decoration: none;
+    }
+    
+    .v-filterselect {
+    	width: 100%;
     }
     
     .v-filterselect-suggestmenu {
