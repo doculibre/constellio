@@ -6,13 +6,17 @@ import java.util.List;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 
 public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 	
-	public TitleBreadcrumbTrail(final String collectionCode, final BaseView view, final String viewTitle) {
-		addItem(new CollectionBreadcrumbItem(collectionCode)); 
+	public TitleBreadcrumbTrail(final BaseView view, final String viewTitle) {
+		String collectionCode = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+		if (StringUtils.isNotBlank(collectionCode)) {
+			addItem(new CollectionBreadcrumbItem(collectionCode)); 
+		}
 		
 		String viewGroupLabel = null;
 		List<Class<?>> implementedInterfaces = ClassUtils.getAllInterfaces(view.getClass());
@@ -32,7 +36,7 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		if (StringUtils.isNotBlank(viewGroupLabel)) {
 			addItem(new DefaultBreadcrumbItem(viewGroupLabel, false)); 
 		}
-		if (StringUtils.isBlank(viewGroupLabel) || !viewGroupLabel.equals(viewTitle)) {
+		if (StringUtils.isNotBlank(viewTitle) && (StringUtils.isBlank(viewGroupLabel) || !viewGroupLabel.equals(viewTitle))) {
 			addItem(new DefaultBreadcrumbItem(viewTitle, false)); 
 		}
 	}

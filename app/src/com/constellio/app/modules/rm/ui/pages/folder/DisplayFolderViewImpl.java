@@ -172,7 +172,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode);
+		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
 	}
 
 	@Override

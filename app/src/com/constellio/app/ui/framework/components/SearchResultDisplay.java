@@ -46,6 +46,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
 		title.addStyleName(TITLE_STYLE);
+		title.setWidthUndefined();
 		return title;
 	}
 

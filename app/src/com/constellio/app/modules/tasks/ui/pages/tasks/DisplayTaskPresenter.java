@@ -226,7 +226,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public boolean isDeleteCurrentTaskButtonVisible() {
-		return isDeleteTaskButtonVisible(taskVO);
+		return isDeleteButtonVisible(taskVO);
 	}
 
 	public boolean isCompleteTaskButtonVisible(RecordVO entity) {
@@ -237,7 +237,8 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		return taskPresenterServices.isCloseTaskButtonVisible(toRecord(entity), getCurrentUser());
 	}
 
-	public boolean isDeleteTaskButtonVisible(RecordVO entity) {
+	@Override
+	public boolean isDeleteButtonVisible(RecordVO entity) {
 		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(entity), getCurrentUser());
 	}
 

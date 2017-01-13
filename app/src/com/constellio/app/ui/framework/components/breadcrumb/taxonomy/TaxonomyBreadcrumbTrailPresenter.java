@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyPresentersService;
@@ -60,9 +59,6 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 			}
 		}
 		breadcrumbItems.add(new TaxonomyBreadcrumbItem(conceptId));
-		
-		String collection = breadcrumbTrail.getSessionContext().getCurrentCollection();
-		breadcrumbItems.add(0, new CollectionBreadcrumbItem(collection));
 		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);

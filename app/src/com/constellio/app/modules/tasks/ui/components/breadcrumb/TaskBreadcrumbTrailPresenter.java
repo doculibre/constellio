@@ -42,9 +42,6 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 			currentRecordId = task.getParentTask();
 		}
 		
-		String collection = breadcrumbTrail.getSessionContext().getCurrentCollection();
-		breadcrumbItems.add(0, new CollectionBreadcrumbItem(collection));
-		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}

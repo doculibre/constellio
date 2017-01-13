@@ -7,7 +7,6 @@ import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 
 public class RobotBreadcrumbTrailPresenter implements Serializable {
@@ -20,9 +19,6 @@ public class RobotBreadcrumbTrailPresenter implements Serializable {
 	}
 
 	public RobotBreadcrumbTrailPresenter createItems() {
-		String collection = trail.getSessionContext().getCurrentCollection();
-		trail.addItem(new CollectionBreadcrumbItem(collection));
-		
 		for (Robot robot : service().loadAncestors(robotId)) {
 			String id = robot.getId();
 			String caption = SchemaCaptionUtils.getCaptionForRecord(robot.getWrappedRecord());

@@ -86,6 +86,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
+		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
 			refreshSearchResultsAndFacets(false);
@@ -165,8 +166,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		suggestions.addStyleName("spell-checker");
 
 		summary = new VerticalLayout();
+		summary.addStyleName("search-result-summary");
 
 		resultsArea = new VerticalLayout();
+		resultsArea.addStyleName("search-result-area");
+//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
 		facetsArea = new VerticalLayout();
@@ -175,6 +179,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		facetsArea.setSpacing(true);
 
 		HorizontalLayout body = new HorizontalLayout(resultsArea, facetsArea);
+		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
