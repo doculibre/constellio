@@ -24,6 +24,7 @@ import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitEx
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
@@ -413,4 +414,11 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public boolean tryRepairAutomaticValue(TryRepairAutomaticValueParams params) {
+		boolean repaired = false;
+		for (SystemCheckExtension extension : systemCheckExtensions) {
+			repaired |= extension.tryRepairAutomaticValue(params);
+		}
+		return repaired;
+	}
 }

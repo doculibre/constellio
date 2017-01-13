@@ -1,5 +1,6 @@
 package com.constellio.model.services.users;
 
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -7,10 +8,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
@@ -18,16 +21,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_InvalidParent;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
+import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_RecordException;
 
 public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemCollectionListener {
 	private final ModelLayerFactory modelLayerFactory;
@@ -144,16 +143,25 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	}
 
 	@Override
-	public void removeCollection(String collection) {
-		Transaction transaction = new Transaction();
-		for (GlobalGroup group : schemas.wrapGlobalGroups(searchServices.search(getGroupsInCollectionQuery(collection)))) {
-			transaction.add((SolrGlobalGroup) group.withRemovedCollection(collection));
-		}
+	public void removeCollection(final String collection) {
 		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			new ActionExecutorInBatch(searchServices, "Remove collection in global groups", 100) {
+
+				@Override
+				public void doActionOnBatch(List<Record> records)
+						throws Exception {
+					Transaction transaction = new Transaction();
+					transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
+					for (Record record : records) {
+						transaction.add((SolrGlobalGroup) schemas.wrapGlobalGroup(record)).withRemovedCollection(collection);
+					}
+
+					modelLayerFactory.newRecordServices().execute(transaction);
+
+				}
+			}.execute(getGroupsInCollectionQuery(collection));
+		} catch (Exception e) {
+			throw new GlobalGroupsManagerRuntimeException_RecordException(e);
 		}
 	}
 
