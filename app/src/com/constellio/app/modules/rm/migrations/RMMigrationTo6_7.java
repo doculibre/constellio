@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
@@ -17,10 +18,20 @@ import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class RMMigrationTo6_7 implements MigrationScript {
+
+    AppLayerFactory appLayerFactory;
+    String collection;
+    MigrationResourcesProvider migrationResourcesProvider;
+
     @Override
     public String getVersion() {
         return "6.7";
@@ -29,8 +40,12 @@ public class RMMigrationTo6_7 implements MigrationScript {
     @Override
     public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory factory)
             throws Exception {
+        this.appLayerFactory = factory;
+        this.collection = collection;
+        migrationResourcesProvider = provider;
         new SchemaAlterationsFor6_7(collection, provider, factory).migrate();
         migrateDisplayConfigs(factory, collection);
+        reloadEmailTemplates();
     }
 
     public static class SchemaAlterationsFor6_7 extends MetadataSchemasAlterationHelper {
@@ -102,5 +117,26 @@ public class RMMigrationTo6_7 implements MigrationScript {
                 .withInputType(MetadataInputType.LOOKUP));
         transactionBuilder.add(manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.CONTAINER_TYPE));
         manager.execute(transactionBuilder.build());
+    }
+
+    private void reloadEmailTemplates() {
+        if(appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
+            reloadEmailTemplate("alertWhenDecommissioningListCreatedTemplate_en.html", RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
+        }
+        else {
+            reloadEmailTemplate("alertWhenDecommissioningListCreatedTemplate.html", RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
+        }
+    }
+
+    private void reloadEmailTemplate(final String templateFileName, final String templateId) {
+        final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
+
+        try {
+            appLayerFactory.getModelLayerFactory().getEmailTemplatesManager().addCollectionTemplateIfInexistent(templateId, collection, templateInputStream);
+        } catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
+            throw new RuntimeException(e);
+        } finally {
+            IOUtils.closeQuietly(templateInputStream);
+        }
     }
 }

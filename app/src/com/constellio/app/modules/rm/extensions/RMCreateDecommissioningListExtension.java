@@ -82,31 +82,31 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 			Transaction transaction = new Transaction();
 			UserServices userServices = modelLayerFactory.newUserServices();
 			List<User> userList = userServices.getAllUsersInCollection(collection);
+			EmailToSend emailToSend = newEmailToSend();
+			List<EmailAddress> emailAddresses = new ArrayList<>();
 
 			for (User user : userList) {
 				if(user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(record)) {
-					EmailToSend emailToSend = newEmailToSend();
-					EmailAddress toAddress = new EmailAddress(user.getTitle(), user.getEmail());
-
-					LocalDateTime returnDate = TimeProvider.getLocalDateTime();
-					emailToSend.setTo(toAddress);
-					emailToSend.setSendOn(returnDate);
-					final String subject = $("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + DecommissioningList.SCHEMA_TYPE).toLowerCase()) + ": " + record.getTitle();
-					emailToSend.setSubject(subject);
-					emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
-					List<String> parameters = new ArrayList<>();
-					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
-					parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
-					String rmObjectTitle = decommissioningList.getTitle();
-					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
-					String constellioUrl = eimConfigs.getConstellioUrl();
-					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
-					parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("AddEditTaxonomyView.classifiedObject." + DecommissioningList.SCHEMA_TYPE).toLowerCase());
-					emailToSend.setParameters(parameters);
-					transaction.add(emailToSend);
+					emailAddresses.add(new EmailAddress(user.getTitle(), user.getEmail()));
 				}
 			}
+			LocalDateTime creationDate = TimeProvider.getLocalDateTime();
+			emailToSend.setTo(emailAddresses);
+			emailToSend.setSendOn(creationDate);
+			final String subject = $("RMObject.alertWhenAvailableSubject", record.getTitle());
+			emailToSend.setSubject(subject);
+			emailToSend.setTemplate(RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
+			List<String> parameters = new ArrayList<>();
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+			parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
+			String rmObjectTitle = decommissioningList.getTitle();
+			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+			String constellioUrl = eimConfigs.getConstellioUrl();
+			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
+			emailToSend.setParameters(parameters);
+			transaction.add(emailToSend);
+
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			LOGGER.error("Cannot alert users", e);

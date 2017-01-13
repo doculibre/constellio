@@ -217,6 +217,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMOldSchemasBlockageRecordExtension());
 		extensions.recordExtensions.add(new RMCheckInAlertsRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMFolderExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMCreateDecommissioningListExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
