@@ -511,7 +511,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		assertThatRecord(rm.getFolder(folder.getId()))
 				.hasMetadata(Folder.CATEGORY_CODE, "X13")
-				.hasMetadata(Folder.ADMINISTRATIVE_UNIT_CODE, "A10")
+				.hasMetadata(Folder.ADMINISTRATIVE_UNIT_CODE, "10A")
 				.hasMetadata("zeCalculatedMetadata", "Ze ultimate X13");
 
 		recordServices.update(rm.getCategoryWithCode("X13").setCode("X-13"));
@@ -1651,7 +1651,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2020));
 	}
 
-
 	@Test
 	public void givenRuleActiveDateBasedOnLastPartOfTimeRangeAndSemiActiveDateBasedOnNumberMetadataThenValidCalculatedDates()
 			throws Exception {
@@ -2262,7 +2261,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -2294,7 +2294,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -2326,7 +2327,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -2372,9 +2374,9 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		System.out.println(folder.getCategory());
 	}
-	
+
 	@Test
-	public void givenRetentionRuleWithoutSemiActivePeriodWhenCreatingAFolderWithThisRuleThenExpectedTransferDateIsNull() 
+	public void givenRetentionRuleWithoutSemiActivePeriodWhenCreatingAFolderWithThisRuleThenExpectedTransferDateIsNull()
 			throws Exception {
 		Folder folder = saveAndLoad(folderWithSingleCopyRule(principal("888-0-D", PA))
 				.setOpenDate(november4_2009)

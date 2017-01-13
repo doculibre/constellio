@@ -52,6 +52,7 @@ public class RecordServicesAgregatedMetadatasAcceptTestRecords {
 		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord1"));
 		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord2"));
 
+
 		recordServices.execute(transaction);
 		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
 	}

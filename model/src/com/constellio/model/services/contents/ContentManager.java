@@ -104,6 +104,10 @@ public class ContentManager implements StatefulService {
 	private final IcapService icapService;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
+		this(modelLayerFactory, new IcapService(modelLayerFactory));
+	}
+
+	public ContentManager(ModelLayerFactory modelLayerFactory, IcapService icapService) {
 		super();
 		this.modelLayerFactory = modelLayerFactory;
 		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
@@ -119,7 +123,7 @@ public class ContentManager implements StatefulService {
 		this.configuration = modelLayerFactory.getConfiguration();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-		icapService = new IcapService(modelLayerFactory);
+		this.icapService = icapService;
 	}
 
 	@Override

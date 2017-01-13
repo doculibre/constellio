@@ -1,5 +1,11 @@
 package com.constellio.model.services.schemas;
 
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -27,6 +33,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -264,11 +271,14 @@ public class ModificationImpactCalculator {
 		}
 	}
 
-	private boolean modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(Metadata automaticMetadata,
-			Metadata modifiedMetadata) {
+	private boolean modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(Metadata automaticMeta,
+			Metadata modifiedMeta) {
 
-		return modifiedMetadata.isLocalCode("path") ||
-				(modifiedMetadata.isLocalCode("allauthorizations") && automaticMetadata.isLocalCode("inheritedauthorizations"));
+		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH)
+				|| (modifiedMeta.isLocalCode(ATTACHED_ANCESTORS) && automaticMeta.isLocalCode(ATTACHED_ANCESTORS))
+//				|| (modifiedMeta.isLocalCode(REMOVED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
+				//				|| (modifiedMeta.isLocalCode(DETACHED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
+				|| (modifiedMeta.isLocalCode(ALL_REMOVED_AUTHS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS));
 	}
 
 	private List<Metadata> getReferenceMetadatasUsedByTheGivenReferenceDependencyToObtainValuesOfTheModifiedMetadata(

@@ -1,5 +1,7 @@
 package com.constellio.model.services.logging;
 
+import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
+
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
@@ -69,19 +71,20 @@ public class LoggingServices {
 	}
 
 	public void grantPermission(Authorization authorization, User user) {
-		List<Record> records = eventFactory.eventPermission(authorization, null, user, EventType.GRANT_PERMISSION);
-		executeTransaction(records);
+		Event event = eventFactory
+				.eventPermission(authorization, null, user, authorization.getGrantedOnRecord(), EventType.GRANT_PERMISSION);
+		executeTransaction(event);
 	}
 
-	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, User user) {
-		List<Record> records = eventFactory
-				.eventPermission(authorization, authorizationBefore, user, EventType.MODIFY_PERMISSION);
-		executeTransaction(records);
+	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, Record record, User user) {
+		String recordId = record == null ? null : record.getId();
+		Event event = eventFactory.eventPermission(authorization, authorizationBefore, user, recordId, MODIFY_PERMISSION);
+		executeTransaction(event);
 	}
 
 	public void deletePermission(Authorization authorization, User user) {
-		List<Record> records = eventFactory.eventPermission(authorization, null, user, EventType.DELETE_PERMISSION);
-		executeTransaction(records);
+		Event event = eventFactory.eventPermission(authorization, null, user, null, EventType.DELETE_PERMISSION);
+		executeTransaction(event);
 	}
 
 	public void logRecordView(Record record, User currentUser) {

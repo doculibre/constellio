@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.ByteArrayInputStream;
@@ -67,7 +68,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -75,7 +76,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
-	
+
 	private static final Logger LOGGER = Logger.getLogger(RMSchemasRecordsServices.class);
 
 	public static final String EMAIL_MIME_TYPES = "mimeTypes";
@@ -1002,8 +1003,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	//KEEP
-	public AuthorizationBuilder newAuthorization() {
-		return new AuthorizationBuilder(getCollection());
+	public AuthorizationAddRequest newAuthorization() {
+		return authorizationInCollection(getCollection());
 	}
 
 	//KEEP

@@ -1,10 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.LangUtils;
@@ -17,6 +14,12 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 
 public class ListContentAccessAuthorizationsPresenter extends ListAuthorizationsPresenter {
 
@@ -61,7 +64,11 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 
 	@Override
 	public boolean isDetacheable() {
-		return true;
+		return 	!AdministrativeUnit.SCHEMA_TYPE.equals(getSchemaType());
+	}
+
+	public String getSchemaType() {
+		return getRecordVO() == null || getRecordVO().getSchema() == null ? null: getRecordVO().getSchema().getTypeCode();
 	}
 
 	@Override
@@ -79,13 +86,13 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 		if (user.has(CorePermissions.MANAGE_SECURITY).globally()) {
 			results.addAll(Arrays.asList(Role.READ, Role.WRITE, Role.DELETE));
 		} else {
-			if (authorizationsServices().canRead(user, record)) {
+			if (user.hasReadAccess().on(record)) {
 				results.add(Role.READ);
 			}
-			if (authorizationsServices().canWrite(user, record)) {
+			if (user.hasWriteAccess().on(record)) {
 				results.add(Role.WRITE);
 			}
-			if (authorizationsServices().canDelete(user, record)) {
+			if (user.hasDeleteAccess().on(record)) {
 				results.add(Role.DELETE);
 			}
 		}
@@ -95,12 +102,12 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 
 	@Override
 	protected boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getGrantedOnRecords().contains(recordId);
+		return authorization.getGrantedOnRecord().equals(recordId);
 	}
 
 	@Override
 	protected void removeAuthorization(Authorization authorization) {
-		authorizationsServices().delete(authorization.getDetail(), getCurrentUser());
+		authorizationsServices().execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
 	}
 
 	@Override

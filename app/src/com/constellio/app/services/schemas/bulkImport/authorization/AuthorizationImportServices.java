@@ -1,6 +1,9 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,9 +29,18 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidRole;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidTargetType;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 
 public class AuthorizationImportServices {
@@ -45,7 +57,12 @@ public class AuthorizationImportServices {
 	public static final String EMPTY_LEGACY_ID = "AuthorizationImportServices.emptyLegacyId";
 	public static final String EMPTY_PRINCIPAL_ID = "AuthorizationImportServices.emptyPrincipalId";
 
+	private RecordServices recordServices;
+	private SchemasRecordsServices schemas;
+
 	public BulkImportResults bulkImport(File file, String collection, ModelLayerFactory modelLayerFactory) {
+		this.schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		this.recordServices = modelLayerFactory.newRecordServices();
 		BulkImportResults result = new BulkImportResults();
 		if (file != null) {
 			Document document = getDocumentFromFile(file);
@@ -71,8 +88,7 @@ public class AuthorizationImportServices {
 	private void addUpdateOrDeleteAuthorizations(List<ImportedAuthorization> authorizations, String collection,
 			ModelLayerFactory modelLayerFactory, BulkImportResults bulkImportResults) {
 		if (!authorizations.isEmpty()) {
-			AuthorizationsServices authorizationServices = modelLayerFactory
-					.newAuthorizationsServices();
+			AuthorizationsServices authorizationServices = modelLayerFactory.newAuthorizationsServices();
 			ImportedAuthorizationToAuthorizationBuilder builder = new ImportedAuthorizationToAuthorizationBuilder(collection,
 					modelLayerFactory);
 			for (ImportedAuthorization importedAuthorization : authorizations) {
@@ -95,15 +111,20 @@ public class AuthorizationImportServices {
 			deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
 		} else {
 			try {
-				Authorization authorization = builder.build(importedAuthorization);
-				try {
-					authorizationServices
-							.getAuthorizationIdByIdWithoutPrefix(collection, importedAuthorization.getId());
-					authorizationServices.modify(authorization, null);
-				} catch (NoSuchAuthorizationWithId e) {
-					//new authorization
-					authorizationServices.add(authorization, null);
+				AuthorizationAddRequest authorizationAddRequest = builder.buildAddRequest(importedAuthorization);
+				AuthorizationDetails details = schemas.getSolrAuthorizationDetailsWithLegacyId(importedAuthorization.getId());
+				if (details != null) {
+					authorizationServices.execute(authorizationDeleteRequest(details.getId(), collection));
 				}
+
+				String authId = authorizationServices.add(authorizationAddRequest);
+
+				try {
+					recordServices.update(schemas.getSolrAuthorizationDetails(authId).setLegacyId(importedAuthorization.getId()));
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+
 			} catch (ImportedAuthorizationBuilderRuntimeException e) {
 				deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
 			}
@@ -112,14 +133,26 @@ public class AuthorizationImportServices {
 	}
 
 	private void deleteAuthorizationIfExists(AuthorizationsServices authorizationServices, String collection, String id) {
-		try {
-			String authorizationId = authorizationServices
-					.getAuthorizationIdByIdWithoutPrefix(collection, id);
-			authorizationServices.delete(authorizationId, collection, null, true);
-		} catch (NoSuchAuthorizationWithId e) {
-			LOGGER.warn("Authorization not deleted : no authorization with id " + id);
+		SolrAuthorizationDetails authorization = schemas
+				.getSolrAuthorizationDetailsWithLegacyId(id);// getAuthorizationIdByIdWithoutPrefix(collection, id);
+
+		if (authorization == null) {
+			LOGGER.warn("Authorization not deleted : no authorization with legacy id " + id);
+		} else {
+			authorizationServices.execute(authorizationDeleteRequest(authorization.getId(), collection));
 		}
 	}
+
+	//	public String getAuthorizationIdByIdWithoutPrefix(String collection, String idWithoutPrefix) {
+	//
+	//		List<SolrAuthorizationDetails> authorizationDetails = schemas.searchSolrAuthorizationDetailss(
+	//				where(IDENTIFIER).isEndingWithText(idWithoutPrefix));
+	//
+	//		if (authorizationDetails.isEmpty()) {
+	//			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(idWithoutPrefix);
+	//		}
+	//		return authorizationDetails.get(0).getId();
+	//	}
 
 	List<ImportedAuthorization> addInvalidAuthorizationsToErrorsAndGetValidAuthorizations(
 			List<ImportedAuthorization> allImportedAuthorizations,

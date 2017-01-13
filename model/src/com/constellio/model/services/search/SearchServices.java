@@ -428,7 +428,7 @@ public class SearchServices {
 			filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
 			break;
 		default:
-			throw new ImpossibleRuntimeException("Unknown access: " + userFilter.getAccess());
+			filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
 		}
 
 		params.add(CommonParams.FQ, filter);

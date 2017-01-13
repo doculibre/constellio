@@ -28,7 +28,7 @@ public class Role {
 
 	public static final Role DELETE_ROLE = new Role(DELETE);
 
-	public Role(String collection, String code,  List<String> operationPermissions) {
+	public Role(String collection, String code, List<String> operationPermissions) {
 		this.collection = collection;
 		this.code = code;
 		this.title = code;
@@ -94,5 +94,15 @@ public class Role {
 		List<String> allPermissionsList = new ArrayList<>(allPermissions);
 		Collections.sort(allPermissionsList);
 		return new Role(collection, code, title, allPermissionsList);
+	}
+
+	public static List<String> toCodes(List<Role> roles) {
+		List<String> codes = new ArrayList<>();
+
+		for (Role role : roles) {
+			codes.add(role.getCode());
+		}
+
+		return codes;
 	}
 }

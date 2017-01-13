@@ -90,7 +90,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 	}
 
 	public ConnectorManager getConnectorManager() {
-		return appLayerFactory.getRegisteredManager(collection, ConstellioESModule.ID, ConnectorManager.ID);
+		return appLayerFactory.getRegisteredManager(getCollection(), ConstellioESModule.ID, ConnectorManager.ID);
 	}
 
 	public ContentManager getContentManager() {
@@ -337,10 +337,6 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		List<MetadataSchemaType> schemaTypes = getConnectorDocumentsSchemaTypes(connectorId);
 		return from(schemaTypes)
 				.where(connectorDocument.connector()).isEqualTo(connectorId);
-	}
-
-	public String getCollection() {
-		return collection;
 	}
 
 	public LogicalSearchQuery connectorDocumentsToFetchQuery(ConnectorInstance<?> connectorInstance) {

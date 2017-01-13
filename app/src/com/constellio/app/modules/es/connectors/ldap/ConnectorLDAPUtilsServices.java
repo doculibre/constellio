@@ -22,8 +22,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.SchemasRecordsServices.AbstractSchemaTypeShortcuts;
-import com.constellio.model.services.records.SchemasRecordsServices.SchemaTypeShortcuts;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -100,9 +98,9 @@ public class ConnectorLDAPUtilsServices implements ConnectorUtilsServices<Connec
 		return null;
 	}
 
-
 	@Override
-	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument, String availableVersion) {
+	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument,
+			String availableVersion) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

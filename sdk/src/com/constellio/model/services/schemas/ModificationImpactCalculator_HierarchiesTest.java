@@ -132,17 +132,17 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 		taxonomies.add(Taxonomy.createPublic("zeTaxo", "zeTaxo", "zeCollection", Arrays.asList("type1", "type2", "type3")));
 
 		configureMetadataWithHierarchyDependency(automaticMetaInType1UsingTaxos, types,
-				"type1_default_inheritedauthorizations");
+				"type1_default_allRemovedAuths");
 		configureMetadataWithHierarchyDependency(automaticMetaInType2UsingTaxos, types,
-				"type2_default_inheritedauthorizations");
+				"type2_default_allRemovedAuths");
 		configureMetadataWithHierarchyDependency(automaticMetaInType3UsingTaxos, types,
-				"type3_default_inheritedauthorizations");
+				"type3_default_allRemovedAuths");
 		configureMetadataWithHierarchyDependency(automaticMetaInType4UsingTaxos, types,
-				"type4_custom_inheritedauthorizations");
+				"type4_custom_allRemovedAuths");
 		configureMetadataWithHierarchyDependency(automaticMetaInZeSchemaUsingTaxos, types,
-				"zeSchema_default_inheritedauthorizations");
+				"zeSchema_default_allRemovedAuths");
 		configureMetadataWithHierarchyDependency(automaticMetaInAnotherSchemaUsingTaxos, types,
-				"anotherSchema_default_inheritedauthorizations");
+				"anotherSchema_default_allRemovedAuths");
 
 		givenReferenceToSchemaType(type1ReferenceToType1NotBusedByTaxos, types, "type1_default_notUsed", normalRelation,
 				"type1");
@@ -501,9 +501,9 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 	}
 
 	private Metadata newAllAuthorizationsMetadata(String schemaCode) {
-		String code = schemaCode + "_allauthorizations";
+		String code = schemaCode + "_allRemovedAuths";
 		Metadata metadata = mock(Metadata.class, code);
-		when(metadata.getLocalCode()).thenReturn("allauthorizations");
+		when(metadata.getLocalCode()).thenReturn("allRemovedAuths");
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getType()).thenReturn(MetadataValueType.STRING);
 		return metadata;

@@ -1,21 +1,19 @@
 package com.constellio.model.entities.security;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
+import java.util.*;
 
-public class AuthorizationDetails {
+public class XMLAuthorizationDetails implements AuthorizationDetails {
 
 	private final String id;
 
@@ -29,7 +27,7 @@ public class AuthorizationDetails {
 
 	private final boolean synced;
 
-	public AuthorizationDetails(String collection, String id, List<String> roles, LocalDate startDate, LocalDate endDate,
+	public XMLAuthorizationDetails(String collection, String id, List<String> roles, LocalDate startDate, LocalDate endDate,
 			boolean synced) {
 		this.collection = collection;
 		this.id = id;
@@ -39,20 +37,20 @@ public class AuthorizationDetails {
 		this.synced = synced;
 	}
 
-	public static AuthorizationDetails create(String id, List<String> roles, String zeCollection) {
+	public static XMLAuthorizationDetails create(String id, List<String> roles, String zeCollection) {
 		return create(id, roles, null, null, zeCollection);
 	}
 
-	public static AuthorizationDetails createSynced(String id, List<String> roles, String zeCollection) {
+	public static XMLAuthorizationDetails createSynced(String id, List<String> roles, String zeCollection) {
 		return create(id, roles, null, null, zeCollection, true);
 	}
 
-	public static AuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
+	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
 			String zeCollection) {
 		return create(id, roles, startDate, endDate, zeCollection, false);
 	}
 
-	public static AuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
+	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
 			String zeCollection, boolean synced) {
 
 		if (roles.isEmpty()) {
@@ -99,7 +97,7 @@ public class AuthorizationDetails {
 		idBuilder.append(StringUtils.join(operationRolesCodes, ","));
 		idBuilder.append("_");
 		idBuilder.append(id);
-		return new AuthorizationDetails(collection, idBuilder.toString(), rolesCodes, startDate, endDate, synced);
+		return new XMLAuthorizationDetails(collection, idBuilder.toString(), rolesCodes, startDate, endDate, synced);
 	}
 
 	public List<String> getRoles() {
@@ -122,12 +120,34 @@ public class AuthorizationDetails {
 		return startDate != null && TimeProvider.getLocalDate().isBefore(startDate);
 	}
 
+	@Override
+	public boolean isActiveAuthorization() {
+		LocalDate now = TimeProvider.getLocalDate();
+		if (startDate != null && endDate == null) {
+			return !startDate.isAfter(now);
+
+		} else if (startDate == null && endDate != null) {
+			return !endDate.isBefore(now);
+
+		} else if (startDate != null && endDate != null) {
+			return !startDate.isAfter(now) && !endDate.isBefore(now);
+
+		} else {
+			return true;
+		}
+	}
+
+	@Override
+	public String getTarget() {
+		return null;
+	}
+
 	public String getCollection() {
 		return collection;
 	}
 
-	public AuthorizationDetails withNewEndDate(LocalDate endate) {
-		return new AuthorizationDetails(this.collection, this.id, this.roles, this.startDate, endate, synced);
+	public XMLAuthorizationDetails withNewEndDate(LocalDate endate) {
+		return new XMLAuthorizationDetails(this.collection, this.id, this.roles, this.startDate, endate, synced);
 	}
 
 	public boolean isSynced() {

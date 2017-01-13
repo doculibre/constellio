@@ -1,19 +1,11 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.model.entities.security.Role.DELETE;
-import static com.constellio.model.entities.security.Role.READ;
-import static com.constellio.model.entities.security.Role.WRITE;
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
-import static com.constellio.sdk.tests.TestUtils.asSet;
-import static java.util.Arrays.asList;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDREN;
 import static org.apache.chemistry.opencmis.commons.enums.Action.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -31,6 +23,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -42,7 +36,6 @@ import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 
 @DriverTest
@@ -431,7 +424,12 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		User dakota = users.dakotaIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
-		authorizationsServices.add(authorizationForUsers(dakota).on(records.taxo2_unit1).givingReadWriteAccess(), admin);
+
+		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE_AND_REWRITE);
+
+		authorizationsServices.add(authorizationForUsers(dakota).on(records.taxo2_unit1)
+				.givingReadWriteAccess().setExecutedBy(admin));
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {

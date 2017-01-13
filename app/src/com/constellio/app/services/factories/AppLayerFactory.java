@@ -141,6 +141,7 @@ public class AppLayerFactory extends LayerFactory {
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager());
 		this.navigatorConfigService = new NavigatorConfigurationService();
 		this.systemCheckManager = add(new SystemCheckManager(this));
+
 	}
 
 	private void setDefaultLocale() {

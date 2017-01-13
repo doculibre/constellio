@@ -1,9 +1,11 @@
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -86,6 +88,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -93,6 +96,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "rm";
@@ -297,8 +301,17 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
+		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
+			Iterator<Record> authsIterator = modelLayerFactory.newSearchServices().recordsIterator(new LogicalSearchQuery(
+					from(rm.authorizationDetails.schemaType()).returnAll()), 10000);
+			while (authsIterator.hasNext()) {
+				authsIterator.next();
+			}
+		}
 		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDER_CACHE_SIZE));
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
+
 	}
 
 	@Override

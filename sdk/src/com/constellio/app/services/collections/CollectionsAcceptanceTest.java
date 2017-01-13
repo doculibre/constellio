@@ -1,6 +1,7 @@
 package com.constellio.app.services.collections;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,10 +19,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
-import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -205,8 +203,8 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).contains("constellio");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(33);
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(34);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(35);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(36);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isTrue();
@@ -216,7 +214,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		collectionsManager.deleteCollection("constellio");
 		recordServices.flush();
 		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(0);
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(34);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(36);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isFalse();
@@ -273,27 +271,28 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 	private void givenDoculibreUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
 			throws RolesManagerRuntimeException {
-		AuthorizationDetails doculibreUserAuthorizationDetails = AuthorizationDetails.create(aString(),
-				Arrays.asList(Role.WRITE), "doculibre");
 		List<String> doculibreUserAuthorizationPrincipals = Arrays.asList(users.chuckNorrisIn("doculibre").getId(), users
 				.legendsIn("doculibre").getId(), users.heroesIn("doculibre").getId());
-		List<String> doculibreUserAuthorizationRecords = Arrays.asList(doculibreTaxos.taxo1_firstTypeItem1.getId(),
-				doculibreTaxos.taxo1_firstTypeItem2.getId());
-		authorizationsServices.add(new Authorization(doculibreUserAuthorizationDetails, doculibreUserAuthorizationPrincipals,
-				doculibreUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+
+		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
+				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem1));
+
+		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
+				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem2));
 	}
 
 	private void givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
 			throws RolesManagerRuntimeException {
 
-		AuthorizationDetails constellioUserAuthorizationDetails = AuthorizationDetails.create(aString(),
-				Arrays.asList(Role.READ), "constellio");
 		List<String> constellioUserAuthorizationPrincipals = Arrays.asList(users.chuckNorrisIn("constellio").getId(), users
 				.legendsIn("constellio").getId(), users.heroesIn("constellio").getId());
-		List<String> constellioUserAuthorizationRecords = Arrays.asList(constellioTaxos.taxo1_firstTypeItem1.getId(),
-				constellioTaxos.taxo1_firstTypeItem2.getId());
-		authorizationsServices.add(new Authorization(constellioUserAuthorizationDetails, constellioUserAuthorizationPrincipals,
-				constellioUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+
+		authorizationsServices.add(authorizationInCollection("constellio").givingReadAccess()
+				.forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem1));
+
+		authorizationsServices.add(authorizationInCollection("constellio").givingReadAccess()
+				.forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem2));
+
 	}
 
 	private void givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre() {

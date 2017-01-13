@@ -185,10 +185,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(schemasManager.getAllCollectionsSchemaTypes())
 				.containsOnly(typesCollection1, typesCollection2, zeCollectionTypes, systemTypes);
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
-		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
+		assertThat(typesCollection1.getSchemaTypes()).hasSize(12);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
 		assertThat(typesCollection2.getCollection()).isEqualTo("collection2");
-		assertThat(typesCollection2.getSchemaTypes()).hasSize(11);
+		assertThat(typesCollection2.getSchemaTypes()).hasSize(12);
 		assertThat(typesCollection2.getSchemaType("b")).isNotNull();
 	}
 
@@ -231,10 +231,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes typesCollection1 = otherManager.getSchemaTypes("collection1");
 		MetadataSchemaTypes typesCollection2 = otherManager.getSchemaTypes("collection2");
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
-		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
+		assertThat(typesCollection1.getSchemaTypes()).hasSize(12);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
 		assertThat(typesCollection2.getCollection()).isEqualTo("collection2");
-		assertThat(typesCollection2.getSchemaTypes()).hasSize(11);
+		assertThat(typesCollection2.getSchemaTypes()).hasSize(12);
 		assertThat(typesCollection2.getSchemaType("b")).isNotNull();
 	}
 
@@ -259,10 +259,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes typesCollection1 = otherManager.getSchemaTypes("collection1");
 		MetadataSchemaTypes typesCollection2 = otherManager.getSchemaTypes("collection2");
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
-		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
+		assertThat(typesCollection1.getSchemaTypes()).hasSize(12);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
 		assertThat(typesCollection2.getCollection()).isEqualTo("collection2");
-		assertThat(typesCollection2.getSchemaTypes()).hasSize(11);
+		assertThat(typesCollection2.getSchemaTypes()).hasSize(12);
 		assertThat(typesCollection2.getSchemaType("b")).isNotNull();
 	}
 

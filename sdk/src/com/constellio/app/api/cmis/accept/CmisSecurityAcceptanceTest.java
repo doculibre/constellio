@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
@@ -33,7 +34,6 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.Fail;
 import org.assertj.core.api.ListAssert;
@@ -47,8 +47,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.contents.ContentManagementAcceptTest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -964,7 +963,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFolderInheritingTaxonomyAuthorizations() {
-		Authorization authorization = new AuthorizationBuilder(zeCollection).forUsers(users.edouardIn(zeCollection))
+		AuthorizationAddRequest authorization = authorizationInCollection(zeCollection).forUsers(users.edouardIn(zeCollection))
 				.on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, users.adminIn(zeCollection));
 		try {

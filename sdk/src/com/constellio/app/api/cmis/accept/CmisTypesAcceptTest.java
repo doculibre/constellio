@@ -205,6 +205,10 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(administrativeUnitDefault.getPropertyDefinitions().get("tokens").getCardinality())
 				.isEqualTo(Cardinality.MULTI);
 
+		ObjectType authorizationDetails = iterator.next();
+		assertThat(authorizationDetails.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(authorizationDetails.getId()).isEqualTo("authorizationDetails_default");
+
 		ObjectType categoryDefault = iterator.next();
 		assertThat(categoryDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
 		assertThat(categoryDefault.getId()).isEqualTo("category_default");

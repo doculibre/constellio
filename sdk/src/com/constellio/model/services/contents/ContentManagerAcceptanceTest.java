@@ -1,20 +1,26 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SCAN_ACTIVATED;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SERVER_URL;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
-import com.constellio.model.services.contents.icap.IcapException;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -25,19 +31,24 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.contents.icap.IcapResponse;
+import com.constellio.model.services.contents.icap.IcapService;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class ContentManagerAcceptanceTest extends ConstellioTest {
 
 	private static final String UNKNOWN_LANGUAGE = Language.UNKNOWN.getCode();
 
+	@Mock IcapResponse icapResponse;
 	@Mock User theUser;
-
 	FileParser fileParser;
 	ContentManager contentManager;
+	IcapService icapService;
 
 	String textContent = "The quick brown fox jumps over the lazy dog";
 	InputStream contentStream, contentStream2, rawContentInputStream, expectedContentInputStream;
@@ -48,7 +59,8 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		fileParser = spy(getModelLayerFactory().newFileParser());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		contentManager = new ContentManager(getModelLayerFactory());
+		icapService = spy(new IcapService(getModelLayerFactory()));
+		contentManager = new ContentManager(getModelLayerFactory(), icapService);
 		contentManager.fileParser = fileParser;
 		when(theUser.getUsername()).thenReturn("theUser");
 	}
@@ -196,40 +208,111 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.getParsedContent(hash);
 	}
 
-    @Test
+	@Test
 	public void givenEmptyNonYetParsedContentWhenUploadedThenUploaded()
 			throws Exception {
 		// Given
-		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
 		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent(""));
 
 		// When
 		ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(contentStream, "someFileName");
 
 		// Then
-        assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=")).isNotNull();
-        assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=").getLength()).isEqualTo(0);
+		assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=")).isNotNull();
+		assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=").getLength()).isEqualTo(0);
 	}
 
-    @Test(expected = IcapException.CommunicationFailure.class)
-    public void givenInfectedNonYetParsedContentWhenUploadedThenCommunicationExceptionThrown()
-            throws Exception {
-        // Given
-        getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.ICAP_SERVER_URL, "icap://10.0.0.0:1344/squidclamav");
-        contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent("any content"));
-
-        // When
-        contentManager.upload(contentStream, "someFileName");
-
-        // Then, the exception is thrown.
-    }
-
-	@Test(expected = IcapException.ThreatFoundException.class)
-	public void givenInfectedNonYetParsedContentWhenUploadedThenThreatFoundExceptionThrown()
+	@Test(expected = IcapException.CommunicationFailure.class)
+	public void givenIcapActivatedWhenUploadingInfectedNonYetParsedContentThenCommunicationExceptionThrown()
 			throws Exception {
 		// Given
-        getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
-		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SERVER_URL, "icap://localhost:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent("any content"));
+
+		// When
+		contentManager.upload(contentStream, "someFileName");
+
+		// Then, the exception is thrown.
+	}
+
+	@Test
+	public void givenIcapActivatedWhenUploadingInfectedNonYetParsedContentThenThreatFoundExceptionThrown()
+			throws Exception {
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem()
+				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
+
+		when(icapResponse.isNoThreatFound()).thenReturn(false);
+		when(icapResponse.getThreatDescription()).thenReturn("A big bad virus");
+		doReturn(icapResponse).when(icapService).tryScan(eq("someFileName"), any(InputStream.class));
+
+		try {
+			contentManager.upload(contentStream, "someFileName");
+			fail("Exception expected");
+		} catch (IcapException.ThreatFoundException e) {
+			assertThat(e.getThreatName()).isEqualTo("A big bad virus");
+		}
+	}
+
+	@Test(expected = IcapException.CommunicationFailure.class)
+	public void givenIcapActivatedWhenIOExceptionWhenUploadingNonYetParsedContentThenCommunicationExceptionThrown()
+			throws Exception {
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem()
+				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
+
+		doThrow(IOException.class).when(icapService).tryScan(eq("someFileName"), any(InputStream.class));
+
+		contentManager.upload(contentStream, "someFileName");
+	}
+
+	@Test(expected = IcapException.TimeoutException.class)
+	public void givenIcapActivatedWhenTimeoutExceptionWhenUploadingNonYetParsedContentThenTimeoutExceptionThrown()
+			throws Exception {
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem()
+				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
+
+		when(icapResponse.isScanTimedout()).thenReturn(true);
+		doReturn(icapResponse).when(icapService).tryScan(eq("someFileName"), any(InputStream.class));
+
+		contentManager.upload(contentStream, "someFileName");
+	}
+
+	@Test
+	public void givenIcapActivatedWhenUploadingNonInfectedThenNoExceptionThrown()
+			throws Exception {
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem()
+				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
+
+		when(icapResponse.isNoThreatFound()).thenReturn(true);
+		doReturn(icapResponse).when(icapService).tryScan(eq("someFileName"), any(InputStream.class));
+
+		contentManager.upload(contentStream, "someFileName");
+	}
+
+	@Test
+	public void givenIcapIsNotActivatedWhenUploadingInfectedNonYetParsedContentThenNoThreatFoundExceptionThrown()
+			throws Exception {
+		// Given
+
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, false);
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem()
+				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
 
 		// When
 		contentManager.upload(contentStream, "someFileName");

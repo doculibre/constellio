@@ -9,7 +9,8 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 public class AuthorizationDetailsReader {
 
@@ -37,7 +38,7 @@ public class AuthorizationDetailsReader {
 	}
 
 	private AuthorizationDetails createAuthorizationObject(Element authorizationElement) {
-		AuthorizationDetails authorizationDetails;
+		XMLAuthorizationDetails xmlAuthorizationDetails;
 		String id = authorizationElement.getAttributeValue(ID);
 		String collection = authorizationElement.getChildText(COLLECTION);
 		String startDate = authorizationElement.getChildText(START_DATE);
@@ -56,7 +57,7 @@ public class AuthorizationDetailsReader {
 		if (endDateDt.isEqual(new LocalDate(Integer.MAX_VALUE))) {
 			endDateDt = null;
 		}
-		authorizationDetails = new AuthorizationDetails(collection, id, roles, startDateDt, endDateDt, synced);
-		return authorizationDetails;
+		xmlAuthorizationDetails = new XMLAuthorizationDetails(collection, id, roles, startDateDt, endDateDt, synced);
+		return xmlAuthorizationDetails;
 	}
 }

@@ -10,6 +10,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.sdk.load.script.PrincipalTaxonomyPreparator;
 import com.constellio.sdk.load.script.utils.LinkableIdsList;
 
@@ -36,9 +37,10 @@ public class AdministrativeUnitTaxonomyPreparator extends BaseTaxonomyPreparator
 	}
 
 	@Override
-	public List<Authorization> setupAuthorizations(RMSchemasRecordsServices rm, RecordWrapper unit, LinkableIdsList users,
+	public List<AuthorizationAddRequest> setupAuthorizations(RMSchemasRecordsServices rm, RecordWrapper unit,
+			LinkableIdsList users,
 			LinkableIdsList groups) {
-		List<Authorization> authorizations = new ArrayList<>();
+		List<AuthorizationAddRequest> authorizations = new ArrayList<>();
 		authorizations.add(rm.newAuthorization().forPrincipalsIds(groups.next()).on(unit).givingReadWriteAccess());
 		return authorizations;
 	}
