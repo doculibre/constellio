@@ -19,7 +19,6 @@ public class FoldersLocator {
 	public FoldersLocator() {
 	}
 
-
 	public File getJavaRootFolder() {
 		String fullPath = getCurrentClassPath();
 		File finalPath;
@@ -453,7 +452,7 @@ public class FoldersLocator {
 
 	public File getReportsResourceFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getWrapperInstallationFolder(), "resources" + File.separator + "reports");
+			return new File(getConstellioWebinfFolder(), "resources" + File.separator + "reports");
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
 			return new File(getConstellioWebinfFolder(), "resources" + File.separator + "reports");
