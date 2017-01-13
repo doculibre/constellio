@@ -123,6 +123,9 @@ war {
         from("resources_i18n/") {
             into("resources_i18n")
         }
+        from("reportsRecource/") {
+            into("resources/reports")
+        }
     }
 
     webAppDirName = "app/WebContent"
