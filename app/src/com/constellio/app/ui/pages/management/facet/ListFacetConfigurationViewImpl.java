@@ -181,4 +181,14 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 		mainLayout.replaceComponent(listFacet, newListFacet);
 		listFacet = newListFacet;
 	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
+	}
 }

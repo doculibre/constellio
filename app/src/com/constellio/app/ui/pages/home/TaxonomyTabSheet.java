@@ -26,14 +26,9 @@ public class TaxonomyTabSheet implements Serializable {
 	}
 
 	public List<RecordLazyTreeDataProvider> getDataProviders() {
-		int index = 0;
 		List<RecordLazyTreeDataProvider> providers = new ArrayList<>();
 		for (String taxonomy : getTaxonomyCodes()) {
 			providers.add(new RecordLazyTreeDataProvider(taxonomy));
-			if (taxonomy.equals(user.getDefaultTaxonomy())) {
-				defaultTab = index;
-			}
-			index++;
 		}
 		return providers;
 	}
@@ -45,6 +40,22 @@ public class TaxonomyTabSheet implements Serializable {
 	private void init(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
 		this.modelLayerFactory = modelLayerFactory;
 		user = new PresenterService(modelLayerFactory).getCurrentUser(sessionContext);
+		
+		PresenterService presenterService = new PresenterService(modelLayerFactory);
+		String userDefaultTaxonomy = user.getDefaultTaxonomy();
+		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();
+
+		int index = 0;
+		for (String taxonomy : getTaxonomyCodes()) {
+			if (userDefaultTaxonomy != null) {
+				if (taxonomy.equals(userDefaultTaxonomy)) {
+					defaultTab = index;
+				}
+			} else if (taxonomy.equals(configDefaultTaxonomy)) {
+				defaultTab = index;
+			}
+			index++;
+		}
 	}
 
 	private List<String> getTaxonomyCodes() {

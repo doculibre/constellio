@@ -8,7 +8,11 @@ import java.util.List;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
-import com.constellio.app.modules.es.ui.pages.*;
+import com.constellio.app.modules.es.ui.pages.ConnectorReportViewImpl;
+import com.constellio.app.modules.es.ui.pages.DisplayConnectorInstanceViewImpl;
+import com.constellio.app.modules.es.ui.pages.EditConnectorInstanceViewImpl;
+import com.constellio.app.modules.es.ui.pages.ListConnectorInstancesViewImpl;
+import com.constellio.app.modules.es.ui.pages.WizardConnectorInstanceViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.AddEditMappingViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.DisplayConnectorMappingsViewImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -23,7 +27,6 @@ import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ESNavigationConfiguration implements Serializable {
 	public static final String CONNECTORS = "connectors";
@@ -83,6 +86,11 @@ public class ESNavigationConfiguration implements Serializable {
 					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 					defaultTab = tabSheet.getDefaultTab();
 					return tabSheet.getDataProviders();
+				}
+
+				@Override
+				public int getDefaultDataProvider() {
+					return defaultTab;
 				}
 
 				@Override

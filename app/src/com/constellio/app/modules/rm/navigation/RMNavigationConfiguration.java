@@ -234,6 +234,11 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
+			public int getDefaultDataProvider() {
+				return defaultTab;
+			}
+
+			@Override
 			public BaseContextMenu getContextMenu() {
 				final DocumentContextMenuImpl menu = new DocumentContextMenuImpl();
 				menu.addContextMenuTreeListener(new TreeListener() {
