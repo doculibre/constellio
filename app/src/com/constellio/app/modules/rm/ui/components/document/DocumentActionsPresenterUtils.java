@@ -38,6 +38,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -142,6 +143,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
+			if(documentVO != null) {
+				Document document = new Document(currentDocument(), presenterUtils.types());
+				if(document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(currentDocument())) {
+					return ComponentState.INVISIBLE;
+				}
+
+				if(getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(currentDocument())) {
+					return ComponentState.INVISIBLE;
+				}
+			}
 			if (parentFolder.getArchivisticStatus().isInactive()) {
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -582,7 +593,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (!newUsersToAlert.contains(currentUserId) && currentBorrower != null && !currentUserId.equals(currentBorrower)) {
 			newUsersToAlert.add(currentUserId);
 			document.setAlertUsersWhenAvailable(newUsersToAlert);
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			presenterUtils.addOrUpdate(document.getWrappedRecord(), User.GOD);
 		}
 		actionsComponent.showMessage($("RMObject.createAlert"));
 	}

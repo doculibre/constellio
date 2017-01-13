@@ -26,6 +26,7 @@ import org.mockito.stubbing.Answer;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -763,7 +764,10 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		cache.insertQueryResults(query(condition).addQueryFacet("queries", "field_s:*"), asList(zeTypeRecord4));
 		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
 
-		cache.insertQueryResults(query(condition).computeStatsOnField("field_s"), asList(zeTypeRecord4));
+		DataStoreField field = mock(DataStoreField.class);
+		when(field.getDataStoreCode()).thenReturn("field_s");
+
+		cache.insertQueryResults(query(condition).computeStatsOnField(field), asList(zeTypeRecord4));
 		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
 
 		cache.insertQueryResults(query(condition).filteredWithUser(user), asList(zeTypeRecord4));

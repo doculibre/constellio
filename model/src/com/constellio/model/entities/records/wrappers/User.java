@@ -14,8 +14,10 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.security.roles.Roles;
 
 public class User extends RecordWrapper {
@@ -26,6 +28,7 @@ public class User extends RecordWrapper {
 	public static final String FIRSTNAME = "firstname";
 	public static final String LASTNAME = "lastname";
 	public static final String EMAIL = "email";
+	public static final String PERSONAL_EMAILS = "personalEmails";
 	public static final String GROUPS = "groups";
 	public static final String ROLES = "userroles";
 	public static final String ALL_ROLES = "allroles";
@@ -173,6 +176,15 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
+	public List<String> getPersonalEmails() {
+		return get(PERSONAL_EMAILS);
+	}
+
+	public User setPersonalEmails(List<String> emails) {
+		set(PERSONAL_EMAILS, emails);
+		return this;
+	}
+
 	public List<String> getUserGroups() {
 		return get(GROUPS);
 	}
@@ -256,17 +268,31 @@ public class User extends RecordWrapper {
 	}
 
 	public List<String> getUserTokens() {
-		List<String> recordTokens = getList(USER_TOKENS);
-		List<String> tokens = new ArrayList<String>(recordTokens);
-		tokens.add("r_" + getId());
-		tokens.add("w_" + getId());
-		tokens.add("d_" + getId());
+		//		List<String> recordTokens = getList(USER_TOKENS);
+		//		List<String> tokens = new ArrayList<String>(recordTokens);
+		//		tokens.add("r_" + getId());
+		//		tokens.add("w_" + getId());
+		//		tokens.add("d_" + getId());
+		//		for (String groupId : getUserGroups()) {
+		//			tokens.add("r_" + groupId);
+		//			tokens.add("w_" + groupId);
+		//			tokens.add("d_" + groupId);
+		//		}
+		//		return tokens;
+
+		List<String> activeAuthsTokens = new ArrayList<>();
+
+		activeAuthsTokens.add("r_" + getId());
+		activeAuthsTokens.add("w_" + getId());
+		activeAuthsTokens.add("d_" + getId());
+
 		for (String groupId : getUserGroups()) {
-			tokens.add("r_" + groupId);
-			tokens.add("w_" + groupId);
-			tokens.add("d_" + groupId);
+			activeAuthsTokens.add("r_" + groupId);
+			activeAuthsTokens.add("w_" + groupId);
+			activeAuthsTokens.add("d_" + groupId);
 		}
-		return tokens;
+
+		return activeAuthsTokens;
 	}
 
 	public String getCollection() {
@@ -452,4 +478,11 @@ public class User extends RecordWrapper {
 
 	}
 
+	public AuthorizationDetails getAuthorizationDetail(String id) {
+		return roles.getSchemasRecordsServices().getSolrAuthorizationDetails(id);
+	}
+
+	public Roles getRolesDetails() {
+		return roles;
+	}
 }

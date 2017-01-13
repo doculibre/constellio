@@ -4,6 +4,7 @@ import static com.constellio.app.ui.framework.components.ComponentState.enabledI
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
@@ -53,6 +54,7 @@ import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewG
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.Navigation;
@@ -61,6 +63,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.home.HomeView;
@@ -72,7 +75,8 @@ import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
 import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
+import com.vaadin.server.FontAwesome;
 
 public class RMNavigationConfiguration implements Serializable {
 	public static final String ADD_FOLDER = "addFolder";
@@ -129,7 +133,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 
 	public static void configureNavigation(NavigationConfig config) {
-		configureHomeActionMenu(config);
+		configureHeaderActionMenu(config);
 		configureHomeFragments(config);
 		configureCollectionAdmin(config);
 		configureMainLayoutNavigation(config);
@@ -171,29 +175,29 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
 	}
 
-	private static void configureHomeActionMenu(NavigationConfig config) {
-		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_FOLDER) {
+	private static void configureHeaderActionMenu(NavigationConfig config) {
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_FOLDER) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).addFolder();
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
 			}
-		});
-		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
+		}, 0);
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).addDocument();
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
-		});
+		}, 1);
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
@@ -230,6 +234,11 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
+			public int getDefaultDataProvider() {
+				return defaultTab;
+			}
+
+			@Override
 			public BaseContextMenu getContextMenu() {
 				final DocumentContextMenuImpl menu = new DocumentContextMenuImpl();
 				menu.addContextMenuTreeListener(new TreeListener() {
@@ -262,7 +271,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
@@ -278,7 +287,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
 			}
 		});
@@ -289,7 +298,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_UNIFORMSUBDIVISIONS).globally());
 			}
 		});
@@ -300,15 +309,15 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally());
 			}
 		});
 		config.replace(AdminView.COLLECTION_SECTION,
 				new NavigationItem.Decorator(getTaxonomyItem(config)) {
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-						return visibleIf(item.getStateFor(user, modelLayerFactory).isVisible() ||
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						return visibleIf(item.getStateFor(user, appLayerFactory).isVisible() ||
 								user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
 					}
 
@@ -322,7 +331,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(ARCHIVES_MANAGEMENT, ArchivesManagementViewGroup.class) {
+				new NavigationItem.Active(ARCHIVES_MANAGEMENT, FontAwesome.ARCHIVE, ArchivesManagementViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						navigate.to(RMViews.class).archiveManagement();
@@ -334,15 +343,15 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						DecommissioningSecurityService service = new DecommissioningSecurityService(
-								user.getCollection(), modelLayerFactory);
+								user.getCollection(), appLayerFactory);
 						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
 								user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething() ||
 								user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(USER_DOCUMENTS, UserDocumentsViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(USER_DOCUMENTS, FontAwesome.SUITCASE, UserDocumentsViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).listUserDocuments();
@@ -354,11 +363,11 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
 		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LIST_CARTS, CartViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LIST_CARTS, FontAwesome.LIST_ALT, CartViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).listCarts();
@@ -370,11 +379,11 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				return ComponentState.ENABLED;
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(RMPermissionsTo.USE_CART).globally());
 			}
 		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, LogsViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.BOOK, LogsViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).eventAudit();
@@ -386,11 +395,11 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).globally());
 			}
 		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(AGENT, AgentViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(AGENT, FontAwesome.LAPTOP, AgentViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).requestAgent();
@@ -402,8 +411,18 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				return ComponentState.ENABLED;
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				List<String> permissions = new ArrayList<>();
+				permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
+				permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
+				permissions.add(TasksPermissionsTo.MANAGE_WORKFLOWS);
+
+				boolean canManageCollection = user.hasAny(permissions).globally();
+
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+				boolean canManageSystem = userServices.has(user.getUsername())
+						.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
+				return canManageCollection || canManageSystem ? ComponentState.INVISIBLE : ComponentState.ENABLED;
 			}
 		});
 	}

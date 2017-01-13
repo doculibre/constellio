@@ -6,6 +6,7 @@ import java.util.List;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -41,6 +42,11 @@ public class SchemaViewAcceptTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {

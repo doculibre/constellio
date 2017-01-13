@@ -2,6 +2,8 @@ package com.constellio.app.ui.pages.login;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import javax.servlet.http.Cookie;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -13,6 +15,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Responsive;
+import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -31,12 +34,15 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public class LoginViewImpl extends BaseViewImpl implements LoginView {
+	
+	private static final String USERNAME_COOKIE = "Constellio.username";
+	
+	private String initialUsername;
 
 	private VerticalLayout loginFormLayout;
 
 	private CssLayout labelsLayout;
 	private Label welcomeLabel;
-	private Component logo;
 
 	private HorizontalLayout fieldsLayout;
 	private TextField usernameField;
@@ -83,7 +89,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		welcomeLabel.setSizeUndefined();
 		welcomeLabel.addStyleName(ValoTheme.LABEL_H2);
 		welcomeLabel.addStyleName(ValoTheme.LABEL_COLORED);
-		hLayout.addComponent(welcomeLabel);
+//		hLayout.addComponent(welcomeLabel);
 
 		String linkTarget = presenter.getLogoTarget();
 		Link logo = new Link(null, new ExternalResource(linkTarget));
@@ -105,11 +111,18 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		usernameField = new TextField($("LoginView.username"));
 		usernameField.setIcon(FontAwesome.USER);
 		usernameField.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
-		usernameField.focus();
+		if (initialUsername != null) {
+			usernameField.setValue(initialUsername);
+		} else {
+			usernameField.focus();
+		}
 
 		passwordField = new PasswordField($("LoginView.password"));
 		passwordField.setIcon(FontAwesome.LOCK);
 		passwordField.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
+		if (initialUsername != null) {
+			passwordField.focus();
+		}
 
 		signInButton = new Button($("LoginView.signIn"));
 		signInButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -138,7 +151,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 	}
 
 	private void attemptSignIn() {
-		presenter.signInAttempt(usernameField.getValue(), passwordField.getValue());
+		presenter.signInAttempt(usernameField.getValue(), passwordField.getValue(), rememberMeField.getValue());
 	}
 
 	@Override
@@ -165,4 +178,45 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 	public void showBadLoginMessage() {
 		Notification.show($("LoginView.badLoginMessage"));
 	}
+
+	@Override
+	public void setUsername(String username) {
+		if (usernameField != null) {
+			usernameField.setValue(username);
+		} else {
+			initialUsername = username;
+		}
+	}
+
+	@Override
+	public String getUsernameCookieValue() {
+		String usernameCookieValue = null;
+		Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+		for (Cookie cookie : cookies) {
+			if (cookie.getName().equals(USERNAME_COOKIE)) {
+				usernameCookieValue = cookie.getValue();
+				break;
+			}
+		}
+		return usernameCookieValue;
+	}
+
+	@Override
+	public void setUsernameCookie(String username) {
+		Cookie usernameCookie = new Cookie(USERNAME_COOKIE, username);
+		if (username != null) {
+			// Make cookie expire in 2 minutes
+			usernameCookie.setMaxAge(Integer.MAX_VALUE);
+		} else {
+			// Delete the cookie
+			usernameCookie.setMaxAge(0);
+		}
+
+		// Set the cookie path.
+		usernameCookie.setPath(VaadinService.getCurrentRequest().getContextPath());
+
+		// Save cookie
+		VaadinService.getCurrentResponse().addCookie(usernameCookie);
+	}
+	
 }

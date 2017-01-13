@@ -84,6 +84,10 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, true));
 	}
 
+	public static OngoingLogicalSearchCondition fromEveryTypesOfEveryCollection() {
+		return new OngoingLogicalSearchCondition(null);
+	}
+
 	public static OngoingLogicalSearchConditionWithDataStoreFields whereAll(DataStoreField... metadatas) {
 		return new OngoingLogicalSearchConditionWithDataStoreFields(new CollectionFilters(metadatas[0].getCollection(), false),
 				Arrays.asList(metadatas),

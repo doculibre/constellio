@@ -1,17 +1,14 @@
 package com.constellio.app.extensions.api.cmis;
 
-import com.constellio.app.extensions.api.cmis.params.AllowableActionsParams;
+import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
-import com.constellio.app.extensions.api.cmis.params.CreateFolderParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
-import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
-import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 
 public class CmisExtension {
 
@@ -23,7 +20,7 @@ public class CmisExtension {
 
 	}
 
-	public void buildAllowableActions(AllowableActionsParams params) {
+	public void buildAllowableActions(BuildAllowableActionsParams params) {
 
 	}
 
@@ -58,9 +55,13 @@ public class CmisExtension {
 	public void onDeleteTree(DeleteTreeParams params) {
 
 	}
+
 	//
 	//	public void onDeleteContent(DeleteContentParams params) {
 	//
 	//	}
+	public ExtensionBooleanResult isSchemaTypeSupported(IsSchemaTypeSupportedParams params) {
+		return null;
+	}
 
 }

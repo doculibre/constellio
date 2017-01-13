@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.DataStoreField;
 
 public class SPEQueryResponse {
 
@@ -67,8 +68,8 @@ public class SPEQueryResponse {
 		}
 	}
 
-	public Map<String, Object> getStatValues(String metadata) {
-		return this.statisticsValues.get(metadata);
+	public Map<String, Object> getStatValues(DataStoreField field) {
+		return this.statisticsValues.get(field.getDataStoreCode());
 	}
 
 	public Integer getQueryFacetCount(String query) {

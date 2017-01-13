@@ -2,8 +2,11 @@ package com.constellio.app.api.cmis.requests;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.InputStream;
 import java.util.Set;
 
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -20,6 +23,7 @@ import com.constellio.app.api.cmis.builders.object.ObjectDataBuilder;
 import com.constellio.app.api.cmis.builders.object.TaxonomyObjectBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -124,12 +128,38 @@ public abstract class CmisCollectionRequest<T> {
 
 	protected void ensureUserHasReadAccessToRecordOrADescendantOf(Record record) {
 		if (!user.hasReadAccess().on(record)) {
-			TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRows(1)
-					.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
-			if (taxonomiesSearchServices.getVisibleChildConcept(user, record, options).isEmpty()) {
-				throw new CmisPermissionDeniedException($("CmisCollectionRequest_noReadAccess",
-						user.getUsername(), record.getId(), record.getTitle()));
+			Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+			if (taxonomy == null || taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
+				TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRows(1)
+						.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+				if (taxonomiesSearchServices.getVisibleChildConcept(user, record, options).isEmpty()) {
+					throw new CmisPermissionDeniedException($("CmisCollectionRequest_noReadAccess",
+							user.getUsername(), record.getId(), record.getTitle()));
+				}
 			}
+		}
+	}
+
+	protected void ensureUserHasWriteAccessOnRecord(Record record) {
+		if (!user.hasWriteAccess().on(record)) {
+			throw new CmisPermissionDeniedException($("CmisCollectionRequest_noWriteAccess",
+					user.getUsername(), record.getId(), record.getTitle()));
+		}
+	}
+
+	protected ContentVersionDataSummary uploadContent(final InputStream inputStream, final String fileName) {
+		try {
+			return modelLayerFactory.getContentManager().upload(inputStream, fileName);
+		} catch (final IcapException e) {
+			if (e instanceof IcapException.ThreatFoundException) {
+				throw new IcapException($(e, e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+			}
+
+            if (e.getCause() == null) {
+                throw new IcapException($(e, e.getFileName()));
+            } else {
+                throw new IcapException($(e, e.getFileName()), e.getCause());
+            }
 		}
 	}
 }

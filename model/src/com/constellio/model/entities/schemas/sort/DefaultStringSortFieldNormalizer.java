@@ -7,13 +7,21 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 
 public class DefaultStringSortFieldNormalizer implements StringSortFieldNormalizer {
 
+	static Pattern[] patterns = new Pattern[8];
+
+	static {
+		for (int i = 8; i > 0; i--) {
+			String regex = "([^0-9]+|^)([0-9]{" + i + "})([^0-9]+|$)";
+			patterns[i - 1] = Pattern.compile(regex);
+		}
+	}
+
 	@Override
 	public String normalize(String rawValue) {
 		String normalizedText = AccentApostropheCleaner.removeAccents(rawValue.toLowerCase()).trim();
 		for (int i = 8; i > 0; i--) {
-			String regex = "([^0-9]+|^)([0-9]{" + i + "})([^0-9]+|$)";
-			Pattern pattern = Pattern.compile(regex);
-			Matcher matcher = pattern.matcher(normalizedText);
+			//String regex = "([^0-9]+|^)([0-9]{" + i + "})([^0-9]+|$)";
+			Matcher matcher = patterns[i - 1].matcher(normalizedText);
 			if (matcher.find()) {
 				StringBuffer fillers = new StringBuffer();
 				int zeros = 9 - i;
@@ -21,7 +29,8 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 					fillers.append("\\0");
 				}
 				String replacement = "$1" + fillers + "$2$3";
-				normalizedText = normalizedText.replaceAll(regex, replacement);
+				normalizedText = matcher.replaceAll(replacement);//normalizedText.replaceAll(regex, replacement);
+
 			}
 		}
 		if ("".equals(normalizedText)) {

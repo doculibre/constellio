@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -44,6 +45,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean multivalue = metadata.isMultivalue();
 		Map<Language, String> labels = metadata.getLabels();
 		MetadataInputType entry = config.getInputType();
+		MetadataDisplayType displayType = config.getDisplayType();
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();
 		boolean advancedSearch = config.isVisibleInAdvancedSearch();
@@ -78,7 +80,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean duplicable = metadata.isDuplicable();
 
 		return new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable, multivalue, sortable,
-				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask,
+				advancedSearch, facet, entry, displayType, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask,
 				duplicable,
 				sessionContext);
 	}

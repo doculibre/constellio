@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -56,6 +57,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
 public class DecommissioningService {
+	private final AppLayerFactory appLayerFactory;
 	private final ModelLayerFactory modelLayerFactory;
 	private final RecordServices recordServices;
 	private final RMSchemasRecordsServices rm;
@@ -66,10 +68,11 @@ public class DecommissioningService {
 	private final RMConfigs configs;
 	private final DecommissioningEmailService emailService;
 
-	public DecommissioningService(String collection, ModelLayerFactory modelLayerFactory) {
+	public DecommissioningService(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
-		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
@@ -318,7 +321,7 @@ public class DecommissioningService {
 	}
 
 	Decommissioner decommissioner(DecommissioningList decommissioningList) {
-		return Decommissioner.forList(decommissioningList, this);
+		return Decommissioner.forList(decommissioningList, this, appLayerFactory);
 	}
 
 	public List<Folder> getFoldersForAdministrativeUnit(String administrativeUnitId) {
@@ -727,7 +730,7 @@ public class DecommissioningService {
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 }
 

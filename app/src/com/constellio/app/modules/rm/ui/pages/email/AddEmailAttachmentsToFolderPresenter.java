@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -29,7 +30,7 @@ import com.constellio.model.services.records.RecordServicesException;
 
 public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresenter<AddEmailAttachmentsToFolderView> {
 
-	private String userDocumentId;
+    private String userDocumentId;
 
 	private transient RecordServices recordServices;
 
@@ -91,8 +92,7 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 					try {
 						Document attachmentDocument = rmSchemasRecordsServices.newDocument();
 						attachmentDocument.setTitle(attachmentFilename);
-						ContentVersionDataSummary attachmentSummary = contentManager
-								.upload(attachmentIn, true, true, attachmentFilename);
+						ContentVersionDataSummary attachmentSummary = uploadContent(attachmentIn, true, true, attachmentFilename);
 						Content attachmentContent = contentManager
 								.createMajor(getCurrentUser(), attachmentFilename, attachmentSummary);
 						attachmentDocument.setContent(attachmentContent);
@@ -101,7 +101,11 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 					} catch (RecordServicesException e) {
 						view.showErrorMessage(MessageUtils.toMessage(e));
 						noExceptionDisplayed = false;
-					} finally {
+					} catch (final IcapException e) {
+                        view.showErrorMessage(e.getMessage());
+
+						noExceptionDisplayed = false;
+					}finally {
 						IOUtils.closeQuietly(attachmentIn);
 					}
 				}

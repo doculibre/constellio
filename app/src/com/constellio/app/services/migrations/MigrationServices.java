@@ -1,5 +1,8 @@
 package com.constellio.app.services.migrations;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +34,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
@@ -99,8 +103,21 @@ public class MigrationServices {
 		}
 
 		for (InstallableModule module : modules) {
-			if (newCollection && module instanceof ModuleWithComboMigration) {
+			boolean useComboMigration = newCollection && module instanceof ModuleWithComboMigration;
+			if (useComboMigration) {
+				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
 
+				List<String> completedMigrations = getCompletedMigrations(collection);
+				for (MigrationScript aMigrationScriptIncludedInCombo : comboMigrationScript.getVersions()) {
+
+					if (completedMigrations.contains(
+							new Migration(collection,module.getId(),aMigrationScriptIncludedInCombo).getMigrationId()))  {
+						useComboMigration = false;
+						break;
+					}
+				}
+			}
+			if (useComboMigration) {
 				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
 				migrations.add(new Migration(collection, module.getId(), comboMigrationScript));
 
@@ -163,9 +180,10 @@ public class MigrationServices {
 	private Set<String> migrateModules(String collection, String toVersion, boolean newModule)
 			throws OptimisticLockingConfiguration {
 		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
-
+		List<String> collectionCodes = collectionsManager.getCollectionCodesExcludingSystem();
 		boolean newCollection = isNewCollection(collection);
-		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled()) {
+		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled() &&
+				(!SYSTEM_COLLECTION.equals(collection) || collectionCodes.isEmpty())) {
 			migrateWithoutException(new CoreMigrationCombo(), null, collection);
 		}
 
@@ -218,9 +236,14 @@ public class MigrationServices {
 				migrate(migration);
 			}
 		} catch (Throwable e) {
-			constellioPluginManager
-					.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
-			exceptionWhenMigrating = true;
+			if (dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
+				throw new RuntimeException("A migration error is triggering a rollback", e);
+
+			} else {
+				constellioPluginManager
+						.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
+				exceptionWhenMigrating = true;
+			}
 		}
 		return exceptionWhenMigrating;
 	}
@@ -349,6 +372,19 @@ public class MigrationServices {
 		}
 	}
 
+	public List<String> getCompletedMigrations(String collection) {
+
+		Map<String, String> properties = dataLayerFactory.getConfigManager()
+				.getProperties(VERSION_PROPERTIES_FILE).getProperties();
+		String completedMigrations = properties.get(collection + "_completedMigrations");
+		if (StringUtils.isNotBlank(completedMigrations)) {
+			return asList(completedMigrations.split(","));
+		} else  {
+			return Collections.emptyList();
+		}
+
+	}
+
 	public void markMigrationAsCompleted(final Migration migration)
 			throws OptimisticLockingConfiguration {
 		final String propertyKey = migration.getCollection() + "_completedMigrations";
@@ -357,7 +393,15 @@ public class MigrationServices {
 			@Override
 			public void alter(Map<String, String> properties) {
 				String completedMigrations = properties.get(propertyKey);
-				properties.put(propertyKey, completedMigrations + "," + migration.getMigrationId());
+				List<String> migrations = new ArrayList<String>();
+
+				if (StringUtils.isNotBlank(completedMigrations)) {
+					migrations.addAll(asList(completedMigrations.split(",")));
+				}
+				migrations.add(migration.getMigrationId());
+				Collections.sort(migrations);
+
+				properties.put(propertyKey, StringUtils.join(migrations, ","));
 			}
 		});
 	}

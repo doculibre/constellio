@@ -39,6 +39,13 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class CannotSetIdsToReindexInEmptyTransaction extends RecordServicesRuntimeException {
+
+		public CannotSetIdsToReindexInEmptyTransaction() {
+			super("Cannot set ids to reindex in an empty transaction");
+		}
+	}
+
 	public static class IdAlreadyExisting extends RecordServicesRuntimeException {
 
 		public IdAlreadyExisting(String id) {

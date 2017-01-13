@@ -28,6 +28,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -168,9 +169,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaTypesHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchemaTypes o = new MetadataSchemaTypes(zeCollection, 1, new ArrayList<MetadataSchemaType>(),
-				new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French));
+				new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French), MetadataNetwork.EMPTY());
 		MetadataSchemaTypes o2 = new MetadataSchemaTypes(zeCollection, 1, new ArrayList<MetadataSchemaType>(),
-				new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French));
+				new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French), MetadataNetwork.EMPTY());
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isNotInstanceOf(Serializable.class);
 	}

@@ -28,6 +28,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery.Use
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.*;
 
@@ -171,14 +172,18 @@ public class SearchServices {
 	}
 
 	public String getLanguage(LogicalSearchQuery query) {
-		String collection = query.getCondition().getCollection();
-		String language;
-		try {
-			language = collectionsListManager.getCollectionLanguages(collection).get(0);
-		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-			language = mainDataLanguage;
+		if (query.getCondition().isCollectionSearch()) {
+			String collection = query.getCondition().getCollection();
+			String language;
+			try {
+				language = collectionsListManager.getCollectionLanguages(collection).get(0);
+			} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+				language = mainDataLanguage;
+			}
+			return language;
+		} else {
+			return mainDataLanguage;
 		}
-		return language;
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
@@ -423,7 +428,7 @@ public class SearchServices {
 			filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
 			break;
 		default:
-			throw new ImpossibleRuntimeException("Unknown access: " + userFilter.getAccess());
+			filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
 		}
 
 		params.add(CommonParams.FQ, filter);

@@ -1,6 +1,9 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType.VERTICAL;
 
 public class MetadataDisplayConfig {
 
@@ -12,18 +15,22 @@ public class MetadataDisplayConfig {
 
 	private final MetadataInputType inputType;
 
+	private final MetadataDisplayType displayType;
+
 	private final String metadataGroupCode;
 
 	private final boolean highlight;
 
 	public MetadataDisplayConfig(String collection, String metadataCode, boolean visibleInAdvancedSearch,
-			MetadataInputType inputType, boolean highlight, String metadataGroupCode) {
+								 MetadataInputType inputType, boolean highlight, String metadataGroupCode,
+								 MetadataDisplayType displayType) {
 		this.collection = collection;
 		this.metadataCode = metadataCode;
 		this.visibleInAdvancedSearch = visibleInAdvancedSearch;
 		this.inputType = inputType;
 		this.highlight = highlight;
 		this.metadataGroupCode = metadataGroupCode;
+		this.displayType = displayType;
 	}
 
 	public boolean isVisibleInAdvancedSearch() {
@@ -36,6 +43,10 @@ public class MetadataDisplayConfig {
 
 	public MetadataInputType getInputType() {
 		return inputType;
+	}
+
+	public MetadataDisplayType getDisplayType() {
+		return displayType;
 	}
 
 	public String getMetadataCode() {
@@ -52,31 +63,36 @@ public class MetadataDisplayConfig {
 
 	public MetadataDisplayConfig withVisibleInAdvancedSearchStatus(boolean visibleInAdvancedSearch) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode);
+				metadataGroupCode, displayType);
 	}
 
 	public MetadataDisplayConfig withHighlightStatus(boolean highlight) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode);
+				metadataGroupCode, displayType);
 	}
 
 	public MetadataDisplayConfig withInputType(MetadataInputType inputType) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode);
+				metadataGroupCode, displayType);
+	}
+
+	public MetadataDisplayConfig withDisplayType(MetadataDisplayType displayType) {
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode, displayType);
 	}
 
 	public MetadataDisplayConfig withMetadataGroup(String metadataGroupCode) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode);
+				metadataGroupCode, displayType);
 	}
 
 	public static MetadataDisplayConfig inheriting(String metadataCode, MetadataDisplayConfig inheritance) {
 		return new MetadataDisplayConfig(inheritance.collection, metadataCode, inheritance.visibleInAdvancedSearch,
-				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode);
+				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode, inheritance.displayType);
 	}
 
 	public MetadataDisplayConfig withCode(String code) {
 		return new MetadataDisplayConfig(collection, code, visibleInAdvancedSearch, inputType, highlight,
-				metadataGroupCode);
+				metadataGroupCode, displayType);
 	}
 }

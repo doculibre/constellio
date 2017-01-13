@@ -44,7 +44,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			ContentVersionVO contentVersionVO = record.get(Document.CONTENT);
 			String agentURL = ConstellioAgentUtils.getAgentURL(record, contentVersionVO);
 			if (agentURL != null) {
-				titleComponent = new ConstellioAgentLink(agentURL, contentVersionVO, record.getTitle(), false);
+				titleComponent = new ConstellioAgentLink(agentURL, record, contentVersionVO, record.getTitle(), false);
 			} else {
 				titleComponent = super.newTitleComponent(searchResultVO);
 			}
@@ -59,7 +59,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			}
 		};
 
-		Button download = new IconButton(new ThemeResource("images/icons/actions/save.png"),
+		Button download = new IconButton(new ThemeResource("images/icons/actions/download.png"),
 				$("DisplayFolderView.download")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -83,7 +83,10 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		layout.setComponentAlignment(edit, Alignment.TOP_RIGHT);
 		layout.setComponentAlignment(download, Alignment.TOP_RIGHT);
 		layout.setComponentAlignment(open, Alignment.TOP_RIGHT);
+		layout.setComponentAlignment(titleComponent, Alignment.BOTTOM_LEFT);
 		layout.setWidth("100%");
+		layout.setHeight("100%");
+		layout.addStyleName("document-search-result-display");
 
 		return layout;
 	}

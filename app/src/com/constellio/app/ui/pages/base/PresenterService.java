@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class PresenterService {
 	private ModelLayerFactory modelLayerFactory;
@@ -50,5 +51,10 @@ public class PresenterService {
 		Metadata metadata = types.getMetadata(metadataCode);
 		return builder.build(metadata, sessionContext);
 	}
+	
+	public ConstellioEIMConfigs getSystemConfigs() {
+		return modelLayerFactory.getSystemConfigs();
+	}
+	
 }
 

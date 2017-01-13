@@ -54,6 +54,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	public static final String SEMI_ACTIVE_RETENTION_PERIOD = "semiActiveRetentionPeriod";
 	public static final String INACTIVE_DISPOSAL_COMMENT = "inactiveDisposalComment";
 	public static final String ACTIVE_RETENTION_PERIOD = "activeRetentionPeriod";
+	public static final String IGNORE_ACTIVE_PERIOD = "ignoreActivePeriod";
 	public static final String INACTIVE_DISPOSAL_TYPE = "inactiveDisposalType";
 	public static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
 	public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
@@ -393,6 +394,13 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 			//		if (!mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT).equals("")) {
 			copyRetentionRule.setActiveRetentionComment(mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT));
 		}
+
+		String ignoreActivePeriodStr = mapCopyRetentionRule.get(IGNORE_ACTIVE_PERIOD);
+		if (ignoreActivePeriodStr != null)
+		{
+			copyRetentionRule.setIgnoreActivePeriod(Boolean.getBoolean(ignoreActivePeriodStr));
+		}
+
 
 		String semiActiveRetentionPeriodValue = mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD);
 		if (semiActiveRetentionPeriodValue.startsWith("var:")) {

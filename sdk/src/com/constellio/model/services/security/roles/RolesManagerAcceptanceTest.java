@@ -154,8 +154,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 			throws RolesManagerRuntimeException {
 		manager.addRole(validRole);
 
-		RolesManager newManager = new RolesManager(getDataLayerFactory().getConfigManager(), getModelLayerFactory()
-				.getCollectionsListManager());
+		RolesManager newManager = new RolesManager(getModelLayerFactory());
 		newManager.initialize();
 		assertThat(newManager.getAllRoles(zeCollection)).hasSize(2);
 	}

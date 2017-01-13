@@ -16,6 +16,7 @@ import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPO
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -25,7 +26,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -69,8 +69,9 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -85,7 +86,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -515,11 +515,8 @@ public class RMTestRecords {
 
 	private void addAuthorization(List<String> roles, String target, List<String> principals) {
 		if (!principals.isEmpty()) {
-			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-			AuthorizationDetails authorizationDetails = AuthorizationDetails
-					.create(UUID.randomUUID().toString(), roles, collection);
-			Authorization authorization = new Authorization(authorizationDetails, principals, asList(target));
-			authorizationsServices.add(authorization, User.GOD);
+			modelLayerFactory.newAuthorizationsServices()
+					.add(authorizationInCollection(collection).forPrincipalsIds(principals).on(target).giving(roles));
 		}
 	}
 
@@ -971,7 +968,7 @@ public class RMTestRecords {
 		roles.add(zRole);
 		LocalDate startDate = new LocalDate();
 		LocalDate endDate = new LocalDate();
-		AuthorizationDetails detail = new AuthorizationDetails(collection, "42", roles, startDate, endDate, false);
+		AuthorizationDetails detail = new XMLAuthorizationDetails(collection, "42", roles, startDate, endDate, false);
 		List<String> grantedToPrincipals = new ArrayList<>();
 		User dakota = users.gandalfLeblancIn(collection);
 		User bob = users.bobIn(collection);
@@ -981,17 +978,17 @@ public class RMTestRecords {
 		/*AdministrativeUnit administrativeUnit = records.getUnit10();
 		Folder folder = createFolder(administrativeUnit);*/
 		grantedOnRecords.addAll(Arrays.asList(getFolder_A01().getId()));
-		Authorization authorization = new Authorization(detail, grantedToPrincipals, grantedOnRecords);
+		Authorization authorization = new Authorization(detail, grantedToPrincipals);
 
 		List<String> grantedOnRecordsBefore = new ArrayList<>();
 		grantedOnRecordsBefore.addAll(
 				Arrays.asList(getFolder_A01().getId(), getFolder_A02().getId()));
-		AuthorizationDetails detailBefore = new AuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
+		AuthorizationDetails detailBefore = new XMLAuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
 				false);
-		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
+		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals);
 
 		User charles = users.charlesIn(collection);
-		loggingServices.modifyPermission(authorization, authorizationBefore, charles);
+		//loggingServices.modifyPermission(authorization, authorizationBefore, null, charles);
 	}
 
 	private void setupLists(Transaction transaction) {

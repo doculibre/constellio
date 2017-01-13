@@ -2,25 +2,33 @@ package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.buttons.SearchButton;
+import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.FieldEvents.FocusEvent;
 import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.ThemeResource;
@@ -35,6 +43,9 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupView;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
@@ -50,12 +61,16 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME = "header-show-advanced-search-button-popup-visible";
 
+	private List<String> collections = new ArrayList<>();
+
 	private final ConstellioHeaderPresenter presenter;
 	private TextField searchField;
 	private ComboBox types;
 	private PopupView advancedSearchForm;
 	private Button clearAdvancedSearch;
 	private AdvancedSearchCriteriaComponent criteria;
+    
+    private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
@@ -133,8 +148,13 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				adjustSearchFieldContent();
 			}
 		});
+		
 
-		addComponents(logo, searchField, showAdvancedSearch, searchButton, advancedSearchForm);
+		MenuBar collectionMenu = buildCollectionMenu();
+		MenuBar headerMenu = buildActionMenu();
+
+		addComponents(logo, searchField, showAdvancedSearch, searchButton, collectionMenu, headerMenu, advancedSearchForm);
+//		setComponentAlignment(headerMenu, Alignment.MIDDLE_RIGHT);
 		setSizeFull();
 
 		adjustSearchFieldContent();
@@ -318,12 +338,92 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 
 	@Override
+	public SessionContext getSessionContext() {
+		return ConstellioUI.getCurrentSessionContext();
+	}
+
+	@Override
 	public String getCollection() {
-		return ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+		return getSessionContext().getCurrentCollection();
 	}
 
 	@Override
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
+
+	@Override
+	public void updateUIContent() {
+		ConstellioUI.getCurrent().updateContent();
+	}
+	
+	private MenuBar buildCollectionMenu() {
+		MenuBar collectionMenu = new MenuBar();
+		if (!collections.isEmpty()) {
+			collectionMenu.setAutoOpen(true);
+			collectionMenu.addStyleName("header-collection-menu");
+
+			SessionContext sessionContext = getSessionContext();
+			String currentCollection = sessionContext.getCurrentCollection();
+			String collectionLabel = collectionCodeToLabelConverter.getCollectionCaption(currentCollection);
+			Page.getCurrent().setTitle(collectionLabel);
+
+			MenuItem collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
+			for (final String collection : collections) {
+				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
+					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
+					MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.collectionClicked(collection);
+							List<MenuItem> menuItems = selectedItem.getParent().getChildren();
+							for (MenuItem menuItem : menuItems) {
+								menuItem.setChecked(false);
+							}
+							selectedItem.setChecked(true);
+						}
+					});
+					collectionMenuItem.setCheckable(true);
+					collectionMenuItem.setChecked(currentCollection.equals(collection));
+				}
+			}
+		} else {
+			collectionMenu.setVisible(false);
+		}
+		return collectionMenu;
+	}
+	
+	private MenuBar buildActionMenu() {
+		MenuBar headerMenu = new MenuBar();
+		headerMenu.setAutoOpen(true);
+		headerMenu.addStyleName("header-action-menu");
+		MenuItem headerMenuRoot = headerMenu.addItem($("ConstellioHeader.actions"), FontAwesome.BARS, null);
+		for (final NavigationItem item : presenter.getActionMenuItems()) {
+			ComponentState state = presenter.getStateFor(item);
+
+			MenuItem menuItem = headerMenuRoot.addItem($("ConstellioHeader." + item.getCode()), new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					item.activate(navigate());
+				}
+			});
+			if (item.getFontAwesome() != null) {
+				menuItem.setIcon(item.getFontAwesome());
+			}
+			menuItem.setVisible(state.isVisible());
+			menuItem.setEnabled(state.isEnabled());
+			menuItem.setStyleName(item.getCode());
+		}	
+		return headerMenu;
+	}
+	
+	public Navigation navigate() {
+		return ConstellioUI.getCurrent().navigate();
+	}
+
+	@Override
+	public void setCollections(List<String> collections) {
+		this.collections = collections;
+	}
+	
 }

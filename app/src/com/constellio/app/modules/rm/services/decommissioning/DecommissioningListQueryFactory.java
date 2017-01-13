@@ -8,6 +8,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -24,12 +25,12 @@ public class DecommissioningListQueryFactory {
 	DecommissioningService decommissioningService;
 	AuthorizationsServices authorizationsServices;
 
-	public DecommissioningListQueryFactory(String collection, ModelLayerFactory modelLayerFactory) {
-		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-		this.searchServices = modelLayerFactory.newSearchServices();
-		this.decommissioningService = new DecommissioningService(collection, modelLayerFactory);
-		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+	public DecommissioningListQueryFactory(String collection, AppLayerFactory appLayerFactory) {
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		this.taxonomiesSearchServices = appLayerFactory.getModelLayerFactory().newTaxonomiesSearchService();
+		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		this.authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	public LogicalSearchQuery getGeneratedListsQuery(User user) {

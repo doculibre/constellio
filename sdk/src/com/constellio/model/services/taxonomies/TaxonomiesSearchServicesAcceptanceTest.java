@@ -1,5 +1,6 @@
 package com.constellio.model.services.taxonomies;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,19 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -852,12 +848,9 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
-
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-		return authorization;
+		String id = authorizationsServices.add(authorizationInCollection(zeCollection).giving(roles)
+				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecords.get(0)));
+		return authorizationsServices.getAuthorization(zeCollection, id);
 	}
 
 	private List<String> recordIdsWithAuthorizations(List<TaxonomySearchRecord> results) {

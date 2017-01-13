@@ -29,7 +29,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
@@ -513,20 +513,6 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 
 	private void addAuthorizationForUserToAccessAdministrativeUnit(User userToAdd, AdministrativeUnit administrativeUnit) {
 		authorizationsServices.canWrite(userToAdd, administrativeUnit.getWrappedRecord());
-	}
-
-	private Authorization newAuthorizationForUserToAccessAdministrativeUnit(User userToAdd,
-			AdministrativeUnit administrativeUnit) {
-		List<String> roles = Arrays.asList(Role.WRITE);
-		String authorizationDetailId = userToAdd + "." + administrativeUnit;
-		AuthorizationDetails detail = AuthorizationDetails
-				.create(authorizationDetailId, roles, testDate.toLocalDate(), testDate.plusDays(1).toLocalDate(),
-						zeCollection);
-		List<String> grantedToPrincipals = new ArrayList<>();
-		grantedToPrincipals.add(userToAdd.getId());
-		List<String> grantedOnRecords = new ArrayList<>();
-		grantedOnRecords.add(administrativeUnit.getId());
-		return new Authorization(detail, grantedToPrincipals, grantedOnRecords);
 	}
 
 	private void validateAllStatValuesAreEmpty(BaseEventCategoryFacade baseEventCategoryFacade) {

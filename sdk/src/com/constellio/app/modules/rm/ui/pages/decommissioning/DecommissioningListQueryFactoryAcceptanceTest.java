@@ -35,7 +35,7 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 
-		queryFactory = new DecommissioningListQueryFactory(zeCollection, getModelLayerFactory());
+		queryFactory = new DecommissioningListQueryFactory(zeCollection, getAppLayerFactory());
 	}
 
 	@Test

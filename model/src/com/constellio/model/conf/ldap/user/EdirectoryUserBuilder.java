@@ -3,6 +3,7 @@ package com.constellio.model.conf.ldap.user;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -41,6 +42,68 @@ public class EdirectoryUserBuilder extends CommonUserBuilder implements LDAPUser
 			e.printStackTrace();
 		}
 		return d;
+	}
+
+	@Override
+	public LDAPUser buildUser(String userId, Attributes attrs) throws NamingException {
+		LDAPUser returnUser = new LDAPUser();
+
+		returnUser.setId(userId);
+
+		Attribute nameAttribute = attrs.get(getNameAttributeName());
+		String name = buildName(nameAttribute);
+		returnUser.setName(name);
+
+		if (getEnabledAttributeName() != null) {
+			Attribute enabledAttribute = attrs.get(getEnabledAttributeName());
+			Boolean enabled = buildEnabled(enabledAttribute);
+			returnUser.setEnabled(enabled);
+		} else {
+			returnUser.setEnabled(getDefaultValueIfIsEnabledAttributeNull());
+		}
+
+		if (getEmailAttributeName() != null) {
+			Attribute emailAttribute = attrs.get(getEmailAttributeName());
+			String email = buildEmail(emailAttribute);
+			returnUser.setEmail(email);
+		}
+
+		if (getGivenNameAttributeName() != null) {
+			Attribute givenNameAttribute = attrs.get(getGivenNameAttributeName());
+			String givenName = buildGivenName(givenNameAttribute);
+			returnUser.setGivenName(givenName);
+		}
+
+		if (getFamilyNameAttributeName() != null) {
+			Attribute familyNameAttribute = attrs.get(getFamilyNameAttributeName());
+			String familyName = buildFamilyName(familyNameAttribute);
+			returnUser.setFamilyName(familyName);
+		}
+
+		if (getLastLoginAttributeName() != null) {
+			Attribute lastLogonAttribute = attrs.get(getLastLoginAttributeName());
+			Date lastLogon = buildLastLogonAttribute(lastLogonAttribute);
+			returnUser.setLastLogon(lastLogon);
+		}
+
+		if (getCompanyAttributeName() != null) {
+			Attribute lieuTravailAttribute = attrs.get(getCompanyAttributeName());
+			String lieuTravail = buildCompany(lieuTravailAttribute);
+			returnUser.setLieuTravail(lieuTravail);
+		}
+
+		if (getMsExchDelegateListBl() != null) {
+			Attribute msExchDelegateListBlAttribute = attrs.get(getMsExchDelegateListBl());
+			List<String> msExchDelegateListBl = buildMsExchDelegateListBL(msExchDelegateListBlAttribute);
+			returnUser.setMsExchDelegateListBL(msExchDelegateListBl);
+		}
+
+		Attribute groupsAttribute = attrs.get(getGroupAttributeName());
+		List<String> groupsDN = buildGroups(groupsAttribute);
+		for (String group : groupsDN) {
+			returnUser.addGroup(new LDAPGroup(group));
+		}
+		return returnUser;
 	}
 
 	@Override

@@ -8,6 +8,10 @@ import java.util.List;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.extensions.api.cmis.CmisExtension;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -28,6 +32,7 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import com.constellio.sdk.tests.setups.Users;
 
 /**
  * This schema setup can be used to test multiple taxonomy behaviors :
@@ -145,6 +150,18 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		return this;
 	}
 
+	public static void allSchemaTypesSupported(AppLayerFactory appLayerFactory) {
+		for (String collection : appLayerFactory.getModelLayerFactory().getCollectionsListManager()
+				.getCollectionsExcludingSystem()) {
+			appLayerFactory.getExtensions().forCollection(collection).cmisExtensions.add(new CmisExtension() {
+				@Override
+				public ExtensionBooleanResult isSchemaTypeSupported(IsSchemaTypeSupportedParams params) {
+					return ExtensionBooleanResult.FORCE_TRUE;
+				}
+			});
+		}
+	}
+
 	public class DocumentFond implements SchemaShortcuts {
 
 		public MetadataSchemaType type() {
@@ -159,6 +176,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {
@@ -195,6 +217,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {
@@ -242,6 +269,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata title() {
 			return getMetadata(code() + "_title");
 		}
@@ -277,6 +309,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {
@@ -419,6 +456,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata username() {
 			return getMetadata(code() + "_username");
 		}
@@ -443,6 +485,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata groupCode() {

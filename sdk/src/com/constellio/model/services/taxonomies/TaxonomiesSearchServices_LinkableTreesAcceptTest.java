@@ -2,6 +2,7 @@ package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -38,9 +39,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServicesException;
@@ -74,7 +72,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		service = getModelLayerFactory().newTaxonomiesSearchService();
-		decommissioningService = new DecommissioningService(zeCollection, getModelLayerFactory());
+		decommissioningService = new DecommissioningService(zeCollection, getAppLayerFactory());
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
@@ -1298,32 +1296,20 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	private void givenUserHasReadAccessTo(String... ids) {
-
-		Authorization authorization = new Authorization();
-		authorization.setDetail(AuthorizationDetails.create("zeAuthorization", asList(Role.READ), zeCollection));
-		authorization.setGrantedOnRecords(asList(ids));
-		authorization.setGrantedToPrincipals(asList(alice.getId()));
-		getModelLayerFactory().newAuthorizationsServices().add(
-				authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-
+		for (String id : ids) {
+			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingReadAccess());
+		}
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
-		System.out.println(alice.getTokens());
-		System.out.println(alice.getTokens());
 	}
 
 	private void givenUserHasWriteAccessTo(String... ids) {
-		Authorization authorization = new Authorization();
-		authorization.setDetail(AuthorizationDetails.create("writeAuthorization", asList(Role.WRITE), zeCollection));
-		authorization.setGrantedOnRecords(asList(ids));
-		authorization.setGrantedToPrincipals(asList(alice.getId()));
-		getModelLayerFactory().newAuthorizationsServices().add(
-				authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-
+		for (String id : ids) {
+			getModelLayerFactory().newAuthorizationsServices()
+					.add(authorizationForUsers(alice).on(id).givingReadWriteAccess());
+		}
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
-		System.out.println(alice.getTokens());
-		System.out.println(alice.getTokens());
 	}
 
 	private ConditionTemplate withoutFilters = null;

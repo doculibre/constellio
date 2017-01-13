@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -77,12 +79,12 @@ public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPr
 
 	@Override
 	protected boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getGrantedOnRecords().contains(recordId);
+		return authorization.getGrantedOnRecord().equals(recordId);
 	}
 
 	@Override
 	protected void removeAuthorization(Authorization authorization) {
-		authorizationsServices().delete(authorization.getDetail(), getCurrentUser());
+		authorizationsServices().execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
 	}
 
 	@Override

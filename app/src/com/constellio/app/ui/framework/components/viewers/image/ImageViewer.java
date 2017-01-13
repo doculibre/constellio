@@ -9,6 +9,7 @@ import java.util.Arrays;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.io.IOUtils;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -133,8 +134,8 @@ public class ImageViewer extends CustomComponent {
 		}
 	}
 	
-	public static boolean isSupported(String filename) {
-		String extension = FilenameUtils.getExtension(filename);
+	public static boolean isSupported(String fileName) {
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		return Arrays.asList(SUPPORTED_EXTENSIONS).contains(extension);
 	}
 

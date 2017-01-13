@@ -225,10 +225,6 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		return ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, params);
 	}
 
-	public boolean canAddOrModify() {
-		return userServices.canAddOrModifyUserAndGroup();
-	}
-
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS);

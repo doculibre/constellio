@@ -45,6 +45,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView, BatchProcessingView {
+	
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
@@ -67,6 +68,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		header.setAdvancedSearchCriteria(criteria);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void downloadBatchProcessingResults(final InputStream stream) {
 		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
@@ -122,8 +124,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					return presenter.getTemplates();
 				}
 			};
-			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-					labelTemplatesFactory);
+			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
+					$("SearchView.printLabels"),
+					this,
+					labelTemplatesFactory,
+					presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
 			selectionActions.add(labelsButton);
@@ -138,8 +143,10 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
 				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Button addToCart = buildAddToCartButton();
-			selectionActions.add(addToCart);
+			if(presenter.hasCurrentUserPermissionToUseCart()) {
+				Button addToCart = buildAddToCartButton();
+				selectionActions.add(addToCart);
+			}
 		}
 
 		Button switchViewMode = buildSwitchViewMode();
@@ -182,7 +189,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	protected SearchResultTable buildResultTable() {
-		// TODO Table should take all space, since facets and sort are hidden.
 		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
 			return buildSimpleResultsTable();
 		} else {

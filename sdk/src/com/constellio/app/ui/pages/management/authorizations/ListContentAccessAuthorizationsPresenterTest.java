@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -12,14 +13,13 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.constellio.sdk.tests.SDKViewNavigation;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -30,12 +30,14 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.SDKViewNavigation;
 
 public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest {
 	public static final String ZE_SECURED_OBJECT = "zeObject";
@@ -54,7 +56,8 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Mock AuthorizationVO own1;
 	@Mock AuthorizationVO own2;
 	@Mock Authorization authorization;
-	@Mock AuthorizationDetails details;
+	@Mock
+	AuthorizationDetails details;
 	MockedFactories factories = new MockedFactories();
 
 	ListAuthorizationsPresenter presenter;
@@ -62,6 +65,8 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Before
 	public void setUp()
 			throws Exception {
+		when(authorizationVO.getAuthId()).thenReturn("zeAuth");
+		when(details.getId()).thenReturn("zeAuth");
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		SessionContext context = FakeSessionContext.gandalfInCollection(zeCollection);
 		when(view.getSessionContext()).thenReturn(context);
@@ -106,10 +111,14 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 
 	@Test
 	public void givenAuthorizationDeletedThenRemoveTheAuthorizationAndRefreshTheView() {
+		ArgumentCaptor<AuthorizationDeleteRequest> requestArgumentCaptor = forClass(AuthorizationDeleteRequest.class);
 		givenAuthorizationWithId(aString());
 		presenter.deleteButtonClicked(authorizationVO);
-		verify(authorizationsServices, times(1)).delete(details, user);
+		verify(authorizationsServices, times(1)).execute(requestArgumentCaptor.capture());
 		verify(view, times(1)).removeAuthorization(authorizationVO);
+
+		assertThat(requestArgumentCaptor.getValue().getAuthId()).isEqualTo("zeAuth");
+		assertThat(requestArgumentCaptor.getValue().getExecutedBy()).isEqualTo(user);
 	}
 
 	private void givenObjectWithTwoInheritedAndTwoOwnAuthorizations() {
@@ -120,22 +129,22 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 		Authorization authorization5 = mock(Authorization.class, "Authorization5");
 		Authorization authorization6 = mock(Authorization.class, "Authorization6");
 
-		when(authorization1.getGrantedOnRecords()).thenReturn(Arrays.asList(ZE_SECURED_OBJECT));
+		when(authorization1.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
 		when(authorization1.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization2.getGrantedOnRecords()).thenReturn(Arrays.asList(ZENOTHER_SECURED_OBJECT));
+		when(authorization2.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
 		when(authorization2.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization3.getGrantedOnRecords()).thenReturn(Arrays.asList(ZE_SECURED_OBJECT));
+		when(authorization3.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
 		when(authorization3.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization4.getGrantedOnRecords()).thenReturn(Arrays.asList(ZENOTHER_SECURED_OBJECT));
+		when(authorization4.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
 		when(authorization4.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization5.getGrantedOnRecords()).thenReturn(Arrays.asList(ZE_SECURED_OBJECT));
+		when(authorization5.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
 		when(authorization5.getGrantedToPrincipals()).thenReturn(new ArrayList<String>());
 
-		when(authorization6.getGrantedOnRecords()).thenReturn(Arrays.asList(ZENOTHER_SECURED_OBJECT));
+		when(authorization6.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
 		when(authorization6.getGrantedToPrincipals()).thenReturn(new ArrayList<String>());
 
 		Record record = mock(Record.class, "Record");

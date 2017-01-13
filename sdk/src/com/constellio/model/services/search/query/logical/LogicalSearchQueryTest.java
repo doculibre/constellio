@@ -154,7 +154,7 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 	@Test
 	public void whenAddStatsOnFieldThenFilterAdded()
 			throws Exception {
-		query.computeStatsOnField(metadata.getDataStoreCode());
+		query.computeStatsOnField(metadata);
 		assertThat(query.getStatisticFields()).contains(metadata.getDataStoreCode());
 	}
 }

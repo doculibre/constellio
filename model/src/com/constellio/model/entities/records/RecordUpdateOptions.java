@@ -25,17 +25,36 @@ public class RecordUpdateOptions {
 
 	private boolean skipUSRMetadatasRequirementValidations = false;
 
+	boolean skippingRequiredValuesValidation = false;
+	private boolean skippingReferenceToLogicallyDeletedValidation = false;
+
 	public RecordUpdateOptions() {
 
 	}
 
 	public RecordUpdateOptions(RecordUpdateOptions copy) {
 		this.transactionRecordsReindexation = copy.transactionRecordsReindexation;
+
 		this.resolution = copy.resolution;
+
 		this.recordsFlushing = copy.recordsFlushing;
+
+		this.skipReferenceValidation = copy.skipReferenceValidation;
+
 		this.updateModificationInfos = copy.updateModificationInfos;
+
 		this.fullRewrite = copy.fullRewrite;
+
 		this.validationsEnabled = copy.validationsEnabled;
+
+		this.unicityValidationsEnabled = copy.unicityValidationsEnabled;
+
+		this.skipMaskedMetadataValidations = copy.skipMaskedMetadataValidations;
+
+		this.skipUSRMetadatasRequirementValidations = copy.skipUSRMetadatasRequirementValidations;
+
+		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
+		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
 	}
 
 	public boolean isSkipUSRMetadatasRequirementValidations() {
@@ -56,7 +75,7 @@ public class RecordUpdateOptions {
 		return this;
 	}
 
-	public RecordUpdateOptions forceReindexationOfMetadatas(TransactionRecordsReindexation transactionRecordsReindexation) {
+	public RecordUpdateOptions setForcedReindexationOfMetadatas(TransactionRecordsReindexation transactionRecordsReindexation) {
 		this.transactionRecordsReindexation = transactionRecordsReindexation;
 		return this;
 	}
@@ -131,5 +150,30 @@ public class RecordUpdateOptions {
 	public RecordUpdateOptions setUnicityValidationsEnabled(boolean unicityValidationsEnabled) {
 		this.unicityValidationsEnabled = unicityValidationsEnabled;
 		return this;
+	}
+
+	public boolean isSkippingRequiredValuesValidation() {
+		return skippingRequiredValuesValidation;
+	}
+
+	public RecordUpdateOptions setSkippingRequiredValuesValidation(boolean skippingRequiredValuesValidation) {
+		this.skippingRequiredValuesValidation = skippingRequiredValuesValidation;
+		return this;
+	}
+
+	public boolean isSkippingReferenceToLogicallyDeletedValidation() {
+		return skippingReferenceToLogicallyDeletedValidation;
+	}
+
+	public RecordUpdateOptions setSkippingReferenceToLogicallyDeletedValidation(
+			boolean skippingReferenceToLogicallyDeletedValidation) {
+		this.skippingReferenceToLogicallyDeletedValidation = skippingReferenceToLogicallyDeletedValidation;
+		return this;
+	}
+
+	public static RecordUpdateOptions validationExceptionSafeOptions() {
+		return new RecordUpdateOptions().setSkipReferenceValidation(true).setValidationsEnabled(false)
+				.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
+				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true);
 	}
 }

@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.vaadin.peter.contextmenu.ContextMenu;
 
-import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -19,7 +18,6 @@ import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -42,9 +40,6 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
@@ -77,23 +72,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
-		for (final NavigationItem item : presenter.getMenuItems()) {
-			ComponentState state = presenter.getStateFor(item);
-			Button button = new Button($("HomeView." + item.getCode()));
-			button.setVisible(state.isVisible());
-			button.setEnabled(state.isEnabled());
-			button.addStyleName(item.getCode());
-			button.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					item.activate(navigate());
-				}
-			});
-			buttons.add(button);
-		}
-		return buttons;
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 
 	@Override
@@ -204,6 +184,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
+		subTabSheet.setSelectedTab(recordTree.getDefaultDataProvider());
 		return subTabSheet;
 	}
 

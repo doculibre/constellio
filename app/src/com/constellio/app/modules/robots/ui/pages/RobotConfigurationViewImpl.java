@@ -50,7 +50,7 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new RobotBreadcrumbTrail(presenter.getRootRobotId());
+		return new RobotBreadcrumbTrail(presenter.getRootRobotId(), this);
 	}
 
 	@Override

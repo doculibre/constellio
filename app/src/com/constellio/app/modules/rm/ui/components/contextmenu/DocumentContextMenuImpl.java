@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -114,7 +115,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					if (contentVersionVO != null) {
 						String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 						if (agentURL != null) {
-							Page.getCurrent().open(agentURL, null);
+//							Page.getCurrent().open(agentURL, null);
+							new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
 						} else {
 							ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
 							Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);

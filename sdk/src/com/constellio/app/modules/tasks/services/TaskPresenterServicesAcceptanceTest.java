@@ -28,6 +28,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -76,6 +77,11 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 				.setAssignee(aliceHasWriteAccessOnZeTask.getId()).setAssigner(chuckNorrisHasDeleteAccessOnTask.getId())
 				.setAssignationDate(LocalDate.now())
 				.setCreatedBy(chuckNorrisHasDeleteAccessOnTask.getId()));
+
+		//LogicalSearchCondition allTasks = from(tasksSchemas.userTask.schemaType()).returnAll();
+
+		//assertThat(searchServices.e
+
 		assertThat(bobHasReadAccessOnTask.hasReadAccess().on(zeTask)).isTrue();
 		assertThat(aliceHasWriteAccessOnZeTask.hasWriteAccess().on(zeTask)).isTrue();
 		assertThat(chuckNorrisHasDeleteAccessOnTask.hasDeleteAccess().on(zeTask)).isTrue();
@@ -170,14 +176,14 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserWithWriteAccessOnTaskWhenTaskIsCompletedButNotAssignedThenCloseTaskButtonInvisible()
+	public void givenUserWithWriteAccessOnTaskAndIsCreatorWhenTaskIsCompletedButNotAssignedThenCloseTaskButtonIsVisible()
 			throws Exception {
 		recordServices.add(zeTask.setStatus(FIN()).setAssignee(null).setAssignationDate(null)
 				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(chuckNorrisHasDeleteAccessOnTask.hasDeleteAccess().on(zeTask)).isTrue();
 		assertThat(taskPresenterServices.isCloseTaskButtonVisible(zeTask.getWrappedRecord(),
-				chuckNorrisHasDeleteAccessOnTask)).isFalse();
+				chuckNorrisHasDeleteAccessOnTask)).isTrue();
 	}
 
 	@Test
@@ -381,7 +387,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	private void addGroup(String groupCode) {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		GlobalGroup group = userServices.createGlobalGroup(
-				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
+				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(group);
 	}
 }

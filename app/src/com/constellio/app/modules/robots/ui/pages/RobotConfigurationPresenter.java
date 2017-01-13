@@ -7,9 +7,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
-import com.constellio.app.modules.robots.reports.DryRunReportBuilderFactory;
+import com.constellio.app.modules.robots.reports.DryRunReportWriterFactory;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -65,19 +64,19 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	}
 
 	public String getReportTitle() {
-		return new DryRunReportBuilderFactory(
+		return new DryRunReportWriterFactory(
 				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext()).getFilename();
 	}
 
 	public StreamSource getResource() {
-		final DryRunReportBuilderFactory factory = new DryRunReportBuilderFactory(
+		final DryRunReportWriterFactory factory = new DryRunReportWriterFactory(
 				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext());
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				ByteArrayOutputStream output = new ByteArrayOutputStream();
 				try {
-					factory.getReportBuilder(modelLayerFactory).build(output);
+					factory.getReportBuilder(modelLayerFactory).write(output);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -85,11 +84,11 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 			}
 		};
 	}
-	
+
 	public void backButtonClicked() {
 		view.navigate().to(RobotViews.class).listRootRobots();
 	}
-	
+
 	public void deleteRecordsButtonClicked() {
 		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
 	}
@@ -97,5 +96,5 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	public void deleteRecordsButtonClicked(RecordVO robot) {
 		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
 	}
-	
+
 }

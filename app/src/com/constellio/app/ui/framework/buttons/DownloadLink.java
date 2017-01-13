@@ -9,6 +9,7 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DownloadLink extends Link {
+	
 	public static final String STYLE_NAME = "download-link";
 
 	protected Resource downloadedResource;

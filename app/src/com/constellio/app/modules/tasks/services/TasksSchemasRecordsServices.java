@@ -415,7 +415,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
 	public TaskReminderEmailManager getTaskReminderEmailManager() {
-		return appLayerFactory.getRegisteredManager(collection, TaskModule.ID, TaskReminderEmailManager.ID);
+		return appLayerFactory.getRegisteredManager(getCollection(), TaskModule.ID, TaskReminderEmailManager.ID);
 	}
 
 	public MetadataSchema getLinkedSchema(MetadataSchemaType schemaType, SchemaLinkingType recordType) {
@@ -494,7 +494,6 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		status.add(getTaskStatusWithCode(CLOSED_CODE));
 		return status;
 	}
-
 
 	public void setType(Task task, TaskType taskType) {
 		setType(task.getWrappedRecord(), taskType == null ? null : taskType.getWrappedRecord());

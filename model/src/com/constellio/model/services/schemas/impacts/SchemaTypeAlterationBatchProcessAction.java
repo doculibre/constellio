@@ -31,7 +31,7 @@ public class SchemaTypeAlterationBatchProcessAction implements BatchProcessActio
 	@Override
 	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		Transaction transaction = new Transaction();
-		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		transaction.getRecordUpdateOptions().setFullRewrite(true);
 
 		for (Record record : batch) {

@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.constants;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.model.entities.Permissions;
+
+import java.util.List;
 
 public class RMPermissionsTo {
 	public static Permissions PERMISSIONS = new Permissions(ConstellioRMModule.ID);
@@ -72,8 +72,12 @@ public class RMPermissionsTo {
 
 	public static final String DELETE_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteSemiActiveDocuments");
 	public static final String DELETE_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteInactiveDocuments");
+	public static final String DELETE_BORROWED_DOCUMENT = permission(DOCUMENT_GROUP, "deleteBorrowedDocuments");
+	public static final String DELETE_PUBLISHED_DOCUMENT = permission(DOCUMENT_GROUP, "deletePublishedDocuments");
 
 	public static final String RETURN_OTHER_USERS_DOCUMENTS = permission(DOCUMENT_GROUP, "returnOtherUsersDocuments");
+
+	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
 
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
@@ -85,6 +89,11 @@ public class RMPermissionsTo {
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
+
+	// Cart
+	private static final String CART_GROUP = "carts";
+
+	public static final String USE_CART = permission(CART_GROUP, "useCart");
 
 	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";

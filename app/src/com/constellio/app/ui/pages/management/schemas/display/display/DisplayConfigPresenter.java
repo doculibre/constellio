@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.display;
 
-import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -25,6 +16,10 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.util.*;
+
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 
 public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayConfigView> {
 
@@ -55,7 +50,7 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
-			if (this.isAllowedMetadata(metadata)) {
+			if (this.isAllowedMetadata(metadata) && metadata.isEnabled()) {
 				formMetadataVOs
 						.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			}
@@ -94,8 +89,8 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 
 	private boolean isAllowedMetadata(Metadata metadata) {
 		List<Metadata> restrictedMetadata = Arrays.asList(Schemas.SCHEMA, Schemas.VERSION, Schemas.PATH, Schemas.PRINCIPAL_PATH,
-				Schemas.PARENT_PATH, Schemas.AUTHORIZATIONS, Schemas.REMOVED_AUTHORIZATIONS, Schemas.INHERITED_AUTHORIZATIONS,
-				Schemas.ALL_AUTHORIZATIONS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
+				Schemas.PARENT_PATH, Schemas.REMOVED_AUTHORIZATIONS, Schemas.ALL_REMOVED_AUTHS, Schemas.ATTACHED_ANCESTORS,
+				Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
 				Schemas.FOLLOWERS, Schemas.LOGICALLY_DELETED_STATUS, Schemas.SHARE_DENY_TOKENS, Schemas.SHARE_TOKENS,
 				Schemas.DENY_TOKENS, Schemas.SEARCHABLE);
 

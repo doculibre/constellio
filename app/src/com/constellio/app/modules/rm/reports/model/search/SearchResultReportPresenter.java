@@ -1,11 +1,17 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -32,19 +38,19 @@ public class SearchResultReportPresenter {
 	private final String username;
 	private final String reportTitle;
 	private final LogicalSearchQuery searchQuery;
-	private final ModelLayerFactory modelLayerFactory;
+	private final AppLayerFactory appLayerFactory;
 	private final Locale locale;
 
-	public SearchResultReportPresenter(ModelLayerFactory modelLayerFactory, List<String> selectedRecords, String schemaType,
-			String collection, String username,
-			String reportTitle, LogicalSearchQuery searchQuery, Locale locale) {
+	public SearchResultReportPresenter(AppLayerFactory appLayerFactory, List<String> selectedRecords, String schemaType,
+									   String collection, String username,
+									   String reportTitle, LogicalSearchQuery searchQuery, Locale locale) {
 		this.selectedRecords = selectedRecords;
 		this.schemaTypeCode = schemaType;
 		this.collection = collection;
 		this.username = username;
 		this.reportTitle = reportTitle;
 		this.searchQuery = searchQuery;
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
 		this.locale = locale;
 	}
 
@@ -117,6 +123,9 @@ public class SearchResultReportPresenter {
 			for (Object item : items) {
 				convertedValue.add(getConvertedScalarValue(metadata, item));
 			}
+			if(convertedValue.isEmpty()) {
+				return "";
+			}
 			return convertedValue;
 		} else {
 			return getConvertedScalarValue(metadata, metadataValue);
@@ -129,16 +138,28 @@ public class SearchResultReportPresenter {
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
 			String referenceId = (String) metadataValue;
 			if (referenceId != null) {
-				Record record = modelLayerFactory.newRecordServices().getDocumentById(referenceId);
+				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(referenceId);
 				String code = record.get(Schemas.CODE);
 				String title = record.get(Schemas.TITLE);
-				if (code == null) {
+				if (code == null || !metadata.isDefaultRequirement()) {
 					return title;
 				} else {
 					return code + "-" + title;
 				}
 			}
-
+		}
+		else if(metadata.getType() == MetadataValueType.BOOLEAN) {
+			return metadataValue.equals(true)? $("yes"):$("no");
+		}
+		else if(metadata.getType() == MetadataValueType.TEXT) {
+			SchemasDisplayManager schemasManager = appLayerFactory.getMetadataSchemasDisplayManager();
+			MetadataDisplayConfig config = schemasManager.getMetadata(collection, metadata.getCode());
+			if(config.getInputType().equals(MetadataInputType.RICHTEXT)) {
+				String result = metadataValue.toString().replaceAll("<br>", "\n");
+				result = result.toString().replaceAll("<li>", "\n");
+				result = result.toString().replaceAll("\\<[^>]*>","");
+				return result;
+			}
 		}
 
 		return metadataValue;

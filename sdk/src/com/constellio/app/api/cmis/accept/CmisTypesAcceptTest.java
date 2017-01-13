@@ -64,6 +64,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		defineSchemasManager().using(anotherCollectionSchemas);
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
@@ -203,6 +204,10 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 				.isEqualTo(Cardinality.SINGLE);
 		assertThat(administrativeUnitDefault.getPropertyDefinitions().get("tokens").getCardinality())
 				.isEqualTo(Cardinality.MULTI);
+
+		ObjectType authorizationDetails = iterator.next();
+		assertThat(authorizationDetails.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(authorizationDetails.getId()).isEqualTo("authorizationDetails_default");
 
 		ObjectType categoryDefault = iterator.next();
 		assertThat(categoryDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");

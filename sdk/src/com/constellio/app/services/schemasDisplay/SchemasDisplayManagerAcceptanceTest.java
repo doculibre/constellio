@@ -1,6 +1,7 @@
 package com.constellio.app.services.schemasDisplay;
 
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.FIELD;
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.RADIO_BUTTONS;
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.TEXTAREA;
 import static com.constellio.app.services.schemasDisplay.SchemasDisplayManager.REQUIRED_METADATA_IN_FORM_LIST;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -220,6 +222,29 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.HIDDEN);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isTrue();
 
+	}
+
+	@Test
+	public void givenNewCollectionWhenGetAndSetMetadataThenDisplayTypeConserved()
+			throws Exception {
+
+		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "user_default_groups");
+		assertThat(metadataDisplay.getDisplayType()).isEqualTo(MetadataDisplayType.VERTICAL);
+		MetadataDisplayConfig config = metadataDisplay.withDisplayType(MetadataDisplayType.HORIZONTAL);
+		assertThat(config.getDisplayType()).isEqualTo(MetadataDisplayType.HORIZONTAL);
+
+		manager.saveMetadata(config);
+
+		metadataDisplay = manager.getMetadata(zeCollection, "user_default_groups");
+		assertThat(metadataDisplay.getDisplayType()).isEqualTo(MetadataDisplayType.HORIZONTAL);
+
+		MetadataDisplayConfig config2 = metadataDisplay.withDisplayType(MetadataDisplayType.VERTICAL);
+		assertThat(config2.getDisplayType()).isEqualTo(MetadataDisplayType.VERTICAL);
+
+		manager.saveMetadata(config2);
+
+		metadataDisplay = manager.getMetadata(zeCollection, "user_default_groups");
+		assertThat(metadataDisplay.getDisplayType()).isEqualTo(MetadataDisplayType.VERTICAL);
 	}
 
 	@Test

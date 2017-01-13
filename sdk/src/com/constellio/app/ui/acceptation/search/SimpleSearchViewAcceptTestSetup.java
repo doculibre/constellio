@@ -10,6 +10,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -43,10 +44,13 @@ public class SimpleSearchViewAcceptTestSetup extends SchemasSetup {
 	@Override
 	public void setUp() {
 		MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(DOCUMENT);
-		builder.getDefaultSchema().create("bodyText").addLabel(Language.French,"Body text").setType(MetadataValueType.TEXT).setSearchable(true);
-		builder.getDefaultSchema().create("number").addLabel(Language.French,"Number").setType(MetadataValueType.NUMBER).setSearchable(true);
-		builder.getDefaultSchema().create("someFacet").addLabel(Language.French,"Some facet").setType(MetadataValueType.NUMBER);
-		builder.getDefaultSchema().create("anotherFacet").addLabel(Language.French,"Another facet").setType(MetadataValueType.STRING);
+		builder.getDefaultSchema().create("bodyText").addLabel(Language.French, "Body text").setType(MetadataValueType.TEXT)
+				.setSearchable(true);
+		builder.getDefaultSchema().create("number").addLabel(Language.French, "Number").setType(MetadataValueType.NUMBER)
+				.setSearchable(true);
+		builder.getDefaultSchema().create("someFacet").addLabel(Language.French, "Some facet").setType(MetadataValueType.NUMBER);
+		builder.getDefaultSchema().create("anotherFacet").addLabel(Language.French, "Another facet")
+				.setType(MetadataValueType.STRING);
 		builder.getDefaultSchema().create("date").setType(MetadataValueType.DATE);
 		builder.getDefaultSchema().create("zenum").setType(MetadataValueType.ENUM).defineAsEnum(ZEnum.class);
 	}
@@ -78,6 +82,11 @@ public class SimpleSearchViewAcceptTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {

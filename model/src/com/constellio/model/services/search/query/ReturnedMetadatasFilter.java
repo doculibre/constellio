@@ -1,7 +1,10 @@
 package com.constellio.model.services.search.query;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,15 +34,15 @@ public class ReturnedMetadatasFilter {
 	}
 
 	public static ReturnedMetadatasFilter idVersionSchemaTitle() {
-		return ReturnedMetadatasFilter.onlyMetadatas(Arrays.asList(Schemas.TITLE));
+		return ReturnedMetadatasFilter.onlyMetadatas(asList(Schemas.TITLE));
 	}
 
 	public static ReturnedMetadatasFilter idVersionSchemaTitlePath() {
-		return ReturnedMetadatasFilter.onlyMetadatas(Arrays.asList(Schemas.TITLE, Schemas.PATH));
+		return ReturnedMetadatasFilter.onlyMetadatas(asList(Schemas.TITLE, Schemas.PATH));
 	}
 
 	public static ReturnedMetadatasFilter onlyMetadatas(Metadata... metadatas) {
-		return ReturnedMetadatasFilter.onlyMetadatas(Arrays.asList(metadatas));
+		return ReturnedMetadatasFilter.onlyMetadatas(asList(metadatas));
 	}
 
 	public static ReturnedMetadatasFilter onlyFields(Set<String> fields) {
@@ -75,15 +78,24 @@ public class ReturnedMetadatasFilter {
 	}
 
 	public ReturnedMetadatasFilter withIncludedMetadata(Metadata metadata) {
-		return withIncludedField(metadata.getDataStoreCode());
+		return withIncludedFields(asList(metadata.getDataStoreCode()));
 	}
 
-	public ReturnedMetadatasFilter withIncludedField(String field) {
+	public ReturnedMetadatasFilter withIncludedMetadatas(Metadata... metadatas) {
+		List<String> fields = new ArrayList<>();
+		for (Metadata metadata : metadatas) {
+			fields.add(metadata.getDataStoreCode());
+		}
+
+		return withIncludedFields(fields);
+	}
+
+	public ReturnedMetadatasFilter withIncludedFields(List<String> fields) {
 		if (this.acceptedFields == null) {
 			return this;
 		} else {
 			Set<String> acceptedFields = new HashSet<>(this.acceptedFields);
-			acceptedFields.add(field);
+			acceptedFields.addAll(fields);
 			return new ReturnedMetadatasFilter(acceptedFields);
 		}
 	}

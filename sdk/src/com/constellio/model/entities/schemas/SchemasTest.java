@@ -50,27 +50,9 @@ public class SchemasTest {
 	}
 
 	@Test
-	public void validateAuthorizations() {
-		assertThat(Schemas.AUTHORIZATIONS).has(code("authorizations"));
-		assertThat(Schemas.AUTHORIZATIONS.getDataStoreCode()).isEqualTo("authorizations_ss");
-	}
-
-	@Test
 	public void validateRemovedAuthorizations() {
 		assertThat(Schemas.REMOVED_AUTHORIZATIONS).has(code("removedauthorizations"));
 		assertThat(Schemas.REMOVED_AUTHORIZATIONS.getDataStoreCode()).isEqualTo("removedauthorizations_ss");
-	}
-
-	@Test
-	public void validateInheritedAuthorizations() {
-		assertThat(Schemas.INHERITED_AUTHORIZATIONS).has(code("inheritedauthorizations"));
-		assertThat(Schemas.INHERITED_AUTHORIZATIONS.getDataStoreCode()).isEqualTo("inheritedauthorizations_ss");
-	}
-
-	@Test
-	public void validateAllAuthorizations() {
-		assertThat(Schemas.ALL_AUTHORIZATIONS).has(code("allauthorizations"));
-		assertThat(Schemas.ALL_AUTHORIZATIONS.getDataStoreCode()).isEqualTo("allauthorizations_ss");
 	}
 
 	@Test

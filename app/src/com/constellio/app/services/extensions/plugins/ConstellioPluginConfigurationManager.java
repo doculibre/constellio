@@ -13,6 +13,8 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManagerRuntimeException.ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableInvalidPlugin;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManagerRuntimeException.ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableReadyToInstallPlugin;
@@ -27,6 +29,9 @@ import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.utils.TimeProvider;
 
 public class ConstellioPluginConfigurationManager {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioPluginConfigurationManager.class);
+
 	public static final String PLUGINS_CONFIG_PATH = "/plugins.xml";
 	public static final String STATUS_ATTRIBUTE = "status";
 	public static final String TITLE = "title";
@@ -135,6 +140,7 @@ public class ConstellioPluginConfigurationManager {
 	}
 
 	public void installPlugin(String pluginId, String pluginTitle, String version, String requiredConstellioVersion) {
+		//LOGGER.info("Detected plugin : " + pluginId + "-" + version + " (" + pluginTitle + ")");
 		final ConstellioPluginInfo pluginInfo = new ConstellioPluginInfo()
 				.setLastInstallDate(TimeProvider.getLocalDate())
 				.setPluginStatus(READY_TO_INSTALL)
@@ -278,7 +284,7 @@ public class ConstellioPluginConfigurationManager {
 
 	private String stackTraceToString(Throwable throwable) {
 		return ExceptionUtils.getStackTrace(throwable);
-//		StringBuilder sb = new StringBuilder();
+		//		StringBuilder sb = new StringBuilder();
 		//		for (StackTraceElement element : throwable.getStackTrace()) {
 		//			sb.append(element.toString());
 		//			sb.append("\n");

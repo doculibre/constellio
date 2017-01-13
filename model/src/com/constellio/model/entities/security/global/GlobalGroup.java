@@ -13,6 +13,8 @@ public interface GlobalGroup {
 
 	GlobalGroupStatus getStatus();
 
+	boolean isLocallyCreated();
+
 	GlobalGroup withName(String name);
 
 	GlobalGroup withUsersAutomaticallyAddedToCollections(List<String> usersAutomaticallyAddedToCollections);
@@ -20,4 +22,6 @@ public interface GlobalGroup {
 	GlobalGroup withStatus(GlobalGroupStatus status);
 
 	GlobalGroup withRemovedCollection(String collection);
+
+	GlobalGroup withLocallyCreated(boolean locallyCreated);
 }

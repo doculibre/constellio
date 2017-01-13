@@ -12,6 +12,7 @@ import com.constellio.app.modules.robots.ui.pages.DeleteRobotRecordsViewImpl;
 import com.constellio.app.modules.robots.ui.pages.ListRootRobotsViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotConfigurationViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotLogsViewImpl;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -49,7 +50,7 @@ public class RobotsNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RobotsPermissionsTo.MANAGE_ROBOTS).globally());
 			}
 		});

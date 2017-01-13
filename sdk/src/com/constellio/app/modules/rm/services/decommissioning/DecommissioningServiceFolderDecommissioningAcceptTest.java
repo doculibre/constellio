@@ -42,7 +42,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		service = new DecommissioningService(zeCollection, getModelLayerFactory());
+		service = new DecommissioningService(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 	}
 

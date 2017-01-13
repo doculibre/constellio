@@ -9,6 +9,7 @@ import java.util.Set;
 import com.constellio.data.utils.KeyListMap;
 
 public class NavigationConfig implements Serializable {
+	
 	private final KeyListMap<String, NavigationItem> navigation;
 	private final KeyListMap<String, PageItem> fragments;
 	private final Set<String> codes;
@@ -21,6 +22,10 @@ public class NavigationConfig implements Serializable {
 
 	public void add(String group, NavigationItem item) {
 		add(group, item, navigation);
+	}
+
+	public void add(String group, NavigationItem item, int index) {
+		add(group, item, index, navigation);
 	}
 
 	public void replace(String group, NavigationItem item) {
@@ -63,6 +68,15 @@ public class NavigationConfig implements Serializable {
 		}
 		codes.add(code);
 		map.add(group, value);
+	}
+
+	private <V extends CodedItem> void add(String group, V value, int index, KeyListMap<String, V> map) {
+		String code = group + "." + value.getCode();
+		if (codes.contains(code)) {
+			throw new Error("Item already in configuration: " + code);
+		}
+		codes.add(code);
+		map.get(group).add(index, value);
 	}
 
 	private <V extends CodedItem> void replace(String group, V value, KeyListMap<String, V> map) {

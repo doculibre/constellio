@@ -31,18 +31,19 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class InvalidTargetRecordsIds extends AuthorizationsServicesRuntimeException {
+	public static class NoSuchAuthorizationWithIdOnRecord extends AuthorizationsServicesRuntimeException {
 
-		public InvalidTargetRecordsIds(List<Record> records, List<String> recordIds) {
-			super(buildMessage(records, recordIds));
+		public NoSuchAuthorizationWithIdOnRecord(String id, Record record) {
+			super("No such authorization with id '" + id + "' on record '" + record.getIdTitle() + "'");
+		}
+	}
+
+	public static class InvalidTargetRecordId extends AuthorizationsServicesRuntimeException {
+
+		public InvalidTargetRecordId(String id) {
+			super("Invalid target record with id : " + id);
 		}
 
-		private static String buildMessage(List<Record> records, List<String> recordIds) {
-			List<String> notfoundIds = new ArrayList<>(recordIds);
-			notfoundIds.removeAll(new RecordUtils().toIdList(records));
-
-			return "Invalid target records ids : " + notfoundIds;
-		}
 	}
 
 	public static class InvalidPrincipalsIds extends AuthorizationsServicesRuntimeException {
@@ -57,6 +58,14 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 
 			return "Invalid principals records ids : " + notfoundIds;
 		}
+	}
+
+	public static class NoSuchPrincipalWithUsername extends AuthorizationsServicesRuntimeException {
+
+		public NoSuchPrincipalWithUsername(String code) {
+			super("No such principal with code/username : " + code);
+		}
+
 	}
 
 	public static class CannotDetachConcept extends AuthorizationsServicesRuntimeException {
@@ -94,10 +103,10 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class RecordServicesErrorDuringOperation extends AuthorizationsServicesRuntimeException {
+	public static class AuthServices_RecordServicesException extends AuthorizationsServicesRuntimeException {
 
-		public RecordServicesErrorDuringOperation(String operation, Throwable cause) {
-			super("RecordServicesException on operation '" + operation + "'", cause);
+		public AuthServices_RecordServicesException(Throwable cause) {
+			super("Record service exception", cause);
 		}
 	}
 }

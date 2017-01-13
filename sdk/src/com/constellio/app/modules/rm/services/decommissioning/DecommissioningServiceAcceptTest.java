@@ -38,7 +38,7 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		service = new DecommissioningService(zeCollection, getModelLayerFactory());
+		service = new DecommissioningService(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		bobId = records.getBob_userInAC().getId();
 		chuckId = records.getChuckNorris().getId();

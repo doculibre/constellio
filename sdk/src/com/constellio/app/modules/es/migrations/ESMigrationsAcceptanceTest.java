@@ -15,6 +15,7 @@ import org.junit.runners.Parameterized;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttp;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.model.entities.Language;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
@@ -59,11 +60,14 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(es.connectorSmbFolder.schemaType().isInTransactionLog()).isFalse();
 
 		assertThat(es.connectorSmbDocument.schemaType()).isNotNull();
+		assertThat(es.connectorSmbDocument.schemaType().getLabel(Language.French)).isEqualTo("Document sur un partage réseau");
 		assertThat(es.connectorSmbDocument.connector()).isNotNull();
 		assertThat(es.connectorSmbDocument.schema()).isNotNull();
 		assertThat(es.connectorSmbDocument.connectorType()).isNotNull();
 		assertThat(es.connectorSmbDocument.url()).isNotNull();
 		assertThat(es.connectorSmbDocument.schemaType().isInTransactionLog()).isFalse();
+
+		assertThat(es.connectorLdapUserDocument.schemaType().getLabel(Language.French)).isEqualTo("Utilisateur");
 	}
 
 	private void whenMigratingToCurrentVersionThenCreateConnectorTypes() {

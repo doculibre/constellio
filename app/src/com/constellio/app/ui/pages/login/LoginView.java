@@ -15,4 +15,11 @@ public interface LoginView extends BaseView {
 	void showUserHasNoCollectionMessage();
 
 	void showBadLoginMessage();
+
+	void setUsername(String username);
+	
+	String getUsernameCookieValue();
+	
+	void setUsernameCookie(String username);
+	
 }
