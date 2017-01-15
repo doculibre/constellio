@@ -65,11 +65,11 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(labelTemplates.get(3).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(3).getColumns()).isEqualTo(30);
-		assertThat(labelTemplates.get(3).getLines()).isEqualTo(11);
+		assertThat(labelTemplates.get(3).getLines()).isEqualTo(17);
 		assertThat(labelTemplates.get(3).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5163");
 		assertThat(labelTemplates.get(3).getName()).isEqualTo("Code de plan justifié à droite (Avery 5163)");
 		assertThat(labelTemplates.get(3).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5163);
-		assertThat(labelTemplates.get(3).getFields()).hasSize(5);
+		assertThat(labelTemplates.get(3).getFields()).hasSize(6);
 
 		assertThat(labelTemplates.get(4).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(4).getColumns()).isEqualTo(30);
@@ -97,11 +97,11 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(labelTemplates.get(7).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(7).getColumns()).isEqualTo(30);
-		assertThat(labelTemplates.get(7).getLines()).isEqualTo(11);
+		assertThat(labelTemplates.get(7).getLines()).isEqualTo(13);
 		assertThat(labelTemplates.get(7).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5163");
 		assertThat(labelTemplates.get(7).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5163)");
 		assertThat(labelTemplates.get(7).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5163);
-		assertThat(labelTemplates.get(7).getFields()).hasSize(5);
+		assertThat(labelTemplates.get(7).getFields()).hasSize(6);
 	}
 
 	@Test
