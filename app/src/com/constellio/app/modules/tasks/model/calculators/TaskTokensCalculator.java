@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.model.calculators;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -34,9 +35,7 @@ public class TaskTokensCalculator implements MetadataValueCalculator<List<String
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		List<String> tokens = TokensCalculator2.getTokensForAuthorizationIds(
-				parameters.get(allAuthorizationsParam),
-				parameters.get(manualTokensParam));
+		List<String> tokens = new ArrayList<>(parameters.get(manualTokensParam));
 
 		String assignee = parameters.get(assigneeParam);
 		List<String> assigneeUsers = parameters.get(assigneeUsersParam);

@@ -133,6 +133,26 @@ public class RecordServicesImpl extends BaseRecordServices {
 		executeWithImpactHandler(transaction, handler, 0);
 	}
 
+	public void executeWithoutImpactHandling(Transaction transaction)
+			throws RecordServicesException {
+		executeWithImpactHandler(transaction, new RecordModificationImpactHandler() {
+			@Override
+			public void prepareToHandle(ModificationImpact modificationImpact) {
+
+			}
+
+			@Override
+			public void handle() {
+
+			}
+
+			@Override
+			public void cancel() {
+
+			}
+		});
+	}
+
 	public void execute(Transaction transaction)
 			throws RecordServicesException {
 		execute(transaction, 0);

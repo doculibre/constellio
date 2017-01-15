@@ -292,7 +292,8 @@ public class RecordAutomaticMetadataServices {
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), schemaTypeCode);
 
 		List<String> paths = new ArrayList<>();
-		List<String> authorizations = new ArrayList<>();
+		List<String> removedAuthorizations = new ArrayList<>();
+		List<String> attachedAncestors = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
@@ -301,33 +302,36 @@ public class RecordAutomaticMetadataServices {
 				Record referencedRecord = recordProvider.getRecord(referenceValue);
 				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
 				paths.addAll(parentPaths);
-				List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
-				authorizations.addAll(parentAuthorizations);
+				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
 			}
 		}
-		List<Metadata> metadataReferencingTaxonomy = recordSchema
-				.getTaxonomyRelationshipReferences(taxonomiesManager.getEnabledTaxonomies(record.getCollection()));
-		for (Metadata metadata : metadataReferencingTaxonomy) {
-			List<String> referencesValues = new ArrayList<>();
-			if (metadata.isMultivalue()) {
-				referencesValues.addAll(record.<String>getList(metadata));
-			} else {
-				String referenceValue = record.get(metadata);
-				if (referenceValue != null) {
-					referencesValues.add(referenceValue);
+		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
+			for (Metadata metadata : recordSchema.getTaxonomyRelationshipReferences(aTaxonomy)) {
+				List<String> referencesValues = new ArrayList<>();
+				if (metadata.isMultivalue()) {
+					referencesValues.addAll(record.<String>getList(metadata));
+				} else {
+					String referenceValue = record.get(metadata);
+					if (referenceValue != null) {
+						referencesValues.add(referenceValue);
+					}
 				}
-			}
-			for (String referenceValue : referencesValues) {
-				if (referenceValue != null) {
-					Record referencedRecord = recordProvider.getRecord(referenceValue);
-					List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
-					paths.addAll(parentPaths);
-					List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
-					authorizations.addAll(parentAuthorizations);
+				for (String referenceValue : referencesValues) {
+					if (referenceValue != null) {
+						Record referencedRecord = recordProvider.getRecord(referenceValue);
+						List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+						paths.addAll(parentPaths);
+						removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+						if (aTaxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
+							attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+						}
+					}
 				}
 			}
 		}
-		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, authorizations);
+		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
+				attachedAncestors);
 		values.put(dependency, value);
 		return true;
 	}

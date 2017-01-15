@@ -1,4 +1,4 @@
-package com.constellio.app.api.cmis.accept;
+package com.constellio.app.api.cmis.rm;
 
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
@@ -6,26 +6,14 @@ import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOL
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_DOCUMENT;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_FOLDER;
 import static com.constellio.model.entities.CorePermissions.MANAGE_SECURITY;
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_APPLY_ACL;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_IN;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_OUT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CREATE_DOCUMENT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_DELETE_CONTENT_STREAM;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_DELETE_OBJECT;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ALL_VERSIONS;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDREN;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CONTENT_STREAM;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_FOLDER_PARENT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_FOLDER_TREE;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_PROPERTIES;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_MOVE_OBJECT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_SET_CONTENT_STREAM;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -39,6 +27,7 @@ import org.assertj.core.api.IterableAssert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;

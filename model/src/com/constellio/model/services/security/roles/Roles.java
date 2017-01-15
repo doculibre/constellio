@@ -5,13 +5,21 @@ import java.util.List;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.SchemasRecordsServices;
 
 public class Roles {
 
 	List<Role> roles;
 
-	public Roles(List<Role> roles) {
+	SchemasRecordsServices schemasRecordsServices;
+
+	public Roles(List<Role> roles, SchemasRecordsServices schemasRecordsServices) {
 		this.roles = roles;
+		this.schemasRecordsServices = schemasRecordsServices;
+	}
+
+	public SchemasRecordsServices getSchemasRecordsServices() {
+		return schemasRecordsServices;
 	}
 
 	public boolean has(User user, String permission) {

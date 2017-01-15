@@ -110,5 +110,9 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		}
 		return linkedSchemaCode;
 	}
+
+	public boolean isAddView() {
+		return !editMode;
+	}
 	
 }

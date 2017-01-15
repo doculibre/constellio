@@ -87,10 +87,10 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 	public void whenGetProfilVOThenOk()
 			throws Exception {
 
-		presenter.getProfilVO("bob.gratton");
+		presenter.getProfileVO("bob.gratton");
 
 		verify(presenter)
-				.newProfilVO("bob.gratton", "bob", "Gratton", "bob@constellio.com", Arrays.asList("bob@doculibre.com", "bob@gmail.com"), "3333333",
+				.newProfileVO("bob.gratton", "bob", "Gratton", "bob@constellio.com", Arrays.asList("bob@doculibre.com", "bob@gmail.com"), "3333333",
 						RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1");
 	}
 
@@ -109,7 +109,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 
 		doReturn(taxonomyVODataProvider).when(presenter).newDataProvider();
 
-		presenter.getEnableTaxonomies();
+		presenter.getEnabledTaxonomies();
 
 		verify(taxonomyVODataProvider).getTaxonomyVOs();
 	}

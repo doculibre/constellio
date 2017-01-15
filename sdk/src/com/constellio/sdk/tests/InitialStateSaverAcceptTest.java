@@ -1,12 +1,12 @@
 package com.constellio.sdk.tests;
 
-import org.junit.Test;
-
+import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.UiTest;
+import org.junit.Test;
 
 @UiTest
 @MainTest
@@ -75,6 +75,9 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
 		RMTestRecords records = new RMTestRecords(zeCollection);
 		records.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		givenCollection("zeDeuxiemeCollection").withConstellioRMModule().withAllTestUsers();
+		DemoTestRecords records2 = new DemoTestRecords("zeDeuxiemeCollection");
+		records2.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		getSaveStateFeature().saveStateAfterTestWithTitle("with_document_rules");
 

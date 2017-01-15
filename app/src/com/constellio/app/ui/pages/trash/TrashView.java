@@ -1,9 +1,9 @@
 package com.constellio.app.ui.pages.trash;
 
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
 
-public interface TrashView extends BaseView, AdminViewGroup {
+public interface TrashView extends BaseView, TrashViewGroup {
 	String getSelectedType();
 	void enableOrDisableActionButtons();
 }

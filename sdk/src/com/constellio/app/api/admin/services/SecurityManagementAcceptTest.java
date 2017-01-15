@@ -376,9 +376,9 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 	private void whenAddAuthorizationThenCanGetIt()
 			throws InterruptedException, RolesManagerRuntimeException {
 
-		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isFalse();
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isFalse();
-		assertThat(authorizationsServices.canDelete(bob, records.folder1())).isFalse();
+		assertThat(bob.hasWriteAccess().on(records.folder1())).isFalse();
+		assertThat(bob.hasReadAccess().on(records.folder1())).isFalse();
+		assertThat(bob.hasDeleteAccess().on(records.folder1())).isFalse();
 
 		assertThat(authorizationsServices.canRead(bob, records.folder1())).isFalse();
 		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isFalse();

@@ -1,5 +1,8 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +20,8 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -54,7 +56,8 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 		recordServices = modelLayerFactory.newRecordServices();
 	}
 
-	public Authorization build(ImportedAuthorization importedAuthorization) {
+	public AuthorizationAddRequest buildAddRequest(ImportedAuthorization importedAuthorization) {
+
 		List<String> grantedToPrincipals = getValidPrincipals(importedAuthorization);
 		if (grantedToPrincipals.isEmpty()) {
 			throw new ImportedAuthorizationBuilderRuntimeException_NoValidPrincipal();
@@ -64,8 +67,9 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 			throw new ImportedAuthorizationBuilderRuntimeException_NoValidTarget();
 		}
 		List<String> roles = getRoles(importedAuthorization);
-		return new Authorization(AuthorizationDetails.create(importedAuthorization.getId(), roles, collection),
-				grantedToPrincipals, grantedOnRecords);
+
+		return authorizationInCollection(collection)
+				.forPrincipalsIds(grantedToPrincipals).giving(grantedOnRecords).giving(roles).on(grantedOnRecords.get(0));
 	}
 
 	private List<String> getRoles(ImportedAuthorization importedAuthorization) {

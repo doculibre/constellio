@@ -48,7 +48,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -351,9 +351,9 @@ public class TestUtils {
 		return metadata;
 	}
 
-	public static List<String> idsOf(List<AuthorizationDetails> details) {
+	public static List<String> idsOf(List<XMLAuthorizationDetails> details) {
 		List<String> ids = new ArrayList<>();
-		for (AuthorizationDetails detail : details) {
+		for (XMLAuthorizationDetails detail : details) {
 			ids.add(detail.getId());
 		}
 		return ids;

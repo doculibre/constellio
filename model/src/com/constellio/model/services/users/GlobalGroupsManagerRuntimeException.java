@@ -7,6 +7,16 @@ public class GlobalGroupsManagerRuntimeException extends RuntimeException {
 		super(message);
 	}
 
+	public GlobalGroupsManagerRuntimeException(Exception e) {
+		super(e);
+	}
+
+	public static class GlobalGroupsManagerRuntimeException_RecordException extends GlobalGroupsManagerRuntimeException {
+		public GlobalGroupsManagerRuntimeException_RecordException(Exception e) {
+			super(e);
+		}
+	}
+
 	public static class GlobalGroupsManagerRuntimeException_ParentNotFound extends GlobalGroupsManagerRuntimeException {
 		public GlobalGroupsManagerRuntimeException_ParentNotFound() {
 			super("Global group parent not found!");

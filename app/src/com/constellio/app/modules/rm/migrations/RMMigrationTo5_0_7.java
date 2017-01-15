@@ -2,6 +2,8 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -59,7 +61,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -406,10 +407,6 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			recordServices.executeHandlingImpactsAsync(transaction);
 			batchProcessesManager.waitUntilAllFinished();
 
-			removedSyncedAuthorizations();
-
-			createAuthorizationsForFilingSpaceUsersAndAdministrators();
-
 			moveFoldersToNewAdministrativeUnits();
 
 			boolean hasAdministrativeUnits = searchServices.hasResults(from(rm.administrativeUnit.schemaType()).returnAll());
@@ -469,32 +466,10 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void addAuthorizationOn(AdministrativeUnit newUnit, List<String> users, List<String> roles,
 				UniqueIdGenerator uniqueIdGenerator) {
-			if (!users.isEmpty()) {
-				AuthorizationDetails details = AuthorizationDetails
-						.create(uniqueIdGenerator.next(), roles, newUnit.getCollection());
-				authorizationsServices.add(new Authorization(details, users, asList(newUnit.getId())), User.GOD);
-			}
-		}
-
-		private void removedSyncedAuthorizations() {
-			for (AdministrativeUnit administrativeUnit : rm.wrapAdministrativeUnits(
-					search(from(rm.administrativeUnit.schemaType()).returnAll()))) {
-
-				List<String> authorizationIds = administrativeUnit.getAuthorizations();
-				for (String authorizationId : authorizationIds) {
-					try {
-						Authorization authorization = authorizationsServices.getAuthorization(collection, authorizationId);
-						if (authorization.getDetail().isSynced()) {
-							authorizationsServices.delete(authorization.getDetail(), User.GOD);
-						}
-					} catch (NoSuchAuthorizationWithId e) {
-						authorizationsServices.delete(authorizationId, collection, User.GOD, true);
-					}
-				}
-
-			}
-			batchProcessesManager.waitUntilAllFinished();
-
+			/*if (!users.isEmpty()) {
+				authorizationsServices.add(authorizationInCollection(collection)
+						.giving(roles).forPrincipalsIds(users).on(newUnit));
+			}*/
 		}
 
 		private void physicallyDeleteFilingSpaces() {

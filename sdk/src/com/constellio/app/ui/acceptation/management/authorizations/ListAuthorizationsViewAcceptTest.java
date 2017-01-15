@@ -1,5 +1,6 @@
 package com.constellio.app.ui.acceptation.management.authorizations;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
@@ -11,8 +12,6 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -102,10 +101,9 @@ public class ListAuthorizationsViewAcceptTest extends ConstellioTest {
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> principals, String record) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
-		Authorization authorization = new Authorization(details, principals, Arrays.asList(record));
-		authorizationsService.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-		return authorization;
+		String id = authorizationsService.add(
+				authorizationInCollection(zeCollection).forPrincipalsIds(principals).on(record).giving(roles));
+		return authorizationsService.getAuthorization(zeCollection, id);
 	}
 
 	private List<String> read() {

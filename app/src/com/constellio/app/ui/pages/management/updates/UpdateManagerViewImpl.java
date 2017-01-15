@@ -15,9 +15,13 @@ import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.LocalDateLabel;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
+import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -36,10 +40,10 @@ import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView {
+public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
+	
 	private final UpdateManagerPresenter presenter;
 	private UploadWaitWindow uploadWaitWindow;
 	private VerticalLayout layout;
@@ -341,4 +345,20 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Component buildRestartRequiredPanel() {
 		return new Label("<p style=\"color:red\">" + $("UpdateManagerViewImpl.restart") + "</p>", ContentMode.HTML);
 	}
+
+	@Override
+	public void drop(DragAndDropEvent event) {
+		DropHandler childDropHandler = ComponentTreeUtils.getFirstChild((Component) panel, DropHandler.class);
+		if (panel instanceof DropHandler) {
+			((DropHandler) panel).drop(event);
+		} else if (childDropHandler != null) {
+			childDropHandler.drop(event);
+		}
+	}
+
+	@Override
+	public AcceptCriterion getAcceptCriterion() {
+		return AcceptAll.get();
+	}
+	
 }

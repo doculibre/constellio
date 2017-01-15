@@ -20,9 +20,9 @@ import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.server.FontAwesome;
 
 public class CoreNavigationConfiguration implements Serializable {
 	public static final String CONFIG = "config";
@@ -403,7 +403,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(HOME, RecordsManagementViewGroup.class) {
+				new NavigationItem.Active(HOME, FontAwesome.HOME, RecordsManagementViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						navigate.to().home();
@@ -420,7 +420,7 @@ public class CoreNavigationConfiguration implements Serializable {
 					}
 				});
 
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(ADMIN_MODULE, AdminViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(ADMIN_MODULE, FontAwesome.GEARS, AdminViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to().adminModule();
@@ -448,7 +448,7 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(TRASH, TrashViewImpl.class) {
+				new NavigationItem.Active(TRASH, FontAwesome.TRASH, TrashViewImpl.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						navigate.to().trash();

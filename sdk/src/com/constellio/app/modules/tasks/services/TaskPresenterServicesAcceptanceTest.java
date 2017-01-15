@@ -28,6 +28,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -76,6 +77,11 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 				.setAssignee(aliceHasWriteAccessOnZeTask.getId()).setAssigner(chuckNorrisHasDeleteAccessOnTask.getId())
 				.setAssignationDate(LocalDate.now())
 				.setCreatedBy(chuckNorrisHasDeleteAccessOnTask.getId()));
+
+		//LogicalSearchCondition allTasks = from(tasksSchemas.userTask.schemaType()).returnAll();
+
+		//assertThat(searchServices.e
+
 		assertThat(bobHasReadAccessOnTask.hasReadAccess().on(zeTask)).isTrue();
 		assertThat(aliceHasWriteAccessOnZeTask.hasWriteAccess().on(zeTask)).isTrue();
 		assertThat(chuckNorrisHasDeleteAccessOnTask.hasDeleteAccess().on(zeTask)).isTrue();

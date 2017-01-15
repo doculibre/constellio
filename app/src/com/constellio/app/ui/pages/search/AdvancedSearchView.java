@@ -6,6 +6,7 @@ import java.util.List;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 
 public interface AdvancedSearchView extends SearchView {
+	
 	String SEARCH_TYPE = "advancedSearch";
 
 	List<Criterion> getSearchCriteria();

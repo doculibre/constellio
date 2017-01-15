@@ -27,7 +27,9 @@ import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -420,7 +422,15 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 	private void selectDefaultUserTaxonomyTab(LazyTree<T> lazyTree, TabSheet tabSheet, Panel lazyTreePanel) {
 		User user = suggestInputDataProvider.getCurrentUser();
-		if (lazyTree.getDataProvider().getTaxonomyCode().equals(user.getDefaultTaxonomy())) {
+		String taxonomyCode = lazyTree.getDataProvider().getTaxonomyCode();
+		String userDefaultTaxonomy = user.getDefaultTaxonomy();
+		PresenterService presenterService = new PresenterService(suggestInputDataProvider.getModelLayerFactory());
+		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy(); 
+		if (userDefaultTaxonomy != null) {
+			if (taxonomyCode.equals(userDefaultTaxonomy)) {
+				tabSheet.setSelectedTab(lazyTreePanel);
+			} 
+		} else if (taxonomyCode.equals(configDefaultTaxonomy)) {	
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}
@@ -435,6 +445,8 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public interface TextInputDataProvider<T> extends DataProvider {
 
 		List<T> getData(String text, int startIndex, int count);
+
+		ModelLayerFactory getModelLayerFactory();
 
 		int size(String text);
 

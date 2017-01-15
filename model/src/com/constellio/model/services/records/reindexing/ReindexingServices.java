@@ -207,7 +207,7 @@ public class ReindexingServices {
 				reindexCollectionType(bulkTransactionHandler, types, typeCode);
 			}
 
-//			int currentLevel = 1;
+			//			int currentLevel = 1;
 			//			boolean reindexedSomething = true;
 			//			while (reindexedSomething) {
 			//				modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();

@@ -229,7 +229,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		RecordVO currentTask = presenter.getTask();
 		String recordId = currentTask.getId();
-		return new TaskBreadcrumbTrail(recordId);
+		return new TaskBreadcrumbTrail(recordId, this);
 	}
 
 	@Override

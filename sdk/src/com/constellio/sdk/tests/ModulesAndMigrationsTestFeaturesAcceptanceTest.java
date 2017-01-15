@@ -91,7 +91,6 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("collection").getCode()).isEqualTo("collection");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("task").getCode()).isEqualTo("task");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("event").getCode()).isEqualTo("event");
-		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("6.5.50");
 
 	}
 
@@ -310,38 +309,13 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		);
 		pluginManager = getAppLayerFactory().getPluginManager();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(32);
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Cart.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Task.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(TaskType.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(TaskStatus.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(UserDocument.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(AdministrativeUnit.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(DecommissioningList.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(FilingSpace.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(User.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Group.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Collection.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(WorkflowTask.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Category.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Folder.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Document.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(RetentionRule.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(StorageSpace.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(ContainerRecord.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(UniformSubdivision.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(DocumentType.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(FolderType.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(StorageSpaceType.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(ContainerRecordType.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(MediumType.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Event.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(VariableRetentionPeriod.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Report.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(EmailToSend.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(SavedSearch.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Facet.SCHEMA_TYPE)).isNotNull();
-
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).extracting("code").containsOnly("document",
+				"ddvTaskType", "cart", "ddvStorageSpaceType", "ddvContainerRecordType", "savedSearch", "userDocument",
+				"ddvVariablePeriod", "storageSpace", "decommissioningList", "emailToSend", "event", "group",
+				"workflowInstance", "ddvMediumType", "filingSpace", "workflow", "ddvFolderType", "collection",
+				"userTask", "uniformSubdivision", "authorizationDetails", "administrativeUnit", "ddvDocumentType",
+				"folder", "task", "ddvTaskStatus", "containerRecord", "report", "category", "facet", "retentionRule",
+				"user");
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy administrativeUnitsTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode("zeCollection",
 				RMTaxonomies.ADMINISTRATIVE_UNITS);

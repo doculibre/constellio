@@ -1612,10 +1612,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom2").getFormMetadataCodes())).isEqualTo(asList(
 				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "m5", "m6",
-				"m7", "m8", "m1", "m4"));
+				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "m1", "m4",
+				"m5", "m6", "m7", "m8"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getDisplayMetadataCodes()))
-				.containsExactly("m4", "m5", "m6", "m7", "m8", "m1", "m2", "m3");
+				.isEqualTo(asList("m4", "m5", "m1", "m2", "m3", "m6", "m7", "m8"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getSearchResultsMetadataCodes())).containsExactly("m1", "m3", "m2");
 		assertThat(localCodes(folderSchemaDisplay("custom2").getTableMetadataCodes())).containsExactly("m1", "m4");
 

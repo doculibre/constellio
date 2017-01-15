@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.sdk.tests.TestUtils.comparingRecordWrapperIds;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,8 +18,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -231,7 +231,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 				.isEmpty();
 	}
 
-	private void save(Authorization authorization) {
+	private void save(AuthorizationAddRequest authorization) {
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
 		try {
 			waitForBatchProcess();
@@ -260,7 +260,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 		return assertThat(rm.wrapDecommissioningLists(records)).usingElementComparator(comparingRecordWrapperIds);
 	}
 
-	private AuthorizationBuilder authorization() {
-		return new AuthorizationBuilder(zeCollection);
+	private AuthorizationAddRequest authorization() {
+		return authorizationInCollection(zeCollection);
 	}
 }

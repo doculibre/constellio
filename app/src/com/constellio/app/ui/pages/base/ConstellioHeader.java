@@ -8,6 +8,9 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 
 public interface ConstellioHeader extends Serializable {
+	
+	String ACTION_MENU = "header.actionMenu";
+	
 	String getSearchExpression();
 
 	void setSearchExpression(String expression);
@@ -31,4 +34,11 @@ public interface ConstellioHeader extends Serializable {
 	String getCollection();
 
 	ConstellioFactories getConstellioFactories();
+	
+	SessionContext getSessionContext();
+
+	void setCollections(List<String> collections);
+
+	void updateUIContent();
+	
 }

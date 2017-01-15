@@ -59,7 +59,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			}
 		};
 
-		Button download = new IconButton(new ThemeResource("images/icons/actions/save.png"),
+		Button download = new IconButton(new ThemeResource("images/icons/actions/download.png"),
 				$("DisplayFolderView.download")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {

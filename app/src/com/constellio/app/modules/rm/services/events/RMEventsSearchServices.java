@@ -17,6 +17,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -305,7 +306,7 @@ public class RMEventsSearchServices {
 			List<String> ids = new ArrayList<>();
 
 			for (Authorization unit : authenticationService.getRecordAuthorizations(user)) {
-				ids.addAll(unit.getGrantedOnRecords());
+				ids.add(unit.getGrantedOnRecord());
 			}
 
 			List<LogicalSearchValueCondition> ofTheseAdministrativeUnits = new ArrayList<>();

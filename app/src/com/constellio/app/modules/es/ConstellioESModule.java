@@ -44,6 +44,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
@@ -159,6 +160,10 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
 		recordsCache.configureCache(permanentCache(es.connectorInstance.schemaType()));
+
+		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));
+		}
 
 		extensions.recordExtensions.add(new ESRecordExtension(es));
 	}

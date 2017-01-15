@@ -88,6 +88,8 @@ public abstract class PageItem implements CodedItem, Serializable {
 
 		public abstract List<RecordLazyTreeDataProvider> getDataProviders(
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);
+		
+		public abstract int getDefaultDataProvider();
 
 		public abstract BaseContextMenu getContextMenu();
 	}

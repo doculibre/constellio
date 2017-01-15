@@ -59,6 +59,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 			}
 		}
 		breadcrumbItems.add(new TaxonomyBreadcrumbItem(conceptId));
+		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}

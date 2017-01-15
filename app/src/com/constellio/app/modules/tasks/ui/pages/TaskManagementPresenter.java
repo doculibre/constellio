@@ -164,6 +164,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
+	public boolean isDeleteButtonVisible(RecordVO entity) {
+		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(entity), getCurrentUser());
+	}
+
+	@Override
 	public void displayWorkflowInstanceRequested(RecordVO recordVO) {
 		view.navigate().to(TaskViews.class).displayWorkflowInstance(recordVO.getId());
 	}

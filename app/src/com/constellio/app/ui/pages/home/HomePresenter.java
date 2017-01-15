@@ -4,16 +4,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.vaadin.server.Page;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -24,6 +21,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -44,10 +42,6 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		return this;
 	}
 
-	public List<NavigationItem> getMenuItems() {
-		return navigationConfig().getNavigation(HomeView.ACTION_MENU);
-	}
-
 	public List<PageItem> getTabs() {
 		return navigationConfig().getFragments(HomeView.TABS);
 	}
@@ -62,11 +56,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 
 	public void recordClicked(String id, String taxonomyCode) {
 		if (id != null && !id.startsWith("dummy")) {
-			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 			try {
 				Record record = getRecord(id);
 				String schemaCode = record.getSchemaCode();
-				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.getUIContext().setAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
 					view.navigate().to(RMViews.class).displayFolder(id);

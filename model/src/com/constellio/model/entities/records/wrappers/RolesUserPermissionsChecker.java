@@ -1,5 +1,8 @@
 package com.constellio.model.entities.records.wrappers;
 
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
 
 import java.util.HashSet;
@@ -15,6 +18,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.security.roles.Roles;
 
 public class RolesUserPermissionsChecker extends UserPermissionsChecker {
@@ -47,19 +51,13 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 	private Set<String> getUserPermissionsOnRecord(Record record) {
 		Set<String> permissions = new HashSet<>();
-		List<String> tokens = record.getList(Schemas.TOKENS);
-		List<String> userTokens = user.getUserTokens();
-		for (String token : tokens) {
 
-			if (userTokens.contains(token)) {
-				for (String authorizationRoleCode : token.split("_")[1].split(",")) {
-					Role role = roles.getRole(authorizationRoleCode);
-					if (role != null) {
-						permissions.addAll(role.getOperationPermissions());
-					}
-				}
-			}
+		Set<String> allRolesOnRecord = UserAuthorizationsUtils.getRolesOnRecord(user, record);
+
+		for (String role : allRolesOnRecord) {
+			permissions.addAll(roles.getRole(role).getOperationPermissions());
 		}
+
 		for (String userRoleCode : user.getAllRoles()) {
 			Role role = roles.getRole(userRoleCode);
 			permissions.addAll(role.getOperationPermissions());
@@ -99,16 +97,21 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 	@Override
 	public boolean onSomething() {
+
 		Set<String> allUserPermissions = new HashSet<>();
-		List<String> userTokens = user.getUserTokens();
-		for (String userToken : userTokens) {
-			for (String authorizationRoleCode : userToken.split("_")[1].split(",")) {
-				Role role = roles.getRole(authorizationRoleCode);
-				if (role != null) {
-					allUserPermissions.addAll(role.getOperationPermissions());
+		for (String authId : user.getAllUserAuthorizations()) {
+			AuthorizationDetails details = user.getAuthorizationDetail(authId);
+			for (String roleOrAccess : details.getRoles()) {
+				if (!roleOrAccess.equals(READ) && !roleOrAccess.equals(WRITE) && !roleOrAccess.equals(DELETE)) {
+					Role role = roles.getRole(roleOrAccess);
+					if (role != null) {
+						allUserPermissions.addAll(role.getOperationPermissions());
+					}
 				}
 			}
+
 		}
+
 		for (String userRoleCode : user.getAllRoles()) {
 			Role role = roles.getRole(userRoleCode);
 			allUserPermissions.addAll(role.getOperationPermissions());

@@ -564,4 +564,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return new SearchResultReportParameters(recordids, view.getCurrentSchemaType(),
 				collection, report, getCurrentUser(), query);
 	}
+
+	public void backButtonClicked() {
+		view.navigate().to(RMViews.class).listCarts();
+	}
+	
 }

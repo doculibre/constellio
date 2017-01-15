@@ -35,15 +35,11 @@ public class Schemas {
 	public static final Metadata PRINCIPAL_PATH = add(new Metadata("principalpath_s", STRING, false));
 	public static final Metadata PARENT_PATH = add(new Metadata("parentpath_ss", STRING, true));
 	public static final Metadata AUTHORIZATIONS = add(new Metadata("authorizations_ss", STRING, true));
-	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING,
-			true));
-	public static final Metadata INHERITED_AUTHORIZATIONS = add(
-			new Metadata("inheritedauthorizations_ss", STRING,
-					true));
+	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
+	public static final Metadata INHERITED_AUTHORIZATIONS = add(new Metadata("inheritedauthorizations_ss", STRING, true));
 	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
-	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(
-			new Metadata("detachedauthorizations_s", STRING,
-					false));
+	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata("allRemovedAuths_ss", STRING, true));
+	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata("detachedauthorizations_s", STRING, false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", STRING, true));
 	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", STRING, true));
 	public static final Metadata DENY_TOKENS = add(new Metadata("denyTokens_ss", STRING, true));
@@ -85,6 +81,7 @@ public class Schemas {
 	public static final Metadata LINKED_SCHEMA = new Metadata("linkedSchema_s", STRING, false);
 	public static final Metadata ALL_REFERENCES = add(new Metadata("allReferences_ss", STRING, true));
 	public static final Metadata MARKED_FOR_REINDEXING = add(new Metadata("markedForReindexing_s", BOOLEAN, false));
+	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

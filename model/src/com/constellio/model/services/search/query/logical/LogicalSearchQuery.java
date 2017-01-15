@@ -137,14 +137,14 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery filteredWithUser(User user, String access) {
+	public LogicalSearchQuery filteredWithUser(User user, String accessOrPermission) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
 		}
-		if (access == null) {
-			throw new IllegalArgumentException("access required");
+		if (accessOrPermission == null) {
+			throw new IllegalArgumentException("access/permission required");
 		}
-		userFilter = new UserFilter(user, access);
+		userFilter = new UserFilter(user, accessOrPermission);
 		return this;
 	}
 
