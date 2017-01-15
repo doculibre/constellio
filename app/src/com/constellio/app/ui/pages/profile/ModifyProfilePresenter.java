@@ -138,10 +138,14 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		
 		Map<String, DefaultTabInFolderDisplay> defaultTabInFolderDisplayOptions = new HashMap<>();
+		for (DefaultTabInFolderDisplay retrievedDefaultTabInFolderDisplay : DefaultTabInFolderDisplay.values()) {
+			defaultTabInFolderDisplayOptions.put(retrievedDefaultTabInFolderDisplay.getCode(), retrievedDefaultTabInFolderDisplay);
+		}
+			
+		
 		DefaultTabInFolderDisplay defaultTabInFolderDisplay = null;
 		if (user.getDefaultTabInFolderDisplay() != null) {
 			for (DefaultTabInFolderDisplay retrievedDefaultTabInFolderDisplay : DefaultTabInFolderDisplay.values()) {
-				defaultTabInFolderDisplayOptions.put(retrievedDefaultTabInFolderDisplay.getCode(), retrievedDefaultTabInFolderDisplay);
 				if (user.getDefaultTabInFolderDisplay().equals(retrievedDefaultTabInFolderDisplay.getCode())) {
 					defaultTabInFolderDisplay = retrievedDefaultTabInFolderDisplay;
 					break;
@@ -154,6 +158,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 				defaultTabInFolderDisplay = defaultTabInFolderDisplayOptions.get(configDefaultTabInFolderDisplayCode);
 			}
 		}
+		
 		String defaultTaxonomy = user.getDefaultTaxonomy();
 		if (defaultTaxonomy == null) {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();

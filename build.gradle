@@ -110,13 +110,13 @@ allprojects {
     }
 
     jar {
-        version = '6.5.666.42'
+        version = '7.0'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "6.5.666.42"
+    version = "7.0"
 
     webInf {
 
@@ -154,6 +154,32 @@ task compilePlugin() {
         String projectName = new File("./jarProject").text.trim()
         dependsOn project(projectName).build
     }
+}
+
+task compileAllPlugins() {
+    dependsOn project(":plugins:plugin001").build
+    dependsOn project(":plugins:plugin002").build
+    dependsOn project(":plugins:plugin003").build
+    dependsOn project(":plugins:plugin004").build
+    dependsOn project(":plugins:plugin005").build
+    dependsOn project(":plugins:plugin006").build
+    dependsOn project(":plugins:plugin007").build
+    dependsOn project(":plugins:plugin008").build
+    dependsOn project(":plugins:plugin009").build
+    dependsOn project(":plugins:plugin010").build
+    dependsOn project(":plugins:plugin011").build
+    dependsOn project(":plugins:plugin012").build
+    dependsOn project(":plugins:plugin013").build
+    dependsOn project(":plugins:plugin014").build
+    dependsOn project(":plugins:plugin015").build
+    dependsOn project(":plugins:plugin016").build
+    dependsOn project(":plugins:plugin017").build
+    dependsOn project(":plugins:plugin018").build
+    dependsOn project(":plugins:plugin019").build
+    dependsOn project(":plugins:plugin020").build
+    dependsOn project(":plugins:plugin021").build
+    dependsOn project(":plugins:plugin023").build
+
 }
 
 task unWar(type: Copy) {
