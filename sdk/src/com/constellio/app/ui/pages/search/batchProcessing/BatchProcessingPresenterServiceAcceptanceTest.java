@@ -1,29 +1,5 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-
-import java.util.List;
-import java.util.Locale;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -40,6 +16,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
@@ -48,9 +25,28 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTest {
 
@@ -108,7 +104,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	public void givenValidationExceptionsThenThrownInSimulation()
 			throws Exception {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(records.folder_A05, records.folder_A16))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A16))))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
@@ -138,7 +134,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	public void whenSetCopyRuleEnteredThenApplied()
 			throws Exception {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(records.folder_A05, records.folder_A16))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A16))))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
@@ -173,7 +169,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(records.folder_A04, records.folder_A16))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A16))))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
 				.addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 
@@ -213,7 +209,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Document document3 = folderA04Documents.get(2);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(document1.getId(), document2.getId(), document3.getId()))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(document1.getId(), document2.getId(), document3.getId()))))
 				.addModifiedMetadata(Document.FOLDER, records.folder_A07);
 
 		BatchProcessResults results = presenterService.simulate(request);
@@ -242,7 +238,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		ContainerRecord container3 = records.getContainerBac03();
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(container1.getId(), container2.getId(), container3.getId()))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(container1.getId(), container2.getId(), container3.getId()))))
 				.addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
 				.addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNIT, records.unitId_20d);
 
@@ -265,7 +261,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(records.folder_A03, records.folder_A04))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03, records.folder_A04))))
 				.addModifiedMetadata("default_folder_title", "Mon dossier");
 
 		BatchProcessResults results = presenterService.simulate(request);
@@ -344,7 +340,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		});
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(records.folder_A03, records.folder_A04))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03, records.folder_A04))))
 				.addModifiedMetadata("default_folder_title", "Mon dossier")
 				.addModifiedMetadata("stringsMeta", asList("stringValue1", "stringValue2"))
 				.addModifiedMetadata("textMeta", "zeTextValue")
@@ -427,7 +423,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(records.folder_A01, records.folder_A02))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02))))
 				.addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting());
 
 		BatchProcessResults results = presenterService.execute(request);
@@ -451,7 +447,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
 
 		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setIds(asList(records.folder_A01, records.folder_A02))
+                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02))))
 				.addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
 				.addModifiedMetadata("subType", "");
 
@@ -490,17 +486,17 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A03,
-				records.folder_A04, records.folder_A05, records.folder_A06))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03,
+				records.folder_A04, records.folder_A05, records.folder_A06))))).isNull();
 
-		assertThat(presenterService.getOriginType(asList(records.folder_A04, records.folder_A06))).isNull();
-		assertThat(presenterService.getOriginType(asList(records.folder_A05, records.folder_A06))).isNull();
-		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A03))).isNull();
-		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A05))).isNull();
-		assertThat(presenterService.getOriginType(asList(records.folder_A05, records.folder_A01, records.folder_A02))).isNull();
-		assertThat(presenterService.getOriginType(asList(records.folder_A04))).isEqualTo(records.folderTypeOther().getId());
-		assertThat(presenterService.getOriginType(asList(records.folder_A03))).isEqualTo(records.folderTypeMeeting().getId());
-		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02)))
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A06))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A06))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04))))).isEqualTo(records.folderTypeOther().getId());
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03))))).isEqualTo(records.folderTypeMeeting().getId());
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02)))))
 				.isEqualTo(records.folderTypeEmploye().getId());
 	}
 
