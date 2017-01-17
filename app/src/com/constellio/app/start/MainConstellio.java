@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.zookeeper.KeeperException.RuntimeInconsistencyException;
@@ -101,6 +102,7 @@ public final class MainConstellio {
 
 	private static void runApplication()
 			throws IOException {
+		ConstellioFactories.getInstance();
 
 		Map<String, String> properties = readProperties();
 
