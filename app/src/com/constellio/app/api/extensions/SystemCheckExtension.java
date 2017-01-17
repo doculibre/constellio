@@ -1,6 +1,7 @@
 package com.constellio.app.api.extensions;
 
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 
 public class SystemCheckExtension {
 
@@ -8,4 +9,7 @@ public class SystemCheckExtension {
 
 	}
 
+	public boolean tryRepairAutomaticValue(TryRepairAutomaticValueParams params) {
+		return false;
+	}
 }

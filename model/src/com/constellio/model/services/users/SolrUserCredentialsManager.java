@@ -1,5 +1,6 @@
 package com.constellio.model.services.users;
 
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.users.UserUtils.cleanUsername;
@@ -175,12 +176,13 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	@Override
 	public void removeCollection(final String collection) {
 		try {
-			new ActionExecutorInBatch(searchServices, "Remove collection in user credentials records", 1000) {
+			new ActionExecutorInBatch(searchServices, "Remove collection in user credentials records", 100) {
 
 				@Override
 				public void doActionOnBatch(List<Record> records)
 						throws Exception {
 					Transaction transaction = new Transaction();
+					transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
 					for (Record record : records) {
 						transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedCollection(collection));
 					}
