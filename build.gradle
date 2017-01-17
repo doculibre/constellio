@@ -102,6 +102,15 @@ allprojects {
         compile "javax.servlet.jsp:jsp-api:2.2"
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
+
+        compile files("libs/commons-beanutils-1.8.2.jar")
+        compile files("libs/commons-collections-3.2.1.jar")
+        compile files("libs/commons-dbcp-1.2.2.jar")
+        compile files("libs/commons-digester-2.1.jar")
+        compile files("libs/groovy-all-2.0.1.jar")
+        compile files("libs/iText-2.1.7.jar")
+        compile files("libs/jasperreports-5.5.0.jar")
+        compile files("libs/com.lowagie.text-2.1.7.jar")
     }
 
     configurations {
@@ -179,7 +188,6 @@ task compileAllPlugins() {
     dependsOn project(":plugins:plugin020").build
     dependsOn project(":plugins:plugin021").build
     dependsOn project(":plugins:plugin023").build
-
 }
 
 task unWar(type: Copy) {
