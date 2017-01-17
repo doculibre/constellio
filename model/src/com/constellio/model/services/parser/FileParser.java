@@ -97,7 +97,7 @@ public class FileParser {
 
 		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
 				.getValue(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS);
-		if (length > 1024 * 1024 * contentMaxLengthForParsingInMegaoctets) {
+		if (length > 1024L * 1024 * contentMaxLengthForParsingInMegaoctets) {
 			String detectedMimeType = null;
 			if (inputStreamFactory instanceof StreamFactoryWithFilename) {
 				String filename = ((StreamFactoryWithFilename) inputStreamFactory).getFilename();
