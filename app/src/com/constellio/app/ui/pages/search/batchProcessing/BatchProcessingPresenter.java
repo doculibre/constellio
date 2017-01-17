@@ -1,14 +1,14 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import java.io.InputStream;
-import java.util.List;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.services.records.RecordServicesException;
+
+import java.io.InputStream;
+import java.util.List;
 
 public interface BatchProcessingPresenter {
 	String getOriginType(List<String> selectedRecordIds);
@@ -17,7 +17,7 @@ public interface BatchProcessingPresenter {
 
 	InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException;
 
-	InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException;
+	void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException;
 
 	BatchProcessingMode getBatchProcessingMode();
 

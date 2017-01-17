@@ -108,7 +108,13 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+						InputStream inputStream = null;
+						if(batchProcessingView.getSelectedRecordIds().size() >= 100) {
+							inputStream = presenter.simulateButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds().subList(0, 100), viewObject);
+						} else {
+							inputStream = presenter.simulateButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+						}
+
 						downloadBatchProcessingResults(inputStream);
 					} catch (RecordServicesException.ValidationException e) {
 						view.showErrorMessage($(e.getErrors()));
@@ -127,11 +133,10 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						InputStream inputStream = presenter.processBatchButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+						presenter.processBatchButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
 
 						getWindow().close();
 
-						downloadBatchProcessingResults(inputStream);
 						batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
 					} catch (RecordServicesException.ValidationException e) {
 						view.showErrorMessage($(e.getErrors()));

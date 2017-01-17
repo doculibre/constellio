@@ -425,9 +425,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
+	public void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, buildLogicalSearchQuery(records), viewObject, getCurrentUser());
-		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
