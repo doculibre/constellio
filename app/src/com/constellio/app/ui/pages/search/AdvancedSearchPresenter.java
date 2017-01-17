@@ -409,8 +409,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginType(List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery(selectedRecordIds));
+	public String getOriginType() {
+		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery(false));
 	}
 
 	@Override
@@ -419,14 +419,14 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, buildLogicalSearchQuery(records), viewObject, getCurrentUser());
+	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, buildLogicalSearchQuery(true), viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, buildLogicalSearchQuery(records), viewObject, getCurrentUser());
+	public void processBatchButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, buildLogicalSearchQuery(false), viewObject, getCurrentUser());
 	}
 
 	@Override
@@ -450,8 +450,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
-		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildLogicalSearchQuery(records));
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
+		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildLogicalSearchQuery(false));
 	}
 
 	@Override
@@ -488,7 +488,27 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 
-	public LogicalSearchQuery buildLogicalSearchQuery(List<String> selectedIds) {
-		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(selectedIds));
+	public LogicalSearchQuery buildLogicalSearchQuery(boolean isSimulation) {
+		if(((AdvancedSearchViewImpl)view).isSelectAllMode()) {
+			return buildLogicalSearchQueryWithSelectedIds(isSimulation);
+		} else {
+			return buildLogicalSearchQueryWithUnselectedIds(isSimulation);
+		}
+	}
+
+	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds(boolean isSimulation) {
+		if(isSimulation && view.getUnselectedRecordIds().size() > 100) {
+			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds().subList(0, 99)));
+		} else {
+			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()));
+		}
+	}
+
+	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds(boolean isSimulation) {
+		if(isSimulation && view.getUnselectedRecordIds().size() > 100) {
+			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds().subList(0, 99)));
+		} else {
+			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()));
+		}
 	}
 }

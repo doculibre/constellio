@@ -7,6 +7,8 @@ import java.util.List;
 public interface BatchProcessingView {
     List<String> getSelectedRecordIds();
 
+    List<String> getUnselectedRecordIds();
+
     String getSchemaType();
 
     SessionContext getSessionContext();

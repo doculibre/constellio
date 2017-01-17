@@ -11,13 +11,13 @@ import java.io.InputStream;
 import java.util.List;
 
 public interface BatchProcessingPresenter {
-	String getOriginType(List<String> selectedRecordIds);
+	String getOriginType();
 
 	RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext);
 
-	InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException;
+	InputStream simulateButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException;
 
-	void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException;
+	void processBatchButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException;
 
 	BatchProcessingMode getBatchProcessingMode();
 
@@ -27,7 +27,7 @@ public interface BatchProcessingPresenter {
 
 	String getTypeSchemaType(String schemaType);
 
-	RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records);
+	RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType);
 
 	boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds);
 }

@@ -57,7 +57,7 @@ public class BatchProcessingButton extends WindowButton {
 		typeField = new LookupRecordField(typeSchemaType);
 		// FIXME All schemas don't have a type field
 		typeField.setCaption($("BatchProcessingButton.type"));
-		String originType = presenter.getOriginType(view.getSelectedRecordIds());
+		String originType = presenter.getOriginType();
 		if (originType != null) {
 			typeField.setValue(originType);
 		}
@@ -91,7 +91,7 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	private RecordFieldFactory newFieldFactory(String selectedType) {
-		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), selectedType, view.getSelectedRecordIds());
+		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), selectedType);
 		return new RecordFieldFactoryWithNoTypeNoContent(fieldFactory);
 	}
 
@@ -108,12 +108,7 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						InputStream inputStream = null;
-						if(batchProcessingView.getSelectedRecordIds().size() >= 100) {
-							inputStream = presenter.simulateButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds().subList(0, 100), viewObject);
-						} else {
-							inputStream = presenter.simulateButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
-						}
+						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), viewObject);
 
 						downloadBatchProcessingResults(inputStream);
 					} catch (RecordServicesException.ValidationException e) {
@@ -133,7 +128,7 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						presenter.processBatchButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+						presenter.processBatchButtonClicked(typeField.getValue(), viewObject);
 
 						getWindow().close();
 
