@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
@@ -18,7 +13,12 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.Field;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		implements RecordWithCopyRetentionRuleParametersFields {
@@ -37,15 +37,15 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 	private RecordWithCopyRetentionRuleParametersPresenter presenter;
 
 	private final String recordIdThatCopyRetentionRuleDependantOn, selectedTypeId, schemaType;
-	private final List<String> selectedRecords;
+	private final LogicalSearchQuery query;
 
 	public RecordWithCopyRetentionRuleFieldFactory(String schemaType, String recordIdThatCopyRetentionRuleDependantOn,
-			String selectedTypeId, List<String> selectedRecords) {
+												   String selectedTypeId, LogicalSearchQuery query) {
 		this.presenter = new RecordWithCopyRetentionRuleParametersPresenter(this);
 		this.schemaType = schemaType;
 		this.recordIdThatCopyRetentionRuleDependantOn = recordIdThatCopyRetentionRuleDependantOn;
 		this.selectedTypeId = selectedTypeId;
-		this.selectedRecords = selectedRecords;
+		this.query = query;
 	}
 
 	@Override
@@ -140,8 +140,8 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 	}
 
 	@Override
-	public List<String> getSelectedRecords() {
-		return selectedRecords;
+	public LogicalSearchQuery getQuery() {
+		return query;
 	}
 
 	@Override

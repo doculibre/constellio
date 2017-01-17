@@ -1,36 +1,12 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
-import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
-import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -45,7 +21,7 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportWriterFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
@@ -75,6 +51,17 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -423,7 +410,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public String getOriginType(List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
+		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery(selectedRecordIds));
 	}
 
 	@Override
@@ -433,13 +420,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, records, viewObject, getCurrentUser());
+		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, buildLogicalSearchQuery(records), viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
 	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, records, viewObject, getCurrentUser());
+		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, buildLogicalSearchQuery(records), viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
@@ -465,7 +452,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
-		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, records);
+		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildLogicalSearchQuery(records));
 	}
 
 	@Override
@@ -500,5 +487,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public boolean hasCurrentUserPermissionToUseCart() {
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+	}
+
+	public LogicalSearchQuery buildLogicalSearchQuery(List<String> selectedIds) {
+		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(selectedIds));
 	}
 }

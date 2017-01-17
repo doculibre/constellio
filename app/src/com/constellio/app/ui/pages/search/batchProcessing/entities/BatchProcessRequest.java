@@ -1,17 +1,16 @@
 package com.constellio.app.ui.pages.search.batchProcessing.entities;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BatchProcessRequest {
 
-	private List<String> ids = new ArrayList<>();
+	private LogicalSearchQuery query;
 
 	private Map<String, Object> modifiedMetadatas = new HashMap<>();
 
@@ -19,19 +18,15 @@ public class BatchProcessRequest {
 
 	private MetadataSchemaType schemaType;
 
-	public BatchProcessRequest(List<String> ids, User user,
-			MetadataSchemaType schemaType, Map<String, Object> modifiedMetadatas) {
-		this.ids = Collections.unmodifiableList(ids);
+	public BatchProcessRequest(LogicalSearchQuery query, User user,
+							   MetadataSchemaType schemaType, Map<String, Object> modifiedMetadatas) {
+		this.query = query;
 		this.user = user;
 		this.schemaType = schemaType;
 		this.modifiedMetadatas = Collections.unmodifiableMap(modifiedMetadatas);
 	}
 
 	public BatchProcessRequest() {
-	}
-
-	public List<String> getIds() {
-		return ids;
 	}
 
 	public User getUser() {
@@ -44,11 +39,6 @@ public class BatchProcessRequest {
 
 	public Map<String, Object> getModifiedMetadatas() {
 		return modifiedMetadatas;
-	}
-
-	public BatchProcessRequest setIds(List<String> ids) {
-		this.ids = ids;
-		return this;
 	}
 
 	public BatchProcessRequest setModifiedMetadatas(Map<String, Object> modifiedMetadatas) {
@@ -71,11 +61,20 @@ public class BatchProcessRequest {
 		return this;
 	}
 
+	public LogicalSearchQuery getQuery() {
+		return query;
+	}
+
+	public BatchProcessRequest setQuery(LogicalSearchQuery query) {
+		this.query = query;
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		return "BatchProcessRequest{" +
 				"modifiedMetadatas=" + modifiedMetadatas +
-				", ids=" + ids +
+				", ids=" +  +
 				'}';
 	}
 }

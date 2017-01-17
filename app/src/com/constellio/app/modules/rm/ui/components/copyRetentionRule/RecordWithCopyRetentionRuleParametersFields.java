@@ -3,8 +3,7 @@ package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
-
-import java.util.List;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public interface RecordWithCopyRetentionRuleParametersFields extends SessionContextProvider {
     CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField();
@@ -13,7 +12,7 @@ public interface RecordWithCopyRetentionRuleParametersFields extends SessionCont
 
     String getSchemaType();
 
-    List<String> getSelectedRecords();
+    LogicalSearchQuery getQuery();
 
     String getType();
 }

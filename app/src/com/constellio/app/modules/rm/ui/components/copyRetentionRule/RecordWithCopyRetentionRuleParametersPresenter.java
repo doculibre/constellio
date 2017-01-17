@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -35,6 +25,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
 	RecordWithCopyRetentionRuleParametersFields fields;
@@ -76,7 +69,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			fieldsModifications.put(copyRetentionRuleDependencyMetadata.getCode(), dependencyValue);
 		}
 		//fieldsModifications.put(Folder.COPY_STATUS_ENTERED, CopyType.PRINCIPAL);
-		return new BatchProcessRequest(fields.getSelectedRecords(), user, schemaType, fieldsModifications);
+		return new BatchProcessRequest(fields.getQuery(), user, schemaType, fieldsModifications);
 	}
 
 	String getDependencyValue() {
