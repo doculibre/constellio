@@ -505,8 +505,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds(boolean isSimulation) {
-		if(isSimulation && view.getUnselectedRecordIds().size() > 100) {
-			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds().subList(0, 99)));
+		if(isSimulation && view.getSelectedRecordIds().size() > 100) {
+			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds().subList(0, 99)));
 		} else {
 			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()));
 		}
