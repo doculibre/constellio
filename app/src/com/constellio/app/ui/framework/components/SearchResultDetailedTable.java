@@ -19,6 +19,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 	private Set<Object> selected;
 	private Set<Object> deselected;
+	private boolean selectAll;
 	private Set<SelectionChangeListener> listeners;
 
 	public SearchResultDetailedTable(SearchResultContainer container) {
@@ -68,10 +69,19 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	}
 
 	public List<String> getSelectedRecordIds() {
-		List<String> result = new ArrayList<>(selected.size());
-		for (Object itemId : selected) {
-			RecordVO record = container.getRecordVO((int) itemId);
-			result.add(record.getId());
+		List<String> result = new ArrayList<>();
+		if (selectAll) {
+			for (Object itemId : container.getItemIds()) {
+				if (!deselected.contains(itemId)) {
+					RecordVO record = container.getRecordVO((int) itemId);
+					result.add(record.getId());
+				}
+			}
+		} else {
+			for (Object itemId : selected) {
+				RecordVO record = container.getRecordVO((int) itemId);
+				result.add(record.getId());
+			}
 		}
 		return result;
 	}
@@ -86,6 +96,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	}
 
 	public void selectCurrentPage() {
+		selectAll = true;
 		selected.addAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
 		deselected.removeAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
 		refreshRowCache();
@@ -93,6 +104,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	}
 
 	public void deselectCurrentPage() {
+		selectAll = false;
 		selected.removeAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
 		deselected.addAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
 		refreshRowCache();

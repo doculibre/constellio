@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
@@ -31,12 +19,9 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
-import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
@@ -51,6 +36,14 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, NewReportPresenter {
 	private transient RMSchemasRecordsServices rm;
@@ -307,8 +300,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public String getOriginType(List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
+	public String getOriginType() {
+		return batchProcessingPresenterService().getOriginType(null, false);
 	}
 
 	@Override
@@ -317,24 +310,23 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
-				.simulate(selectedType, records, viewObject, getCurrentUser());
+				.simulate(selectedType, null, viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public void processBatchButtonClicked(String selectedType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
-				.execute(selectedType, records, viewObject, getCurrentUser());
-		return batchProcessingPresenterService().formatBatchProcessingResults(results);
+				.execute(selectedType, null, viewObject, getCurrentUser());
 	}
 
 	@Override
-	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
+	public boolean hasWriteAccessOnAllRecords(LogicalSearchQuery query) {
+		return searchServices().getResultsCount(query.filteredWithUserWrite(getCurrentUser())) == searchServices().getResultsCount(query);
 	}
 
 	@Override
@@ -358,8 +350,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
-		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, records);
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
+		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, null);
 	}
 
 	public List<LabelTemplate> getTemplates(String schemaType) {
@@ -563,6 +555,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 		return new SearchResultReportParameters(recordids, view.getCurrentSchemaType(),
 				collection, report, getCurrentUser(), query);
+	}
+
+	@Override
+	public LogicalSearchQuery buildLogicalSearchQuery(boolean isSimulation) {
+		return null;
 	}
 
 	public void backButtonClicked() {

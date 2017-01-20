@@ -410,7 +410,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public String getOriginType() {
-		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery(false));
+		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery(false), false);
 	}
 
 	@Override
@@ -455,8 +455,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
+	public boolean hasWriteAccessOnAllRecords(LogicalSearchQuery query) {
+		return searchServices().getResultsCount(query.filteredWithUserWrite(getCurrentUser())) == searchServices().getResultsCount(query);
 	}
 
 	public void switchToTableView() {

@@ -487,16 +487,16 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
 		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03,
-				records.folder_A04, records.folder_A05, records.folder_A06))))).isNull();
+				records.folder_A04, records.folder_A05, records.folder_A06))), true)).isNull();
 
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A06))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A06))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04))))).isEqualTo(records.folderTypeOther().getId());
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03))))).isEqualTo(records.folderTypeMeeting().getId());
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02)))))
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A06))), true)).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A06))), true)).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))), true)).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))), true)).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))), true)).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04))), true)).isEqualTo(records.folderTypeOther().getId());
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03))), true)).isEqualTo(records.folderTypeMeeting().getId());
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02))), true))
 				.isEqualTo(records.folderTypeEmploye().getId());
 	}
 

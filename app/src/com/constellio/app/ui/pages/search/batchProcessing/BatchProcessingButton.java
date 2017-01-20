@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -19,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
@@ -28,6 +28,7 @@ public class BatchProcessingButton extends WindowButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessingButton.class);
 	private BatchProcessingPresenter presenter;
 	private final BatchProcessingView view;
+	private LogicalSearchQuery query;
 
 	//fields
 	LookupRecordField typeField;
@@ -45,9 +46,7 @@ public class BatchProcessingButton extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
-
-		List<String> records = view.getSelectedRecordIds();
-		if (!presenter.hasWriteAccessOnAllRecords(view.getSelectedRecordIds())) {
+		if (!presenter.hasWriteAccessOnAllRecords(presenter.buildLogicalSearchQuery(false))) {
 			return new Label($("AdvancedSearchView.requireWriteAccess"));
 		}
 

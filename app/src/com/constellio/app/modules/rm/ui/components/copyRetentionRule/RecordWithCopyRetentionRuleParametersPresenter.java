@@ -124,21 +124,21 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 				locale);
 
 		SchemaUtils schemaUtils = new SchemaUtils();
-		Transaction transaction = presenterService.prepareTransaction(request, false);
-		for (Record record : transaction.getRecords()) {
+		List<Record> recordList = extractRecords(presenterService.prepareTransaction(request, false));
+		for (Record record : recordList) {
 			String schemaCode = record.getSchemaCode();
 			String schemaTypeCode = schemaUtils.getSchemaTypeCode(schemaCode);
 			if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				rm.wrapFolder(record).setMediumTypes(new ArrayList<Object>());
 			}
 		}
-		for (Record record : transaction.getRecords()) {
+		for (Record record : recordList) {
 			recordServices.recalculate(record);
 		}
 		Set<String> sharedChoicesIds = null;
 		List<CopyRetentionRule> sharedChoices = null;
 
-		for (Record record : transaction.getRecords()) {
+		for (Record record : recordList) {
 
 			List<CopyRetentionRule> choicesForRecord = new ArrayList<>();
 
@@ -168,6 +168,17 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		}
 
 		return sharedChoices;
+	}
+
+	private List<Record> extractRecords(List<Transaction> transactionList) {
+
+		List<Record> recordList = new ArrayList<>();
+
+		for (Transaction transaction : transactionList) {
+			recordList.addAll(transaction.getRecords());
+		}
+
+		return recordList;
 	}
 
 	private Set<String> toIds(List<CopyRetentionRule> copyRetentionRules) {
