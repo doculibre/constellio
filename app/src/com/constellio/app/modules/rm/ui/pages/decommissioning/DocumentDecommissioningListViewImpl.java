@@ -187,7 +187,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 	}
 
 	private Button buildRemoveDocumentsButton() {
-		removeDocuments = new DeleteButton($("DecommissioningListView.removeFromList")) {
+		removeDocuments = new DeleteButton($("DocumentDecommissioningListView.removeFromList")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.removeDocumentsButtonClicked(selected);
@@ -195,7 +195,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				return $("DecommissioningListView.removeFromListConfirmation");
+				return $("DocumentDecommissioningListView.removeFromListConfirmation");
 			}
 
 			@Override
@@ -208,7 +208,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 	}
 
 	private Button buildAddDocumentsButton() {
-		addDocuments = new AddButton($("DecommissioningListView.addToList")) {
+		addDocuments = new AddButton($("DocumentDecommissioningListView.addToList")) {
 			@Override
 			protected void buttonClick(ClickEvent clickEvent) {
 				presenter.addDocumentsButtonClicked();
