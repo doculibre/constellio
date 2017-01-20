@@ -277,6 +277,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
+		removeFolders.setEnabled(!presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed());
 		return removeFolders;
 	}
 
@@ -292,6 +293,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
+		addFolders.setEnabled(!presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed());
 		return addFolders;
 	}
 

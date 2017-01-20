@@ -203,6 +203,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
+		removeDocuments.setEnabled(!presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed());
 		removeDocuments.addStyleName(ValoTheme.BUTTON_LINK);
 		return removeDocuments;
 	}
@@ -219,6 +220,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
+		addDocuments.setEnabled(!presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed());
 		return addDocuments;
 	}
 }
