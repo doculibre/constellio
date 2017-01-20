@@ -1,12 +1,5 @@
 package com.constellio.app.ui.util;
 
-import java.io.Serializable;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -18,6 +11,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
 
 public class FileIconUtils implements Serializable {
 
@@ -42,7 +41,7 @@ public class FileIconUtils implements Serializable {
 	public static String getIconPath(String fileName) {
 		String iconPath;
 		if (fileName != null) {
-			String extension = FilenameUtils.getExtension(fileName);
+			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 			if (StringUtils.isBlank(extension)) {
 				extension = fileName;
 			}
