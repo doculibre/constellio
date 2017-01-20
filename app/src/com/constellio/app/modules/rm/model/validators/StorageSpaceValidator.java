@@ -33,9 +33,19 @@ public class StorageSpaceValidator implements RecordValidator {
 
 			params.getValidationErrors().add(StorageSpaceValidator.class, CHILD_CAPACITY_MUST_BE_LESSER_OR_EQUAL_TO_PARENT_CAPACITY, parameters);
 		}
+
+		if(storageSpace.getParentStorageSpace() != null) {
+			StorageSpace parent = new StorageSpace(params.getRecord(storageSpace.getParentStorageSpace()), params.getTypes());
+			if(parent.getContainerType() != null && !parent.getContainerType().isEmpty() && storageSpace.getContainerType() != null && !parent.getContainerType().containsAll(storageSpace.getContainerType())) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("", formatToParameter(parent.getTitle()));
+
+				params.getValidationErrors().add(ContainerRecordValidator.class, "", parameters);
+			}
+		}
 	}
 
-	private String formatToParameter(Long parameter) {
+	private String formatToParameter(Object parameter) {
 		if(parameter == null) {
 			return "";
 		}
