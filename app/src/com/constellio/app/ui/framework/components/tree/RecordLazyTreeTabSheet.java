@@ -42,8 +42,7 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 		String userDefaultTaxonomy = currentUser.getDefaultTaxonomy();
 		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();
 
-		PlaceHolder firstPlaceHolder = null;
-
+//		PlaceHolder firstPlaceHolder = null;
 		for (int i = 0; i < dataProviders.size(); i++) {
 			RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
 			String taxonomyCode = dataProvider.getTaxonomyCode();
@@ -56,9 +55,9 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 				configDefaultTab = selectedTab;
 			}
 			PlaceHolder placeHolder = new PlaceHolder();
-			if (i == 0) {
-				firstPlaceHolder = placeHolder;
-			}
+//			if (i == 0) {
+//				firstPlaceHolder = placeHolder;
+//			}
 
 			addTab(placeHolder, lazyTreeCaption);
 		}
@@ -73,10 +72,11 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 			}
 		});
 		if (selectedTab == -1) {
-			firstPlaceHolder.setCompositionRoot(newLazyTree(dataProviders.get(0), bufferSize));
-		} else {
-			setSelectedTab(getTab(selectedTab));
+			selectedTab = 0;
 		}
+		PlaceHolder placeHolder = (PlaceHolder) getTab(selectedTab).getComponent();
+		placeHolder.setCompositionRoot(newLazyTree(dataProviders.get(selectedTab), bufferSize));
+		setSelectedTab(placeHolder);
 	}
 
 	private void selectTab(Tab tab) {
