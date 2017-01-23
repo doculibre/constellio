@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.contents.ContentImpl;
 
 /**
  * Classe Wrapper pour les Rapports.
@@ -14,7 +15,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 public class ReportConfig extends RecordWrapper {
     public static final String SCHEMA_TYPE = "reportsrecords";
     public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-    public static final String JASPERFILE = "jasperFile";
+    public static final String JASPERFILE = "jasperfile";
+    public static final String ISDELETABLE = "isdeletable";
 
     public ReportConfig(Record record, MetadataSchemaTypes types) {
         super(record, types, SCHEMA_TYPE);
@@ -30,7 +32,7 @@ public class ReportConfig extends RecordWrapper {
         return this;
     }
 
-    public String getJasperfile() {
+    public ContentImpl getJasperfile() {
         return get(JASPERFILE);
     }
 }

@@ -124,9 +124,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		LabelsButton labelsButton = new LabelsButton(
 				$("SearchView.labels"),
 				$("SearchView.printLabels"),
-				new LabelsRecordSelectorImpl(schemaType),
-				labelTemplatesFactory,
-				presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
+				getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection(),
+				Folder.SCHEMA_TYPE,
+				presenter.getRecordsIds(Folder.SCHEMA_TYPE)
+		);
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
 		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
 		return labelsButton;

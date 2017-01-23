@@ -8,6 +8,8 @@ import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersio
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
@@ -322,16 +324,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return presenter.getTemplates();
 			}
 		};
-		printLabelButton = new LabelsButton($("DisplayFolderView.printLabel"),
-				$("DisplayFolderView.printLabel"),
-				new RecordSelector() {
-					@Override
-					public List<String> getSelectedRecordIds() {
-						return Arrays.asList(recordVO.getId());
-					}
-				},
-				labelTemplatesFactory,
-				presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
+		try {
+			printLabelButton = new LabelsButton($("DisplayFolderView.printLabel"),
+					$("DisplayFolderView.printLabel"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId());
+		} catch (Exception e) {
+			showErrorMessage(e.getMessage());
+		}
 
 		borrowButton = buildBorrowButton();
 

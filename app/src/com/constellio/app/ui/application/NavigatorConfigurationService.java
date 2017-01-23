@@ -41,6 +41,8 @@ import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationVie
 import com.constellio.app.ui.pages.management.facet.DisplayFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.ListFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.OrderFacetConfigurationViewImpl;
+import com.constellio.app.ui.pages.management.labels.AddLabelViewImpl;
+import com.constellio.app.ui.pages.management.labels.LabelViewImpl;
 import com.constellio.app.ui.pages.management.ldap.LDAPConfigManagementViewImpl;
 import com.constellio.app.ui.pages.management.permissions.PermissionsManagementViewImpl;
 import com.constellio.app.ui.pages.management.plugin.PluginManagementViewImpl;
@@ -148,6 +150,8 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SEARCH_BOOST_BY_METADATAS = "searchBoostByMetadatas";
 	public static final String SEARCH_BOOST_BY_QUERYS = "searchBoostByQuery";
 	public static final String FORCED_REINDEX = "reindex";
+	public static final String LABEL_CONFIG = "labelConfig";
+	public static final String LABEL_AJOUT = "addLabel";
 
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
@@ -255,6 +259,9 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(SYSTEM_CHECK, SystemCheckViewImpl.class));
+
+		viewProviders.add(new ClassBasedViewProvider(LABEL_CONFIG, LabelViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LABEL_AJOUT, AddLabelViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

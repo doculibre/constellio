@@ -325,6 +325,14 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void manageLabels() {
+		navigator.navigateTo(NavigatorConfigurationService.LABEL_CONFIG);
+	}
+
+	public void addLabel() {
+		navigator.navigateTo(NavigatorConfigurationService.LABEL_AJOUT);
+	}
+
 	public void manageCollections() {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_MANAGEMENT);
 	}

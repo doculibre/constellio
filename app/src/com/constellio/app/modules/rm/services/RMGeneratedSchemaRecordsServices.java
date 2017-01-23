@@ -1059,49 +1059,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapReportConfig(create(reportsrecords.schema(), id));
 	}
 
-	public RMReport wrapRMReport(Record record) {
-		return record == null ? null : new RMReport(record, getTypes());
-	}
-
-	public List<RMReport> wrapRMReports(List<Record> records) {
-		List<RMReport> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new RMReport(record, getTypes()));
-		}
-
-		return wrapped;
-	}
-
-	public List<RMReport> searchRMReports(LogicalSearchQuery query) {
-		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public List<RMReport> searchRMReports(LogicalSearchCondition condition) {
-		MetadataSchemaType type = reportsrecords.schemaType();
-		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
-		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public RMReport getRMReport(String id) {
-		return wrapRMReport(get(id));
-	}
-
-	public List<RMReport> getRMReports(List<String> ids) {
-		return wrapRMReports(get(ids));
-	}
-
-	public RMReport getRMReportWithLegacyId(String legacyId) {
-		return wrapRMReport(getByLegacyId(reportsrecords.schemaType(), legacyId));
-	}
-
-	public RMReport newRMReport() {
-		return wrapRMReport(create(reportsrecords.schema()));
-	}
-
-	public RMReport newRMReportWithId(String id) {
-		return wrapRMReport(create(reportsrecords.schema(), id));
-	}
-
 	public final SchemaTypeShortcuts_reportsrecords_default reportsrecords
 			= new SchemaTypeShortcuts_reportsrecords_default("reportsrecords_default");
 
@@ -1705,6 +1662,78 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata retentionRule() {
 			return metadata("retentionRule");
+		}
+	}
+
+	public RMReport wrapRMReport(Record record) {
+		return record == null ? null : new RMReport(record, getTypes());
+	}
+
+	public List<RMReport> wrapRMReports(List<Record> records) {
+		List<RMReport> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new RMReport(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<RMReport> searchRMReports(LogicalSearchQuery query) {
+		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<RMReport> searchRMReports(LogicalSearchCondition condition) {
+		MetadataSchemaType type = reportsrecords.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public RMReport getRMReport(String id) {
+		return wrapRMReport(get(id));
+	}
+
+	public List<RMReport> getRMReports(List<String> ids) {
+		return wrapRMReports(get(ids));
+	}
+
+	public RMReport getRMReportWithLegacyId(String legacyId) {
+		return wrapRMReport(getByLegacyId(reportsrecords.schemaType(), legacyId));
+	}
+
+	public RMReport newRMReport() {
+		return wrapRMReport(create(reportsrecords_label.schema()));
+	}
+
+	public RMReport newRMReportWithId(String id) {
+		return wrapRMReport(create(reportsrecords_label.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_reportsrecords_label reportsrecords_label
+			= new SchemaTypeShortcuts_reportsrecords_label("reportsrecords_label");
+
+	public class SchemaTypeShortcuts_reportsrecords_label extends SchemaTypeShortcuts_reportsrecords_default {
+		protected SchemaTypeShortcuts_reportsrecords_label(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata colonne() {
+			return metadata("colonne");
+		}
+
+		public Metadata height() {
+			return metadata("height");
+		}
+
+		public Metadata ligne() {
+			return metadata("ligne");
+		}
+
+		public Metadata typelabel() {
+			return metadata("typelabel");
+		}
+
+		public Metadata width() {
+			return metadata("width");
 		}
 	}
 /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/

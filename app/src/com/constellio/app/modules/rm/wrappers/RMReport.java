@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.app.modules.reports.wrapper.ReportConfig;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 /**
@@ -11,31 +12,31 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
  */
 public class RMReport extends ReportConfig {
 
-    public static final String SCHEMA_LABEL = "reportslabel";
+    public RMReport(Record record, MetadataSchemaTypes type) {
+        super(record, type);
+    }
+
+    public static final String SCHEMA_LABEL = "label";
     public static final String HEIGHT = "height";
     public static final String WIDTH = "width";
+    public static final String TYPE_LABEL = "typelabel";
+    public static final String COLONNE = "colonne";
+    public static final String LIGNE = "ligne";
+    public static final String SCHEMA_NAME = ReportConfig.SCHEMA_TYPE + "_" + SCHEMA_LABEL;
 
-    public RMReport(Record record, MetadataSchemaTypes types) {
-        super(record, types);
+    public static String getSchemaLabel() {
+        return SCHEMA_LABEL;
     }
 
-    public RMReport setHeight(String height) {
-        set(HEIGHT, height);
-        return this;
+    public static String getTypeLabel() {
+        return TYPE_LABEL;
     }
 
-    public String getHeight() {
-        return get(HEIGHT);
+    public static java.lang.String getCOLONNE() {
+        return COLONNE;
     }
 
-    public RMReport setWidth(String width) {
-        set(WIDTH, width);
-        return this;
+    public static String getLigne() {
+        return LIGNE;
     }
-
-    public String getWidth() {
-        return get(WIDTH);
-    }
-
-
 }

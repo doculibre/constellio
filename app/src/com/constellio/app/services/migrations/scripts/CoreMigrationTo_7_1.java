@@ -86,7 +86,8 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(ReportConfig.SCHEMA_TYPE).getDefaultSchema();
-            builder.create(ReportConfig.JASPERFILE).setType(MetadataValueType.STRING).setUndeletable(true).setEssential(true).defineDataEntry().asManual();
+            builder.create(ReportConfig.JASPERFILE).setType(MetadataValueType.CONTENT).setUndeletable(true).setEssential(true).defineDataEntry().asManual();
+            builder.create(ReportConfig.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setEssential(true).setUndeletable(true).defineDataEntry().asManual();
         }
     }
 }
