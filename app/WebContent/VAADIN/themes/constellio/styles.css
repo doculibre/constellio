@@ -13387,11 +13387,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-value {
-	margin-right: 300px;
+	padding-right: 300px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
-	margin-right: 26px;
+	padding-right: 26px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
