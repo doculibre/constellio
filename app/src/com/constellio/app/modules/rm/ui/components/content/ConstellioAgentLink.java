@@ -24,15 +24,15 @@ public class ConstellioAgentLink extends HorizontalLayout {
 	}
 
 	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO, String caption, boolean downloadLink) {
-		AgentLink agentLink = new AgentLink(agentURL, contentVersionVO, caption); 
-		addComponent(agentLink);
+		addStyleName("agent-link");
+		AgentLink agentLink = new AgentLink(agentURL, contentVersionVO, caption);
 		agentLink.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				System.out.println(agentURL);
 				new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
 			}
 		});
+		addComponent(agentLink);
 		if (downloadLink) {
 			DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, new ThemeResource("images/icons/actions/download.png"));
 			downloadContentLink.setDescription($("download"));
@@ -42,7 +42,7 @@ public class ConstellioAgentLink extends HorizontalLayout {
 
 	public static class AgentLink extends Button {
 		
-		public static final String STYLE_NAME = "download-content-version-link";
+		public static final String STYLE_NAME = "agent-action-link";
 
 		public AgentLink(String agentURL, ContentVersionVO contentVersionVO, String caption) {
 			this(agentURL, contentVersionVO != null ? contentVersionVO.getFileName() : null, caption);
