@@ -1,17 +1,17 @@
 package com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.category.ActionParametersCategoryField;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleField;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EsRmRobotActionParametersPresenter {
 	
@@ -54,5 +54,8 @@ public class EsRmRobotActionParametersPresenter {
 			retentionRuleField.setOptions(new ArrayList<String>());
 		}
 	}
-	
+
+	public boolean areUniformSubdivisionsEnabled() {
+		return new RMConfigs(fields.getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager()).areUniformSubdivisionEnabled();
+	}
 }

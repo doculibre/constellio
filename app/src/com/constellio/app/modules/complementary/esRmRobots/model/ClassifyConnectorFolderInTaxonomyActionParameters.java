@@ -86,6 +86,11 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 		return get(DEFAULT_ADMIN_UNIT);
 	}
 
+	@Override
+	public String getDefaultUniformSubdivision() {
+		return null;
+	}
+
 	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultAdminUnit(String defaultAdminUnit) {
 		set(DEFAULT_ADMIN_UNIT, defaultAdminUnit);
 		return this;
