@@ -22,15 +22,14 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("serial")
@@ -79,7 +78,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 				if (!isMultiValue()) {
 					if (!newConvertedValue.equals(getConvertedValue())) {
 						deleteTempFiles();
-						BaseUploadField.this.setValue(newTempFileUpload);
+						BaseUploadField.this.setValue(newConvertedValue);
 					}
 				} else {
 					List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
