@@ -1,24 +1,18 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.utils.LazyIterator;
 import com.drew.metadata.MetadataException;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.util.*;
 
 public class ExcelImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
 
@@ -74,11 +68,16 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			return null;
 		}
 
-		while (lineIsEmpty()) {
-			lineToParse++;
-		}
+		try {
+			while (lineIsEmpty()) {
+				lineToParse++;
+			}
 
-		return parseRecord();
+			return parseRecord();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			//OK
+			return null;
+		}
 	}
 
 	public ExcelDataType parseCellTypeLine(ExcelCell cell)

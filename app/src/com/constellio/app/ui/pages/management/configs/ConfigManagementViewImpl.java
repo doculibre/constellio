@@ -69,7 +69,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 
 				for (int i = 0; i < configs.size(); i++) {
 					SystemConfigurationVO currentConfigurationVO = configs.get(i);
-					Label currentLabel = new Label(presenter.getLabel(groupCode, currentConfigurationVO.getCode()));
+					Label currentLabel = new Label(presenter.getLabel(groupCode, currentConfigurationVO.getCode()), ContentMode.HTML);
 					currentLabel.setSizeFull();
 					gridLayout.addComponent(currentLabel, 0, i);
 					Field<?> field = createField(currentConfigurationVO);

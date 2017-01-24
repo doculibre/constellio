@@ -61,7 +61,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	@PropertyId("startTab")
 	private OptionGroup startTabField;
 	@PropertyId("defaultTabInFolderDisplay")
-	private EnumWithSmallCodeOptionGroup defaultTabInFolderDisplay;
+	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
 
@@ -257,7 +257,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			startTabField.setItemCaption(tab, $("HomeView.tab." + tab));
 		}
 
-		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup(DefaultTabInFolderDisplay.class);
+		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay>(DefaultTabInFolderDisplay.class);
 		defaultTabInFolderDisplay.setCaption($("ModifyProfileView.defaultTabInFolderDisplay"));
 		defaultTabInFolderDisplay.setId("defaultTabInFolderDisplay");
 		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.CONTENT,

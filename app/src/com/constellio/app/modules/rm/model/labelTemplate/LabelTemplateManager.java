@@ -9,9 +9,11 @@ import java.util.Map;
 
 import org.jdom2.Document;
 
+import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManagerRuntimeException.LabelTemplateManagerRuntimeException_CannotCreateLabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
@@ -20,10 +22,12 @@ public class LabelTemplateManager {
 
 	private static final String LABELS_TEMPLATES_FOLDER = "labelTemplates";
 	private final ConfigManager configManager;
+	private final AppLayerFactory appLayerFactory;
 	Map<String, LabelTemplate> labelTemplateMap;
 
-	public LabelTemplateManager(ConfigManager configManager) {
+	public LabelTemplateManager(ConfigManager configManager, AppLayerFactory appLayerFactory) {
 		this.configManager = configManager;
+		this.appLayerFactory = appLayerFactory;
 		labelTemplateMap = new HashMap<>();
 	}
 
@@ -76,6 +80,8 @@ public class LabelTemplateManager {
 			}
 		}
 
+		addTemplatesFromExtensions(schemaType, labelTemplates);
+		
 		if (labelTemplates.isEmpty()) {
 			addDefaultLabelTemplates(schemaType, labelTemplates);
 		}
@@ -87,6 +93,11 @@ public class LabelTemplateManager {
 			}
 		});
 		return labelTemplates;
+	}
+	
+	private void addTemplatesFromExtensions(String schemaType, List<LabelTemplate> labelTemplates) {
+		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
+		extensions.addLabelTemplates(schemaType, labelTemplates);
 	}
 
 	private void addToCache(List<LabelTemplate> labelTemplates) {
