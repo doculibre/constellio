@@ -78,7 +78,7 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		service = new DecommissioningService(zeCollection, getModelLayerFactory());
+		service = new DecommissioningService(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		taskSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());

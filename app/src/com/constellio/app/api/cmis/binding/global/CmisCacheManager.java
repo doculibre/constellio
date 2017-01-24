@@ -75,7 +75,7 @@ public class CmisCacheManager implements StatefulService, CollectionsListManager
 	private void addCollectionsToRepository(String collection) {
 		File zeFileSystemRootDir = new File("/home/developer/git/constellio-dev/zeRepository");
 		ConstellioCollectionTypeDefinitionsManager typeManager = new ConstellioCollectionTypeDefinitionsManager(
-				appLayerFactory.getModelLayerFactory(), collection);
+				appLayerFactory, collection);
 		ConstellioCollectionRepositoryInfoManager repositoryInfoManager = new ConstellioCollectionRepositoryInfoManager(
 				collection, appLayerFactory.newMigrationServices().getCurrentVersion(collection));
 		ConstellioCollectionRepository zeCollectionRepository = new ConstellioCollectionRepository(collection,

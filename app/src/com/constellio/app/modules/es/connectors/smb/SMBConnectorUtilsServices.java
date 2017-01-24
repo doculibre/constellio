@@ -13,21 +13,14 @@ import com.constellio.app.modules.es.connectors.ConnectorServicesRuntimeExceptio
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
-import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
-import com.constellio.app.modules.es.services.ESGeneratedSchemasRecordsServices.SchemaTypeShortcuts_connectorInstance_default;
 import com.constellio.app.modules.es.services.ESSchemaRecordsServicesRuntimeException.ESSchemaRecordsServicesRuntimeException_RecordIsNotAConnectorDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.SchemasRecordsServices.AbstractSchemaTypeShortcuts;
-import com.constellio.model.services.records.SchemasRecordsServices.SchemaTypeShortcuts;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -127,8 +120,10 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 		}
 		return url;
 	}
+
 	@Override
-	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument, String availableVersion) {
+	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument,
+			String availableVersion) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

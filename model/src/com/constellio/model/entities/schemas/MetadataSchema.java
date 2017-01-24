@@ -94,9 +94,13 @@ public class MetadataSchema {
 	}
 
 	public boolean hasMetadataWithCode(String metadataCode) {
-		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
+		try {
+			String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
 
-		return indexByLocalCode.get(localCode) != null;
+			return indexByLocalCode.get(localCode) != null;
+		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType e) {
+			return false;
+		}
 	}
 
 	public Metadata get(String metadataCode) {
@@ -133,15 +137,23 @@ public class MetadataSchema {
 	public List<Metadata> getTaxonomyRelationshipReferences(List<Taxonomy> taxonomies) {
 		List<Metadata> returnedMetadata = new ArrayList<>();
 
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(code);
 		for (Taxonomy taxonomy : taxonomies) {
-			if (!taxonomy.getSchemaTypes().contains(schemaTypeCode)) {
-				for (Metadata metadata : metadatas) {
-					if (metadata.isTaxonomyRelationship() && metadata.getType() == MetadataValueType.REFERENCE) {
-						String referencedType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
-						if (taxonomy.getSchemaTypes().contains(referencedType) && metadata.isTaxonomyRelationship()) {
-							returnedMetadata.add(metadata);
-						}
+			returnedMetadata.addAll(getTaxonomyRelationshipReferences(taxonomy));
+		}
+
+		return returnedMetadata;
+	}
+
+	public List<Metadata> getTaxonomyRelationshipReferences(Taxonomy taxonomy) {
+		List<Metadata> returnedMetadata = new ArrayList<>();
+
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(code);
+		if (!taxonomy.getSchemaTypes().contains(schemaTypeCode)) {
+			for (Metadata metadata : metadatas) {
+				if (metadata.isTaxonomyRelationship() && metadata.getType() == MetadataValueType.REFERENCE) {
+					String referencedType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+					if (taxonomy.getSchemaTypes().contains(referencedType) && metadata.isTaxonomyRelationship()) {
+						returnedMetadata.add(metadata);
 					}
 				}
 			}

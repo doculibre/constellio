@@ -1,5 +1,6 @@
 package com.constellio.model.services.batch.controller;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,8 +16,7 @@ import com.constellio.data.utils.ConsoleLogger;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior;
@@ -216,13 +216,17 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 			throws RecordServicesException, InterruptedException {
 		Record category = recordServices.getDocumentById("zeCollection_taxo1_firstTypeItem2_secondTypeItem1");
 
-		Authorization authorization1 = new AuthorizationBuilder(zeCollection).forUsers(users.aliceIn(zeCollection)).on(category)
+		AuthorizationAddRequest authorization1 = authorizationInCollection(zeCollection).forUsers(users.aliceIn(zeCollection))
+				.on(category)
 				.givingReadWriteAccess();
-		Authorization authorization2 = new AuthorizationBuilder(zeCollection).forUsers(users.bobIn(zeCollection)).on(category)
+		AuthorizationAddRequest authorization2 = authorizationInCollection(zeCollection).forUsers(users.bobIn(zeCollection))
+				.on(category)
 				.givingReadWriteAccess();
-		Authorization authorization3 = new AuthorizationBuilder(zeCollection).forUsers(users.charlesIn(zeCollection)).on(category)
+		AuthorizationAddRequest authorization3 = authorizationInCollection(zeCollection)
+				.forUsers(users.charlesIn(zeCollection)).on(category)
 				.givingReadWriteAccess();
-		Authorization authorization4 = new AuthorizationBuilder(zeCollection).forUsers(users.dakotaIn(zeCollection)).on(category)
+		AuthorizationAddRequest authorization4 = authorizationInCollection(zeCollection).forUsers(users.dakotaIn(zeCollection))
+				.on(category)
 				.givingReadWriteAccess();
 
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();

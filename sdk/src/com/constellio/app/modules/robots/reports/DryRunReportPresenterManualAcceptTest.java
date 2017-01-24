@@ -54,7 +54,7 @@ public class DryRunReportPresenterManualAcceptTest extends ReportBuilderTestFram
 	public void whenBuildEmptyReportThenOk() {
 		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions,
 				sessionContext);
-		build(new DryRunReportBuilder(presenter.buildModel(), new Locale("fr")));
+		build(new DryRunReportWriter(presenter.buildModel(), new Locale("fr")));
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public class DryRunReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		dryRunRobotActions.add(dryRunRobotAction3);
 		dryRunRobotActions.add(dryRunRobotAction4);
 		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions, sessionContext);
-		build(new DryRunReportBuilder(presenter.buildModel(), new Locale("fr")));
+		build(new DryRunReportWriter(presenter.buildModel(), new Locale("fr")));
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class DryRunReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		dryRunRobotActions.add(dryRunRobotAction2);
 		dryRunRobotActions.add(dryRunRobotAction1);
 		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions, sessionContext);
-		build(new DryRunReportBuilder(presenter.buildModel(), new Locale("fr")));
+		build(new DryRunReportWriter(presenter.buildModel(), new Locale("fr")));
 	}
 
 	//

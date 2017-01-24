@@ -35,7 +35,7 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		this.configs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
-		this.decommissioningService = new DecommissioningService(collection, appLayerFactory.getModelLayerFactory());
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 

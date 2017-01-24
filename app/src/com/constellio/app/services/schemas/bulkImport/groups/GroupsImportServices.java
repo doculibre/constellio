@@ -67,7 +67,7 @@ public class GroupsImportServices {
 	void addUpdateOrDeleteGroup(ImportedGroup importedGroup, List<String> collections,
 			UserServices userServices) {
 		GlobalGroup globalGroup = userServices.createGlobalGroup(importedGroup.getCode(), importedGroup.getTitle(), collections,
-				importedGroup.getParent(), GlobalGroupStatus.ACTIVE);
+				importedGroup.getParent(), GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(globalGroup);
 	}
 

@@ -97,6 +97,7 @@ public class PathLookupField extends LookupField<String> {
 	}
 
 	public static class PathInputDataProvider implements TextInputDataProvider<String> {
+		
 		private transient int lastStartIndex;
 		private transient String lastQuery;
 		private transient SPEQueryResponse response;
@@ -164,6 +165,11 @@ public class PathLookupField extends LookupField<String> {
 			stream.defaultReadObject();
 			modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 			sessionContext = ConstellioUI.getCurrentSessionContext();
+		}
+
+		@Override
+		public ModelLayerFactory getModelLayerFactory() {
+			return modelLayerFactory;
 		}
 	}
 

@@ -12,6 +12,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class WindowButton extends Button implements Button.ClickListener {
+	
 	public static final String STYLE_NAME = "window-button";
 	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";

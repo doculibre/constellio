@@ -18,7 +18,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 
-	@Test
+	//TODO - Disabled @Test
 	public void givenLdapsWhenAuthenticatingUsersThenOK()
 			throws Exception {
 		givenCollectionWithUsers("administrator");

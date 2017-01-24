@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -12,12 +13,11 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -28,12 +28,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.MockedNavigation;
 
 public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTest {
 	public static final String ZE_PRINCIPAL = "zePrincipal";
@@ -51,7 +53,8 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Mock AuthorizationVO own1;
 	@Mock AuthorizationVO own2;
 	@Mock Authorization authorization;
-	@Mock AuthorizationDetails details;
+	@Mock
+	AuthorizationDetails details;
 	MockedFactories factories = new MockedFactories();
 
 	ListAuthorizationsPresenter presenter;
@@ -59,6 +62,8 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Before
 	public void setUp()
 			throws Exception {
+		when(authorizationVO.getAuthId()).thenReturn("zeAuth");
+		when(details.getId()).thenReturn("zeAuth");
 		navigator = new MockedNavigation();
 
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
@@ -95,19 +100,26 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 
 	@Test
 	public void givenAuthorizationDeletedWhenSinglePrincipalThenRemoveTheAuthorizationAndRefreshTheView() {
+		ArgumentCaptor<AuthorizationDeleteRequest> requestArgumentCaptor = forClass(AuthorizationDeleteRequest.class);
 		givenAuthorizationWithId(aString(), false);
 		presenter.deleteButtonClicked(authorizationVO);
-		verify(authorizationsServices, times(1)).delete(details, user);
+		verify(authorizationsServices, times(1)).execute(requestArgumentCaptor.capture());
 		verify(view, times(1)).removeAuthorization(authorizationVO);
+
+		assertThat(requestArgumentCaptor.getValue().getAuthId()).isEqualTo("zeAuth");
+		assertThat(requestArgumentCaptor.getValue().getExecutedBy()).isEqualTo(user);
 	}
 
 	@Test
 	public void givenAuthorizationDeletedWhenMultiPrincipalThenRemoveThePrincipalAndRefreshTheView() {
+		ArgumentCaptor<AuthorizationModificationRequest> captor = forClass(AuthorizationModificationRequest.class);
 		givenAuthorizationWithId(aString(), true);
 		presenter.deleteButtonClicked(authorizationVO);
-		assertThat(authorization.getGrantedToPrincipals()).containsOnly(ZENOTHER_PRINCIPAL);
-		verify(authorizationsServices, times(1)).modify(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, user);
+		verify(authorizationsServices, times(1)).execute(captor.capture());
 		verify(view, times(1)).removeAuthorization(authorizationVO);
+
+		assertThat(captor.getValue().getAuthorizationId()).isEqualTo("zeAuth");
+		assertThat(captor.getValue().getNewPrincipalIds()).containsOnly(ZENOTHER_PRINCIPAL);
 	}
 
 	private void givenPrincipalWithTwoInheritedAndTwoOwnAuthorizations() {

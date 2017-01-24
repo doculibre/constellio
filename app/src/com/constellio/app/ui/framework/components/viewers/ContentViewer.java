@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.viewers;
 import java.util.Arrays;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -21,8 +22,8 @@ public class ContentViewer extends CustomComponent {
 
 	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
 		if (contentVersionVO != null) {
-			String filename = contentVersionVO.getFileName();
-			String extension = FilenameUtils.getExtension(filename);
+			String fileName = contentVersionVO.getFileName();
+			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 			
 			if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO);
@@ -33,7 +34,7 @@ public class ContentViewer extends CustomComponent {
 			} else if (Arrays.asList(VideoViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				VideoViewer videoViewer = new VideoViewer(contentVersionVO);
 				viewerComponent = videoViewer;
-			} else if (DocumentViewer.isSupported(filename)) {
+			} else if (DocumentViewer.isSupported(fileName)) {
 				DocumentViewer documentViewer;
 				if (recordVO instanceof DocumentVO) {
 					documentViewer = new DocumentViewer(recordVO, Document.CONTENT, contentVersionVO);

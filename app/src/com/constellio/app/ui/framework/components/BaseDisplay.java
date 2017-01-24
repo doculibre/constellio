@@ -26,6 +26,7 @@ public class BaseDisplay extends CustomComponent {
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeUndefined();
 		mainLayout.setSpacing(true);
+		mainLayout.addStyleName(STYLE_NAME + "-main-layout"); 
 		
 		setCaptionsAndComponents(captionsAndDisplayComponents);
 

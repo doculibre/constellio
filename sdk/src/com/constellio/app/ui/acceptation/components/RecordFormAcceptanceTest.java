@@ -95,7 +95,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 	public void givenRequiredStringMetadataWhenSubmittedWithEmptyValueThenValidationFailAndSaveNeverCalledOnPresenter()
 			throws Exception {
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, REQUIRED, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -113,7 +113,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -129,7 +129,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -149,7 +149,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		doThrow(runtimeException).when(presenter).saveButtonClick(any(RecordVO.class));
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -192,10 +192,10 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false);
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 
@@ -235,10 +235,10 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false);
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, false);
+				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 

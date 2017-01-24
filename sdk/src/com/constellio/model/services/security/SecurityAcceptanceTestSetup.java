@@ -31,6 +31,33 @@ import com.constellio.sdk.tests.setups.SchemaShortcuts;
  */
 public class SecurityAcceptanceTestSetup extends SchemasSetup {
 
+	public static final String TAXO1_FOND1 = "taxo1_fond1";
+	public static final String TAXO1_FOND1_1 = "taxo1_fond1_1";
+	public static final String TAXO1_CATEGORY1 = "taxo1_category1";
+	public static final String TAXO1_CATEGORY2 = "taxo1_category2";
+	public static final String TAXO1_CATEGORY2_1 = "taxo1_category2_1";
+	public static final String TAXO2_UNIT1 = "taxo2_unit1";
+	public static final String TAXO2_UNIT1_1 = "taxo2_unit1_1";
+	public static final String TAXO2_STATION1 = "taxo2_station1";
+	public static final String TAXO2_STATION2 = "taxo2_station2";
+	public static final String TAXO2_STATION2_1 = "taxo2_station2_1";
+	public static final String FOLDER1 = "folder1";
+	public static final String FOLDER2 = "folder2";
+	public static final String FOLDER2_1 = "folder2_1";
+	public static final String FOLDER2_2 = "folder2_2";
+	public static final String FOLDER3 = "folder3";
+	public static final String FOLDER4 = "folder4";
+	public static final String FOLDER4_1 = "folder4_1";
+	public static final String FOLDER4_2 = "folder4_2";
+	public static final String FOLDER5 = "folder5";
+	public static final String FOLDER1_DOC1 = "folder1_doc1";
+	public static final String FOLDER2_2_DOC1 = "folder2_2_doc1";
+	public static final String FOLDER2_2_DOC2 = "folder2_2_doc2";
+	public static final String FOLDER3_DOC1 = "folder3_doc1";
+	public static final String FOLDER4_1_DOC1 = "folder4_1_doc1";
+	public static final String FOLDER4_2_DOC1 = "folder4_2_doc1";
+	public static final String FOLDER5_DOC1 = "folder5_doc1";
+
 	DocumentFond documentFond = new DocumentFond();
 	Category category = new Category();
 	AdministrativeUnit administrativeUnit = new AdministrativeUnit();
@@ -169,6 +196,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata title() {
 			return getMetadata(code() + "_title");
 		}
@@ -203,6 +235,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {
@@ -250,6 +287,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata title() {
 			return getMetadata(code() + "_title");
 		}
@@ -285,6 +327,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {
@@ -411,6 +458,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata username() {
 			return getMetadata(code() + "_username");
 		}
@@ -437,6 +489,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata groupCode() {
 			return getMetadata(code() + "_code");
 		}
@@ -454,107 +511,107 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		}
 
 		public final Record taxo1_fond1() {
-			return getRecord("taxo1_fond1");
+			return getRecord(TAXO1_FOND1);
 		}
 
 		public final Record taxo1_fond1_1() {
-			return getRecord("taxo1_fond1_1");
+			return getRecord(TAXO1_FOND1_1);
 		}
 
 		public final Record taxo1_category1() {
-			return getRecord("taxo1_category1");
+			return getRecord(TAXO1_CATEGORY1);
 		}
 
 		public final Record taxo1_category2() {
-			return getRecord("taxo1_category2");
+			return getRecord(TAXO1_CATEGORY2);
 		}
 
 		public final Record taxo1_category2_1() {
-			return getRecord("taxo1_category2_1");
+			return getRecord(TAXO1_CATEGORY2_1);
 		}
 
 		public final Record taxo2_unit1() {
-			return getRecord("taxo2_unit1");
+			return getRecord(TAXO2_UNIT1);
 		}
 
 		public final Record taxo2_unit1_1() {
-			return getRecord("taxo2_unit1_1");
+			return getRecord(TAXO2_UNIT1_1);
 		}
 
 		public final Record taxo2_station1() {
-			return getRecord("taxo2_station1");
+			return getRecord(TAXO2_STATION1);
 		}
 
 		public final Record taxo2_station2() {
-			return getRecord("taxo2_station2");
+			return getRecord(TAXO2_STATION2);
 		}
 
 		public final Record taxo2_station2_1() {
-			return getRecord("taxo2_station2_1");
+			return getRecord(TAXO2_STATION2_1);
 		}
 
 		public final Record folder1() {
-			return getRecord("folder1");
+			return getRecord(FOLDER1);
 		}
 
 		public final Record folder2() {
-			return getRecord("folder2");
+			return getRecord(FOLDER2);
 		}
 
 		public final Record folder2_1() {
-			return getRecord("folder2_1");
+			return getRecord(FOLDER2_1);
 		}
 
 		public final Record folder2_2() {
-			return getRecord("folder2_2");
+			return getRecord(FOLDER2_2);
 		}
 
 		public final Record folder3() {
-			return getRecord("folder3");
+			return getRecord(FOLDER3);
 		}
 
 		public final Record folder4() {
-			return getRecord("folder4");
+			return getRecord(FOLDER4);
 		}
 
 		public final Record folder4_1() {
-			return getRecord("folder4_1");
+			return getRecord(FOLDER4_1);
 		}
 
 		public final Record folder4_2() {
-			return getRecord("folder4_2");
+			return getRecord(FOLDER4_2);
 		}
 
 		public final Record folder5() {
-			return getRecord("folder5");
+			return getRecord(FOLDER5);
 		}
 
 		public final Record folder1_doc1() {
-			return getRecord("folder1_doc1");
+			return getRecord(FOLDER1_DOC1);
 		}
 
 		public final Record folder2_2_doc1() {
-			return getRecord("folder2_2_doc1");
+			return getRecord(FOLDER2_2_DOC1);
 		}
 
 		public final Record folder2_2_doc2() {
-			return getRecord("folder2_2_doc2");
+			return getRecord(FOLDER2_2_DOC2);
 		}
 
 		public final Record folder3_doc1() {
-			return getRecord("folder3_doc1");
+			return getRecord(FOLDER3_DOC1);
 		}
 
 		public final Record folder4_1_doc1() {
-			return getRecord("folder4_1_doc1");
+			return getRecord(FOLDER4_1_DOC1);
 		}
 
 		public final Record folder4_2_doc1() {
-			return getRecord("folder4_2_doc1");
+			return getRecord(FOLDER4_2_DOC1);
 		}
 
 		public final Record folder5_doc1() {
-			return getRecord("folder5_doc1");
+			return getRecord(FOLDER5_DOC1);
 		}
 
 		List<Record> records = new ArrayList<>();

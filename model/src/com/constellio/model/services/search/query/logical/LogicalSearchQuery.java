@@ -137,14 +137,14 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery filteredWithUser(User user, String access) {
+	public LogicalSearchQuery filteredWithUser(User user, String accessOrPermission) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
 		}
-		if (access == null) {
-			throw new IllegalArgumentException("access required");
+		if (accessOrPermission == null) {
+			throw new IllegalArgumentException("access/permission required");
 		}
-		userFilter = new UserFilter(user, access);
+		userFilter = new UserFilter(user, accessOrPermission);
 		return this;
 	}
 
@@ -166,8 +166,8 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery computeStatsOnField(String metadata) {
-		this.statisticFields.add(metadata);
+	public LogicalSearchQuery computeStatsOnField(DataStoreField field) {
+		this.statisticFields.add(field.getDataStoreCode());
 		return this;
 	}
 
@@ -336,10 +336,11 @@ public class LogicalSearchQuery implements SearchQuery {
 	public List<String> getFilterQueries() {
 		List<String> filterQueries = new ArrayList<>();
 
-		for (String filterQuery : condition.getFilters().getFilterQueries()) {
-			filterQueries.add(filterQuery);
+		if (condition.getFilters() != null) {
+			for (String filterQuery : condition.getFilters().getFilterQueries()) {
+				filterQueries.add(filterQuery);
+			}
 		}
-
 		if (filterStatus != null) {
 			filterQueries.add(filterStatus);
 		}

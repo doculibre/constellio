@@ -63,7 +63,11 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 	@Override
 	protected String getTitle() {
-		return $("EditContainerViewImpl.editViewTitle");
+		if (presenter.isAddView()) {
+			return $("EditContainerViewImpl.addViewTitle");
+		} else {
+			return $("EditContainerViewImpl.editViewTitle");
+		}
 	}
 
 	@Override

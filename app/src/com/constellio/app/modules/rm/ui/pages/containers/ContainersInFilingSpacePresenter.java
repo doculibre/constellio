@@ -37,7 +37,7 @@ public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersIn
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				DecommissioningSearchConditionFactory conditionFactory = new DecommissioningSearchConditionFactory(
-						view.getCollection(), modelLayerFactory);
+						view.getCollection(), appLayerFactory);
 				ContainerSearchParameters parameters = new ContainerSearchParameters();
 				parameters.setAdminUnitId(adminUnitId);
 				if (tabName.startsWith(DEPOSIT_PREFIX)) {

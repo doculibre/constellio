@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,8 +32,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -40,6 +45,9 @@ import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class RecordAutomaticMetadataServices {
@@ -50,14 +58,17 @@ public class RecordAutomaticMetadataServices {
 	private final MetadataSchemasManager schemasManager;
 	private final TaxonomiesManager taxonomiesManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
+	private final SearchServices searchServices;
 
 	public RecordAutomaticMetadataServices(MetadataSchemasManager schemasManager, TaxonomiesManager taxonomiesManager,
-			SystemConfigurationsManager systemConfigurationsManager, ModelLayerLogger modelLayerLogger) {
+			SystemConfigurationsManager systemConfigurationsManager, ModelLayerLogger modelLayerLogger,
+			SearchServices searchServices) {
 		super();
 		this.modelLayerLogger = modelLayerLogger;
 		this.schemasManager = schemasManager;
 		this.taxonomiesManager = taxonomiesManager;
 		this.systemConfigurationsManager = systemConfigurationsManager;
+		this.searchServices = searchServices;
 	}
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
@@ -80,7 +91,37 @@ public class RecordAutomaticMetadataServices {
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+
+		} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
+			setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+
 		}
+	}
+
+	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
+
+		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
+
+		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
+		Metadata inputMetadata = types.getMetadata(aggregatedDataEntry.getInputMetadata());
+		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(schemaType).where(referenceMetadata).isEqualTo(record));
+		query.computeStatsOnField(inputMetadata);
+		query.setNumberOfRows(1000);
+		SPEQueryResponse response = searchServices.query(query);
+
+		if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {
+			Map<String, Object> statsValues = response.getStatValues(inputMetadata);
+			Double sum = statsValues == null ? 0.0 : (Double) response.getStatValues(inputMetadata).get("sum");
+			((RecordImpl) record).updateAutomaticValue(metadata, sum);
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported aggregation type : " + aggregatedDataEntry.getAgregationType());
+		}
+
 	}
 
 	void setCopiedValuesInRecords(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
@@ -251,7 +292,8 @@ public class RecordAutomaticMetadataServices {
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), schemaTypeCode);
 
 		List<String> paths = new ArrayList<>();
-		List<String> authorizations = new ArrayList<>();
+		List<String> removedAuthorizations = new ArrayList<>();
+		List<String> attachedAncestors = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
@@ -260,33 +302,36 @@ public class RecordAutomaticMetadataServices {
 				Record referencedRecord = recordProvider.getRecord(referenceValue);
 				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
 				paths.addAll(parentPaths);
-				List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
-				authorizations.addAll(parentAuthorizations);
+				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
 			}
 		}
-		List<Metadata> metadataReferencingTaxonomy = recordSchema
-				.getTaxonomyRelationshipReferences(taxonomiesManager.getEnabledTaxonomies(record.getCollection()));
-		for (Metadata metadata : metadataReferencingTaxonomy) {
-			List<String> referencesValues = new ArrayList<>();
-			if (metadata.isMultivalue()) {
-				referencesValues.addAll(record.<String>getList(metadata));
-			} else {
-				String referenceValue = record.get(metadata);
-				if (referenceValue != null) {
-					referencesValues.add(referenceValue);
+		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
+			for (Metadata metadata : recordSchema.getTaxonomyRelationshipReferences(aTaxonomy)) {
+				List<String> referencesValues = new ArrayList<>();
+				if (metadata.isMultivalue()) {
+					referencesValues.addAll(record.<String>getList(metadata));
+				} else {
+					String referenceValue = record.get(metadata);
+					if (referenceValue != null) {
+						referencesValues.add(referenceValue);
+					}
 				}
-			}
-			for (String referenceValue : referencesValues) {
-				if (referenceValue != null) {
-					Record referencedRecord = recordProvider.getRecord(referenceValue);
-					List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
-					paths.addAll(parentPaths);
-					List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
-					authorizations.addAll(parentAuthorizations);
+				for (String referenceValue : referencesValues) {
+					if (referenceValue != null) {
+						Record referencedRecord = recordProvider.getRecord(referenceValue);
+						List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+						paths.addAll(parentPaths);
+						removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+						if (aTaxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
+							attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+						}
+					}
 				}
 			}
 		}
-		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, authorizations);
+		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
+				attachedAncestors);
 		values.put(dependency, value);
 		return true;
 	}

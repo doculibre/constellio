@@ -31,6 +31,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -132,6 +133,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 			public void setOnlyLinkables(boolean onlyLinkables) {
 
 			}
+
+			@Override
+			public ModelLayerFactory getModelLayerFactory() {
+				return modelLayerFactory;
+			}
 		};
 	}
 
@@ -161,6 +167,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 			@Override
 			public void setOnlyLinkables(boolean onlyLinkables) {
 
+			}
+
+			@Override
+			public ModelLayerFactory getModelLayerFactory() {
+				return modelLayerFactory;
 			}
 		};
 	}

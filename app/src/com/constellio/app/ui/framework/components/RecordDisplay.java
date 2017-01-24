@@ -72,6 +72,7 @@ public class RecordDisplay extends BaseDisplay {
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
 		if (displayComponent instanceof RecordCommentsEditorImpl) {
 			VerticalLayout verticalLayout = new VerticalLayout(displayComponent);
+			verticalLayout.addStyleName("record-comments-layout");
 			verticalLayout.setWidth("100%");
 			verticalLayout.setSpacing(true);
 			mainLayout.addComponent(verticalLayout);

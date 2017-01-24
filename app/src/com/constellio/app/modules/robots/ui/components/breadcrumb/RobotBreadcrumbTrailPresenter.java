@@ -25,6 +25,7 @@ public class RobotBreadcrumbTrailPresenter implements Serializable {
 			boolean current = robotId.equals(id);
 			trail.addItem(new RobotBreadcrumbItem(id, caption, !current));
 		}
+		
 		return this;
 	}
 

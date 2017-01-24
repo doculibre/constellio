@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.vaadin.shared.ui.label.ContentMode;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -69,6 +70,9 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	private Label emailCaptionLabel;
 	private Label emailDisplayComponent;
+
+	private Label personalEmailsCaptionLabel;
+	private Label personalEmailsDisplayComponent;
 
 	private Label collectionsCaptionLabel;
 	private Label collectionsDisplayComponent;
@@ -142,6 +146,17 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		emailCaptionLabel.addStyleName("email");
 		emailDisplayComponent = new Label(userCredentialVO.getEmail());
 
+		personalEmailsCaptionLabel = new Label($("UserCredentialView.personalEmails"));
+		personalEmailsCaptionLabel.setId("personalEmails");
+		personalEmailsCaptionLabel.addStyleName("email");
+		if(userCredentialVO.getPersonalEmails() != null) {
+			personalEmailsDisplayComponent = new Label(userCredentialVO.getPersonalEmails().replace("\n", "<br>"), ContentMode.HTML);
+		}
+		else {
+			personalEmailsDisplayComponent = new Label(userCredentialVO.getPersonalEmails(), ContentMode.HTML);
+		}
+
+
 		collectionsCaptionLabel = new Label($("UserCredentialView.collections"));
 		collectionsCaptionLabel.setId("collections");
 		collectionsCaptionLabel.addStyleName("collections");
@@ -152,6 +167,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		captionsAndComponents.add(new CaptionAndComponent(firstNameCaptionLabel, firstNameDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(lastNameCaptionLabel, lastNameDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(emailCaptionLabel, emailDisplayComponent));
+		captionsAndComponents.add(new CaptionAndComponent(personalEmailsCaptionLabel, personalEmailsDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(collectionsCaptionLabel, collectionsDisplayComponent));
 		userCredentialDisplay = new BaseDisplay(captionsAndComponents);
 

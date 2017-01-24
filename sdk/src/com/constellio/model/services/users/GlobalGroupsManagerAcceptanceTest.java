@@ -27,13 +27,13 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		manager = getModelLayerFactory().getGlobalGroupsManager();
 
-		globalGroup1 = manager.create("group1", null, GlobalGroupStatus.ACTIVE);
-		globalGroup2 = manager.create("group2", null, GlobalGroupStatus.ACTIVE);
-		globalGroup3 = manager.create("group3", null, GlobalGroupStatus.ACTIVE);
-		globalGroup1_1 = manager.create("group1_1", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_2 = manager.create("group1_2", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_1_1 = manager.create("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
-		globalGroup2_1 = manager.create("group2_1", "group2", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", null, GlobalGroupStatus.ACTIVE, true);
+		globalGroup2 = manager.create("group2", null, GlobalGroupStatus.ACTIVE, true);
+		globalGroup3 = manager.create("group3", null, GlobalGroupStatus.ACTIVE, true);
+		globalGroup1_1 = manager.create("group1_1", "group1", GlobalGroupStatus.ACTIVE, true);
+		globalGroup1_2 = manager.create("group1_2", "group1", GlobalGroupStatus.ACTIVE, true);
+		globalGroup1_1_1 = manager.create("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE, true);
+		globalGroup2_1 = manager.create("group2_1", "group2", GlobalGroupStatus.ACTIVE, true);
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		manager.addUpdate(globalGroup1);
 
-		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE, true);
 
 		manager.addUpdate(globalGroup1);
 
@@ -66,7 +66,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		manager.addUpdate(globalGroup1);
 
-		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE, true);
 
 		manager.logicallyRemoveGroup(globalGroup1);
 
@@ -117,7 +117,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	public void whenAddGroupWithAccentsThenCorrectlySaved()
 			throws Exception {
 		GlobalGroup groupWithAccents = manager.create("<é=e>", "<à=a>", Arrays.asList("<ç=c>"), null,
-				GlobalGroupStatus.ACTIVE);
+				GlobalGroupStatus.ACTIVE, true);
 
 		manager.addUpdate(groupWithAccents);
 
@@ -141,7 +141,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddSubGroupWithParentThatNotExistsThenException()
 			throws Exception {
-		globalGroup1 = manager.create("group1", "inexistentGroup", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "inexistentGroup", GlobalGroupStatus.ACTIVE, true);
 
 		try {
 			manager.addUpdate(globalGroup1);
@@ -156,7 +156,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	public void givenExistentGroupWhenUpdateSubGroupWithParentIsItselfThenException()
 			throws Exception {
 		manager.addUpdate(globalGroup1);
-		globalGroup1 = manager.create("group1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1", GlobalGroupStatus.ACTIVE, true);
 
 		assertThat(manager.getActiveGroups()).hasSize(1);
 		try {
@@ -175,7 +175,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup1_1);
 
-		globalGroup1 = manager.create("group1", "group1_1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1_1", GlobalGroupStatus.ACTIVE, true);
 
 		try {
 			manager.addUpdate(globalGroup1);

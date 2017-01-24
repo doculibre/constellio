@@ -7,10 +7,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
@@ -18,19 +20,21 @@ import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+import org.omg.CORBA.Object;
 
 public class ReportViewer extends VerticalLayout {
-	public ReportViewer(ReportBuilderFactory factory) {
-		StreamSource source = buildSource(factory);
+
+	public ReportViewer(ReportWriter reportWriter, String filename) {
+		StreamSource source = buildSource(reportWriter);
 
 		Embedded viewer = new Embedded();
-		viewer.setSource(new StreamResource(source, factory.getFilename()));
+		viewer.setSource(new StreamResource(source, filename));
 		viewer.setType(Embedded.TYPE_BROWSER);
 		viewer.setWidth("100%");
 		viewer.setHeight("1024px");
 
-		Link download = new Link($("ReportViewer.download", factory.getFilename()),
-				new DownloadStreamResource(source, factory.getFilename(), getMimeTypeFromFileName(factory.getFilename())));
+		Link download = new Link($("ReportViewer.download", filename),
+				new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
 
 		addComponents(download, viewer);
 		setWidth("100%");
@@ -54,14 +58,30 @@ public class ReportViewer extends VerticalLayout {
 		return DownloadStreamResource.PDF_MIMETYPE;
 	}
 
-	private StreamSource buildSource(final ReportBuilderFactory factory) {
+	@Deprecated
+	private StreamSource buildSource(final NewReportWriterFactory factory) {
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 				ByteArrayOutputStream output = new ByteArrayOutputStream();
 				try {
-					factory.getReportBuilder(modelLayerFactory).build(output);
+					factory.getReportBuilder(modelLayerFactory).write(output);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				return new ByteArrayInputStream(output.toByteArray());
+			}
+		};
+	}
+
+	private StreamSource buildSource(final ReportWriter reportWriter) {
+		return new StreamSource() {
+			@Override
+			public InputStream getStream() {
+				ByteArrayOutputStream output = new ByteArrayOutputStream();
+				try {
+					reportWriter.write(output);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}

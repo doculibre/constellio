@@ -5,21 +5,24 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyBreadcrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyElementBreadcrumbItem;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.UIContextProvider;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 
-public class FolderDocumentBreadcrumbTrail extends BaseBreadcrumbTrail implements UIContextProvider {
+public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
 	
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	
 	private FolderDocumentBreadcrumbTrailPresenter presenter;
 
-	public FolderDocumentBreadcrumbTrail(String recordId, String taxonomyCode) {
+	public FolderDocumentBreadcrumbTrail(String recordId, String taxonomyCode, BaseView view) {
+		super(view, null);
 		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this);
 	}
 
@@ -34,6 +37,8 @@ public class FolderDocumentBreadcrumbTrail extends BaseBreadcrumbTrail implement
 		} else if (item instanceof TaxonomyElementBreadcrumbItem) {
 			recordId = ((TaxonomyElementBreadcrumbItem) item).getTaxonomyElementId();
 		} else if (item instanceof TaxonomyBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof CollectionBreadcrumbItem) {
 			recordId = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());

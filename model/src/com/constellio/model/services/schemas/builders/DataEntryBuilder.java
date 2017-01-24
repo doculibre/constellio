@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.util.Arrays;
@@ -8,11 +10,15 @@ import java.util.List;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotInstanciateClass;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotCopyUsingACustomMetadata;
 import com.constellio.model.utils.ClassProvider;
@@ -50,6 +56,29 @@ public class DataEntryBuilder {
 
 		CopiedDataEntry copiedDataEntry = new CopiedDataEntry(referenceMetadataCode, copiedMetadataCode);
 		metadata.dataEntry = copiedDataEntry;
+		return metadata;
+	}
+
+	public MetadataBuilder asSum(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number) {
+		if (!metadata.getCode().contains("_default_")) {
+			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
+		}
+
+		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
+					referenceToAgregatingSchemaType.getCode(), REFERENCE);
+		}
+
+		if (number.getType() != NUMBER || number.isMultivalue()) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("number", number.getCode(), NUMBER);
+		}
+
+		if (metadata.getType() == null) {
+			metadata.setType(number.getType());
+		}
+
+		metadata.dataEntry = new AggregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(),
+				AggregationType.SUM);
 		return metadata;
 	}
 

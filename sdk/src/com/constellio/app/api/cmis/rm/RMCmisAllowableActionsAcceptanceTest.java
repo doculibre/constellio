@@ -1,4 +1,4 @@
-package com.constellio.app.api.cmis.accept;
+package com.constellio.app.api.cmis.rm;
 
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
@@ -6,28 +6,17 @@ import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOL
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_DOCUMENT;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_FOLDER;
 import static com.constellio.model.entities.CorePermissions.MANAGE_SECURITY;
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_APPLY_ACL;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_IN;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_OUT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CREATE_DOCUMENT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_DELETE_CONTENT_STREAM;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_DELETE_OBJECT;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ALL_VERSIONS;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDREN;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CONTENT_STREAM;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_FOLDER_PARENT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_FOLDER_TREE;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_PROPERTIES;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_MOVE_OBJECT;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_SET_CONTENT_STREAM;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.Folder;
@@ -38,7 +27,9 @@ import org.assertj.core.api.IterableAssert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -78,6 +69,12 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		rolesManager.addRole(new Role(zeCollection, "r3", asList(SHARE_FOLDER)));
 		rolesManager.addRole(new Role(zeCollection, "r4", asList(MANAGE_DOCUMENT_AUTHORIZATIONS)));
 		rolesManager.addRole(new Role(zeCollection, "r5", asList(SHARE_DOCUMENT)));
+
+		Role managerRole = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> managerPermissions = new ArrayList<>(managerRole.getOperationPermissions());
+		managerPermissions.remove(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
+		managerPermissions.remove(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
+		rolesManager.updateRole(managerRole.withPermissions(managerPermissions));
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		authServices = getModelLayerFactory().newAuthorizationsServices();
@@ -143,24 +140,60 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(users.edouardIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
 				users.adminIn(zeCollection));
 
-		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).givingReadWriteAccess(),
+		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
 				users.adminIn(zeCollection));
-		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).giving("r1"),
+		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).giving("r2"),
 				users.adminIn(zeCollection));
+
+		authServices.add(authorizationForUsers(users.aliceIn(zeCollection)).on(records.folder_A19).givingReadWriteDeleteAccess(),
+				users.adminIn(zeCollection));
+		authServices.add(authorizationForUsers(users.aliceIn(zeCollection)).on(records.folder_A19).giving("r4"),
+				users.adminIn(zeCollection));
+
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
+				users.adminIn(zeCollection));
+		//Roles giving share folder and share documents permissions, which are not supported in cmis
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).giving("r3", "r5"),
+				users.adminIn(zeCollection));
+
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
+				users.adminIn(zeCollection));
+		//Roles giving share folder and share documents permissions, which are not supported in cmis
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).giving("r3", "r5"),
+				users.adminIn(zeCollection));
+
 		waitForBatchProcess();
 
-		for (String user : asList(admin, dakota, chuckNorris)) {
-			ensureUserCanGetAndApplyACLOnRecords(user, records.unitId_10);
+		//Folders :
+
+		for (String user : asList(admin, dakota, chuckNorris, sasquatch, charles)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_A19);
 		}
-		for (String user : asList(edouard, charles, sasquatch, gandalf, aliceWonderland, bobGratton, robin)) {
-			ensureUserCannotGetAndApplyACLOnRecords(user, records.unitId_10);
+		for (String user : asList(edouard, gandalf, aliceWonderland, bobGratton, robin)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_A19);
 		}
 
-		for (String user : asList(admin, chuckNorris)) {
-			ensureUserCanGetAndApplyACLOnRecords(user, records.unitId_30);
+		for (String user : asList(admin, chuckNorris, sasquatch)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_C30);
 		}
-		for (String user : asList(edouard, sasquatch, gandalf, aliceWonderland, bobGratton, robin)) {
-			ensureUserCannotGetAndApplyACLOnRecords(user, records.unitId_30);
+		for (String user : asList(edouard, gandalf, aliceWonderland, bobGratton, robin)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_C30);
+		}
+
+		//Documents :
+
+		for (String user : asList(admin, aliceWonderland, chuckNorris, robin)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.document_A19);
+		}
+		for (String user : asList(edouard, charles, gandalf, bobGratton, sasquatch)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.document_A19);
+		}
+
+		for (String user : asList(admin, chuckNorris, robin)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.document_B30);
+		}
+		for (String user : asList(edouard, gandalf, aliceWonderland, bobGratton, sasquatch)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.document_B30);
 		}
 
 	}
@@ -186,24 +219,24 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 				users.adminIn(zeCollection));
 		waitForBatchProcess();
 
-		for (String user : asList(admin, dakota, chuckNorris)) {
+		for (String user : asList(admin, dakota, chuckNorris, sasquatch)) {
 			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_A03);
 		}
-		for (String user : asList(edouard, charles, gandalf, aliceWonderland, bobGratton, robin, sasquatch)) {
+		for (String user : asList(edouard, charles, gandalf, aliceWonderland, bobGratton, robin)) {
 			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_A03);
 		}
 
-		for (String user : asList(admin, chuckNorris)) {
+		for (String user : asList(admin, chuckNorris, sasquatch)) {
 			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_A07);
 		}
-		for (String user : asList(gandalf, aliceWonderland, bobGratton, robin, sasquatch)) {
+		for (String user : asList(gandalf, aliceWonderland, bobGratton, robin)) {
 			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_A07);
 		}
 
 	}
 
 	private void ensureUserCanGetAndApplyACLOnRecords(String user, String id) {
-		as(user).assertThatAllowableActionsOf(id).contains(CAN_GET_ACL, CAN_APPLY_ACL);
+		as(user).assertThatAllowableActionsOf(id).describedAs("Actions of " + user).contains(CAN_GET_ACL, CAN_APPLY_ACL);
 		assertThat(session.getObject(id).getAcl().getAces()).isNotEmpty();
 		assertThat(session.getAcl(session.getObject(id), false).getAces()).isNotEmpty();
 		session.getObject(id).addAcl(asList(ace(bobGratton, asList(CMIS_READ))), REPOSITORYDETERMINED);
@@ -315,7 +348,7 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void ensureUserCannotGetAndApplyACLOnRecords(String user, String id) {
-		as(user).assertThatAllowableActionsOf(id).doesNotContain(CAN_GET_ACL, CAN_APPLY_ACL);
+		as(user).assertThatAllowableActionsOf(id).describedAs("Actions of " + user).doesNotContain(CAN_GET_ACL, CAN_APPLY_ACL);
 		assertThat(session.getObject(id).getAcl()).isNull();
 		try {
 			session.getAcl(session.getObject(id), true);

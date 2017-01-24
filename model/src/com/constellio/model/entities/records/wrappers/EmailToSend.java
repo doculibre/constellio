@@ -37,6 +37,9 @@ public class EmailToSend extends RecordWrapper {
 	public static final String ERROR = "error";
 	public static final String PARAMETER_SEPARATOR = ":";
 
+	public static final String RECORD_URL = "recordURL";
+	public static final String CONSTELLIO_URL = "constellioUrl";
+
 	public EmailToSend(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}

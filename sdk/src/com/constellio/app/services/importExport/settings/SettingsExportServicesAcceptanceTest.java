@@ -62,7 +62,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 			throws ValidationException {
 		ImportedSettings settings = services.exportSettings(asList(zeCollection));
 		assertThat(settings).isNotNull();
-		assertThat(settings.getConfigs()).isNotEmpty().hasSize(61);
+		assertThat(settings.getConfigs()).isNotEmpty().hasSize(66);
 	}
 
 	//--------------------------------------------------------------------
@@ -266,11 +266,11 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		ImportedType importedFolderType = zeCollectionSettings.getType("folder");
 		assertThat(importedFolderType).isNotNull();
 
-		for(MetadataSchema metadataSchema : folderSchemata){
+		for (MetadataSchema metadataSchema : folderSchemata) {
 			ImportedMetadataSchema importedMetadataSchema = importedFolderType.getSchema(metadataSchema.getCode());
 			assertThat(importedMetadataSchema).isNotNull();
 
-			for(Metadata metadata : metadataSchema.getMetadatas()){
+			for (Metadata metadata : metadataSchema.getMetadatas()) {
 				ImportedMetadata importedMetadata = importedMetadataSchema.getMetadata(metadata.getCode());
 				assertThat(importedMetadata).isNotNull();
 				// TODO valider les flags de la métadonnée

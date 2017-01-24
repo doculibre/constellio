@@ -8,7 +8,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
@@ -524,7 +524,12 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("A42", "A48", "A04", "A84", "A85").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("A42").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("A48").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("A04").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("A84").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("A85").givingReadWriteAccess(), admin);
+
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
@@ -534,7 +539,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42", "A84"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("A42", "A84").giving(role1), admin);
+		authServices.add(authorizationForUsers(alice).on("A42").giving(role1), admin);
+		authServices.add(authorizationForUsers(alice).on("A84").giving(role1), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
@@ -545,7 +551,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A85"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42", "A48"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("A42", "A84").giving(role2), admin);
+		authServices.add(authorizationForUsers(alice).on("A42").giving(role2), admin);
+		authServices.add(authorizationForUsers(alice).on("A84").giving(role2), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
@@ -587,7 +594,11 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("dA42", "dA48", "dA04", "dA84", "dA85").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("dA42").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("dA48").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("dA04").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("dA84").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("dA85").givingReadWriteAccess(), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
@@ -597,7 +608,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42", "dA84"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("dA42", "dA84").giving(role1), admin);
+		authServices.add(authorizationForUsers(alice).on("dA42").giving(role1), admin);
+		authServices.add(authorizationForUsers(alice).on("dA84").giving(role1), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
@@ -608,7 +620,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA85"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42", "dA48"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("dA42", "dA84").giving(role2), admin);
+		authServices.add(authorizationForUsers(alice).on("dA42").giving(role2), admin);
+		authServices.add(authorizationForUsers(alice).on("dA84").giving(role2), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 

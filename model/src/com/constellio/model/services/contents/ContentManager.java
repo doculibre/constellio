@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import com.constellio.model.services.contents.icap.IcapService;
+
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -71,7 +72,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.utils.Lazy;
 
 public class ContentManager implements StatefulService {
 
@@ -100,8 +100,13 @@ public class ContentManager implements StatefulService {
 	private final CollectionsListManager collectionsListManager;
 	private final AtomicBoolean closing = new AtomicBoolean();
 	private final ModelLayerFactory modelLayerFactory;
+	private final IcapService icapService;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
+		this(modelLayerFactory, new IcapService(modelLayerFactory));
+	}
+
+	public ContentManager(ModelLayerFactory modelLayerFactory, IcapService icapService) {
 		super();
 		this.modelLayerFactory = modelLayerFactory;
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
@@ -116,7 +121,7 @@ public class ContentManager implements StatefulService {
 		this.configuration = modelLayerFactory.getConfiguration();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-
+		this.icapService = icapService;
 	}
 
 	@Override
@@ -151,6 +156,9 @@ public class ContentManager implements StatefulService {
 							.executedEvery(Duration.standardSeconds(1))
 							.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 		}
+
+		//
+		icapService.init();
 	}
 
 	@Override
@@ -242,6 +250,7 @@ public class ContentManager implements StatefulService {
 		return new ParsedContentConverter().convertToString(parsingResults);
 	}
 
+	@Deprecated
 	public ContentVersionDataSummary upload(InputStream inputStream) {
 		return upload(inputStream, true, true, null);
 	}
@@ -315,6 +324,14 @@ public class ContentManager implements StatefulService {
 
 	private ParsedContent parseAndSave(String hash, CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
+		//
+		try (final InputStream inputStream = inputStreamFactory.create(hash + ".icapscan")) {
+			if (inputStreamFactory instanceof CopyInputStreamFactory) {
+				final String filename = ((CopyInputStreamFactory) inputStreamFactory).getFilename();
+				icapService.scan(filename, inputStream);
+			}
+		}
+
 		ParsedContent parsedContent = tryToParse(inputStreamFactory);
 		saveParsedContent(hash, parsedContent);
 		return parsedContent;

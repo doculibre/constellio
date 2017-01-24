@@ -1,21 +1,5 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.assertj.core.api.BooleanAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -30,6 +14,21 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.BooleanAssert;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class TaskAcceptTest extends ConstellioTest {
 
@@ -149,7 +148,8 @@ public class TaskAcceptTest extends ConstellioTest {
 		assertThat(zeTask.getStartDate()).isEqualTo(now);
 		assertThat(zeTask.getStatus()).isEqualTo(zeStatus.getId());
 		assertThat(zeTask.getReminders()).containsOnly(reminder1, reminder2);
-		assertThat(zeTask.getTaskFollowers()).containsOnly(aliceFollowingTask);
+		assertThat(zeTask.getTaskFollowers()).hasSize(2);
+		assertThat(zeTask.getTaskFollowers()).contains(aliceFollowingTask);
 		assertThat(zeTask.getFollowersIds()).containsOnly(users.aliceIn(zeCollection).getId());
 		assertThat(zeTask.getNextReminderOn()).isEqualTo(now.plusDays(1));
 	}

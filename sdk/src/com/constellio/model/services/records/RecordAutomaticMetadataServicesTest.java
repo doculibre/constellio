@@ -43,6 +43,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -92,6 +93,8 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 	@Mock TaxonomiesManager taxonomiesManager;
 	@Mock SystemConfigurationsManager systemConfigurationsManager;
 
+	@Mock SearchServices searchServices;
+
 	@Before
 	public void setUp() {
 
@@ -110,7 +113,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		sortedMetadatas.add(zeSchema.dateCopiedFromSecondReferenceDateMeta());
 
 		services = spy(new RecordAutomaticMetadataServices(schemasManager, taxonomiesManager, systemConfigurationsManager,
-				modelLayerLogger));
+				modelLayerLogger, searchServices));
 
 		createOtherSchemaRecordsWithSingleValueMetadata();
 

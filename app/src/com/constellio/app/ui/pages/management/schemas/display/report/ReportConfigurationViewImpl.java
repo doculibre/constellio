@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
@@ -16,8 +19,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -78,6 +80,8 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 
 	private Component buildTables() {
 		MetadataVODataProvider metadataVOProvider = presenter.getDataProvider();
+		Set<String> metadataTitles = new HashSet<>();
+		Set<String> duplicatedTitles = new HashSet<>();
 
 		final ListBuilder select = new ListBuilder();
 		select.setColumns(30);
@@ -85,8 +89,20 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		select.setLeftColumnCaption($("SearchDisplayConfigView.leftColumn"));
 
 		for (MetadataVO form : metadataVOProvider.listMetadataVO()) {
+			if(!metadataTitles.add(form.getLabel())) {
+				duplicatedTitles.add(form.getLabel());
+			}
+		}
+
+		for (MetadataVO form : metadataVOProvider.listMetadataVO()) {
 			select.addItem(form);
-			select.setItemCaption(form, form.getLabel() ); //+ "(" + form.getSchema().getLabel() + ")")
+			if(!duplicatedTitles.contains(form.getLabel())) {
+				select.setItemCaption(form, form.getLabel() );
+			}
+			else {
+				select.setItemCaption(form, form.getLabel()
+						+ "(" + presenter.getSchemaName(form.getCode()) + ": " + form.getLocalCode() + ")");
+			}
 		}
 
 		select.setValue(presenter.getReportMetadatas());

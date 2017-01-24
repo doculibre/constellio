@@ -33,6 +33,8 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -78,6 +80,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private RecordDisplay recordDisplay;
 	private ContentVersionVOTable versionTable;
 	private Component tasksComponent;
+	private Component eventsComponent;
 	private UpdateContentVersionWindowImpl uploadWindow;
 	private EditButton editDocumentButton;
 	private DeleteButton deleteDocumentButton;
@@ -164,9 +167,23 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tabSheet.addTab(versionTable, $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
 
-		Component disabled = new CustomComponent();
-		tabSheet.addTab(disabled, $("DisplayDocumentView.tabs.logs"));
-		tabSheet.getTab(disabled).setEnabled(false);
+		eventsComponent = new CustomComponent();
+		tabSheet.addTab(eventsComponent, $("DisplayDocumentView.tabs.logs"));
+		if(presenter.hasCurrentUserPermissionToViewEvents()) {
+			tabSheet.getTab(eventsComponent).setEnabled(true);
+		}
+		else {
+			tabSheet.getTab(eventsComponent).setEnabled(false);
+		}
+
+		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
+					presenter.refreshEvents();
+				}
+			}
+		});
 
 		mainLayout.addComponents(borrowedLabel, contentViewer, tabSheet);
 		
@@ -179,7 +196,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode);
+		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
 	}
 
 	@Override
@@ -222,6 +239,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Component oldTasksComponent = tasksComponent;
 		tasksComponent = tasksTable;
 		tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+	}
+
+	@Override
+	public void setEvents(RecordVODataProvider dataProvider) {
+		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new EventVOTableColumnsManager();
+			}
+		};
+		table.setSizeFull();
+
+		tabSheet.replaceComponent(eventsComponent, table);
+		eventsComponent = table;
 	}
 
 	@Override
@@ -413,7 +444,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.publishButtonClicked();
 				}
 			};
-			actionMenuButtons.add(publishButton);
+			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
+				actionMenuButtons.add(publishButton);
+			}
 
 			unpublishButton = new LinkButton($("DocumentContextMenu.unpublish")) {
 				@Override
@@ -421,7 +454,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.unpublishButtonClicked();
 				}
 			};
-			actionMenuButtons.add(unpublishButton);
+			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
+				actionMenuButtons.add(unpublishButton);
+			}
 
 			WindowButton.WindowConfiguration publicLinkConfig = new WindowConfiguration(true, false, "75%", "125px");
 			publicLinkButton = new WindowButton(
@@ -445,7 +480,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(createPDFAButton);
 		actionMenuButtons.add(shareDocumentButton);
-		actionMenuButtons.add(addToCartButton);
+		if(presenter.hasCurrentUserPermissionToUseCart()) {
+			actionMenuButtons.add(addToCartButton);
+		}
 		actionMenuButtons.add(uploadButton);
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
@@ -641,10 +678,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setPublishButtons(boolean published) {
-		if (publishButton != null) {
+		if (publishButton != null && presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
 			publishButton.setVisible(!published);
 		}
-		if (unpublishButton != null) {
+		if (unpublishButton != null && presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
 			unpublishButton.setVisible(published);
 		}
 		if (publicLinkButton != null) {

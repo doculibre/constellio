@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
@@ -23,8 +24,8 @@ public class VideoViewer extends CustomComponent {
 
 	public VideoViewer(ContentVersionVO contentVersionVO) {
 		try {
-			final String filename = contentVersionVO.getFileName();
-			final String extension = FilenameUtils.getExtension(filename);
+			final String fileName = contentVersionVO.getFileName();
+			final String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
 			final int width = 720;
 			final int height = 480;

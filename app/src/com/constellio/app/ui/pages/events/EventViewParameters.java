@@ -1,13 +1,12 @@
 package com.constellio.app.ui.pages.events;
 
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.params.ParamUtils;
+import org.joda.time.LocalDateTime;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-
-import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.params.ParamUtils;
 
 public class EventViewParameters implements Serializable{
 	transient public static String EVENT_TYPE = "eventType";
@@ -67,15 +66,15 @@ public class EventViewParameters implements Serializable{
 		Map<String, String> parameters = ParamUtils.getParamsMap(viewNameAndParameters);
 		String dateString = parameters.get(EventViewParameters.EVENT_START_DATE);
 		if (dateString != null){
-			this.startDate = LocalDateTime.parse(dateString).toDate();
+			this.startDate = LocalDateTime.parse(dateString).withTime(0, 0, 0, 0).toDate();
 		}else{
-			this.startDate = new LocalDateTime().minusWeeks(1).toDate();
+			this.startDate = new LocalDateTime().minusWeeks(1).withTime(0, 0, 0, 0).toDate();
 		}
 		String endString = parameters.get(EventViewParameters.EVENT_END_DATE);
 		if (endString != null){
-			this.endDate = LocalDateTime.parse(endString).toDate();
+			this.endDate = LocalDateTime.parse(endString).withTime(23, 59, 59, 999).toDate();
 		}else{
-			this.endDate = new LocalDateTime().toDate();
+			this.endDate = new LocalDateTime().withTime(23, 59, 59, 999).toDate();
 		}
 		this.eventType = parameters.get(EventViewParameters.EVENT_TYPE);
 		String eventCategoryName = parameters.get(EventViewParameters.EVENT_CATEGORY);

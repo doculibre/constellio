@@ -16,6 +16,8 @@ public class GlobalGroupResource {
 
 	private GlobalGroupStatus status = GlobalGroupStatus.ACTIVE;
 
+	private boolean locallyCreated = true;
+
 	public GlobalGroupResource() {
 	}
 
@@ -57,5 +59,13 @@ public class GlobalGroupResource {
 
 	public void setStatus(GlobalGroupStatus status) {
 		this.status = status;
+	}
+
+	public boolean isLocallyCreated() {
+		return locallyCreated;
+	}
+
+	public void setLocallyCreated(boolean locallyCreated) {
+		this.locallyCreated = locallyCreated;
 	}
 }

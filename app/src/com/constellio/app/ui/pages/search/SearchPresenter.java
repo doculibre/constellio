@@ -10,6 +10,10 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.data.utils.TimeProvider;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,8 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactory;
-import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -32,9 +34,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.KeySetMap;
@@ -50,7 +50,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.StatusFilter;
@@ -62,7 +61,7 @@ import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.vaadin.server.StreamResource.StreamSource;
 
-public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements ReportPresenter {
+public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
 	public enum SortOrder {ASCENDING, DESCENDING}
@@ -318,12 +317,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String report) {
+	public NewReportWriterFactory getReport(String report) {
 		switch (report) {
 		case "Reports.fakeReport":
-			return new ExampleReportFactory(view.getSelectedRecordIds());
+			return getRmReportBuilderFactories().exampleBuilderFactory.getValue();
 		case "Reports.FolderLinearMeasureStats":
-			return new StatsReportBuilderFactory(view.getCollection(), modelLayerFactory, getSearchQuery());
+			return getRmReportBuilderFactories().statsBuilderFactory.getValue();
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
@@ -502,4 +501,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return modelLayerFactory.getSearchBoostManager();
 	}
 
+	@Override
+	public Object getReportParameters(String report) {
+		switch (report) {
+			case "Reports.fakeReport":
+				return new ExampleReportParameters(view.getSelectedRecordIds());
+			case "Reports.FolderLinearMeasureStats":
+				return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
+		}
+		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
+	}
 }

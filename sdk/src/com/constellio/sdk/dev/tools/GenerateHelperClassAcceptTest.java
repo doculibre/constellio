@@ -1,13 +1,5 @@
 package com.constellio.sdk.dev.tools;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -17,32 +9,32 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocu
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
 @MainTest
 public class GenerateHelperClassAcceptTest extends ConstellioTest {
@@ -61,6 +53,31 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		System.out.println(header());
 
 		printGeneratedSchemas(wrappers, true);
+
+		System.out.println(footer());
+	}
+
+	@Test
+	public void generateCoreSchemas()
+			throws Exception {
+		givenCollection(zeCollection);
+
+		Map<String, Class<? extends RecordWrapper>> wrappers = new HashMap<>();
+
+		wrappers.put(User.DEFAULT_SCHEMA, User.class);
+		wrappers.put(Group.DEFAULT_SCHEMA, Group.class);
+		wrappers.put(SolrUserCredential.DEFAULT_SCHEMA, SolrUserCredential.class);
+		wrappers.put(SolrGlobalGroup.DEFAULT_SCHEMA, SolrGlobalGroup.class);
+		wrappers.put(Event.DEFAULT_SCHEMA, Event.class);
+		wrappers.put(Collection.DEFAULT_SCHEMA, Collection.class);
+		wrappers.put(EmailToSend.DEFAULT_SCHEMA, EmailToSend.class);
+		wrappers.put(Facet.DEFAULT_SCHEMA, Facet.class);
+		wrappers.put(UserDocument.DEFAULT_SCHEMA, UserDocument.class);
+		wrappers.put(SolrAuthorizationDetails.DEFAULT_SCHEMA, SolrAuthorizationDetails.class);
+
+		System.out.println(header());
+
+		printGeneratedSchemas(wrappers, false);
 
 		System.out.println(footer());
 	}

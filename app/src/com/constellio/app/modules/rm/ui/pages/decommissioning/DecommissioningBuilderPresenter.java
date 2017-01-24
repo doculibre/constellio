@@ -139,7 +139,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	public void decommissioningListCreationRequested(DecommissioningListParams params) {
-		DecommissioningService decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+		DecommissioningService decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		params.setAdministrativeUnit(adminUnitId);
 		params.setSearchType(searchType);
 		try {
@@ -222,7 +222,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	private LogicalSearchCondition selectByDecommissioningStatus() {
-		return new DecommissioningSearchConditionFactory(view.getCollection(), modelLayerFactory)
+		return new DecommissioningSearchConditionFactory(view.getCollection(), appLayerFactory)
 				.bySearchType(searchType, adminUnitId);
 	}
 
@@ -235,7 +235,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	private DecommissioningService decommissioningService() {
 		if (decommissioningService == null) {
-			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		}
 		return decommissioningService;
 	}

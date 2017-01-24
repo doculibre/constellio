@@ -11,6 +11,7 @@ import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
@@ -77,18 +78,19 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 					field.addValueChangeListener(new ValueChangeListener() {
 						@Override
 						public void valueChange(ValueChangeEvent event) {
-							Field field = (Field) event.getProperty();
+							Field<?> field = (Field<?>) event.getProperty();
 							String id = field.getId();
 							String groupCode = tabsheet.getSelectedTab().getId();
 							String iString = StringUtils.substringAfter(id, groupCode);
-							int i = Integer.valueOf(iString);
-							Object value = field.getValue();
-							if (value == null) {
-								dataProvider.valueChange(groupCode, i, null);
-							} else {
-								dataProvider.valueChange(groupCode, i, value);
+							if (StringUtils.isNotBlank(iString)) {
+								int i = Integer.valueOf(iString);
+								Object value = field.getValue();
+								if (value == null) {
+									dataProvider.valueChange(groupCode, i, null);
+								} else {
+									dataProvider.valueChange(groupCode, i, value);
+								}
 							}
-
 						}
 					});
 					field.setSizeFull();
@@ -131,6 +133,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 			AbstractField<String> textField;
 			if (config.isHiddenValue()) {
 				textField = new BasePasswordField();
+			} else if (config.getValue() != null && config.getValue().toString().contains("\n")) {
+				textField = new BaseTextArea();
 			} else {
 				textField = new BaseTextField();
 			}

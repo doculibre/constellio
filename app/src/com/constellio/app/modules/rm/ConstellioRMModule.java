@@ -1,9 +1,11 @@
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +36,7 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
+import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
@@ -66,8 +69,15 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_20;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_21;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_33;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_34;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_36;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_37;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_50;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_54;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_6;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -78,6 +88,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -85,6 +96,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "rm";
@@ -140,8 +152,14 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_5_1(),
 				new RMMigrationTo6_5_7(),
 				new RMMigrationTo6_5_20(),
-				new RMMigrationTo6_5_33()
-				//, new RMMigrationTo6_5_40()
+				new RMMigrationTo6_5_21(),
+				new RMMigrationTo6_5_33(),
+				new RMMigrationTo6_5_34(),
+				new RMMigrationTo6_5_36(),
+				new RMMigrationTo6_5_37(),
+				new RMMigrationTo6_5_50(),
+				new RMMigrationTo6_5_54(),
+				new RMMigrationTo6_6()
 		);
 	}
 
@@ -182,7 +200,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
-		setupModelLayerExtensions(collection, appLayerFactory.getModelLayerFactory());
+		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 
@@ -239,11 +257,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.searchPageExtensions.add(new RMSearchPageExtension(appLayerFactory));
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
-		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions());
+		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions(appLayerFactory));
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
+		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
 	}
 
-	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
+	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 
 		extensions.recordExtensions.add(new RMSchemasLogicalDeleteExtension(collection, modelLayerFactory));
@@ -252,7 +272,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMOldSchemasBlockageRecordExtension());
 		extensions.recordExtensions.add(new RMCheckInAlertsRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMFolderExtension(collection, modelLayerFactory));
-		extensions.recordExtensions.add(new RMDocumentExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
@@ -281,8 +301,17 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
+		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
+			Iterator<Record> authsIterator = modelLayerFactory.newSearchServices().recordsIterator(new LogicalSearchQuery(
+					from(rm.authorizationDetails.schemaType()).returnAll()), 10000);
+			while (authsIterator.hasNext()) {
+				authsIterator.next();
+			}
+		}
 		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDER_CACHE_SIZE));
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
+
 	}
 
 	@Override

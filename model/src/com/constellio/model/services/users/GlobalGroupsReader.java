@@ -20,6 +20,7 @@ public class GlobalGroupsReader {
 	private static final String CODE = "code";
 	private static final String NAME = "name";
 	public static final String STATUS = "status";
+    public static final String LOCALLY_CREATED = "locallyCreated";
 	Document document;
 
 	public GlobalGroupsReader(Document document) {
@@ -59,7 +60,9 @@ public class GlobalGroupsReader {
 			status = GlobalGroupStatus.ACTIVE;
 		}
 
-		globalGroup = new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status);
+		boolean locallyCreated = Boolean.getBoolean(globalGroupElement.getChildText(LOCALLY_CREATED));
+
+		globalGroup = new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
 		return globalGroup;
 	}
 }

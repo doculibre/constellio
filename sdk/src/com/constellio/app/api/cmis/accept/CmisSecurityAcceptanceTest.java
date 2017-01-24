@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
@@ -33,7 +34,6 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.Fail;
 import org.assertj.core.api.ListAssert;
@@ -47,8 +47,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.contents.ContentManagementAcceptTest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -109,6 +108,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		users.setUp(userServices);
 
 		defineSchemasManager().using(zeCollectionSchemas.withContentMetadata());
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
@@ -158,6 +158,14 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		startApplication();
 
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
+		metadataSchemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeCollectionSchemas.documentFond.type().getCode()).setSecurity(true);
+				types.getSchemaType(zeCollectionSchemas.category.type().getCode()).setSecurity(true);
+			}
+		});
 	}
 
 	@After
@@ -338,6 +346,55 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenCreatingRecordsInSecondaryTaxonomyAttachingThemToPrimaryTaxonomyUsingPropertyThenSecurised()
+			throws RecordServicesException {
+		String parentId = "folder2";
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		Folder parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+		assertThat(parent.createFolder(properties)).isNotNull();
+
+		session = newCMISSessionAsUserInZeCollection(dakota);
+		parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+		assertThat(parent.createFolder(properties)).isNotNull();
+
+		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+		parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+		try {
+			assertThat(parent.createFolder(properties)).isNotNull();
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage().startsWith("L'utilisateur alice n'a pas de droit en ecriture sur l'enregistrement"));
+		}
+
+		session = newCMISSessionAsUserInZeCollection(edouard);
+		parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+
+		try {
+			assertThat(parent.createFolder(properties)).isNotNull();
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage().startsWith("L'utilisateur edouard n'a pas de droit en ecriture sur l'enregistrement"));
+		}
+
+	}
+
+	@Test
 	public void whenCreatingFolderInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
 			throws RecordServicesException {
 		String parentId = "zetaxo2_station1";
@@ -417,6 +474,16 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
 		createNewDocumentWithTestPropertiesExpectingPermissionError(parentId);
+	}
+
+	@Test
+	public void givenUserWithoutAnyPermissionGetSecondaryConceptByIdThenObtained()
+			throws Exception {
+
+		session = newCMISSessionAsUserInZeCollection(sasquatch);
+
+		assertThat(session.getObject(zeCollectionRecords.taxo1_fond1_1.getId())).isNotNull();
+		assertThat(session.getObject(zeCollectionRecords.taxo1_category2_1.getId())).isNotNull();
 	}
 
 	@Test
@@ -602,6 +669,28 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
 		assertThat(canBeMovedTo(record, newParentID)).isFalse();
+	}
+
+	@Test
+	public void whenMovingFolderInFolderWithoutParentWriteAuthorizationThenGoodErrorMessage()
+			throws RecordServicesException {
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		Folder oldParent = cmisFolder(zeCollectionRecords.folder2);
+		oldParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		Folder movedFolder = cmisFolder(zeCollectionRecords.folder2_2);
+		movedFolder.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		Folder newParent = cmisFolder(zeCollectionRecords.folder1);
+		newParent.addAcl(asList(ace(bobGratton, R), ace(charles, R)), REPOSITORYDETERMINED);
+
+		Record record = zeCollectionRecords.folder2_2;
+		String newParentID = zeCollectionRecords.folder1.getId();
+
+		session = newCMISSessionAsUserInZeCollection(bobGratton);
+		assertThat(validateErrorFromFunctionCanBeMovedTo(record, newParentID)).isTrue();
+
+		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+		assertThat(validateErrorFromFunctionCanBeMovedTo(record, newParentID)).isTrue();
 	}
 
 	@Test
@@ -874,7 +963,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFolderInheritingTaxonomyAuthorizations() {
-		Authorization authorization = new AuthorizationBuilder(zeCollection).forUsers(users.edouardIn(zeCollection))
+		AuthorizationAddRequest authorization = authorizationInCollection(zeCollection).forUsers(users.edouardIn(zeCollection))
 				.on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, users.adminIn(zeCollection));
 		try {
@@ -1062,6 +1151,20 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		moveObject(record, oldParentID);
 
 		return isMovable;
+	}
+
+	private boolean validateErrorFromFunctionCanBeMovedTo(Record record, String parentTargetId) {
+		String oldParentID = record.getParentId();
+
+		try {
+			moveObject(record, parentTargetId);
+		} catch (CmisRuntimeException e) {
+			if (e.getMessage().contains("permission CMIS CAN_MOVE_OBJECT") ||
+					e.getMessage().contains("permission CMIS CAN_CREATE_FOLDER")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private boolean canBeMovedTo(Record record, String parentTargetId, Record oldParent) {

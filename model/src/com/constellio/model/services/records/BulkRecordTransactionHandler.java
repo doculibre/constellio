@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,7 +174,7 @@ public class BulkRecordTransactionHandler {
 									completedTasksCounter.incrementAndGet();
 
 								} else {
-									Thread.sleep(1000);
+									Thread.sleep(20);
 								}
 
 							} catch (InterruptedException e) {
@@ -251,7 +252,7 @@ public class BulkRecordTransactionHandler {
 	}
 
 	public void barrier() {
-
+		pushCurrent();
 		while (!isQueueEmptyAndWorkersWaiting()) {
 			try {
 				Thread.sleep(10);

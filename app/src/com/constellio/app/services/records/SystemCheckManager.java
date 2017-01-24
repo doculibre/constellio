@@ -11,11 +11,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.records.RecordServicesException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.records.SystemCheckManagerRuntimeException.SystemCheckManagerRuntimeException_AlreadyRunning;
 import com.constellio.data.dao.managers.StatefulService;
@@ -28,6 +28,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -162,6 +163,14 @@ public class SystemCheckManager implements StatefulService {
 				if (repair && reference.getDataEntry().getType() == MANUAL && values.size() != modifiedValues.size()) {
 					record.set(reference, modifiedValues);
 					recordRepaired = true;
+				}
+
+				if (repair && reference.getDataEntry().getType() != MANUAL && values.size() != modifiedValues.size()) {
+					List<String> valuesToRemove = new ArrayList<>(values);
+					valuesToRemove.removeAll(modifiedValues);
+
+					recordRepaired = appLayerFactory.getExtensions().forCollectionOf(record).tryRepairAutomaticValue(
+							new TryRepairAutomaticValueParams(record, reference, values, valuesToRemove));
 				}
 
 			} else {

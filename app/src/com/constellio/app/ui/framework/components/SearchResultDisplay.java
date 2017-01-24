@@ -40,11 +40,13 @@ public class SearchResultDisplay extends VerticalLayout {
 				newMetadataComponent(searchResultVO, componentFactory));
 		addStyleName(RECORD_STYLE);
 		setWidth("100%");
+		setSpacing(true);
 	}
 
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
 		title.addStyleName(TITLE_STYLE);
+		title.setWidthUndefined();
 		return title;
 	}
 
@@ -89,6 +91,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 			HorizontalLayout item = new HorizontalLayout(caption, value);
 			item.setSpacing(true);
+			item.addStyleName("metadata-caption-layout");
 
 			layout.addComponent(item);
 		}

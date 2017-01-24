@@ -17,26 +17,28 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.frameworks.validation.ValidationRuntimeException;
-import com.google.common.base.Joiner;
-
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -44,12 +46,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import com.google.common.base.Joiner;
 
 public class ConstellioCreateRecordServlet extends HttpServlet {
 
@@ -175,7 +172,7 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 				responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
 			}
 
-			responseWriter.append(Joiner.on(StringUtils.SPACE).join(transaction.getRecordIds()));
+			responseWriter.append(Joiner.on(" ").join(transaction.getRecordIds()));
 		} else {
 			response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
 		}

@@ -39,8 +39,11 @@ public class MetadataSchemaTypes {
 
 	private final List<Language> languages;
 
+	private final MetadataNetwork metadataNetwork;
+
 	public MetadataSchemaTypes(String collection, int version, List<MetadataSchemaType> schemaTypes,
-			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages) {
+			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages,
+			MetadataNetwork metadataNetwork) {
 		super();
 		this.version = version;
 		this.collection = collection;
@@ -51,6 +54,7 @@ public class MetadataSchemaTypes {
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
+		this.metadataNetwork = metadataNetwork;
 	}
 
 	private Set<String> buildTypeParentOfOtherTypes(List<MetadataSchemaType> schemaTypes) {
@@ -71,6 +75,7 @@ public class MetadataSchemaTypes {
 		}
 
 		return Collections.unmodifiableSet(typeParentOfOtherTypes);
+
 	}
 
 	private Map<String, MetadataSchemaType> toUnmodifiableMap(List<MetadataSchemaType> schemaTypes) {
@@ -79,6 +84,10 @@ public class MetadataSchemaTypes {
 			types.put(type.getCode(), type);
 		}
 		return Collections.unmodifiableMap(types);
+	}
+
+	public MetadataNetwork getMetadataNetwork() {
+		return metadataNetwork;
 	}
 
 	public String getCollection() {
@@ -165,12 +174,12 @@ public class MetadataSchemaTypes {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return HashCodeBuilder.reflectionHashCode(this, "metadataNetwork");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		return EqualsBuilder.reflectionEquals(this, obj, "metadataNetwork");
 	}
 
 	@Override

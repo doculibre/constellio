@@ -1,5 +1,6 @@
 package com.constellio.model.services.schemas.calculators;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +19,7 @@ public class InheritedAuthorizationsCalculator implements MetadataValueCalculato
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		return parameters.get(inheritedAuthorizationsParam).getParentAuthorizations();
+		return new ArrayList<>();
 	}
 
 	@Override

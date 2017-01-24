@@ -107,6 +107,11 @@ public class TaskTable extends RecordVOTable {
 					public boolean isEnabled() {
 						return presenter.isCloseButtonEnabled(records.getRecordVO((int) itemId));
 					}
+
+					@Override
+					public boolean isVisible() {
+						return isEnabled();
+					}
 				};
 			}
 		});
@@ -123,6 +128,11 @@ public class TaskTable extends RecordVOTable {
 					@Override
 					public boolean isEnabled() {
 						return presenter.isDeleteButtonEnabled(records.getRecordVO((int) itemId));
+					}
+
+					@Override
+					public boolean isVisible() {
+						return presenter.isDeleteButtonVisible(records.getRecordVO((int) itemId));
 					}
 				};
 			}
@@ -156,6 +166,9 @@ public class TaskTable extends RecordVOTable {
 		boolean isCloseButtonEnabled(RecordVO recordVO);
 
 		boolean isDeleteButtonEnabled(RecordVO recordVO);
+		
+		boolean isDeleteButtonVisible(RecordVO recordVO);
+		
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

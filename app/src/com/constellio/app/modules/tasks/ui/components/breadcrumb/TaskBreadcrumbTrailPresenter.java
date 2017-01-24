@@ -12,6 +12,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
@@ -40,6 +41,7 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 			Task task = tasksSchemasRecordsServices.getTask(currentRecordId);
 			currentRecordId = task.getParentTask();
 		}
+		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}

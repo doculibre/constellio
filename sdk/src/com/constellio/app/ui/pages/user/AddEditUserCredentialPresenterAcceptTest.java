@@ -219,6 +219,36 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenSaveButtonIsClickedThenPersonalEmailsIsSaved()
+			throws Exception {
+
+		newUserCredentialVO = presenter.getUserCredentialVO("");
+		newUserCredentialVO.setUsername("user");
+		newUserCredentialVO.setFirstName("User");
+		Set collectionsSet = new HashSet<>();
+		collectionsSet.add(zeCollection);
+		collectionsSet.add("otherCollection");
+		newUserCredentialVO.setCollections(collectionsSet);
+		newUserCredentialVO.setEmail("user@constellio.com");
+		newUserCredentialVO.setGlobalGroups(Arrays.asList(HEROES));
+		newUserCredentialVO.setLastName("lastName");
+		newUserCredentialVO.setPassword("password");
+		newUserCredentialVO.setConfirmPassword("password");
+		newUserCredentialVO.setPersonalEmails("admin@gmail.com\nadmin@hotmail.com");
+
+		presenter.saveButtonClicked(newUserCredentialVO);
+
+		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=user", "UTF-8"));
+		newUserCredential = userServices.getUserCredential("user");
+		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
+		assertThat(newUserCredential.getGlobalGroups()).containsOnly(HEROES);
+		assertThat(newUserCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
+		assertThat(newUserCredential.getLastName()).isEqualTo("lastName");
+		assertThat(newUserCredential.getEmail()).isEqualTo("user@constellio.com");
+		assertThat(newUserCredential.getPersonalEmails()).isEqualTo(Arrays.asList("admin@gmail.com", "admin@hotmail.com"));
+	}
+
+	@Test
 	public void whenCancelButtonClickedThenNavigateToBackPage()
 			throws Exception {
 

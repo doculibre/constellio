@@ -35,7 +35,7 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataSchemaTypeBuilder typeBuilder = metadataSchemaTypesBuilder.createNewSchemaType(code);
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
-		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
+		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema().setLabels(labels);
 
 		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique).setDefaultRequirement(true);
 
@@ -67,6 +67,7 @@ public class ValueListItemSchemaTypeBuilder {
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
 		for (Language language : languages) {
+			if(labels.containsKey(language))
 			titleMetadata.addLabel(language, $("init.valuelist.default.title"));
 		}
 		return typeBuilder;

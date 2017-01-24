@@ -98,8 +98,8 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 	private boolean isAllowedMetadata(FormMetadataVO metadataVO) {
 		boolean result;
 		List<Metadata> restrictedMetadata = Arrays.asList(Schemas.SCHEMA, Schemas.VERSION, Schemas.PATH, Schemas.PRINCIPAL_PATH,
-				Schemas.PARENT_PATH, Schemas.AUTHORIZATIONS, Schemas.REMOVED_AUTHORIZATIONS, Schemas.INHERITED_AUTHORIZATIONS,
-				Schemas.ALL_AUTHORIZATIONS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
+				Schemas.PARENT_PATH, Schemas.ALL_REMOVED_AUTHS, Schemas.REMOVED_AUTHORIZATIONS,
+				Schemas.ATTACHED_ANCESTORS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
 				Schemas.FOLLOWERS, Schemas.LOGICALLY_DELETED_STATUS, Schemas.SHARE_DENY_TOKENS, Schemas.SHARE_TOKENS,
 				Schemas.DENY_TOKENS, Schemas.SEARCHABLE);
 

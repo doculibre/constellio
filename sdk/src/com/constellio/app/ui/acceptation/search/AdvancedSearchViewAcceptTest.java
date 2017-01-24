@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,41 +48,41 @@ public class AdvancedSearchViewAcceptTest extends ConstellioTest {
 
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_title", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_bodyText", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_number", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_someFacet", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_anotherFacet", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_date", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_zenum", true, MetadataInputType.DROPDOWN, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_createdOn", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_createdBy", true, MetadataInputType.LOOKUP, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 
 		schemasDisplayManager.saveMetadata(
-				new MetadataDisplayConfig(zeCollection, "user_default_username", true, MetadataInputType.FIELD, true, "default"));
+				new MetadataDisplayConfig(zeCollection, "user_default_username", true, MetadataInputType.FIELD, true, "default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "user_default_firstname", true, MetadataInputType.FIELD, true,
-						"default"));
+						"default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
-				new MetadataDisplayConfig(zeCollection, "user_default_lastname", true, MetadataInputType.FIELD, true, "default"));
+				new MetadataDisplayConfig(zeCollection, "user_default_lastname", true, MetadataInputType.FIELD, true, "default", MetadataDisplayType.VERTICAL));
 		schemasDisplayManager.saveMetadata(
-				new MetadataDisplayConfig(zeCollection, "user_default_email", true, MetadataInputType.FIELD, true, "default"));
+				new MetadataDisplayConfig(zeCollection, "user_default_email", true, MetadataInputType.FIELD, true, "default", MetadataDisplayType.VERTICAL));
 
 		driver = newWebDriver(loggedAsUserInCollection(gandalf, zeCollection));
 	}

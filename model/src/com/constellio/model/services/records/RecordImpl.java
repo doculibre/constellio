@@ -635,14 +635,56 @@ public class RecordImpl implements Record {
 		return id;
 	}
 
+//	@Override
+//	public int hashCode() {
+//		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
+//	}
+//
+//	@Override
+//	public boolean equals(Object obj) {
+//		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
+//	}
+
 	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof RecordImpl))
+			return false;
+
+		RecordImpl record = (RecordImpl) o;
+
+		if (version != record.version)
+			return false;
+		if (disconnected != record.disconnected)
+			return false;
+		if (fullyLoaded != record.fullyLoaded)
+			return false;
+		if (modifiedValues != null ? !modifiedValues.equals(record.modifiedValues) : record.modifiedValues != null)
+			return false;
+		if (schemaCode != null ? !schemaCode.equals(record.schemaCode) : record.schemaCode != null)
+			return false;
+		if (collection != null ? !collection.equals(record.collection) : record.collection != null)
+			return false;
+		if (!id.equals(record.id))
+			return false;
+		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null)
+			return false;
+
+		return true;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
+	public int hashCode() {
+		int result = modifiedValues != null ? modifiedValues.hashCode() : 0;
+		result = 31 * result + (schemaCode != null ? schemaCode.hashCode() : 0);
+		result = 31 * result + (collection != null ? collection.hashCode() : 0);
+		result = 31 * result + id.hashCode();
+		result = 31 * result + (int) (version ^ (version >>> 32));
+		result = 31 * result + (disconnected ? 1 : 0);
+		result = 31 * result + (structuredValues != null ? structuredValues.hashCode() : 0);
+		result = 31 * result + (fullyLoaded ? 1 : 0);
+		return result;
 	}
 
 	@Override
@@ -943,5 +985,19 @@ public class RecordImpl implements Record {
 
 	private boolean isBlankString(Object value) {
 		return (value instanceof String) && StringUtils.isBlank((String) value);
+	}
+
+	@Override
+	public <T> void addValueToList(Metadata metadata, T value) {
+		List<T> values = new ArrayList<>(this.<T>getList(metadata));
+		values.add(value);
+		set(metadata, values);
+	}
+
+	@Override
+	public <T> void removeValueFromList(Metadata metadata, T value) {
+		List<T> values = new ArrayList<>(this.<T>getList(metadata));
+		values.remove(value);
+		set(metadata, values);
 	}
 }

@@ -50,7 +50,7 @@ public class UserServicesAPI {
 	public String addUpdateGlobalGroup(GlobalGroupResource globalGroupResource) {
 		GlobalGroup group = userServices().createGlobalGroup(globalGroupResource.getCode(), globalGroupResource.getName(),
 				globalGroupResource.getUsersAutomaticallyAddedToCollections(), globalGroupResource.getParent(),
-				globalGroupResource.getStatus());
+				globalGroupResource.getStatus(), globalGroupResource.isLocallyCreated());
 		userServices().addUpdateGlobalGroup(group);
 		return "OK";
 	}
