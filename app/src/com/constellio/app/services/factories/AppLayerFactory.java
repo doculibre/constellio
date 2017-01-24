@@ -138,7 +138,7 @@ public class AppLayerFactory extends LayerFactory {
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
-		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager());
+		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager(), this);
 		this.navigatorConfigService = new NavigatorConfigurationService();
 		this.systemCheckManager = add(new SystemCheckManager(this));
 

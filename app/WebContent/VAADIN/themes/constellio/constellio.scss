@@ -917,6 +917,11 @@ $popup-view-z-index: 3;
             					height: inherit;
 							}
 							
+							.agent-action-link {
+            					white-space: normal;
+            					height: inherit;
+							}
+							
 							.download-content-version-link {
             					white-space: normal;
             					height: inherit;
@@ -1208,6 +1213,11 @@ $popup-view-z-index: 3;
 			.base-display {
 				.v-slot-display-value {
 					.display-value {
+            			margin-right: 300px;
+            			
+            			.agent-link {
+            				margin-right: 26px;
+            			}
 					}
 				
 					.v-label-display-value {
@@ -1215,7 +1225,7 @@ $popup-view-z-index: 3;
 					}
 					
 					.reference-display {
-            			margin-right: 300px;
+            			padding-right: 300px;
 					}
 				}
 

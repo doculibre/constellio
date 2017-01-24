@@ -13031,6 +13031,11 @@ div.v-layout.v-horizontal.v-widget {
 	height: inherit;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .agent-action-link {
+	white-space: normal;
+	height: inherit;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .download-content-version-link {
 	white-space: normal;
 	height: inherit;
@@ -13381,12 +13386,20 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+	margin-right: 300px;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+	margin-right: 26px;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
 	margin-right: 300px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
-	margin-right: 300px;
+	padding-right: 300px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
