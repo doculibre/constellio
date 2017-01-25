@@ -200,7 +200,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenUserWithSomeAccessWhenSearchingUsingWebServiceWithOnNonSecuredSchemaThenSeeAllResults()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 
 		assertThatUserIsInCollection(users.alice().getUsername(), "zeCollection");
 		assertThat(findAllRecordsVisibleByUsingWebService(userWithZeCollectionReadAccess))
@@ -396,7 +396,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private List<String> findAllRecordsVisibleOfNonSecuredSchemaByUsingWebService(UserCredential user)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:anotherSchemaType*");
 		solrParams.add("fq", "collection_s:zeCollection");
