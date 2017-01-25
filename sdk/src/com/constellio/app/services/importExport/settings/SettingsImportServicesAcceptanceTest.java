@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,14 +31,18 @@ import org.jdom2.input.SAXBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
@@ -114,10 +119,18 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	ImportedSettings settings = new ImportedSettings();
 	ImportedCollectionSettings zeCollectionSettings;
 	ImportedCollectionSettings anotherCollectionSettings;
+	@Mock
+	AppLayerFactory appLayerFactory;
+	@Mock
+	AppLayerExtensions extensions;
+	@Mock
+	AppLayerSystemExtensions systemExtensions;
 
 	@Test
 	public void whenImportingLabelTemplatesThenCorrectlyImported()
 			throws ValidationException {
+		when(appLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
 
 		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
 		importSettings();
@@ -131,7 +144,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name")
 				.containsOnly("Ze template #1b", "Ze template #2");
 
-		assertThat(new LabelTemplateManager(getDataLayerFactory().getConfigManager()).listTemplates(Folder.SCHEMA_TYPE))
+		assertThat(new LabelTemplateManager(getDataLayerFactory().getConfigManager(), appLayerFactory).listTemplates(Folder.SCHEMA_TYPE))
 				.extracting("name").containsOnly("Ze template #1b", "Ze template #2");
 
 		runTwice = false;

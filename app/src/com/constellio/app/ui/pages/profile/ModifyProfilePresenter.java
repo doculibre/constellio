@@ -61,7 +61,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		User user = userServices.getUserInCollection(entity.getUsername(), view.getCollection());
 		user.setPhone(entity.getPhone());
 		if (entity.getStartTab() == null) {
-			user.setStartTab(getDefaultHomepageTab());
+			user.setStartTab(getDefaultStartTab());
 		} else {
 			user.setStartTab(entity.getStartTab());
 		}
@@ -108,9 +108,8 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         userServices.addUpdateUserCredential(userCredential);
     }
 
-	private String getDefaultHomepageTab() {
-		List<String> tabs = getAvailableHomepageTabs();
-		return tabs.isEmpty() ? null : tabs.get(0);
+	private String getDefaultStartTab() {
+		return presenterService().getSystemConfigs().getDefaultStartTab();
 	}
 
 	void changePhoto(ContentVersionVO image) {
@@ -131,17 +130,20 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		String loginLanguage = user.getLoginLanguageCode();
 		String startTab = user.getStartTab();
 		if (startTab == null) {
-			startTab = getDefaultHomepageTab();
+			startTab = getDefaultStartTab();
 		}
 
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		
 		Map<String, DefaultTabInFolderDisplay> defaultTabInFolderDisplayOptions = new HashMap<>();
+		for (DefaultTabInFolderDisplay retrievedDefaultTabInFolderDisplay : DefaultTabInFolderDisplay.values()) {
+			defaultTabInFolderDisplayOptions.put(retrievedDefaultTabInFolderDisplay.getCode(), retrievedDefaultTabInFolderDisplay);
+		}
+		
 		DefaultTabInFolderDisplay defaultTabInFolderDisplay = null;
 		if (user.getDefaultTabInFolderDisplay() != null) {
 			for (DefaultTabInFolderDisplay retrievedDefaultTabInFolderDisplay : DefaultTabInFolderDisplay.values()) {
-				defaultTabInFolderDisplayOptions.put(retrievedDefaultTabInFolderDisplay.getCode(), retrievedDefaultTabInFolderDisplay);
 				if (user.getDefaultTabInFolderDisplay().equals(retrievedDefaultTabInFolderDisplay.getCode())) {
 					defaultTabInFolderDisplay = retrievedDefaultTabInFolderDisplay;
 					break;
@@ -154,6 +156,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 				defaultTabInFolderDisplay = defaultTabInFolderDisplayOptions.get(configDefaultTabInFolderDisplayCode);
 			}
 		}
+		
 		String defaultTaxonomy = user.getDefaultTaxonomy();
 		if (defaultTaxonomy == null) {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();

@@ -24,7 +24,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class HomePresenter extends BasePresenter<HomeView> {
@@ -47,7 +46,11 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	}
 
 	public String getDefaultTab() {
-		return getCurrentUser().getStartTab();
+		String startTab = getCurrentUser().getStartTab();
+		if (startTab == null) {
+			startTab = presenterService().getSystemConfigs().getDefaultStartTab();
+		}
+		return startTab;
 	}
 
 	public void tabSelected(String tabCode) {

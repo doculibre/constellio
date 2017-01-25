@@ -46,7 +46,7 @@ public class SecurityUtils {
 				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), tasks.userTask.schemaType()))
 						.returnAll());
 
-		Iterator<Record> recordsIterator = searchServices.recordsIterator(query);
+		Iterator<Record> recordsIterator = searchServices.recordsIterator(query, 10000);
 
 		StringBuilder stringBuilder = new StringBuilder();
 		while (recordsIterator.hasNext()) {
