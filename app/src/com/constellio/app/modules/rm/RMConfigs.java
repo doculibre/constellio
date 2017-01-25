@@ -178,6 +178,8 @@ public class RMConfigs {
 
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
+		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -225,8 +227,6 @@ public class RMConfigs {
 				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
 		
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay").withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
-
-		add(UNIFORM_SUBDIVISION_ENABLED = others.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
 	}
 
 	static void add(SystemConfiguration configuration) {

@@ -1886,15 +1886,18 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
 				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
-				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X));
+				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X).setDefaultUniformSubdivision(records.subdivId_1));
 
 		Record folderARecord = recordServices.getDocumentById(folderA);
 		classifyConnectorFolderInTaxonomy(folderARecord, parameters);
 
 		Metadata legacyIdMetadata = rm.defaultFolderSchema().get(LEGACY_ID.getLocalCode());
 		Metadata titleMetadata = rm.defaultFolderSchema().get(Schemas.TITLE.getLocalCode());
+		Metadata uniformSubdivisionMetadata = rm.defaultFolderSchema().get(Folder.UNIFORM_SUBDIVISION);
 		assertThat(recordServices.getRecordByMetadata(legacyIdMetadata, "smb://AU1 Admin Unit1/A/").get(titleMetadata))
 				.isEqualTo("Le dossier A");
+		assertThat(recordServices.getRecordByMetadata(legacyIdMetadata, "smb://AU1 Admin Unit1/A/").get(uniformSubdivisionMetadata))
+				.isEqualTo(records.subdivId_1);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}

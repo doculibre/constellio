@@ -509,6 +509,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (folderEntry.get(Folder.COPY_STATUS_ENTERED) == null && params.getDefaultCopyStatus() != null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
+		if (folderEntry.get(Folder.UNIFORM_SUBDIVISION) == null && params.getDefaultUniformSubdivision() != null) {
+			rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
+		}
 	}
 
 	private void setMetadataInRmRecord(RecordWrapper rmRecord, MetadataSchema schema, String metadataCode, String value) {

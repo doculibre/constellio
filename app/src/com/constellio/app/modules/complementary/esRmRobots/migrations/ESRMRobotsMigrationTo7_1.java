@@ -3,6 +3,8 @@ package com.constellio.app.modules.complementary.esRmRobots.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -11,8 +13,6 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters.*;
 
 public class ESRMRobotsMigrationTo7_1 implements MigrationScript {
 
@@ -51,9 +51,15 @@ public class ESRMRobotsMigrationTo7_1 implements MigrationScript {
             MetadataSchemaTypeBuilder subdivisionSchemaType = typesBuilder.getSchemaType(UniformSubdivision.SCHEMA_TYPE);
 
             MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-                    .getCustomSchema(SCHEMA_LOCAL_CODE);
+                    .getCustomSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
 
-            schema.create(DEFAULT_UNIFORM_SUBDIVISION)
+            schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
+                    .setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
+
+            schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
+                    .getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+
+            schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
                     .setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
         }
     }
@@ -63,14 +69,21 @@ public class ESRMRobotsMigrationTo7_1 implements MigrationScript {
 
         String defaultValuesTab = "tab.defaultValues";
 
-        String inPlanSchema = SCHEMA;
+        String inPlanSchema = ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA;
 
         SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
         SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
 
-        transaction.add(schemasDisplayManager.getSchema(collection, inPlanSchema).withNewFormMetadataBefore(inPlanSchema + "_" + DEFAULT_UNIFORM_SUBDIVISION, inPlanSchema + "_" + DEFAULT_RETENTION_RULE));
+        transaction.add(schemasDisplayManager.getSchema(collection, inPlanSchema).withNewFormMetadataBefore(inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION, inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_RETENTION_RULE));
 
-        transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, DEFAULT_UNIFORM_SUBDIVISION)
+        transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
+                .withMetadataGroup(defaultValuesTab));
+
+        inPlanSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
+
+        transaction.add(schemasDisplayManager.getSchema(collection, inPlanSchema).withNewFormMetadataBefore(inPlanSchema + "_" + ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_UNIFORM_SUBDIVISION, inPlanSchema + "_" + ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_RETENTION_RULE));
+
+        transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
                 .withMetadataGroup(defaultValuesTab));
 
         schemasDisplayManager.execute(transaction.build());
