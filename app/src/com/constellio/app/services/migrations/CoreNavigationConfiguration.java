@@ -115,8 +115,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_STORAGE));
 			}
 		});
