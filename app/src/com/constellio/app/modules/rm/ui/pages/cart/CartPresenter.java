@@ -301,12 +301,12 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public String getOriginType() {
-		return batchProcessingPresenterService().getOriginType(null, false);
+		return batchProcessingPresenterService().getOriginType(null);
 	}
 
 	@Override
-	public RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext) {
-		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, selectedRecordIds);
+	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, buildLogicalSearchQuery());
 	}
 
 	@Override
@@ -558,7 +558,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public LogicalSearchQuery buildLogicalSearchQuery(boolean isSimulation) {
+	public LogicalSearchQuery buildLogicalSearchQuery() {
 		return null;
 	}
 

@@ -46,7 +46,7 @@ public class BatchProcessingButton extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
-		if (!presenter.hasWriteAccessOnAllRecords(presenter.buildLogicalSearchQuery(false))) {
+		if (!presenter.hasWriteAccessOnAllRecords(presenter.buildLogicalSearchQuery())) {
 			return new Label($("AdvancedSearchView.requireWriteAccess"));
 		}
 
@@ -85,7 +85,7 @@ public class BatchProcessingButton extends WindowButton {
 		String selectedType = typeField.getValue();
 		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
 		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
-		return new BatchProcessingForm(presenter.newRecordVO(view.getSelectedRecordIds(), originSchema, view.getSessionContext()),
+		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()),
 				fieldFactory);
 	}
 

@@ -9,12 +9,11 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.InputStream;
-import java.util.List;
 
 public interface BatchProcessingPresenter {
 	String getOriginType();
 
-	RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext);
+	RecordVO newRecordVO(String schema, SessionContext sessionContext);
 
 	InputStream simulateButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException;
 
@@ -32,5 +31,5 @@ public interface BatchProcessingPresenter {
 
 	boolean hasWriteAccessOnAllRecords(LogicalSearchQuery query);
 
-	public LogicalSearchQuery buildLogicalSearchQuery(boolean isSimulation);
+	public LogicalSearchQuery buildLogicalSearchQuery();
 }

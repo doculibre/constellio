@@ -410,23 +410,23 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public String getOriginType() {
-		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery(false), false);
+		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery());
 	}
 
 	@Override
-	public RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext) {
-		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, selectedRecordIds);
+	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, buildLogicalSearchQuery());
 	}
 
 	@Override
 	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, buildLogicalSearchQuery(true), viewObject, getCurrentUser());
+		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, buildLogicalSearchQuery().setNumberOfRows(100), viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
 	public void processBatchButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, buildLogicalSearchQuery(false), viewObject, getCurrentUser());
+		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, buildLogicalSearchQuery(), viewObject, getCurrentUser());
 	}
 
 	@Override
@@ -451,7 +451,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
-		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildLogicalSearchQuery(false));
+		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildLogicalSearchQuery());
 	}
 
 	@Override
@@ -488,27 +488,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 
-	public LogicalSearchQuery buildLogicalSearchQuery(boolean isSimulation) {
+	@Override
+	public LogicalSearchQuery buildLogicalSearchQuery() {
 		if(((AdvancedSearchViewImpl)view).isSelectAllMode()) {
-			return buildLogicalSearchQueryWithSelectedIds(isSimulation);
+			return buildLogicalSearchQueryWithSelectedIds();
 		} else {
-			return buildLogicalSearchQueryWithUnselectedIds(isSimulation);
+			return buildLogicalSearchQueryWithUnselectedIds();
 		}
 	}
 
-	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds(boolean isSimulation) {
-		if(isSimulation && view.getSelectedRecordIds().size() > 100) {
-			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds().subList(0, 99)));
-		} else {
-			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()));
-		}
+	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
+		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()));
 	}
 
-	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds(boolean isSimulation) {
-		if(isSimulation && view.getSelectedRecordIds().size() > 100) {
-			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds().subList(0, 99)));
-		} else {
-			return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()));
-		}
+	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
+		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()));
 	}
 }

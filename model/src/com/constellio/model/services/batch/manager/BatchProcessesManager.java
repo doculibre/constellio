@@ -1,22 +1,5 @@
 package com.constellio.model.services.batch.manager;
 
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import javafx.scene.layout.Background;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.jdom2.Document;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
@@ -28,7 +11,6 @@ import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
@@ -37,6 +19,20 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.jdom2.Document;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
 public class BatchProcessesManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -91,6 +87,18 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return get(batchProcess.getId());
 	}
 
+	public BatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action, String username, String title) {
+		BatchProcess batchProcess = addBatchProcessInStandby(query, action, username, title);
+		markAsPending(batchProcess);
+		return get(batchProcess.getId());
+	}
+
+	public BatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action) {
+		BatchProcess batchProcess = addBatchProcessInStandby(query, action);
+		markAsPending(batchProcess);
+		return get(batchProcess.getId());
+	}
+
 	public BatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action) {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		String collection = condition.getCollection();
@@ -100,6 +108,22 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public BatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action) {
+		String collection = logicalQuery.getCondition().getCollection();
+		String id = newBatchProcessId();
+
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(logicalQuery);
+		String solrQuery = SolrUtils.toSingleQueryString(params);
+
+		LocalDateTime requestDateTime = getCurrentTime();
+
+		long recordsCount = searchServices.getResultsCount(logicalQuery);
+		updateBatchProcesses(
+				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action));
+
+		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+	}
+
+	public BatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String username, String title) {
 		String collection = logicalQuery.getCondition().getCollection();
 		String id = newBatchProcessId();
 
@@ -244,9 +268,23 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		};
 	}
 
+
 	DocumentAlteration newAddBatchProcessDocumentAlteration(final String id, final String query, final String collection,
-			final LocalDateTime requestDateTime,
-			final int recordsCount, final BatchProcessAction action) {
+															final LocalDateTime requestDateTime,
+															final int recordsCount, final BatchProcessAction action) {
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).addBatchProcess(id, query, collection, requestDateTime, recordsCount, action);
+			}
+		};
+	}
+
+	DocumentAlteration newAddBatchProcessDocumentAlteration(final String id, final String query, final String collection,
+															final LocalDateTime requestDateTime,
+															final int recordsCount, final BatchProcessAction action,
+															final String username, final String title) {
 		return new DocumentAlteration() {
 
 			@Override

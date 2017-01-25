@@ -1,19 +1,16 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,9 +19,9 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -112,62 +109,17 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 
 	List<CopyRetentionRule> getOptions(BatchProcessRequest request) {
 
-		ConstellioFactories constellioFactories = fields.getConstellioFactories();
-		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
-
-		String typeId = fields.getType();
-		String collection = fields.getSessionContext().getCurrentCollection();
-		Locale locale = fields.getSessionContext().getCurrentLocale();
-		BatchProcessingPresenterService presenterService = new BatchProcessingPresenterService(collection, appLayerFactory,
-				locale);
-
-		SchemaUtils schemaUtils = new SchemaUtils();
-		List<Record> recordList = extractRecords(presenterService.prepareTransaction(request, false));
-		for (Record record : recordList) {
-			String schemaCode = record.getSchemaCode();
-			String schemaTypeCode = schemaUtils.getSchemaTypeCode(schemaCode);
-			if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-				rm.wrapFolder(record).setMediumTypes(new ArrayList<Object>());
+		List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
+		CopyRetentionRuleFactory copyRetentionRuleFactory = new CopyRetentionRuleFactory();
+		SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();
+		SPEQueryResponse response = searchServices.query(request.getQuery().setNumberOfRows(0).addFieldFacet("applicableCopyRule_ss"));
+		Map<String, List<FacetValue>> applicableCopyRuleList = response.getFieldFacetValues();
+		for(FacetValue facetValue: applicableCopyRuleList.get("applicableCopyRule_ss")) {
+			if(facetValue.getQuantity() == response.getNumFound()) {
+				copyRetentionRules.add((CopyRetentionRule) copyRetentionRuleFactory.build(facetValue.getValue()));
 			}
 		}
-		for (Record record : recordList) {
-			recordServices.recalculate(record);
-		}
-		Set<String> sharedChoicesIds = null;
-		List<CopyRetentionRule> sharedChoices = null;
-
-		for (Record record : recordList) {
-
-			List<CopyRetentionRule> choicesForRecord = new ArrayList<>();
-
-			if (request.getSchemaType().getCode().equals(Folder.SCHEMA_TYPE)) {
-
-				choicesForRecord = rm.wrapFolder(record).getApplicableCopyRules();
-
-			} else if (request.getSchemaType().getCode().equals(Document.SCHEMA_TYPE)) {
-
-				choicesForRecord = new ArrayList<>();
-				for (CopyRetentionRuleInRule inRule : rm.wrapDocument(record).getApplicableCopyRules()) {
-					choicesForRecord.add(inRule.getCopyRetentionRule());
-				}
-
-			} else {
-				throw new ImpossibleRuntimeException("Unsupported type : " + request.getSchemaType().getCode());
-			}
-
-			if (sharedChoicesIds == null) {
-				sharedChoices = choicesForRecord;
-				sharedChoicesIds = toIds(sharedChoices);
-			} else {
-				if (!sharedChoicesIds.equals(toIds(choicesForRecord))) {
-					return new ArrayList<>();
-				}
-			}
-		}
-
-		return sharedChoices;
+		return copyRetentionRules;
 	}
 
 	private List<Record> extractRecords(List<Transaction> transactionList) {

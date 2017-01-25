@@ -22,6 +22,10 @@ public class BatchProcess {
 
 	private final BatchProcessAction action;
 
+	private final String username;
+
+	private final String title;
+
 	private final String collection;
 
 	private final String query;
@@ -40,6 +44,26 @@ public class BatchProcess {
 		this.action = action;
 		this.collection = collection;
 		this.query = query;
+		this.username = null;
+		this.title = null;
+	}
+
+	public BatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
+						int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection,
+						String query, String username, String title) {
+		super();
+		this.id = id;
+		this.status = status;
+		this.requestDateTime = requestDateTime;
+		this.startDateTime = startDateTime;
+		this.handledRecordsCount = handleRecordsCount;
+		this.totalRecordsCount = totalRecordsCount;
+		this.errors = errors;
+		this.action = action;
+		this.collection = collection;
+		this.query = query;
+		this.username = username;
+		this.title = title;
 	}
 
 	public String getQuery() {
