@@ -1,7 +1,6 @@
 package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.SEARCH_FIELD;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -710,7 +709,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
-		assertThatQueryResults(from(zeType()).where(SEARCH_FIELD).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE.getAnalyzedField("fr")).isEqualTo("value1")).isNull();
 		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
 
 		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value2")), new ArrayList<Record>());

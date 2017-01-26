@@ -104,18 +104,6 @@ public class SchemasTest {
 	}
 
 	@Test
-	public void validateFrenchSearchField() {
-		assertThat(Schemas.FRENCH_SEARCH_FIELD).has(code("search"));
-		assertThat(Schemas.FRENCH_SEARCH_FIELD.getDataStoreCode()).isEqualTo("search_txt_fr");
-	}
-
-	@Test
-	public void validateEnglishSearchField() {
-		assertThat(Schemas.ENGLISH_SEARCH_FIELD).has(code("search"));
-		assertThat(Schemas.ENGLISH_SEARCH_FIELD.getDataStoreCode()).isEqualTo("search_txt_en");
-	}
-
-	@Test
 	public void validateGetFrenchAnalyzedfield() {
 
 		Metadata textSingleValue = new Metadata("parsedContent_t", MetadataValueType.TEXT, false);
