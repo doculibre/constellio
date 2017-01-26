@@ -1,363 +1,47 @@
 package com.constellio.model.conf.ldap.services;
 
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
+import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.aad.adal4j.ClientCredential;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.concurrent.*;
 
 /**
  */
-public class AzureAdClient {
-
-    public static class AzureAdClientException extends RuntimeException {
-
-        public AzureAdClientException(String message) {
-            super(message);
-        }
-
-        public AzureAdClientException(String message, Throwable cause) {
-            super(message, cause);
-        }
-
-    }
-
-    static class RequestHelper {
-
-        @VisibleForTesting
-        static int maxResults = 150;
-
-        private static String getResponseText(final Response response) {
-            return response.readEntity(String.class).replace("\uFEFF", "");
-        }
-
-        private static String getSkipToken(final String responseText) {
-            if (responseText.contains("odata.nextLink")) {
-                for (String string : new JSONObject(responseText).getString("odata.nextLink").split("\\?")) {
-                    for (String stringOfString : string.split("&")) {
-                        if (stringOfString.startsWith("$skiptoken")) {
-                            return stringOfString.split("=")[1];
-                        }
-                    }
-                }
-
-                return null;
-            } else {
-                return null;
-            }
-        }
-
-        private String tenantName;
-
-        private String clientId;
-
-        private String clientSecret;
-
-        private Client client;
-
-        private WebTarget webTarget;
-
-        private AuthenticationResult authenticationResult;
-
-        public RequestHelper(final String tenantName, final String clientId, final String clientSecret) {
-            this.tenantName = tenantName;
-
-            this.clientId = clientId;
-
-            this.clientSecret = clientSecret;
-
-            client = ClientBuilder.newClient();
-
-            webTarget = client.target(GRAPH_API_URL + tenantName);
-        }
-
-        private void acquireAccessToken() {
-            acquireAccessToken(authenticationResult == null || authenticationResult.getAccessToken() == null);
-        }
-
-        private void acquireAccessToken(boolean ignoreCurrent) {
-            if (ignoreCurrent) {
-                String authority = AUTHORITY_BASE_URL + tenantName;
-                ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-                try {
-                    AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
-
-                    Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireToken(
-                            GRAPH_API_URL,
-                            new ClientCredential(clientId, clientSecret),
-                            null
-                    );
-
-                    authenticationResult = authenticationResultFuture.get();
-                } catch (MalformedURLException mue) {
-                    throw new AzureAdClientException("Malformed Azure AD authority URL " + authority);
-                } catch (ExecutionException ee) {
-                    throw new AzureAdClientException("Can't acquire an Azure AD token for client " + clientId + " with the provided secret key", ee);
-                } catch (InterruptedException ignored) {
-                } finally {
-                    executorService.shutdown();
-                }
-            }
-        }
-
-        private void refreshAccessToken() {
-            if (authenticationResult == null || authenticationResult.getRefreshToken() == null) {
-                acquireAccessToken(true);
-            } else {
-                String authority = AUTHORITY_BASE_URL + tenantName;
-                ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-                try {
-                    AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
-
-                    Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireTokenByRefreshToken(
-                            authenticationResult.getRefreshToken(),
-                            new ClientCredential(clientId, clientSecret),
-                            null
-                    );
-
-                    authenticationResult = authenticationResultFuture.get();
-                } catch (MalformedURLException mue) {
-                    throw new AzureAdClientException("Malformed Azure AD authority URL " + authority);
-                } catch (ExecutionException ee) {
-                    throw new AzureAdClientException("Can't acquire an Azure AD token for client " + clientId + " with the provided secret key", ee);
-                } catch (InterruptedException ignored) {
-                } finally {
-                    executorService.shutdown();
-                }
-            }
-        }
-
-        private Invocation.Builder completeQueryBuilding(WebTarget webTarget, String filter) {
-            WebTarget newWebTarget = webTarget.queryParam("api-version", GRAPH_API_VERSION);
-
-            if (StringUtils.isNotEmpty(filter)) {
-                return newWebTarget
-                        .queryParam("$filter", filter)
-                        .request(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
-            }
-
-            return newWebTarget
-                    .request(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
-        }
-
-        private Invocation.Builder completeQueryBuilding(WebTarget webTarget, String filter, String skipToken) {
-            WebTarget newWebTarget = webTarget.queryParam("api-version", GRAPH_API_VERSION).queryParam("$top", maxResults);
-
-            if (StringUtils.isNotEmpty(filter)) {
-                newWebTarget = newWebTarget.queryParam("$filter", filter);
-            }
-
-            if (skipToken == null) {
-                return newWebTarget
-                        .request(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
-            }
-
-            return newWebTarget
-                    .queryParam("$skiptoken", skipToken)
-                    .request(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
-        }
-
-        private JSONArray submitQueryWithoutPagination(WebTarget webTarget, String filter) {
-            String responseText;
-
-            acquireAccessToken();
-
-            Response response = completeQueryBuilding(webTarget, filter).get();
-
-            if (response.getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                refreshAccessToken();
-
-                response = completeQueryBuilding(webTarget, filter).get();
-            }
-
-            if (new Integer(response.getStatus()).toString().startsWith("5")){
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException ignored) {
-                }
-
-                response = completeQueryBuilding(webTarget, filter).get();
-            }
-
-            responseText = getResponseText(response);
-
-            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
-                return new JSONObject(responseText).getJSONArray("value");
-            } else if (new Integer(response.getStatus()).toString().startsWith("5")){
-                LOGGER.error(responseText);
-                throw new AzureAdClientException("Unexpected Azure AD Graph API server error");
-            } else {
-                throw new AzureAdClientException(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
-            }
-        }
-
-        private List<JSONArray> submitQueryWithPagination(WebTarget webTarget, String filter) {
-            List<JSONArray> result = new ArrayList<>();
-
-            String responseText;
-            String skipToken = null;
-
-            do {
-                acquireAccessToken();
-
-                Response response = completeQueryBuilding(webTarget, filter, skipToken).get();
-
-                if (response.getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    refreshAccessToken();
-
-                    response = completeQueryBuilding(webTarget, filter, skipToken).get();
-                }
-
-                if (new Integer(response.getStatus()).toString().startsWith("5")){
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-
-                    response = completeQueryBuilding(webTarget, filter, skipToken).get();
-                }
-
-                responseText = getResponseText(response);
-                skipToken = getSkipToken(responseText);
-
-                if (response.getStatus() == HttpURLConnection.HTTP_OK) {
-                    result.add(new JSONObject(responseText).getJSONArray("value"));
-                } else if (new Integer(response.getStatus()).toString().startsWith("5")){
-                    LOGGER.error(responseText);
-                    throw new AzureAdClientException("Unexpected Azure AD Graph API server error");
-                } else {
-                    throw new AzureAdClientException(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
-                }
-            } while (skipToken != null);
-
-            return result;
-        }
-
-        @VisibleForTesting
-        List<JSONArray> getAllUsersResponse(List<String> userGroups, String usersFilter) {
-            List<JSONArray> jsonArrayList;
-
-            if (CollectionUtils.isNotEmpty(userGroups)) {
-                jsonArrayList = new ArrayList<>();
-
-                for (JSONArray jsonArray : getAllGroupsResponse(buildUserGroupsFilter(userGroups))) {
-                    for (int i = 0, length = jsonArray.length(); i < length; i++) {
-                        String objectId = jsonArray.getJSONObject(i).optString("objectId");
-
-                        jsonArrayList.addAll(getGroupMembersResponse(objectId));
-                    }
-                }
-            } else {
-                jsonArrayList = getAllUsersResponse(usersFilter);
-            }
-
-            return jsonArrayList;
-        }
-
-        private String buildUserGroupsFilter(List<String> userGroups) {
-            return Joiner.on(" and ").join(CollectionUtils.collect(userGroups, new Transformer() {
-                @Override
-                public Object transform(Object input) {
-                    return "(displayName eq '" + input + "')";
-                }
-            }));
-        }
-
-        List<JSONArray> getAllUsersResponse(String usersFilter) {
-            return submitQueryWithPagination(webTarget.path("users"), usersFilter);
-        }
-
-        @VisibleForTesting
-        List<JSONArray> getUserGroupsResponse(final String userObjectId) {
-            return submitQueryWithPagination(webTarget.path("users").path(userObjectId).path("$links").path("memberOf"), null);
-        }
-
-        @VisibleForTesting
-        List<JSONArray> getAllGroupsResponse(String groupsFilter) {
-            return submitQueryWithPagination(webTarget.path("groups"), groupsFilter);
-        }
-
-        @VisibleForTesting
-        List<JSONArray> getGroupMembersResponse(final String groupObjectId) {
-            return submitQueryWithPagination(webTarget.path("groups").path(groupObjectId).path("$links").path("members"), null);
-        }
-
-        private JSONObject getObjectResponseByUrl(final String objectUrl) {
-            String responseText;
-
-            acquireAccessToken();
-
-            Response response = getObjectByUrl(objectUrl);
-
-            if (response.getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                refreshAccessToken();
-
-                response = getObjectByUrl(objectUrl);
-            }
-
-            if (new Integer(response.getStatus()).toString().startsWith("5")){
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException ignored) {
-                }
-
-                response = getObjectByUrl(objectUrl);
-            }
-
-            responseText = getResponseText(response);
-
-            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
-                return new JSONObject(responseText);
-            } else if (new Integer(response.getStatus()).toString().startsWith("5")){
-                LOGGER.error(responseText);
-                throw new AzureAdClientException("Unexpected Azure AD Graph API server error");
-            } else {
-                throw new AzureAdClientException(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
-            }
-        }
-
-        private Response getObjectByUrl(final String objectUrl) {
-            return completeQueryBuilding(client.target(objectUrl), null).get();
-        }
-
-    }
+public class AzureAdClient implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AzureAdClient.class);
 
-    // TODO : Use "graph.microsoft.com/v1.0" instead as recommended in https://blogs.msdn.microsoft.com/aadgraphteam/2016/07/08/microsoft-graph-or-azure-ad-graph/
     private static final String GRAPH_API_URL = "https://graph.windows.net/";
 
     private static final String GRAPH_API_VERSION = "1.6";
@@ -368,125 +52,250 @@ public class AzureAdClient {
 
     private LDAPUserSyncConfiguration ldapUserSyncConfiguration;
 
+    private Client client;
+
+    private WebTarget webTarget;
+
+    private String accessToken;
+
     public AzureAdClient(final LDAPServerConfiguration ldapServerConfiguration, final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
         this.ldapServerConfiguration = ldapServerConfiguration;
 
         this.ldapUserSyncConfiguration = ldapUserSyncConfiguration;
     }
 
-    public Set<String> getUserNameList() {
-        LOGGER.info("Getting user name list - start");
+    public void init() {
+        client = ClientBuilder.newClient();
 
-        Set<String> results = new HashSet<>();
+        webTarget = client.target(GRAPH_API_URL + ldapServerConfiguration.getTenantName());
 
-        RequestHelper requestHelper = new RequestHelper(
-                ldapServerConfiguration.getTenantName(),
-                ldapUserSyncConfiguration.getClientId(),
-                ldapUserSyncConfiguration.getClientSecret());
+        accessToken = getAccessToken();
+    }
 
-        List<JSONArray> jsonArrayList = requestHelper.getAllUsersResponse(ldapUserSyncConfiguration.getUserGroups(), ldapUserSyncConfiguration.getUsersFilter());
+    private String getAccessToken() {
+        final String authority = AUTHORITY_BASE_URL + ldapServerConfiguration.getTenantName();
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        for (JSONArray jsonArray : jsonArrayList) {
-            for (int i = 0, length = jsonArray.length(); i < length; i++) {
-                String userName = jsonArray.getJSONObject(i).optString("userPrincipalName");
+        try {
+            final AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
 
-                if (ldapUserSyncConfiguration.isUserAccepted(userName)) {
-                    results.add(userName);
-                }
+            final Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireToken(
+                    GRAPH_API_URL,
+                    new ClientCredential(
+                            ldapUserSyncConfiguration.getClientId(),
+                            ldapUserSyncConfiguration.getClientSecret()
+                    ),
+                    null
+            );
+
+            final AuthenticationResult authenticationResult = authenticationResultFuture.get();
+
+            if (authenticationResult == null) {
+                return null;
+            } else {
+                return authenticationResult.getAccessToken();
             }
+        } catch (final MalformedURLException mue) {
+            LOGGER.error("Malformed Azure AD authority URL " + authority);
+        } catch (final ExecutionException ee) {
+            LOGGER.error("Can't acquire an Azure AD token for client " + ldapUserSyncConfiguration.getClientId() + " with the provided secret key");
+        } catch (final InterruptedException ignored) {
+        } finally {
+            executorService.shutdown();
         }
 
-        LOGGER.info("Getting user name list - end");
+        return null;
+    }
+
+    public Set<String> getUserNameList() {
+        final Set<String> results = new HashSet<>();
+
+        if (accessToken != null) {
+            final Response response = getAllUsersResponse();
+
+            final String responseText = getResponseText(response);
+
+            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                final JSONArray jsonArray = new JSONObject(responseText).getJSONArray("value");
+
+                for (int userIndex = 0, jsonArrayLength = jsonArray.length(); userIndex < jsonArrayLength; userIndex++) {
+                    try {
+                        results.add(jsonArray.getJSONObject(userIndex).optString("userPrincipalName"));
+                    } catch (final JSONException e) {
+                        LOGGER.error("Error in processing user list at index " + userIndex, e);
+                    }
+                }
+            } else {
+                try {
+                    results.add(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
+                } catch (final JSONException e) {
+                    LOGGER.error(responseText);
+                    LOGGER.error("Error reading response error message", e);
+                }
+            }
+
+            CollectionUtils.filter(results, new Predicate() {
+                @Override
+                public boolean evaluate(Object object) {
+                    return ldapUserSyncConfiguration.isUserAccepted((String) object);
+                }
+            });
+        }
 
         return results;
+    }
+
+    private String getResponseText(final Response response) {
+        return response.readEntity(String.class).replace("\uFEFF", "");
+    }
+
+    private Response getAllUsersResponse() {
+        return webTarget
+                .path("/users")
+                .queryParam("api-version", GRAPH_API_VERSION)
+                .request(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .get();
     }
 
     public Set<String> getGroupNameList() {
-        LOGGER.info("Getting group name list - start");
-
         Set<String> results = new HashSet<>();
 
-        RequestHelper requestHelper = new RequestHelper(
-                ldapServerConfiguration.getTenantName(),
-                ldapUserSyncConfiguration.getClientId(),
-                ldapUserSyncConfiguration.getClientSecret());
+        if (accessToken != null) {
+            final Response response = getAllGroupsResponse();
 
-        for (JSONArray jsonArray : requestHelper.getAllGroupsResponse(ldapUserSyncConfiguration.getGroupsFilter())) {
-            for (int i = 0, length = jsonArray.length(); i < length; i++) {
-                String groupName = jsonArray.getJSONObject(i).optString("displayName");
+            final String responseText = getResponseText(response);
 
-                if (ldapUserSyncConfiguration.isGroupAccepted(groupName)) {
-                    results.add(groupName);
+            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                final JSONArray jsonArray = new JSONObject(responseText).getJSONArray("value");
+
+                for (int groupIndex = 0, jsonArrayLength = jsonArray.length(); groupIndex < jsonArrayLength; groupIndex++) {
+                    try {
+                        results.add(jsonArray.getJSONObject(groupIndex).optString("displayName"));
+                    } catch (final JSONException e) {
+                        LOGGER.error("Error in processing group list at index " + groupIndex, e);
+                    }
+                }
+            } else {
+                try {
+                    results.add(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
+                } catch (final JSONException e) {
+                    LOGGER.error(responseText);
+                    LOGGER.error("Error in reading response error message", e);
                 }
             }
-        }
 
-        LOGGER.info("Getting group name list - end");
+            CollectionUtils.filter(results, new Predicate() {
+                @Override
+                public boolean evaluate(Object object) {
+                    return ldapUserSyncConfiguration.isGroupAccepted((String) object);
+                }
+            });
+        }
 
         return results;
     }
 
+    private Response getAllGroupsResponse() {
+        return webTarget
+                .path("/groups")
+                .queryParam("api-version", GRAPH_API_VERSION)
+                .request(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .get();
+    }
+
     public void getGroupsAndTheirUsers(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
-        LOGGER.info("Getting groups and their members - start");
+        if (accessToken != null) {
+            Response response = getAllGroupsResponse();
 
-        RequestHelper requestHelper = new RequestHelper(
-                ldapServerConfiguration.getTenantName(),
-                ldapUserSyncConfiguration.getClientId(),
-                ldapUserSyncConfiguration.getClientSecret());
+            String responseText = getResponseText(response);
+            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                final JSONArray groupsJsonArray = new JSONObject(responseText).getJSONArray("value");
 
-        int pageNum = 1;
+                for (int groupIndex = 0, groupsJsonArrayLength = groupsJsonArray.length(); groupIndex < groupsJsonArrayLength; groupIndex++) {
+                    try {
+                        LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(groupsJsonArray.getJSONObject(groupIndex));
 
-        for (JSONArray groupsArray : requestHelper.getAllGroupsResponse(ldapUserSyncConfiguration.getGroupsFilter())) {
-            int groupsPageSize = groupsArray.length();
+                        if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+                            final String groupObjectId = ldapGroup.getDistinguishedName();
 
-            LOGGER.info("Processing groups page " + pageNum++ + " having " + groupsPageSize + " items");
+                            if (ldapGroups.containsKey(groupObjectId)) {
+                                ldapGroup = ldapGroups.get(groupObjectId);
+                            } else {
+                                ldapGroups.put(groupObjectId, ldapGroup);
+                            }
 
-            for (int ig = 0; ig < groupsPageSize; ig++) {
-                LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(groupsArray.getJSONObject(ig));
+                            response = getGroupMembersResponse(groupObjectId);
 
-                if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
-                    if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
-                        ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
-                    } else {
-                        ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
-                    }                }
+                            responseText = getResponseText(response);
+                            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                                final JSONArray groupMembersJsonArray = new JSONObject(responseText).getJSONArray("value");
 
-                for (JSONArray membersArray : requestHelper.getGroupMembersResponse(ldapGroup.getDistinguishedName())) {
-                    for (int im = 0, membersCount = membersArray.length(); im < membersCount; im++) {
-                        String objectUrl = membersArray.getJSONObject(im).optString("url");
+                                for (int userIndex = 0, groupMembersJsonArrayLength = groupMembersJsonArray.length(); userIndex < groupMembersJsonArrayLength; userIndex++) {
+                                    final String groupMemberUrl = groupMembersJsonArray.getJSONObject(userIndex).optString("url");
 
-                        if (objectUrl.endsWith("Microsoft.DirectoryServices.User")) {
-                            JSONObject jsonObject = requestHelper.getObjectResponseByUrl(objectUrl);
+                                    if (groupMemberUrl.endsWith("Microsoft.DirectoryServices.User")) {
+                                        response = getObjectResponseByUrl(groupMemberUrl);
+                                        responseText = getResponseText(response);
+                                        if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                                            final JSONObject groupUserJsonObject = new JSONObject(responseText);
+                                            LDAPUser ldapUser = buildLDAPUserFromJsonObject(groupUserJsonObject);
+                                            if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+                                                if (ldapUsers.containsKey(ldapUser.getId())) {
+                                                    ldapUser = ldapUsers.get(ldapUser.getId());
+                                                } else {
+                                                    ldapUsers.put(ldapUser.getId(), ldapUser);
+                                                }
 
-                            LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
-
-                            if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
-                                if (ldapUsers.containsKey(ldapUser.getId())) {
-                                    ldapUser = ldapUsers.get(ldapUser.getId());
-                                } else {
-                                    ldapUsers.put(ldapUser.getId(), ldapUser);
+                                                ldapUser.addGroup(ldapGroup);
+                                            }
+                                        } else {
+                                            LOGGER.error("can't read member at index " + userIndex + " of group " + groupObjectId);
+                                        }
+                                    }
                                 }
-
-                                ldapGroup.addUser(ldapUser.getId());
-                                ldapUser.addGroup(ldapGroup);
+                            } else {
+                                logResponseErrorMessage(responseText);
                             }
                         }
+                    } catch (final JSONException e) {
+                        LOGGER.error("Error in processing group list at index " + groupIndex, e);
                     }
                 }
+            } else {
+                logResponseErrorMessage(responseText);
             }
         }
-
-        LOGGER.info("Getting groups and their members - end");
     }
 
     private LDAPGroup buildLDAPGroupFromJsonObject(JSONObject groupJsonObject) {
-        String groupObjectId = groupJsonObject.optString("objectId");
-        String groupDisplayName = groupJsonObject.optString("displayName");
+        final String groupObjectId = groupJsonObject.optString("objectId");
+        final String groupDisplayName = groupJsonObject.optString("displayName");
         return new LDAPGroup(groupDisplayName, groupObjectId);
     }
 
+    private Response getGroupMembersResponse(String groupObjectId) {
+        return webTarget
+                .path("/groups")
+                .path(groupObjectId)
+                .path("$links/members")
+                .queryParam("api-version", GRAPH_API_VERSION)
+                .request(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .get();
+    }
+
+    private Response getObjectResponseByUrl(String objectUrl) {
+        return client.target(objectUrl)
+                .queryParam("api-version", GRAPH_API_VERSION)
+                .request(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .get();
+    }
+
     private LDAPUser buildLDAPUserFromJsonObject(JSONObject userJsonObject) {
-        LDAPUser ldapUser = new LDAPUser();
+        final LDAPUser ldapUser = new LDAPUser();
         ldapUser.setId(userJsonObject.optString("objectId"));
         ldapUser.setName(userJsonObject.optString("mailNickname"));//not displayName
         ldapUser.setFamilyName(userJsonObject.optString("surname"));
@@ -496,103 +305,135 @@ public class AzureAdClient {
         ldapUser.setEnabled(Boolean.valueOf(userJsonObject.optString("accountEnabled")));
         ldapUser.setLieuTravail(userJsonObject.optString("department"));
         ldapUser.setMsExchDelegateListBL(null); // TODO
-        if (!StringUtils.isEmpty(userJsonObject.optString("refreshTokensValidFromDateTime"))) {
-            ldapUser.setLastLogon(new DateTime(userJsonObject.optString("refreshTokensValidFromDateTime")).toDate());
-        }
+        ldapUser.setLastLogon(new DateTime(userJsonObject.optString("refreshTokensValidFromDateTime")).toDate());
 
         return ldapUser;
     }
 
-    public void getUsersAndTheirGroups(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
-        LOGGER.info("Getting users and their memberships - start");
 
-        RequestHelper requestHelper = new RequestHelper(
-                ldapServerConfiguration.getTenantName(),
-                ldapUserSyncConfiguration.getClientId(),
-                ldapUserSyncConfiguration.getClientSecret());
-
-        int pageNum = 1;
-
-        List<JSONArray> jsonArrayList = requestHelper.getAllUsersResponse(ldapUserSyncConfiguration.getUserGroups(), ldapUserSyncConfiguration.getUsersFilter());
-
-        for (JSONArray userArray : jsonArrayList) {
-            int groupsPageSize = userArray.length();
-
-            LOGGER.info("Processing users page " + pageNum++ + " having " + groupsPageSize + " items");
-
-            for (int iu = 0; iu < groupsPageSize; iu++) {
-                JSONObject jsonObject = userArray.getJSONObject(iu);
-                if (jsonObject.has("url")) {
-                    jsonObject = requestHelper.getObjectResponseByUrl(jsonObject.optString("url"));
-                }
-
-                LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
-
-                if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
-                    if (ldapUsers.containsKey(ldapUser.getId())) {
-                        ldapUser = ldapUsers.get(ldapUser.getId());
-                    } else {
-                        ldapUsers.put(ldapUser.getId(), ldapUser);
-                    }
-                }
-
-                for (JSONArray membershipsArray : requestHelper.getUserGroupsResponse(ldapUser.getId())) {
-                    for (int im = 0, membershipsCount = membershipsArray.length(); im < membershipsCount; im++) {
-                        String objectUrl = membershipsArray.getJSONObject(im).optString("url");
-
-                        if (objectUrl.endsWith("Microsoft.DirectoryServices.Group")) {
-                            jsonObject = requestHelper.getObjectResponseByUrl(objectUrl);
-
-                            LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(jsonObject);
-
-                            if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
-                                if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
-                                    ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
-                                } else {
-                                    ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
-                                }
-
-                                ldapGroup.addUser(ldapUser.getId());
-                                ldapUser.addGroup(ldapGroup);
-                            }
-                        }
-                    }
-                }
-            }
+    private void logResponseErrorMessage(String responseText) {
+        try {
+            LOGGER.error(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
+        } catch (final JSONException e) {
+            LOGGER.error(responseText);
+            LOGGER.error("Error in reading response error message", e);
         }
-
-        LOGGER.info("Getting users and their memberships - end");
     }
 
-    public void authenticate(final String user, final String password) throws CouldNotConnectUserToLDAP {
-        String authority = AUTHORITY_BASE_URL + ldapServerConfiguration.getTenantName();
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+    public void getUsersAndTheirGroups(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
+        if (accessToken != null) {
+            Response response = getAllUsersResponse();
+
+            String responseText = getResponseText(response);
+            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                final JSONArray usersJsonArray = new JSONObject(responseText).getJSONArray("value");
+
+                for (int userIndex = 0, usersJsonArrayLength = usersJsonArray.length(); userIndex < usersJsonArrayLength; userIndex++) {
+                    try {
+                        LDAPUser ldapUser = buildLDAPUserFromJsonObject(usersJsonArray.getJSONObject(userIndex));
+
+                        if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+                            final String userObjectId = ldapUser.getId();
+
+                            if (ldapUsers.containsKey(userObjectId)) {
+                                ldapUser = ldapUsers.get(userObjectId);
+                            } else {
+                                ldapUsers.put(userObjectId, ldapUser);
+                            }
+
+                            response = getUserGroupsResponse(userObjectId);
+
+                            responseText = getResponseText(response);
+                            if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                                final JSONArray userGroupJsonArray = new JSONObject(responseText).getJSONArray("value");
+
+                                for (int groupIndex = 0, userGroupJsonArrayLength = userGroupJsonArray.length(); groupIndex < userGroupJsonArrayLength; groupIndex++) {
+                                    final String userGroupUrl = userGroupJsonArray.getJSONObject(groupIndex).optString("url");
+
+                                    if (userGroupUrl.endsWith("Microsoft.DirectoryServices.Group")) {
+                                        response = getObjectResponseByUrl(userGroupUrl);
+                                        responseText = getResponseText(response);
+                                        if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+                                            final JSONObject userGroupJsonObject = new JSONObject(responseText);
+                                            LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(userGroupJsonObject);
+
+                                            if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+                                                if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
+                                                    ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
+                                                } else {
+                                                    ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
+                                                }
+
+                                                final Set<LDAPGroup> userGroups = new HashSet<>(ldapUser.getUserGroups());
+                                                userGroups.add(ldapGroup);
+                                                ldapUser.setUserGroups(new ArrayList<>(userGroups));
+                                            }
+                                        } else {
+                                            LOGGER.error("can't read group at index " + groupIndex + " of user " + userObjectId);
+                                        }
+                                    }
+                                }
+                            } else {
+                                logResponseErrorMessage(responseText);
+                            }
+                        }
+                    } catch (final JSONException e) {
+                        LOGGER.error("Error in processing user list at index " + userIndex, e);
+                    }
+                }
+            } else {
+                logResponseErrorMessage(responseText);
+            }
+        }
+    }
+
+    private Response getUserGroupsResponse(final String userObjectId) {
+        return webTarget
+                .path("/users")
+                .path(userObjectId)
+                .path("$links/memberOf")
+                .queryParam("api-version", GRAPH_API_VERSION)
+                .request(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .get();
+    }
+
+    public void authenticiate(final String user, final String password) throws CouldNotConnectUserToLDAP {
+        final String authority = AUTHORITY_BASE_URL + ldapServerConfiguration.getTenantName();
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
         AuthenticationResult authenticationResult = null;
 
         try {
-            AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
-            Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireToken(
+            final AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
+            final Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireToken(
                     GRAPH_API_URL,
                     ldapServerConfiguration.getClientId(),
                     user,
                     password,
                     null);
             authenticationResult = authenticationResultFuture.get();
-        } catch (MalformedURLException mue) {
+        } catch (final MalformedURLException mue) {
             LOGGER.error("Malformed Azure AD authority URL " + authority);
 
-            throw new CouldNotConnectUserToLDAP();
-        } catch (ExecutionException ee) {
+            throw new LDAPServicesException.CouldNotConnectUserToLDAP();
+        } catch (final ExecutionException ee) {
             LOGGER.error("Can't authenticate user " + user);
 
-            throw new CouldNotConnectUserToLDAP();
-        } catch (InterruptedException ignored) {
+            throw new LDAPServicesException.CouldNotConnectUserToLDAP();
+        } catch (final InterruptedException ignored) {
         } finally {
             executorService.shutdown();
         }
 
         if (authenticationResult == null) {
-            throw new CouldNotConnectUserToLDAP();
+            throw new LDAPServicesException.CouldNotConnectUserToLDAP();
+        }
+    }
+
+    @Override
+    public void close() {
+        if (client != null) {
+            client.close();
         }
     }
 
