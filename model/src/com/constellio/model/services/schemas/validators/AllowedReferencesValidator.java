@@ -41,16 +41,18 @@ public class AllowedReferencesValidator implements Validator<Record> {
 				if (metadata.isMultivalue()) {
 					List referencedValues = (List) record.get(metadata);
 					for (Object referenceValueStr : referencedValues) {
-						Record referencedRecord = recordProvider.getRecord((String) referenceValueStr);
-						MetadataSchema schema = getSchema(referencedRecord);
-						if (!(metadata.getAllowedReferences().isAllowed(schema))) {
-							addValidationErrors(validationErrors, UNALLOWED_REFERENCE_FOR_METADATA, metadata,
-									schema.getCode());
-						}
+						if (referenceValueStr != null) {
+							Record referencedRecord = recordProvider.getRecord((String) referenceValueStr);
+							MetadataSchema schema = getSchema(referencedRecord);
+							if (!(metadata.getAllowedReferences().isAllowed(schema))) {
+								addValidationErrors(validationErrors, UNALLOWED_REFERENCE_FOR_METADATA, metadata,
+										schema.getCode());
+							}
 
-						if (record.getId().equals(referenceValueStr)) {
-							addValidationErrors(validationErrors, CANNOT_REFERENCE_ITSELF, metadata,
-									schema.getCode());
+							if (record.getId().equals(referenceValueStr)) {
+								addValidationErrors(validationErrors, CANNOT_REFERENCE_ITSELF, metadata,
+										schema.getCode());
+							}
 						}
 					}
 				} else {
@@ -80,7 +82,7 @@ public class AllowedReferencesValidator implements Validator<Record> {
 	public void addValidationErrors(ValidationErrors validationErrors, String code, Metadata metadata, String unallowedSchema) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
+		parameters.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());
 		parameters.put(UNALLOWED_CODE, unallowedSchema);
 		validationErrors.add(getClass(), code, parameters);
 	}

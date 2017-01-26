@@ -38,7 +38,6 @@ import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtens
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
-import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
@@ -68,9 +67,8 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_20;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_33;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_54;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
-import com.constellio.app.modules.rm.migrations.*;
-import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -143,11 +141,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_5_1(),
 				new RMMigrationTo6_5_7(),
 				new RMMigrationTo6_5_20(),
-				new RMMigrationTo6_5_21(),
 				new RMMigrationTo6_5_33(),
-				new RMMigrationTo6_5_34(),
-				new RMMigrationTo6_5_36(),
-				new RMMigrationTo6_5_37()
+				new RMMigrationTo6_5_54()
+				//, new RMMigrationTo6_5_40()
 		);
 	}
 

@@ -8,7 +8,6 @@ import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTe
 import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage4;
 import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage5;
 import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage6;
-import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.sdk.tests.TestUtils.asMap;
@@ -20,6 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.joda.time.LocalDate.now;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
@@ -29,12 +31,16 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -46,6 +52,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	TestsSchemasSetup setup = new TestsSchemasSetup(zeCollection);
 	ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
+
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
@@ -216,6 +224,73 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(systemCheckResults.errors.getValidationErrors()).isEmpty();
 		assertThat(systemCheckResults.errors.getValidationWarnings()).isEmpty();
 
+	}
+
+	@Test
+	public void givenRecordWithInvalidMetadataThenValidationErrorMessageIsSent()
+			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+		givenDisabledAfterTestValidations();
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).get("title").setInputMask("AAAA-AAAA");
+			}
+		});
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"La valeur «Framboise» de la métadonnée «Titre» ne respecte pas le format «AAAA-AAAA»"
+		);
+	}
+
+	@Test
+	public void givenDecommissioningListWithInvalidFolderWhenRepairThenFixed()
+			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+		givenDisabledAfterTestValidations();
+
+		DecommissioningList list = records.getList01();
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		Folder zeFolder = rm.newFolderWithId("zeFolder").setTitle("ze title").setOpenDate(date(2016, 1, 1))
+				.setParentFolder(records.folder_A03);
+		getModelLayerFactory().newRecordServices().add(zeFolder);
+		List<DecomListFolderDetail> details = new ArrayList<>(list.getFolderDetails());
+		details.add(new DecomListFolderDetail().setFolderId(zeFolder.getId()));
+		list.setFolderDetails(details);
+		getModelLayerFactory().newRecordServices().update(list);
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(zeFolder.getWrappedRecord(), User.GOD);
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById(zeFolder.getId());
+		getModelLayerFactory().newRecordServices().flush();
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 référence un enregistrement inexistant : zeFolder"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 référence un enregistrement inexistant : zeFolder"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
 	}
 
 	@Test

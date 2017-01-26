@@ -1,4 +1,4 @@
-package com.constellio.app.api.cmis.accept;
+package com.constellio.app.api.cmis.rm;
 
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
@@ -39,6 +39,7 @@ import org.assertj.core.api.IterableAssert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;

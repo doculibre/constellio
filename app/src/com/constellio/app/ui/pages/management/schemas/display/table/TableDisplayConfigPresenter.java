@@ -1,7 +1,11 @@
 package com.constellio.app.ui.pages.management.schemas.display.table;
 
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +66,16 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 			}
 		}
 
+		final String language = view.getSessionContext().getCurrentLocale().getLanguage();
+		Collections.sort(formMetadataVOs, new Comparator<FormMetadataVO>() {
+			@Override
+			public int compare(FormMetadataVO o1, FormMetadataVO o2) {
+				String s1 = removeAccents(o1.getLabel(language).toLowerCase());
+				String s2 = removeAccents(o2.getLabel(language).toLowerCase());
+				return s1.compareTo(s2);
+			}
+		});
+
 		return formMetadataVOs;
 	}
 
@@ -95,7 +109,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 
 		result = !restrictedType.contains(metadataVO.getValueType()) && !localCodes.contains(metadataVO.getLocalcode());
 
-		return result;
+		return result && metadataVO.isEnabled();
 	}
 
 	public void saveButtonClicked(List<FormMetadataVO> formMetadataVOs) {

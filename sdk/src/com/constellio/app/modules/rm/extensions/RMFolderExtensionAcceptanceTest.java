@@ -143,8 +143,7 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 				folderWithRuleUnitsAndAdminUnit10_WithCreatorInAdminUnit10AndOthers);
 		assertThatFolderIsPrincipalCopy(folderWithRuleUnitsAndAdminUnit10_WithCreatorInAdminUnit10AndOthers);
 		try {
-			saveAndReloadFolder(
-					folderWithRuleResponsible_WithCreatorInNoAdminUnit);
+			saveAndReloadFolder(folderWithRuleResponsible_WithCreatorInNoAdminUnit);
 		} catch (ValidationException e) {
 			assertErrorIsOnCopyStatus(e);
 		}

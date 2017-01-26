@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.api.extensions.taxonomies.*;
-import org.apache.chemistry.opencmis.commons.impl.jaxb.CheckOut;
-
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -25,6 +22,14 @@ import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
+import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
@@ -404,6 +409,14 @@ public class AppLayerCollectionExtensions {
 		for (SystemCheckExtension extension : systemCheckExtensions) {
 			extension.checkCollection(params);
 		}
+	}
+
+	public boolean tryRepairAutomaticValue(TryRepairAutomaticValueParams params) {
+		boolean repaired = false;
+		for (SystemCheckExtension extension : systemCheckExtensions) {
+			repaired |= extension.tryRepairAutomaticValue(params);
+		}
+		return repaired;
 	}
 
 }

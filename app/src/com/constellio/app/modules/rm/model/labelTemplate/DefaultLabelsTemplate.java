@@ -303,43 +303,50 @@ public class DefaultLabelsTemplate {
 
 	public static LabelTemplate createFolderLeftAvery5163() {
 		final int COLUMNS_NUMBER = 30;
-		final int LINES_NUMBER = 11;
+		final int LINES_NUMBER = 13;
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 
 		LabelTemplateField categoryCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.CATEGORY_CODE,
-				null, 0, 0, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
+				null, 1, 0, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
-		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
+		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 15, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 21, 0, 8, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField folderTitleField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE,
-				null, 0, 4, 29, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
+				null, 1, 4, 29, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
+				LabelTemplateFieldHorizontalAlignment.CENTER,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField administrativeUnitCodeField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_CODE,
+				null, 1, 10, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField copyStatusCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS,
-				null, 14, 9, 1, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 1,
+				null, 16, 10, 1, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 1,
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField openDateField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.OPENING_DATE,
-				null, 21, 9, 9, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 37,
+				null, 21, 10, 8, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 37,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		labelTemplateFields.add(categoryCodeField);
 		labelTemplateFields.add(folderIdField);
 		labelTemplateFields.add(folderTitleField);
+		labelTemplateFields.add(administrativeUnitCodeField);
 		labelTemplateFields.add(copyStatusCodeField);
 		labelTemplateFields.add(openDateField);
 
@@ -351,43 +358,50 @@ public class DefaultLabelsTemplate {
 
 	public static LabelTemplate createFolderRightAvery5163() {
 		final int COLUMNS_NUMBER = 30;
-		final int LINES_NUMBER = 11;
+		final int LINES_NUMBER = 17;
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 
-		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
+		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 0, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
-				LabelTemplateFieldHorizontalAlignment.CENTER,
+				null, 0, 1, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField categoryCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.CATEGORY_CODE,
-				null, 15, 0, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
+				null, 15, 1, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField folderTitleField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE,
-				null, 0, 4, 29, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
+				null, 0, 8, 29, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField administrativeUnitCodeField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_CODE,
+				null, 0, 15, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField copyStatusCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS,
-				null, 14, 9, 1, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 1,
+				null, 14, 15, 1, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 1,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField openDateField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.OPENING_DATE,
-				null, 21, 9, 9, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 37,
+				null, 20, 15, 9, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 37,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		labelTemplateFields.add(folderIdField);
 		labelTemplateFields.add(categoryCodeField);
 		labelTemplateFields.add(folderTitleField);
+		labelTemplateFields.add(administrativeUnitCodeField);
 		labelTemplateFields.add(copyStatusCodeField);
 		labelTemplateFields.add(openDateField);
 

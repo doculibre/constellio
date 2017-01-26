@@ -349,7 +349,7 @@ public class RecordsImportServicesExecutor {
 
 		if (typeImportContext.hasContents) {
 			batchSize = (int) Math.ceil(batchSize / 2.0);
-			threads = (int) Math.ceil(threads / 2.0);
+			threads = 1;//(int) Math.ceil(threads / 4.0);
 		}
 
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
@@ -585,10 +585,24 @@ public class RecordsImportServicesExecutor {
 			record = modelLayerFactory.newSearchServices()
 					.searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
 		} else {
-			if (typeBatchImportContext.options.isImportAsLegacyId()) {
-				record = recordServices.newRecordWithSchema(newSchema);
-			} else {
-				record = recordServices.newRecordWithSchema(newSchema, legacyId);
+			record = null;
+			if (typeBatchImportContext.options.isMergeExistingRecordWithSameUniqueMetadata()) {
+				for (String uniqueMetadataCode : typeImportContext.uniqueMetadatas) {
+					Metadata uniqueMetadata = newSchema.getMetadata(uniqueMetadataCode);
+
+					record = recordServices.getRecordByMetadata(uniqueMetadata, (String) toImport.getValue(uniqueMetadataCode));
+					if (record != null) {
+						break;
+					}
+				}
+			}
+
+			if (record == null) {
+				if (typeBatchImportContext.options.isImportAsLegacyId()) {
+					record = recordServices.newRecordWithSchema(newSchema);
+				} else {
+					record = recordServices.newRecordWithSchema(newSchema, legacyId);
+				}
 			}
 		}
 

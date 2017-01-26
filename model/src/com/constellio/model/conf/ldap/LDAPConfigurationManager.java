@@ -89,6 +89,15 @@ public class LDAPConfigurationManager implements StatefulService {
 					properties.put("ldap.serverConfiguration.clientId", ldapServerConfiguration.getClientId());
 					properties.put("ldap.syncConfiguration.clientId", ldapUserSyncConfiguration.getClientId());
 					properties.put("ldap.syncConfiguration.applicationKey", ldapUserSyncConfiguration.getClientSecret());
+					if (ldapUserSyncConfiguration.getGroupsFilter() != null) {
+						properties.put("ldap.syncConfiguration.groupsFilter", ldapUserSyncConfiguration.getGroupsFilter());
+					}
+					if (ldapUserSyncConfiguration.getUsersFilter() != null) {
+						properties.put("ldap.syncConfiguration.usersFilter", ldapUserSyncConfiguration.getUsersFilter());
+					}
+                    if (!CollectionUtils.isEmpty(ldapUserSyncConfiguration.getUserGroups())) {
+                        properties.put("ldap.syncConfiguration.userGroups.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getUserGroups()));
+                    }
 				} else {
 					properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
 					properties
@@ -261,7 +270,6 @@ public class LDAPConfigurationManager implements StatefulService {
 		Boolean active = getBooleanValue(configs, "ldap.authentication.active", false);
 
 		if (directoryType == LDAPDirectoryType.AZURE_AD) {
-			String authorityUrl = getString(configs, "ldap.serverConfiguration.authorityUrl", null);
 			String authorityTanentId = getString(configs, "ldap.serverConfiguration.authorityTenantId", null);
 			String clientId = getString(configs, "ldap.serverConfiguration.clientId", null);
 			AzureADServerConfig serverConf = new AzureADServerConfig().setAuthorityTenantId(authorityTanentId).setClientId(clientId);
@@ -297,9 +305,15 @@ public class LDAPConfigurationManager implements StatefulService {
 		if (directoryType == LDAPDirectoryType.AZURE_AD) {
 			String applicationKey = getString(configs, "ldap.syncConfiguration.applicationKey", null);
 			String synchClientId =  getString(configs, "ldap.syncConfiguration.clientId", null);
+            String groupsFilter = getString(configs, "ldap.syncConfiguration.groupsFilter", null);
+            String usersFilter = getString(configs, "ldap.syncConfiguration.usersFilter", null);
+            List<String> userGroups = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.syncConfiguration.userGroups.sharpSV", null);
 			AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig()
 					.setApplicationKey(applicationKey)
-					.setClientId(synchClientId);
+					.setClientId(synchClientId)
+                    .setGroupsFilter(groupsFilter)
+                    .setUsersFilter(usersFilter)
+                    .setUserGroups(userGroups);
 			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution,
 					selectedCollections);
 		} else {

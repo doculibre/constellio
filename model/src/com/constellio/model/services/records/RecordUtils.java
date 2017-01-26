@@ -4,8 +4,10 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,10 +20,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
+import com.constellio.model.utils.DependencyUtilsParams;
 
 public class RecordUtils {
 
@@ -93,21 +97,122 @@ public class RecordUtils {
 	}
 
 	private List<Record> sortRecordsOfType(MetadataSchemaType schemaType, List<Record> unsortedRecords) {
-		List<Record> sortedRecords = new ArrayList<>();
 
-		List<Metadata> referenceMetadatas = schemaType.getAllParentReferences();
+		if (hasRecordDependingOnAnother(schemaType, unsortedRecords)) {
 
-		Map<String, Set<String>> dependencyMap = new HashMap<>();
-		for (Record record : unsortedRecords) {
-			String parentDependencyId = record.getNonNullValueIn(referenceMetadatas);
-			dependencyMap.put(record.getId(), Collections.singleton(parentDependencyId));
+			List<Record> sortedRecords = new ArrayList<>();
+
+			List<Metadata> referenceMetadatas = schemaType.getAllParentReferences();
+
+			Map<String, Set<String>> dependencyMap = new HashMap<>();
+			for (Record record : unsortedRecords) {
+				String parentDependencyId = record.getNonNullValueIn(referenceMetadatas);
+				dependencyMap.put(record.getId(), Collections.singleton(parentDependencyId));
+			}
+			List<String> sortedIds = new DependencyUtils<String>().sortByDependency(dependencyMap);
+			Map<String, Record> idRecordMap = toIdRecordMap(unsortedRecords);
+			for (String recordId : sortedIds) {
+				sortedRecords.add(idRecordMap.get(recordId));
+			}
+			return sortedRecords;
+		} else {
+			Set<String> ids = new HashSet<>();
+			List<Record> sortedRecordsById = new ArrayList<>();
+
+			for (int i = unsortedRecords.size() - 1; i >= 0; i--) {
+				//for (int i = 0; i < unsortedRecords.size(); i++) {
+				if (!ids.contains(unsortedRecords.get(i).getId())) {
+					ids.add(unsortedRecords.get(i).getId());
+					sortedRecordsById.add(unsortedRecords.get(i));
+				} else {
+					System.out.println("Same record added twice in a collection");
+				}
+			}
+			//
+			Collections.sort(sortedRecordsById, new Comparator<Record>() {
+				@Override
+				public int compare(Record o1, Record o2) {
+					return o1.getId().compareTo(o2.getId());
+				}
+			});
+			//
+			//			Set<String> ids = new HashSet<>();
+			//			Iterator<Record> recordIterator = sortedRecordsById.iterator();
+			//			while(recordIterator.hasNext()) {
+			//				Record record = recordIterator.next();
+			//				if (ids.contains(record.getId())) {
+			//					recordIterator.remove();
+			//				} else {
+			//
+			//				}
+			//			}
+			//
+			//			List<Record> sortedRecords = new ArrayList<>();
+			//
+			//			List<Metadata> referenceMetadatas = schemaType.getAllParentReferences();
+			//
+			//			Map<String, Set<String>> dependencyMap = new HashMap<>();
+			//			for (Record record : unsortedRecords) {
+			//				String parentDependencyId = record.getNonNullValueIn(referenceMetadatas);
+			//				dependencyMap.put(record.getId(), Collections.singleton(parentDependencyId));
+			//			}
+			//			List<String> sortedIds = new DependencyUtils<String>().sortByDependency(dependencyMap);
+			//			Map<String, Record> idRecordMap = toIdRecordMap(unsortedRecords);
+			//			for (String recordId : sortedIds) {
+			//				sortedRecords.add(idRecordMap.get(recordId));
+			//			}
+			//
+			//			List<String> idsOfSortedByIds = toIdList(sortedRecordsById);
+			//			List<String> idsOfSorted = toIdList(sortedRecords);
+			//
+			//			if (!idsOfSortedByIds.equals(idsOfSorted)) {
+			//				System.out.println("bobo!");
+			//			}
+
+			return sortedRecordsById;
 		}
-		List<String> sortedIds = new DependencyUtils<String>().sortByDependency(dependencyMap);
-		Map<String, Record> idRecordMap = toIdRecordMap(unsortedRecords);
-		for (String recordId : sortedIds) {
-			sortedRecords.add(idRecordMap.get(recordId));
+	}
+
+	public boolean hasRecordDependingOnAnother(MetadataSchemaType schemaType, List<Record> unsortedRecords) {
+
+		if (unsortedRecords.isEmpty()) {
+			return false;
 		}
-		return sortedRecords;
+
+		List<Metadata> metadatas = new ArrayList<>();
+		for (MetadataSchema schema : schemaType.getAllSchemas()) {
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getAllowedReferences().isAllowed(schemaType)
+						&& metadata.getInheritance() == null) {
+					metadatas.add(metadata);
+				}
+			}
+		}
+
+		if (metadatas.isEmpty()) {
+			return false;
+		}
+
+		List<String> ids = toIdList(unsortedRecords);
+
+		for (Record unsortedRecord : unsortedRecords) {
+			for (Metadata metadata : metadatas) {
+				if (metadata.isMultivalue()) {
+					for (String anId : unsortedRecord.<String>getList(metadata)) {
+						if (ids.contains(anId)) {
+							return true;
+						}
+					}
+
+				} else {
+					if (ids.contains(unsortedRecord.get(metadata))) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public List<String> getModifiedMetadatasDataStoreCodes(List<Record> records) {
@@ -268,5 +373,52 @@ public class RecordUtils {
 		}
 
 		return schemaTypeCode + "_" + (customSchema == null ? "default" : customSchema);
+	}
+
+	public static List<Record> sortRecordByDependency(MetadataSchemaTypes types, List<Record> records) {
+
+		Set<String> ids = new HashSet<>(new RecordUtils().toIdList(records));
+		Map<String, Set<String>> dependencies = new HashMap<>();
+		Map<String, Record> recordMap = new HashMap<>();
+
+		boolean hasInterdependency = false;
+
+		for (Record record : records) {
+			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			Set<String> dependentIds = new HashSet<>();
+			recordMap.put(record.getId(), record);
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.getType() == MetadataValueType.REFERENCE) {
+					if (metadata.isMultivalue()) {
+						List<String> metadataIds = record.getList(metadata);
+						dependentIds.addAll(metadataIds);
+					} else {
+						String metadataId = record.get(metadata);
+						if (metadataId != null) {
+							dependentIds.add(metadataId);
+						}
+					}
+				}
+			}
+
+			for (String dependency : dependentIds) {
+				hasInterdependency |= ids.contains(dependency);
+			}
+
+			dependencies.put(record.getId(), dependentIds);
+		}
+
+		if (hasInterdependency) {
+			List<Record> sorted = new ArrayList<>();
+			DependencyUtilsParams params = new DependencyUtilsParams().withToleratedCyclicDepencies()
+					.sortUsingDefaultComparator();
+			for (String recordId : new DependencyUtils<String>().sortByDependency(dependencies, params)) {
+				sorted.add(recordMap.get(recordId));
+			}
+			return sorted;
+		} else {
+			return records;
+		}
+
 	}
 }

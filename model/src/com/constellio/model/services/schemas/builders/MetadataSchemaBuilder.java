@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
@@ -444,7 +446,33 @@ public class MetadataSchemaBuilder {
 			}
 		}
 
-		return new MetadataSchemaCalculatedInfos(steps, automaticMetadatas);
+		List<Metadata> contentMetadatas = newMetadatas.onlyWithType(MetadataValueType.CONTENT)
+				.sortedUsing(new ContentsComparator());
+		return new MetadataSchemaCalculatedInfos(steps, automaticMetadatas, contentMetadatas);
+	}
+
+	public static class ContentsComparator implements Comparator<Metadata> {
+		@Override
+		public int compare(Metadata m1, Metadata m2) {
+			if (m1.isDefaultRequirement() && !m2.isDefaultRequirement()) {
+				return -1;
+
+			} else if (!m1.isDefaultRequirement() && m2.isDefaultRequirement()) {
+				return 1;
+
+			} else if (m1.isMultivalue() && !m2.isMultivalue()) {
+				return 1;
+
+			} else if (!m1.isMultivalue() && m2.isMultivalue()) {
+				return -1;
+
+			} else {
+				String code1 = m1.getLocalCode();
+				String code2 = m2.getLocalCode();
+				return code1.compareTo(code2);
+			}
+
+		}
 	}
 
 	MetadataList buildMetadatas(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {

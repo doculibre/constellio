@@ -25,7 +25,7 @@ import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 
-public class SmbServiceSimpleImpl implements SmbService {
+public class SmbShareServiceSimpleImpl implements SmbShareService {
 	private NtlmPasswordAuthentication auth;
 	private SmbFileFactory smbFactory;
 	private SmbRetrievalConfiguration smbRetrievalConfiguration;
@@ -35,14 +35,14 @@ public class SmbServiceSimpleImpl implements SmbService {
 	private WindowsPermissionsFactory permissionsFactory;
 	private SmbUrlComparator urlComparator;
 
-	public SmbServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,
+	public SmbShareServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,
 			ConnectorLogger logger, ESSchemasRecordsServices es) {
 		this(credentials, smbRetrievalConfiguration, smbUtils, logger, es,
 				new WindowsPermissionsFactoryImpl(new TrusteeManager(), smbRetrievalConfiguration.isSkipSharePermissions()),
 				new SmbFileFactoryImpl());
 	}
 
-	public SmbServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,
+	public SmbShareServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,
 			ConnectorLogger logger, ESSchemasRecordsServices es, WindowsPermissionsFactory permissionsFactory, SmbFileFactory smbFactory) {
 		this.auth = new NtlmPasswordAuthentication(credentials.getDomain(), credentials.getUsername(), credentials.getPassword());
 		this.smbFactory = smbFactory;
@@ -121,28 +121,25 @@ public class SmbServiceSimpleImpl implements SmbService {
 
 	@Override
 	public SmbModificationIndicator getModificationIndicator(String url) {
-		SmbModificationIndicator smbModificationIndicator = new SmbModificationIndicator();
+		long lastModified = 0;
+		String permissionHash = "";
+		double size = -4;
+
 		SmbFile smbFile;
 		try {
 			smbFile = smbFactory.getSmbFile(url, auth);
-
 			smbFile.exists();
-
-			smbModificationIndicator.setLastModified(smbFile.getLastModified());
+			lastModified = smbFile.getLastModified();
 
 			WindowsPermissions windowsPermissions = permissionsFactory.newWindowsPermissions(smbFile);
 			windowsPermissions.process();
-			smbModificationIndicator.setPermissionsHash(windowsPermissions.getPermissionsHash());
-			smbModificationIndicator.setSize(smbFile.length());
+			permissionHash = windowsPermissions.getPermissionsHash();
+			size = smbFile.length();
 
-		} catch (MalformedURLException e) {
-			logger.error("getModificationInformation : ", smbUtils.getStackTrace(e), new LinkedHashMap<String, String>());
-		} catch (SmbException e) {
-			logger.error("getModificationInformation : ", smbUtils.getStackTrace(e), new LinkedHashMap<String, String>());
+			return new SmbModificationIndicator(permissionHash, size, lastModified);
 		} catch (Exception e) {
-			logger.error("getModificationInformation : ", smbUtils.getStackTrace(e), new LinkedHashMap<String, String>());
+			logger.error("getModificationIndicator : ", smbUtils.getStackTrace(e), new LinkedHashMap<String, String>());
+			return null;
 		}
-
-		return smbModificationIndicator;
 	}
 }

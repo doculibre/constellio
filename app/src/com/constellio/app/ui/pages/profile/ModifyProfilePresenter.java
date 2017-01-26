@@ -82,6 +82,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 			view.updateUI();
 		} catch (RecordServicesException e) {
+			e.printStackTrace();
 			return;
 		}
 		navigateToBackPage();

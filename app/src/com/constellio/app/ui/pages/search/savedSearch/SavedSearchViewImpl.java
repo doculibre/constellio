@@ -17,9 +17,11 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Item;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -82,6 +84,11 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 							@Override
 							protected void cancelButtonClick(RecordVO viewObject) {
 								getWindow().close();
+							}
+
+							@Override
+							protected Item newItem(RecordVO viewObject) {
+								return new RecordVOItem(viewObject);
 							}
 						};
 					}

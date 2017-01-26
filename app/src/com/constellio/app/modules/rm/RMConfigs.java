@@ -15,6 +15,8 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
 
+	public static String decommissioningGroup = "decommissioning";
+
 	public enum DecommissioningPhase {
 		NEVER, ON_DEPOSIT, ON_TRANSFER_OR_DEPOSIT
 	}
@@ -50,7 +52,9 @@ public class RMConfigs {
 			DOCUMENTS_TYPES_CHOICE,
 			WORKFLOWS_ENABLED,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
-			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES;
+			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART;
+	;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -69,7 +73,7 @@ public class RMConfigs {
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
 
-		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, "decommissioning");
+		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
 		// Allow to enter retention rules for documents
 		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules"));
@@ -213,6 +217,9 @@ public class RMConfigs {
 						AllowModificationOfArchivisticStatusAndExpectedDatesChoice.class)
 				.withDefaultValue(AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED)
 				.scriptedBy(EnableOrDisableCalculatorsManualMetadataScript.class));
+
+		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
+				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -385,4 +392,7 @@ public class RMConfigs {
 		return manager.getValue(DOCUMENTS_TYPES_CHOICE);
 	}
 
+	public boolean isCalculateOpenDateBasedOnFirstTimerangePart() {
+		return manager.getValue(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART);
+	}
 }
