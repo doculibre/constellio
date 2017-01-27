@@ -18,7 +18,9 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuIte
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Notification;
@@ -47,6 +49,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
+	private View parentView;
 
 	protected DocumentContextMenuPresenter presenter;
 
@@ -278,8 +281,19 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			public void close() {
 				super.close();
 				presenter.updateWindowClosed();
+				postClose();
 			}
 		};
+	}
+
+	public void postClose() {
+		if(parentView instanceof HomeViewImpl) {
+			navigateTo().home("checkedOutDocuments");
+		}
+	}
+
+	public void setParentView(View view) {
+		parentView = view;
 	}
 
 	@Override
