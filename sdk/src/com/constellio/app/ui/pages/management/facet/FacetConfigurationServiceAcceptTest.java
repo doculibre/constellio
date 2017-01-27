@@ -176,8 +176,7 @@ public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 
 	private Record givenActiveFacetRecord() {
 		MetadataSchemaType type = schemasManager.getSchemaTypes(zeCollection).getSchemaType(Facet.SCHEMA_TYPE);
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(type).where(Schemas.TITLE)
-				.isEqualTo("Création/Modification date");
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(type).where(schemasRecords.facet.active()).isTrue();
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		query.setNumberOfRows(1);
