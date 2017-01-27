@@ -128,7 +128,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					$("SearchView.printLabels"),
 					getConstellioFactories().getAppLayerFactory(),
 					getSessionContext().getCurrentCollection(),
-					schemaType, getSelectedRecordIds());
+					schemaType, getSelectedRecordIds(), getSessionContext().getCurrentUser().getUsername());
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
 			labelsButton.addClickListener(new Button.ClickListener() {

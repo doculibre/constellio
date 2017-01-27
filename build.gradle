@@ -67,6 +67,9 @@ allprojects {
             name "sonatype vaadin"
             url "https://oss.sonatype.org/content/repositories/vaadin/"
         }
+        flatDir {
+            dirs: 'libs'
+        }
     }
 
     dependencies {
@@ -109,8 +112,9 @@ allprojects {
         compile files("libs/commons-digester-2.1.jar")
         compile files("libs/groovy-all-2.0.1.jar")
         compile files("libs/iText-2.1.7.jar")
-        compile files("libs/jasperreports-5.5.0.jar")
+        compile files("libs/jasperreports-6.3.0.jar")
         compile files("libs/com.lowagie.text-2.1.7.jar")
+        compile files("libs/barbecue-1.5-beta1.jar")
     }
 
     configurations {

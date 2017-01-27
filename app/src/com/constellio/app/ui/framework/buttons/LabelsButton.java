@@ -62,13 +62,14 @@ public class LabelsButton extends WindowButton {
     private List<String> ids;
     private AppLayerFactory factory;
     private ContentManager contentManager;
-    private int size;
+    private double size;
+    private String user;
 
-    public LabelsButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, String type, String id) {
-        this(caption, windowsCaption, factory, collection, type, Arrays.asList(id));
+    public LabelsButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, String type, String id, String user) {
+        this(caption, windowsCaption, factory, collection, type, Arrays.asList(id), user);
     }
 
-    public LabelsButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, String type, List<String> idObject) {
+    public LabelsButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, String type, List<String> idObject, String user) {
         super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
         this.model = factory.getModelLayerFactory();
         this.collection = collection;
@@ -79,6 +80,7 @@ public class LabelsButton extends WindowButton {
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
         this.size = 0;
+        this.user = user;
     }
 
     @Override
@@ -89,7 +91,7 @@ public class LabelsButton extends WindowButton {
 
         List<RMReport> configurations = getTemplates(type);
         if (configurations.size() > 0) {
-            this.size = Integer.parseInt(configurations.get(0).get(RMReport.LIGNE) + "") * Integer.parseInt(configurations.get(0).get(RMReport.COLONNE) + "");
+            this.size = (Double) configurations.get(0).get(RMReport.LIGNE) * (Double) configurations.get(0).get(RMReport.COLONNE);
             startPosition.clear();
             for (int i = 1; i <= size; i++) {
                 startPosition.addItem(i);
@@ -111,7 +113,7 @@ public class LabelsButton extends WindowButton {
             @Override
             public void valueChange(ValueChangeEvent event) {
                 RMReport report = (RMReport) event.getProperty().getValue();
-                size = Integer.parseInt(report.get(RMReport.COLONNE) + "") * Integer.parseInt(report.get(RMReport.LIGNE) + "");
+                size = (Double) report.get(RMReport.COLONNE) * (Double) report.get(RMReport.LIGNE);
                 startPosition.clear();
                 startPosition.removeAllItems();
                 for (int i = 1; i <= size; i++) {
@@ -129,12 +131,13 @@ public class LabelsButton extends WindowButton {
             protected void saveButtonClick(LabelParametersVO parameters)
                     throws ValidationException {
                 RMReport selected = (RMReport) format.getValue();
-                ReportUtils ru = new ReportUtils(collection, factory);
+                ReportUtils ru = new ReportUtils(collection, factory, user);
                 try {
                     if ((Integer) startPosition.getValue() > size) {
                         throw new Exception($("ButtonLabel.error.posisbiggerthansize"));
                     }
                     ru.setStartingPosition((Integer) startPosition.getValue() - 1);
+                    ru.setNumberOfCopies(Integer.parseInt(copies.getValue()));
                     String xml = type.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, null) : ru.convertContainerWithIdentifierToXML(ids, null);
                     Content content = selected.get(RMReport.JASPERFILE);
                     InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());

@@ -433,4 +433,12 @@ public class ContentFactoryTest extends ConstellioTest {
 			}
 		};
 	}
+
+	@Test
+	public void TestCreateSystemFile() {
+		Content content = ContentImpl.createSystemContent("testFileName.jpg", new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3));
+		assertThat(content).isNotNull();
+		assertThat(content.getCheckoutUserId()).isNull();
+		assertThat(content.getCurrentVersion().getVersion()).isEqualTo("1.0");
+	}
 }

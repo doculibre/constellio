@@ -17,8 +17,8 @@ public class RMReport extends ReportConfig {
     }
 
     public static final String SCHEMA_LABEL = "label";
-    public static final String HEIGHT = "height";
-    public static final String WIDTH = "width";
+    //    public static final String HEIGHT = "height";
+//    public static final String WIDTH = "width";
     public static final String TYPE_LABEL = "typelabel";
     public static final String COLONNE = "colonne";
     public static final String LIGNE = "ligne";

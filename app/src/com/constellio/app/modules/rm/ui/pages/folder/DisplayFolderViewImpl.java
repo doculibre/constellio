@@ -326,7 +326,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		};
 		try {
 			printLabelButton = new LabelsButton($("DisplayFolderView.printLabel"),
-					$("DisplayFolderView.printLabel"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId());
+					$("DisplayFolderView.printLabel"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId(), getSessionContext().getCurrentUser().getUsername());
 		} catch (Exception e) {
 			showErrorMessage(e.getMessage());
 		}

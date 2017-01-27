@@ -17,14 +17,12 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.constellio.app.modules.reports.wrapper.ReportConfig;
+import com.constellio.app.modules.rm.wrappers.RMReport;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.sis.metadata.MetadataStandard;
 import org.slf4j.Logger;
@@ -75,6 +73,8 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
             throws Exception {
 
         new CoreSchemaAlterationFor7_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
+
     }
 
     private class CoreSchemaAlterationFor7_1 extends MetadataSchemasAlterationHelper {
@@ -87,7 +87,7 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(ReportConfig.SCHEMA_TYPE).getDefaultSchema();
             builder.create(ReportConfig.JASPERFILE).setType(MetadataValueType.CONTENT).setUndeletable(true).setEssential(true).defineDataEntry().asManual();
-            builder.create(ReportConfig.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setEssential(true).setUndeletable(true).defineDataEntry().asManual();
+            builder.create(ReportConfig.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setUndeletable(true).setDefaultValue(true).defineDataEntry().asManual();
         }
     }
 }

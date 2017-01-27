@@ -72,39 +72,39 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 						.withAllTestUsers()
 						.withFoldersAndContainersOfEveryStatus()
 		);
-		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
-		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
-
-		recordServices = getModelLayerFactory().newRecordServices();
-		AppLayerFactory appLayerFactory = getAppLayerFactory();
-
-		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
-		dataLayerFactory.getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
-		UserServices userServices = getModelLayerFactory().newUserServices();
-		String token = userServices.generateToken("admin");
-		String serviceKey = userServices.getUser("admin").getServiceKey();
-		System.out.println("Admin token : \"" + token + "\", Admin service key \"" + serviceKey + "\"");
-		System.out.println("http://localhost:7070/constellio/select?token=" + token + "&serviceKey=" + serviceKey
-				+ "&fq=-type_s:index" + "&q=*:*");
-
-		//givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
-
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE)
-						.addLabel(Language.French, "Date metadata 1");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE)
-						.addLabel(Language.French, "Date metadata 2");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME)
-						.addLabel(Language.French, "Datetime metadata");
-			}
-		});
-
-		setupSequences();
-
-		DevUtils.addMetadataListingReferencesInAllSchemaTypes(getAppLayerFactory());
+//		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+//		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+//
+//		recordServices = getModelLayerFactory().newRecordServices();
+//		AppLayerFactory appLayerFactory = getAppLayerFactory();
+//
+//		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
+//		dataLayerFactory.getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+//
+//		UserServices userServices = getModelLayerFactory().newUserServices();
+//		String token = userServices.generateToken("admin");
+//		String serviceKey = userServices.getUser("admin").getServiceKey();
+//		System.out.println("Admin token : \"" + token + "\", Admin service key \"" + serviceKey + "\"");
+//		System.out.println("http://localhost:7070/constellio/select?token=" + token + "&serviceKey=" + serviceKey
+//				+ "&fq=-type_s:index" + "&q=*:*");
+//
+//		//givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+//
+//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+//			@Override
+//			public void alter(MetadataSchemaTypesBuilder types) {
+//				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE)
+//						.addLabel(Language.French, "Date metadata 1");
+//				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE)
+//						.addLabel(Language.French, "Date metadata 2");
+//				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME)
+//						.addLabel(Language.French, "Datetime metadata");
+//			}
+//		});
+//
+//		setupSequences();
+//
+//		DevUtils.addMetadataListingReferencesInAllSchemaTypes(getAppLayerFactory());
 
 	}
 

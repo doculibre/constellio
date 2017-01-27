@@ -188,6 +188,10 @@ public class ContentManager implements StatefulService {
 		return ContentImpl.create(uniqueId, user, filename, newVersion, false, true);
 	}
 
+	public Content createFileSystem(String filename, ContentVersionDataSummary version) {
+		return ContentImpl.createSystemContent(filename, version);
+	}
+
 	public boolean hasContentPreview(String hash) {
 		return contentDao.isDocumentExisting(hash + ".preview");
 	}

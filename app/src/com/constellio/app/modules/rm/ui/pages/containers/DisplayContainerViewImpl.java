@@ -134,7 +134,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		buttons.add(slip);
 
 		Button labels = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), ContainerRecord.SCHEMA_TYPE, presenter.getContainerId());
+				getSessionContext().getCurrentCollection(), ContainerRecord.SCHEMA_TYPE, presenter.getContainerId(), getSessionContext().getCurrentUser().getUsername());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 

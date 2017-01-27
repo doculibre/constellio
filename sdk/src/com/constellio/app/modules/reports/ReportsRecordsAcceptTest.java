@@ -19,10 +19,12 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.util.JRXmlUtils;
+import org.apache.commons.digester.Rule;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.junit.*;
+import org.krysalis.barcode4j.BarcodeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -36,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Created by Marco on 2017-01-16.
+ * Created by Nicolas D'amours & Charles Blanchette on 2017-01-16.
  */
 public class ReportsRecordsAcceptTest extends ConstellioTest {
     RMSchemasRecordsServices rm;
@@ -53,7 +55,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         ss = getModelLayerFactory().newSearchServices();
         recordServices = getModelLayerFactory().newRecordServices();
-        ru = new ReportUtils(zeCollection, getAppLayerFactory());
+        ru = new ReportUtils(zeCollection, getAppLayerFactory(), records.getAlice().getUsername());
     }
 
     @Test
@@ -81,22 +83,22 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         String title = "Test records 2";
         String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\tes_etiquette_1.jasper";
 
-        RMReport rmReport = rm.newRMReport();
-        rmReport.setJasperFile(file);
-        rmReport.setTitle(title);
-        rmReport.setWidth(width);
-        rmReport.setHeight(height);
+//        RMReport rmReport = rm.newRMReport();
+//        rmReport.setJasperFile(file);
+//        rmReport.setTitle(title);
+//        rmReport.setWidth(width);
+//        rmReport.setHeight(height);
 
         Transaction t = new Transaction();
-        t.add(rmReport);
+//        t.add(rmReport);
         recordServices.execute(t);
 
         LogicalSearchCondition condition = from(rm.reportsrecords.schemaType()).where(rm.reportsrecords.title()).isEqualTo(title);
-        RMReport retour = rm.wrapRMReport(ss.searchSingleResult(condition));
-        assertThat(retour.getJasperfile()).isEqualTo(file);
-        assertThat(retour.getWidth()).isEqualTo(width);
-        assertThat(retour.getHeight()).isEqualTo(height);
-        assertThat(retour.getTitle()).isEqualTo(title);
+//        RMReport retour = rm.wrapRMReport(ss.searchSingleResult(condition));
+//        assertThat(retour.getJasperfile()).isEqualTo(file);
+//        assertThat(retour.getWidth()).isEqualTo(width);
+//        assertThat(retour.getHeight()).isEqualTo(height);
+//        assertThat(retour.getTitle()).isEqualTo(title);
     }
 
     @Test
@@ -188,26 +190,65 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         assertThat(meta.getChildren().size()).isEqualTo(rm.containerRecord.schema().getMetadatas().size());
 
 
-        String contenuSeul = ru.convertContainerWithIdentifierToXML(records.containerId_bac09, rm.containerRecord.title().getCode(), rm.containerRecord.storageSpace().getCode());
-        ByteArrayInputStream stream1 = new ByteArrayInputStream(contenuSeul.getBytes("UTF-8"));
-        Document doc1 = builder.build(stream1);
-        Element meta1 = ((Element) doc1.getRootElement().getChildren().get(0)).getChild("metadatas");
-        assertThat(meta1.getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac09().getTitle());
-        assertThat(meta1.getChild(rm.containerRecord.storageSpace().getCode()).getValue()).isEqualTo(records.getContainerBac09().getStorageSpace());
+//        String contenuSeul = ru.convertContainerWithIdentifierToXML(new ReportUtils.ReportField(records.containerId_bac09, "Test", records.getContainerBac09().getSchema().getCode(), ), rm.containerRecord.title().getCode(), rm.containerRecord.storageSpace().getCode());
+//        ByteArrayInputStream stream1 = new ByteArrayInputStream(contenuSeul.getBytes("UTF-8"));
+//        Document doc1 = builder.build(stream1);
+//        Element meta1 = ((Element) doc1.getRootElement().getChildren().get(0)).getChild("metadatas");
+//        assertThat(meta1.getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac09().getTitle());
+//        assertThat(meta1.getChild(rm.containerRecord.storageSpace().getCode()).getValue()).isEqualTo(records.getContainerBac09().getStorageSpace());
 
-        String conteneurWithMultipleIds = ru.convertContainerWithIdentifierToXML(Arrays.asList(records.containerId_bac05, records.containerId_bac07), rm.containerRecord.title().getCode(), rm.containerRecord.capacity().getCode());
-        ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
-        Document docWithMultiple = builder.build(streamWithMultipleIds);
-        List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
-        assertThat(meta2.size()).isEqualTo(2);
-        assertThat(meta2.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac05().getTitle());
-        assertThat(meta2.get(1).getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac07().getTitle());
+//        String conteneurWithMultipleIds = ru.convertContainerWithIdentifierToXML(Arrays.asList(records.containerId_bac05, records.containerId_bac07), rm.containerRecord.title().getCode(), rm.containerRecord.capacity().getCode());
+//        ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
+//        Document docWithMultiple = builder.build(streamWithMultipleIds);
+//        List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
+//        assertThat(meta2.size()).isEqualTo(2);
+//        assertThat(meta2.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac05().getTitle());
+//        assertThat(meta2.get(1).getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac07().getTitle());
+    }
+
+    @Test
+    public void testConvertContainerToXMLWithStartingIndex() throws Exception {
+        SAXBuilder builder = new SAXBuilder();
+
+        ru.setStartingPosition(1);
+        String contenu = ru.convertContainerWithIdentifierToXML(records.containerId_bac05, null);
+        ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
+        Document document = builder.build(stream);
+        Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
+        assertThat(meta.getChildren()).isNullOrEmpty();
+    }
+
+    @Test
+    public void testConvertFolderToXMLWithStartingIndex() throws Exception {
+        SAXBuilder builder = new SAXBuilder();
+
+        ru.setStartingPosition(5);
+        String contenu = ru.convertFolderWithIdentifierToXML(records.containerId_bac05, null);
+        ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
+        Document document = builder.build(stream);
+        Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
+        assertThat(meta.getChildren()).isNullOrEmpty();
+        meta = ((Element) document.getRootElement().getChildren().get(1)).getChild("metadatas");
+        assertThat(meta.getChildren()).isNullOrEmpty();
+        meta = ((Element) document.getRootElement().getChildren().get(2)).getChild("metadatas");
+        assertThat(meta.getChildren()).isNullOrEmpty();
+        meta = ((Element) document.getRootElement().getChildren().get(3)).getChild("metadatas");
+        assertThat(meta.getChildren()).isNullOrEmpty();
+        meta = ((Element) document.getRootElement().getChildren().get(4)).getChild("metadatas");
+        assertThat(meta.getChildren()).isNullOrEmpty();
     }
 
     @Test
     @InDevelopmentTest
     public void UseCompiledJasperFileAndXmlToCreatePDF() throws Exception {
-        String xml = ru.convertFolderToXML(null);
-        ru.createPDFFromXmlAndJasperFile(xml, new File("C:\\Users\\Marco\\Desktop\\Blank_A4.jasper"));
+        String xml = ru.convertContainerToXML(null);
+        ru.createPDFFromXmlAndJasperFile(xml, new File("C:\\Users\\Marco\\Desktop\\Avery_5159_Container.jasper"), "test");
+    }
+
+    @Test
+    @InDevelopmentTest
+    public void createNewXmlWithModifiedReference() throws Exception {
+        String xml = ru.convertContainerWithIdentifierToXML(records.containerId_bac08, null);
+        System.out.println(xml);
     }
 }
