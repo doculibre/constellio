@@ -106,6 +106,14 @@ public class BatchProcess {
 		return collection;
 	}
 
+	public String getUsername() {
+		return username;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this, "action");
@@ -118,6 +126,6 @@ public class BatchProcess {
 
 	public BatchProcess withQuery(String query) {
 		return new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount, totalRecordsCount, errors,
-				action, collection, query);
+				action, collection, query, username, title);
 	}
 }

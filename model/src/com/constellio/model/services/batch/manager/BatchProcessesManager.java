@@ -134,7 +134,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 		long recordsCount = searchServices.getResultsCount(logicalQuery);
 		updateBatchProcesses(
-				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action));
+				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action, username, title));
 
 		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
@@ -289,7 +289,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 			@Override
 			public void alter(Document document) {
-				newBatchProcessListWriter(document).addBatchProcess(id, query, collection, requestDateTime, recordsCount, action);
+				newBatchProcessListWriter(document).addBatchProcess(id, query, collection, requestDateTime, recordsCount, action, username, title);
 			}
 		};
 	}

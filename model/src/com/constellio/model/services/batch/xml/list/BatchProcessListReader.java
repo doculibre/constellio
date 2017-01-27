@@ -1,8 +1,10 @@
 package com.constellio.model.services.batch.xml.list;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.services.batch.xml.list.BatchProcessListReaderException.NoBatchProcessesInList;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.Filter;
@@ -12,11 +14,8 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.batchprocess.BatchProcessStatus;
-import com.constellio.model.services.batch.xml.list.BatchProcessListReaderException.NoBatchProcessesInList;
-import com.constellio.model.utils.ParametrizedInstanceUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BatchProcessListReader {
 
@@ -30,6 +29,8 @@ public class BatchProcessListReader {
 	private static final String QUERY = "query";
 	private static final String ERRORS = "errors";
 	private static final String ID = "id";
+	private static final String USERNAME = "username";
+	private static final String TITLE = "title";
 	private static final String COLLECTION = "collection";
 	private static final String BATCH_PROCESS = "batchProcess";
 	private static final String STANDBY_BATCH_PROCESSES = "standbyBatchProcesses";
@@ -63,6 +64,8 @@ public class BatchProcessListReader {
 		BatchProcessStatus status = getStatus(nextBatchProcess);
 		LocalDateTime requestDateTime = getRequestDateTime(nextBatchProcess);
 		LocalDateTime startDateTime = getStartDateTime(nextBatchProcess);
+		String username = getUsername(nextBatchProcess);
+		String title = getTitle(nextBatchProcess);
 		String query = getQuery(nextBatchProcess);
 		int totalRecordsCount = Integer.parseInt(nextBatchProcess.getChild(RECORDS_COUNT).getText());
 		int errors = getErrors(nextBatchProcess);
@@ -70,7 +73,7 @@ public class BatchProcessListReader {
 		String collection = getCollection(nextBatchProcess);
 		BatchProcessAction batchProcessAction = getBatchProcessActions(nextBatchProcess);
 		batchProcess = new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount,
-				totalRecordsCount, errors, batchProcessAction, collection, query);
+				totalRecordsCount, errors, batchProcessAction, collection, query, username, title);
 		return batchProcess;
 	}
 
@@ -215,6 +218,16 @@ public class BatchProcessListReader {
 			break;
 		}
 		return status;
+	}
+
+	private String getTitle(Element nextBatchProcess) {
+		Element title = nextBatchProcess.getChild(TITLE);
+		return title == null? null : title.getText();
+	}
+
+	private String getUsername(Element nextBatchProcess) {
+		Element username = nextBatchProcess.getChild(USERNAME);
+		return username == null? null : username.getText();
 	}
 
 	ParametrizedInstanceUtils newParametrizedInstanceUtils() {

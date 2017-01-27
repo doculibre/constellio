@@ -194,11 +194,11 @@ public class BatchProcessingPresenterService {
 	public BatchProcessResults execute(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)
 			throws RecordServicesException {
 		BatchProcessAction batchProcessAction = toAction(selectedType, query, viewObject, user);
-		return execute(batchProcessAction, query);
+		return execute(batchProcessAction, query, user.getUsername(), "Edit records");
 
 	}
 
-	public BatchProcessResults execute(BatchProcessAction action, LogicalSearchQuery query)
+	public BatchProcessResults execute(BatchProcessAction action, LogicalSearchQuery query, String username, String title)
 			throws RecordServicesException {
 
 		System.out.println("**************** EXECUTE ****************");
@@ -206,7 +206,7 @@ public class BatchProcessingPresenterService {
 		System.out.println(action);
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		batchProcessesManager.addPendingBatchProcess(query, action);
+		batchProcessesManager.addPendingBatchProcess(query, action, username, title);
 
 		return null;
 	}
