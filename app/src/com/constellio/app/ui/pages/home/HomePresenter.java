@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.home;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -25,6 +17,13 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomePresenter extends BasePresenter<HomeView> {
 
@@ -38,6 +37,8 @@ public class HomePresenter extends BasePresenter<HomeView> {
 
 	public HomePresenter forParams(String params) {
 		currentTab = params;
+		String startTab = getDefaultTab();
+		currentTab = currentTab.isEmpty()? startTab : currentTab;
 		return this;
 	}
 
@@ -51,6 +52,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			startTab = presenterService().getSystemConfigs().getDefaultStartTab();
 		}
 		return startTab;
+	}
+
+	public String getCurrentTab() {
+		return currentTab;
 	}
 
 	public void tabSelected(String tabCode) {

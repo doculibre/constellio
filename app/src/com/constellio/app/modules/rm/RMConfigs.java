@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
@@ -13,6 +8,11 @@ import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -55,7 +55,8 @@ public class RMConfigs {
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
 			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
-			DEFAULT_TAB_IN_FOLDER_DISPLAY;
+			DEFAULT_TAB_IN_FOLDER_DISPLAY,
+			UNIFORM_SUBDIVISION_ENABLED;
 	;
 
 	// Category configs
@@ -176,6 +177,8 @@ public class RMConfigs {
 		add(MIXED_CONTAINERS_ALLOWED = decommissioning.createBooleanFalseByDefault("mixedContainersAllowed"));
 
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
+
+		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
@@ -390,6 +393,10 @@ public class RMConfigs {
 
 	public boolean areWorkflowsEnabled() {
 		return manager.getValue(WORKFLOWS_ENABLED);
+	}
+
+	public boolean areUniformSubdivisionEnabled() {
+		return manager.getValue(UNIFORM_SUBDIVISION_ENABLED);
 	}
 
 	public DocumentsTypeChoice getDocumentsTypesChoice() {

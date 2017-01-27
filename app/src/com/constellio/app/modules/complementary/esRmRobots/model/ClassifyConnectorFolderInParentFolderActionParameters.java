@@ -67,6 +67,11 @@ public class ClassifyConnectorFolderInParentFolderActionParameters extends Actio
 		return null;
 	}
 
+	@Override
+	public String getDefaultUniformSubdivision() {
+		return null;
+	}
+
 	public String getDefaultParentFolder() {
 		return get(DEFAULT_PARENT_FOLDER);
 	}

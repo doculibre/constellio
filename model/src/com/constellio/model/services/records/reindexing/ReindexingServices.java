@@ -34,7 +34,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.BulkRecordTransactionHandler;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerOptions;
 import com.constellio.model.services.records.utils.RecordDTOIterator;
@@ -172,6 +171,7 @@ public class ReindexingServices {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
 		transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
+
 		reindexCollection(collection, params, transactionOptions);
 
 	}
@@ -188,46 +188,57 @@ public class ReindexingServices {
 	}
 
 	private void reindexCollection(String collection, ReindexationParams params, RecordUpdateOptions transactionOptions) {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
-		if (params.getReindexationMode().isFullRewrite()) {
-			recreateIndexes(collection);
-		}
+		int level = 0;
+		while (isReindexingLevel(level, types)) {
 
-		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
-				.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
-				.setTransactionOptions(transactionOptions)
-				.withRecordsPerBatch(params.getBatchSize());
-
-		BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
-				modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
-
-		try {
-			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-
-			for (String typeCode : types.getSchemaTypesSortedByDependency()) {
-				LOGGER.info("Indexing '" + typeCode + "'");
-				reindexCollectionType(bulkTransactionHandler, types, typeCode);
+			if (params.getReindexationMode().isFullRewrite()) {
+				recreateIndexes(collection);
 			}
 
-			//			int currentLevel = 1;
-			//			boolean reindexedSomething = true;
-			//			while (reindexedSomething) {
-			//				modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
-			//				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
-			//					reindexedSomething = false;
-			//					if (types.getMetadataNetwork().getMaxLevelOf(typeCode) >= currentLevel) {
-			//						LOGGER.info("Level " + currentLevel + " Indexing '" + typeCode + "'");
-			//						reindexCollectionType(bulkTransactionHandler, types, typeCode);
-			//						reindexedSomething = false;
-			//					}
-			//				}
-			//				currentLevel++;
-			//			}
+			BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
+					.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
+					.setTransactionOptions(transactionOptions)
+					.withRecordsPerBatch(params.getBatchSize());
 
-		} finally {
-			bulkTransactionHandler.closeAndJoin();
+			BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
+					modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
+
+			try {
+
+				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
+
+					if (isReindexingOfTypeRequired(level, types, typeCode)) {
+						if (level == 0) {
+							LOGGER.info("Indexing '" + typeCode + "'");
+						} else {
+							LOGGER.info("Indexing '" + typeCode + "' (Dependency level " + level + ")");
+						}
+						reindexCollectionType(bulkTransactionHandler, types, typeCode);
+					}
+				}
+
+			} finally {
+				bulkTransactionHandler.closeAndJoin();
+			}
+			modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
+			level++;
 		}
-		modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
+	}
+
+	private boolean isReindexingOfTypeRequired(int level, MetadataSchemaTypes types, String typeCode) {
+		MetadataSchemaType type = types.getSchemaType(typeCode);
+		return types.getMetadataNetwork().getMaxLevelOf(type.getCode()) >= level;
+	}
+
+	private boolean isReindexingLevel(int level, MetadataSchemaTypes types) {
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			if (types.getMetadataNetwork().getMaxLevelOf(type.getCode()) >= level) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void recreateIndexes(String collection) {
