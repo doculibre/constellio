@@ -96,7 +96,7 @@ public class DataLayerFactory extends LayerFactory {
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
-			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(),
+			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
 					ioServicesFactory.newIOServices()));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {

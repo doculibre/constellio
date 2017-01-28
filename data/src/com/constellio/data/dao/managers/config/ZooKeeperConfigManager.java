@@ -1,28 +1,24 @@
 package com.constellio.data.dao.managers.config;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.events.ConfigEventListener;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
+import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.managers.config.values.TextConfiguration;
+import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.io.services.facades.IOServices;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.api.CuratorEvent;
-import org.apache.curator.framework.api.CuratorListener;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
-import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock;
+import org.apache.curator.framework.recipes.cache.*;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
+import org.apache.poi.util.SystemOutLogger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -34,65 +30,63 @@ import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.data.dao.managers.config.events.ConfigEventListener;
-import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
-import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
-import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
-import com.constellio.data.dao.managers.config.values.TextConfiguration;
-import com.constellio.data.dao.managers.config.values.XMLConfiguration;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.KeyListMap;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class ZooKeeperConfigManager implements StatefulService, ConfigManager, CuratorListener {
-	private static final String GET_BINARY_CONTENT = "ZooKeeperConfigManager-getBinaryContent";
+public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZooKeeperConfigManager.class);
-	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
+	private static final String ROOT_FOLDER = "/constellio";
+	private static final String CONFIG_FOLDER = "/conf";
+	private static final String GET_BINARY_CONTENT = "ZooKeeperConfigManager-getBinaryContent";
+
+	private Map<String, TreeCache> nodeCaches = new HashMap<>();
+
 	private CuratorFramework client;
-	private String CONFIG_FOLDER = "/constellio";
 	private String address;
+	private String rootFolder;
 	private IOServices ioServices;
 
-	public ZooKeeperConfigManager(String address, IOServices ioServices) {
+	public ZooKeeperConfigManager(String address, String rootFolder, IOServices ioServices) {
 		this.address = address;
+		this.rootFolder = StringUtils.removeEnd(rootFolder, "/");
 		this.ioServices = ioServices;
 	}
 
 	@Override
 	public void initialize() {
 		try {
-			RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+			RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
 			client = CuratorFrameworkFactory.newClient(address, retryPolicy);
 			client.start();
-
-			client.getCuratorListenable().addListener(this);
-
 		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void close() {
+		try {
+			for (TreeCache nodeCache : nodeCaches.values()) {
+				CloseableUtils.closeQuietly(nodeCache);
+			}
+			nodeCaches.clear();
+		} finally {
 			CloseableUtils.closeQuietly(client);
-			throw new RuntimeException("Zookeeper exception");
 		}
 	}
 
 	@Override
 	public BinaryConfiguration getBinary(String path) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-		byte[] ret;
-
-		if (!exist(tmpPath)) {
+		if (!exist(path)) {
 			return null;
 		}
-
 		try {
-			InterProcessReadWriteLock lock = new InterProcessReadWriteLock(client, tmpPath);
-			InterProcessMutex readLock = lock.readLock();
-			readLock.acquire();
-
-			ret = client.getData().watched().forPath(tmpPath);
-
-			readLock.release();
-
-			return new BinaryConfiguration(getVersion(tmpPath), ioServices.newByteArrayStreamFactory(ret, GET_BINARY_CONTENT));
+			Stat stat = new Stat();
+			String clientPath = getClientPath(path);
+			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			return new BinaryConfiguration("" + stat.getVersion(), ioServices.newByteArrayStreamFactory(ret, GET_BINARY_CONTENT));
 		} catch (NoNodeException e) {
 			return null;
 		} catch (Exception e) {
@@ -102,24 +96,15 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 
 	@Override
 	public XMLConfiguration getXML(String path) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-		byte[] ret;
-
-		if (!exist(tmpPath)) {
+		if (!exist(path)) {
 			return null;
 		}
-
 		try {
-			InterProcessReadWriteLock lock = new InterProcessReadWriteLock(client, tmpPath);
-			InterProcessMutex readLock = lock.readLock();
-			readLock.acquire();
-
-			ret = client.getData().watched().forPath(tmpPath);
+			Stat stat = new Stat();
+			String clientPath = getClientPath(path);
+			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
 			Document configuration = getDocumentFrom(ret);
-
-			readLock.release();
-
-			return new XMLConfiguration(getVersion(tmpPath), null, configuration);
+			return new XMLConfiguration("" + stat.getVersion(), "" + stat.getVersion(), configuration);
 		} catch (NoNodeException e) {
 			return null;
 		} catch (Exception e) {
@@ -129,33 +114,34 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 
 	@Override
 	public PropertiesConfiguration getProperties(String path) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-		byte[] ret;
-
+		if (!exist(path)) {
+			return null;
+		}
 		try {
-			client.sync().forPath(CONFIG_FOLDER);
+			Stat stat = new Stat();
+			String clientPath = getClientPath(path);
+			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			Properties properties = new Properties();
+			properties.load(new ByteArrayInputStream(ret));
+
+			return new PropertiesConfiguration("" + stat.getVersion(), propertiesToMap(properties));
+		} catch (NoNodeException e) {
+			return null;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
 
-		if (!exist(tmpPath)) {
+	@Override
+	public TextConfiguration getText(String path) {
+		if (!exist(path)) {
 			return null;
 		}
-
 		try {
-			InterProcessReadWriteLock lock = new InterProcessReadWriteLock(client, tmpPath);
-			InterProcessMutex readLock = lock.readLock();
-			readLock.acquire();
-
-			ret = client.getData().watched().forPath(tmpPath);
-			Properties properties = new Properties();
-			ByteArrayInputStream input = new ByteArrayInputStream(ret);
-			properties.load(input);
-			input.close();
-
-			readLock.release();
-
-			return new PropertiesConfiguration(getVersion(tmpPath), propertiesToMap(properties));
+			Stat stat = new Stat();
+			String clientPath = getClientPath(path);
+			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			return new TextConfiguration("" + stat.getVersion(), new String(ret));
 		} catch (NoNodeException e) {
 			return null;
 		} catch (Exception e) {
@@ -165,11 +151,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 
 	@Override
 	public boolean exist(String path) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
+		String clientPath = getClientPath(path);
 		try {
-			Stat stat = client.checkExists().forPath(tmpPath);
+			Stat stat = client.checkExists().forPath(clientPath);
 			return stat != null;
-		} catch (KeeperException.NoNodeException e) {
+		} catch (NoNodeException e) {
 			return false;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -178,21 +164,27 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 
 	@Override
 	public boolean folderExist(String path) {
-		throw new UnsupportedOperationException();
+		return exist(path);
 	}
 
 	@Override
 	public List<String> list(String path) {
-		throw new UnsupportedOperationException("TODO");
+		String clientPath = getClientPath(path);
+		try {
+			List<String> children = client.getChildren().forPath(clientPath);
+			return children;
+		} catch (NoNodeException e) {
+			return Collections.emptyList();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-		if (!exist(tmpPath)) {
+		if (!exist(path)) {
 			Document newDocument = new Document();
 			documentAlteration.alter(newDocument);
-
 			try {
 				this.add(path, newDocument);
 			} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
@@ -203,11 +195,9 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 
 	@Override
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-		if (!exist(tmpPath)) {
+		if (!exist(path)) {
 			Map<String, String> mapProperties = new HashMap<>();
 			propertiesAlteration.alter(mapProperties);
-
 			try {
 				this.add(path, mapProperties);
 			} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
@@ -217,74 +207,48 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 	}
 
 	@Override
-	// the update must be atomic (no call to external method who access ZooKeeper) to keep lock integrity
-	public void updateXML(String path, DocumentAlteration documentAlteration) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-
-		InterProcessMutex lock = lockPath(tmpPath);
+	public void updateXML(String path, final DocumentAlteration documentAlteration) {
+		String clientPath = getClientPath(path);
 		try {
-			// get current version
-			byte[] ret = client.getData().forPath(tmpPath);
+			Stat stat = new Stat();
+			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
 			Document document = getDocumentFrom(ret);
 			documentAlteration.alter(document);
 
-			// update the data and get the new bytes
-			int version = Integer.parseInt(getVersion(tmpPath));
 			byte[] bytes = getByteFromDocument(document);
-			client.setData().withVersion(version).forPath(tmpPath, bytes);
-
-			unlockPath(lock);
-		} catch (OptimisticLockingConfiguration e) {
-			unlockPath(lock);
-			updateXML(path, documentAlteration);
+			client.setData().withVersion(stat.getVersion()).forPath(clientPath, bytes);
 		} catch (Exception e) {
-			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	// the update must be atomic (no call to external method who access ZooKeeper) to keep lock integrity
-	public void updateProperties(String path, PropertiesAlteration propertiesAlteration) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-
-		InterProcessMutex lock = lockPath(tmpPath);
+	public void updateProperties(String path, final PropertiesAlteration propertiesAlteration) {
+		String clientPath = getClientPath(path);
 		try {
-			// get current version
-			byte[] ret = client.getData().forPath(tmpPath);
+			Stat stat = new Stat();
+			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
 			Properties properties = new Properties();
-			ByteArrayInputStream input = new ByteArrayInputStream(ret);
-			properties.load(input);
-			input.close();
-			int version = Integer.parseInt(getVersion(tmpPath));
+			properties.load(new ByteArrayInputStream(ret));
 
-			// update the data and get the new bytes
 			Map<String, String> mapProperties = propertiesToMap(properties);
 			propertiesAlteration.alter(mapProperties);
 			Properties prop = mapToProperties(mapProperties);
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			prop.store(output, null);
 
-			client.setData().withVersion(version).forPath(tmpPath, output.toByteArray());
-
-			unlockPath(lock);
-		} catch (OptimisticLockingConfiguration e) {
-			unlockPath(lock);
-			updateProperties(path, propertiesAlteration);
+			client.setData().withVersion(stat.getVersion()).forPath(clientPath, output.toByteArray());
 		} catch (Exception e) {
-			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
 	public void add(String path, InputStream newBinaryStream) {
-		String tmpPath = processPath("/constellio", path);
+		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = IOUtils.toByteArray(newBinaryStream);
-			client.create().creatingParentsIfNeeded().forPath(tmpPath, bytes);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			client.create().creatingParentsIfNeeded().forPath(clientPath, bytes);
 		} catch (KeeperException.NodeExistsException e) {
 			throw new ConfigManagerRuntimeException.ConfigurationAlreadyExists(path);
 		} catch (Exception e) {
@@ -294,12 +258,10 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 
 	@Override
 	public void add(String path, Document newDocument) {
-		String tmpPath = processPath("/constellio", path);
+		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = getByteFromDocument(newDocument);
-			client.create().creatingParentsIfNeeded().forPath(tmpPath, bytes);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			client.create().creatingParentsIfNeeded().forPath(clientPath, bytes);
 		} catch (KeeperException.NodeExistsException e) {
 			throw new ConfigManagerRuntimeException.ConfigurationAlreadyExists(path);
 		} catch (Exception e) {
@@ -309,15 +271,12 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 
 	@Override
 	public void add(String path, Map<String, String> newProperties) {
-		String tmpPath = processPath("/constellio", path);
+		String clientPath = getClientPath(path);
 		try {
 			Properties prop = mapToProperties(newProperties);
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			prop.store(output, null);
-
-			client.create().creatingParentsIfNeeded().forPath(tmpPath, output.toByteArray());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			client.create().creatingParentsIfNeeded().forPath(clientPath, output.toByteArray());
 		} catch (KeeperException.NodeExistsException e) {
 			throw new ConfigManagerRuntimeException.ConfigurationAlreadyExists(path);
 		} catch (Exception e) {
@@ -328,13 +287,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 	@Override
 	public void update(String path, String hash, InputStream newBinaryStream)
 			throws OptimisticLockingConfiguration {
-		String tmpPath = processPath("/constellio", path);
+		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = IOUtils.toByteArray(newBinaryStream);
-			client.setData().withVersion(Integer.parseInt(hash)).forPath(tmpPath, bytes);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (KeeperException.BadVersionException e) {
+			client.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
+		} catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -344,18 +301,13 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 	@Override
 	public void update(String path, String hash, Document newDocument)
 			throws OptimisticLockingConfiguration {
-		String tmpPath = processPath("/constellio", path);
-		InterProcessMutex lock = lockPath(tmpPath);
+		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = getByteFromDocument(newDocument);
-			client.setData().withVersion(Integer.parseInt(hash)).forPath(tmpPath, bytes);
-
-			unlockPath(lock);
-		} catch (KeeperException.BadVersionException e) {
-			unlockPath(lock);
+			client.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
+		} catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
-			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
 	}
@@ -363,77 +315,53 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 	@Override
 	public void update(String path, String hash, Map<String, String> newProperties)
 			throws OptimisticLockingConfiguration {
-		String tmpPath = processPath("/constellio", path);
-		InterProcessMutex lock = lockPath(tmpPath);
+		String clientPath = getClientPath(path);
 		try {
 			Properties prop = mapToProperties(newProperties);
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			prop.store(output, null);
-			client.setData().withVersion(Integer.parseInt(hash)).forPath(tmpPath, output.toByteArray());
-
-			unlockPath(lock);
-		} catch (IOException e) {
-			unlockPath(lock);
-			throw new RuntimeException(e);
-		} catch (KeeperException.BadVersionException e) {
-			unlockPath(lock);
+			client.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, output.toByteArray());
+		}  catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
-			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
 	public void delete(String path) {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-
-		InterProcessMutex lock = lockPath(tmpPath);
+		String clientPath = getClientPath(path);
 		try {
-			client.delete().deletingChildrenIfNeeded().forPath(tmpPath);
-
-			unlockPath(lock);
+			client.delete().deletingChildrenIfNeeded().forPath(clientPath);
 		} catch (Exception e) {
-			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
 	public void deleteFolder(String path) {
-		throw new UnsupportedOperationException();
+		delete(path);
 	}
 
 	@Override
 	public void delete(String path, String hash)
 			throws OptimisticLockingConfiguration {
-		String tmpPath = processPath(CONFIG_FOLDER, path);
-
-		InterProcessMutex lock = lockPath(tmpPath);
+		String clientPath = getClientPath(path);
 		try {
-			client.delete().deletingChildrenIfNeeded().withVersion(Integer.parseInt(hash)).forPath(tmpPath);
-
-			unlockPath(lock);
+			client.delete().deletingChildrenIfNeeded().withVersion(Integer.parseInt(hash)).forPath(clientPath);
 		} catch (BadVersionException e) {
-			unlockPath(lock);
-			throw new ConfigManagerException.OptimisticLockingConfiguration(path, hash, "");
+			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
-			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
 	public void deleteAllConfigsIn(String collection) {
-		String tmpPath = processPath(CONFIG_FOLDER, "/" + collection);
-
-		InterProcessMutex lock = lockPath(tmpPath);
+		String clientPath = getClientPath(collection + "/");
 		try {
-			client.delete().deletingChildrenIfNeeded().forPath(tmpPath);
-
-			unlockPath(lock);
+			client.delete().deletingChildrenIfNeeded().forPath(clientPath);
 		} catch (Exception e) {
-			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
 	}
@@ -449,44 +377,30 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 	}
 
 	@Override
-	public void registerListener(String path, ConfigEventListener listener) {
-		String pathTmp = processPath("/constellio", path);
-
+	public void registerListener(final String path, final ConfigEventListener listener) {
+		String clientPath = getClientPath(path);
 		if (listener instanceof ConfigUpdatedEventListener) {
-			this.updatedConfigEventListeners.add(pathTmp, (ConfigUpdatedEventListener) listener);
-		}
-	}
-
-	public Map<String, Object> getCache() {
-		return null;
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-
-	private String getVersion(String tmpPath) {
-		try {
-			return "" + client.checkExists().forPath(tmpPath).getVersion();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private InterProcessMutex lockPath(String path) {
-		InterProcessReadWriteLock lock = new InterProcessReadWriteLock(client, path);
-		InterProcessMutex writeLock = lock.writeLock();
-		try {
-			writeLock.acquire();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return writeLock;
-	}
-
-	private void unlockPath(InterProcessMutex lock) {
-		try {
-			lock.release();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+			try {
+				final AtomicReference<TreeCache> ref = new AtomicReference<>();
+				TreeCache nodeCache = nodeCaches.get(clientPath);
+				if (nodeCache == null) {
+					nodeCache = new TreeCache(client, clientPath);
+					nodeCache.start();
+					nodeCaches.put(clientPath, nodeCache);
+				}
+				ref.set(nodeCache);
+				nodeCache.getListenable().addListener(new TreeCacheListener() {
+					@Override
+					public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+						if (event.getType() == TreeCacheEvent.Type.NODE_UPDATED) {
+							((ConfigUpdatedEventListener) listener).onConfigUpdated(path);
+							System.out.println(event);
+						}
+					}
+				});
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
@@ -502,8 +416,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 	}
 
 	byte[] getByteFromDocument(Document document) {
-		XMLOutputter outputter = new XMLOutputter();
-		String doc = outputter.outputString(document);
+		String doc = new XMLOutputter().outputString(document);
 		return doc.getBytes();
 	}
 
@@ -527,53 +440,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 		return properties;
 	}
 
-	private String processPath(String startingPath, String path) {
-		String[] partsTmp = path.split("/");
-
-		List<String> parts = new ArrayList<>();
-		for (String part : partsTmp) {
-			if (!part.equals("")) {
-				parts.add(part);
-			}
+	private String getClientPath(String path) {
+		if (!StringUtils.startsWith(path, "/")) {
+			path = "/" + path;
 		}
-
-		if (parts.size() == 1) {
-			startingPath += "/" + parts.get(0);
-		} else if (parts.size() > 1) {
-			int start = 0;
-			if (parts.get(0).contains("constellio")) {
-				start = 1;
-			}
-
-			for (int i = start; i < parts.size(); i++) {
-				startingPath += "/" + parts.get(i);
-			}
-		}
-		return startingPath;
-	}
-
-	@Override
-	public void eventReceived(CuratorFramework curatorFramework, CuratorEvent event)
-			throws Exception {
-		switch (event.getType()) {
-		case SET_DATA: {
-			String path = event.getPath();
-			for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
-				String pathTmp = processPath("", path);
-				listener.onConfigUpdated(pathTmp);
-			}
-			break;
-		}
-		}
-	}
-
-	@Override
-	public void close() {
-
-	}
-
-	@Override
-	public TextConfiguration getText(String path) {
-		throw new UnsupportedOperationException("TODO");
+		String clientPath = ROOT_FOLDER + this.rootFolder + CONFIG_FOLDER + path;
+		return StringUtils.removeEnd(clientPath, "/");
 	}
 }

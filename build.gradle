@@ -109,6 +109,12 @@ allprojects {
         compile.exclude module: "org.objectweb.asm"
     }
 
+    configurations.all {
+        resolutionStrategy {
+            force "junit:junit:4.12"
+        }
+    }
+
     jar {
         version = '7.0.3.1'
     }
