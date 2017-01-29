@@ -30,6 +30,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCacheImpl.RecordHolder;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.search.StatusFilter;
@@ -45,6 +46,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Mock User user;
 	@Mock SearchBoost searchBoost;
 	@Mock ResultsProjection resultsProjection;
+	@Mock ModelLayerFactory modelLayerFactory;
 
 	boolean givenDisabledRecordDuplications = false;
 	Metadata zeTypeCodeMetadata, anotherTypeCodeMetadata, anotherTypeLegacyIdMetadata;
@@ -58,7 +60,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		cache = new RecordsCacheImpl();
+		cache = new RecordsCacheImpl(zeCollection, modelLayerFactory);
 		zeTypeCodeMetadata = mockManualMetadata("zeType_default_code", MetadataValueType.STRING);
 		anotherTypeCodeMetadata = mockManualMetadata("anotherType_default_code", MetadataValueType.STRING);
 		anotherTypeLegacyIdMetadata = mockManualMetadata("anotherType_default_legacyId", MetadataValueType.STRING);

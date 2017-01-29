@@ -22,6 +22,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.vaadin.server.Resource;
 
 public class RobotLazyTreeDataProvider implements LazyTreeDataProvider<String> {
 	private final Map<String, RecordDataTreeNode> nodesCache = new HashMap<>();
@@ -66,7 +67,6 @@ public class RobotLazyTreeDataProvider implements LazyTreeDataProvider<String> {
 
 	@Override
 	public String getTaxonomyCode() {
-		// TODO: Hope this doesn't explode
 		return null;
 	}
 
@@ -78,6 +78,11 @@ public class RobotLazyTreeDataProvider implements LazyTreeDataProvider<String> {
 	@Override
 	public String getDescription(String nodeId) {
 		return getNode(nodeId).getDescription();
+	}
+
+	@Override
+	public Resource getIcon(String id, boolean expanded) {
+		return null;
 	}
 
 	private RecordDataTreeNode getNode(String nodeId) {
@@ -112,7 +117,7 @@ public class RobotLazyTreeDataProvider implements LazyTreeDataProvider<String> {
 			description = record.get(Schemas.DESCRIPTION_TEXT);
 		}
 		// TODO: We are faking the children field here
-		return new RecordDataTreeNode(record.getId(), caption, description, schemaType, true);
+		return new RecordDataTreeNode(record.getId(), caption, description, schemaType, null, null, true);
 	}
 
 	private void init(AppLayerFactory appLayerFactory) {

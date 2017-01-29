@@ -95,6 +95,10 @@ public class SearchServices {
 		return recordsBatchIterator(100, query);
 	}
 
+	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition) {
+		return recordsIterator(new LogicalSearchQuery(condition));
+	}
+
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query) {
 		return recordsIterator(query, 100);
 	}

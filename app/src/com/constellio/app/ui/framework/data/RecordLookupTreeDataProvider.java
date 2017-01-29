@@ -14,6 +14,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.LookupTreeDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -27,6 +28,7 @@ import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.server.Resource;
 
 public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<String> {
 	private String taxonomyCode;
@@ -61,6 +63,11 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 	@Override
 	public String getDescription(String id) {
 		return getNode(id).getDescription();
+	}
+
+	@Override
+	public Resource getIcon(String id, boolean expanded) {
+		return getNode(id).getIcon(expanded);
 	}
 
 	@Override
@@ -112,7 +119,11 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 			description = record.get(Schemas.DESCRIPTION_TEXT);
 		}
 
-		return new RecordDataTreeNode(searchRecord.getId(), caption, description, schemaType, searchRecord.hasChildren());
+		Resource collapsedIcon = FileIconUtils.getIconForRecordId(record, false);
+		Resource expandedIcon = FileIconUtils.getIconForRecordId(record, true);
+
+		return new RecordDataTreeNode(searchRecord.getId(), caption, description, schemaType,
+				collapsedIcon, expandedIcon, searchRecord.hasChildren());
 	}
 
 	@Override

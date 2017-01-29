@@ -102,7 +102,8 @@ public class TaxonomiesSearchServices {
 				.setStartRow(taxonomiesSearchOptions.getStartRow())
 				.setNumberOfRows(taxonomiesSearchOptions.getRows())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(taxonomiesSearchOptions.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
+				.setReturnedMetadatas(taxonomiesSearchOptions.getReturnedMetadatasFilter()
+						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 	}
 
 	public LogicalSearchQuery getChildConceptsQuery(String taxonomyCode, Record record, TaxonomiesSearchOptions options) {
@@ -118,7 +119,8 @@ public class TaxonomiesSearchServices {
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter()
+						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 	}
 
 	public List<TaxonomySearchRecord> getVisibleRootConcept(User user, String collection, String taxonomyCode,
@@ -220,7 +222,7 @@ public class TaxonomiesSearchServices {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(usingTaxonomy.getCollection(), usingTaxonomy.getCode());
 		LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
 				.where(schemaTypeIsIn(taxonomy.getSchemaTypes()));
-		LogicalSearchQuery query = new LogicalSearchQuery(withFilters(condition, false, onlyActives(options)))
+		LogicalSearchQuery query = new LogicalSearchQuery(withFilters(condition, false))
 				.filteredWithUser(user, options.getRequiredAccess())
 				.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
@@ -252,7 +254,8 @@ public class TaxonomiesSearchServices {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter()
+						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 
 		return searchServices.query(query);
 	}
@@ -294,7 +297,7 @@ public class TaxonomiesSearchServices {
 		LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
 				.where(PARENT_PATH).isStartingWithText("/" + taxonomy.getCode())
 				.andWhere(schemaTypeIsIn(taxonomy.getSchemaTypes()));
-		LogicalSearchQuery hasChildrenQuery = new LogicalSearchQuery(withFilters(condition, true, onlyActives(options)))
+		LogicalSearchQuery hasChildrenQuery = new LogicalSearchQuery(withFilters(condition, true))
 				.filteredByStatus(options.getIncludeStatus())
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema())
 				.setNumberOfRows(0);
@@ -351,7 +354,8 @@ public class TaxonomiesSearchServices {
 
 		mainQuery.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter()
+						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 
 		int level = inRecord == null ? 0 : getRecordLevelInTaxonomy(inRecord, taxonomy);
 
@@ -365,7 +369,7 @@ public class TaxonomiesSearchServices {
 
 			LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection()).where(schemaTypeIs(selectedType));
 			LogicalSearchQuery query = new LogicalSearchQuery()
-					.setCondition(withFilters(condition, false, onlyActives(options)))
+					.setCondition(withFilters(condition, false))
 					.filteredWithUser(user, options.getRequiredAccess())
 					.filteredByStatus(options.getIncludeStatus())
 					.setNumberOfRows(0)
@@ -600,13 +604,9 @@ public class TaxonomiesSearchServices {
 		return searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(options.getIncludeStatus()));
 	}
 
-	private LogicalSearchCondition withFilters(LogicalSearchCondition condition, boolean onlyVisibleInTree, boolean onlyActives) {
+	private LogicalSearchCondition withFilters(LogicalSearchCondition condition, boolean onlyVisibleInTree) {
 		if (onlyVisibleInTree) {
 			condition = condition.andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull();
-		}
-
-		if (onlyActives) {
-			condition = condition.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		}
 
 		return condition;
@@ -626,7 +626,7 @@ public class TaxonomiesSearchServices {
 					.andWhere(schemaTypeIsNotIn(taxonomy.getSchemaTypes()));
 		}
 
-		return withFilters(condition, onlyVisibleInTrees, onlyActives(options));
+		return withFilters(condition, onlyVisibleInTrees);
 	}
 
 	LogicalSearchCondition findVisibleTaxonomyRecordsInStructure(String collection, String path, Taxonomy taxonomy) {

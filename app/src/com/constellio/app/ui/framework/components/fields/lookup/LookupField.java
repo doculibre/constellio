@@ -289,7 +289,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		@SuppressWarnings("unchecked")
 		public LookupWindowContent(Window window) {
 			super();
-			
+
 			setSizeFull();
 
 			window.setWidth("80%");
@@ -345,7 +345,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					Panel lazyTreePanel = new Panel(lazyTree);
 					lazyTreePanel.setWidth("100%");
 					lazyTreePanel.setHeight("100%");
-					
+
 					if (lookupTreeComponent == null) {
 						lookupTreeComponent = lazyTreePanel;
 					} else {
@@ -425,12 +425,12 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		String taxonomyCode = lazyTree.getDataProvider().getTaxonomyCode();
 		String userDefaultTaxonomy = user.getDefaultTaxonomy();
 		PresenterService presenterService = new PresenterService(suggestInputDataProvider.getModelLayerFactory());
-		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy(); 
+		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();
 		if (userDefaultTaxonomy != null) {
 			if (taxonomyCode.equals(userDefaultTaxonomy)) {
 				tabSheet.setSelectedTab(lazyTreePanel);
-			} 
-		} else if (taxonomyCode.equals(configDefaultTaxonomy)) {	
+			}
+		} else if (taxonomyCode.equals(configDefaultTaxonomy)) {
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}
@@ -575,5 +575,5 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private interface SerializableQuery extends Query, Serializable {
 
 	}
-	
+
 }

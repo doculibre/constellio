@@ -2,6 +2,8 @@ package com.constellio.app.ui.framework.data;
 
 import java.io.Serializable;
 
+import com.vaadin.server.Resource;
+
 public interface LazyTreeDataProvider<T extends Serializable> extends DataProvider {
 
 	ObjectsResponse<T> getRootObjects(int start, int maxSize);
@@ -17,7 +19,8 @@ public interface LazyTreeDataProvider<T extends Serializable> extends DataProvid
 	String getTaxonomyCode();
 
 	String getCaption(T id);
-	
+
 	String getDescription(T id);
-	
+
+	Resource getIcon(T id, boolean expanded);
 }

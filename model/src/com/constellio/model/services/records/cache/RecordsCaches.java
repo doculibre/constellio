@@ -5,10 +5,17 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class RecordsCaches {
 
+	ModelLayerFactory modelLayerFactory;
+
 	Map<String, RecordsCache> collectionsCache = new HashMap<>();
+
+	public RecordsCaches(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+	}
 
 	public RecordsCache getCache(String collection) {
 
@@ -18,17 +25,17 @@ public class RecordsCaches {
 		RecordsCache cache = collectionsCache.get(collection);
 
 		if (cache == null) {
-			return getORCreateCache(collection);
+			return getORCreateCache(collection, modelLayerFactory);
 		} else {
 			return cache;
 		}
 	}
 
-	private synchronized RecordsCache getORCreateCache(String collection) {
+	private synchronized RecordsCache getORCreateCache(String collection, ModelLayerFactory modelLayerFactory) {
 		RecordsCache cache = collectionsCache.get(collection);
 
 		if (cache == null) {
-			cache = new RecordsCacheImpl();
+			cache = new RecordsCacheImpl(collection, modelLayerFactory);
 			collectionsCache.put(collection, cache);
 		}
 		return cache;

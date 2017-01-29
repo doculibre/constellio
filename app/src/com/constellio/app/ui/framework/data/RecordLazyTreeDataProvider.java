@@ -10,6 +10,7 @@ import java.util.Map;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -23,6 +24,7 @@ import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.server.Resource;
 
 public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> {
 	private String taxonomyCode;
@@ -46,6 +48,11 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 	@Override
 	public String getDescription(String id) {
 		return getNode(id).getDescription();
+	}
+
+	@Override
+	public Resource getIcon(String id, boolean expanded) {
+		return getNode(id).getIcon(expanded);
 	}
 
 	@Override
@@ -127,11 +134,16 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		String caption = SchemaCaptionUtils.getCaptionForRecord(record);
 		String description = record.get(Schemas.DESCRIPTION_STRING);
+
 		if (description == null) {
 			description = record.get(Schemas.DESCRIPTION_TEXT);
 		}
 
-		return new RecordDataTreeNode(searchRecord.getId(), caption, description, schemaType, searchRecord.hasChildren());
+		Resource collapsedIcon = FileIconUtils.getIconForRecordId(record, false);
+		Resource expandedIcon = FileIconUtils.getIconForRecordId(record, true);
+
+		return new RecordDataTreeNode(searchRecord.getId(), caption, description, schemaType,
+				collapsedIcon, expandedIcon, searchRecord.hasChildren());
 	}
 
 	private TaxonomiesSearchOptions newTaxonomiesSearchOptions(int start, int maxSize) {
