@@ -16,6 +16,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.CloseableUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -110,13 +111,16 @@ public class FactoriesTestFeatures {
 	}
 
 	private void deleteFromZooKeeper(String address) {
+		CuratorFramework client = null;
 		try {
 			RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-			CuratorFramework client = CuratorFrameworkFactory.newClient(address, retryPolicy);
+			client = CuratorFrameworkFactory.newClient(address, retryPolicy);
 			client.start();
 			client.delete().deletingChildrenIfNeeded().forPath("/constellio");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			CloseableUtils.closeQuietly(client);
 		}
 	}
 

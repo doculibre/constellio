@@ -119,7 +119,7 @@ public class CuratorAcceptanceTest {
         client.setData().forPath("/configs/records/test.txt", content);
 
         ArgumentCaptor<TreeCacheEvent> argument = ArgumentCaptor.forClass(TreeCacheEvent.class);
-        verify(treeCacheListener, atLeastOnce()).childEvent(eq(client), argument.capture());
+        verify(treeCacheListener, timeout(1000).atLeastOnce()).childEvent(eq(client), argument.capture());
 
         byte[] contentFound = null;
 

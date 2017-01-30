@@ -9,6 +9,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.KeyListMap;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,9 +42,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	private static final String CONFIG_FOLDER = "/conf";
 	private static final String GET_BINARY_CONTENT = "ZooKeeperConfigManager-getBinaryContent";
 
+	private static volatile CuratorFramework CLIENT;
+
+	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
 	private Map<String, TreeCache> nodeCaches = new HashMap<>();
 
-	private CuratorFramework client;
 	private String address;
 	private String rootFolder;
 	private IOServices ioServices;
@@ -52,29 +55,37 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		this.address = address;
 		this.rootFolder = StringUtils.removeEnd(rootFolder, "/");
 		this.ioServices = ioServices;
+
+		init(address);
 	}
 
-	@Override
-	public void initialize() {
-		try {
-			RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
-			client = CuratorFrameworkFactory.newClient(address, retryPolicy);
-			client.start();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+	private static synchronized  void init(String address) {
+		if (CLIENT == null) {
+			try {
+				RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
+				CLIENT = CuratorFrameworkFactory.newClient(address, retryPolicy);
+				CLIENT.start();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
 	@Override
-	public void close() {
+	public void initialize() {
+	}
+
+	@Override
+	public synchronized void close() {
 		try {
 			for (TreeCache nodeCache : nodeCaches.values()) {
 				CloseableUtils.closeQuietly(nodeCache);
 			}
 			nodeCaches.clear();
 		} finally {
-			CloseableUtils.closeQuietly(client);
+			CloseableUtils.closeQuietly(CLIENT);
 		}
+		CLIENT = null;
 	}
 
 	@Override
@@ -85,7 +96,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		try {
 			Stat stat = new Stat();
 			String clientPath = getClientPath(path);
-			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
 			return new BinaryConfiguration("" + stat.getVersion(), ioServices.newByteArrayStreamFactory(ret, GET_BINARY_CONTENT));
 		} catch (NoNodeException e) {
 			return null;
@@ -102,7 +113,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		try {
 			Stat stat = new Stat();
 			String clientPath = getClientPath(path);
-			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
 			Document configuration = getDocumentFrom(ret);
 			return new XMLConfiguration("" + stat.getVersion(), "" + stat.getVersion(), configuration);
 		} catch (NoNodeException e) {
@@ -120,7 +131,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		try {
 			Stat stat = new Stat();
 			String clientPath = getClientPath(path);
-			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
 			Properties properties = new Properties();
 			properties.load(new ByteArrayInputStream(ret));
 
@@ -140,7 +151,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		try {
 			Stat stat = new Stat();
 			String clientPath = getClientPath(path);
-			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
 			return new TextConfiguration("" + stat.getVersion(), new String(ret));
 		} catch (NoNodeException e) {
 			return null;
@@ -153,7 +164,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	public boolean exist(String path) {
 		String clientPath = getClientPath(path);
 		try {
-			Stat stat = client.checkExists().forPath(clientPath);
+			Stat stat = CLIENT.checkExists().forPath(clientPath);
 			return stat != null;
 		} catch (NoNodeException e) {
 			return false;
@@ -171,7 +182,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	public List<String> list(String path) {
 		String clientPath = getClientPath(path);
 		try {
-			List<String> children = client.getChildren().forPath(clientPath);
+			List<String> children = CLIENT.getChildren().forPath(clientPath);
 			return children;
 		} catch (NoNodeException e) {
 			return Collections.emptyList();
@@ -211,14 +222,17 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			Stat stat = new Stat();
-			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
 			Document document = getDocumentFrom(ret);
 			documentAlteration.alter(document);
 
 			byte[] bytes = getByteFromDocument(document);
-			client.setData().withVersion(stat.getVersion()).forPath(clientPath, bytes);
+			CLIENT.setData().withVersion(stat.getVersion()).forPath(clientPath, bytes);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
 		}
 	}
 
@@ -227,7 +241,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			Stat stat = new Stat();
-			byte[] ret = client.getData().storingStatIn(stat).forPath(clientPath);
+			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
 			Properties properties = new Properties();
 			properties.load(new ByteArrayInputStream(ret));
 
@@ -237,9 +251,12 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			prop.store(output, null);
 
-			client.setData().withVersion(stat.getVersion()).forPath(clientPath, output.toByteArray());
+			CLIENT.setData().withVersion(stat.getVersion()).forPath(clientPath, output.toByteArray());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
 		}
 	}
 
@@ -248,7 +265,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = IOUtils.toByteArray(newBinaryStream);
-			client.create().creatingParentsIfNeeded().forPath(clientPath, bytes);
+			CLIENT.create().creatingParentsIfNeeded().forPath(clientPath, bytes);
 		} catch (KeeperException.NodeExistsException e) {
 			throw new ConfigManagerRuntimeException.ConfigurationAlreadyExists(path);
 		} catch (Exception e) {
@@ -261,7 +278,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = getByteFromDocument(newDocument);
-			client.create().creatingParentsIfNeeded().forPath(clientPath, bytes);
+			CLIENT.create().creatingParentsIfNeeded().forPath(clientPath, bytes);
 		} catch (KeeperException.NodeExistsException e) {
 			throw new ConfigManagerRuntimeException.ConfigurationAlreadyExists(path);
 		} catch (Exception e) {
@@ -276,7 +293,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			Properties prop = mapToProperties(newProperties);
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			prop.store(output, null);
-			client.create().creatingParentsIfNeeded().forPath(clientPath, output.toByteArray());
+			CLIENT.create().creatingParentsIfNeeded().forPath(clientPath, output.toByteArray());
 		} catch (KeeperException.NodeExistsException e) {
 			throw new ConfigManagerRuntimeException.ConfigurationAlreadyExists(path);
 		} catch (Exception e) {
@@ -290,11 +307,14 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = IOUtils.toByteArray(newBinaryStream);
-			client.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
+			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
 		} catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
 		}
 	}
 
@@ -304,11 +324,14 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			byte[] bytes = getByteFromDocument(newDocument);
-			client.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
+			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
 		} catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
 		}
 	}
 
@@ -320,11 +343,14 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			Properties prop = mapToProperties(newProperties);
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			prop.store(output, null);
-			client.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, output.toByteArray());
+			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, output.toByteArray());
 		}  catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
 		}
 	}
 
@@ -332,7 +358,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	public void delete(String path) {
 		String clientPath = getClientPath(path);
 		try {
-			client.delete().deletingChildrenIfNeeded().forPath(clientPath);
+			CLIENT.delete().deletingChildrenIfNeeded().forPath(clientPath);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -348,7 +374,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			throws OptimisticLockingConfiguration {
 		String clientPath = getClientPath(path);
 		try {
-			client.delete().deletingChildrenIfNeeded().withVersion(Integer.parseInt(hash)).forPath(clientPath);
+			CLIENT.delete().deletingChildrenIfNeeded().withVersion(Integer.parseInt(hash)).forPath(clientPath);
 		} catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
@@ -360,7 +386,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	public void deleteAllConfigsIn(String collection) {
 		String clientPath = getClientPath(collection + "/");
 		try {
-			client.delete().deletingChildrenIfNeeded().forPath(clientPath);
+			CLIENT.delete().deletingChildrenIfNeeded().forPath(clientPath);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -377,32 +403,31 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
+	public void registerListener(String path, ConfigEventListener listener) {
+		if (listener instanceof ConfigUpdatedEventListener) {
+			this.updatedConfigEventListeners.add(path, (ConfigUpdatedEventListener) listener);
+		}
+	}
+
+	/*
+	@Override
 	public void registerListener(final String path, final ConfigEventListener listener) {
 		String clientPath = getClientPath(path);
 		if (listener instanceof ConfigUpdatedEventListener) {
 			try {
-				final AtomicReference<TreeCache> ref = new AtomicReference<>();
 				TreeCache nodeCache = nodeCaches.get(clientPath);
 				if (nodeCache == null) {
 					nodeCache = new TreeCache(client, clientPath);
 					nodeCache.start();
 					nodeCaches.put(clientPath, nodeCache);
 				}
-				ref.set(nodeCache);
-				nodeCache.getListenable().addListener(new TreeCacheListener() {
-					@Override
-					public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-						if (event.getType() == TreeCacheEvent.Type.NODE_UPDATED) {
-							((ConfigUpdatedEventListener) listener).onConfigUpdated(path);
-							System.out.println(event);
-						}
-					}
-				});
+				nodeCache.getListenable().addListener(new ListenerDecorator(clientPath, (ConfigUpdatedEventListener) listener));
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
+	*/
 
 	Document getDocumentFrom(byte[] bytes) {
 		SAXBuilder builder = new SAXBuilder();
@@ -446,5 +471,23 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		}
 		String clientPath = ROOT_FOLDER + this.rootFolder + CONFIG_FOLDER + path;
 		return StringUtils.removeEnd(clientPath, "/");
+	}
+
+	private static class ListenerDecorator implements TreeCacheListener {
+
+		private String path;
+		private ConfigUpdatedEventListener innerListener;
+
+		public ListenerDecorator(String path, ConfigUpdatedEventListener innerListener) {
+			this.path = path;
+			this.innerListener = innerListener;
+		}
+
+		@Override
+		public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+			if (event.getType() == TreeCacheEvent.Type.NODE_UPDATED && event.getData().getPath().equals(path)) {
+				innerListener.onConfigUpdated(path);
+			}
+		}
 	}
 }

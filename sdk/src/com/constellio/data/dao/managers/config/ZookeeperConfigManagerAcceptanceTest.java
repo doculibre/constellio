@@ -135,19 +135,19 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		configManager.add(xmlConfigurationPath, docXMLWithVersion);
 
 		XMLConfiguration xmlConfiguration = configManager.getXML(xmlConfigurationPath);
-		configManager.update(xmlConfigurationPath, xmlConfiguration.getHash(), docXMLWithVersionUpdated);
+		configManager.update(xmlConfigurationPath, "0", docXMLWithVersionUpdated);
 
 		XMLConfiguration expectedXMLConfiguration = configManager.getXML(xmlConfigurationPath);
 
 		assertEquals(expectedXMLConfiguration.getDocument(), configManager.getXML(xmlConfigurationPath).getDocument());
-		assertNotEquals(xmlConfiguration.getHash(), expectedXMLConfiguration.getHash());
+		assertThat("1").isEqualTo(expectedXMLConfiguration.getHash());
 	}
 
 	@Test(expected = ConfigManagerException.OptimisticLockingConfiguration.class)
 	public void givenXMLDocWithVersionWhenUpdateThisDocumentWithSameVersionThenException()
 			throws Exception {
 		configManager.add(xmlConfigurationPath, docXMLWithVersion);
-		configManager.update(xmlConfigurationPath, "1", docXMLWithVersion);
+		configManager.update(xmlConfigurationPath, "23", docXMLWithVersion);
 	}
 
 	private void loadInputStream()
