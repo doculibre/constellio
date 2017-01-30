@@ -151,7 +151,6 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
 		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-
 		//waitForBatchProcess();
 
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(

@@ -1,44 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM;
-import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.DO_NOTHING;
-import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.EXCLUDE_DOCUMENTS;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.api.ObjectAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderDirectlyInThePlanActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInParentFolderActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
@@ -65,7 +26,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
-import com.constellio.data.conf.HashingEncoding;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -89,6 +49,39 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.api.ObjectAssert;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.*;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends ConstellioTest {
 
@@ -658,6 +651,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setActionAfterClassification(DO_NOTHING)
 				.setDefaultCategory(records.categoryId_X)
 				.setDefaultAdminUnit(records.unitId_10)
+				.setDefaultUniformSubdivision(records.subdivId_1)
 				.setDefaultCopyStatus(CopyType.PRINCIPAL)
 				.setDefaultRetentionRule(records.ruleId_1)
 				.setDefaultOpenDate(squatreNovembre));
@@ -672,13 +666,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		//1- First execution
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
-		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title").containsOnly(
-				tuple(folderANoTaxoURL, "A"),
-				tuple(folderAANoTaxoURL, "AA"),
-				tuple(folderABNoTaxoURL, "AB"),
-				tuple(folderAAANoTaxoURL, "AAA"),
-				tuple(folderAABNoTaxoURL, "AAB"),
-				tuple(folderBNoTaxoURL, "B")
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title", Folder.UNIFORM_SUBDIVISION).containsOnly(
+				tuple(folderANoTaxoURL, "A", records.subdivId_1),
+				tuple(folderAANoTaxoURL, "AA", records.subdivId_1),
+				tuple(folderABNoTaxoURL, "AB", records.subdivId_1),
+				tuple(folderAAANoTaxoURL, "AAA", records.subdivId_1),
+				tuple(folderAABNoTaxoURL, "AAB", records.subdivId_1),
+				tuple(folderBNoTaxoURL, "B", records.subdivId_1)
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
@@ -1892,15 +1886,18 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
 				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
-				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X));
+				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X).setDefaultUniformSubdivision(records.subdivId_1));
 
 		Record folderARecord = recordServices.getDocumentById(folderA);
 		classifyConnectorFolderInTaxonomy(folderARecord, parameters);
 
 		Metadata legacyIdMetadata = rm.defaultFolderSchema().get(LEGACY_ID.getLocalCode());
 		Metadata titleMetadata = rm.defaultFolderSchema().get(Schemas.TITLE.getLocalCode());
+		Metadata uniformSubdivisionMetadata = rm.defaultFolderSchema().get(Folder.UNIFORM_SUBDIVISION);
 		assertThat(recordServices.getRecordByMetadata(legacyIdMetadata, "smb://AU1 Admin Unit1/A/").get(titleMetadata))
 				.isEqualTo("Le dossier A");
+		assertThat(recordServices.getRecordByMetadata(legacyIdMetadata, "smb://AU1 Admin Unit1/A/").get(uniformSubdivisionMetadata))
+				.isEqualTo(records.subdivId_1);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}

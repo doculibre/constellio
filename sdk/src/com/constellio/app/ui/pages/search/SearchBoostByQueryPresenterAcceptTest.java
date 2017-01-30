@@ -5,13 +5,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.Locale;
 
-import com.constellio.sdk.tests.MockedFactories;
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
@@ -22,6 +19,7 @@ import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 
 /**
  * Created by Patrick on 2015-11-09.
@@ -41,7 +39,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 	SearchBoostToVOBuilder voBuilder = new SearchBoostToVOBuilder();
 	SearchBoostDataProvider dataProvider;
 
-	int defaultQtyOfBoosts = 1;
+	int defaultQtyOfBoosts = 0;
 
 	@Before
 	public void setUp()
@@ -61,6 +59,12 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.navigate()).thenReturn(navigator);
+
+		//		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollectionsExcludingSystem()) {
+		//			for (SearchBoost searchBoost : searchBoostManager.getAllSearchBoostsByMetadataType(collection)) {
+		//				searchBoostManager.delete(zeCollection, searchBoost);
+		//			}
+		//		}
 
 		searchBoostQuery1 = new SearchBoost(QUERY, "*", "1 Query", 1d);
 		searchBoostQuery2 = new SearchBoost(QUERY, "code:a*", "2 Query", 2d);
@@ -89,7 +93,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 		presenter.addButtonClicked(searchBoostQuery1VO, "1");
 		dataProvider = presenter.newDataProvider();
 
-		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts+1);
+		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts + 1);
 		presenter.getSearchBoostVO(0, dataProvider);
 		assertThat(presenter.getSearchBoostVO(0, presenter.newDataProvider()))
 				.isEqualToComparingFieldByField(searchBoostQuery1VO);
@@ -104,7 +108,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 		presenter.editButtonClicked(searchBoostQuery2VO, "2", searchBoostQuery1VO);
 		dataProvider = presenter.newDataProvider();
 
-		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts+1);
+		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts + 1);
 		assertThat(presenter.getSearchBoostVO(0, dataProvider).getValue()).isEqualTo(2d);
 		assertThat(presenter.getSearchBoostVO(0, dataProvider).getKey())
 				.isEqualTo(searchBoostQuery2VO.getKey());
@@ -121,7 +125,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 		presenter.deleteButtonClicked(searchBoostQuery1VO);
 		dataProvider = presenter.newDataProvider();
 
-		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts+0);
+		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts + 0);
 	}
 
 	@Test
@@ -131,7 +135,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 		presenter.addButtonClicked(searchBoostQuery1VO, "notDouble");
 		dataProvider = presenter.newDataProvider();
 
-		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts+0);
+		assertThat(dataProvider.size()).isEqualTo(defaultQtyOfBoosts + 0);
 	}
 
 	//

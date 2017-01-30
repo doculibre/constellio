@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -39,6 +31,13 @@ import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecordVOTable extends BaseTable {
 
@@ -317,5 +316,9 @@ public class RecordVOTable extends BaseTable {
 				setColumnCollapsed(metadata, true);
 			}
 		}
+	}
+
+	public RecordContextMenu getContextMenu() {
+		return contextMenu;
 	}
 }

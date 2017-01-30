@@ -1,5 +1,6 @@
 package com.constellio.app.modules.complementary.esRmRobots.model;
 
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
@@ -24,6 +25,7 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 	public static final String FOLDER_MAPPING = "folderMapping";
 	public static final String DOCUMENT_MAPPING = "documentMapping";
 	public static final String DEFAULT_ADMIN_UNIT = "defaultAdminUnit";
+	public static final String DEFAULT_UNIFORM_SUBDIVISION = "defaultUniformSubdivision";
 	public static final String DEFAULT_PARENT_FOLDER = "defaultParentFolder";
 	public static final String DEFAULT_CATEGORY = "defaultCategory";
 	public static final String DEFAULT_RETENTION_RULE = "defaultRetentionRule";
@@ -89,6 +91,25 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultAdminUnit(String defaultAdminUnit) {
 		set(DEFAULT_ADMIN_UNIT, defaultAdminUnit);
 		return this;
+	}
+
+	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(String defaultUniformSubdivision) {
+		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
+		return this;
+	}
+
+	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(UniformSubdivision defaultUniformSubdivision) {
+		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
+		return this;
+	}
+
+	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(Record defaultUniformSubdivision) {
+		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
+		return this;
+	}
+
+	public String getDefaultUniformSubdivision() {
+		return get(DEFAULT_UNIFORM_SUBDIVISION);
 	}
 
 	public String getDefaultParentFolder() {

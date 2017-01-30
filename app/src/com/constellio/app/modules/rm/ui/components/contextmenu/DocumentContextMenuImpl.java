@@ -1,18 +1,13 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
@@ -23,11 +18,17 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuIte
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -48,6 +49,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
+	private View parentView;
 
 	protected DocumentContextMenuPresenter presenter;
 
@@ -274,15 +276,24 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	private void initUploadWindow() {
-		if (updateWindow == null) {
-			updateWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
-				@Override
-				public void close() {
-					super.close();
-					presenter.updateWindowClosed();
-				}
-			};
+		updateWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
+			@Override
+			public void close() {
+				super.close();
+				presenter.updateWindowClosed();
+				postClose();
+			}
+		};
+	}
+
+	public void postClose() {
+		if(parentView instanceof HomeViewImpl) {
+			navigateTo().home("checkedOutDocuments");
 		}
+	}
+
+	public void setParentView(View view) {
+		parentView = view;
 	}
 
 	@Override
