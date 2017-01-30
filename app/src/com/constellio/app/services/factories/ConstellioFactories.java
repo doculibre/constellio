@@ -71,7 +71,7 @@ public class ConstellioFactories {
 			instance = null;
 		}
 	}
-//
+	//
 	//	public static void restart() {
 	//		File propertyFile = getInstance().propertyFile;
 	//		ConstellioFactoriesDecorator decorator = getInstance().decorator;

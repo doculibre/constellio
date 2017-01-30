@@ -10,6 +10,7 @@ import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeyListMap;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +60,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		init(address);
 	}
 
-	private static synchronized  void init(String address) {
+	private static synchronized void init(String address) {
 		if (CLIENT == null) {
 			try {
 				RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
@@ -344,7 +345,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			prop.store(output, null);
 			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, output.toByteArray());
-		}  catch (BadVersionException e) {
+		} catch (BadVersionException e) {
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -400,6 +401,16 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public void move(String src, String dest) {
 		throw new RuntimeException("Not supported operation move");
+	}
+
+	@Override
+	public void importFrom(File settingsFolder) {
+		//TODO Nicolas
+	}
+
+	@Override
+	public void exportTo(File settingsFolder) {
+		//TODO Nicolas
 	}
 
 	@Override
@@ -484,7 +495,8 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		}
 
 		@Override
-		public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+		public void childEvent(CuratorFramework client, TreeCacheEvent event)
+				throws Exception {
 			if (event.getType() == TreeCacheEvent.Type.NODE_UPDATED && event.getData().getPath().equals(path)) {
 				innerListener.onConfigUpdated(path);
 			}

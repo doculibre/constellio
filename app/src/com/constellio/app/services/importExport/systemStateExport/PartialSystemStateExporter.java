@@ -76,10 +76,12 @@ public class PartialSystemStateExporter {
 
 	BigVaultRecordDao recordDao;
 
+	DataLayerFactory dataLayerFactory;
+
 	public PartialSystemStateExporter(AppLayerFactory appLayerFactory) {
 		this.appLayerConfiguration = appLayerFactory.getAppLayerConfiguration();
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.dataLayerConfiguration = dataLayerFactory.getDataLayerConfiguration();
 		this.zipService = dataLayerFactory.getIOServicesFactory().newZipService();
 		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
@@ -239,12 +241,8 @@ public class PartialSystemStateExporter {
 	}
 
 	private void copySettingsTo(File tempFolderSettingsFolder) {
-		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
-		try {
-			FileUtils.copyDirectory(settingsFolder, tempFolderSettingsFolder);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+
+		dataLayerFactory.getConfigManager().exportTo(tempFolderSettingsFolder);
 	}
 
 	private void copyPluginsJarFolderTo(File tempPluginsFolder, boolean exportJars) {
