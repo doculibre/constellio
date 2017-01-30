@@ -27,6 +27,7 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 
 public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> {
+	private int estimatedRootNodesCount = -1;
 	private String taxonomyCode;
 	private Map<String, String> parentCache = new HashMap<>();
 	private Map<String, RecordDataTreeNode> nodesCache = new HashMap<>();
@@ -56,10 +57,21 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 	}
 
 	@Override
+	public int getEstimatedRootNodesCount() {
+		return estimatedRootNodesCount;
+	}
+
+	@Override
+	public int getEstimatedChildrenNodesCount(String parent) {
+		return getNode(parent).estimatedChildrenCount;
+	}
+
+	@Override
 	public ObjectsResponse<String> getRootObjects(int start, int maxSize) {
 		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 		User currentUser = getCurrentUser(modelLayerFactory);
 
+		System.out.println("getRootObjects(" + taxonomyCode + "," + start + "," + maxSize + ")");
 		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(start, maxSize);
 		LinkableTaxonomySearchResponse response = modelLayerFactory.newTaxonomiesSearchService().getVisibleRootConceptResponse(
 				currentUser, currentUser.getCollection(), taxonomyCode, taxonomiesSearchOptions);
@@ -70,6 +82,7 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 			nodesCache.put(searchRecord.getId(), node);
 			recordIds.add(searchRecord.getId());
 		}
+		estimatedRootNodesCount = Math.max(estimatedRootNodesCount, (int) response.getNumFound());
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 
@@ -88,6 +101,7 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 		LinkableTaxonomySearchResponse response = modelLayerFactory.newTaxonomiesSearchService()
 				.getVisibleChildConceptResponse(currentUser, taxonomyCode, record, taxonomiesSearchOptions);
 
+		System.out.println("getRootObjects(" + taxonomyCode + "," + record.getId() + "," + start + "," + maxSize + ")");
 		List<String> recordIds = new ArrayList<>();
 		for (TaxonomySearchRecord searchRecord : response.getRecords()) {
 			RecordDataTreeNode node = toTreeNode(searchRecord);
@@ -95,6 +109,8 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 			recordIds.add(searchRecord.getId());
 			parentCache.put(searchRecord.getId(), parent);
 		}
+		RecordDataTreeNode parentTreeNode = nodesCache.get(parent);
+		parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 

@@ -23,4 +23,8 @@ public interface LazyTreeDataProvider<T extends Serializable> extends DataProvid
 	String getDescription(T id);
 
 	Resource getIcon(T id, boolean expanded);
+
+	int getEstimatedRootNodesCount();
+
+	int getEstimatedChildrenNodesCount(T parent);
 }

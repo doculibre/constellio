@@ -285,9 +285,9 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		int sameLevelNodeCount;
 		T parent = getParentForLoader(itemId);
 		if (parent != null) {
-			sameLevelNodeCount = dataProvider.getChildren(parent, 0, 0).getCount();
+			sameLevelNodeCount = dataProvider.getEstimatedChildrenNodesCount(parent);
 		} else {
-			sameLevelNodeCount = dataProvider.getRootObjects(0, 0).getCount();
+			sameLevelNodeCount = dataProvider.getEstimatedRootNodesCount();
 		}
 		if ((lowerLimit + bufferSize) >= sameLevelNodeCount) {
 			upperLimit = sameLevelNodeCount;

@@ -2,53 +2,53 @@ package com.constellio.app.ui.framework.data;
 
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
-import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.LookupTreeDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
-import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
+import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
-import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 
 public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<String> {
-	private String taxonomyCode;
+	private int estimatedRootNodesCount = -1;
 	private String schemaTypeCode;
 	private Map<String, String> parentCache = new HashMap<>();
 	private Map<String, Boolean> selectableCache = new HashMap<>();
 	private boolean ignoreLinkability;
 	private boolean writeAccess;
 	private Map<String, RecordDataTreeNode> nodesCache = new HashMap<>();
+	private RecordTreeNodesDataProvider nodesDataProvider;
 
 	public RecordLookupTreeDataProvider(String schemaTypeCode, String taxonomyCode, boolean writeAccess) {
 		this.writeAccess = writeAccess;
 		this.schemaTypeCode = schemaTypeCode;
-		this.taxonomyCode = taxonomyCode;
+		this.nodesDataProvider = new LinkableRecordTreeNodesDataProvider(taxonomyCode, schemaTypeCode, writeAccess);
+		ignoreLinkability = false;
+	}
+
+	public RecordLookupTreeDataProvider(String schemaTypeCode, boolean writeAccess,
+			RecordTreeNodesDataProvider recordTreeNodesDataProvider) {
+		this.writeAccess = writeAccess;
+		this.schemaTypeCode = schemaTypeCode;
+		this.nodesDataProvider = recordTreeNodesDataProvider;
 		ignoreLinkability = false;
 	}
 
 	@Override
 	public final String getTaxonomyCode() {
-		return taxonomyCode;
+		return nodesDataProvider.getTaxonomyCode();
 	}
 
 	public RecordDataTreeNode getNode(String id) {
@@ -72,17 +72,13 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 
 	@Override
 	public ObjectsResponse<String> getRootObjects(int start, int maxSize) {
-		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
-		User currentUser = getCurrentUser(modelLayerFactory);
-
-		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start);
-		LinkableTaxonomySearchResponse response = modelLayerFactory.newTaxonomiesSearchService().getLinkableRootConceptResponse(
-				currentUser, currentUser.getCollection(), taxonomyCode, schemaTypeCode, taxonomiesSearchOptions);
+		LinkableTaxonomySearchResponse response = nodesDataProvider.getRootNodes(start, maxSize);
 
 		List<String> recordIds = new ArrayList<>();
 		for (TaxonomySearchRecord searchRecord : response.getRecords()) {
 			recordIds.add(saveResultInCacheAndReturnId(searchRecord));
 		}
+		estimatedRootNodesCount = Math.max(estimatedRootNodesCount, (int) response.getNumFound());
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 
@@ -95,32 +91,17 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 		return searchRecord.getId();
 	}
 
-	private User getCurrentUser(ModelLayerFactory modelLayerFactory) {
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-		String currentCollection = sessionContext.getCurrentCollection();
-		UserVO currentUserVO = sessionContext.getCurrentUser();
-		UserServices userServices = modelLayerFactory.newUserServices();
-
-		return userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
-	}
-
-	private Record getRecord(ModelLayerFactory modelLayerFactory, String id) {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-
-		return recordServices.getDocumentById(id);
-	}
-
 	private RecordDataTreeNode toTreeNode(TaxonomySearchRecord searchRecord) {
 		Record record = searchRecord.getRecord();
 		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-		String caption = SchemaCaptionUtils.getCaptionForRecord(record);
+		String caption = getCaptionOf(record);
 		String description = record.get(Schemas.DESCRIPTION_STRING);
 		if (description == null) {
 			description = record.get(Schemas.DESCRIPTION_TEXT);
 		}
 
-		Resource collapsedIcon = FileIconUtils.getIconForRecordId(record, false);
-		Resource expandedIcon = FileIconUtils.getIconForRecordId(record, true);
+		Resource collapsedIcon = getCollapsedIconOf(record);
+		Resource expandedIcon = getExpandedIconOf(record);
 
 		return new RecordDataTreeNode(searchRecord.getId(), caption, description, schemaType,
 				collapsedIcon, expandedIcon, searchRecord.hasChildren());
@@ -133,21 +114,15 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 
 	@Override
 	public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
-		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
-
-		User currentUser = getCurrentUser(modelLayerFactory);
-		Record record = getRecord(modelLayerFactory, parent);
-
-		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start);
-		LinkableTaxonomySearchResponse response = modelLayerFactory.newTaxonomiesSearchService().getLinkableChildConceptResponse(
-				currentUser, record, taxonomyCode, schemaTypeCode, taxonomiesSearchOptions);
+		LinkableTaxonomySearchResponse response = nodesDataProvider.getChildrenNodes(parent, start, maxSize);
 
 		List<String> recordIds = new ArrayList<>();
 		for (TaxonomySearchRecord searchRecord : response.getRecords()) {
 			recordIds.add(saveResultInCacheAndReturnId(searchRecord));
 			parentCache.put(searchRecord.getId(), parent);
 		}
-
+		RecordDataTreeNode parentTreeNode = nodesCache.get(parent);
+		parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 
@@ -171,17 +146,29 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 		return new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, writeAccess);
 	}
 
-	private TaxonomiesSearchOptions newTaxonomiesSearchOptions(int rows, int startRow) {
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(rows, startRow, StatusFilter.ACTIVES)
-				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
-						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
-		if (writeAccess) {
-			options.setRequiredAccess(Role.WRITE);
-		}
-		return options;
-	}
-
 	public void setIgnoreLinkability(boolean ignoreLinkability) {
 		this.ignoreLinkability = ignoreLinkability;
+	}
+
+	@Override
+	public int getEstimatedRootNodesCount() {
+		return estimatedRootNodesCount;
+	}
+
+	@Override
+	public int getEstimatedChildrenNodesCount(String parent) {
+		return getNode(parent).estimatedChildrenCount;
+	}
+
+	public String getCaptionOf(Record record) {
+		return SchemaCaptionUtils.getCaptionForRecord(record);
+	}
+
+	public Resource getExpandedIconOf(Record record) {
+		return FileIconUtils.getIconForRecordId(record, true);
+	}
+
+	public Resource getCollapsedIconOf(Record record) {
+		return FileIconUtils.getIconForRecordId(record, false);
 	}
 }

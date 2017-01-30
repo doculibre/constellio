@@ -99,7 +99,7 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 			throws Exception {
 
 		ArgumentCaptor<LogicalSearchQuery> query = ArgumentCaptor.forClass(LogicalSearchQuery.class);
-		when(zeTaxonomySchemaType1Record.get(Schemas.PATH)).thenReturn(zeTaxonomySchemaType1RecordPaths);
+		when(zeTaxonomySchemaType1Record.getId()).thenReturn("zeTaxonomySchemaType1Record");
 		when(taxonomiesSearchOptions.getIncludeStatus()).thenReturn(StatusFilter.ALL);
 
 		services.findNonTaxonomyRecordsInStructure(zeTaxonomySchemaType1Record, taxonomiesSearchOptions);
@@ -108,12 +108,10 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 
 		assertThat(query.getValue().getCondition()).isEqualTo(
 				fromAllSchemasIn(query.getValue().getCondition().getCollection())
-						.where(Schemas.PATH)
-						.isStartingWithText(firstPath + "/")
-						.andWhere(Schemas.SCHEMA)
-						.isNot(LogicalSearchQueryOperators.any(Arrays.asList(
-								LogicalSearchQueryOperators.startingWithText(taxonomySchemaType1),
-								LogicalSearchQueryOperators.startingWithText(taxonomySchemaType2)))));
+						.where(Schemas.PATH_PARTS).isEqualTo("_LAST_zeTaxonomySchemaType1Record")
+						.andWhere(Schemas.SCHEMA).isNot(LogicalSearchQueryOperators.any(Arrays.asList(
+						LogicalSearchQueryOperators.startingWithText(taxonomySchemaType1),
+						LogicalSearchQueryOperators.startingWithText(taxonomySchemaType2)))));
 
 	}
 

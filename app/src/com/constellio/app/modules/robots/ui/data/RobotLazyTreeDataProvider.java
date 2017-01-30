@@ -85,6 +85,16 @@ public class RobotLazyTreeDataProvider implements LazyTreeDataProvider<String> {
 		return null;
 	}
 
+	@Override
+	public int getEstimatedRootNodesCount() {
+		return getRootObjects(0, 0).getCount();
+	}
+
+	@Override
+	public int getEstimatedChildrenNodesCount(String parent) {
+		return getChildren(parent, 0, 0).getCount();
+	}
+
 	private RecordDataTreeNode getNode(String nodeId) {
 		return nodesCache.get(nodeId);
 	}

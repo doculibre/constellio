@@ -18,6 +18,7 @@ public class RecordDataTreeNode implements Serializable {
 	Resource expandedIconFilename;
 
 	boolean hasChildren;
+	int estimatedChildrenCount = -1;
 
 	public RecordDataTreeNode(String id, String caption, String description, String schemaType,
 			Resource collapsedIconFilename, Resource expandedIconFilename, boolean hasChildren) {
