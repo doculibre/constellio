@@ -3,10 +3,17 @@ package com.constellio.app.modules.reports;
 import com.constellio.app.modules.reports.wrapper.ReportConfig;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.reports.ReportField;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMReport;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -14,6 +21,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
+import com.vaadin.data.Container;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
@@ -23,11 +31,13 @@ import org.apache.commons.digester.Rule;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
+import org.joda.time.LocalDate;
 import org.junit.*;
 import org.krysalis.barcode4j.BarcodeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -46,6 +56,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     SearchServices ss;
     RecordServices recordServices;
     ReportUtils ru;
+    ContentManager contentManager;
 
     @Before
     public void setUp() {
@@ -56,15 +67,18 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         ss = getModelLayerFactory().newSearchServices();
         recordServices = getModelLayerFactory().newRecordServices();
         ru = new ReportUtils(zeCollection, getAppLayerFactory(), records.getAlice().getUsername());
+        contentManager = getModelLayerFactory().getContentManager();
     }
 
     @Test
     public void createReportLabelAndAssignData() throws Exception {
         String title = "test REcords 1";
-        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\tes_etiquette_1.jasper";
+        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
+        Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
         ReportConfig r = rm.newReportConfig();
         r.setTitle(title);
-        r.setJasperFile(file);
+        r.setJasperFile(c);
         Transaction t = new Transaction();
         t.add(r);
         recordServices.execute(t);
@@ -72,39 +86,34 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         LogicalSearchCondition condition = from(rm.reportsrecords.schemaType()).where(rm.reportsrecords.title()).isEqualTo(title);
         ReportConfig retour = rm.wrapReportConfig(ss.searchSingleResult(condition));
         assertThat(retour.getTitle()).isEqualTo(title);
-        assertThat(retour.getJasperfile()).isEqualTo(file);
+        assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
     }
 
     @Test
     public void createRecordsLabelAndAssignData() throws Exception {
-        String width = "100";
-        String height = "50";
-
         String title = "Test records 2";
-        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\tes_etiquette_1.jasper";
-
-//        RMReport rmReport = rm.newRMReport();
-//        rmReport.setJasperFile(file);
-//        rmReport.setTitle(title);
-//        rmReport.setWidth(width);
-//        rmReport.setHeight(height);
+        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
+        Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
+        ReportConfig r = rm.newReportConfig();
+        RMReport rmReport = rm.newRMReport();
+        rmReport.setJasperFile(c);
+        rmReport.setTitle(title);
 
         Transaction t = new Transaction();
-//        t.add(rmReport);
+        t.add(rmReport);
         recordServices.execute(t);
 
         LogicalSearchCondition condition = from(rm.reportsrecords.schemaType()).where(rm.reportsrecords.title()).isEqualTo(title);
-//        RMReport retour = rm.wrapRMReport(ss.searchSingleResult(condition));
-//        assertThat(retour.getJasperfile()).isEqualTo(file);
-//        assertThat(retour.getWidth()).isEqualTo(width);
-//        assertThat(retour.getHeight()).isEqualTo(height);
-//        assertThat(retour.getTitle()).isEqualTo(title);
+        RMReport retour = rm.wrapRMReport(ss.searchSingleResult(condition));
+        assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
+        assertThat(retour.getTitle()).isEqualTo(title);
     }
 
     @Test
     public void testConvertFoldersToXML() throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        String xmlWithAllFolders = ru.convertFolderToXML(rm.folder.title().getCode());
+        String xmlWithAllFolders = ru.convertFolderToXML(new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE, rm.folder.title().getCode(), getAppLayerFactory()));
         ByteArrayInputStream stream = new ByteArrayInputStream(xmlWithAllFolders.getBytes("UTF-8"));
         Document document = builder.build(stream);
         List<Element> folders = document.getRootElement().getChildren();
@@ -115,39 +124,44 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
             if (f.getName().matches("folder_([ABC](\\d){1,2})")) compteur++;
         }
         assertThat(folders.size()).isEqualTo(compteur);
-        assertThat(folders.get(0).getChild("metadatas").getChild(rm.folder.title().getCode()).getValue()).isEqualTo(records.getFolder_A01().getTitle());
+        assertThat(folders.get(0).getChild("metadatas").getChild(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getFolder_A01().getTitle());
 
         String xmlWithNullParameter = ru.convertFolderToXML(null);
-        System.out.println(xmlWithNullParameter);
         ByteArrayInputStream stream2 = new ByteArrayInputStream(xmlWithNullParameter.getBytes("UTF-8"));
         Document document2 = builder.build(stream2);
         Element element = (Element) document2.getRootElement().getChildren().get(0);
-        assertThat(element.getChild("metadatas").getChildren().size()).isEqualTo(rm.folder.schema().getMetadatas().size());
-        assertThat(element.getChild("metadatas").getChild(rm.folder.category().getCode()).getValue()).isEqualTo(records.getFolder_A01().getCategory());
+        assertThat(element.getChild("metadatas").getChild("ref_" + rm.folder.category().getCode().replace("_default", "") + "_code").getValue()).isEqualTo(records.getCategory_X110().getCode());
     }
 
     @Test
     public void testConvertFoldersWithIdentifierToXML() throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        String xmlSeul = ru.convertFolderWithIdentifierToXML(records.folder_A80, rm.folder.category().getCode(), rm.folder.title().getCode());
+        ReportField refCategory = new ReportField(rm.folder.category().getType(), rm.folder.category().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE, rm.folder.category().getCode(), getAppLayerFactory());
+        String xmlSeul = ru.convertFolderWithIdentifierToXML(records.folder_A80,
+                refCategory,
+                new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE, rm.folder.title().getCode(), getAppLayerFactory()));
         ByteArrayInputStream stream = new ByteArrayInputStream(xmlSeul.getBytes("UTF-8"));
         Document document = builder.build(stream);
         Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
-        assertThat(meta.getChild(rm.folder.category().getCode()).getValue()).isEqualTo(records.getFolder_A80().getCategory());
-        assertThat(meta.getChild(rm.folder.title().getCode()).getValue()).isEqualTo(records.getFolder_A80().getTitle());
+        assertThat(meta.getChild("ref_" + rm.folder.category().getCode().replace("_default", "") + "_title").getValue()).isEqualTo(records.getCategory_X110().getTitle());
+        assertThat(meta.getChild(ReportUtils.escapeForXmlTag(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase())).getValue()).isEqualTo(records.getFolder_A80().getTitle());
 
-        String xmlWithMulipleIds = ru.convertFolderWithIdentifierToXML(Arrays.asList(records.folder_A05, records.folder_A06), rm.folder.title().getCode(), Schemas.IDENTIFIER.getCode());
+        String xmlWithMulipleIds = ru.convertFolderWithIdentifierToXML(
+                Arrays.asList(records.folder_A05, records.folder_A06),
+                new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE, rm.folder.title().getCode(), getAppLayerFactory()),
+                new ReportField(Schemas.IDENTIFIER.getType(), Schemas.IDENTIFIER.getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE, Schemas.IDENTIFIER.getCode(), getAppLayerFactory()));
         ByteArrayInputStream streamWithMultiple = new ByteArrayInputStream(xmlWithMulipleIds.getBytes("UTF-8"));
         Document docWithMultiple = builder.build(streamWithMultiple);
         List<Element> XmlMuliple = docWithMultiple.getRootElement().getChildren();
 
+        String tst = ru.convertFolderWithIdentifierToXML(records.folder_A05, null);
+
         assertThat(XmlMuliple.size()).isEqualTo(2);
-        assertThat(XmlMuliple.get(0).getChild("metadatas").getChild(rm.folder.title().getCode()).getValue()).isEqualTo(records.getFolder_A05().getTitle());
-        assertThat(XmlMuliple.get(1).getChild("metadatas").getChild(rm.folder.title().getCode()).getValue()).isEqualTo(records.getFolder_A06().getTitle());
+        assertThat(XmlMuliple.get(0).getChild("metadatas").getChild(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getFolder_A05().getTitle());
+        assertThat(XmlMuliple.get(1).getChild("metadatas").getChild(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getFolder_A06().getTitle());
         String Null = null;
         try {
-            String xmlNull = ru.convertFolderWithIdentifierToXML(Null, rm.folder.title().getCode());
-            System.out.println(xmlNull);
+            String xmlNull = ru.convertFolderWithIdentifierToXML(Null, new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE, rm.folder.title().getCode(), getAppLayerFactory()));
             fail();
         } catch (Exception e) {
         }
@@ -157,7 +171,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void testConvertContainerToXML() throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        String xmlWithAllContainers = ru.convertContainerToXML(rm.containerRecord.title().getCode());
+        String xmlWithAllContainers = ru.convertContainerToXML(new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()));
         ByteArrayInputStream stream = new ByteArrayInputStream(xmlWithAllContainers.getBytes("UTF-8"));
         Document document = builder.build(stream);
         List<Element> containers = document.getRootElement().getChildren();
@@ -168,15 +182,14 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
             if (f.getName().matches("containerId_((bac)(\\d){1,2})")) compteur++;
         }
         assertThat(containers.size()).isEqualTo(compteur);
-        assertThat(containers.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac01().getTitle());
+        assertThat(containers.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac01().getTitle());
 
         String xmlWithNullParameter = ru.convertContainerToXML(null);
-        System.out.println(xmlWithNullParameter);
         ByteArrayInputStream stream2 = new ByteArrayInputStream(xmlWithNullParameter.getBytes("UTF-8"));
         Document document2 = builder.build(stream2);
         Element element = (Element) document2.getRootElement().getChildren().get(0);
         assertThat(element.getChild("metadatas").getChildren().size()).isEqualTo(rm.containerRecord.schema().getMetadatas().size());
-        assertThat(element.getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac01().getTitle());
+        assertThat(element.getChild("metadatas").getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac01().getTitle());
     }
 
     @Test
@@ -187,23 +200,27 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
         Document document = builder.build(stream);
         Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
-        assertThat(meta.getChildren().size()).isEqualTo(rm.containerRecord.schema().getMetadatas().size());
 
 
-//        String contenuSeul = ru.convertContainerWithIdentifierToXML(new ReportUtils.ReportField(records.containerId_bac09, "Test", records.getContainerBac09().getSchema().getCode(), ), rm.containerRecord.title().getCode(), rm.containerRecord.storageSpace().getCode());
-//        ByteArrayInputStream stream1 = new ByteArrayInputStream(contenuSeul.getBytes("UTF-8"));
-//        Document doc1 = builder.build(stream1);
-//        Element meta1 = ((Element) doc1.getRootElement().getChildren().get(0)).getChild("metadatas");
-//        assertThat(meta1.getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac09().getTitle());
-//        assertThat(meta1.getChild(rm.containerRecord.storageSpace().getCode()).getValue()).isEqualTo(records.getContainerBac09().getStorageSpace());
+        String contenuSeul = ru.convertContainerWithIdentifierToXML(
+                records.containerId_bac08,
+                new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()),
+                new ReportField(rm.containerRecord.capacity().getType(), rm.containerRecord.storageSpace().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.storageSpace().getCode(), getAppLayerFactory()));
+        ByteArrayInputStream stream1 = new ByteArrayInputStream(contenuSeul.getBytes("UTF-8"));
+        Document doc1 = builder.build(stream1);
+        Element meta1 = ((Element) doc1.getRootElement().getChildren().get(0)).getChild("metadatas");
+        assertThat(meta1.getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac08().getTitle());
+        assertThat(meta1.getChild(ReportUtils.escapeForXmlTag(rm.containerRecord.storageSpace().getLabel(i18n.getLanguage()))).getValue()).isEqualTo(records.getContainerBac08().getStorageSpace());
 
-//        String conteneurWithMultipleIds = ru.convertContainerWithIdentifierToXML(Arrays.asList(records.containerId_bac05, records.containerId_bac07), rm.containerRecord.title().getCode(), rm.containerRecord.capacity().getCode());
-//        ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
-//        Document docWithMultiple = builder.build(streamWithMultipleIds);
-//        List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
-//        assertThat(meta2.size()).isEqualTo(2);
-//        assertThat(meta2.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac05().getTitle());
-//        assertThat(meta2.get(1).getChild("metadatas").getChild(rm.containerRecord.title().getCode()).getValue()).isEqualTo(records.getContainerBac07().getTitle());
+        String conteneurWithMultipleIds = ru.convertContainerWithIdentifierToXML(Arrays.asList(records.containerId_bac05, records.containerId_bac07),
+                new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()),
+                new ReportField(rm.containerRecord.capacity().getType(), rm.containerRecord.capacity().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.capacity().getCode(), getAppLayerFactory()));
+        ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
+        Document docWithMultiple = builder.build(streamWithMultipleIds);
+        List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
+        assertThat(meta2.size()).isEqualTo(2);
+        assertThat(meta2.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac05().getTitle());
+        assertThat(meta2.get(1).getChild("metadatas").getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac07().getTitle());
     }
 
     @Test

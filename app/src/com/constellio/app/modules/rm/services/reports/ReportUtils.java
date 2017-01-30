@@ -1,13 +1,17 @@
 package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.modules.reports.wrapper.ReportConfig;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -48,6 +52,7 @@ import org.jdom2.output.XMLOutputter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -100,7 +105,7 @@ public class ReportUtils {
      * @return String - Le document XML
      * @throws Exception
      */
-    public String convertFolderToXML(String... parameters) throws Exception {
+    public String convertFolderToXML(ReportField... parameters) throws Exception {
         LogicalSearchCondition condition = from(rm.folder.schemaType()).where(ALL);
         List<Folder> foldersFound = rm.wrapFolders(ss.search(new LogicalSearchQuery(condition)));
         Document document = new Document();
@@ -113,25 +118,44 @@ public class ReportUtils {
             root.addContent(container);
         }
         if (parameters == null) {
-            List<String> temp = new ArrayList<>();
+            List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.folder.schema().getMetadatas()) {
-                String code = "";
-                if (m.getType().equals(MetadataValueType.DATE)) {
-//                    code = m.get
-                }
-                temp.add(m.getCode());
+                String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : Folder.SCHEMA_TYPE;
+                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
             }
-            parameters = temp.toArray(new String[0]);
+            parameters = temp.toArray(new ReportField[0]);
         }
         for (Folder fol : foldersFound) {
             Element folder = new Element("folder");
             Element metadatas = new Element("metadatas");
-            for (String metadonnee : parameters) {
-                if (!rm.folder.schema().hasMetadataWithCode(metadonnee))
-                    throw new MetadataException("No such metadata " + metadonnee);
-                Element m = new Element(metadonnee.split("_")[2]);
-                m.setText(fol.get(metadonnee) + "");
-                metadatas.addContent(m);
+            for (ReportField metadonnee : parameters) {
+                MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+//                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
+//                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
+                if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+//                    recordServices.getDocumentById()
+                    List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+                    List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
+                    for (Record refRecords : referenceRecords) {
+                        Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                        refElementCode.setText(refRecords.get(Schemas.CODE) + "");
+                        Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                        refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
+                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                    }
+                } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
+                    if (fol.get(metadonnee.getCode()) != null) {
+                        Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
+                        refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
+                        Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
+                        refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
+                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                    }
+                } else {
+                    Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
+                    m.setText(metadonnee.formatData(fol.get(metadonnee.getCode()) != null ? fol.get(metadonnee.getCode()) + "" : null));
+                    metadatas.addContent(m);
+                }
             }
             folder.setContent(metadatas);
             root.addContent(folder);
@@ -149,7 +173,7 @@ public class ReportUtils {
      * @return String - Le document XML
      * @throws Exception
      */
-    public String convertFolderWithIdentifierToXML(String id, String... parameters) throws Exception {
+    public String convertFolderWithIdentifierToXML(String id, ReportField... parameters) throws Exception {
         if (id == null) throw new NullArgumentException("The id is null !");
         return convertFolderWithIdentifierToXML(Arrays.asList(id), parameters);
     }
@@ -163,7 +187,7 @@ public class ReportUtils {
      * @return String - Le document XML
      * @throws Exception
      */
-    public String convertFolderWithIdentifierToXML(List<String> ids, String... parameters) throws Exception {
+    public String convertFolderWithIdentifierToXML(List<String> ids, ReportField... parameters) throws Exception {
         if (ids == null) throw new NullArgumentException("The ids list is null !");
         LogicalSearchCondition condition = from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isIn(ids);
         List<Folder> foldersFound = rm.wrapFolders(ss.search(new LogicalSearchQuery(condition)));
@@ -177,22 +201,45 @@ public class ReportUtils {
             root.addContent(container);
         }
         if (parameters == null) {
-            List<String> temp = new ArrayList<>();
+            List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.folder.schema().getMetadatas()) {
-                temp.add(m.getCode());
+                String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : Folder.SCHEMA_TYPE;
+                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
             }
-            parameters = temp.toArray(new String[0]);
+            parameters = temp.toArray(new ReportField[0]);
         }
         for (int i = 0; i < this.numberOfCopies; i++) {
             for (Folder fol : foldersFound) {
                 Element folder = new Element("folder");
                 Element metadatas = new Element("metadatas");
-                for (String metadonnee : parameters) {
-                    if (!rm.folder.schema().hasMetadataWithCode(metadonnee))
-                        throw new MetadataException("No such metadata " + metadonnee);
-                    Element m = new Element(metadonnee.split("_")[2]);
-                    m.setText(fol.get(metadonnee) + "");
-                    metadatas.addContent(m);
+                for (ReportField metadonnee : parameters) {
+                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+//                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
+//                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
+                    if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+//                    recordServices.getDocumentById()
+                        List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+                        List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
+                        for (Record refRecords : referenceRecords) {
+                            Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                            refElementCode.setText(refRecords.get(Schemas.CODE) + "");
+                            Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                            refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
+                            metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        }
+                    } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
+                        if (fol.get(metadonnee.getCode()) != null) {
+                            Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
+                            refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
+                            Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
+                            refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
+                            metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        }
+                    } else {
+                        Element m = new Element(metadonnee.getLabel() != null ? escapeForXmlTag(metadonnee.getLabel()) : metadonnee.getCode().split("_")[2]);
+                        m.setText(metadonnee.formatData(fol.get(metadonnee.getCode()) != null ? fol.get(metadonnee.getCode()) + "" : null));
+                        metadatas.addContent(m);
+                    }
                 }
                 folder.setContent(metadatas);
                 root.addContent(folder);
@@ -211,9 +258,9 @@ public class ReportUtils {
      * @return String - Le document XML
      * @throws Exception
      */
-    public String convertContainerToXML(String... parameters) throws Exception {
+    public String convertContainerToXML(ReportField... parameters) throws Exception {
         LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(ALL);
-        List<ContainerRecord> containersFound = rm.wrapContainerRecords(ss.search(new LogicalSearchQuery(condition)));
+        List<ContainerRecord> containersFound = rm.wrapContainerRecords(ss.search(new LogicalSearchQuery(condition).filteredWithUser(this.userServices.getUserInCollection(this.usr, this.collection), Role.READ)));
         Document document = new Document();
         Element root = new Element("containers");
         document.setRootElement(root);
@@ -224,21 +271,44 @@ public class ReportUtils {
             root.addContent(container);
         }
         if (parameters == null) {
-            List<String> temp = new ArrayList<>();
+            List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.containerRecord.schema().getMetadatas()) {
-                temp.add(m.getCode());
+                String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : ContainerRecord.SCHEMA_TYPE;
+                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
             }
-            parameters = temp.toArray(new String[0]);
+            parameters = temp.toArray(new ReportField[0]);
         }
         for (ContainerRecord con : containersFound) {
             Element container = new Element("container");
             Element metadatas = new Element("metadatas");
-            for (String metadonnee : parameters) {
-                if (!rm.containerRecord.schema().hasMetadataWithCode(metadonnee))
-                    throw new MetadataException("No such metadata " + metadonnee);
-                Element m = new Element(metadonnee.split("_")[2]);
-                m.setText(con.get(metadonnee) + "");
-                metadatas.addContent(m);
+            for (ReportField metadonnee : parameters) {
+                MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+//                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
+//                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
+                if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+//                    recordServices.getDocumentById()
+                    List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
+                    List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
+                    for (Record refRecords : referenceRecords) {
+                        Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                        refElementCode.setText(refRecords.get(Schemas.CODE) + "");
+                        Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                        refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
+                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                    }
+                } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
+                    if (con.get(metadonnee.getCode()) != null) {
+                        Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
+                        refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
+                        Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
+                        refElementTitle.setText(con.get(metadonnee.getCode()) + "");
+                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                    }
+                } else {
+                    Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
+                    m.setText(metadonnee.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
+                    metadatas.addContent(m);
+                }
             }
             container.setContent(metadatas);
             root.addContent(container);
@@ -287,7 +357,7 @@ public class ReportUtils {
             List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.containerRecord.schema().getMetadatas()) {
                 String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : ContainerRecord.SCHEMA_TYPE;
-                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode()));
+                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
             }
             parameters = temp.toArray(new ReportField[0]);
         }
@@ -303,10 +373,18 @@ public class ReportUtils {
                     List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
                     List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
                     for (Record refRecords : referenceRecords) {
-                        Element refElementCode = new Element("ref_" + metadonnee.getCode() + "_" + refRecords.getSchemaCode() + "_code");
+                        Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
                         refElementCode.setText(refRecords.get(Schemas.CODE) + "");
-                        Element refElementTitle = new Element("ref_" + metadonnee.getCode() + "_" + refRecords.getSchemaCode() + "_title");
+                        Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
                         refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
+                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                    }
+                } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
+                    if (con.get(metadonnee.getCode()) != null) {
+                        Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
+                        refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
+                        Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
+                        refElementTitle.setText(con.get(metadonnee.getCode()) + "");
                         metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
                     }
                 } else {
@@ -393,55 +471,5 @@ public class ReportUtils {
      */
     public static String escapeForXmlTag(String input) {
         return input.replace(" ", "_").replaceAll("[éèëê]", "e").replaceAll("[àâáä]", "a").replaceAll("[öòóô]", "o").replace("'", "").replaceAll("-", "_").replaceAll("[üùúû]", "u").replaceAll("[îìíï]", "i").replaceAll("[\\( \\)]", "").replaceAll("[&$%]", "").toLowerCase();
-    }
-
-    public class ReportField {
-
-        private MetadataValueType types;
-        private String label, schema, code;
-
-        public ReportField(MetadataValueType type, String label, String schema, String code) {
-            this.types = type;
-            this.label = label;
-            this.schema = schema;
-            this.code = code;
-        }
-
-        public MetadataValueType getTypes() {
-            return this.types;
-        }
-
-        public String getSchema() {
-            return this.schema;
-        }
-
-        public String getLabel() {
-            return this.label;
-        }
-
-        public String getCode() {
-            return this.code;
-        }
-
-        public String formatData(String value) throws Exception {
-            String formattedData = value;
-            if (value != null) {
-                ConstellioEIMConfigs configs = new ConstellioEIMConfigs(factory.getModelLayerFactory().getSystemConfigurationsManager());
-                if (this.types.equals(MetadataValueType.BOOLEAN)) {
-                    formattedData = $(value);
-                } else if (this.types.equals(MetadataValueType.DATE)) {
-                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                    Date date = df.parse(value);
-                    formattedData = SimpleDateFormatSingleton.getSimpleDateFormat(configs.getDateFormat()).format(date);
-                } else if (this.types.equals(MetadataValueType.DATE_TIME)) {
-                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-                    Date date = df.parse(value);
-                    formattedData = SimpleDateFormatSingleton.getSimpleDateFormat(configs.getDateTimeFormat()).format(date);
-                }
-                formattedData = formattedData.replaceAll("[\\[\\]]", "");
-            }
-            return formattedData;
-        }
-
     }
 }

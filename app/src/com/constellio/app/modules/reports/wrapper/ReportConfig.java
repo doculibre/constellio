@@ -1,6 +1,7 @@
 package com.constellio.app.modules.reports.wrapper;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -27,7 +28,7 @@ public class ReportConfig extends RecordWrapper {
         return this;
     }
 
-    public ReportConfig setJasperFile(String file) {
+    public ReportConfig setJasperFile(Content file) {
         set(JASPERFILE, file);
         return this;
     }
