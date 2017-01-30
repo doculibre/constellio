@@ -266,6 +266,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @InDevelopmentTest
     public void createNewXmlWithModifiedReference() throws Exception {
         String xml = ru.convertContainerWithIdentifierToXML(records.containerId_bac08, null);
+        System.out.println(records.getCategory_X110().getCode());
+        System.out.println(records.getCategory_X110().getTitle());
         System.out.println(xml);
     }
 }

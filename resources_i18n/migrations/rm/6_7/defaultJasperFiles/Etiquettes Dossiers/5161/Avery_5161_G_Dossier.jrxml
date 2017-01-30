@@ -1,367 +1,220 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2017-01-24T11:17:10 -->
+<!-- 2017-01-30T13:57:02 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-              name="Blank_A4" columnCount="2" printOrder="Horizontal" pageWidth="595" pageHeight="842" columnWidth="240"
-              columnSpacing="80" leftMargin="17" rightMargin="17" topMargin="0" bottomMargin="0"
-              uuid="3ed38d6e-3973-4c9f-974e-2c1664703ecf">
-    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="NEW_DATAADAPTER.xml"/>
-    <property name="com.jaspersoft.studio.unit." value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
-    <property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-    <queryString language="xPath">
-        <![CDATA[/folders/folder/metadatas]]>
-    </queryString>
-    <field name="activeRetentionPeriodCode" class="java.lang.String">
-        <fieldDescription><![CDATA[activeRetentionPeriodCode]]></fieldDescription>
-    </field>
-    <field name="activeRetentionType" class="java.lang.String">
-        <fieldDescription><![CDATA[activeRetentionType]]></fieldDescription>
-    </field>
-    <field name="actualDepositDate" class="java.lang.String">
-        <fieldDescription><![CDATA[actualDepositDate]]></fieldDescription>
-    </field>
-    <field name="actualDestructionDate" class="java.lang.String">
-        <fieldDescription><![CDATA[actualDestructionDate]]></fieldDescription>
-    </field>
-    <field name="actualTransferDate" class="java.lang.String">
-        <fieldDescription><![CDATA[actualTransferDate]]></fieldDescription>
-    </field>
-    <field name="administrativeUnit" class="java.lang.String">
-        <fieldDescription><![CDATA[administrativeUnit]]></fieldDescription>
-    </field>
-    <field name="administrativeUnitAncestors" class="java.lang.String">
-        <fieldDescription><![CDATA[administrativeUnitAncestors]]></fieldDescription>
-    </field>
-    <field name="administrativeUnitCode" class="java.lang.String">
-        <fieldDescription><![CDATA[administrativeUnitCode]]></fieldDescription>
-    </field>
-    <field name="administrativeUnitEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[administrativeUnitEntered]]></fieldDescription>
-    </field>
-    <field name="alertUsersWhenAvailable" class="java.lang.String">
-        <fieldDescription><![CDATA[alertUsersWhenAvailable]]></fieldDescription>
-    </field>
-    <field name="allReferences" class="java.lang.String">
-        <fieldDescription><![CDATA[allReferences]]></fieldDescription>
-    </field>
-    <field name="allRemovedAuths" class="java.lang.String">
-        <fieldDescription><![CDATA[allRemovedAuths]]></fieldDescription>
-    </field>
-    <field name="allauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[allauthorizations]]></fieldDescription>
-    </field>
-    <field name="applicableCopyRule" class="java.lang.String">
-        <fieldDescription><![CDATA[applicableCopyRule]]></fieldDescription>
-    </field>
-    <field name="archivisticStatus" class="java.lang.String">
-        <fieldDescription><![CDATA[archivisticStatus]]></fieldDescription>
-    </field>
-    <field name="attachedAncestors" class="java.lang.String">
-        <fieldDescription><![CDATA[attachedAncestors]]></fieldDescription>
-    </field>
-    <field name="authorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[authorizations]]></fieldDescription>
-    </field>
-    <field name="borrowDate" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowDate]]></fieldDescription>
-    </field>
-    <field name="borrowPreviewReturnDate" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowPreviewReturnDate]]></fieldDescription>
-    </field>
-    <field name="borrowReturnDate" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowReturnDate]]></fieldDescription>
-    </field>
-    <field name="borrowUser" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowUser]]></fieldDescription>
-    </field>
-    <field name="borrowUserEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowUserEntered]]></fieldDescription>
-    </field>
-    <field name="borrowed" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowed]]></fieldDescription>
-    </field>
-    <field name="borrowingType" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowingType]]></fieldDescription>
-    </field>
-    <field name="category" class="java.lang.String">
-        <fieldDescription><![CDATA[category]]></fieldDescription>
-    </field>
-    <field name="categoryCode" class="java.lang.String">
-        <fieldDescription><![CDATA[categoryCode]]></fieldDescription>
-    </field>
-    <field name="categoryEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[categoryEntered]]></fieldDescription>
-    </field>
-    <field name="closingDate" class="java.lang.String">
-        <fieldDescription><![CDATA[closingDate]]></fieldDescription>
-    </field>
-    <field name="comments" class="java.lang.String">
-        <fieldDescription><![CDATA[comments]]></fieldDescription>
-    </field>
-    <field name="container" class="java.lang.String">
-        <fieldDescription><![CDATA[container]]></fieldDescription>
-    </field>
-    <field name="copyRulesExpectedDepositDates" class="java.lang.String">
-        <fieldDescription><![CDATA[copyRulesExpectedDepositDates]]></fieldDescription>
-    </field>
-    <field name="copyRulesExpectedDestructionDates" class="java.lang.String">
-        <fieldDescription><![CDATA[copyRulesExpectedDestructionDates]]></fieldDescription>
-    </field>
-    <field name="copyRulesExpectedTransferDates" class="java.lang.String">
-        <fieldDescription><![CDATA[copyRulesExpectedTransferDates]]></fieldDescription>
-    </field>
-    <field name="copyStatus" class="java.lang.String">
-        <fieldDescription><![CDATA[copyStatus]]></fieldDescription>
-    </field>
-    <field name="copyStatusEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[copyStatusEntered]]></fieldDescription>
-    </field>
-    <field name="createdBy" class="java.lang.String">
-        <fieldDescription><![CDATA[createdBy]]></fieldDescription>
-    </field>
-    <field name="createdOn" class="java.lang.String">
-        <fieldDescription><![CDATA[createdOn]]></fieldDescription>
-    </field>
-    <field name="decommissioningDate" class="java.lang.String">
-        <fieldDescription><![CDATA[decommissioningDate]]></fieldDescription>
-    </field>
-    <field name="deleted" class="java.lang.String">
-        <fieldDescription><![CDATA[deleted]]></fieldDescription>
-    </field>
-    <field name="denyTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[denyTokens]]></fieldDescription>
-    </field>
-    <field name="description" class="java.lang.String">
-        <fieldDescription><![CDATA[description]]></fieldDescription>
-    </field>
-    <field name="detachedauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[detachedauthorizations]]></fieldDescription>
-    </field>
-    <field name="enteredClosingDate" class="java.lang.String">
-        <fieldDescription><![CDATA[enteredClosingDate]]></fieldDescription>
-    </field>
-    <field name="errorOnPhysicalDeletion" class="java.lang.String">
-        <fieldDescription><![CDATA[errorOnPhysicalDeletion]]></fieldDescription>
-    </field>
-    <field name="expectedDepositDate" class="java.lang.String">
-        <fieldDescription><![CDATA[expectedDepositDate]]></fieldDescription>
-    </field>
-    <field name="expectedDestructionDate" class="java.lang.String">
-        <fieldDescription><![CDATA[expectedDestructionDate]]></fieldDescription>
-    </field>
-    <field name="expectedTransferDate" class="java.lang.String">
-        <fieldDescription><![CDATA[expectedTransferDate]]></fieldDescription>
-    </field>
-    <field name="filingSpace" class="java.lang.String">
-        <fieldDescription><![CDATA[filingSpace]]></fieldDescription>
-    </field>
-    <field name="filingSpaceCode" class="java.lang.String">
-        <fieldDescription><![CDATA[filingSpaceCode]]></fieldDescription>
-    </field>
-    <field name="filingSpaceEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[filingSpaceEntered]]></fieldDescription>
-    </field>
-    <field name="folderType" class="java.lang.String">
-        <fieldDescription><![CDATA[folderType]]></fieldDescription>
-    </field>
-    <field name="followers" class="java.lang.String">
-        <fieldDescription><![CDATA[followers]]></fieldDescription>
-    </field>
-    <field name="formCreatedBy" class="java.lang.String">
-        <fieldDescription><![CDATA[formCreatedBy]]></fieldDescription>
-    </field>
-    <field name="formCreatedOn" class="java.lang.String">
-        <fieldDescription><![CDATA[formCreatedOn]]></fieldDescription>
-    </field>
-    <field name="formModifiedBy" class="java.lang.String">
-        <fieldDescription><![CDATA[formModifiedBy]]></fieldDescription>
-    </field>
-    <field name="formModifiedOn" class="java.lang.String">
-        <fieldDescription><![CDATA[formModifiedOn]]></fieldDescription>
-    </field>
-    <field name="id" class="java.lang.String">
-        <fieldDescription><![CDATA[id]]></fieldDescription>
-    </field>
-    <field name="inactiveDisposalType" class="java.lang.String">
-        <fieldDescription><![CDATA[inactiveDisposalType]]></fieldDescription>
-    </field>
-    <field name="inheritedauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[inheritedauthorizations]]></fieldDescription>
-    </field>
-    <field name="keywords" class="java.lang.String">
-        <fieldDescription><![CDATA[keywords]]></fieldDescription>
-    </field>
-    <field name="legacyIdentifier" class="java.lang.String">
-        <fieldDescription><![CDATA[legacyIdentifier]]></fieldDescription>
-    </field>
-    <field name="linearSize" class="java.lang.String">
-        <fieldDescription><![CDATA[linearSize]]></fieldDescription>
-    </field>
-    <field name="logicallyDeletedOn" class="java.lang.String">
-        <fieldDescription><![CDATA[logicallyDeletedOn]]></fieldDescription>
-    </field>
-    <field name="mainCopyRule" class="java.lang.String">
-        <fieldDescription><![CDATA[mainCopyRule]]></fieldDescription>
-    </field>
-    <field name="mainCopyRuleIdEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[mainCopyRuleIdEntered]]></fieldDescription>
-    </field>
-    <field name="manualArchivisticStatus" class="java.lang.String">
-        <fieldDescription><![CDATA[manualArchivisticStatus]]></fieldDescription>
-    </field>
-    <field name="manualExpectedDepositDate" class="java.lang.String">
-        <fieldDescription><![CDATA[manualExpectedDepositDate]]></fieldDescription>
-    </field>
-    <field name="manualExpectedDesctructionDate" class="java.lang.String">
-        <fieldDescription><![CDATA[manualExpectedDesctructionDate]]></fieldDescription>
-    </field>
-    <field name="manualExpectedTransferDate" class="java.lang.String">
-        <fieldDescription><![CDATA[manualExpectedTransferDate]]></fieldDescription>
-    </field>
-    <field name="manualTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[manualTokens]]></fieldDescription>
-    </field>
-    <field name="markedForPreviewConversion" class="java.lang.String">
-        <fieldDescription><![CDATA[markedForPreviewConversion]]></fieldDescription>
-    </field>
-    <field name="markedForReindexing" class="java.lang.String">
-        <fieldDescription><![CDATA[markedForReindexing]]></fieldDescription>
-    </field>
-    <field name="mediaType" class="java.lang.String">
-        <fieldDescription><![CDATA[mediaType]]></fieldDescription>
-    </field>
-    <field name="mediumTypes" class="java.lang.String">
-        <fieldDescription><![CDATA[mediumTypes]]></fieldDescription>
-    </field>
-    <field name="modifiedBy" class="java.lang.String">
-        <fieldDescription><![CDATA[modifiedBy]]></fieldDescription>
-    </field>
-    <field name="modifiedOn" class="java.lang.String">
-        <fieldDescription><![CDATA[modifiedOn]]></fieldDescription>
-    </field>
-    <field name="openingDate" class="java.lang.String">
-        <fieldDescription><![CDATA[openingDate]]></fieldDescription>
-    </field>
-    <field name="parentFolder" class="java.lang.String">
-        <fieldDescription><![CDATA[parentFolder]]></fieldDescription>
-    </field>
-    <field name="parentpath" class="java.lang.String">
-        <fieldDescription><![CDATA[parentpath]]></fieldDescription>
-    </field>
-    <field name="path" class="java.lang.String">
-        <fieldDescription><![CDATA[path]]></fieldDescription>
-    </field>
-    <field name="pathParts" class="java.lang.String">
-        <fieldDescription><![CDATA[pathParts]]></fieldDescription>
-    </field>
-    <field name="permissionStatus" class="java.lang.String">
-        <fieldDescription><![CDATA[permissionStatus]]></fieldDescription>
-    </field>
-    <field name="principalpath" class="java.lang.String">
-        <fieldDescription><![CDATA[principalpath]]></fieldDescription>
-    </field>
-    <field name="removedauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[removedauthorizations]]></fieldDescription>
-    </field>
-    <field name="retentionRule" class="java.lang.String">
-        <fieldDescription><![CDATA[retentionRule]]></fieldDescription>
-    </field>
-    <field name="retentionRuleEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[retentionRuleEntered]]></fieldDescription>
-    </field>
-    <field name="ruleAdminUnit" class="java.lang.String">
-        <fieldDescription><![CDATA[ruleAdminUnit]]></fieldDescription>
-    </field>
-    <field name="schema" class="java.lang.String">
-        <fieldDescription><![CDATA[schema]]></fieldDescription>
-    </field>
-    <field name="searchable" class="java.lang.String">
-        <fieldDescription><![CDATA[searchable]]></fieldDescription>
-    </field>
-    <field name="semiactiveRetentionPeriodCode" class="java.lang.String">
-        <fieldDescription><![CDATA[semiactiveRetentionPeriodCode]]></fieldDescription>
-    </field>
-    <field name="semiactiveRetentionType" class="java.lang.String">
-        <fieldDescription><![CDATA[semiactiveRetentionType]]></fieldDescription>
-    </field>
-    <field name="shareDenyTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[shareDenyTokens]]></fieldDescription>
-    </field>
-    <field name="shareTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[shareTokens]]></fieldDescription>
-    </field>
-    <field name="timerange" class="java.lang.String">
-        <fieldDescription><![CDATA[timerange]]></fieldDescription>
-    </field>
-    <field name="title" class="java.lang.String">
-        <fieldDescription><![CDATA[title]]></fieldDescription>
-    </field>
-    <field name="tokens" class="java.lang.String">
-        <fieldDescription><![CDATA[tokens]]></fieldDescription>
-    </field>
-    <field name="type" class="java.lang.String">
-        <fieldDescription><![CDATA[type]]></fieldDescription>
-    </field>
-    <field name="uniformSubdivision" class="java.lang.String">
-        <fieldDescription><![CDATA[uniformSubdivision]]></fieldDescription>
-    </field>
-    <field name="uniformSubdivisionEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[uniformSubdivisionEntered]]></fieldDescription>
-    </field>
-    <field name="visibleInTrees" class="java.lang.String">
-        <fieldDescription><![CDATA[visibleInTrees]]></fieldDescription>
-    </field>
-    <variable name="FormatedDate" class="java.lang.String[]">
-        <variableExpression><![CDATA[$F{createdOn}.split("T")]]></variableExpression>
-    </variable>
-    <background>
-        <band splitType="Stretch"/>
-    </background>
-    <pageHeader>
-        <band height="40" splitType="Stretch"/>
-    </pageHeader>
-    <detail>
-        <band height="76" splitType="Stretch">
-            <textField isBlankWhenNull="true">
-                <reportElement x="-7" y="0" width="120" height="30" uuid="ca7f7c58-1c4a-4e03-b95e-586ca1b93ba0"/>
-                <textFieldExpression><![CDATA[$F{categoryCode}]]></textFieldExpression>
-            </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement x="193" y="50" width="75" height="20" uuid="ef88c20f-0622-4108-aab3-1401424b7b48"/>
-                <textElement textAlignment="Left"/>
-                <textFieldExpression><![CDATA[$V{FormatedDate}[0]]]></textFieldExpression>
-            </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement x="93" y="50" width="54" height="20" uuid="5a33605b-2882-42b4-b21c-3b65ea612675"/>
-                <textFieldExpression><![CDATA[$F{copyStatus}.charAt(0)]]></textFieldExpression>
-            </textField>
-            <textField isBlankWhenNull="true">
-                <reportElement x="-7" y="30" width="275" height="20" uuid="b5f02e9a-cffe-494d-a13f-e5d589401b75"/>
-                <textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
-            </textField>
-            <componentElement>
-                <reportElement x="168" y="0" width="100" height="10" isRemoveLineWhenBlank="true"
-                               uuid="c48719b9-c349-4563-8185-dbdf30b1d031"/>
-                <jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
-                             xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"
-                             type="Code128A" drawText="false" checksumRequired="false">
-                    <jr:codeExpression><![CDATA[$F{id}]]></jr:codeExpression>
-                </jr:barbecue>
-            </componentElement>
-            <textField isBlankWhenNull="true">
-                <reportElement x="168" y="10" width="50" height="20" uuid="90ce81af-abc9-45e6-b9fb-d1b7a75f70c4"/>
-                <textElement textAlignment="Left"/>
-                <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
-            </textField>
-        </band>
-    </detail>
+			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+			  name="Blank_A4" columnCount="2" printOrder="Horizontal" pageWidth="595" pageHeight="842" columnWidth="240"
+			  columnSpacing="80" leftMargin="17" rightMargin="17" topMargin="0" bottomMargin="0"
+			  uuid="3ed38d6e-3973-4c9f-974e-2c1664703ecf">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Folder_Adapter.xml"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<queryString language="xPath">
+		<![CDATA[/folders/folder/metadatas]]>
+	</queryString>
+	<field name="activeretentiontype_code" class="java.lang.String">
+		<fieldDescription><![CDATA[activeretentiontype_code]]></fieldDescription>
+	</field>
+	<field name="activeretentiontype_title" class="java.lang.String">
+		<fieldDescription><![CDATA[activeretentiontype_title]]></fieldDescription>
+	</field>
+	<field name="ref_folder_administrativeUnit_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_administrativeUnit_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_administrativeUnit_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_administrativeUnit_title]]></fieldDescription>
+	</field>
+	<field name="ref_folder_administrativeUnitAncestors_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_administrativeUnitAncestors_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_administrativeUnitAncestors_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_administrativeUnitAncestors_title]]></fieldDescription>
+	</field>
+	<field name="administrativeunitcode" class="java.lang.String">
+		<fieldDescription><![CDATA[administrativeunitcode]]></fieldDescription>
+	</field>
+	<field name="ref_folder_administrativeUnitEntered_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_administrativeUnitEntered_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_administrativeUnitEntered_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_administrativeUnitEntered_title]]></fieldDescription>
+	</field>
+	<field name="allreferences" class="java.lang.String">
+		<fieldDescription><![CDATA[allreferences]]></fieldDescription>
+	</field>
+	<field name="applicablecopyrule" class="java.lang.String">
+		<fieldDescription><![CDATA[applicablecopyrule]]></fieldDescription>
+	</field>
+	<field name="archivisticstatus_code" class="java.lang.String">
+		<fieldDescription><![CDATA[archivisticstatus_code]]></fieldDescription>
+	</field>
+	<field name="archivisticstatus_title" class="java.lang.String">
+		<fieldDescription><![CDATA[archivisticstatus_title]]></fieldDescription>
+	</field>
+	<field name="attachedancestors" class="java.lang.String">
+		<fieldDescription><![CDATA[attachedancestors]]></fieldDescription>
+	</field>
+	<field name="ref_folder_category_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_category_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_category_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_category_title]]></fieldDescription>
+	</field>
+	<field name="categorycode" class="java.lang.String">
+		<fieldDescription><![CDATA[categorycode]]></fieldDescription>
+	</field>
+	<field name="ref_folder_categoryEntered_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_categoryEntered_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_categoryEntered_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_categoryEntered_title]]></fieldDescription>
+	</field>
+	<field name="copyrulesexpecteddepositdates" class="java.lang.String">
+		<fieldDescription><![CDATA[copyrulesexpecteddepositdates]]></fieldDescription>
+	</field>
+	<field name="copyrulesexpecteddestructiondates" class="java.lang.String">
+		<fieldDescription><![CDATA[copyrulesexpecteddestructiondates]]></fieldDescription>
+	</field>
+	<field name="copyrulesexpectedtransferdates" class="java.lang.String">
+		<fieldDescription><![CDATA[copyrulesexpectedtransferdates]]></fieldDescription>
+	</field>
+	<field name="copystatus_code" class="java.lang.String">
+		<fieldDescription><![CDATA[copystatus_code]]></fieldDescription>
+	</field>
+	<field name="copystatus_title" class="java.lang.String">
+		<fieldDescription><![CDATA[copystatus_title]]></fieldDescription>
+	</field>
+	<field name="copystatusentered_code" class="java.lang.String">
+		<fieldDescription><![CDATA[copystatusentered_code]]></fieldDescription>
+	</field>
+	<field name="copystatusentered_title" class="java.lang.String">
+		<fieldDescription><![CDATA[copystatusentered_title]]></fieldDescription>
+	</field>
+	<field name="createdon" class="java.lang.String">
+		<fieldDescription><![CDATA[createdon]]></fieldDescription>
+	</field>
+	<field name="id" class="java.lang.String">
+		<fieldDescription><![CDATA[id]]></fieldDescription>
+	</field>
+	<field name="inactivedisposaltype_code" class="java.lang.String">
+		<fieldDescription><![CDATA[inactivedisposaltype_code]]></fieldDescription>
+	</field>
+	<field name="inactivedisposaltype_title" class="java.lang.String">
+		<fieldDescription><![CDATA[inactivedisposaltype_title]]></fieldDescription>
+	</field>
+	<field name="maincopyrule" class="java.lang.String">
+		<fieldDescription><![CDATA[maincopyrule]]></fieldDescription>
+	</field>
+	<field name="mediatype_code" class="java.lang.String">
+		<fieldDescription><![CDATA[mediatype_code]]></fieldDescription>
+	</field>
+	<field name="mediatype_title" class="java.lang.String">
+		<fieldDescription><![CDATA[mediatype_title]]></fieldDescription>
+	</field>
+	<field name="ref_folder_mediumTypes_code_1" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_mediumTypes_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_mediumTypes_title_1" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_mediumTypes_title]]></fieldDescription>
+	</field>
+	<field name="modifiedon" class="java.lang.String">
+		<fieldDescription><![CDATA[modifiedon]]></fieldDescription>
+	</field>
+	<field name="openingdate" class="java.lang.String">
+		<fieldDescription><![CDATA[openingdate]]></fieldDescription>
+	</field>
+	<field name="parentpath" class="java.lang.String">
+		<fieldDescription><![CDATA[parentpath]]></fieldDescription>
+	</field>
+	<field name="path" class="java.lang.String">
+		<fieldDescription><![CDATA[path]]></fieldDescription>
+	</field>
+	<field name="pathparts" class="java.lang.String">
+		<fieldDescription><![CDATA[pathparts]]></fieldDescription>
+	</field>
+	<field name="permissionstatus_code" class="java.lang.String">
+		<fieldDescription><![CDATA[permissionstatus_code]]></fieldDescription>
+	</field>
+	<field name="permissionstatus_title" class="java.lang.String">
+		<fieldDescription><![CDATA[permissionstatus_title]]></fieldDescription>
+	</field>
+	<field name="principalpath" class="java.lang.String">
+		<fieldDescription><![CDATA[principalpath]]></fieldDescription>
+	</field>
+	<field name="ref_folder_retentionRule_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_retentionRule_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_retentionRule_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_retentionRule_title]]></fieldDescription>
+	</field>
+	<field name="ref_folder_retentionRuleEntered_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_retentionRuleEntered_code]]></fieldDescription>
+	</field>
+	<field name="ref_folder_retentionRuleEntered_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_folder_retentionRuleEntered_title]]></fieldDescription>
+	</field>
+	<field name="schema" class="java.lang.String">
+		<fieldDescription><![CDATA[schema]]></fieldDescription>
+	</field>
+	<field name="semiactiveretentiontype_code" class="java.lang.String">
+		<fieldDescription><![CDATA[semiactiveretentiontype_code]]></fieldDescription>
+	</field>
+	<field name="semiactiveretentiontype_title" class="java.lang.String">
+		<fieldDescription><![CDATA[semiactiveretentiontype_title]]></fieldDescription>
+	</field>
+	<field name="title" class="java.lang.String">
+		<fieldDescription><![CDATA[title]]></fieldDescription>
+	</field>
+	<field name="visibleintrees" class="java.lang.String">
+		<fieldDescription><![CDATA[visibleintrees]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="40" splitType="Stretch"/>
+	</pageHeader>
+	<detail>
+		<band height="76" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="-7" y="0" width="120" height="30" uuid="ca7f7c58-1c4a-4e03-b95e-586ca1b93ba0"/>
+				<textFieldExpression><![CDATA[$F{categorycode}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="193" y="50" width="75" height="20" uuid="ef88c20f-0622-4108-aab3-1401424b7b48"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{createdon}.split(" ")[0]]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="93" y="50" width="54" height="20" uuid="5a33605b-2882-42b4-b21c-3b65ea612675"/>
+				<textFieldExpression><![CDATA[$F{copystatus_code}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="-7" y="30" width="275" height="20" uuid="b5f02e9a-cffe-494d-a13f-e5d589401b75"/>
+				<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="168" y="0" width="100" height="10" isRemoveLineWhenBlank="true"
+							   uuid="c48719b9-c349-4563-8185-dbdf30b1d031"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
+							 xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"
+							 type="Code128A" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{id}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField isBlankWhenNull="true">
+				<reportElement x="180" y="10" width="88" height="20" uuid="90ce81af-abc9-45e6-b9fb-d1b7a75f70c4"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
 </jasperReport>

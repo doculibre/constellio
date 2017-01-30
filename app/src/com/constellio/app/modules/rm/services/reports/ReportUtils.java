@@ -121,7 +121,7 @@ public class ReportUtils {
             List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.folder.schema().getMetadatas()) {
                 String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : Folder.SCHEMA_TYPE;
-                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
+                temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
             }
             parameters = temp.toArray(new ReportField[0]);
         }
@@ -204,7 +204,7 @@ public class ReportUtils {
             List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.folder.schema().getMetadatas()) {
                 String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : Folder.SCHEMA_TYPE;
-                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
+                temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
             }
             parameters = temp.toArray(new ReportField[0]);
         }
@@ -274,7 +274,7 @@ public class ReportUtils {
             List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.containerRecord.schema().getMetadatas()) {
                 String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : ContainerRecord.SCHEMA_TYPE;
-                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
+                temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
             }
             parameters = temp.toArray(new ReportField[0]);
         }
@@ -357,7 +357,7 @@ public class ReportUtils {
             List<ReportField> temp = new ArrayList<>();
             for (Metadata m : rm.containerRecord.schema().getMetadatas()) {
                 String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ? m.getReferencedSchemaType() : ContainerRecord.SCHEMA_TYPE;
-                temp.add(new ReportField(m.getType(), m.getLabel(i18n.getLanguage()), schemaType, m.getCode(), factory));
+                temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
             }
             parameters = temp.toArray(new ReportField[0]);
         }

@@ -1,214 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2017-01-24T11:19:39 -->
+<!-- 2017-01-30T13:44:49 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-              name="Avery_5163_Container" columnCount="2" printOrder="Horizontal" pageWidth="595" pageHeight="842"
-              columnWidth="232" columnSpacing="90" leftMargin="20" rightMargin="20" topMargin="0" bottomMargin="0"
-              uuid="7172e197-17a0-43c4-a038-238b4bebe9b6">
-    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter_Container.xml"/>
-    <property name="com.jaspersoft.studio.unit." value="pixel"/>
-    <queryString language="xPath">
-        <![CDATA[/containers/container/metadatas]]>
-    </queryString>
-    <field name="administrativeUnit" class="java.lang.String">
-        <fieldDescription><![CDATA[administrativeUnit]]></fieldDescription>
-    </field>
-    <field name="administrativeUnits" class="java.lang.String">
-        <fieldDescription><![CDATA[administrativeUnits]]></fieldDescription>
-    </field>
-    <field name="allReferences" class="java.lang.String">
-        <fieldDescription><![CDATA[allReferences]]></fieldDescription>
-    </field>
-    <field name="allRemovedAuths" class="java.lang.String">
-        <fieldDescription><![CDATA[allRemovedAuths]]></fieldDescription>
-    </field>
-    <field name="allauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[allauthorizations]]></fieldDescription>
-    </field>
-    <field name="attachedAncestors" class="java.lang.String">
-        <fieldDescription><![CDATA[attachedAncestors]]></fieldDescription>
-    </field>
-    <field name="authorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[authorizations]]></fieldDescription>
-    </field>
-    <field name="borrowDate" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowDate]]></fieldDescription>
-    </field>
-    <field name="borrowed" class="java.lang.String">
-        <fieldDescription><![CDATA[borrowed]]></fieldDescription>
-    </field>
-    <field name="borrower" class="java.lang.String">
-        <fieldDescription><![CDATA[borrower]]></fieldDescription>
-    </field>
-    <field name="capacity" class="java.lang.String">
-        <fieldDescription><![CDATA[capacity]]></fieldDescription>
-    </field>
-    <field name="comments" class="java.lang.String">
-        <fieldDescription><![CDATA[comments]]></fieldDescription>
-    </field>
-    <field name="completionDate" class="java.lang.String">
-        <fieldDescription><![CDATA[completionDate]]></fieldDescription>
-    </field>
-    <field name="createdBy" class="java.lang.String">
-        <fieldDescription><![CDATA[createdBy]]></fieldDescription>
-    </field>
-    <field name="createdOn" class="java.lang.String">
-        <fieldDescription><![CDATA[createdOn]]></fieldDescription>
-    </field>
-    <field name="decommissioningType" class="java.lang.String">
-        <fieldDescription><![CDATA[decommissioningType]]></fieldDescription>
-    </field>
-    <field name="deleted" class="java.lang.String">
-        <fieldDescription><![CDATA[deleted]]></fieldDescription>
-    </field>
-    <field name="denyTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[denyTokens]]></fieldDescription>
-    </field>
-    <field name="description" class="java.lang.String">
-        <fieldDescription><![CDATA[description]]></fieldDescription>
-    </field>
-    <field name="detachedauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[detachedauthorizations]]></fieldDescription>
-    </field>
-    <field name="errorOnPhysicalDeletion" class="java.lang.String">
-        <fieldDescription><![CDATA[errorOnPhysicalDeletion]]></fieldDescription>
-    </field>
-    <field name="filingSpace" class="java.lang.String">
-        <fieldDescription><![CDATA[filingSpace]]></fieldDescription>
-    </field>
-    <field name="fillRatioEntered" class="java.lang.String">
-        <fieldDescription><![CDATA[fillRatioEntered]]></fieldDescription>
-    </field>
-    <field name="followers" class="java.lang.String">
-        <fieldDescription><![CDATA[followers]]></fieldDescription>
-    </field>
-    <field name="full" class="java.lang.String">
-        <fieldDescription><![CDATA[full]]></fieldDescription>
-    </field>
-    <field name="id" class="java.lang.String">
-        <fieldDescription><![CDATA[id]]></fieldDescription>
-    </field>
-    <field name="identifier" class="java.lang.String">
-        <fieldDescription><![CDATA[identifier]]></fieldDescription>
-    </field>
-    <field name="inheritedauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[inheritedauthorizations]]></fieldDescription>
-    </field>
-    <field name="legacyIdentifier" class="java.lang.String">
-        <fieldDescription><![CDATA[legacyIdentifier]]></fieldDescription>
-    </field>
-    <field name="logicallyDeletedOn" class="java.lang.String">
-        <fieldDescription><![CDATA[logicallyDeletedOn]]></fieldDescription>
-    </field>
-    <field name="manualTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[manualTokens]]></fieldDescription>
-    </field>
-    <field name="markedForPreviewConversion" class="java.lang.String">
-        <fieldDescription><![CDATA[markedForPreviewConversion]]></fieldDescription>
-    </field>
-    <field name="markedForReindexing" class="java.lang.String">
-        <fieldDescription><![CDATA[markedForReindexing]]></fieldDescription>
-    </field>
-    <field name="modifiedBy" class="java.lang.String">
-        <fieldDescription><![CDATA[modifiedBy]]></fieldDescription>
-    </field>
-    <field name="modifiedOn" class="java.lang.String">
-        <fieldDescription><![CDATA[modifiedOn]]></fieldDescription>
-    </field>
-    <field name="parentpath" class="java.lang.String">
-        <fieldDescription><![CDATA[parentpath]]></fieldDescription>
-    </field>
-    <field name="path" class="java.lang.String">
-        <fieldDescription><![CDATA[path]]></fieldDescription>
-    </field>
-    <field name="pathParts" class="java.lang.String">
-        <fieldDescription><![CDATA[pathParts]]></fieldDescription>
-    </field>
-    <field name="planifiedReturnDate" class="java.lang.String">
-        <fieldDescription><![CDATA[planifiedReturnDate]]></fieldDescription>
-    </field>
-    <field name="position" class="java.lang.String">
-        <fieldDescription><![CDATA[position]]></fieldDescription>
-    </field>
-    <field name="principalpath" class="java.lang.String">
-        <fieldDescription><![CDATA[principalpath]]></fieldDescription>
-    </field>
-    <field name="realDepositDate" class="java.lang.String">
-        <fieldDescription><![CDATA[realDepositDate]]></fieldDescription>
-    </field>
-    <field name="realReturnDate" class="java.lang.String">
-        <fieldDescription><![CDATA[realReturnDate]]></fieldDescription>
-    </field>
-    <field name="realTransferDate" class="java.lang.String">
-        <fieldDescription><![CDATA[realTransferDate]]></fieldDescription>
-    </field>
-    <field name="removedauthorizations" class="java.lang.String">
-        <fieldDescription><![CDATA[removedauthorizations]]></fieldDescription>
-    </field>
-    <field name="schema" class="java.lang.String">
-        <fieldDescription><![CDATA[schema]]></fieldDescription>
-    </field>
-    <field name="searchable" class="java.lang.String">
-        <fieldDescription><![CDATA[searchable]]></fieldDescription>
-    </field>
-    <field name="shareDenyTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[shareDenyTokens]]></fieldDescription>
-    </field>
-    <field name="shareTokens" class="java.lang.String">
-        <fieldDescription><![CDATA[shareTokens]]></fieldDescription>
-    </field>
-    <field name="storageSpace" class="java.lang.String">
-        <fieldDescription><![CDATA[storageSpace]]></fieldDescription>
-    </field>
-    <field name="temporaryIdentifier" class="java.lang.String">
-        <fieldDescription><![CDATA[temporaryIdentifier]]></fieldDescription>
-    </field>
-    <field name="title" class="java.lang.String">
-        <fieldDescription><![CDATA[title]]></fieldDescription>
-    </field>
-    <field name="tokens" class="java.lang.String">
-        <fieldDescription><![CDATA[tokens]]></fieldDescription>
-    </field>
-    <field name="type" class="java.lang.String">
-        <fieldDescription><![CDATA[type]]></fieldDescription>
-    </field>
-    <field name="visibleInTrees" class="java.lang.String">
-        <fieldDescription><![CDATA[visibleInTrees]]></fieldDescription>
-    </field>
-    <variable name="FormatedDate" class="java.lang.String[]">
-        <variableExpression><![CDATA[$F{createdOn}.split("T")]]></variableExpression>
-    </variable>
-    <background>
-        <band splitType="Stretch"/>
-    </background>
-    <pageHeader>
-        <band height="26" splitType="Stretch"/>
-    </pageHeader>
-    <detail>
-        <band height="116" splitType="Stretch">
-            <textField isBlankWhenNull="true">
-                <reportElement x="110" y="10" width="150" height="60" uuid="ca7f7c58-1c4a-4e03-b95e-586ca1b93ba0"/>
-                <textElement>
-                    <font fontName="Ebrima" size="26"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$F{title}.toUpperCase()]]></textFieldExpression>
-            </textField>
-            <componentElement>
-                <reportElement x="0" y="10" width="100" height="20" isRemoveLineWhenBlank="true"
-                               uuid="c48719b9-c349-4563-8185-dbdf30b1d031"/>
-                <jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
-                             xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"
-                             type="Code128A" drawText="false" checksumRequired="false">
-                    <jr:codeExpression><![CDATA[$F{id}]]></jr:codeExpression>
-                </jr:barbecue>
-            </componentElement>
-            <textField isBlankWhenNull="true">
-                <reportElement x="20" y="30" width="50" height="20" uuid="90ce81af-abc9-45e6-b9fb-d1b7a75f70c4"/>
-                <textElement textAlignment="Left"/>
-                <textFieldExpression><![CDATA[$F{id}.toUpperCase()]]></textFieldExpression>
-            </textField>
-        </band>
-    </detail>
+			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+			  name="Avery_5163_Container" columnCount="2" printOrder="Horizontal" pageWidth="595" pageHeight="842"
+			  columnWidth="232" columnSpacing="90" leftMargin="20" rightMargin="20" topMargin="0" bottomMargin="0"
+			  uuid="7172e197-17a0-43c4-a038-238b4bebe9b6">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Contenant_Adapter.xml"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<queryString language="xPath">
+		<![CDATA[/containers/container/metadatas]]>
+	</queryString>
+	<field name="ref_containerRecord_administrativeUnit_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_administrativeUnit_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_administrativeUnit_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_administrativeUnit_title]]></fieldDescription>
+	</field>
+	<field name="allreferences" class="java.lang.String">
+		<fieldDescription><![CDATA[allreferences]]></fieldDescription>
+	</field>
+	<field name="attachedancestors" class="java.lang.String">
+		<fieldDescription><![CDATA[attachedancestors]]></fieldDescription>
+	</field>
+	<field name="createdon" class="java.lang.String">
+		<fieldDescription><![CDATA[createdon]]></fieldDescription>
+	</field>
+	<field name="decommissioningtype_code" class="java.lang.String">
+		<fieldDescription><![CDATA[decommissioningtype_code]]></fieldDescription>
+	</field>
+	<field name="decommissioningtype_title" class="java.lang.String">
+		<fieldDescription><![CDATA[decommissioningtype_title]]></fieldDescription>
+	</field>
+	<field name="full" class="java.lang.String">
+		<fieldDescription><![CDATA[full]]></fieldDescription>
+	</field>
+	<field name="id" class="java.lang.String">
+		<fieldDescription><![CDATA[id]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_modifiedBy_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_modifiedBy_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_modifiedBy_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_modifiedBy_title]]></fieldDescription>
+	</field>
+	<field name="modifiedon" class="java.lang.String">
+		<fieldDescription><![CDATA[modifiedon]]></fieldDescription>
+	</field>
+	<field name="parentpath" class="java.lang.String">
+		<fieldDescription><![CDATA[parentpath]]></fieldDescription>
+	</field>
+	<field name="path" class="java.lang.String">
+		<fieldDescription><![CDATA[path]]></fieldDescription>
+	</field>
+	<field name="pathparts" class="java.lang.String">
+		<fieldDescription><![CDATA[pathparts]]></fieldDescription>
+	</field>
+	<field name="principalpath" class="java.lang.String">
+		<fieldDescription><![CDATA[principalpath]]></fieldDescription>
+	</field>
+	<field name="realdepositdate" class="java.lang.String">
+		<fieldDescription><![CDATA[realdepositdate]]></fieldDescription>
+	</field>
+	<field name="realtransferdate" class="java.lang.String">
+		<fieldDescription><![CDATA[realtransferdate]]></fieldDescription>
+	</field>
+	<field name="schema" class="java.lang.String">
+		<fieldDescription><![CDATA[schema]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_storageSpace_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_storageSpace_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_storageSpace_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_storageSpace_title]]></fieldDescription>
+	</field>
+	<field name="temporaryidentifier" class="java.lang.String">
+		<fieldDescription><![CDATA[temporaryidentifier]]></fieldDescription>
+	</field>
+	<field name="title" class="java.lang.String">
+		<fieldDescription><![CDATA[title]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_type_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_type_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_type_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_type_title]]></fieldDescription>
+	</field>
+	<field name="visibleintrees" class="java.lang.String">
+		<fieldDescription><![CDATA[visibleintrees]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="26" splitType="Stretch"/>
+	</pageHeader>
+	<detail>
+		<band height="116" splitType="Stretch">
+			<textField isBlankWhenNull="false">
+				<reportElement x="110" y="10" width="130" height="50" uuid="ca7f7c58-1c4a-4e03-b95e-586ca1b93ba0"/>
+				<textElement>
+					<font fontName="Ebrima" size="26"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}.toUpperCase()]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="0" y="10" width="100" height="20" isRemoveLineWhenBlank="true"
+							   uuid="c48719b9-c349-4563-8185-dbdf30b1d031"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
+							 xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"
+							 type="Code128A" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{id}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField isBlankWhenNull="true">
+				<reportElement x="20" y="30" width="50" height="20" uuid="90ce81af-abc9-45e6-b9fb-d1b7a75f70c4"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{id}.toUpperCase()]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
 </jasperReport>
