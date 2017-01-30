@@ -2,6 +2,7 @@ package com.constellio.app.modules.complementary.esRmRobots.ui.components.action
 
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.category.ActionParametersCategoryField;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 
 public interface EsRmRobotActionParametersFields extends SessionContextProvider {
@@ -9,5 +10,7 @@ public interface EsRmRobotActionParametersFields extends SessionContextProvider 
 	ActionParametersCategoryField getCategoryField();
 	
 	ActionParametersRetentionRuleField getRetentionRuleField();
+
+	LookupRecordField getUniformSubdivision();
 
 }
