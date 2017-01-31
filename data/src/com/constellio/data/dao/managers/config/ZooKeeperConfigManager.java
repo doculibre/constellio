@@ -10,17 +10,17 @@ import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeyListMap;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.cache.*;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
-import org.apache.poi.util.SystemOutLogger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
@@ -77,7 +76,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
-	public synchronized void close() {
+	public void close() {
 		try {
 			for (TreeCache nodeCache : nodeCaches.values()) {
 				CloseableUtils.closeQuietly(nodeCache);
@@ -219,7 +218,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
-	public void updateXML(String path, final DocumentAlteration documentAlteration) {
+	public synchronized void updateXML(String path, final DocumentAlteration documentAlteration) {
 		String clientPath = getClientPath(path);
 		try {
 			Stat stat = new Stat();
@@ -238,7 +237,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
-	public void updateProperties(String path, final PropertiesAlteration propertiesAlteration) {
+	public synchronized void updateProperties(String path, final PropertiesAlteration propertiesAlteration) {
 		String clientPath = getClientPath(path);
 		try {
 			Stat stat = new Stat();
@@ -303,7 +302,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
-	public void update(String path, String hash, InputStream newBinaryStream)
+	public synchronized void update(String path, String hash, InputStream newBinaryStream)
 			throws OptimisticLockingConfiguration {
 		String clientPath = getClientPath(path);
 		try {
@@ -320,7 +319,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
-	public void update(String path, String hash, Document newDocument)
+	public synchronized void update(String path, String hash, Document newDocument)
 			throws OptimisticLockingConfiguration {
 		String clientPath = getClientPath(path);
 		try {
@@ -337,7 +336,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
-	public void update(String path, String hash, Map<String, String> newProperties)
+	public synchronized void update(String path, String hash, Map<String, String> newProperties)
 			throws OptimisticLockingConfiguration {
 		String clientPath = getClientPath(path);
 		try {
@@ -405,12 +404,65 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public void importFrom(File settingsFolder) {
-		//TODO Nicolas
+		try {
+			this.delete("/");
+			Iterator<File> files = FileUtils.iterateFiles(settingsFolder, null, true);
+			String settingsFolderPath = settingsFolder.getPath();
+			while (files.hasNext()) {
+				File file = files.next();
+				if (file.isFile()) {
+					String filePath = file.getPath();
+					String relativePath = StringUtils.removeStart(filePath, settingsFolderPath);
+					relativePath = StringUtils.replace(relativePath, "\\", "/");
+					relativePath = StringUtils.removeStart(relativePath, "/");
+					byte[] content;
+					if (file.getName().equals("schemas.xml")) {
+						content = fixVersionNumber(file);
+					} else {
+						content = FileUtils.readFileToByteArray(file);
+					}
+					this.add(relativePath, new ByteArrayInputStream(content));
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private byte[] fixVersionNumber(File schemasXml)throws IOException {
+		Document document = getDocumentFrom(FileUtils.readFileToByteArray(schemasXml));
+		document.getRootElement().setAttribute("version", "0");
+		return getByteFromDocument(document);
 	}
 
 	@Override
 	public void exportTo(File settingsFolder) {
-		//TODO Nicolas
+		this.exportTo("/", settingsFolder);
+	}
+
+	public void exportTo(String path, File file) {
+		try {
+			List<String> subPaths = this.list(path);
+			if (!subPaths.isEmpty()) {
+				if (!file.exists()) {
+					file.mkdirs();
+				}
+				for (String subPath : subPaths) {
+					String completeSubPath = path + "/" + subPath;
+					completeSubPath = StringUtils.removeStart(completeSubPath, "/");
+					this.exportTo(completeSubPath, new File(file, subPath));
+				}
+			} else {
+				BinaryConfiguration binary = this.getBinary(path);
+				if (binary != null) {
+					try (InputStream is = binary.getInputStreamFactory().create(file.getName())) {
+						FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(is));
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
