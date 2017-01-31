@@ -2,10 +2,15 @@ package com.constellio.app.modules.rm.model.validators;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordValidatorParams;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ContainerRecordValidator implements RecordValidator {
@@ -39,7 +44,7 @@ public class ContainerRecordValidator implements RecordValidator {
 
 		if(container.getStorageSpace() != null) {
 			StorageSpace storageSpace = new StorageSpace(params.getRecord(container.getStorageSpace()), params.getTypes());
-			if(storageSpace.getContainerType() != null && !storageSpace.getContainerType().isEmpty() && !storageSpace.getContainerType().contains(container.getType())) {
+			if(!canContain(storageSpace, container.getType(), params.getRecordProvider(), params.getTypes())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(STORAGE_SPACE, formatToParameter(storageSpace.getTitle()));
 
@@ -53,5 +58,25 @@ public class ContainerRecordValidator implements RecordValidator {
 			return "";
 		}
 		return parameter.toString();
+	}
+
+	public boolean canContain(StorageSpace storageSpace, String containerRecordType, RecordProvider recordProvider, MetadataSchemaTypes types) {
+		if(containerRecordType == null) {
+			return true;
+		}
+		List<ContainerRecordType> containerRecordTypeList = new ArrayList<>();
+		StorageSpace currentStorage = storageSpace;
+		while (currentStorage != null) {
+
+			if(currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
+				containerRecordTypeList = currentStorage.getContainerType();
+				break;
+			} else if(currentStorage.getParentStorageSpace() == null) {
+				break;
+			}
+			currentStorage = new StorageSpace(recordProvider.getRecord(storageSpace.getParentStorageSpace()), types);
+		}
+
+		return (containerRecordTypeList == null || containerRecordTypeList.isEmpty()) ? true : containerRecordTypeList.contains(new ContainerRecordType(recordProvider.getRecord(containerRecordType), types));
 	}
 }
