@@ -1,17 +1,22 @@
 package com.constellio.app.modules.rm.model.validators;
 
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordValidatorParams;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class StorageSpaceValidator implements RecordValidator {
 
 	public static final String CHILD_CAPACITY_MUST_BE_LESSER_OR_EQUAL_TO_PARENT_CAPACITY = "childCapacityMustBeLesserOrEqualToParentCapacity";
+	public static final String CONTAINER_TYPE_MUST_BE_INCLUDED_IN_PARENT_STORAGE_SPACE = "containerTypeMustBeIncludedInParentStorageSpace";
 	public static final String CAPACITY = "capacity";
 	public static final String PARENT_CAPACITY = "parentCapacity";
+	public static final String CONTAINER_TYPE = "containerType";
+	public static final String PARENT_CONTAINER_TYPE = "parentContainerType";
 
 	@Override
 	public void validate(RecordValidatorParams params) {
@@ -34,19 +39,27 @@ public class StorageSpaceValidator implements RecordValidator {
 			params.getValidationErrors().add(StorageSpaceValidator.class, CHILD_CAPACITY_MUST_BE_LESSER_OR_EQUAL_TO_PARENT_CAPACITY, parameters);
 		}
 
-		if(storageSpace.getParentStorageSpace() != null) {
-			StorageSpace parent = new StorageSpace(params.getRecord(storageSpace.getParentStorageSpace()), params.getTypes());
-			if(parent.getContainerType() != null && !parent.getContainerType().isEmpty() && storageSpace.getContainerType() != null && !parent.getContainerType().containsAll(storageSpace.getContainerType())) {
-				Map<String, Object> parameters = new HashMap<>();
-				parameters.put("", formatToParameter(parent.getTitle()));
+		List<ContainerRecordType> containerRecordTypeList = storageSpace.getContainerType();
+		List<ContainerRecordType> parentContainerRecordTypeList = parentStorageSpace.getContainerType();
+		if(parentContainerRecordTypeList != null && !parentContainerRecordTypeList.isEmpty() &&
+				(containerRecordTypeList == null || containerRecordTypeList.isEmpty() || !parentContainerRecordTypeList.containsAll(containerRecordTypeList))) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(CONTAINER_TYPE, formatToParameter(containerRecordTypeList));
+			parameters.put(PARENT_CAPACITY, formatToParameter(parentContainerRecordTypeList));
 
-				params.getValidationErrors().add(ContainerRecordValidator.class, "", parameters);
-			}
+			params.getValidationErrors().add(StorageSpaceValidator.class, CONTAINER_TYPE_MUST_BE_INCLUDED_IN_PARENT_STORAGE_SPACE, parameters);
 		}
 	}
 
-	private String formatToParameter(Object parameter) {
+	private String formatToParameter(Long parameter) {
 		if(parameter == null) {
+			return "";
+		}
+		return parameter.toString();
+	}
+
+	private String formatToParameter(List<ContainerRecordType> parameter) {
+		if(parameter == null || parameter.isEmpty()) {
 			return "";
 		}
 		return parameter.toString();
