@@ -17,6 +17,8 @@ public class TaxonomiesSearchOptions {
 	private String requiredAccess = Role.READ;
 	private boolean hasChildrenFlagCalculated = true;
 
+	private int previousBatchLastVisibleIndex;
+
 	public TaxonomiesSearchOptions() {
 		super();
 	}
@@ -117,7 +119,24 @@ public class TaxonomiesSearchOptions {
 		clonedOptions.setRows(rows);
 		clonedOptions.setStartRow(startRow);
 		clonedOptions.setAlwaysReturnTaxonomyConceptsWithReadAccess(alwaysReturnTaxonomyConceptsWithReadAccess);
+		clonedOptions.setPreviousBatchLastVisibleIndex(previousBatchLastVisibleIndex);
 		return clonedOptions;
 
+	}
+
+	public int getPreviousBatchLastVisibleIndex() {
+		return previousBatchLastVisibleIndex;
+	}
+
+	/**
+	 * Taxonomy services are basically iterating over a query and then filtering nodes based on some criteria.
+	 * Rows and startRow parameter are the range of filtered records, it gives no clue on the index in the main iterator.
+	 *
+	 * The facultative 'previousBatchLastVisibleIndex' is the index of the last visible node, it helps accelerate services
+	 * This information is available in taxonomy search response object
+	 */
+	public TaxonomiesSearchOptions setPreviousBatchLastVisibleIndex(int previousBatchLastVisibleIndex) {
+		this.previousBatchLastVisibleIndex = previousBatchLastVisibleIndex;
+		return this;
 	}
 }

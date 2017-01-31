@@ -57,17 +57,20 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 
 	@Override
 	public String getCaption(String id) {
-		return getNode(id).getCaption();
+		RecordDataTreeNode treeNode = getNode(id);
+		return treeNode == null ? "" : treeNode.getCaption();
 	}
 
 	@Override
 	public String getDescription(String id) {
-		return getNode(id).getDescription();
+		RecordDataTreeNode treeNode = getNode(id);
+		return treeNode == null ? null : treeNode.getDescription();
 	}
 
 	@Override
 	public Resource getIcon(String id, boolean expanded) {
-		return getNode(id).getIcon(expanded);
+		RecordDataTreeNode treeNode = getNode(id);
+		return treeNode == null ? null : treeNode.getIcon(expanded);
 	}
 
 	@Override
@@ -157,7 +160,8 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 
 	@Override
 	public int getEstimatedChildrenNodesCount(String parent) {
-		return getNode(parent).estimatedChildrenCount;
+		RecordDataTreeNode treeNode = getNode(parent);
+		return treeNode == null ? -1 : treeNode.estimatedChildrenCount;
 	}
 
 	public String getCaptionOf(Record record) {

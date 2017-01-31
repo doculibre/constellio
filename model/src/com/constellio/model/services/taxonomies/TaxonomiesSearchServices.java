@@ -139,8 +139,7 @@ public class TaxonomiesSearchServices {
 
 		int consumed = 0;
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
-		while (batchIterators.hasNext() && resultVisible.size() < options.getStartRow() + options
-				.getRows()) {
+		while (resultVisible.size() < options.getStartRow() + options.getRows() && batchIterators.hasNext()) {
 
 			LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(null, taxonomy, true, options);
 			LogicalSearchQuery query = new LogicalSearchQuery(condition)
@@ -332,7 +331,7 @@ public class TaxonomiesSearchServices {
 		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(recordsIterator, 25);
 
 		List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
-		while (batchIterators.hasNext() && visibleRecords.size() < options.getStartRow() + options.getRows() + 1) {
+		while (visibleRecords.size() < options.getStartRow() + options.getRows() + 1 && batchIterators.hasNext()) {
 			List<Record> batch = batchIterators.next();
 
 			LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection()).where(schemaTypeIs(selectedType));
@@ -465,18 +464,11 @@ public class TaxonomiesSearchServices {
 		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(childsIterator, 25);
 
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(record.getCollection(), taxonomyCode);
-		//		String path = null;
-		//		for (String candidate : record.<String>getList(PATH)) {
-		//			if (candidate.startsWith("/" + taxonomy.getCode())) {
-		//				path = candidate + "/";
-		//				break;
-		//			}
-		//		}
 
 		int consumed = 0;
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
-		while (batchIterators.hasNext() && resultVisible.size() < options.getStartRow() + options.getRows()) {
+		while (resultVisible.size() < options.getStartRow() + options.getRows() && batchIterators.hasNext()) {
 
 			LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(record, taxonomy, false, options);
 			query = new LogicalSearchQuery(condition)

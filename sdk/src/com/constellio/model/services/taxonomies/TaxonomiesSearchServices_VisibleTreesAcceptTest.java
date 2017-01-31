@@ -2,6 +2,7 @@ package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -11,7 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
@@ -27,13 +30,13 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
@@ -61,7 +64,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	MetadataSchemasManager manager;
 	RecordServices recordServices;
 	String document1InA16, document2InA16, document3InA16;
-	AuthorizationsServices authServices;
+	AuthorizationsServices authsServices;
 
 	@Before
 	public void setUp()
@@ -107,7 +110,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			recordServices.logicallyDelete(document, User.GOD);
 		}
 
-		authServices = getModelLayerFactory().newAuthorizationsServices();
+		authsServices = getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -267,12 +270,12 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
-		authServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
 
-		authServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
 		recordServices.refresh(robin);
 		recordServices.refresh(sasquatch);
 		waitForBatchProcess();
@@ -332,12 +335,12 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
-		authServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
 
-		authServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
 
 		recordServices.refresh(sasquatch);
 		recordServices.refresh(robin);
@@ -613,6 +616,52 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
+	}
+
+	@Test
+	public void given10000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThem()
+			throws Exception {
+
+		Folder folderNearEnd = null;
+		Folder subFolderNearEnd = null;
+		List<Folder> addedRecords = new ArrayList<>();
+
+		int size = 4999;
+		for (int i = 0; i < size; i++) {
+			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
+			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
+					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+					.setAdministrativeUnitEntered(records.unitId_10a);
+			addedRecords.add(folder);
+			if (i == size - 2) {
+				folderNearEnd = folder;
+			}
+
+			if (i == size - 1) {
+				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				addedRecords.add(subFolderNearEnd);
+			}
+		}
+		recordServices.execute(new Transaction().addAll(addedRecords).setOptimisticLockingResolution(EXCEPTION));
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		final AtomicInteger queryCount = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(SolrParams solrParams, long qtime) {
+						queryCount.incrementAndGet();
+					}
+				});
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
+				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()));
+
+		assertThat(queryCount.get()).isEqualTo(2);
 	}
 
 	private Folder newFolderInCategory(Category category, String title) {

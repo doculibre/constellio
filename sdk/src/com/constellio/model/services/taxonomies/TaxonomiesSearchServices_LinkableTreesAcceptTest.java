@@ -2,6 +2,7 @@ package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,7 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
@@ -34,16 +37,22 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -55,6 +64,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	TaxonomiesSearchServices service;
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
+	AuthorizationsServices authsServices;
+	RecordServices recordServices;
 
 	@Before
 	public void setUp()
@@ -64,6 +75,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
+
+		authsServices = getModelLayerFactory().newAuthorizationsServices();
+		recordServices = getModelLayerFactory().newRecordServices();
 
 		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, false);
 		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, false);
@@ -713,6 +727,73 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	@Test
+	public void givenUserHaveWriteAccessOnSomeRecordWhenIteratingThenOnlySeeThoseRecords()
+			throws Exception {
+
+		for (String record : asList("A16", "A18", "A49", "A85", "A87", "B06", "B52", "C32", "C52")) {
+			authsServices.add(authorizationForUsers(alice).givingReadWriteAccess().on(recordServices.getDocumentById(record)));
+		}
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		recordServices.refresh(alice);
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100, withWriteAccess)
+				.has(linkable("A16", "A18", "A49", "A85", "A87", "B06", "B52", "C32", "C52"))
+				.has(resultsInOrder("B52", "A16", "A18", "B06", "A49", "C32", "A85", "A87", "C52"))
+				.has(noItemsWithChildren());
+
+	}
+
+	@Test
+	public void given10000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThem()
+			throws Exception {
+
+		Folder folderNearEnd = null;
+		Folder subFolderNearEnd = null;
+		List<Folder> addedRecords = new ArrayList<>();
+
+		int size = 4999;
+		for (int i = 0; i < size; i++) {
+			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
+			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
+					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+					.setAdministrativeUnitEntered(records.unitId_10a);
+			addedRecords.add(folder);
+			if (i == size - 2) {
+				folderNearEnd = folder;
+			}
+
+			if (i == size - 1) {
+				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				addedRecords.add(subFolderNearEnd);
+			}
+		}
+		recordServices.execute(new Transaction().addAll(addedRecords).setOptimisticLockingResolution(EXCEPTION));
+
+		authsServices.add(authorizationForUsers(alice).givingReadWriteAccess().on(folderNearEnd));
+		authsServices.add(authorizationForUsers(alice).givingReadWriteAccess().on(subFolderNearEnd));
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		final AtomicInteger queryCount = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(SolrParams solrParams, long qtime) {
+						queryCount.incrementAndGet();
+					}
+				});
+
+		recordServices.refresh(alice);
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X13, withWriteAccess)
+				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
+				.has(linkable(folderNearEnd.getId()))
+				.has(unlinkable(subFolderNearEnd.getParentFolder()));
+
+		assertThat(queryCount.get()).isEqualTo(2);
+	}
+
+	@Test
 	public void givenUserHaveSiteWriteAccessAndFoldersDeletedForAllTreeVisibleForFolderSelectionUsingCategoryTaxonomy()
 			throws Exception {
 
@@ -948,7 +1029,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_B08().getWrappedRecord(), User.GOD);
 
-		// This test fails because numFound does not match the number of records in interval.
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12b, new TaxonomiesSearchOptions()
 				.setStartRow(0).setRows(4))
 				.has(resultsInOrder("B52", "B02", "B04", "B06"))
