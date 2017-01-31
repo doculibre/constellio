@@ -49,6 +49,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private transient RMSchemasRecordsServices rm;
 	private transient Cart cart;
 	private String cartId;
+	private String batchProcessSchemaType;
 
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 
@@ -351,7 +352,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
-		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, null);
+		batchProcessSchemaType = schemaType;
+		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildLogicalSearchQuery());
 	}
 
 	public List<LabelTemplate> getTemplates(String schemaType) {
@@ -559,7 +561,19 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public LogicalSearchQuery buildLogicalSearchQuery() {
-		return null;
+		switch (batchProcessSchemaType) {
+			case Folder.SCHEMA_TYPE:
+//				return new LogicalSearchQuery().setCondition(from(rm.folder.schemaType()).where(rm.folder.cart()).isEqualTo(cart.getId()));
+//				break;
+			case ContainerRecord.SCHEMA_TYPE:
+//				return new LogicalSearchQuery().setCondition(from(rm.containerRecord.schemaType()).where(rm.containerRecord.cart()).isEqualTo(cart.getId()));
+//				break;
+			case Document.SCHEMA_TYPE:
+//				return new LogicalSearchQuery().setCondition(from(rm.document.schemaType()).where(rm.document.cart()).isEqualTo(cart.getId()));
+//				break;
+			default:
+				return null;
+		}
 	}
 
 	public void backButtonClicked() {
