@@ -1,21 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -41,20 +25,18 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.addons.lazyquerycontainer.*;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
 	public static final String STYLE_NAME = "lookup";
@@ -175,6 +157,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			public String getItemCaption(T itemId) {
 				return LookupField.this.getCaption(itemId);
 			}
+
+			@Override
+			public void addItemClickListener(ItemClickListener listener) {
+				super.addItemClickListener(listener);
+			}
 		};
 	}
 
@@ -274,7 +261,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		suggestInputDataProvider.setOnlyLinkables(onlyLinkables);
 	}
 
-	private class LookupWindowContent extends VerticalLayout {
+	protected class LookupWindowContent extends VerticalLayout {
 
 		private HorizontalLayout searchFieldLayout;
 
@@ -391,6 +378,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			}
 			LazyTree<T> currentLazyTree = (LazyTree<T>) currentLazyTreePanel.getContent();
 			return (LookupTreeDataProvider<T>) currentLazyTree.getDataProvider();
+		}
+
+		public List<LookupTreeDataProvider<T>> getLookupTreeDataProviders() {
+			return lookupTreeDataProviders;
 		}
 
 		private void search() {

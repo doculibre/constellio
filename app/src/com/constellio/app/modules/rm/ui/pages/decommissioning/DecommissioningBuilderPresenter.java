@@ -1,16 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -30,6 +19,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_TooManyClosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -38,6 +28,18 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class DecommissioningBuilderPresenter extends SearchPresenter<DecommissioningBuilderView>
 		implements SearchCriteriaPresenter {
@@ -50,7 +52,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	SearchType searchType;
 	String adminUnitId;
+	String decommissioningListId;
 	boolean displayResults;
+	boolean addMode;
 	int pageNumber;
 
 	public DecommissioningBuilderPresenter(DecommissioningBuilderView view) {
@@ -61,7 +65,16 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		String[] parts = params.split("/", 3);
 
-		if (parts.length > 1) {
+		if(!addMode) {
+			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+			searchType = SearchType.valueOf(parts[0]);
+			view.setCriteriaSchemaType(getSchemaType());
+			view.addEmptyCriterion();
+			view.addEmptyCriterion();
+			this.displayResults = false;
+			pageNumber = 1;
+		}
+		else if (parts.length > 1) {
 			searchType = SearchType.valueOf(parts[0]);
 			SavedSearch search = getSavedSearch(parts[2]);
 			setSavedSearch(search);
@@ -75,6 +88,21 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			pageNumber = 1;
 		}
 		return this;
+	}
+
+	public void forParams(String params) {
+		List<String> parts = asList(params.split("/", 3));
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+		if(parts.size() == 3 && parts.get(1).equals("id")) {
+			addMode = false;
+			decommissioningListId = parts.get(2);
+			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
+			administrativeUnitSelected(decommissioningList.getAdministrativeUnit());
+			view.setAdministrativeUnit(decommissioningList.getAdministrativeUnit());
+		}
+		else {
+			addMode = true;
+		}
 	}
 
 	@Override
@@ -122,6 +150,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return searchType;
 	}
 
+	public DecommissioningList getDecommissioningList() {
+		return decommissioningListId == null ? null:rmRecordServices().getDecommissioningList(decommissioningListId);
+	}
+
 	public void searchRequested() {
 		try {
 			buildSearchCondition();
@@ -147,6 +179,24 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			if (decommissioningList.getDecommissioningListType().isFolderList()) {
 				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 			} else {
+				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while creating decommissioning list", e);
+			view.showErrorMessage($("DecommissioningBuilderView.unableToSave"));
+		}
+	}
+
+	public void addToListButtonClicked(List<String> selected) {
+		try {
+			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
+			if (decommissioningList.getDecommissioningListType().isFolderList()) {
+				decommissioningList.addFolderDetailsFor(selected.toArray(new String[0]));
+				recordServices().update(decommissioningList.getWrappedRecord());
+				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+			} else {
+				decommissioningList.addDocuments(selected.toArray(new String[0]));
+				recordServices().update(decommissioningList.getWrappedRecord());
 				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
 			}
 		} catch (Exception e) {
@@ -307,5 +357,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 
 		return null;
+	}
+
+	public boolean isAddMode() {
+		return addMode;
 	}
 }

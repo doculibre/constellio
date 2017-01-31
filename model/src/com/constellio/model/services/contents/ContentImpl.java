@@ -1,32 +1,19 @@
 package com.constellio.model.services.contents;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentImplRuntimeException.*;
+import com.constellio.model.utils.Lazy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustNotBeCheckedOut;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_NoSuchVersion;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
-import com.constellio.model.utils.Lazy;
+import java.util.*;
 
 public class ContentImpl implements Content {
 

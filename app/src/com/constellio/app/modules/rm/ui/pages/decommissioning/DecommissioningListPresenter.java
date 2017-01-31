@@ -1,21 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
@@ -33,6 +26,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
 		implements NewReportPresenter {
@@ -312,7 +313,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return folderDetailToVOBuilder;
 	}
 
-	private DecommissioningList decommissioningList() {
+	public DecommissioningList decommissioningList() {
 		if (decommissioningList == null) {
 			decommissioningList = rmRecordsServices().getDecommissioningList(recordId);
 		}
@@ -452,5 +453,50 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			deleteConfirmMessage = $("DecommissioningListView.deleteList");
 		}
 		return deleteConfirmMessage;
+	}
+
+	public void addFoldersButtonClicked() {
+		if(calculateSearchType() != null) {
+			view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, calculateSearchType().toString());
+		}
+	}
+
+	public SearchType calculateSearchType() {
+		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.activeToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.activeToDestroy;
+				case FOLDERS_TO_TRANSFER:
+					return SearchType.transfer;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentActiveToDestroy;
+				case DOCUMENTS_TO_TRANSFER:
+					return SearchType.documentTransfer;
+			}
+		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.semiActiveToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.semiActiveToDestroy;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentSemiActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentSemiActiveToDestroy;
+			}
+		}
+		return null;
+	}
+
+	public void removeFoldersButtonClicked(List<FolderDetailVO> selected) {
+		for(FolderDetailVO folderDetailVO: selected) {
+			decommissioningList().removeFolderDetail(folderDetailVO.getFolderId());
+		}
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		refreshView();
 	}
 }
