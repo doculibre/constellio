@@ -4,6 +4,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
 
+import java.util.List;
+
 public class BatchProcess {
 
 	private final String id;
@@ -30,27 +32,11 @@ public class BatchProcess {
 
 	private final String query;
 
-	public BatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
-			int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection,
-			String query) {
-		super();
-		this.id = id;
-		this.status = status;
-		this.requestDateTime = requestDateTime;
-		this.startDateTime = startDateTime;
-		this.handledRecordsCount = handleRecordsCount;
-		this.totalRecordsCount = totalRecordsCount;
-		this.errors = errors;
-		this.action = action;
-		this.collection = collection;
-		this.query = query;
-		this.username = null;
-		this.title = null;
-	}
+	private final List<String> records;
 
 	public BatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
 						int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection,
-						String query, String username, String title) {
+						String query, List<String> records, String username, String title) {
 		super();
 		this.id = id;
 		this.status = status;
@@ -62,6 +48,7 @@ public class BatchProcess {
 		this.action = action;
 		this.collection = collection;
 		this.query = query;
+		this.records = records;
 		this.username = username;
 		this.title = title;
 	}
@@ -114,6 +101,10 @@ public class BatchProcess {
 		return title;
 	}
 
+	public List<String> getRecords() {
+		return records;
+	}
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this, "action");
@@ -126,6 +117,11 @@ public class BatchProcess {
 
 	public BatchProcess withQuery(String query) {
 		return new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount, totalRecordsCount, errors,
-				action, collection, query, username, title);
+				action, collection, query, records, username, title);
+	}
+
+	public BatchProcess withRecords(List<String> records) {
+		return new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount, totalRecordsCount, errors,
+				action, collection, query, records, username, title);
 	}
 }

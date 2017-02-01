@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BatchProcessListReader {
@@ -29,6 +30,7 @@ public class BatchProcessListReader {
 	private static final String QUERY = "query";
 	private static final String ERRORS = "errors";
 	private static final String ID = "id";
+	private static final String RECORDS = "records";
 	private static final String USERNAME = "username";
 	private static final String TITLE = "title";
 	private static final String COLLECTION = "collection";
@@ -67,13 +69,14 @@ public class BatchProcessListReader {
 		String username = getUsername(nextBatchProcess);
 		String title = getTitle(nextBatchProcess);
 		String query = getQuery(nextBatchProcess);
+		List<String> records = getRecords(nextBatchProcess);
 		int totalRecordsCount = Integer.parseInt(nextBatchProcess.getChild(RECORDS_COUNT).getText());
 		int errors = getErrors(nextBatchProcess);
 		int handledRecordsCount = getHandledRecords(nextBatchProcess, status, totalRecordsCount);
 		String collection = getCollection(nextBatchProcess);
 		BatchProcessAction batchProcessAction = getBatchProcessActions(nextBatchProcess);
 		batchProcess = new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount,
-				totalRecordsCount, errors, batchProcessAction, collection, query, username, title);
+				totalRecordsCount, errors, batchProcessAction, collection, query, records, username, title);
 		return batchProcess;
 	}
 
@@ -228,6 +231,19 @@ public class BatchProcessListReader {
 	private String getUsername(Element nextBatchProcess) {
 		Element username = nextBatchProcess.getChild(USERNAME);
 		return username == null? null : username.getText();
+	}
+
+	private List<String> getRecords(Element nextBatchProcess) {
+		Element records = nextBatchProcess.getChild(RECORDS);
+		return records == null? null : buildListFromString(records.getText());
+	}
+
+	private List<String> buildListFromString(String text) {
+		if(text == null) {
+			return null;
+		}
+		StringBuilder stringBuilder = new StringBuilder(text.replaceFirst("\\[",""));
+		return Arrays.asList(new StringBuilder(stringBuilder.reverse().toString().replaceFirst("\\]","")).reverse().toString().split(", "));
 	}
 
 	ParametrizedInstanceUtils newParametrizedInstanceUtils() {

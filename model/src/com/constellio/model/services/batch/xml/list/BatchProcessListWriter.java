@@ -17,6 +17,7 @@ import java.util.List;
 public class BatchProcessListWriter {
 
 	private static final String ID = "id";
+	private static final String RECORDS = "records";
 	private static final String QUERY = "query";
 	private static final String ERRORS = "errors";
 	private static final String REQUEST_DATE_TIME = "requestDateTime";
@@ -75,6 +76,31 @@ public class BatchProcessListWriter {
 		Element recordsCountElement = new Element(RECORDS_COUNT).setText(String.valueOf(recordsCount));
 		Element collectionElement = new Element(COLLECTION).setText(collection);
 		Element queryElement = new Element(QUERY).setText(query);
+		Element batchProcess = new Element(BATCH_PROCESS).setAttribute(ID, id);
+		Element usernameElement = new Element(USERNAME).setText(username);
+		Element titleElement = new Element(TITLE).setText(title);
+
+		batchProcess.addContent(requestDateTimeElement);
+		batchProcess.addContent(recordsCountElement);
+		batchProcess.addContent(actionElement);
+		batchProcess.addContent(queryElement);
+		batchProcess.addContent(collectionElement);
+		batchProcess.addContent(usernameElement);
+		batchProcess.addContent(titleElement);
+
+		Element pendingBatchProcessesElement = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES).detach();
+		pendingBatchProcessesElement.addContent(batchProcess);
+		document.getRootElement().addContent(pendingBatchProcessesElement);
+	}
+
+	public void addBatchProcess(String id, List<String> records, String collection, LocalDateTime requestDateTime, int recordsCount,
+								BatchProcessAction batchProcessAction, String username, String title) {
+		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
+
+		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
+		Element recordsCountElement = new Element(RECORDS_COUNT).setText(String.valueOf(recordsCount));
+		Element collectionElement = new Element(COLLECTION).setText(collection);
+		Element queryElement = new Element(RECORDS).setText(records.toString());
 		Element batchProcess = new Element(BATCH_PROCESS).setAttribute(ID, id);
 		Element usernameElement = new Element(USERNAME).setText(username);
 		Element titleElement = new Element(TITLE).setText(title);

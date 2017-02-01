@@ -93,6 +93,12 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return get(batchProcess.getId());
 	}
 
+	public BatchProcess addPendingBatchProcess(List<String> records, BatchProcessAction action, String username, String title, String collection) {
+		BatchProcess batchProcess = addBatchProcessInStandby(records, action, username, title, collection);
+		markAsPending(batchProcess);
+		return get(batchProcess.getId());
+	}
+
 	public BatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action) {
 		BatchProcess batchProcess = addBatchProcessInStandby(query, action);
 		markAsPending(batchProcess);
@@ -139,6 +145,18 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
 
+	public BatchProcess addBatchProcessInStandby(List<String> records, BatchProcessAction action, String username, String title, String collection) {
+		String id = newBatchProcessId();
+
+		LocalDateTime requestDateTime = getCurrentTime();
+
+		long recordsCount = records.size();
+		updateBatchProcesses(
+				newAddBatchProcessDocumentAlteration(id, records, collection, requestDateTime, (int) recordsCount, action, username, title));
+
+		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+	}
+
 	public void markAsPending(List<BatchProcess> batchProcesses) {
 		for (BatchProcess batchProcess : batchProcesses) {
 			markAsPending(batchProcess);
@@ -168,7 +186,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	private BatchProcess withQueryIfBatchProcessFromPreviousFramework(BatchProcess batchProcess) {
-		if (batchProcess != null && batchProcess.getQuery() == null) {
+		if (batchProcess != null && batchProcess.getQuery() == null && batchProcess.getRecords() == null) {
 			List<String> records = getRecords(batchProcess);
 			LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER).isIn(records);
 			ModifiableSolrParams params = searchServices.addSolrModifiableParams(new LogicalSearchQuery(condition));
@@ -290,6 +308,19 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			@Override
 			public void alter(Document document) {
 				newBatchProcessListWriter(document).addBatchProcess(id, query, collection, requestDateTime, recordsCount, action, username, title);
+			}
+		};
+	}
+
+	DocumentAlteration newAddBatchProcessDocumentAlteration(final String id, final List<String> records, final String collection,
+															final LocalDateTime requestDateTime,
+															final int recordsCount, final BatchProcessAction action,
+															final String username, final String title) {
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).addBatchProcess(id, records, collection, requestDateTime, recordsCount, action, username, title);
 			}
 		};
 	}

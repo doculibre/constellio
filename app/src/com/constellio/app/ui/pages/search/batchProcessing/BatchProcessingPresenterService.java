@@ -207,20 +207,19 @@ public class BatchProcessingPresenterService {
 
 	public BatchProcessResults execute(String selectedType, List<String> records, RecordVO viewObject, User user)
 			throws RecordServicesException {
-		BatchProcessRequest request = toRequest(selectedType, records, viewObject, user);
-		return execute(request);
-
+		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject);
+		return execute(batchProcessAction, records, user.getUsername(), "Edit records");
 	}
 
-	public BatchProcessResults execute(BatchProcessRequest request)
+	public BatchProcessResults execute(BatchProcessAction action, List<String> records, String username, String title)
 			throws RecordServicesException {
 
 		System.out.println("**************** EXECUTE ****************");
-		System.out.println("REQUEST : ");
-		System.out.println(request);
-		Transaction transaction = prepareTransaction(request, true);
-		recordServices.validateTransaction(transaction);
-		recordServices.executeHandlingImpactsAsync(transaction);
+		System.out.println("ACTION : ");
+		System.out.println(action);
+
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		batchProcessesManager.addPendingBatchProcess(records, action, username, title, collection);
 
 		return null;
 	}
@@ -306,7 +305,7 @@ public class BatchProcessingPresenterService {
 
 	public BatchProcessResults execute(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)
 			throws RecordServicesException {
-		BatchProcessAction batchProcessAction = toAction(selectedType, query, viewObject, user);
+		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject);
 		return execute(batchProcessAction, query, user.getUsername(), "Edit records");
 
 	}
@@ -756,7 +755,7 @@ public class BatchProcessingPresenterService {
 		return new BatchProcessRequest(selectedRecord, null, user, type, fieldsModifications);
 	}
 
-	public BatchProcessAction toAction(String selectedType, LogicalSearchQuery query, RecordVO formVO, User user) {
+	public BatchProcessAction toAction(String selectedType, RecordVO formVO) {
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
@@ -785,11 +784,6 @@ public class BatchProcessingPresenterService {
 
 		return new ChangeValueOfMetadataBatchProcessAction(fieldsModifications);
 	}
-
-
-
-
-
 
 	public InputStream formatBatchProcessingResults(BatchProcessResults results) {
 		Language locale = i18n.getLanguage();
