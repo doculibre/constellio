@@ -9,6 +9,8 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.List;
+
 public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExtension {
 	public static final String BATCH_PROCESSING_FIELD_FACTORY_KEY = BatchProcessingRecordFactoryExtension.class.getName();
 
@@ -38,6 +40,7 @@ public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExt
 		private String selectedTypeId;
 		private final String schemaType;
 		private String recordIdThatCopyRetentionRuleDependantOn;
+		private List<String> selectedRecords;
 		private LogicalSearchQuery query;
 
 		public BatchProcessingFieldFactoryExtensionParams(String key, MetadataFieldFactory metadataFieldFactory,
@@ -76,6 +79,15 @@ public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExt
 
 		public BatchProcessingFieldFactoryExtensionParams setQuery(LogicalSearchQuery query) {
 			this.query = query;
+			return this;
+		}
+
+		public List<String> getSelectedRecords() {
+			return selectedRecords;
+		}
+
+		public BatchProcessingFieldFactoryExtensionParams setSelectedRecords(List<String> selectedRecords) {
+			this.selectedRecords = selectedRecords;
 			return this;
 		}
 	}

@@ -4,11 +4,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BatchProcessRequest {
+
+	private List<String> ids = new ArrayList<>();
 
 	private LogicalSearchQuery query;
 
@@ -18,8 +18,9 @@ public class BatchProcessRequest {
 
 	private MetadataSchemaType schemaType;
 
-	public BatchProcessRequest(LogicalSearchQuery query, User user,
+	public BatchProcessRequest(List<String> ids, LogicalSearchQuery query, User user,
 							   MetadataSchemaType schemaType, Map<String, Object> modifiedMetadatas) {
+		this.ids = Collections.unmodifiableList(ids);
 		this.query = query;
 		this.user = user;
 		this.schemaType = schemaType;
@@ -27,6 +28,10 @@ public class BatchProcessRequest {
 	}
 
 	public BatchProcessRequest() {
+	}
+
+	public List<String> getIds() {
+		return ids;
 	}
 
 	public User getUser() {
@@ -39,6 +44,11 @@ public class BatchProcessRequest {
 
 	public Map<String, Object> getModifiedMetadatas() {
 		return modifiedMetadatas;
+	}
+
+	public BatchProcessRequest setIds(List<String> ids) {
+		this.ids = ids;
+		return this;
 	}
 
 	public BatchProcessRequest setModifiedMetadatas(Map<String, Object> modifiedMetadatas) {
@@ -74,7 +84,7 @@ public class BatchProcessRequest {
 	public String toString() {
 		return "BatchProcessRequest{" +
 				"modifiedMetadatas=" + modifiedMetadatas +
-				", ids=" +  +
+				", ids=" + ids +
 				'}';
 	}
 }

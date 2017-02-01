@@ -455,7 +455,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public boolean hasWriteAccessOnAllRecords(LogicalSearchQuery query) {
+	public boolean hasWriteAccessOnAllRecords() {
+		LogicalSearchQuery query = buildLogicalSearchQuery();
 		return searchServices().getResultsCount(query.filteredWithUserWrite(getCurrentUser())) == searchServices().getResultsCount(query);
 	}
 
@@ -488,7 +489,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 
-	@Override
 	public LogicalSearchQuery buildLogicalSearchQuery() {
 		if(((AdvancedSearchViewImpl)view).isSelectAllMode()) {
 			return buildLogicalSearchQueryWithSelectedIds();

@@ -6,7 +6,6 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.InputStream;
 
@@ -29,7 +28,5 @@ public interface BatchProcessingPresenter {
 
 	RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType);
 
-	boolean hasWriteAccessOnAllRecords(LogicalSearchQuery query);
-
-	public LogicalSearchQuery buildLogicalSearchQuery();
+	boolean hasWriteAccessOnAllRecords();
 }

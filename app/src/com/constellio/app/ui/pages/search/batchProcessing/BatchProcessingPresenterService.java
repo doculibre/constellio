@@ -103,6 +103,24 @@ public class BatchProcessingPresenterService {
 		return types.size() == 1 ? types.iterator().next() : null;
 	}
 
+	public String getOriginType(List<String> selectedRecordIds) {
+		if (selectedRecordIds == null || selectedRecordIds.isEmpty()) {
+			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
+		}
+		Set<String> types = new HashSet<>();
+		for (String recordId : selectedRecordIds) {
+			Record record = recordServices.getDocumentById(recordId);
+			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(record);
+			String type = record.get(typeMetadata);
+			if (type == null) {
+				return null;
+			} else {
+				types.add(type);
+			}
+		}
+		return types.size() == 1 ? types.iterator().next() : null;
+	}
+
 	private String getRecordSchemaCode(RecordServices recordServices, String recordId) {
 		return recordServices.getDocumentById(recordId).getSchemaCode();
 	}
@@ -135,6 +153,101 @@ public class BatchProcessingPresenterService {
 			schemataCodes.add(currentSchema.getCode());
 		}
 		return schemataCodes;
+	}
+
+	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext, final List<String> selectedRecordIds) {
+		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchema(schemaCode);
+		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
+
+		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
+		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder() {
+			@Override
+			protected MetadataToVOBuilder newMetadataToVOBuilder() {
+				return new MetadataToVOBuilder() {
+					@Override
+					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
+													   MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
+													   boolean multivalue, boolean readOnly, Map<Locale, String> labels,
+													   Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+													   MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
+													   StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+													   String inputMask) {
+						// Replace labels with customized labels
+						String customizedLabel = customizedLabels.get(metadataCode);
+						if (customizedLabel != null) {
+							for (Locale locale : labels.keySet()) {
+								labels.put(locale, customizedLabel);
+							}
+						}
+						// Default value is always null
+						required = false;
+						defaultValue = null;
+						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
+						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
+								super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+										readOnly,
+										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+										enabled,
+										structureFactory, metadataGroup, defaultValue, inputMask) :
+								null;
+					}
+				};
+			}
+		};
+		MetadataSchemaVO schemaVO = schemaVOBuilder.build(schema, RecordVO.VIEW_MODE.FORM, sessionContext);
+
+		return new RecordToVOBuilder() {
+			@Override
+			protected Object getValue(Record record, Metadata metadata) {
+				return null;
+			}
+		}.build(tmpRecord, RecordVO.VIEW_MODE.FORM, schemaVO, sessionContext);
+	}
+
+	public BatchProcessResults execute(String selectedType, List<String> records, RecordVO viewObject, User user)
+			throws RecordServicesException {
+		BatchProcessRequest request = toRequest(selectedType, records, viewObject, user);
+		return execute(request);
+
+	}
+
+	public BatchProcessResults execute(BatchProcessRequest request)
+			throws RecordServicesException {
+
+		System.out.println("**************** EXECUTE ****************");
+		System.out.println("REQUEST : ");
+		System.out.println(request);
+		Transaction transaction = prepareTransaction(request, true);
+		recordServices.validateTransaction(transaction);
+		recordServices.executeHandlingImpactsAsync(transaction);
+
+		return null;
+	}
+
+	public BatchProcessResults simulate(String selectedType, List<String> records, RecordVO viewObject, User user)
+			throws RecordServicesException {
+		BatchProcessRequest request;
+		if(records != null && records.size() > 100) {
+			request = toRequest(selectedType, records.subList(0, 100), viewObject, user);
+		} else {
+			request = toRequest(selectedType, records, viewObject, user);
+		}
+		return simulateWithIds(request);
+	}
+
+	public BatchProcessResults simulateWithIds(BatchProcessRequest request)
+			throws RecordServicesException.ValidationException {
+		System.out.println("**************** SIMULATE ****************");
+		System.out.println("REQUEST : ");
+		System.out.println(request);
+		Transaction transaction = prepareTransaction(request, true);
+		recordServices.validateTransaction(transaction);
+		BatchProcessResults results = toBatchProcessResults(transaction);
+
+		System.out.println("\nRESULTS : ");
+		System.out.println(results);
+		return results;
 	}
 
 	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext, final LogicalSearchQuery query) {
@@ -214,15 +327,15 @@ public class BatchProcessingPresenterService {
 	public BatchProcessResults simulate(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)
 			throws RecordServicesException {
 		BatchProcessRequest request = toRequest(selectedType, query, viewObject, user);
-		return simulate(request);
+		return simulateWithQuery(request);
 	}
 
-	public BatchProcessResults simulate(BatchProcessRequest request)
+	public BatchProcessResults simulateWithQuery(BatchProcessRequest request)
 			throws RecordServicesException.ValidationException {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
-		List<Transaction> transactionList = prepareTransaction(request, true);
+		List<Transaction> transactionList = prepareTransactions(request, true);
 
 		for(Transaction transaction: transactionList) {
 			recordServices.validateTransaction(transaction);
@@ -267,6 +380,36 @@ public class BatchProcessingPresenterService {
 				recordModificationses.add(new BatchProcessRecordModifications(originalRecord.getId(), originalRecord.getTitle(),
 						impacts, recordFieldModifications));
 			}
+		}
+
+		return new BatchProcessResults(recordModificationses);
+	}
+
+	private BatchProcessResults toBatchProcessResults(Transaction transaction) {
+
+		List<BatchProcessRecordModifications> recordModificationses = new ArrayList<>();
+		for (Record record : transaction.getModifiedRecords()) {
+
+			List<BatchProcessRecordFieldModification> recordFieldModifications = new ArrayList<>();
+			List<BatchProcessPossibleImpact> impacts = new ArrayList<>();
+			Record originalRecord = record.getCopyOfOriginalRecord();
+			for (Metadata metadata : record.getModifiedMetadatas(schemas.getTypes())) {
+				if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
+						.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
+					String valueBefore = convertToString(metadata, originalRecord.get(metadata));
+					String valueAfter = convertToString(metadata, record.get(metadata));
+					recordFieldModifications.add(new BatchProcessRecordFieldModification(valueBefore, valueAfter, metadata));
+				}
+			}
+
+			List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
+			for (ModificationImpact impact : new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices)
+					.findTransactionImpact(transaction, true)) {
+				impacts.add(new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
+			}
+
+			recordModificationses.add(new BatchProcessRecordModifications(originalRecord.getId(), originalRecord.getTitle(),
+					impacts, recordFieldModifications));
 		}
 
 		return new BatchProcessResults(recordModificationses);
@@ -346,7 +489,7 @@ public class BatchProcessingPresenterService {
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
-	public List<Transaction> prepareTransaction(final BatchProcessRequest request, boolean recalculate) {
+	public List<Transaction> prepareTransactions(final BatchProcessRequest request, boolean recalculate) {
 
 		final MetadataSchemaTypes types = schemas.getTypes();
 		final List<Transaction> transactionList = new ArrayList<>();
@@ -414,6 +557,51 @@ public class BatchProcessingPresenterService {
 		return transactionList;
 	}
 
+	public Transaction prepareTransaction(BatchProcessRequest request, boolean recalculate) {
+		Transaction transaction = new Transaction();
+		MetadataSchemaTypes types = schemas.getTypes();
+		for (String id : request.getIds()) {
+			Record record = recordServices.getDocumentById(id);
+			transaction.add(record);
+			MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
+
+			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
+				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
+				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
+				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
+					Metadata metadata = currentRecordSchema.get(metadataCode);
+
+					if (isNonEmptyValue(metadata, entry.getValue()) && types.isRecordTypeMetadata(metadata)) {
+						record.set(metadata, entry.getValue());
+						changeSchemaTypeAccordingToTypeLinkedSchema(record, types, new RecordProvider(recordServices), metadata);
+					}
+				}
+			}
+
+			currentRecordSchema = types.getSchema(record.getSchemaCode());
+			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
+				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
+
+				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
+				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
+					Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
+					if (isNonEmptyValue(metadata, entry.getValue())) {
+						record.set(metadata, entry.getValue());
+					}
+				}
+			}
+
+		}
+
+		if (recalculate) {
+			for (Record record : transaction.getModifiedRecords()) {
+				recordServices.recalculate(record);
+			}
+		}
+
+		return transaction;
+	}
+
 	private boolean isNonEmptyValue(Metadata metadata, Object o) {
 		if (metadata.isMultivalue()) {
 			return o != null && o instanceof List && !((List) o).isEmpty();
@@ -473,6 +661,24 @@ public class BatchProcessingPresenterService {
 		return recordFieldFactory;
 	}
 
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {
+		BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams params =
+				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(
+						BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType, null);
+		params.setSelectedTypeId(selectedType).setSelectedRecords(selectedRecordIds);
+
+		RecordFieldFactory recordFieldFactory = null;
+		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
+				.forCollection(collection).recordFieldFactoryExtensions;
+		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
+			recordFieldFactory = extension.newRecordFieldFactory(params);
+			if (recordFieldFactory != null) {
+				break;
+			}
+		}
+		return recordFieldFactory;
+	}
+
 	public boolean hasWriteAccessOnAllRecords(User user, List<String> selectedRecordIds) {
 
 		boolean writeAccess = true;
@@ -517,7 +723,37 @@ public class BatchProcessingPresenterService {
 			fieldsModifications.put(typeMetadata.getCode(), selectedType);
 		}
 
-		return new BatchProcessRequest(query, user, type, fieldsModifications);
+		return new BatchProcessRequest(null, query, user, type, fieldsModifications);
+	}
+
+	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO, User user) {
+
+		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
+		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
+		MetadataSchema schema = schemas.getTypes().getSchema(formVO.getSchema().getCode());
+		Map<String, Object> fieldsModifications = new HashMap<>();
+		for (MetadataVO metadataVO : formVO.getMetadatas()) {
+			Metadata metadata = schema.get(metadataVO.getLocalCode());
+			Object value = formVO.get(metadataVO);
+
+			LOGGER.info(metadata.getCode() + ":" + value);
+			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
+					&& value != null
+					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+
+				LOGGER.info("");
+				fieldsModifications.put(metadataVO.getCode(), value);
+			}
+		}
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(selectedType)) {
+			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(type);
+			LOGGER.info(typeMetadata.getCode() + ":" + selectedType);
+			fieldsModifications.put(typeMetadata.getCode(), selectedType);
+		}
+
+		return new BatchProcessRequest(selectedRecord, null, user, type, fieldsModifications);
 	}
 
 	public BatchProcessAction toAction(String selectedType, LogicalSearchQuery query, RecordVO formVO, User user) {

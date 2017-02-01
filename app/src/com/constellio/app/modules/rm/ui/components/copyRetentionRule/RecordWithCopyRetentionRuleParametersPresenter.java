@@ -66,7 +66,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			fieldsModifications.put(copyRetentionRuleDependencyMetadata.getCode(), dependencyValue);
 		}
 		//fieldsModifications.put(Folder.COPY_STATUS_ENTERED, CopyType.PRINCIPAL);
-		return new BatchProcessRequest(fields.getQuery(), user, schemaType, fieldsModifications);
+		return new BatchProcessRequest(null, fields.getQuery(), user, schemaType, fieldsModifications);
 	}
 
 	String getDependencyValue() {

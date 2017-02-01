@@ -46,7 +46,7 @@ public class BatchProcessingButton extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
-		if (!presenter.hasWriteAccessOnAllRecords(presenter.buildLogicalSearchQuery())) {
+		if (!presenter.hasWriteAccessOnAllRecords()) {
 			return new Label($("AdvancedSearchView.requireWriteAccess"));
 		}
 
