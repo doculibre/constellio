@@ -405,7 +405,9 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public void importFrom(File settingsFolder) {
 		try {
-			this.delete("/");
+			if (this.exist("/")) {
+				this.delete("/");
+			}
 			Iterator<File> files = FileUtils.iterateFiles(settingsFolder, null, true);
 			String settingsFolderPath = settingsFolder.getPath();
 			while (files.hasNext()) {
