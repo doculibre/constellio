@@ -20,7 +20,12 @@ public class BatchProcessRequest {
 
 	public BatchProcessRequest(List<String> ids, LogicalSearchQuery query, User user,
 							   MetadataSchemaType schemaType, Map<String, Object> modifiedMetadatas) {
-		this.ids = Collections.unmodifiableList(ids);
+		if(ids != null) {
+			this.ids = Collections.unmodifiableList(ids);
+		} else {
+			this.ids = Collections.unmodifiableList(new ArrayList<String>());
+		}
+
 		this.query = query;
 		this.user = user;
 		this.schemaType = schemaType;

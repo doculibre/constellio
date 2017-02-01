@@ -126,8 +126,14 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return batchProcessingButton;
 	}
 
-	private Button buildBatchProcessingButton(String schemaType) {
-		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
+	private Button buildBatchProcessingButton(final String schemaType) {
+		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType)) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.setBatchProcessSchemaType(schemaType);
+				super.buttonClick(event);
+			}
+		};
 		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
 		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
 		return button;

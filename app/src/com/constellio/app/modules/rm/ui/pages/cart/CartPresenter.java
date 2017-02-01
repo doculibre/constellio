@@ -288,7 +288,6 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public List<String> getRecordsIds(String schemaType) {
-		batchProcessSchemaType = schemaType;
 		switch (schemaType) {
 			case Folder.SCHEMA_TYPE:
 				return cart().getFolders();
@@ -587,4 +586,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		view.navigate().to(RMViews.class).listCarts();
 	}
 
+	public CartPresenter setBatchProcessSchemaType(String batchProcessSchemaType) {
+		this.batchProcessSchemaType = batchProcessSchemaType;
+		return this;
+	}
 }

@@ -5,6 +5,8 @@ import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.rete
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.List;
+
 public interface RecordWithCopyRetentionRuleParametersFields extends SessionContextProvider {
     CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField();
 
@@ -13,6 +15,8 @@ public interface RecordWithCopyRetentionRuleParametersFields extends SessionCont
     String getSchemaType();
 
     LogicalSearchQuery getQuery();
+
+    List<String> getSelectedRecords();
 
     String getType();
 }

@@ -37,15 +37,17 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 	private RecordWithCopyRetentionRuleParametersPresenter presenter;
 
 	private final String recordIdThatCopyRetentionRuleDependantOn, selectedTypeId, schemaType;
+	private final List<String> selectedRecords;
 	private final LogicalSearchQuery query;
 
 	public RecordWithCopyRetentionRuleFieldFactory(String schemaType, String recordIdThatCopyRetentionRuleDependantOn,
-												   String selectedTypeId, LogicalSearchQuery query) {
+												   String selectedTypeId, LogicalSearchQuery query, List<String> selectedRecords) {
 		this.presenter = new RecordWithCopyRetentionRuleParametersPresenter(this);
 		this.schemaType = schemaType;
 		this.recordIdThatCopyRetentionRuleDependantOn = recordIdThatCopyRetentionRuleDependantOn;
 		this.selectedTypeId = selectedTypeId;
 		this.query = query;
+		this.selectedRecords = selectedRecords;
 	}
 
 	@Override
@@ -142,6 +144,11 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 	@Override
 	public LogicalSearchQuery getQuery() {
 		return query;
+	}
+
+	@Override
+	public List<String> getSelectedRecords() {
+		return selectedRecords;
 	}
 
 	@Override

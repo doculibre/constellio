@@ -9,7 +9,6 @@ import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -28,7 +27,6 @@ public class BatchProcessingButton extends WindowButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessingButton.class);
 	private BatchProcessingPresenter presenter;
 	private final BatchProcessingView view;
-	private LogicalSearchQuery query;
 
 	//fields
 	LookupRecordField typeField;
