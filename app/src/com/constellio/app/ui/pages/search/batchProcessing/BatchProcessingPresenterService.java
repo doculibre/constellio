@@ -30,7 +30,6 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -208,17 +207,26 @@ public class BatchProcessingPresenterService {
 	public BatchProcessResults execute(String selectedType, List<String> records, RecordVO viewObject, User user)
 			throws RecordServicesException {
 		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject);
-		return execute(batchProcessAction, records, user.getUsername(), "Edit records");
+		BatchProcessRequest request;
+		if(records != null && records.size() > 1000) {
+			request = toRequest(selectedType, records.subList(0, 1000), viewObject, user);
+		} else {
+			request = toRequest(selectedType, records, viewObject, user);
+		}
+
+		return execute(request, batchProcessAction, records, user.getUsername(), "Edit records");
 	}
 
-	public BatchProcessResults execute(BatchProcessAction action, List<String> records, String username, String title)
+	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, List<String> records, String username, String title)
 			throws RecordServicesException {
 
 		System.out.println("**************** EXECUTE ****************");
 		System.out.println("ACTION : ");
 		System.out.println(action);
+		Transaction transaction = prepareTransaction(request, true);
+		recordServices.validateTransaction(transaction);
 
-		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.newBatchProcessesManager();
 		batchProcessesManager.addPendingBatchProcess(records, action, username, title, collection);
 
 		return null;
@@ -305,19 +313,27 @@ public class BatchProcessingPresenterService {
 
 	public BatchProcessResults execute(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)
 			throws RecordServicesException {
+		LogicalSearchQuery validationQuery = query;
+		validationQuery = validationQuery.setNumberOfRows(1000);
 		BatchProcessAction batchProcessAction = toAction(selectedType, viewObject);
-		return execute(batchProcessAction, query, user.getUsername(), "Edit records");
+		BatchProcessRequest request = toRequest(selectedType, validationQuery, viewObject, user);
+		return execute(request, batchProcessAction, query, user.getUsername(), "Edit records");
 
 	}
 
-	public BatchProcessResults execute(BatchProcessAction action, LogicalSearchQuery query, String username, String title)
+	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, LogicalSearchQuery query, String username, String title)
 			throws RecordServicesException {
 
 		System.out.println("**************** EXECUTE ****************");
 		System.out.println("ACTION : ");
 		System.out.println(action);
+		List<Transaction> transactionList = prepareTransactions(request, true);
 
-		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		for(Transaction transaction: transactionList) {
+			recordServices.validateTransaction(transaction);
+		}
+
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.newBatchProcessesManager();
 		batchProcessesManager.addPendingBatchProcess(query, action, username, title);
 
 		return null;
@@ -492,65 +508,47 @@ public class BatchProcessingPresenterService {
 
 		final MetadataSchemaTypes types = schemas.getTypes();
 		final List<Transaction> transactionList = new ArrayList<>();
+		Transaction transaction = new Transaction();
+		int counter = 0;
 
-		try {
-			new ActionExecutorInBatch(searchServices, "Edit records", 1000) {
+		List<Record> recordList = searchServices.search(request.getQuery());
+		for (Record record: recordList) {
+			transaction.add(record);
+			if(++counter == 1000) {
+				counter = 0;
+				transactionList.add(transaction);
+				transaction = new Transaction();
+			}
+			MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
 
-				@Override
-				public void doActionOnBatch(List<Record> records)
-						throws Exception {
-					int counter = 0;
-					Transaction transaction = new Transaction();
-					for (Record record : records) {
-						transaction.add(record);
-						if(++counter == 1000) {
-							counter = 0;
-							transactionList.add(transaction);
-							transaction = new Transaction();
-						}
-						MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
+			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
+				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
+				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
+				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
+					Metadata metadata = currentRecordSchema.get(metadataCode);
 
-						for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
-							String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
-							String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
-							if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
-								Metadata metadata = currentRecordSchema.get(metadataCode);
-
-								if (isNonEmptyValue(metadata, entry.getValue()) && types.isRecordTypeMetadata(metadata)) {
-									record.set(metadata, entry.getValue());
-									changeSchemaTypeAccordingToTypeLinkedSchema(record, types, new RecordProvider(recordServices), metadata);
-								}
-							}
-						}
-
-						currentRecordSchema = types.getSchema(record.getSchemaCode());
-						for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
-							String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
-
-							String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
-							if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
-								Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
-								if (isNonEmptyValue(metadata, entry.getValue())) {
-									record.set(metadata, entry.getValue());
-								}
-							}
-						}
+					if (isNonEmptyValue(metadata, entry.getValue()) && types.isRecordTypeMetadata(metadata)) {
+						record.set(metadata, entry.getValue());
+						changeSchemaTypeAccordingToTypeLinkedSchema(record, types, new RecordProvider(recordServices), metadata);
 					}
-					if(counter < 1000) {
-						transactionList.add(transaction);
-					}
-				}
-			}.execute(request.getQuery());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (recalculate) {
-			for(Transaction transaction: transactionList) {
-				for (Record record : transaction.getModifiedRecords()) {
-					recordServices.recalculate(record);
 				}
 			}
+
+			currentRecordSchema = types.getSchema(record.getSchemaCode());
+			for (Map.Entry<String, Object> entry : request.getModifiedMetadatas().entrySet()) {
+				String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(entry.getKey());
+
+				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
+				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
+					Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
+					if (isNonEmptyValue(metadata, entry.getValue())) {
+						record.set(metadata, entry.getValue());
+					}
+				}
+			}
+		}
+		if(counter < 1000) {
+			transactionList.add(transaction);
 		}
 
 		return transactionList;
