@@ -5,6 +5,8 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.conf.FoldersLocator;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 
@@ -25,25 +27,20 @@ public class SmbConnectorContextServices {
 		save(context, false);
 	}
 
-	private void save(SmbConnectorContext context, boolean add) {
+	private synchronized void save(SmbConnectorContext context, boolean add) {
 		File tempFile = es.getIOServices().newTemporaryFile(URLS_TEMP_FILE_WRITING_RESOURCE);
 		InputStream tempFileInputStream = null;
 		try {
-			ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
+			File workFolder = new FoldersLocator().getWorkFolder();
+			File connectorWorkFolder = new File(workFolder, context.getConnectorId());
+			connectorWorkFolder.mkdirs();
 			saveTo(context, tempFile);
-
 			tempFileInputStream = es.getIOServices().newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
-			String path = "/connectors/smb/" + context.getConnectorId() + "/fetchedUrls.txt";
-			if (add) {
-				configManager.add(path, tempFileInputStream);
-			} else {
-				String hash = configManager.getBinary(path).getHash();
-				configManager.update(path, hash, tempFileInputStream);
-			}
+			File fetchedUrls = new File(connectorWorkFolder, "fetchedUrls.txt");
+			FileUtils.deleteQuietly(fetchedUrls);
+			FileUtils.copyFile(tempFile, fetchedUrls);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		} catch (OptimisticLockingConfiguration e) {
-			throw new ImpossibleRuntimeException(e);
 		} finally {
 			es.getIOServices().closeQuietly(tempFileInputStream);
 			es.getIOServices().deleteQuietly(tempFile);
