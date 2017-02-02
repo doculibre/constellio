@@ -368,6 +368,21 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenParsingLargeFileNotExceedingFileWithLargeSizeLimitThenParsed()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 3000);
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithLargePictureOfEdouard.pptx");
+		long length = getLengthOf("testFileWithLargePictureOfEdouard.pptx");
+
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
+
+		assertThat(parsedContent.getMimeType())
+				.isEqualTo("application/vnd.openxmlformats-officedocument.presentationml.presentation");
+		assertThat(parsedContent.getParsedContent()).contains("history of cats");
+
+	}
+
+	@Test
 	public void whenParsingLargeFileExceedingFileSizeLimitThenParsed()
 			throws Exception {
 		givenConfig(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 1);
