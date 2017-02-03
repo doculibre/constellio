@@ -35,6 +35,7 @@ public class TaxonomiesSearchOptions {
 		this.rows = cloned.rows;
 		this.startRow = cloned.startRow;
 		this.includeStatus = cloned.includeStatus;
+		this.requiredAccess = cloned.requiredAccess;
 		this.returnedMetadatasFilter = cloned.returnedMetadatasFilter;
 	}
 
@@ -120,11 +121,6 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions cloneAddingReturnedField(Metadata metadata) {
 		TaxonomiesSearchOptions clonedOptions = new TaxonomiesSearchOptions(this);
 		clonedOptions.setReturnedMetadatasFilter(returnedMetadatasFilter.withIncludedMetadata(metadata));
-		clonedOptions.setIncludeStatus(includeStatus);
-		clonedOptions.setRequiredAccess(requiredAccess);
-		clonedOptions.setRows(rows);
-		clonedOptions.setStartRow(startRow);
-		clonedOptions.setAlwaysReturnTaxonomyConceptsWithReadAccess(alwaysReturnTaxonomyConceptsWithReadAccess);
 		return clonedOptions;
 
 	}

@@ -790,7 +790,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(linkable(folderNearEnd.getId()))
 				.has(unlinkable(subFolderNearEnd.getParentFolder()));
 
-		assertThat(queryCount.get()).isEqualTo(2);
+		assertThat(queryCount.get()).isEqualTo(4);
 	}
 
 	@Test
@@ -914,7 +914,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("zeFolder1", "zeFolder2", "zeFolder3", "zeFolder4", "zeFolder5", "zeFolder6",
 						"zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11", "zeFolder12", "zeFolder13",
 						"zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20"))
-				.has(numFound(25)).has(listSize(20));
+				.has(numFound(300)).has(listSize(20));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
 				withWriteAccess.setStartRow(0).setRows(25))
@@ -922,15 +922,15 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						"zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11", "zeFolder12", "zeFolder13",
 						"zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20",
 						"zeFolder21", "zeFolder22", "zeFolder23", "zeFolder24", "zeFolder25"))
-				.has(numFound(50)).has(listSize(25));
+				.has(numFound(300)).has(listSize(25));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
 				withWriteAccess.setStartRow(20).setRows(20))
-				.has(numFound(50)).has(listSize(20));
+				.has(numFound(300)).has(listSize(20));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
 				withWriteAccess.setStartRow(20).setRows(40))
-				.has(numFound(75)).has(listSize(40));
+				.has(numFound(300)).has(listSize(40));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
 				withWriteAccess.setStartRow(260).setRows(40))
