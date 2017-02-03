@@ -31,9 +31,6 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
                 field.addStyleName(STYLE_FIELD);
                 field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
                 fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
-                if(ContainerRecord.STORAGE_SPACE.equals(metadataVO.getLocalCode())) {
-                    fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
-                }
             }
         }
         return fieldsAndPropertyIds;

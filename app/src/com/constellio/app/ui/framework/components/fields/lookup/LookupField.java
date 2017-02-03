@@ -310,11 +310,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				}
 			});
 
-			if (!lookupTreeDataProviders.isEmpty()) {
-				if (lookupTreeDataProviders.size() > 1) {
+			if (!getLookupTreeDataProviders().isEmpty()) {
+				if (getLookupTreeDataProviders().size() > 1) {
 					lookupTreeComponent = new TabSheet();
 				}
-				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : lookupTreeDataProviders) {
+				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : getLookupTreeDataProviders()) {
 					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, treeBufferSize);
 					lazyTree.setWidth("100%");
 					lazyTree.setItemCaptionMode(ItemCaptionMode.PROPERTY);
@@ -350,16 +350,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			searchResultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 
 			addComponent(searchFieldLayout);
-			if (!lookupTreeDataProviders.isEmpty()) {
+			if (!getLookupTreeDataProviders().isEmpty()) {
 				addComponent(lookupTreeComponent);
 			} else {
-				Container searchResultsContainer = new LookupSearchResultContainer(suggestInputDataProvider, searchField);
+				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);
 				searchResultsTable.setContainerDataSource(searchResultsContainer);
 				addComponent(searchResultsTable);
 			}
 			searchFieldLayout.addComponents(searchField, searchButton);
 
-			if (!lookupTreeDataProviders.isEmpty()) {
+			if (!getLookupTreeDataProviders().isEmpty()) {
 				setExpandRatio(lookupTreeComponent, 1);
 			} else {
 				setExpandRatio(searchResultsTable, 1);
@@ -404,9 +404,13 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					setExpandRatio(lookupTreeComponent, 1);
 				}
 			} else {
-				Container searchResultsContainer = new LookupSearchResultContainer(suggestInputDataProvider, searchField);
+				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);
 				searchResultsTable.setContainerDataSource(searchResultsContainer);
 			}
+		}
+
+		public TextInputDataProvider geSuggestInputDataProvider() {
+			return suggestInputDataProvider;
 		}
 
 	}
