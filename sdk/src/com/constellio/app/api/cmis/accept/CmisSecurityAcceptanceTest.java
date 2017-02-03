@@ -56,6 +56,7 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -1189,7 +1190,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(zeCollection)) {
 			stringBuilder.append(taxonomy.getCode() + " : \n");
-			for (Record record : taxonomiesSearchServices
+			for (Record record : new ConceptNodesTaxonomySearchServices(getModelLayerFactory())
 					.getRootConcept(zeCollection, taxonomy.getCode(), new TaxonomiesSearchOptions().setRows(100))) {
 
 				printConcept(user, taxonomy.getCode(), record, 1, stringBuilder);

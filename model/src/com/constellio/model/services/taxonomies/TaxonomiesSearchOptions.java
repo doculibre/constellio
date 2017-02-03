@@ -17,8 +17,6 @@ public class TaxonomiesSearchOptions {
 	private String requiredAccess = Role.READ;
 	private boolean hasChildrenFlagCalculated = true;
 
-	private int previousBatchLastVisibleIndex;
-
 	public TaxonomiesSearchOptions() {
 		super();
 	}
@@ -32,7 +30,8 @@ public class TaxonomiesSearchOptions {
 
 	public TaxonomiesSearchOptions(TaxonomiesSearchOptions cloned) {
 		super();
-		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
+		this.hasChildrenFlagCalculated = cloned.hasChildrenFlagCalculated;
+		this.alwaysReturnTaxonomyConceptsWithReadAccess = cloned.alwaysReturnTaxonomyConceptsWithReadAccess;
 		this.rows = cloned.rows;
 		this.startRow = cloned.startRow;
 		this.includeStatus = cloned.includeStatus;
@@ -58,12 +57,19 @@ public class TaxonomiesSearchOptions {
 	}
 
 	public TaxonomiesSearchOptions setRows(int rows) {
+		if (rows > 10000) {
+			throw new IllegalArgumentException("Rows cannot be higher than 10000");
+		}
 		this.rows = rows;
 		return this;
 	}
 
 	public int getStartRow() {
 		return startRow;
+	}
+
+	public int getEndRow() {
+		return startRow + rows;
 	}
 
 	public TaxonomiesSearchOptions setStartRow(int startRow) {
@@ -119,24 +125,8 @@ public class TaxonomiesSearchOptions {
 		clonedOptions.setRows(rows);
 		clonedOptions.setStartRow(startRow);
 		clonedOptions.setAlwaysReturnTaxonomyConceptsWithReadAccess(alwaysReturnTaxonomyConceptsWithReadAccess);
-		clonedOptions.setPreviousBatchLastVisibleIndex(previousBatchLastVisibleIndex);
 		return clonedOptions;
 
 	}
 
-	public int getPreviousBatchLastVisibleIndex() {
-		return previousBatchLastVisibleIndex;
-	}
-
-	/**
-	 * Taxonomy services are basically iterating over a query and then filtering nodes based on some criteria.
-	 * Rows and startRow parameter are the range of filtered records, it gives no clue on the index in the main iterator.
-	 *
-	 * The facultative 'previousBatchLastVisibleIndex' is the index of the last visible node, it helps accelerate services
-	 * This information is available in taxonomy search response object
-	 */
-	public TaxonomiesSearchOptions setPreviousBatchLastVisibleIndex(int previousBatchLastVisibleIndex) {
-		this.previousBatchLastVisibleIndex = previousBatchLastVisibleIndex;
-		return this;
-	}
 }

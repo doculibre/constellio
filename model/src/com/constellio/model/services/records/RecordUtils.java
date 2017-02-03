@@ -35,6 +35,15 @@ public class RecordUtils {
 		schemaUtils = newSchemaUtils();
 	}
 
+	public Set<String> toIdSet(List<Record> records) {
+		Set<String> idList = new HashSet<>();
+
+		for (Record record : records) {
+			idList.add(record.getId());
+		}
+		return idList;
+	}
+
 	public List<String> toIdList(List<Record> records) {
 		List<String> idList = new ArrayList<>();
 

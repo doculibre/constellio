@@ -46,4 +46,5 @@ public class LinkableTaxonomySearchResponse {
 		this.qTime = qTime;
 		return this;
 	}
+
 }

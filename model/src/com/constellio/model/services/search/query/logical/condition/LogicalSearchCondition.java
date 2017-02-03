@@ -53,6 +53,22 @@ public abstract class LogicalSearchCondition {
 				this, LogicalOperator.OR);
 	}
 
+	public LogicalSearchCondition andWhere(DataStoreFieldLogicalSearchCondition condition) {
+		if (condition.getMetadataLogicalOperator() == LogicalOperator.AND) {
+			return this.andWhereAll(condition.getDataStoreFields()).is(condition.getValueCondition());
+		} else {
+			return this.andWhereAny(condition.getDataStoreFields()).is(condition.getValueCondition());
+		}
+	}
+
+	public LogicalSearchCondition orWhere(DataStoreFieldLogicalSearchCondition condition) {
+		if (condition.getMetadataLogicalOperator() == LogicalOperator.AND) {
+			return this.orWhereAll(condition.getDataStoreFields()).is(condition.getValueCondition());
+		} else {
+			return this.orWhereAny(condition.getDataStoreFields()).is(condition.getValueCondition());
+		}
+	}
+
 	public LogicalSearchCondition andWhere(ConditionTemplate template) {
 		if (template.getOperator() == LogicalOperator.AND) {
 			return andWhereAll((List<DataStoreField>) template.getFields()).is(template.getCondition());

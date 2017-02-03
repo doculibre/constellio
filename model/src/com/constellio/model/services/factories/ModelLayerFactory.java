@@ -260,7 +260,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public TaxonomiesSearchServices newTaxonomiesSearchService() {
-		return new TaxonomiesSearchServices(newSearchServices(), taxonomiesManager, schemasManager);
+		return new TaxonomiesSearchServices(this);
 	}
 
 	public RolesManager getRolesManager() {

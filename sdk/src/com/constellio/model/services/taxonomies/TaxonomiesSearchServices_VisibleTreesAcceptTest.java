@@ -139,6 +139,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
 
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
@@ -535,7 +537,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, CLASSIFICATION_PLAN,
 					category42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childCategories.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(childCategories.size());
+			assertThat(response.getNumFound()).isEqualTo(100L);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -661,7 +663,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
 				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()));
 
-		assertThat(queryCount.get()).isEqualTo(2);
+		assertThat(queryCount.get()).isEqualTo(3);
 	}
 
 	private Folder newFolderInCategory(Category category, String title) {
@@ -892,7 +894,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	private ConditionTemplate withoutFilters = null;
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
-		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, Integer.MAX_VALUE);
+		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, 10000);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user, int start,
@@ -900,7 +902,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 				user, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
 
-		if (rows == Integer.MAX_VALUE) {
+		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -911,7 +913,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 				user, zeCollection, CLASSIFICATION_PLAN, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -922,7 +924,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 				user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -930,7 +932,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
 			String category) {
-		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, Integer.MAX_VALUE);
+		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, 10000);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
@@ -941,7 +943,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
 						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
 
-		if (rows == Integer.MAX_VALUE) {
+		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -953,7 +955,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		LinkableTaxonomySearchResponse response = service
 				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -965,7 +967,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		LinkableTaxonomySearchResponse response = service
 				.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);

@@ -54,4 +54,6 @@ public class BatchBuilderIterator<T> extends LazyIterator<List<T>> {
 
 		return new BatchBuilderIterator<>(allElements, batchSize);
 	}
+
+
 }
