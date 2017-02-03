@@ -1,20 +1,12 @@
 package com.constellio.app.ui.pages.home;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.peter.contextmenu.ContextMenu;
-
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -40,14 +32,17 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
-import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
+import org.vaadin.peter.contextmenu.ContextMenu;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	
@@ -81,21 +76,21 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName("records-management");
 
-		tabSheet.addSelectedTabChangeListener(new SelectedTabChangeListener() {
-			@Override
-			public void selectedTabChange(SelectedTabChangeEvent event) {
-				Tab currentTab = tabSheet.getTab(tabSheet.getSelectedTab());
-				selectTab(currentTab);
-			}
-		});
-
 		Map<String, Tab> tabsByCode = new HashMap<>();
 		for (PageItem item : tabs) {
 			Tab tab = tabSheet.addTab(new PlaceHolder(), $("HomeView.tab." + item.getCode()));
 			tabsByCode.put(item.getCode(), tab);
 		}
 
-		selectTab(tabsByCode.get(presenter.getDefaultTab()));
+		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				Tab currentTab = tabSheet.getTab(tabSheet.getSelectedTab());
+				selectTab(currentTab);
+			}
+		});
+
+		selectTab(tabsByCode.get(presenter.getCurrentTab()));
 
 		return tabSheet;
 	}
@@ -147,7 +142,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Table buildRecordTable(final RecordTable recordTable) {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		Table table = new RecordVOTable(dataProvider);
+		RecordVOTable table = new RecordVOTable(dataProvider);
+		((DocumentContextMenuImpl)table.getContextMenu()).setParentView(this);
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {

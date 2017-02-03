@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.profile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.collections.CollectionUtils;
-
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -30,6 +20,11 @@ import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
 import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
@@ -128,6 +123,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		User user = userServices.getUserInCollection(username, view.getCollection());
 		String phone = user.getPhone();
 		String loginLanguage = user.getLoginLanguageCode();
+		if(loginLanguage == null || loginLanguage.isEmpty()) {
+			loginLanguage = view.getSessionContext().getCurrentLocale().getLanguage();
+		}
 		String startTab = user.getStartTab();
 		if (startTab == null) {
 			startTab = getDefaultStartTab();
