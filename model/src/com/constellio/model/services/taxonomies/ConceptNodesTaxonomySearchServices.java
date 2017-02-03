@@ -13,6 +13,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.Taxonomy;
@@ -146,7 +147,11 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public List<String> getAllConceptIdsHierarchyOf(Taxonomy taxonomy, Record record) {
-		return searchServices.searchRecordIds(fromConceptsOf(taxonomy).where(directChildOf(record)));
+		List<String> newReponse = new ArrayList<>();
+		newReponse.add(record.getId());
+		newReponse.addAll(searchServices.searchRecordIds(fromConceptsOf(taxonomy).where(recordInHierarchyOf(record))));
+		return newReponse;
+
 	}
 
 	public List<Record> getAllConceptHierarchyOf(Taxonomy taxonomy, Record record) {

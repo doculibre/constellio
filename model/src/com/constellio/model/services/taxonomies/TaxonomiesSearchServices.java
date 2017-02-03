@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dom4j.util.NodeComparator;
 
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.AccentApostropheCleaner;
@@ -300,8 +299,11 @@ public class TaxonomiesSearchServices {
 				if (hasChildren) {
 					resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, true));
 
-				} else if (context.options.isAlwaysReturnTaxonomyConceptsWithReadAccess() && context.hasRequiredAccessOn(child)) {
-					resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, false));
+				} else if (context.options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
+					if (!taxonomiesManager.isTypeInPrincipalTaxonomy(context.getCollection(), child.getTypeCode())
+							|| context.hasRequiredAccessOn(child)) {
+						resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, false));
+					}
 				}
 			}
 		}

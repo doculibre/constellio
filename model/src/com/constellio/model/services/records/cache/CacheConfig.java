@@ -62,6 +62,10 @@ public class CacheConfig {
 		return new CacheConfig(schemaType, true, 0, indexes, true);
 	}
 
+	public static CacheConfig permanentCacheNotLoadedInitially(String schemaType, List<Metadata> indexes) {
+		return new CacheConfig(schemaType, true, 0, indexes, false);
+	}
+
 	public static CacheConfig volatileCache(MetadataSchemaType schemaType, int maxSize) {
 		return volatileCache(schemaType.getCode(), maxSize, schemaType.getDefaultSchema().getMetadatas().onlyUniques());
 	}
@@ -79,4 +83,5 @@ public class CacheConfig {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
+
 }
