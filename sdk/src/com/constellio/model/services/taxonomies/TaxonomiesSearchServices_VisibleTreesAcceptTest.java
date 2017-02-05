@@ -537,7 +537,11 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, CLASSIFICATION_PLAN,
 					category42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childCategories.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(100L);
+			if (i > 75) {
+				assertThat(response.getNumFound()).isEqualTo(100);
+			} else {
+				assertThat(response.getNumFound()).isGreaterThan(response.getRecords().size());
+			}
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -606,7 +610,12 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, ADMINISTRATIVE_UNITS,
 					unit42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childAdministrativeUnits.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(childAdministrativeUnits.size());
+
+			if (i > 75) {
+				assertThat(response.getNumFound()).isEqualTo(100);
+			} else {
+				assertThat(response.getNumFound()).isGreaterThan(response.getRecords().size());
+			}
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 

@@ -19,6 +19,7 @@ import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearc
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.whereTypeIn;
+import static java.lang.Math.max;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -175,12 +176,10 @@ public class TaxonomiesSearchServices {
 	private LinkableTaxonomySearchResponse getVisibleChildrenRecords(GetChildrenContext ctx) {
 
 		List<TaxonomySearchRecord> concepts = getConceptRecordsWithVisibleRecords(ctx);
-		List<Record> childrenWithoutAccessToInclude = getChildrenRecordsWithoutRequiredAccessLeadingToRecordWithAccess(ctx);
-
-		SPEQueryResponse nonTaxonomyRecordsResponse = getNonTaxonomyRecords(ctx,
-				childrenWithoutAccessToInclude);
-
 		List<Record> records = new ArrayList<>();
+
+		List<Record> childrenWithoutAccessToInclude = getChildrenRecordsWithoutRequiredAccessLeadingToRecordWithAccess(ctx);
+		SPEQueryResponse nonTaxonomyRecordsResponse = getNonTaxonomyRecords(ctx, childrenWithoutAccessToInclude, concepts.size());
 		records.addAll(nonTaxonomyRecordsResponse.getRecords());
 		records.addAll(childrenWithoutAccessToInclude);
 		Collections.sort(records, new RecordCodeComparator(ctx.taxonomy.getSchemaTypes()));
@@ -221,9 +220,11 @@ public class TaxonomiesSearchServices {
 		return new LinkableTaxonomySearchResponse(numfound, returnedRecords);
 	}
 
-	private SPEQueryResponse getNonTaxonomyRecords(GetChildrenContext ctx,
-			List<Record> childrenWithoutAccessToInclude) {
-		int pessimisticStartRow = Math.max(0, 0 - childrenWithoutAccessToInclude.size());
+	private SPEQueryResponse getNonTaxonomyRecords(GetChildrenContext ctx, List<Record> childrenWithoutAccessToInclude,
+			int visibleConceptsCount) {
+		int pessimisticStart = 0;//max(0, ctx.options.getStartRow() - visibleConceptsCount - childrenWithoutAccessToInclude.size());
+		int pessimisticRows =
+				ctx.options.getStartRow() + ctx.options.getRows() - visibleConceptsCount + childrenWithoutAccessToInclude.size();
 		LogicalSearchCondition condition;
 		if (ctx.forSelectionOfSchemaType == null) {
 			condition = fromAllSchemasInCollectionOf(ctx.record)
@@ -234,8 +235,7 @@ public class TaxonomiesSearchServices {
 			condition = from(ctx.forSelectionOfSchemaType).where(directChildOf(ctx.record));
 		}
 		LogicalSearchQuery query = newQuery(condition, ctx.options)
-				.setStartRow(pessimisticStartRow)
-				.setNumberOfRows(10000 + childrenWithoutAccessToInclude.size())
+				.setStartRow(pessimisticStart).setNumberOfRows(pessimisticRows)
 				.filteredWithUser(ctx.user, ctx.options.getRequiredAccess());
 
 		return searchServices.query(query);
@@ -273,16 +273,10 @@ public class TaxonomiesSearchServices {
 					.filteredByStatus(ACTIVES).setStartRow(0).setNumberOfRows(0);
 
 			boolean hasFacetsToCompute = false;
-			for (int i = 0; i < 10000; i++) {
-				if (i >= visibleConceptsSize) {
-					int nonTaxonomyIndex = i - visibleConceptsSize;
-					if (nonTaxonomyIndex < records.size()) {
-						facetQuery.addQueryFacet("hasChildren", facetQueryFor(context.taxonomy, records.get(nonTaxonomyIndex)));
-						hasFacetsToCompute = true;
-					} else {
-						break;
-					}
-				}
+			for (int i = visibleConceptsSize; i - visibleConceptsSize < records.size(); i++) {
+				int nonTaxonomyIndex = i - visibleConceptsSize;
+				facetQuery.addQueryFacet("hasChildren", facetQueryFor(context.taxonomy, records.get(nonTaxonomyIndex)));
+				hasFacetsToCompute = true;
 			}
 			if (hasFacetsToCompute) {
 				facetResponse = searchServices.query(facetQuery);
@@ -294,12 +288,12 @@ public class TaxonomiesSearchServices {
 	private List<TaxonomySearchRecord> getConceptRecordsWithVisibleRecords(GetChildrenContext context) {
 
 		SearchResponseIterator<List<Record>> childsIterator = searchServices.recordsIteratorKeepingOrder(
-				childConceptsQuery(context.record, context.taxonomy, context.options).setStartRow(0).setNumberOfRows(10000), 25)
-				.inBatches();
+				childConceptsQuery(context.record, context.taxonomy, context.options).setStartRow(0).setNumberOfRows(10000),
+				context.options.getRows() * 2).inBatches();
 
 		int consumed = 0;
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
-		while (resultVisible.size() < 10000 && childsIterator.hasNext()) {
+		while (resultVisible.size() < context.options.getEndRow() && childsIterator.hasNext()) {
 
 			List<Record> batch = childsIterator.next();
 			consumed += batch.size();
@@ -321,9 +315,7 @@ public class TaxonomiesSearchServices {
 			}
 		}
 
-		long numFound = childsIterator.getNumFound() - consumed + resultVisible.size();
-		int toIndex = Math.min(resultVisible.size(), 10000);
-		return resultVisible.subList(0, toIndex);
+		return resultVisible;
 
 	}
 
@@ -387,8 +379,8 @@ public class TaxonomiesSearchServices {
 			TaxonomiesSearchOptions options) {
 		LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(collection, taxonomyCode, options);
 		SearchResponseIterator<Record> rootIterator = searchServices.recordsIteratorKeepingOrder(
-				mainQuery.setNumberOfRows(100000).setStartRow(0), 25);
-		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(rootIterator, 25);
+				mainQuery.setNumberOfRows(100000).setStartRow(0), 50);
+		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(rootIterator, 50);
 
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
 
