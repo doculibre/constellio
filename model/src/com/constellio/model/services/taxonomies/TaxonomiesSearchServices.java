@@ -126,7 +126,8 @@ public class TaxonomiesSearchServices {
 			taxonomyCode = taxonomy.getCode();
 		}
 
-		return getVisibleChildrenRecords(user, record, options, null).getRecords();
+		GetChildrenContext ctx = new GetChildrenContext(user, record, options, null);
+		return getVisibleChildrenRecords(ctx).getRecords();
 	}
 
 	private class GetChildrenContext {
@@ -145,8 +146,13 @@ public class TaxonomiesSearchServices {
 			this.taxonomy = getTaxonomyForNavigation(record);
 		}
 
-		public TaxonomiesSearchOptions clonedOptionsWithoutRange() {
-			return new TaxonomiesSearchOptions(options).setRows(10000).setStartRow(0);
+		public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
+				MetadataSchemaType forSelectionOfSchemaType, Taxonomy taxonomy) {
+			this.user = user;
+			this.record = record;
+			this.options = options;
+			this.forSelectionOfSchemaType = forSelectionOfSchemaType;
+			this.taxonomy = taxonomy;
 		}
 
 		public boolean hasRequiredAccessOn(Record record) {
@@ -158,7 +164,7 @@ public class TaxonomiesSearchServices {
 		}
 
 		public String getCollection() {
-			return record.getCollection();
+			return record == null ? taxonomy.getCollection() : record.getCollection();
 		}
 
 		public LogicalSearchQuery newQueryWithUserFilter(LogicalSearchCondition condition) {
@@ -166,15 +172,12 @@ public class TaxonomiesSearchServices {
 		}
 	}
 
-	private LinkableTaxonomySearchResponse getVisibleChildrenRecords(User user, Record record, TaxonomiesSearchOptions options,
-			MetadataSchemaType selectedSchemaType) {
-		//TaxonomiesSearchOptions clonedOptionsWithoutRange = new TaxonomiesSearchOptions(options).setRows(10000).setStartRow(0);
-		GetChildrenContext ctx = new GetChildrenContext(user, record, options, selectedSchemaType);
+	private LinkableTaxonomySearchResponse getVisibleChildrenRecords(GetChildrenContext ctx) {
 
 		List<TaxonomySearchRecord> concepts = getConceptRecordsWithVisibleRecords(ctx);
 		List<Record> childrenWithoutAccessToInclude = getChildrenRecordsWithoutRequiredAccessLeadingToRecordWithAccess(ctx);
 
-		SPEQueryResponse nonTaxonomyRecordsResponse = getNonTaxonomyRecords(selectedSchemaType, ctx,
+		SPEQueryResponse nonTaxonomyRecordsResponse = getNonTaxonomyRecords(ctx,
 				childrenWithoutAccessToInclude);
 
 		List<Record> records = new ArrayList<>();
@@ -218,18 +221,17 @@ public class TaxonomiesSearchServices {
 		return new LinkableTaxonomySearchResponse(numfound, returnedRecords);
 	}
 
-	private SPEQueryResponse getNonTaxonomyRecords(MetadataSchemaType forSelectionOfSchemaType, GetChildrenContext ctx,
+	private SPEQueryResponse getNonTaxonomyRecords(GetChildrenContext ctx,
 			List<Record> childrenWithoutAccessToInclude) {
 		int pessimisticStartRow = Math.max(0, 0 - childrenWithoutAccessToInclude.size());
 		LogicalSearchCondition condition;
-		if (forSelectionOfSchemaType == null) {
+		if (ctx.forSelectionOfSchemaType == null) {
 			condition = fromAllSchemasInCollectionOf(ctx.record)
 					.where(directChildOf(ctx.record)).andWhere(visibleInTrees)
 					.andWhere(schemaTypeIsNotIn(ctx.taxonomy.getSchemaTypes()));
 		} else {
 			//TODO seulement linkable
-			condition = from(forSelectionOfSchemaType)
-					.where(directChildOf(ctx.record));
+			condition = from(ctx.forSelectionOfSchemaType).where(directChildOf(ctx.record));
 		}
 		LogicalSearchQuery query = newQuery(condition, ctx.options)
 				.setStartRow(pessimisticStartRow)
@@ -377,7 +379,8 @@ public class TaxonomiesSearchServices {
 
 	public LinkableTaxonomySearchResponse getVisibleChildConceptResponse(User user, String taxonomyCode, Record record,
 			TaxonomiesSearchOptions options) {
-		return getVisibleChildrenRecords(user, record, options, null);
+		GetChildrenContext ctx = new GetChildrenContext(user, record, options, null);
+		return getVisibleChildrenRecords(ctx);
 	}
 
 	public LinkableTaxonomySearchResponse getVisibleRootConceptResponse(User user, String collection, String taxonomyCode,
@@ -510,38 +513,39 @@ public class TaxonomiesSearchServices {
 		return new LinkableTaxonomySearchResponse(mainQueryResponse.getNumFound(), records);
 	}
 
-	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(User user,
-			Taxonomy taxonomy, MetadataSchemaType selectedType, Record inRecord, TaxonomiesSearchOptions options) {
+	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(
+			GetChildrenContext ctx) {
 
-		if (inRecord != null) {
-			return getVisibleChildrenRecords(user, inRecord, options, selectedType);
+		if (ctx.record != null) {
+			return getVisibleChildrenRecords(ctx);
 		} else {
 
 			LogicalSearchQuery mainQuery;
-			if (inRecord == null) {
+			if (ctx.record == null) {
 				mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(
-						taxonomy.getCollection(), taxonomy.getCode(), options);
+						ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
 			} else {
-				LogicalSearchCondition condition = fromAllSchemasIn(inRecord.getCollection())
-						.where(PATH_PARTS).isEqualTo(("_LAST_" + inRecord.getId()));
+				LogicalSearchCondition condition = fromAllSchemasIn(ctx.record.getCollection())
+						.where(PATH_PARTS).isEqualTo(("_LAST_" + ctx.record.getId()));
 				mainQuery = new LogicalSearchQuery(condition);
 
 			}
 
-			mainQuery.filteredByStatus(options.getIncludeStatus())
+			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
 					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-					.setReturnedMetadatas(options.getReturnedMetadatasFilter()
+					.setReturnedMetadatas(ctx.options.getReturnedMetadatasFilter()
 							.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 
 			Iterator<List<Record>> iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25)
 					.inBatches();
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
-			while (visibleRecords.size() < options.getEndRow() + 1 && iterator.hasNext()) {
+			while (visibleRecords.size() < ctx.options.getEndRow() + 1 && iterator.hasNext()) {
 				List<Record> batch = iterator.next();
 
-				LogicalSearchQuery facetQuery = newQueryForFacets(from(selectedType).returnAll(), user, options);
+				LogicalSearchQuery facetQuery = newQueryForFacets(from(ctx.forSelectionOfSchemaType).returnAll(), ctx.user,
+						ctx.options);
 				for (Record child : batch) {
-					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
+					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(ctx.taxonomy, child));
 				}
 
 				SPEQueryResponse response = searchServices.query(facetQuery);
@@ -549,10 +553,10 @@ public class TaxonomiesSearchServices {
 					String schemaType = getSchemaTypeCode(child.getSchemaCode());
 
 					boolean hasVisibleChildren =
-							response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
+							response.getQueryFacetCount(facetQueryFor(ctx.taxonomy, child)) > 0;
 
-					if (schemaType.equals(selectedType.getCode())) {
-						boolean hasAccess = user.hasRequiredAccess(options.getRequiredAccess()).on(child);
+					if (schemaType.equals(ctx.forSelectionOfSchemaType.getCode())) {
+						boolean hasAccess = ctx.user.hasRequiredAccess(ctx.options.getRequiredAccess()).on(child);
 						if (hasAccess || hasVisibleChildren) {
 							visibleRecords.add(new TaxonomySearchRecord(child, hasAccess, hasVisibleChildren));
 						}
@@ -564,8 +568,8 @@ public class TaxonomiesSearchServices {
 				}
 			}
 			int numFound = visibleRecords.size();
-			int toIndex = Math.min(visibleRecords.size(), options.getEndRow());
-			List<TaxonomySearchRecord> returnedRecords = visibleRecords.subList(options.getStartRow(), toIndex);
+			int toIndex = Math.min(visibleRecords.size(), ctx.options.getEndRow());
+			List<TaxonomySearchRecord> returnedRecords = visibleRecords.subList(ctx.options.getStartRow(), toIndex);
 			return new LinkableTaxonomySearchResponse(numFound, returnedRecords);
 		}
 	}
@@ -605,8 +609,8 @@ public class TaxonomiesSearchServices {
 
 		} else {
 			//selecting a non-taxonomy record using a taxonomy
-			response = getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(
-					user, usingTaxonomy, selectedType, inRecord, options);
+			GetChildrenContext ctx = new GetChildrenContext(user, inRecord, options, selectedType, usingTaxonomy);
+			response = getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(ctx);
 
 		}
 
