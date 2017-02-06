@@ -78,6 +78,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SEARCH_BOOST_BY_METADATA_ICON = "images/icons/config/boost-metadata-search.png";
 	public static final String SEARCH_BOOST_BY_QUERY = "searchBoostByQuery";
 	public static final String SEARCH_BOOST_BY_QUERY_ICON = "images/icons/config/boost-text-search.png";
+	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
+	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
@@ -116,6 +118,20 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP));
+			}
+		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(PRINTABLE_MANAGEMENT, PRINTABLE_MANAGEMENT_ICON) {
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().viewReport();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LABELS));
 			}
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(GROUPS, GROUPS_ICON) {

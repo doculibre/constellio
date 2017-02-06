@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.reports.wrapper.ReportConfig;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
@@ -41,6 +42,10 @@ import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationVie
 import com.constellio.app.ui.pages.management.facet.DisplayFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.ListFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.OrderFacetConfigurationViewImpl;
+import com.constellio.app.ui.pages.management.labels.AddEditLabelViewImpl;
+import com.constellio.app.ui.pages.management.labels.LabelViewImpl;
+import com.constellio.app.ui.pages.management.labels.ListLabelViewImpl;
+import com.constellio.app.ui.pages.management.labels.ReportConfigViewImpl;
 import com.constellio.app.ui.pages.management.ldap.LDAPConfigManagementViewImpl;
 import com.constellio.app.ui.pages.management.permissions.PermissionsManagementViewImpl;
 import com.constellio.app.ui.pages.management.plugin.PluginManagementViewImpl;
@@ -148,6 +153,10 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SEARCH_BOOST_BY_METADATAS = "searchBoostByMetadatas";
 	public static final String SEARCH_BOOST_BY_QUERYS = "searchBoostByQuery";
 	public static final String FORCED_REINDEX = "reindex";
+	public static final String LABEL_CONFIG = "labelConfig";
+	public static final String LABEL_AJOUT = "addLabel";
+	public static final String LABEL_VIEW = "viewLabel";
+	public static final String REPORT_VIEW = "viewReport";
 
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
@@ -255,6 +264,11 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(SYSTEM_CHECK, SystemCheckViewImpl.class));
+
+		viewProviders.add(new ClassBasedViewProvider(LABEL_CONFIG, ListLabelViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LABEL_AJOUT, AddEditLabelViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LABEL_VIEW, LabelViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(REPORT_VIEW, ReportConfigViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

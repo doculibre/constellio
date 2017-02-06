@@ -1,5 +1,11 @@
 package com.constellio.app.ui.application;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.constellio.app.modules.reports.wrapper.ReportNavigationConfiguration;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -325,6 +331,32 @@ public class CoreViews {
 		Map<String, String> params = new HashMap<>();
 		params.put("userDocumentId", userDocumentId);
 		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_DOCUMENT, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void manageLabels() {
+		navigator.navigateTo(NavigatorConfigurationService.LABEL_CONFIG);
+	}
+
+	public void viewReport() {
+		navigator.navigateTo(NavigatorConfigurationService.REPORT_VIEW);
+	}
+
+	public void addLabel() {
+		navigator.navigateTo(NavigatorConfigurationService.LABEL_AJOUT);
+	}
+
+	public void editLabel(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.LABEL_AJOUT, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void viewLabel(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.LABEL_VIEW, params);
 		navigator.navigateTo(viewPath);
 	}
 

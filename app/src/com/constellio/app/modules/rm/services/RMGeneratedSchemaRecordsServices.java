@@ -6,17 +6,8 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.reports.wrapper.ReportConfig;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
@@ -1024,6 +1015,71 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
+
+	public ReportConfig wrapReportConfig(Record record) {
+		return record == null ? null : new ReportConfig(record, getTypes());
+	}
+
+	public List<ReportConfig> wrapReportConfigs(List<Record> records) {
+		List<ReportConfig> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new ReportConfig(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<ReportConfig> searchReportConfigs(LogicalSearchQuery query) {
+		return wrapReportConfigs(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<ReportConfig> searchReportConfigs(LogicalSearchCondition condition) {
+		MetadataSchemaType type = reportsrecords.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapReportConfigs(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public ReportConfig getReportConfig(String id) {
+		return wrapReportConfig(get(id));
+	}
+
+	public List<ReportConfig> getReportConfigs(List<String> ids) {
+		return wrapReportConfigs(get(ids));
+	}
+
+	public ReportConfig getReportConfigWithLegacyId(String legacyId) {
+		return wrapReportConfig(getByLegacyId(reportsrecords.schemaType(), legacyId));
+	}
+
+	public ReportConfig newReportConfig() {
+		return wrapReportConfig(create(reportsrecords.schema()));
+	}
+
+	public ReportConfig newReportConfigWithId(String id) {
+		return wrapReportConfig(create(reportsrecords.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_reportsrecords_default reportsrecords
+			= new SchemaTypeShortcuts_reportsrecords_default("reportsrecords_default");
+
+	public class SchemaTypeShortcuts_reportsrecords_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_reportsrecords_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata NULL() {
+			return metadata("NULL");
+		}
+
+		public Metadata Height() {
+			return metadata("192");
+		}
+
+		public Metadata Width() {
+			return metadata("384");
+		}
+	}
+
 	public Folder wrapFolder(Record record) {
 		return record == null ? null : new Folder(record, getTypes());
 	}
@@ -1606,6 +1662,78 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata retentionRule() {
 			return metadata("retentionRule");
+		}
+	}
+
+	public RMReport wrapRMReport(Record record) {
+		return record == null ? null : new RMReport(record, getTypes());
+	}
+
+	public List<RMReport> wrapRMReports(List<Record> records) {
+		List<RMReport> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new RMReport(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<RMReport> searchRMReports(LogicalSearchQuery query) {
+		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<RMReport> searchRMReports(LogicalSearchCondition condition) {
+		MetadataSchemaType type = reportsrecords.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public RMReport getRMReport(String id) {
+		return wrapRMReport(get(id));
+	}
+
+	public List<RMReport> getRMReports(List<String> ids) {
+		return wrapRMReports(get(ids));
+	}
+
+	public RMReport getRMReportWithLegacyId(String legacyId) {
+		return wrapRMReport(getByLegacyId(reportsrecords.schemaType(), legacyId));
+	}
+
+	public RMReport newRMReport() {
+		return wrapRMReport(create(reportsrecords_label.schema()));
+	}
+
+	public RMReport newRMReportWithId(String id) {
+		return wrapRMReport(create(reportsrecords_label.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_reportsrecords_label reportsrecords_label
+			= new SchemaTypeShortcuts_reportsrecords_label("reportsrecords_label");
+
+	public class SchemaTypeShortcuts_reportsrecords_label extends SchemaTypeShortcuts_reportsrecords_default {
+		protected SchemaTypeShortcuts_reportsrecords_label(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata colonne() {
+			return metadata("colonne");
+		}
+
+		public Metadata height() {
+			return metadata("height");
+		}
+
+		public Metadata ligne() {
+			return metadata("ligne");
+		}
+
+		public Metadata typelabel() {
+			return metadata("typelabel");
+		}
+
+		public Metadata width() {
+			return metadata("width");
 		}
 	}
 /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
