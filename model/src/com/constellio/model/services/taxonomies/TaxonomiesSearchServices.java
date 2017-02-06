@@ -406,7 +406,13 @@ public class TaxonomiesSearchServices {
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
 		while (resultVisible.size() < options.getEndRow() && batchIterators.hasNext()) {
 
-			LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(taxonomy, true);
+			LogicalSearchCondition condition;
+
+			if (options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
+				condition = fromAllSchemasIn(taxonomy.getCollection()).where(VISIBLE_IN_TREES).isTrueOrNull();
+			} else {
+				condition = findVisibleNonTaxonomyRecordsInStructure(taxonomy, true);
+			}
 			LogicalSearchQuery facetQuery = newQueryForFacets(condition, user, options);
 
 			List<Record> batch = batchIterators.next();
@@ -417,25 +423,11 @@ public class TaxonomiesSearchServices {
 
 			for (Record child : batch) {
 				consumed++;
-				boolean showEvenIfNoChildren = false;
+				Taxonomy taxonomyOfRecord = taxonomiesManager.getTaxonomyOf(child);
+				boolean showEvenIfNoChildren = options.isAlwaysReturnTaxonomyConceptsWithReadAccess()
+						&& !taxonomyOfRecord.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(collection));
 				boolean hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
 
-				//TODO Remove request in this for loop
-				if (options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
-					Taxonomy taxonomyOfRecord = taxonomiesManager.getTaxonomyOf(child);
-					if (taxonomyOfRecord != null) {
-						if (taxonomyOfRecord.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(collection))) {
-							showEvenIfNoChildren = user.hasReadAccess().on(child);
-						} else {
-							showEvenIfNoChildren = true;
-						}
-
-						LogicalSearchQuery hasVisibleConceptsQuery = new LogicalSearchQuery(fromTypeIn(taxonomy)
-								.where(PATH_PARTS).isEqualTo(child.getId()));
-						hasVisibleConceptsQuery.filteredWithUser(user, options.getRequiredAccess());
-						hasChildren |= searchServices.hasResults(hasVisibleConceptsQuery);
-					}
-				}
 				if (showEvenIfNoChildren || hasChildren) {
 					resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, hasChildren));
 				}
