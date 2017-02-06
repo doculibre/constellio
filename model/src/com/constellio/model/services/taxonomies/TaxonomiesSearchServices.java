@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
+import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -18,8 +19,9 @@ import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearc
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.whereTypeIn;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
 import static java.lang.Math.max;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -171,6 +173,10 @@ public class TaxonomiesSearchServices {
 		public LogicalSearchQuery newQueryWithUserFilter(LogicalSearchCondition condition) {
 			return new LogicalSearchQuery(condition).filteredWithUser(user, options.getRequiredAccess());
 		}
+
+		public boolean isHiddenInvisibleInTree() {
+			return forSelectionOfSchemaType == null ? true : !options.isShowInvisibleRecordsInLinkingMode();
+		}
 	}
 
 	private LinkableTaxonomySearchResponse getVisibleChildrenRecords(GetChildrenContext ctx) {
@@ -226,13 +232,18 @@ public class TaxonomiesSearchServices {
 		int pessimisticRows =
 				ctx.options.getStartRow() + ctx.options.getRows() - visibleConceptsCount + childrenWithoutAccessToInclude.size();
 		LogicalSearchCondition condition;
-		if (ctx.forSelectionOfSchemaType == null) {
+
+		if (ctx.forSelectionOfSchemaType == null
+				|| ctx.forSelectionOfSchemaType.getAllReferencesToTaxonomySchemas(asList(ctx.taxonomy)).isEmpty()) {
 			condition = fromAllSchemasInCollectionOf(ctx.record)
 					.where(directChildOf(ctx.record)).andWhere(visibleInTrees)
 					.andWhere(schemaTypeIsNotIn(ctx.taxonomy.getSchemaTypes()));
 		} else {
-			//TODO seulement linkable
 			condition = from(ctx.forSelectionOfSchemaType).where(directChildOf(ctx.record));
+
+			if (!ctx.options.isShowInvisibleRecordsInLinkingMode()) {
+				condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
+			}
 		}
 		LogicalSearchQuery query = newQuery(condition, ctx.options)
 				.setStartRow(pessimisticStart).setNumberOfRows(pessimisticRows)
@@ -262,11 +273,13 @@ public class TaxonomiesSearchServices {
 						.andWhere(notDirectChildOf(context.record))
 						.andWhere(visibleInTrees)
 						.andWhere(schemaTypeIsNotIn(context.taxonomy.getSchemaTypes()));
+				//TODO .andWhere(Schemas.VISIBLE_IN_TREES).isFalseOrNull();
 			} else {
 				queryCondition = from(context.forSelectionOfSchemaType)
 						.where(recordInHierarchyOf(context.record))
 						.andWhere(notDirectChildOf(context.record))
 						.andWhere(Schemas.LINKABLE).isTrueOrNull();
+				//TODO .andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull();
 			}
 
 			LogicalSearchQuery facetQuery = context.newQueryWithUserFilter(queryCondition)
@@ -297,7 +310,9 @@ public class TaxonomiesSearchServices {
 
 			List<Record> batch = childsIterator.next();
 			consumed += batch.size();
-			LogicalSearchQuery facetQuery = newQueryForFacets(findVisibleNonTaxonomyRecordsInStructure(context, true), context);
+
+			LogicalSearchQuery facetQuery = newQueryForFacets(findVisibleNonTaxonomyRecordsInStructure(context,
+					context.isHiddenInvisibleInTree()), context);
 			facetQuery.addQueryFacets(CHILDREN_QUERY, facetQueriesFor(context.taxonomy, batch));
 
 			SPEQueryResponse response = searchServices.query(facetQuery);
@@ -332,11 +347,14 @@ public class TaxonomiesSearchServices {
 
 				boolean recordExpectedToBeVisibleInTree;
 				if (context.forSelectionOfSchemaType == null) {
-					//TODO ne devrait pas être visible si logiquement supprimé ou si non affichable
-					recordExpectedToBeVisibleInTree = !context.taxonomy.getSchemaTypes().contains(schemaType);
+					recordExpectedToBeVisibleInTree = !context.taxonomy.getSchemaTypes().contains(schemaType)
+							&& !Boolean.TRUE.equals(securedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))
+							&& !Boolean.FALSE.equals(securedRecord.get(VISIBLE_IN_TREES));
 				} else {
-					//TODO ne devrait pas être visible si logiquement supprimé ou si non-sélectionnable
-					recordExpectedToBeVisibleInTree = context.forSelectionOfSchemaType.getCode().equals(schemaType);
+					recordExpectedToBeVisibleInTree = context.forSelectionOfSchemaType.getCode().equals(schemaType)
+							&& !Boolean.TRUE.equals(securedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))
+							&& (context.options.isShowInvisibleRecordsInLinkingMode() ||
+							!Boolean.FALSE.equals(securedRecord.get(VISIBLE_IN_TREES)));
 				}
 
 				if (recordExpectedToBeVisibleInTree
@@ -401,6 +419,8 @@ public class TaxonomiesSearchServices {
 				consumed++;
 				boolean showEvenIfNoChildren = false;
 				boolean hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
+
+				//TODO Remove request in this for loop
 				if (options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
 					Taxonomy taxonomyOfRecord = taxonomiesManager.getTaxonomyOf(child);
 					if (taxonomyOfRecord != null) {
@@ -410,8 +430,8 @@ public class TaxonomiesSearchServices {
 							showEvenIfNoChildren = true;
 						}
 
-						LogicalSearchQuery hasVisibleConceptsQuery = new LogicalSearchQuery(whereTypeIn(taxonomy)
-								.andWhere(PATH_PARTS).isEqualTo(child.getId()));
+						LogicalSearchQuery hasVisibleConceptsQuery = new LogicalSearchQuery(fromTypeIn(taxonomy)
+								.where(PATH_PARTS).isEqualTo(child.getId()));
 						hasVisibleConceptsQuery.filteredWithUser(user, options.getRequiredAccess());
 						hasChildren |= searchServices.hasResults(hasVisibleConceptsQuery);
 					}
@@ -484,7 +504,7 @@ public class TaxonomiesSearchServices {
 			mainQueryResponse = query(childrenCondition(taxonomy, inRecord), options);
 		}
 
-		LogicalSearchCondition condition = whereTypeIn(taxonomy).andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull();
+		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(VISIBLE_IN_TREES).isTrueOrNull();
 		LogicalSearchQuery hasChildrenQuery = newQueryForFacets(condition, User.GOD, options);
 
 		for (Record child : mainQueryResponse.getRecords()) {
@@ -512,16 +532,8 @@ public class TaxonomiesSearchServices {
 			return getVisibleChildrenRecords(ctx);
 		} else {
 
-			LogicalSearchQuery mainQuery;
-			if (ctx.record == null) {
-				mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(
-						ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
-			} else {
-				LogicalSearchCondition condition = fromAllSchemasIn(ctx.record.getCollection())
-						.where(PATH_PARTS).isEqualTo(("_LAST_" + ctx.record.getId()));
-				mainQuery = new LogicalSearchQuery(condition);
-
-			}
+			LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(
+					ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
 					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
@@ -534,8 +546,12 @@ public class TaxonomiesSearchServices {
 			while (visibleRecords.size() < ctx.options.getEndRow() + 1 && iterator.hasNext()) {
 				List<Record> batch = iterator.next();
 
-				LogicalSearchQuery facetQuery = newQueryForFacets(from(ctx.forSelectionOfSchemaType).returnAll(), ctx.user,
-						ctx.options);
+				LogicalSearchCondition condition = from(ctx.forSelectionOfSchemaType).returnAll();
+
+				if (!ctx.options.isShowInvisibleRecordsInLinkingMode()) {
+					condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
+				}
+				LogicalSearchQuery facetQuery = newQueryForFacets(condition, ctx.user, ctx.options);
 				for (Record child : batch) {
 					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(ctx.taxonomy, child));
 				}
@@ -616,7 +632,7 @@ public class TaxonomiesSearchServices {
 				.andWhere(schemaTypeIsNotIn(context.taxonomy.getSchemaTypes()));
 
 		if (onlyVisibleInTrees) {
-			condition = condition.andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull();
+			condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
 		}
 
 		return condition;
@@ -628,7 +644,7 @@ public class TaxonomiesSearchServices {
 				.where(schemaTypeIsNotIn(taxonomy.getSchemaTypes()));
 
 		if (onlyVisibleInTrees) {
-			condition = condition.andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull();
+			condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
 		}
 
 		return condition;

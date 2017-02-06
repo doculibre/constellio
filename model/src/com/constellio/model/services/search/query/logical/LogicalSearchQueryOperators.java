@@ -69,6 +69,10 @@ public class LogicalSearchQueryOperators {
 		}
 	}
 
+	public static OngoingLogicalSearchCondition from(List<String> schemaTypeCodes, String collection) {
+		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypeCodes, collection));
+	}
+
 	public static OngoingLogicalSearchCondition from(List<MetadataSchemaType> schemaTypes) {
 		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes));
 	}

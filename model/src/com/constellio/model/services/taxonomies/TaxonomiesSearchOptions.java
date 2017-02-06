@@ -16,6 +16,7 @@ public class TaxonomiesSearchOptions {
 	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
 	private boolean hasChildrenFlagCalculated = true;
+	private boolean showInvisibleRecordsInLinkingMode = true;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -37,11 +38,21 @@ public class TaxonomiesSearchOptions {
 		this.includeStatus = cloned.includeStatus;
 		this.requiredAccess = cloned.requiredAccess;
 		this.returnedMetadatasFilter = cloned.returnedMetadatasFilter;
+		this.showInvisibleRecordsInLinkingMode = cloned.showInvisibleRecordsInLinkingMode;
 	}
 
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
 		super();
 		this.includeStatus = includeLogicallyDeleted;
+	}
+
+	public boolean isShowInvisibleRecordsInLinkingMode() {
+		return showInvisibleRecordsInLinkingMode;
+	}
+
+	public TaxonomiesSearchOptions setShowInvisibleRecordsInLinkingMode(boolean showInvisibleRecordsInLinkingMode) {
+		this.showInvisibleRecordsInLinkingMode = showInvisibleRecordsInLinkingMode;
+		return this;
 	}
 
 	public boolean isHasChildrenFlagCalculated() {

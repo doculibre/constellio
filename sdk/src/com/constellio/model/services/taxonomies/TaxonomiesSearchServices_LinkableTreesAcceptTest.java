@@ -4,6 +4,8 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIV
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -50,12 +52,15 @@ import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.sun.research.ws.wadl.Doc;
 
 public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends ConstellioTest {
 
@@ -199,6 +204,37 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A18)
 				.is(empty());
+
+	}
+
+	@Test
+	public void givenUserHaveAuthorizationsOnSomeFoldersThenValidTreeForDocumentSelectionUsingPlanTaxonomy()
+			throws Exception {
+
+		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
+
+		assertThatRootWhenSelectingADocumentUsingPlanTaxonomy(withoutFilters)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
+				.has(numFoundAndListSize(1))
+				.has(resultsInOrder(records.folder_A18))
+				.has(unlinkable(records.folder_A18))
+				.has(itemsWithChildren(records.folder_A18));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(withoutFilters, records.folder_A18)
+				.has(numFoundAndListSize(3))
+				.has(resultsInOrder(folder18Documents()))
+				.has(linkable(folder18Documents()))
+				.has(itemsWithChildren());
 
 	}
 
@@ -409,6 +445,88 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(numFoundAndListSize(1))
 				.has(linkable(subFolder2.getId()))
 				.has(noItemsWithChildren());
+
+	}
+
+	@Test
+	public void givenUserHaveWriteAuthorizationsOnDeletedSubFolderThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder1.getWrappedRecord(), User.GOD);
+		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder2.getWrappedRecord(), User.GOD);
+
+		//records.folder_A20,
+		givenUserHasReadAccessTo(subFolder1.getId(), subFolder2.getId(), records.folder_C01);
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120).has(numFoundAndListSize(0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20).has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void givenInvisibleRecordsNotShownInLinkingModeThenInvisible()
+			throws Exception {
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		TaxonomiesSearchOptions defaultOptions = new TaxonomiesSearchOptions();
+		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
+				.setShowInvisibleRecordsInLinkingMode(false);
+
+		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
+		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now());
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+
+		givenUserHasReadAccessTo(subFolder1.getId(), subFolder2.getId(), records.folder_C01);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100,
+				optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120,
+				optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+
+		// With default options
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, defaultOptions)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, defaultOptions)
+				.has(numFoundAndListSize(2));
 
 	}
 
@@ -1400,6 +1518,33 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						schemaTypeCode, alice, getModelLayerFactory().getMetadataSchemasManager()));
 	}
 
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingADocumentUsingPlanTaxonomy(
+			ConditionTemplate template) {
+		return assertThatRootWhenSelectingADocumentUsingPlanTaxonomy(template, new TaxonomiesSearchOptions());
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingADocumentUsingPlanTaxonomy(
+			ConditionTemplate template,
+			TaxonomiesSearchOptions options) {
+		return assertThat(
+				service.getLinkableRootConceptResponse(alice, zeCollection, CLASSIFICATION_PLAN, Document.SCHEMA_TYPE, options));
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(
+			ConditionTemplate template,
+			String category) {
+		return assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(template, category, new TaxonomiesSearchOptions());
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(
+			ConditionTemplate template,
+			String category, TaxonomiesSearchOptions options) {
+		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+		LinkableTaxonomySearchResponse response = service.getLinkableChildConceptResponse(alice, inRecord,
+				RMTaxonomies.CLASSIFICATION_PLAN, Document.SCHEMA_TYPE, options);
+		return assertThat(response);
+	}
+
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(
 			ConditionTemplate template) {
 		return assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(template, new TaxonomiesSearchOptions());
@@ -1504,6 +1649,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(admUnit);
 		return assertThat(service.getLinkableChildConceptResponse(alice, inRecord, RMTaxonomies.ADMINISTRATIVE_UNITS,
 				AdministrativeUnit.SCHEMA_TYPE, options));
+	}
+
+	private String[] folder18Documents() {
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.document.schemaType())
+				.where(rm.document.folder()).isEqualTo(records.getFolder_A18()));
+		query.sortAsc(Schemas.TITLE);
+		return getModelLayerFactory().newSearchServices().searchRecordIds(query).toArray(new String[0]);
 	}
 
 	private void givenRule3IsDisabled() {

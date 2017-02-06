@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.query.logical.condition;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -27,8 +28,9 @@ public class SchemaFilters extends CollectionFilters implements DataStoreFilters
 	}
 
 	@Override
-	public List<String> getFilterQueries() {
-		List<String> filters = super.getFilterQueries();
+	public List<String> getFilterQueries(boolean hasSecurityFilters) {
+		List<String> filters = new ArrayList<>();
+		filters.add("collection_s:" + collection);
 		if (schemaType != null) {
 			filters.add("schema_s:" + schemaType.getCode() + "_*");
 		} else {

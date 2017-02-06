@@ -6,12 +6,9 @@ import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
-import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromTypesInCollectionOf;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +16,6 @@ import java.util.List;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -95,7 +91,7 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public static LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy, TaxonomiesSearchOptions options) {
-		LogicalSearchCondition condition = whereTypeIn(taxonomy).andWhere(directChildOf(record)).andWhere(visibleInTrees);
+		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(directChildOf(record)).andWhere(visibleInTrees);
 
 		return new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
@@ -138,12 +134,12 @@ public class ConceptNodesTaxonomySearchServices {
 						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 	}
 
-	public static LogicalSearchCondition whereTypeIn(Taxonomy taxonomy) {
-		return fromAllSchemasIn(taxonomy.getCollection()).where(schemaTypeIsIn(taxonomy.getSchemaTypes()));
+	public static OngoingLogicalSearchCondition fromTypeIn(Taxonomy taxonomy) {
+		return from(taxonomy.getSchemaTypes(), taxonomy.getCollection());
 	}
 
 	public static LogicalSearchCondition childrenCondition(Taxonomy taxonomy, Record inRecord) {
-		return whereTypeIn(taxonomy).andWhere(directChildOf(inRecord));
+		return fromTypeIn(taxonomy).where(directChildOf(inRecord));
 	}
 
 	public List<String> getAllConceptIdsHierarchyOf(Taxonomy taxonomy, Record record) {

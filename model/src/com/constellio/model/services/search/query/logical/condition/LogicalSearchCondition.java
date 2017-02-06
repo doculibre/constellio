@@ -131,7 +131,7 @@ public abstract class LogicalSearchCondition {
 	}
 
 	public String getCollection() {
-		return ((CollectionFilters) filters).getCollection();
+		return filters.getCollection();
 	}
 
 }
