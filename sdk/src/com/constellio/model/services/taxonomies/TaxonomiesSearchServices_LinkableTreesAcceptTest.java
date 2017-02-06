@@ -449,7 +449,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	@Test
-	public void givenUserHaveWriteAuthorizationsOnDeletedSubFolderThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+	public void givenLogicallyDeletedRecordsInVisibleRecordThenNotVisible()
 			throws Exception {
 
 		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
@@ -477,10 +477,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	@Test
-	public void givenInvisibleRecordsNotShownInLinkingModeThenInvisible()
+	public void givenInvisibleRecordsInVisibleRecordNotShownInLinkingModeThenInvisible()
 			throws Exception {
 
-		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 		TaxonomiesSearchOptions defaultOptions = new TaxonomiesSearchOptions();
 		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
@@ -527,6 +526,134 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(numFoundAndListSize(1));
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, defaultOptions)
 				.has(numFoundAndListSize(2));
+
+	}
+
+	@Test
+	public void givenInvisibleRecordsInVisibleRecordWithSecurityThenShownDependingOnMode()
+			throws Exception {
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		TaxonomiesSearchOptions defaultOptions = new TaxonomiesSearchOptions();
+		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
+				.setShowInvisibleRecordsInLinkingMode(false);
+
+		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
+		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now());
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+
+		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100,
+				optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120,
+				optionsWithNoInvisibleRecords)
+				.has(noItemsWithChildren())
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+
+		// With default options
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, defaultOptions)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120, defaultOptions)
+				.has(numFoundAndListSize(1))
+				.has(itemsWithChildren(records.folder_A20));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, defaultOptions)
+				.has(numFoundAndListSize(2));
+
+	}
+
+	@Test
+	public void givenInvisibleRecordsNotShownInLinkingModeThenInvisible()
+			throws Exception {
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		TaxonomiesSearchOptions defaultOptions = new TaxonomiesSearchOptions();
+		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
+				.setShowInvisibleRecordsInLinkingMode(false);
+
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(records.getFolder_A20()
+				.setActualTransferDate(LocalDate.now())));
+
+		assertThat(records.getFolder_A20().get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+
+		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100,
+				optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120,
+				optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, optionsWithNoInvisibleRecords)
+				.has(numFoundAndListSize(0));
+
+		// With default options
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, defaultOptions)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120, defaultOptions)
+				.has(numFoundAndListSize(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, defaultOptions)
+				.has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void givenLogicallyDeletedRecordsThenNotVisible()
+			throws Exception {
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_A20().getWrappedRecord(), User.GOD);
+
+		//records.folder_A20,
+		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120).has(numFoundAndListSize(0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20).has(numFoundAndListSize(0));
 
 	}
 

@@ -119,23 +119,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.sortAsc(Schemas.TITLE).setCondition(from(rm.documentSchemaType()).where(rm.documentFolder()).isEqualTo(id)));
 	}
 
-	//	@Test
-	//	public void givenUserCreateNewTaxonomyAndAssignRecordsToItThenRecordsVisibleInTheTaxonomyTree()
-	//			throws Exception {
-	//
-	//		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
-	//
-	//		ValueListServices services = new ValueListServices(getModelLayerFactory(), zeCollection);
-	//		String type = services.createTaxonomy("ZE").getSchemaTypes().get(0);
-	//
-	//		MetadataSchemaTypesBuilder types = manager.modifyTo(zeCollection);
-	//		types.getSchema(Folder.SCHEMA_TYPE).create("ZeMetadata").defineTaxonomyRelationshipToType(types.getSchemaType(type));
-	//		manager.saveUpdateSchemaTypes(types);
-	//
-	//		HierarchicalValueListItem item = rm.newHierarchicalValueListItem(type + "_default");
-	//
-	//	}
-
 	@Test
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
@@ -631,7 +614,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	}
 
 	@Test
-	public void givenLogicallyDeletedRecordsThenNotShownInTree()
+	public void givenLogicallyDeletedRecordsInVisibleRecordsThenNotShownInTree()
 			throws Exception {
 
 		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
@@ -660,7 +643,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	}
 
 	@Test
-	public void givenInvisibleInTreeRecordsThenNotShownInTree()
+	public void givenInvisibleInTreeRecordsInVisibleRecordThenNotShownInTree()
 			throws Exception {
 
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
@@ -677,6 +660,50 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder1.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder2.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void givenInvisibleInTreeRecordsThenNotShownInTree()
+			throws Exception {
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+
+		getModelLayerFactory().newRecordServices()
+				.execute(new Transaction().addAll(records.getFolder_A20().setActualTransferDate(LocalDate.now())));
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void givenLogicallyDeletedRecordsThenNotShownInTree()
+			throws Exception {
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_A20().getWrappedRecord(), User.GOD);
 
 		User sasquatch = users.sasquatchIn(zeCollection);
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)

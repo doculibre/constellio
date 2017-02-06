@@ -228,7 +228,7 @@ public class TaxonomiesSearchServices {
 
 	private SPEQueryResponse getNonTaxonomyRecords(GetChildrenContext ctx, List<Record> childrenWithoutAccessToInclude,
 			int visibleConceptsCount) {
-		int pessimisticStart = 0;//max(0, ctx.options.getStartRow() - visibleConceptsCount - childrenWithoutAccessToInclude.size());
+		int pessimisticStart = 0;
 		int pessimisticRows =
 				ctx.options.getStartRow() + ctx.options.getRows() - visibleConceptsCount + childrenWithoutAccessToInclude.size();
 		LogicalSearchCondition condition;
@@ -273,13 +273,16 @@ public class TaxonomiesSearchServices {
 						.andWhere(notDirectChildOf(context.record))
 						.andWhere(visibleInTrees)
 						.andWhere(schemaTypeIsNotIn(context.taxonomy.getSchemaTypes()));
-				//TODO .andWhere(Schemas.VISIBLE_IN_TREES).isFalseOrNull();
 			} else {
 				queryCondition = from(context.forSelectionOfSchemaType)
 						.where(recordInHierarchyOf(context.record))
 						.andWhere(notDirectChildOf(context.record))
 						.andWhere(Schemas.LINKABLE).isTrueOrNull();
-				//TODO .andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull();
+
+				if (!context.options.isShowInvisibleRecordsInLinkingMode()) {
+					queryCondition = queryCondition.andWhere(visibleInTrees);
+				}
+
 			}
 
 			LogicalSearchQuery facetQuery = context.newQueryWithUserFilter(queryCondition)
