@@ -54,6 +54,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ICAP_RESPONSE_TIMEOUT;
 	
 	public static final SystemConfiguration CKEDITOR_TOOLBAR_CONFIG;
+
+	public static final SystemConfiguration TRANSACTION_DELAY;
 	
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = ""	+
 	        "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" + 
@@ -124,6 +126,8 @@ public class ConstellioEIMConfigs {
 		add(ICAP_RESPONSE_TIMEOUT = icapConfigurationGroup.createInteger("icapResponseTimeout").withDefaultValue(5000));
 
         add(CKEDITOR_TOOLBAR_CONFIG = others.createString("ckeditorToolbarConfig").withDefaultValue(DEFAULT_CKEDITOR_TOOLBAR_CONFIG));
+
+		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(10));
 		
         //
 		configurations = Collections.unmodifiableList(modifiableConfigs);
@@ -230,6 +234,10 @@ public class ConstellioEIMConfigs {
 	
 	public String getDefaultTaxonomy() {
 		return manager.getValue(DEFAULT_TAXONOMY);
+	}
+
+	public int getTransactionDelay() {
+		return manager.getValue(TRANSACTION_DELAY);
 	}
 
 }

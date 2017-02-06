@@ -143,6 +143,46 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
+	public Record forceInsert(Record insertedRecord) {
+		if (!insertedRecord.isFullyLoaded()) {
+			invalidate(insertedRecord.getId());
+			return insertedRecord;
+		}
+
+		try {
+			Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
+			CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
+			if (cacheConfig != null) {
+				Record previousRecord = null;
+
+				synchronized (this) {
+					RecordHolder holder = cacheById.get(recordCopy.getId());
+					if (holder != null) {
+						previousRecord = holder.record;
+
+						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
+						if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
+								.getVersion())) {
+							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+						}
+					} else {
+						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
+						if (cacheConfig.isPermanent()) {
+							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+						}
+					}
+					this.recordByMetadataCache.get(cacheConfig.getSchemaType()).insert(previousRecord, holder);
+				}
+
+			}
+			return insertedRecord;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return insertedRecord;
+	}
+
+	@Override
 	public Record insert(Record insertedRecord) {
 
 		if (insertedRecord == null || insertedRecord.isDirty() || !insertedRecord.isSaved()) {

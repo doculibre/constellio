@@ -256,8 +256,12 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void createPDFAButtonClicked() {
-		presenterUtils.createPDFA();
-
+		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDFA")) {
+			presenterUtils.createPDFA();
+			view.showMessage($("DocumentActionsComponent.createPDFASuccess"));
+		} else {
+			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
+		}
 	}
 
 	public void uploadButtonClicked() {

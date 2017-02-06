@@ -292,7 +292,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.createPDFAButtonClicked();
-				DisplayDocumentViewImpl.this.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 			}
 		};
 
