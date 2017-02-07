@@ -68,6 +68,11 @@ public class PathPartsCalculator implements MetadataValueCalculator<List<String>
 			}
 
 		}
+
+		if (pathsParts.isEmpty() && !paths.isEmpty()) {
+			pathsParts.add("R");
+		}
+
 		return new ArrayList<>(pathsParts);
 	}
 

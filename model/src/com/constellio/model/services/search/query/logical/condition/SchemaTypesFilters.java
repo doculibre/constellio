@@ -32,10 +32,11 @@ public class SchemaTypesFilters implements DataStoreFilters {
 	@Override
 	public List<String> getFilterQueries(boolean hasSecurityFilters) {
 		List<String> filters = new ArrayList<>();
-		filters.add("collection_s:" + collection);
+
 		String schemasORList = "(" + StringUtils.join(buildFilterElements(), " OR ") + ")";
 
 		filters.add((except ? "-" : "") + "schema_s:" + schemasORList);
+		filters.add("collection_s:" + collection);
 		return filters;
 	}
 

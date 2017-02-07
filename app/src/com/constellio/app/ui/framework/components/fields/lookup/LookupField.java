@@ -71,7 +71,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private WindowButton lookupWindowButton;
 	private Button clearButton;
 	private Converter<String, T> itemConverter;
-	private int treeBufferSize = 20;
+	private int treeBufferSize = 100;
 	/**
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */

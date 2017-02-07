@@ -59,7 +59,7 @@ public class ConceptNodesTaxonomySearchServices {
 
 	public LogicalSearchQuery getRootConceptsQuery(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
-		LogicalSearchCondition condition = fromConceptsOf(taxonomy).where(PATH_PARTS).isNull();
+		LogicalSearchCondition condition = fromConceptsOf(taxonomy).where(PATH_PARTS).isEqualTo("R");
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.filteredByStatus(options.getIncludeStatus());
