@@ -1,6 +1,10 @@
 package com.constellio.model.services.taxonomies;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.SPEQueryResponse;
 
 public class LinkableTaxonomySearchResponse {
 
@@ -45,6 +49,16 @@ public class LinkableTaxonomySearchResponse {
 	public LinkableTaxonomySearchResponse withQTime(long qTime) {
 		this.qTime = qTime;
 		return this;
+	}
+
+	public static LinkableTaxonomySearchResponse asUnlinkableWithChildrenRecords(SPEQueryResponse response) {
+
+		List<TaxonomySearchRecord> returnedRecords = new ArrayList<>();
+		for (Record record : response.getRecords()) {
+			returnedRecords.add(new TaxonomySearchRecord(record, false, true));
+		}
+
+		return new LinkableTaxonomySearchResponse(response.getNumFound(), returnedRecords);
 	}
 
 }

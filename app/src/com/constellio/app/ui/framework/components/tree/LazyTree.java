@@ -257,7 +257,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	private Object getLoaderId(T parent) {
 		Object initialLoaderId;
 		Collection<?> children = adaptee.getChildren(parent);
-		if (children.size() == 1) {
+		if (children != null && children.size() == 1) {
 			Object childId = children.iterator().next();
 			if (isLoader(childId)) {
 				initialLoaderId = childId;

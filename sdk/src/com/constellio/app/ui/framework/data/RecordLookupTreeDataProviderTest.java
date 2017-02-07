@@ -1,4 +1,4 @@
-package com.constellio.app.ui.framework.data.trees;
+package com.constellio.app.ui.framework.data;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +23,7 @@ import org.mockito.stubbing.Answer;
 
 import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
@@ -30,7 +31,7 @@ import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.vaadin.server.Resource;
 
-public class RecordTreeDataProviderTest extends ConstellioTest {
+public class RecordLookupTreeDataProviderTest extends ConstellioTest {
 
 	@Mock Resource collapsedIcon;
 	@Mock Resource expandedIcon;
