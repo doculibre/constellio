@@ -241,8 +241,13 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 	private RecordDTO newRecordWithParentPaths(List<String> parents) {
 		String id = UUID.randomUUID().toString();
+		List<String> paths = new ArrayList<>();
+		for (String parentPath : parents) {
+			paths.add(parentPath + "/" + id);
+		}
+
 		Map<String, Object> fields = new HashMap<String, Object>();
-		fields.put("parentpath_ss", parents);
+		fields.put("path_ss", paths);
 		fields.put("schema_s", "zeSchemaType_default");
 		RecordDTO record = new RecordDTO(nextID(), -1, null, fields);
 		return record;

@@ -113,7 +113,8 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	}
 
 	private LogicalSearchQuery getLogicalSearchQueryForSchema(MetadataSchema schema, LogicalSearchQuery query) {
-		return new LogicalSearchQuery(query.getCondition().withFilters(new SchemaFilters(schema)));
+		return new LogicalSearchQuery(
+				query.getCondition().andWhere(Schemas.IDENTIFIER).isNotNull().withFilters(new SchemaFilters(schema)));
 	}
 
 	Taxonomy fetchTaxonomy(String taxonomyCode) {

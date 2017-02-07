@@ -44,12 +44,6 @@ public class SchemasTest {
 	}
 
 	@Test
-	public void validateParentPath() {
-		assertThat(Schemas.PARENT_PATH).has(code("parentpath"));
-		assertThat(Schemas.PARENT_PATH.getDataStoreCode()).isEqualTo("parentpath_ss");
-	}
-
-	@Test
 	public void validateRemovedAuthorizations() {
 		assertThat(Schemas.REMOVED_AUTHORIZATIONS).has(code("removedauthorizations"));
 		assertThat(Schemas.REMOVED_AUTHORIZATIONS.getDataStoreCode()).isEqualTo("removedauthorizations_ss");

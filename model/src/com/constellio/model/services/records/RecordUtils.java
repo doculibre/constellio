@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
@@ -446,5 +448,18 @@ public class RecordUtils {
 			return records;
 		}
 
+	}
+
+	public static List<String> parentPaths(Record record) {
+		List<String> paths = record.<String>getList(Schemas.PATH);
+		List<String> parentPaths = new ArrayList<>();
+
+		for (String path : paths) {
+			String parentPath = StringUtils.substringBeforeLast(path, "/");
+			if (!parentPath.isEmpty()) {
+				parentPaths.add(parentPath);
+			}
+		}
+		return parentPaths;
 	}
 }

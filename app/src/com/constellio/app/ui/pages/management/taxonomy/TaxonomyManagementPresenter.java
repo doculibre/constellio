@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -48,6 +49,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -419,8 +421,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		} else {
 			SchemaPresenterUtils taxonomyPresenterUtils = new SchemaPresenterUtils(getCurrentConcept().getSchema().getCode(),
 					view.getConstellioFactories(), view.getSessionContext());
-			String[] pathParts = ((String) taxonomyPresenterUtils.getRecord(conceptId).getList(Schemas.PARENT_PATH).get(0))
-					.split("/");
+			String[] pathParts = ((String) parentPaths(taxonomyPresenterUtils.getRecord(conceptId)).get(0)).split("/");
 			String parentId = pathParts[pathParts.length - 1];
 			if (taxonomyCode.equals(parentId)) {
 				view.navigate().to().taxonomyManagement(taxonomyCode);

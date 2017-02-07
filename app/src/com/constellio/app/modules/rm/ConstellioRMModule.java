@@ -198,6 +198,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		RMNavigationConfiguration.configureNavigation(config);
 	}
 
+
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
 		setupModelLayerExtensions(collection, appLayerFactory);
