@@ -73,7 +73,8 @@ public class SPEQueryResponse {
 	}
 
 	public boolean hasQueryFacetResults(String query) {
-		return getQueryFacetCount(query) > 0;
+		Integer result = getQueryFacetCount(query);
+		return result != null && result > 0;
 	}
 
 	public Integer getQueryFacetCount(String query) {

@@ -788,7 +788,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(fastContinuationInfos(false, 20));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<Record>())))
+				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
@@ -797,7 +797,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<Record>())))
+				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
 				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
 						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
@@ -822,7 +822,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(fastContinuationInfos(true, 302));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<Record>())))
+				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300", "categoryId_X", "categoryId_Z"))
@@ -830,7 +830,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(fastContinuationInfos(true, 302));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<Record>())))
+				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
 				.has(recordsInOrder("category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300", "categoryId_X", "categoryId_Z"))
@@ -1149,13 +1149,13 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			final boolean expectedinishedIteratingOverConcepts,
 			final int expectedLastReturnRecordIndex, String... ids) {
 
-		final Set<String> expectedIds = new HashSet<>(asList(ids));
+		final List<String> expectedIds = asList(ids);
 
 		return new Condition<LinkableTaxonomySearchResponse>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponse value) {
 
-				assertThat(new RecordUtils().toIdSet(value.getFastContinueInfos().getNotYetShownRecordsWithVisibleChildren()))
+				assertThat(value.getFastContinueInfos().getShownRecordsWithVisibleChildren())
 						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
 
 				assertThat(value.getFastContinueInfos().finishedConceptsIteration)
