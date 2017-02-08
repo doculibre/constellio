@@ -29,12 +29,23 @@ public abstract class LazyResultsKeepingOrderIterator<T> extends LazyIterator<T>
 	private int current;
 	private int intervalsLength;
 	private long currentNumFound = -1;
+	private int skippingFirstRecords;
 
 	public LazyResultsKeepingOrderIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength) {
 		this.recordDao = recordDao;
 		this.solrParams = new ModifiableSolrParams(solrParams);
 		this.solrParams.set("rows", intervalsLength);
 		this.intervalsLength = intervalsLength;
+	}
+
+	public LazyResultsKeepingOrderIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength, int currentStart) {
+		this.recordDao = recordDao;
+		this.solrParams = new ModifiableSolrParams(solrParams);
+		this.solrParams.set("rows", intervalsLength);
+		this.intervalsLength = intervalsLength;
+		this.current = currentStart;
+		this.currentStart = currentStart;
+		this.skippingFirstRecords = currentStart;
 	}
 
 	@Override
@@ -61,8 +72,8 @@ public abstract class LazyResultsKeepingOrderIterator<T> extends LazyIterator<T>
 	@Override
 	protected T getNextOrNull() {
 
-		if (current - currentStart >= currentBatch.size()) {
-			if (currentBatch.size() < intervalsLength && current != 0) {
+		if (skippingFirstRecords != 0 || current - currentStart >= currentBatch.size()) {
+			if (skippingFirstRecords == 0 && currentBatch.size() < intervalsLength && current != 0) {
 				currentBatch = new ArrayList<>();
 			} else {
 				loadNextBatch();
@@ -79,6 +90,11 @@ public abstract class LazyResultsKeepingOrderIterator<T> extends LazyIterator<T>
 	}
 
 	void loadNextBatch() {
+		if (skippingFirstRecords != 0) {
+			current = skippingFirstRecords;
+			skippingFirstRecords = 0;
+		}
+
 		currentStart = current;
 		ModifiableSolrParams params = new ModifiableSolrParams(this.solrParams);
 		params.set("start", "" + current);

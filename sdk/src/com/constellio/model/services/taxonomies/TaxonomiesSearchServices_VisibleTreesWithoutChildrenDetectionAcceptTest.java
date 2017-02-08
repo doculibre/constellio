@@ -527,7 +527,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 					admin, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(rootCategories.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(rootCategories.size() + 2);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -535,11 +534,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, CLASSIFICATION_PLAN,
 					category42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childCategories.subList(i, i + 25));
-			if (i > 75) {
-				assertThat(response.getNumFound()).isEqualTo(100);
-			} else {
-				assertThat(response.getNumFound()).isGreaterThan(response.getRecords().size());
-			}
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -600,7 +594,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 					admin, zeCollection, ADMINISTRATIVE_UNITS, new TaxonomiesSearchOptions().setStartRow(2 + i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(rootAdministrativeUnits.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(rootAdministrativeUnits.size() + 2);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -608,11 +601,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, ADMINISTRATIVE_UNITS,
 					unit42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childAdministrativeUnits.subList(i, i + 25));
-			if (i > 75) {
-				assertThat(response.getNumFound()).isEqualTo(100);
-			} else {
-				assertThat(response.getNumFound()).isGreaterThan(response.getRecords().size());
-			}
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 

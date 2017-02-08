@@ -401,13 +401,26 @@ public class TaxonomiesSearchServices {
 		LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(collection, taxonomyCode, options);
 		SearchResponseIterator<Record> rootIterator = searchServices.recordsIteratorKeepingOrder(
 				mainQuery.setNumberOfRows(100000).setStartRow(0), 50);
-		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(rootIterator, 50);
+
+		Iterator<List<Record>> iterator;
+		List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
+		int lastIteratedRecordIndex = 0;
+		FastContinueInfos continueInfos = options.getFastContinueInfos();
+		if (continueInfos != null) {
+			lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+			for (int i = 0; i < options.getStartRow(); i++) {
+				visibleRecords.add(null);
+			}
+			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 50, continueInfos.lastReturnRecordIndex).inBatches();
+
+		} else {
+			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 50).inBatches();
+		}
 
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
 
 		int consumed = 0;
-		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
-		while (resultVisible.size() < options.getEndRow() && batchIterators.hasNext()) {
+		while (visibleRecords.size() < options.getEndRow() + 1 && iterator.hasNext()) {
 
 			LogicalSearchCondition condition;
 
@@ -418,7 +431,7 @@ public class TaxonomiesSearchServices {
 			}
 			LogicalSearchQuery facetQuery = newQueryForFacets(condition, user, options);
 
-			List<Record> batch = batchIterators.next();
+			List<Record> batch = iterator.next();
 			for (Record child : batch) {
 				facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
 			}
@@ -426,21 +439,30 @@ public class TaxonomiesSearchServices {
 
 			for (Record child : batch) {
 				consumed++;
+				if (visibleRecords.size() < options.getEndRow()) {
+					lastIteratedRecordIndex++;
+				}
 				Taxonomy taxonomyOfRecord = taxonomiesManager.getTaxonomyOf(child);
 				boolean showEvenIfNoChildren = options.isAlwaysReturnTaxonomyConceptsWithReadAccess()
 						&& !taxonomyOfRecord.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(collection));
 				boolean hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
 
 				if (showEvenIfNoChildren || hasChildren) {
-					resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, hasChildren));
+					visibleRecords.add(new TaxonomySearchRecord(child, NOT_LINKABLE, hasChildren));
 				}
 			}
 		}
 
-		long numFound = rootIterator.getNumFound() - consumed + resultVisible.size();
-		int toIndex = Math.min(resultVisible.size(), options.getStartRow() + options.getRows());
-		List<TaxonomySearchRecord> returnedRecords = resultVisible.subList(options.getStartRow(), toIndex);
-		return new LinkableTaxonomySearchResponse(numFound, returnedRecords);
+		//long numFound = rootIterator.getNumFound() - consumed + resultVisible.size();
+		int numFound = visibleRecords.size();
+		int toIndex = Math.min(visibleRecords.size(), options.getStartRow() + options.getRows());
+		List<TaxonomySearchRecord> returnedRecords = visibleRecords.subList(options.getStartRow(), toIndex);
+
+		boolean finishedConceptsIteration = !iterator.hasNext();
+		FastContinueInfos infos = new FastContinueInfos(finishedConceptsIteration, lastIteratedRecordIndex,
+				new ArrayList<Record>());
+
+		return new LinkableTaxonomySearchResponse(numFound, infos, returnedRecords);
 	}
 
 	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
@@ -535,10 +557,25 @@ public class TaxonomiesSearchServices {
 					.setReturnedMetadatas(ctx.options.getReturnedMetadatasFilter()
 							.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 
-			Iterator<List<Record>> iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25)
-					.inBatches();
+			Iterator<List<Record>> iterator;
+
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
+			int lastIteratedRecordIndex = 0;
+			FastContinueInfos continueInfos = ctx.options.getFastContinueInfos();
+			if (continueInfos != null) {
+				lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+				for (int i = 0; i < ctx.options.getStartRow(); i++) {
+					visibleRecords.add(null);
+				}
+				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
+						continueInfos.lastReturnRecordIndex).inBatches();
+
+			} else {
+				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
+			}
+
 			while (visibleRecords.size() < ctx.options.getEndRow() + 1 && iterator.hasNext()) {
+
 				List<Record> batch = iterator.next();
 
 				LogicalSearchCondition condition = from(ctx.forSelectionOfSchemaType).returnAll();
@@ -553,6 +590,9 @@ public class TaxonomiesSearchServices {
 
 				SPEQueryResponse response = searchServices.query(facetQuery);
 				for (Record child : batch) {
+					if (visibleRecords.size() < ctx.options.getEndRow()) {
+						lastIteratedRecordIndex++;
+					}
 					String schemaType = getSchemaTypeCode(child.getSchemaCode());
 
 					boolean hasVisibleChildren =
@@ -570,10 +610,16 @@ public class TaxonomiesSearchServices {
 
 				}
 			}
+
 			int numFound = visibleRecords.size();
 			int toIndex = Math.min(visibleRecords.size(), ctx.options.getEndRow());
 			List<TaxonomySearchRecord> returnedRecords = visibleRecords.subList(ctx.options.getStartRow(), toIndex);
-			return new LinkableTaxonomySearchResponse(numFound, returnedRecords);
+
+			boolean finishedConceptsIteration = !iterator.hasNext();
+			FastContinueInfos infos = new FastContinueInfos(finishedConceptsIteration, lastIteratedRecordIndex,
+					new ArrayList<Record>());
+
+			return new LinkableTaxonomySearchResponse(numFound, infos, returnedRecords);
 		}
 	}
 

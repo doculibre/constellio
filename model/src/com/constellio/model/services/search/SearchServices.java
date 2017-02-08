@@ -127,6 +127,18 @@ public class SearchServices {
 		};
 	}
 
+	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize, int skipping) {
+		ModifiableSolrParams params = addSolrModifiableParams(query);
+		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
+
+			@Override
+			public Record convert(RecordDTO recordDTO) {
+				return recordServices.toRecord(recordDTO, fullyLoaded);
+			}
+		};
+	}
+
 	public long getResultsCount(LogicalSearchCondition condition) {
 		return getResultsCount(new LogicalSearchQuery(condition));
 	}

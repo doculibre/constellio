@@ -1,13 +1,13 @@
 package com.constellio.app.ui.framework.data;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
@@ -19,6 +19,8 @@ import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.vaadin.server.Resource;
 
 public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(BaseRecordTreeDataProvider.class);
 
 	private int estimatedRootNodesCount = -1;
 	private Map<String, String> parentCache = new HashMap<>();
@@ -65,6 +67,8 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 			saveResultInCache(searchRecord);
 			recordIds.add(searchRecord.getId());
 		}
+		LOGGER.info("getRoot(" + start + ", " + maxSize + ") => " + recordIds);
+
 		estimatedRootNodesCount = Math.max(estimatedRootNodesCount, (int) response.getNumFound());
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
@@ -76,6 +80,7 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 
 	@Override
 	public final ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
+
 		LinkableTaxonomySearchResponse response = nodesDataProvider.getChildrenNodes(parent, start, maxSize);
 
 		List<String> recordIds = new ArrayList<>();
@@ -84,6 +89,8 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 			recordIds.add(searchRecord.getId());
 			parentCache.put(searchRecord.getId(), parent);
 		}
+		LOGGER.info("getChildren(" + parent + ", " + start + ", " + maxSize + ") => " + recordIds);
+
 		RecordDataTreeNode parentTreeNode = nodesCache.get(parent);
 		parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
 		return new ObjectsResponse<>(recordIds, response.getNumFound());

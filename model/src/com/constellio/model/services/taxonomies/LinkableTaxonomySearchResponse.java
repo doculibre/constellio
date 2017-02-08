@@ -14,19 +14,19 @@ public class LinkableTaxonomySearchResponse {
 
 	private long qTime;
 
-	private final int lastVisibleIndex;
+	private final FastContinueInfos fastContinueInfos;
 
 	public LinkableTaxonomySearchResponse(long numFound,
 			List<TaxonomySearchRecord> records) {
 		this.numFound = numFound;
-		this.lastVisibleIndex = -1;
+		this.fastContinueInfos = null;
 		this.records = records;
 	}
 
-	public LinkableTaxonomySearchResponse(long numFound, int lastVisibleIndex,
+	public LinkableTaxonomySearchResponse(long numFound, FastContinueInfos fastContinueInfos,
 			List<TaxonomySearchRecord> records) {
 		this.numFound = numFound;
-		this.lastVisibleIndex = lastVisibleIndex;
+		this.fastContinueInfos = fastContinueInfos;
 		this.records = records;
 	}
 
@@ -38,8 +38,8 @@ public class LinkableTaxonomySearchResponse {
 		return qTime;
 	}
 
-	public int getLastVisibleIndex() {
-		return lastVisibleIndex;
+	public FastContinueInfos getFastContinueInfos() {
+		return fastContinueInfos;
 	}
 
 	public List<TaxonomySearchRecord> getRecords() {

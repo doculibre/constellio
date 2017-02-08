@@ -7,6 +7,8 @@ import java.util.List;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.sort.DefaultStringSortFieldNormalizer;
+import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 
 public class RecordCodeComparator implements Comparator<Record> {
 
@@ -55,8 +57,15 @@ public class RecordCodeComparator implements Comparator<Record> {
 		return result;
 	}
 
+	static DefaultStringSortFieldNormalizer normalizer = new DefaultStringSortFieldNormalizer();
+
 	private static String convert(String value) {
-		return value == null ? null : AccentApostropheCleaner.removeAccents(value);
+
+		if (value == null) {
+			return normalizer.normalizeNull();
+		} else {
+			return normalizer.normalize(value);
+		}
 	}
 
 	private static int compare(String s1, String s2) {
