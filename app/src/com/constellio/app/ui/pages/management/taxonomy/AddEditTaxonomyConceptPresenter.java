@@ -1,18 +1,27 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.vaadin.ui.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.IOException;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 @SuppressWarnings("serial")
 public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<AddEditTaxonomyConceptView> {
@@ -22,9 +31,14 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 	public static final String EDIT = "EDIT";
 	public static final String ADD = "ADD";
 
+	public static final String STYLE_NAME = "window-button";
+	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
+	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
+
 	private String taxonomyCode;
 	private String conceptId;
 	private String operation;
+	private Record originalRecord;
 
 	public AddEditTaxonomyConceptPresenter(AddEditTaxonomyConceptView view) {
 		super(view);
@@ -44,6 +58,7 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 		Record record;
 		if (operation.equals(EDIT)) {
 			record = recordServices().getDocumentById(conceptId);
+			originalRecord = record;
 		} else {
 			record = newRecord();
 			if (conceptId != null) {
@@ -77,11 +92,20 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 		}
 	}
 
-	public void saveButtonClicked(RecordVO recordVO) {
+	public void saveButtonClicked(RecordVO recordVO, boolean isReindexationNeeded) {
 		try {
 			Record record = toRecord(recordVO);
-			addOrUpdateWithoutUser(record);
-			view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
+			recordServices().recalculate(record);
+
+			if(isReindexationNeeded) {
+				recordServices().executeWithoutImpactHandling(new Transaction().update(record));
+				ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
+				reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
+			} else {
+				addOrUpdateWithoutUser(record);
+				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
+			}
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			LOGGER.error(e.getMessage(), e);
@@ -100,5 +124,41 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 	protected boolean hasPageAccess(String params, User user) {
 		forElementInTaxonomy(params);
 		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
+	}
+
+	public void confirmBeforeSave(final RecordVO recordVO) {
+		Record record = toRecord(recordVO);
+		recordServices().recalculate(record);
+		final boolean isReindexationNeeded;
+
+		if(operation.equals(EDIT) &&
+				(record.isModified(Schemas.PATH) || record.isModified(Schemas.CODE) || record.isModified(Schemas.TITLE))) {
+			Long numberOfRecordsToChange = searchServices().getResultsCount(fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(((List<String>) originalRecord.get(Schemas.PATH)).get(0)));
+			String confirmationMessage;
+
+			if(numberOfRecordsToChange < 10000) {
+				confirmationMessage = $("AddEditTaxonomyConceptPresenter.confirmLowerThan10000");
+				isReindexationNeeded = false;
+			} else {
+				confirmationMessage = $("AddEditTaxonomyConceptPresenter.confirmHigherOrEqualTo10000");
+				isReindexationNeeded = true;
+			}
+			ConfirmDialog.show(
+					UI.getCurrent(),
+					$("AddEditTaxonomyConceptPresenter.confirmTitle"),
+					confirmationMessage,
+					$("confirm"),
+					$("cancel"),
+					new ConfirmDialog.Listener() {
+						public void onClose(ConfirmDialog dialog) {
+							if (dialog.isConfirmed()) {
+								saveButtonClicked(recordVO, isReindexationNeeded);
+							}
+						}
+					});
+		} else {
+			isReindexationNeeded = false;
+			saveButtonClicked(recordVO, isReindexationNeeded);
+		}
 	}
 }
