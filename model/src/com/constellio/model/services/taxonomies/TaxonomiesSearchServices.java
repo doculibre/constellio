@@ -191,15 +191,9 @@ public class TaxonomiesSearchServices {
 		if (ctx.options.getFastContinueInfos() == null || !ctx.options.getFastContinueInfos().isFinishedConceptsIteration()) {
 			conceptsResponse = getConceptRecordsWithVisibleRecords(ctx);
 		} else {
-			conceptsResponse = new GetConceptRecordsWithVisibleRecordsResponse();
-			conceptsResponse.finishedIteratingOverRecords = true;
-			conceptsResponse.records = new ArrayList<>();
-			int qtyConcepts = ctx.options.getStartRow()
-					- ctx.options.getFastContinueInfos().getLastReturnRecordIndex()
-					- ctx.options.getFastContinueInfos().getShownRecordsWithVisibleChildren().size();
-			for (int i = 0; i < qtyConcepts; i++) {
-				conceptsResponse.records.add(null);
-			}
+			//Since we know that all concepts has been checked and the quantity of returned concepts, we place nulls
+			// in the list instead of records. Since these values are outside the returned range, it cause no problem
+			conceptsResponse = createConceptsResponseWithNullValues(ctx);
 		}
 
 		List<Record> records = new ArrayList<>();
@@ -245,6 +239,20 @@ public class TaxonomiesSearchServices {
 		return regroupChildren(ctx, conceptsResponse, childrenWithoutAccessToInclude, nonTaxonomyRecordsResponse, records,
 				realRecordsStart);
 
+	}
+
+	private GetConceptRecordsWithVisibleRecordsResponse createConceptsResponseWithNullValues(GetChildrenContext ctx) {
+		GetConceptRecordsWithVisibleRecordsResponse conceptsResponse;
+		conceptsResponse = new GetConceptRecordsWithVisibleRecordsResponse();
+		conceptsResponse.finishedIteratingOverRecords = true;
+		conceptsResponse.records = new ArrayList<>();
+		int qtyConcepts = ctx.options.getStartRow()
+				- ctx.options.getFastContinueInfos().getLastReturnRecordIndex()
+				- ctx.options.getFastContinueInfos().getShownRecordsWithVisibleChildren().size();
+		for (int i = 0; i < qtyConcepts; i++) {
+			conceptsResponse.records.add(null);
+		}
+		return conceptsResponse;
 	}
 
 	private LinkableTaxonomySearchResponse regroupChildren(
@@ -300,11 +308,7 @@ public class TaxonomiesSearchServices {
 		}
 
 		long numfound;
-		//if (ctx.options.getFastContinueInfos() == null) {
 		numfound = nonTaxonomyRecordsResponse.getNumFound() + childrenWithoutAccessToInclude.size() + concepts.size();
-		//		} else {
-		//			numfound = nonTaxonomyRecordsResponse.getNumFound() + childrenWithoutAccessToInclude.size() + concepts.size();
-		//		}
 
 		return new LinkableTaxonomySearchResponse(numfound, infos, returnedRecords);
 	}
@@ -455,6 +459,10 @@ public class TaxonomiesSearchServices {
 
 	}
 
+	/**
+	 * @param context The call context
+	 * @return all children for which the user has no access, but are ancestor of a record for which he has access
+	 */
 	private List<Record> getChildrenRecordsWithoutRequiredAccessLeadingToRecordWithAccess(GetChildrenContext context) {
 
 		List<Record> records = new ArrayList<>();

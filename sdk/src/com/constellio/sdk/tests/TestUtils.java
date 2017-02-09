@@ -9,6 +9,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
@@ -411,6 +414,24 @@ public class TestUtils {
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		System.out.println(xmlOutput.outputString(document));
+	}
+
+	public static void write(Document document, File file) {
+		XMLOutputter xmlOutput = new XMLOutputter();
+		FileWriter fileWriter = null;
+		try {
+			fileWriter = new FileWriter(file);
+
+			// display nice nice
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(document, fileWriter);
+
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			IOUtils.closeQuietly(fileWriter);
+		}
+
 	}
 
 	public static class MapBuilder<K, V> {
