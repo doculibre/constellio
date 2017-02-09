@@ -30,6 +30,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 
@@ -148,7 +149,7 @@ public class RMFolderExtension extends RecordExtension {
 		Taxonomy principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(
 				rule.getCollection());
 		for (String unit : rule.getAdministrativeUnits()) {
-			List<String> currentUnits = taxonomiesSearchServices
+			List<String> currentUnits = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
 					.getAllConceptIdsHierarchyOf(principalTaxonomy, rmSchema.getAdministrativeUnit(unit).getWrappedRecord());
 			returnSet.addAll(currentUnits);
 		}

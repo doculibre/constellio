@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -68,6 +69,10 @@ public class LogicalSearchQueryOperators {
 		}
 	}
 
+	public static OngoingLogicalSearchCondition from(List<String> schemaTypeCodes, String collection) {
+		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypeCodes, collection));
+	}
+
 	public static OngoingLogicalSearchCondition from(List<MetadataSchemaType> schemaTypes) {
 		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes));
 	}
@@ -76,8 +81,16 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes, true));
 	}
 
+	public static OngoingLogicalSearchCondition fromTypesInCollectionOf(CollectionObject collectionObject) {
+		return new OngoingLogicalSearchCondition(new CollectionFilters(collectionObject.getCollection(), false));
+	}
+
 	public static OngoingLogicalSearchCondition fromAllSchemasIn(String collection) {
 		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, false));
+	}
+
+	public static OngoingLogicalSearchCondition fromAllSchemasInCollectionOf(CollectionObject collectionObject) {
+		return new OngoingLogicalSearchCondition(new CollectionFilters(collectionObject.getCollection(), false));
 	}
 
 	public static OngoingLogicalSearchCondition fromAllSchemasInExceptEvents(String collection) {

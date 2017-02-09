@@ -104,8 +104,14 @@ public class FileIconUtils implements Serializable {
 		}
 	}
 
+	@Deprecated
 	public static Resource getIconForRecordId(String recordId) {
-		return getIconForRecordId(recordId, false);
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+		return getIconForRecordId(recordServices.getDocumentById(recordId), false);
 	}
 
 	public static Resource getIconForRecordVO(RecordVO recordVO) {
@@ -119,13 +125,9 @@ public class FileIconUtils implements Serializable {
 		}
 	}
 
-	public static Resource getIconForRecordId(String recordId, boolean expanded) {
+	public static Resource getIconForRecordId(Record record, boolean expanded) {
 		try {
-			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			Record record = recordServices.getDocumentById(recordId);
+			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 			String collection = record.getCollection();
 			String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecord(
 					new GetIconPathParams(record, expanded));
@@ -136,7 +138,7 @@ public class FileIconUtils implements Serializable {
 				return null;
 			}
 		} catch (Throwable t) {
-			LOGGER.warn("Error while retrieving icon for record id " + recordId, t);
+			LOGGER.warn("Error while retrieving icon for record id " + record.getId(), t);
 			return null;
 		}
 	}

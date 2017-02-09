@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
@@ -228,7 +229,7 @@ public class BigVaultRecordDao implements RecordDao {
 			updatedDocuments.add(solrInputDocument);
 			deleteIndexForLogicallyDeletedRecord(deletedRecordsIds, modifiedRecord);
 			addActiveIndexesForRestoredRecord(newDocuments, modifiedRecord);
-			if (modifiedRecord.getModifiedFields().containsKey("parentpath_ss")) {
+			if (modifiedRecord.getModifiedFields().containsKey("path_ss")) {
 				recordsAncestors.set(modifiedRecord.getId(), getModifiedRecordAncestors(modifiedRecord));
 			}
 			if (!transaction.isSkippingReferenceToLogicallyDeletedValidation()) {
@@ -412,7 +413,7 @@ public class BigVaultRecordDao implements RecordDao {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private List<String> getRecordAncestors(RecordDTO newRecord) {
 		List<String> recordsAncestors = new ArrayList<>();
-		List<String> parentPaths = (List) newRecord.getFields().get("parentpath_ss");
+		List<String> parentPaths = toParentPaths((List) newRecord.getFields().get("path_ss"));
 		if (parentPaths != null) {
 			for (String parentPath : parentPaths) {
 				if (parentPath != null) {
@@ -427,7 +428,7 @@ public class BigVaultRecordDao implements RecordDao {
 	private List<String> getModifiedRecordAncestors(RecordDeltaDTO modifiedRecord) {
 
 		List<String> recordsAncestors = new ArrayList<>();
-		List<String> parentPaths = (List) modifiedRecord.getModifiedFields().get("parentpath_ss");
+		List<String> parentPaths = toParentPaths((List) modifiedRecord.getModifiedFields().get("path_ss"));
 		if (parentPaths != null) {
 			for (String parentPath : parentPaths) {
 				addParentPathToRecordsAncestors(modifiedRecord.getId(), recordsAncestors, parentPath);
@@ -435,6 +436,16 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 		return recordsAncestors;
 
+	}
+
+	private List<String> toParentPaths(List paths) {
+		List<String> parentPaths = new ArrayList<>();
+		if (paths != null) {
+			for (Object path : paths) {
+				parentPaths.add(StringUtils.substringBeforeLast(path.toString(), "/"));
+			}
+		}
+		return parentPaths;
 	}
 
 	private void addParentPathToRecordsAncestors(String recordId, List<String> recordsAncestors, String parentPath) {

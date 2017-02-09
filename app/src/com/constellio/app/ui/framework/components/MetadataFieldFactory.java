@@ -1,14 +1,11 @@
 package com.constellio.app.ui.framework.components;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.ConstellioFactories;

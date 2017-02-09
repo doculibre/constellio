@@ -136,8 +136,6 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		assertThat(object.getProperty("id").getValue()).isEqualTo("folder1");
 		assertThat(object.getProperty("title").getValue()).isEqualTo("folder1");
 		assertThat(object.getProperty("schema").getValue()).isEqualTo("folder_default");
-		assertThat(object.getProperty("parentpath").getFirstValue()).isEqualTo(
-				"/taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1");
 		assertThat(object.getProperty("path").getFirstValue()).isEqualTo(
 				"/taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
 		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("zetaxo1_category1");
@@ -150,7 +148,6 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		//assertThat(object.getProperty("id").getValue()).isEqualTo("taxo1_category2");
 		assertThat(object.getProperty("title").getValue()).isEqualTo("zetaxo1_category2");
 		assertThat(object.getProperty("schema").getValue()).isEqualTo("category_default");
-		assertThat(object.getProperty("parentpath").getFirstValue()).isEqualTo("/taxo1/zetaxo1_fond1");
 		assertThat(object.getProperty("path").getFirstValue())
 				.isEqualTo("/taxo1/zetaxo1_fond1/zetaxo1_category2");
 		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("zetaxo1_fond1");

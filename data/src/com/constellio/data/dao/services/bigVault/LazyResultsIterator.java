@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.LazyIterator;
 
 public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements SearchResponseIterator<T> {
@@ -31,6 +32,17 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements 
 		this.solrParams = new ModifiableSolrParams(solrParams);
 		this.solrParams.set("rows", intervalsLength);
 		this.intervalsLength = intervalsLength;
+	}
+
+	@Override
+	public SearchResponseIterator<List<T>> inBatches() {
+		return new BatchBuilderSearchResponseIterator<T>(this, intervalsLength) {
+
+			@Override
+			public long getNumFound() {
+				return LazyResultsIterator.this.getNumFound();
+			}
+		};
 	}
 
 	@Override

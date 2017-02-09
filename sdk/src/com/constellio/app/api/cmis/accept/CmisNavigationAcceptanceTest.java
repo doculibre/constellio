@@ -156,13 +156,12 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2;
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(2);
-		assertThat(children.get(0)).has(id("folder4"))
-				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4"))
-				.has(property("cmis:objectTypeId", "folder_default"));
-		assertThat(children.get(1)).has(id("zetaxo1_category2_1"))
+		assertThat(children.get(0)).has(id("zetaxo1_category2_1"))
 				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1"))
 				.has(property("cmis:objectTypeId", "category_default"));
-
+		assertThat(children.get(1)).has(id("folder4"))
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4"))
+				.has(property("cmis:objectTypeId", "folder_default"));
 	}
 
 	private Session givenAdminSessionOnZeCollection() {

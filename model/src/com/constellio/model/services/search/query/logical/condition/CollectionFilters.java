@@ -20,9 +20,11 @@ public class CollectionFilters implements DataStoreFilters {
 	}
 
 	@Override
-	public List<String> getFilterQueries() {
+	public List<String> getFilterQueries(boolean hasSecurityFilters) {
 		List<String> filters = new ArrayList<>();
-		filters.add("(*:* -type_s:index)");
+		if (!hasSecurityFilters) {
+			filters.add("(*:* -type_s:index)");
+		}
 		filters.add("collection_s:" + collection);
 		if (exceptEvents) {
 			filters.add("(*:* -schema_s:" + Event.SCHEMA_TYPE + "*)");
