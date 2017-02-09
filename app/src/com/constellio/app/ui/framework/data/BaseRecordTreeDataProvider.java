@@ -14,6 +14,7 @@ import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.taxonomies.FastContinueInfos;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.vaadin.server.Resource;
@@ -26,6 +27,7 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 	private Map<String, String> parentCache = new HashMap<>();
 	private Map<String, RecordDataTreeNode> nodesCache = new HashMap<>();
 	private RecordTreeNodesDataProvider nodesDataProvider;
+	private Map<String, FastContinueInfos> fastContinueInfosMap = new HashMap<>();
 
 	public BaseRecordTreeDataProvider(RecordTreeNodesDataProvider recordTreeNodesDataProvider) {
 		this.nodesDataProvider = recordTreeNodesDataProvider;
@@ -60,7 +62,8 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 
 	@Override
 	public final ObjectsResponse<String> getRootObjects(int start, int maxSize) {
-		LinkableTaxonomySearchResponse response = nodesDataProvider.getRootNodes(start, maxSize);
+		FastContinueInfos infos = fastContinueInfosMap.get("root-" + start);
+		LinkableTaxonomySearchResponse response = nodesDataProvider.getRootNodes(start, maxSize, infos);
 
 		List<String> recordIds = new ArrayList<>();
 		for (TaxonomySearchRecord searchRecord : response.getRecords()) {
@@ -70,6 +73,13 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 		LOGGER.info("getRoot(" + start + ", " + maxSize + ") => " + recordIds);
 
 		estimatedRootNodesCount = Math.max(estimatedRootNodesCount, (int) response.getNumFound());
+
+		int end = start + maxSize;
+		FastContinueInfos responseFastContinueInfos = response.getFastContinueInfos();
+		if (responseFastContinueInfos != null) {
+			fastContinueInfosMap.put("root-" + end, responseFastContinueInfos);
+		}
+
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 
@@ -81,7 +91,8 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 	@Override
 	public final ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
 
-		LinkableTaxonomySearchResponse response = nodesDataProvider.getChildrenNodes(parent, start, maxSize);
+		FastContinueInfos infos = fastContinueInfosMap.get(parent + "-" + start);
+		LinkableTaxonomySearchResponse response = nodesDataProvider.getChildrenNodes(parent, start, maxSize, infos);
 
 		List<String> recordIds = new ArrayList<>();
 		for (TaxonomySearchRecord searchRecord : response.getRecords()) {
@@ -93,6 +104,13 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 
 		RecordDataTreeNode parentTreeNode = nodesCache.get(parent);
 		parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
+
+		int end = start + maxSize;
+		FastContinueInfos responseFastContinueInfos = response.getFastContinueInfos();
+		if (responseFastContinueInfos != null) {
+			fastContinueInfosMap.put(parent + "-" + end, responseFastContinueInfos);
+		}
+
 		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 

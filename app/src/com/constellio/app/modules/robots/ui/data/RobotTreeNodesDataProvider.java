@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.taxonomies.FastContinueInfos;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
@@ -44,7 +45,7 @@ public class RobotTreeNodesDataProvider implements RecordTreeNodesDataProvider {
 	}
 
 	@Override
-	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize) {
+	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize, FastContinueInfos infos) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(schemas.robot.schema()).where(schemas.robot.parent()).isEqualTo(parentId))
 				.setStartRow(start).setNumberOfRows(maxSize);
@@ -54,8 +55,8 @@ public class RobotTreeNodesDataProvider implements RecordTreeNodesDataProvider {
 	}
 
 	@Override
-	public LinkableTaxonomySearchResponse getRootNodes(int start, int maxSize) {
-		return getChildrenNodes(rootId, start, maxSize);
+	public LinkableTaxonomySearchResponse getRootNodes(int start, int maxSize, FastContinueInfos infos) {
+		return getChildrenNodes(rootId, start, maxSize, null);
 	}
 
 	@Override

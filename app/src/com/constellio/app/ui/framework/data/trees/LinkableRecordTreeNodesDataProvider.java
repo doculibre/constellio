@@ -13,6 +13,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.taxonomies.FastContinueInfos;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.users.UserServices;
@@ -30,22 +31,22 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 	}
 
 	@Override
-	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize) {
+	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize, FastContinueInfos infos) {
 		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 		User currentUser = getCurrentUser(modelLayerFactory);
 		Record record = getRecord(modelLayerFactory, parentId);
 
-		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start);
+		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start, infos);
 		return modelLayerFactory.newTaxonomiesSearchService().getLinkableChildConceptResponse(
 				currentUser, record, taxonomyCode, schemaTypeCode, taxonomiesSearchOptions);
 	}
 
 	@Override
-	public LinkableTaxonomySearchResponse getRootNodes(int start, int maxSize) {
+	public LinkableTaxonomySearchResponse getRootNodes(int start, int maxSize, FastContinueInfos infos) {
 		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 		User currentUser = getCurrentUser(modelLayerFactory);
 
-		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start);
+		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start, infos);
 		return modelLayerFactory.newTaxonomiesSearchService().getLinkableRootConceptResponse(
 				currentUser, currentUser.getCollection(), taxonomyCode, schemaTypeCode, taxonomiesSearchOptions);
 	}
@@ -55,13 +56,15 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		return taxonomyCode;
 	}
 
-	private TaxonomiesSearchOptions newTaxonomiesSearchOptions(int rows, int startRow) {
+	private TaxonomiesSearchOptions newTaxonomiesSearchOptions(int rows, int startRow, FastContinueInfos infos) {
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(rows, startRow, StatusFilter.ACTIVES)
+				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
 						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
 		if (writeAccess) {
 			options.setRequiredAccess(Role.WRITE);
 		}
+
 		return options;
 	}
 
@@ -79,6 +82,5 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 
 		return recordServices.getDocumentById(id);
 	}
-
 
 }
