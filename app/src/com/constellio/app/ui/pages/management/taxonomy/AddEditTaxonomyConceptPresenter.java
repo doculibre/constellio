@@ -10,7 +10,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.vaadin.ui.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 @SuppressWarnings("serial")
@@ -99,8 +97,7 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 
 			if(isReindexationNeeded) {
 				recordServices().executeWithoutImpactHandling(new Transaction().update(record));
-				ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
-				reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 			} else {
 				addOrUpdateWithoutUser(record);
@@ -133,7 +130,8 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 
 		if(operation.equals(EDIT) &&
 				(record.isModified(Schemas.PATH) || record.isModified(Schemas.CODE) || record.isModified(Schemas.TITLE))) {
-			Long numberOfRecordsToChange = searchServices().getResultsCount(fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(((List<String>) originalRecord.get(Schemas.PATH)).get(0)));
+			Long numberOfRecordsToChange = searchServices().getResultsCount(fromAllSchemasIn(collection).where(Schemas.PATH)
+					.isStartingWithText(((List<String>) originalRecord.get(Schemas.PATH)).get(0)));
 			String confirmationMessage;
 
 			if(numberOfRecordsToChange < 10000) {
