@@ -156,7 +156,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				LocalDate manualExpectedDeposit = folder.getManualExpectedDepositDate();
 				LocalDate manualExpectedDestruction = folder.getManualExpectedDestructionDate();
 				LocalDate actualTransfer = folder.getActualTransferDate();
-				LocalDate manualExpectedTransfer = folder.getManualExpecteTransferdDate();
+				LocalDate manualExpectedTransfer = folder.getExpectedTransferDate();
 
 				boolean fixDeposit = false;
 				boolean fixDestruction = false;
