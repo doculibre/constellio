@@ -10,6 +10,7 @@ import static com.constellio.app.modules.rm.model.validators.FolderValidator.RUL
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -145,6 +146,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	public void givenEnforcedWhenCreateFolderWithIncompatibleRuleAndCategoryThenValidationException()
 			throws Exception {
 
+		givenConfig(RMConfigs.UNIFORM_SUBDIVISION_ENABLED, true);
 		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, true);
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(records.unitId_11b);
@@ -168,6 +170,55 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
 
 		//OK
+		recordServices.add(folder);
+	}
+
+	@Test
+	public void givenEnforcedWhenCreateFolderWithIncompatibleRuleAndUniformSubdivisionThenValidationException()
+			throws Exception {
+
+		givenConfig(RMConfigs.UNIFORM_SUBDIVISION_ENABLED, true);
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setCategoryEntered(records.categoryId_X);
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setOpenDate(LocalDate.now());
+		folder.setUniformSubdivisionEntered(records.subdivId_1);
+
+		try {
+			recordServices.add(folder);
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, CATEGORY_CODE, RULE_CODE)).containsOnly(
+					tuple("FolderValidator_folderUniformSubdivisionMustBeRelatedToItsRule", "sub1", "1")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly("La subdivision uniforme d''un dossier doit être liée à sa règle");
+		}
+
+		givenConfig(RMConfigs.UNIFORM_SUBDIVISION_ENABLED, false);
+
+		//OK
+		recordServices.add(folder);
+	}
+
+	@Test
+	public void givenEnforcedWhenCreateFolderWithCompatibleRuleAndUniformSubdivisionThenNoValidationException()
+			throws Exception {
+
+		givenConfig(RMConfigs.UNIFORM_SUBDIVISION_ENABLED, true);
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setCategoryEntered(records.categoryId_X);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setOpenDate(LocalDate.now());
+		folder.setUniformSubdivisionEntered(records.subdivId_1);
+
 		recordServices.add(folder);
 	}
 
@@ -757,6 +808,61 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2075);
+		assertThat(folder.getExpectedDepositDate()).isNull();
+
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, -1);
+		waitForBatchProcess();
+		recordServices.refresh(folder);
+
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isNull();
+
+	}
+
+	@Test
+	//Tested on IntelliGID 4!
+	public void givenActiveSecondaryFoldersWithClosePeriodsAndDecommissioningDelaysThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 30);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 20);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 10);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("3-3-T", PA), principal("888-888-D", MD),
+				secondary("10-0-D", PA));
+
+		Folder folder = saveAndLoad(secondaryFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMediumTypes(MD, PA));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
+		assertThat(folder.getCloseDate()).isEqualTo(march31_2025);
+		assertThat(folder.getActualTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getApplicableCopyRules()).containsExactly(secondary("10-0-D", PA));
+		assertThat(folder.getMainCopyRule()).isEqualTo(secondary("10-0-D", PA));
+		assertThat(folder.getSemiActiveRetentionCode()).isNull();
+		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly((LocalDate) null);
+		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2035);
+		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null }));
+
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2035);
+		assertThat(folder.getExpectedDepositDate()).isNull();
+
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, -1);
+		waitForBatchProcess();
+		recordServices.refresh(folder);
+
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2035);
 		assertThat(folder.getExpectedDepositDate()).isNull();
 
 	}
@@ -2383,6 +2489,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 				.setCloseDateEntered(december12_2009));
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNotNull();
 	}
 
 	// -------------------------------------------------------------------------

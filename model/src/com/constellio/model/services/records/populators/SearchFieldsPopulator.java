@@ -202,12 +202,8 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		Map<String, Object> copyfields = new HashMap<>();
 		for (String collectionLanguage : collectionLanguages) {
 			String fieldCode = prefix + collectionLanguage;
-			if (collectionLanguage.equals(valueLanguage) && value != null) {
-				try {
-					copyfields.put(fieldCode, Double.parseDouble(value));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			if (collectionLanguage.equals(valueLanguage) && value != null && !"null".equals(value)) {
+				copyfields.put(fieldCode, Double.parseDouble(value));
 			} else {
 				copyfields.put(fieldCode, "");
 			}

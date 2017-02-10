@@ -1,5 +1,6 @@
 plugins {
     id "org.sonarqube" version "1.2"
+    //id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
 
 apply plugin: 'war'
@@ -110,13 +111,13 @@ allprojects {
     }
 
     jar {
-        version = '7.0.4'
+        version = '7.0.8'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "7.0.4"
+    version = "7.0.8"
 
     webInf {
 
@@ -125,6 +126,23 @@ war {
         }
         from("reportsRecource/") {
             into("resources/reports")
+        }
+    }
+
+    if (new File(rootDir, "../constellio-plugins").exists()) {
+        def updatePlugins = [":plugins:plugin001", ":plugins:plugin002", ":plugins:plugin003", ":plugins:plugin004",
+                             ":plugins:plugin005", ":plugins:plugin006", ":plugins:plugin007", ":plugins:plugin008",
+                             ":plugins:plugin009", ":plugins:plugin010", ":plugins:plugin012", ":plugins:plugin015",
+                             ":plugins:plugin016", ":plugins:plugin017", ":plugins:plugin018", ":plugins:plugin019",
+                             ":plugins:plugin020"]
+        def installPlugins = [':plugins:plugin023']
+
+        from(files(updatePlugins.collect { project(it).jar.outputs.files })) {
+            into "plugins-to-update"
+        }
+
+        from(files(installPlugins.collect { project(it).jar.outputs.files })) {
+            into "plugins-to-install"
         }
     }
 
@@ -154,32 +172,6 @@ task compilePlugin() {
         String projectName = new File("./jarProject").text.trim()
         dependsOn project(projectName).build
     }
-}
-
-task compileAllPlugins() {
-    dependsOn project(":plugins:plugin001").build
-    dependsOn project(":plugins:plugin002").build
-    dependsOn project(":plugins:plugin003").build
-    dependsOn project(":plugins:plugin004").build
-    dependsOn project(":plugins:plugin005").build
-    dependsOn project(":plugins:plugin006").build
-    dependsOn project(":plugins:plugin007").build
-    dependsOn project(":plugins:plugin008").build
-    dependsOn project(":plugins:plugin009").build
-    dependsOn project(":plugins:plugin010").build
-    dependsOn project(":plugins:plugin011").build
-    dependsOn project(":plugins:plugin012").build
-    dependsOn project(":plugins:plugin013").build
-    dependsOn project(":plugins:plugin014").build
-    dependsOn project(":plugins:plugin015").build
-    dependsOn project(":plugins:plugin016").build
-    dependsOn project(":plugins:plugin017").build
-    dependsOn project(":plugins:plugin018").build
-    dependsOn project(":plugins:plugin019").build
-    dependsOn project(":plugins:plugin020").build
-    dependsOn project(":plugins:plugin021").build
-    dependsOn project(":plugins:plugin023").build
-
 }
 
 task unWar(type: Copy) {

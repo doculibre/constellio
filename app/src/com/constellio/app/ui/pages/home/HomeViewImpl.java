@@ -6,6 +6,7 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -31,11 +32,8 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
 import org.vaadin.peter.contextmenu.ContextMenu;
 
@@ -144,7 +142,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Table buildRecordTable(final RecordTable recordTable) {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		Table table = new RecordVOTable(dataProvider);
+		RecordVOTable table = new RecordVOTable(dataProvider);
+		((DocumentContextMenuImpl)table.getContextMenu()).setParentView(this);
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {

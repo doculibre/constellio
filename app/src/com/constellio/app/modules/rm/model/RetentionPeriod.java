@@ -137,6 +137,10 @@ public class RetentionPeriod implements Serializable {
 		return new RetentionPeriod(variablePeriod.getCode());
 	}
 
+	public boolean isFixed() {
+		return !isVariablePeriod();
+	}
+
 	public static class RetentionPeriodRuntimeException extends RuntimeException {
 
 		public RetentionPeriodRuntimeException(String message) {

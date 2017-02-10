@@ -1,10 +1,5 @@
 package com.constellio.app.ui.application;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -15,6 +10,10 @@ import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresent
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.JavaScript;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CoreViews {
 	protected Navigator navigator;
@@ -34,6 +33,10 @@ public class CoreViews {
 
 	public void home() {
 		navigator.navigateTo(NavigatorConfigurationService.HOME);
+	}
+
+	public void home(String tab) {
+		navigator.navigateTo(NavigatorConfigurationService.HOME + "/" + tab);
 	}
 
 	public void recordsManagement() {
