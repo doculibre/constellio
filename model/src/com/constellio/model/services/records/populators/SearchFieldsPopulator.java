@@ -203,7 +203,11 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		for (String collectionLanguage : collectionLanguages) {
 			String fieldCode = prefix + collectionLanguage;
 			if (collectionLanguage.equals(valueLanguage) && value != null) {
-				copyfields.put(fieldCode, Double.parseDouble(value));
+				try {
+					copyfields.put(fieldCode, Double.parseDouble(value));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			} else {
 				copyfields.put(fieldCode, "");
 			}
