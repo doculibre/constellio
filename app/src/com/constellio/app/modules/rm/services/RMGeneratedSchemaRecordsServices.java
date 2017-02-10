@@ -6,7 +6,7 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.reports.wrapper.ReportConfig;
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -1016,46 +1016,46 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		}
 	}
 
-	public ReportConfig wrapReportConfig(Record record) {
-		return record == null ? null : new ReportConfig(record, getTypes());
+	public Printable wrapReportConfig(Record record) {
+		return record == null ? null : new Printable(record, getTypes());
 	}
 
-	public List<ReportConfig> wrapReportConfigs(List<Record> records) {
-		List<ReportConfig> wrapped = new ArrayList<>();
+	public List<Printable> wrapReportConfigs(List<Record> records) {
+		List<Printable> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new ReportConfig(record, getTypes()));
+			wrapped.add(new Printable(record, getTypes()));
 		}
 
 		return wrapped;
 	}
 
-	public List<ReportConfig> searchReportConfigs(LogicalSearchQuery query) {
+	public List<Printable> searchReportConfigs(LogicalSearchQuery query) {
 		return wrapReportConfigs(modelLayerFactory.newSearchServices().search(query));
 	}
 
-	public List<ReportConfig> searchReportConfigs(LogicalSearchCondition condition) {
+	public List<Printable> searchReportConfigs(LogicalSearchCondition condition) {
 		MetadataSchemaType type = reportsrecords.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapReportConfigs(modelLayerFactory.newSearchServices().search(query));
 	}
 
-	public ReportConfig getReportConfig(String id) {
+	public Printable getReportConfig(String id) {
 		return wrapReportConfig(get(id));
 	}
 
-	public List<ReportConfig> getReportConfigs(List<String> ids) {
+	public List<Printable> getReportConfigs(List<String> ids) {
 		return wrapReportConfigs(get(ids));
 	}
 
-	public ReportConfig getReportConfigWithLegacyId(String legacyId) {
+	public Printable getReportConfigWithLegacyId(String legacyId) {
 		return wrapReportConfig(getByLegacyId(reportsrecords.schemaType(), legacyId));
 	}
 
-	public ReportConfig newReportConfig() {
+	public Printable newReportConfig() {
 		return wrapReportConfig(create(reportsrecords.schema()));
 	}
 
-	public ReportConfig newReportConfigWithId(String id) {
+	public Printable newReportConfigWithId(String id) {
 		return wrapReportConfig(create(reportsrecords.schema(), id));
 	}
 
@@ -1665,51 +1665,51 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		}
 	}
 
-	public RMReport wrapRMReport(Record record) {
-		return record == null ? null : new RMReport(record, getTypes());
+	public PrintableLabel wrapRMReport(Record record) {
+		return record == null ? null : new PrintableLabel(record, getTypes());
 	}
 
-	public List<RMReport> wrapRMReports(List<Record> records) {
-		List<RMReport> wrapped = new ArrayList<>();
+	public List<PrintableLabel> wrapRMReports(List<Record> records) {
+		List<PrintableLabel> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new RMReport(record, getTypes()));
+			wrapped.add(new PrintableLabel(record, getTypes()));
 		}
 
 		return wrapped;
 	}
 
-	public List<RMReport> searchRMReports(LogicalSearchQuery query) {
+	public List<PrintableLabel> searchRMReports(LogicalSearchQuery query) {
 		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
 	}
 
-	public List<RMReport> searchRMReports(LogicalSearchCondition condition) {
+	public List<PrintableLabel> searchRMReports(LogicalSearchCondition condition) {
 		MetadataSchemaType type = reportsrecords.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
 	}
 
-	public RMReport getRMReport(String id) {
+	public PrintableLabel getRMReport(String id) {
 		return wrapRMReport(get(id));
 	}
 
-	public List<RMReport> getRMReports(List<String> ids) {
+	public List<PrintableLabel> getRMReports(List<String> ids) {
 		return wrapRMReports(get(ids));
 	}
 
-	public RMReport getRMReportWithLegacyId(String legacyId) {
+	public PrintableLabel getRMReportWithLegacyId(String legacyId) {
 		return wrapRMReport(getByLegacyId(reportsrecords.schemaType(), legacyId));
 	}
 
-	public RMReport newRMReport() {
+	public PrintableLabel newRMReport() {
 		return wrapRMReport(create(reportsrecords_label.schema()));
 	}
 
-	public RMReport newRMReportWithId(String id) {
+	public PrintableLabel newRMReportWithId(String id) {
 		return wrapRMReport(create(reportsrecords_label.schema(), id));
 	}
 
 	public final SchemaTypeShortcuts_reportsrecords_label reportsrecords_label
-			= new SchemaTypeShortcuts_reportsrecords_label("reportsrecords_label");
+			= new SchemaTypeShortcuts_reportsrecords_label(PrintableLabel.SCHEMA_NAME);
 
 	public class SchemaTypeShortcuts_reportsrecords_label extends SchemaTypeShortcuts_reportsrecords_default {
 		protected SchemaTypeShortcuts_reportsrecords_label(String schemaCode) {

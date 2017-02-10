@@ -4,7 +4,7 @@ import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMReport;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.ui.entities.LabelVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -146,7 +146,7 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 
         @SuppressWarnings("unchecked")
         public Field<String> getTypeField() {
-            return (Field<String>) getField(RMReport.TYPE_LABEL);
+            return (Field<String>) getField(PrintableLabel.TYPE_LABEL);
         }
 
         @Override
@@ -163,7 +163,7 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
     class LabelRecordFieldFactory extends RecordFieldFactory {
         @Override
         public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-            return metadataVO.getCode().equals(RMReport.SCHEMA_NAME + "_" + RMReport.TYPE_LABEL) ? createComboBox(metadataVO) : new MetadataFieldFactory().build(metadataVO);
+            return metadataVO.getCode().equals(PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.TYPE_LABEL) ? createComboBox(metadataVO) : new MetadataFieldFactory().build(metadataVO);
         }
 
         public ComboBox createComboBox(MetadataVO metadataVO) {

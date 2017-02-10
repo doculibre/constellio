@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.reports.wrapper.ReportConfig;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;

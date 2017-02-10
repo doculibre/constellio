@@ -1,49 +1,25 @@
 package com.constellio.app.modules.rm.services.reports;
 
-import com.constellio.app.modules.reports.wrapper.ReportConfig;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.ConstellioEIM;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
-import com.drew.metadata.MetadataException;
-import com.itextpdf.text.DocumentException;
 import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRXmlDataSource;
-import net.sf.jasperreports.engine.export.JRTextExporterParameter;
-import net.sf.jasperreports.engine.query.JRXPathQueryExecuter;
 import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
-import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.util.JRXmlUtils;
-import net.sf.jasperreports.export.SimpleReportExportConfiguration;
-import org.apache.commons.collections.list.UnmodifiableList;
 import org.apache.commons.lang.NullArgumentException;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.provider.TemporaryFileStore;
-import org.apache.tools.ant.taskdefs.Ant;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -52,20 +28,13 @@ import org.jdom2.output.XMLOutputter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.lang.reflect.Field;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-import net.sf.jasperreports.engine.export.JRPdfExporter;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormatter;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
 /**
  * Created by Nicolas D'Amours & Charles Blanchette on 2017-01-16.

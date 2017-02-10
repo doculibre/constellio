@@ -1,13 +1,13 @@
 package com.constellio.app.modules.reports;
 
-import com.constellio.app.modules.reports.wrapper.ReportConfig;
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportField;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMReport;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -19,28 +19,17 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Collections2;
-import com.vaadin.data.Container;
-import net.sf.jasperreports.engine.JRParameter;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
-import net.sf.jasperreports.engine.util.JRLoader;
-import net.sf.jasperreports.engine.util.JRXmlUtils;
-import org.apache.commons.digester.Rule;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.joda.time.LocalDate;
 import org.junit.*;
-import org.krysalis.barcode4j.BarcodeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static junit.framework.TestCase.fail;
@@ -76,7 +65,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
         ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
-        ReportConfig r = rm.newReportConfig();
+        Printable r = rm.newReportConfig();
         r.setTitle(title);
         r.setJasperFile(c);
         Transaction t = new Transaction();
@@ -84,7 +73,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         recordServices.execute(t);
 
         LogicalSearchCondition condition = from(rm.reportsrecords.schemaType()).where(rm.reportsrecords.title()).isEqualTo(title);
-        ReportConfig retour = rm.wrapReportConfig(ss.searchSingleResult(condition));
+        Printable retour = rm.wrapReportConfig(ss.searchSingleResult(condition));
         assertThat(retour.getTitle()).isEqualTo(title);
         assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
     }
@@ -95,17 +84,17 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
         ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
-        ReportConfig r = rm.newReportConfig();
-        RMReport rmReport = rm.newRMReport();
-        rmReport.setJasperFile(c);
-        rmReport.setTitle(title);
+        Printable r = rm.newReportConfig();
+        PrintableLabel printableLabel = rm.newRMReport();
+        printableLabel.setJasperFile(c);
+        printableLabel.setTitle(title);
 
         Transaction t = new Transaction();
-        t.add(rmReport);
+        t.add(printableLabel);
         recordServices.execute(t);
 
         LogicalSearchCondition condition = from(rm.reportsrecords.schemaType()).where(rm.reportsrecords.title()).isEqualTo(title);
-        RMReport retour = rm.wrapRMReport(ss.searchSingleResult(condition));
+        PrintableLabel retour = rm.wrapRMReport(ss.searchSingleResult(condition));
         assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
         assertThat(retour.getTitle()).isEqualTo(title);
     }

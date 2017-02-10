@@ -2,7 +2,7 @@ package com.constellio.app.ui.entities;
 
 import com.constellio.model.entities.records.Content;
 
-import static com.constellio.app.modules.rm.wrappers.RMReport.*;
+import static com.constellio.app.modules.rm.wrappers.PrintableLabel.*;
 
 import java.io.Serializable;
 import java.util.List;

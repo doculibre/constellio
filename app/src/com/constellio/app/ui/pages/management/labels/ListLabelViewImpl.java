@@ -1,6 +1,6 @@
 package com.constellio.app.ui.pages.management.labels;
 
-import com.constellio.app.modules.reports.wrapper.ReportConfig;
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -70,7 +70,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
                     @Override
                     public boolean isVisible() {
                         RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-                        return !(super.isVisible() && ret != null) || ret.get(ReportConfig.ISDELETABLE).equals(true);
+                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
                     }
                 };
             }
@@ -89,7 +89,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
                     @Override
                     public boolean isVisible() {
                         RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-                        return !(super.isVisible() && ret != null) || ret.get(ReportConfig.ISDELETABLE).equals(true);
+                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
                     }
                 };
             }
@@ -134,7 +134,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
                     @Override
                     public boolean isVisible() {
                         RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-                        return !(super.isVisible() && ret != null) || ret.get(ReportConfig.ISDELETABLE).equals(true);
+                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
                     }
                 };
             }
@@ -153,7 +153,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
                     @Override
                     public boolean isVisible() {
                         RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-                        return !(super.isVisible() && ret != null) || ret.get(ReportConfig.ISDELETABLE).equals(true);
+                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
                     }
                 };
             }

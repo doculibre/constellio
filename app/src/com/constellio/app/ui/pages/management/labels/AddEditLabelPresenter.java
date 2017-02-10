@@ -1,55 +1,35 @@
 package com.constellio.app.ui.pages.management.labels;
 
-import com.constellio.app.modules.reports.wrapper.ReportConfig;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
-import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
-import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderView;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMReport;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.GetXMLButton;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
-import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
 
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 /**
@@ -72,7 +52,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
     }
 
     public RecordVO getRecordVO(String id, RecordVO.VIEW_MODE mode) {
-        LogicalSearchCondition condition = from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(RMReport.SCHEMA_NAME)).where(Schemas.IDENTIFIER).isEqualTo(id);
+        LogicalSearchCondition condition = from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME)).where(Schemas.IDENTIFIER).isEqualTo(id);
         Record r = searchServices().searchSingleResult(condition);
         RecordToVOBuilder voBuilder = new RecordToVOBuilder();
         return voBuilder.build(r, mode, view.getSessionContext());
@@ -95,28 +75,28 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 
     public RecordVODataProvider getLabelFolderDataProvider() {
         final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
-                .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(RMReport.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+                .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
         return new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
             @Override
             protected LogicalSearchQuery getQuery() {
-                MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(RMReport.SCHEMA_NAME);
+                MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
                 return new LogicalSearchQuery(
-                        from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(RMReport.SCHEMA_NAME))
-                                .where(schema.getMetadata(RMReport.TYPE_LABEL)).isEqualTo(Folder.SCHEMA_TYPE));
+                        from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
+                                .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(Folder.SCHEMA_TYPE));
             }
         };
     }
 
     public RecordVODataProvider getLabelContainerDataProvider() {
         final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
-                .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(RMReport.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+                .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
         return new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
             @Override
             protected LogicalSearchQuery getQuery() {
-                MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(RMReport.SCHEMA_NAME);
+                MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
                 return new LogicalSearchQuery(
-                        from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(RMReport.SCHEMA_NAME))
-                                .where(schema.getMetadata(RMReport.TYPE_LABEL)).isEqualTo(ContainerRecord.SCHEMA_TYPE));
+                        from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
+                                .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(ContainerRecord.SCHEMA_TYPE));
             }
         };
     }
@@ -127,9 +107,9 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 
     public void saveButtonClicked(RecordVO rvo) throws Exception {
         RecordServices rs = appLayerFactory.getModelLayerFactory().newRecordServices();
-        SchemaPresenterUtils utils = new SchemaPresenterUtils(RMReport.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
+        SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
         Record record = utils.toRecord(rvo);
-        record.set(metadataSchemasManager.getSchemaTypes(collection).getMetadata(RMReport.SCHEMA_NAME + "_" + RMReport.ISDELETABLE), true);
+        record.set(metadataSchemasManager.getSchemaTypes(collection).getMetadata(PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.ISDELETABLE), true);
         Transaction trans = new Transaction();
         trans.update(record);
         rs.execute(trans);
@@ -146,9 +126,9 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 
     @Override
     protected Record newRecord() {
-        super.setSchemaCode(RMReport.SCHEMA_NAME);
+        super.setSchemaCode(PrintableLabel.SCHEMA_NAME);
         Record record = super.newRecord();
-        RMReport report = rmSchemasRecordsServices.wrapRMReport(record);
+        PrintableLabel report = rmSchemasRecordsServices.wrapRMReport(record);
         return record;
     }
 
@@ -193,7 +173,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
     }
 
     public void removeRecord(String itemId, String schema) {
-        SchemaPresenterUtils utils = new SchemaPresenterUtils(RMReport.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
+        SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
         Record record = utils.toRecord(this.getRecordsWithIndex(schema, itemId));
         delete(record);
         view.navigate().to().manageLabels();
