@@ -4,7 +4,7 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_1;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -25,7 +25,7 @@ public class ReportModule implements InstallableModule {
     public List<MigrationScript> getMigrationScripts() {
         List<MigrationScript> scripts = new ArrayList<>();
         scripts.add(new CoreMigrationTo_7_1());
-        scripts.add(new RMMigrationTo6_7());
+        scripts.add(new RMMigrationTo7_1());
         return scripts;
     }
 
