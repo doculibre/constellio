@@ -24,6 +24,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -61,6 +62,7 @@ public class MetadataBuilder {
 	private boolean childOfRelationship = false;
 	private boolean taxonomyRelationship = false;
 	private boolean searchable = false;
+	private MetadataVolatility volatililty = MetadataVolatility.PERSISTED;
 	private boolean schemaAutocomplete = false;
 	private boolean sortable = false;
 	private boolean encrypted = false;
@@ -173,6 +175,7 @@ public class MetadataBuilder {
 		builder.defaultRequirement = metadata.isDefaultRequirement();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
+		builder.volatililty = metadata.getVolatility();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -217,6 +220,7 @@ public class MetadataBuilder {
 		builder.undeletable = metadata.isUndeletable();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
+		builder.volatililty = metadata.getVolatility();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -392,6 +396,16 @@ public class MetadataBuilder {
 	public MetadataBuilder setSearchable(boolean searchable) {
 		ensureCanModify("searchable");
 		this.searchable = searchable;
+		return this;
+	}
+
+	public MetadataVolatility getVolatility() {
+		return inheritance == null ? volatililty : inheritance.getVolatility();
+	}
+
+	public MetadataBuilder setVolatility(MetadataVolatility volatililty) {
+		ensureCanModify("volatililty");
+		this.volatililty = volatililty;
 		return this;
 	}
 
@@ -714,7 +728,7 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel);
+				increasedDependencyLevel, volatililty);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 

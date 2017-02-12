@@ -21,9 +21,11 @@ import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBefor
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMultivalueMetadataValidator;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -93,6 +95,39 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
+	public static MetadataBuilderConfigurator whichIsCalculatedUsing(final Class<? extends MetadataValueCalculator<?>> clazz) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asCalculated(clazz);
+			}
+
+		};
+	}
+
+	public static MetadataBuilderConfigurator whichIsScripted(final String script) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asJexlScript(script);
+			}
+
+		};
+	}
+
+	public static MetadataBuilderConfigurator whichHasVolatility(final MetadataVolatility volatility) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.setVolatility(volatility);
+			}
+
+		};
+	}
+
 	public static MetadataBuilderConfigurator whichHasDefaultValue(final Object value) {
 		return new MetadataBuilderConfigurator() {
 
@@ -143,6 +178,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+
 	public static MetadataBuilderConfigurator whichIsUnmodifiable = new MetadataBuilderConfigurator() {
 
 		@Override

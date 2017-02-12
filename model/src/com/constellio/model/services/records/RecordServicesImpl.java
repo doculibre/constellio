@@ -322,7 +322,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
-		return new RecordImpl(recordDTO, allFields);
+		Record record = new RecordImpl(recordDTO, allFields);
+		newAutomaticMetadataServices().loadVolatilesEager((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+		return record;
 	}
 
 	public List<Record> toRecords(List<RecordDTO> recordDTOs, boolean allFields) {
@@ -357,7 +359,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record getDocumentById(String id) {
 		try {
-			return new RecordImpl(recordDao.get(id), true);
+			Record record = new RecordImpl(recordDao.get(id), true);
+			newAutomaticMetadataServices().loadVolatilesEager((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+			recordsCaches.insert(record);
+			return record;
+
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
 		}
@@ -586,6 +592,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				recordsToInsert.add(record);
 			}
 		}
+
 		recordsCaches.insert(collection, recordsToInsert);
 
 	}
@@ -1027,6 +1034,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void recalculate(Record record) {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
 				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), new TransactionRecordsReindexation());
+	}
+
+	@Override
+	public void loadLazyVolatiles(RecordImpl record) {
+		newAutomaticMetadataServices().loadVolatilesLazy((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 	}
 
 }

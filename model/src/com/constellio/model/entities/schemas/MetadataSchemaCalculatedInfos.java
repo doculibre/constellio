@@ -9,15 +9,21 @@ public class MetadataSchemaCalculatedInfos {
 	List<RecordPreparationStep> recordPreparationSteps;
 
 	List<Metadata> automaticMetadatas;
+	List<Metadata> lazyVolatilesMetadatas;
+	List<Metadata> eagerVolatilesMetadatas;
 	private List<Metadata> contentMetadatasForPopulate;
 
 	public MetadataSchemaCalculatedInfos(
 			List<RecordPreparationStep> recordPreparationSteps,
 			List<Metadata> automaticMetadatas,
-			List<Metadata> contentMetadatasForPopulate) {
+			List<Metadata> contentMetadatasForPopulate,
+			List<Metadata> lazyVolatilesMetadatas,
+			List<Metadata> eagerVolatilesMetadatas) {
 		this.recordPreparationSteps = recordPreparationSteps;
 		this.automaticMetadatas = automaticMetadatas;
 		this.contentMetadatasForPopulate = contentMetadatasForPopulate;
+		this.lazyVolatilesMetadatas = lazyVolatilesMetadatas;
+		this.eagerVolatilesMetadatas = eagerVolatilesMetadatas;
 	}
 
 	public List<RecordPreparationStep> getRecordPreparationSteps() {
@@ -30,5 +36,13 @@ public class MetadataSchemaCalculatedInfos {
 
 	public List<Metadata> getContentMetadatasForPopulate() {
 		return contentMetadatasForPopulate;
+	}
+
+	public List<Metadata> getLazyVolatilesMetadatas() {
+		return lazyVolatilesMetadatas;
+	}
+
+	public List<Metadata> getEagerVolatilesMetadatas() {
+		return eagerVolatilesMetadatas;
 	}
 }

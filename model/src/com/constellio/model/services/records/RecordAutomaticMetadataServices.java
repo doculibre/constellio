@@ -34,6 +34,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
@@ -76,6 +77,26 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types);
+		}
+
+	}
+
+	public void loadVolatilesEager(RecordImpl record, RecordProvider recordProvider) {
+		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		for (Metadata automaticMetadata : schema.getEagerVolatilesMetadatas()) {
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types);
+		}
+
+	}
+
+	public void loadVolatilesLazy(RecordImpl record, RecordProvider recordProvider) {
+		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		for (Metadata automaticMetadata : schema.getLazyVolatilesMetadatas()) {
 			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types);
 		}
 
@@ -513,8 +534,12 @@ public class RecordAutomaticMetadataServices {
 
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 
+		boolean lazyVolatileMetadataToLoad = metadataWithCalculatedDataEntry.getVolatility() == MetadataVolatility.VOLATILE_LAZY
+				&& !record.getLazyVolatileValues().containsKey(metadataWithCalculatedDataEntry.getDataStoreCode());
+
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
-				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)) {
+				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)
+				|| lazyVolatileMetadataToLoad) {
 			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider, types);
 		}
 	}

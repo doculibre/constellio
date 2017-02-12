@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_EAGER;
+import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
@@ -7,6 +9,7 @@ import static com.constellio.model.services.records.RecordServicesAcceptanceTest
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculatorReturningInvalidType;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator.UNMODIFIABLE_METADATA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -16,8 +19,11 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Char
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasVolatility;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -64,6 +70,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.Validator;
@@ -1270,6 +1277,78 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenVolatileLazyMetadataThenNotSavedAndRetrievedOnRecordRecalculate()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withANumberMetadata(
+				whichIsCalculatedUsing(TitleLengthCalculator.class),
+				whichHasVolatility(VOLATILE_LAZY)));
+
+		//TODO records in cache should lost volatile metadatas
+
+		//Save a record, it keeps the volatile metadatas
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+
+		//The record is obtained from the datastore, there is no value
+		record = recordServices.getDocumentById(record.getId());
+		assertThat(record.get(zeSchema.numberMetadata())).isNull();
+
+		//The record is recalculated, the value is loaded
+		recordServices.recalculate(record);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+
+		record = new TestRecord(zeSchema).set(TITLE, "Vodka Canneberge");
+		recordServices.add(record);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(16.0);
+
+		record = recordServices.getDocumentById(record.getId());
+		assertThat(record.get(zeSchema.numberMetadata())).isNull();
+
+		//The record is recalculated, the value is loaded
+		recordServices.recalculate(record);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(16.0);
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
+		assertThat(recordInCache.get(zeSchema.numberMetadata())).isNull();
+
+	}
+
+	@Test
+	public void givenVolatileEagerMetadataThenNotSavedAndRetrievedOnRecordRetrieval()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withANumberMetadata(
+				whichIsCalculatedUsing(TitleLengthCalculator.class),
+				whichHasVolatility(VOLATILE_EAGER)));
+
+		//TODO records in cache should lost volatile metadatas
+
+		//Save a record, it keeps the volatile metadatas
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+
+		//The record is obtained from the datastore, there is no value
+		record = recordServices.getDocumentById(record.getId());
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+
+		record = new TestRecord(zeSchema).set(TITLE, "Vodka Canneberge");
+		recordServices.add(record);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(16.0);
+
+		record = recordServices.getDocumentById(record.getId());
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(16.0);
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
+		assertThat(recordInCache.get(zeSchema.numberMetadata())).isEqualTo(16.0);
+
+	}
+
 	private MetadataSchemaTypesConfigurator aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt() {
 		return new MetadataSchemaTypesConfigurator() {
 
@@ -1397,5 +1476,35 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		return parameters;
+	}
+
+	public static final class TitleLengthCalculator implements MetadataValueCalculator<Double> {
+
+		LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE.getLocalCode());
+
+		@Override
+		public Double calculate(CalculatorParameters parameters) {
+			return (double) parameters.get(titleDependency).length();
+		}
+
+		@Override
+		public Double getDefaultValue() {
+			return 0.0;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return MetadataValueType.NUMBER;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return asList(titleDependency);
+		}
 	}
 }

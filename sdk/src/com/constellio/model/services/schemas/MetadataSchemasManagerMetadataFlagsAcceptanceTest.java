@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasCustomAttributes;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasVolatility;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
@@ -16,6 +17,7 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -91,6 +93,33 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 
 		assertThat(zeSchema.stringMetadata().isEncrypted()).isTrue();
 		assertThat(zeSchema.anotherStringMetadata().isEncrypted()).isFalse();
+	}
+
+	@Test
+	public void whenAddUpdateSchemasThenSaveVolatileFlag()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata()
+				.withAnotherStringMetadata(whichHasVolatility(MetadataVolatility.VOLATILE_EAGER))
+				.withANumberMetadata(whichHasVolatility(MetadataVolatility.VOLATILE_LAZY)));
+
+		assertThat(zeSchema.stringMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
+		assertThat(zeSchema.anotherStringMetadata().getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_EAGER);
+		assertThat(zeSchema.numberMetadata().getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_LAZY);
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
+						.setVolatility(MetadataVolatility.VOLATILE_EAGER);
+				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode()).setVolatility(null);
+				types.getSchema(zeSchema.code()).get(zeSchema.numberMetadata().getLocalCode())
+						.setVolatility(MetadataVolatility.PERSISTED);
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_EAGER);
+		assertThat(zeSchema.anotherStringMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
+		assertThat(zeSchema.numberMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
 	}
 
 	@Test

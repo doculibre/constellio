@@ -146,4 +146,6 @@ public interface RecordServices {
 	void recalculate(RecordWrapper recordWrapper);
 
 	void recalculate(Record record);
+
+	void loadLazyVolatiles(RecordImpl record);
 }

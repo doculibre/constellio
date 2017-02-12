@@ -34,6 +34,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -57,6 +58,8 @@ public class RecordImpl implements Record {
 	private long version;
 	private boolean disconnected = false;
 	private RecordDTO recordDTO;
+	private Map<String, Object> lazyVolatileValues = new HashMap<String, Object>();
+	private Map<String, Object> eagerVolatileValues = new HashMap<String, Object>();
 	private Map<String, Object> structuredValues;
 	private List<String> followers;
 	private boolean fullyLoaded;
@@ -76,6 +79,11 @@ public class RecordImpl implements Record {
 		this.recordDTO = null;
 		this.followers = new ArrayList<String>();
 		this.fullyLoaded = true;
+	}
+
+	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerVolatileValues) {
+		this(recordDTO, true);
+		this.eagerVolatileValues = new HashMap<>(eagerVolatileValues);
 	}
 
 	public RecordImpl(RecordDTO recordDTO) {
@@ -205,20 +213,28 @@ public class RecordImpl implements Record {
 	private Record setModifiedValue(Metadata metadata, Object value) {
 		validateSetArguments(metadata, value);
 
+		Map<String, Object> map = modifiedValues;
+		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
+			map = eagerVolatileValues;
+
+		} else if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY) {
+			map = lazyVolatileValues;
+		}
+
 		Object correctedValue = correctValue(value);
 		String codeAndType = metadata.getDataStoreCode();
 		if (structuredValues != null && structuredValues.containsKey(codeAndType)) {
 			if (!structuredValues.get(codeAndType).equals(correctedValue)) {
-				modifiedValues.put(codeAndType, correctedValue);
+				map.put(codeAndType, correctedValue);
 			} else {
-				modifiedValues.remove(codeAndType);
+				map.remove(codeAndType);
 			}
 		} else {
 
 			if (!isSameValueThanDTO(metadata, correctedValue, codeAndType)) {
-				modifiedValues.put(codeAndType, correctedValue);
+				map.put(codeAndType, correctedValue);
 			} else {
-				modifiedValues.remove(codeAndType);
+				map.remove(codeAndType);
 			}
 		}
 		return this;
@@ -266,7 +282,15 @@ public class RecordImpl implements Record {
 		if (Schemas.IDENTIFIER.getLocalCode().equals(metadata.getLocalCode())) {
 			return (T) id;
 		}
+
 		String codeAndType = metadata.getDataStoreCode();
+		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY) {
+			return (T) lazyVolatileValues.get(codeAndType);
+		}
+		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
+			return (T) eagerVolatileValues.get(codeAndType);
+		}
+
 		T returnedValue;
 		if (modifiedValues.containsKey(codeAndType)) {
 			returnedValue = (T) modifiedValues.get(codeAndType);
@@ -514,19 +538,20 @@ public class RecordImpl implements Record {
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String metadataAtomicCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
 			Metadata metadata = schema.getMetadata(metadataAtomicCode);
-			Object value = entry.getValue();
+			if (metadata.getVolatility() == MetadataVolatility.PERSISTED) {
+				Object value = entry.getValue();
 
-			if (metadata.isEncrypted() && value != null) {
-				EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
-				fields.put(entry.getKey(), encryptionServices.encrypt(value));
+				if (metadata.isEncrypted() && value != null) {
+					EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
+					fields.put(entry.getKey(), encryptionServices.encrypt(value));
 
-			} else if (metadata.getStructureFactory() != null) {
-				fields.put(entry.getKey(), convertStructuredValueToString(value, metadata));
+				} else if (metadata.getStructureFactory() != null) {
+					fields.put(entry.getKey(), convertStructuredValueToString(value, metadata));
 
-			} else {
-				fields.put(entry.getKey(), value);
+				} else {
+					fields.put(entry.getKey(), value);
+				}
 			}
-
 		}
 
 		Map<String, Object> copyfields = new HashMap<>();
@@ -572,29 +597,6 @@ public class RecordImpl implements Record {
 		return modifiedMetadatas.unModifiable();
 	}
 
-	//	@Override
-	//	public MetadataList getMetadatasWithValue(MetadataSchemaTypes schemaTypes) {
-	//		MetadataList modifiedMetadatas = new MetadataList();
-	//
-	//		Set<String> codes = new HashSet<>(getModifiedValues().keySet());
-	//
-	//		if (recordDTO != null) {
-	//			codes.addAll(recordDTO.getFields().keySet());
-	//			codes.addAll(recordDTO.getCopyFields().keySet());
-	//		}
-	//
-	//		for (String modifiedMetadataDataStoreCode : codes) {
-	//			if (!"_version_".equals(modifiedMetadataDataStoreCode) && !"collection_s".equals(modifiedMetadataDataStoreCode)) {
-	//				String metadataCode = schemaCode + "_" + SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
-	//				if (schemaTypes.hasMetadata(metadataCode)) {
-	//					modifiedMetadatas.add(schemaTypes.getMetadata(metadataCode));
-	//				}
-	//			}
-	//		}
-	//
-	//		return modifiedMetadatas.unModifiable();
-	//	}
-
 	public RecordDeltaDTO toRecordDeltaDTO(MetadataSchema schema, List<FieldsPopulator> copyfieldsPopulators) {
 
 		Map<String, Object> modifiedValues = getModifiedValues();
@@ -614,15 +616,17 @@ public class RecordImpl implements Record {
 			String localCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
-				Object value = entry.getValue();
+				if (metadata.getVolatility() == MetadataVolatility.PERSISTED) {
+					Object value = entry.getValue();
 
-				if (metadata.isEncrypted() && value != null) {
-					EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
-					convertedValues.put(entry.getKey(), encryptionServices.encrypt(value));
-				}
+					if (metadata.isEncrypted() && value != null) {
+						EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
+						convertedValues.put(entry.getKey(), encryptionServices.encrypt(value));
+					}
 
-				if (metadata.getStructureFactory() != null) {
-					convertedValues.put(entry.getKey(), convertStructuredValueToString(value, metadata));
+					if (metadata.getStructureFactory() != null) {
+						convertedValues.put(entry.getKey(), convertStructuredValueToString(value, metadata));
+					}
 				}
 			} catch (NoSuchMetadata e) {
 				convertedValues.put(entry.getKey(), "");
@@ -642,15 +646,15 @@ public class RecordImpl implements Record {
 		return id;
 	}
 
-//	@Override
-//	public int hashCode() {
-//		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
-//	}
-//
-//	@Override
-//	public boolean equals(Object obj) {
-//		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
-//	}
+	//	@Override
+	//	public int hashCode() {
+	//		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
+	//	}
+	//
+	//	@Override
+	//	public boolean equals(Object obj) {
+	//		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
+	//	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -844,7 +848,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO);
+		return new RecordImpl(recordDTO, eagerVolatileValues);
 	}
 
 	@Override
@@ -992,6 +996,14 @@ public class RecordImpl implements Record {
 
 	private boolean isBlankString(Object value) {
 		return (value instanceof String) && StringUtils.isBlank((String) value);
+	}
+
+	public Map<String, Object> getLazyVolatileValues() {
+		return lazyVolatileValues;
+	}
+
+	public Map<String, Object> getEagerVolatileValues() {
+		return eagerVolatileValues;
 	}
 
 	@Override

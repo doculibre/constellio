@@ -12,17 +12,20 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -42,6 +45,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
@@ -302,6 +306,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEncrypted(readBooleanWithDefaultValue(encryptedStringValue, false));
 		}
 
+		String volatileStringValue = metadataElement.getAttributeValue("volatility");
+		if (inheriteGlobalMetadata && volatileStringValue == null) {
+			metadataBuilder.setVolatility(globalMetadataInCollectionSchema.getVolatility());
+		} else {
+			metadataBuilder.setVolatility(readEnum(volatileStringValue, MetadataVolatility.class));
+		}
+
 		String searchableStringValue = metadataElement.getAttributeValue("searchable");
 		if (inheriteGlobalMetadata && searchableStringValue == null) {
 			metadataBuilder.setSearchable(globalMetadataInCollectionSchema.isSearchable());
@@ -389,6 +400,10 @@ public class MetadataSchemaXMLReader3 {
 		setPopulateConfigs(metadataBuilder, metadataElement);
 
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
+	}
+
+	private <T> T readEnum(String code, Class<T> clazz) {
+		return (T) EnumWithSmallCodeUtils.toEnum((Class) clazz, code);
 	}
 
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {
