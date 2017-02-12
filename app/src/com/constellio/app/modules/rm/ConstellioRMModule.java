@@ -78,6 +78,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_50;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_54;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo_7_1_francis;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -159,7 +160,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_5_37(),
 				new RMMigrationTo6_5_50(),
 				new RMMigrationTo6_5_54(),
-				new RMMigrationTo6_6()
+				new RMMigrationTo6_6(),
+				new RMMigrationTo_7_1_francis()
 		);
 	}
 
@@ -197,7 +199,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public void configureNavigation(NavigationConfig config) {
 		RMNavigationConfiguration.configureNavigation(config);
 	}
-
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
