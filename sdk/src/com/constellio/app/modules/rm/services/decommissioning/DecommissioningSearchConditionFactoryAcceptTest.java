@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -138,11 +139,13 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenActualTime();
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
-				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).contains(records.folder_A(45, 47)).hasSize(15);
+				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).contains(records.folder_A(45, 47))
+				.hasSize(15);
 
 		givenTimeIs(new LocalDate(2009, 10, 31));
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
-				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).contains(records.folder_A(45, 47)).hasSize(15);
+				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).contains(records.folder_A(45, 47))
+				.hasSize(15);
 
 		givenTimeIs(new LocalDate(2004, 10, 31));
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
@@ -236,7 +239,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenActualTime();
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_30c))
-				.containsOnlyOnce(records.folder_C30, records.folder_C33,records.folder_C34);
+				.containsOnlyOnce(records.folder_C30, records.folder_C33, records.folder_C34);
 	}
 
 	@Test
@@ -266,11 +269,15 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	public void whenSearchingDocumentActiveToDestructionThenObtainsValidResults()
 			throws Exception {
 
+		//assertThat(records.getFolder_A07().getExpectedDepositDate()).isEqualTo(date(2007, 10, 31));
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		waitForBatchProcess();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
+
+		assertThat(records.getFolder_A07().getExpectedDepositDate()).isEqualTo(date(2007, 10, 31));
+
 		assertThatResultsOf(factory.documentActiveToDestroy(records.unitId_10a))
 				.contains(records.decommissionnableProcesInFolder_A(1, 6))
 				.contains(records.decommissionnableProcesInFolder_A(10, 12))

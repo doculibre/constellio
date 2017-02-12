@@ -360,7 +360,7 @@ public class RecordAutomaticMetadataServices {
 	@SuppressWarnings("unchecked")
 	private boolean addMultivalueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
 			ReferenceDependency<?> referenceDependency, Metadata referenceMetadata) {
-		List<String> referencesValues = (List<String>) record.get(referenceMetadata);
+		List<String> referencesValues = record.<String>getList(referenceMetadata);
 		List<Record> referencedRecords = new ArrayList<>();
 		for (String referenceValue : referencesValues) {
 			if (referenceValue != null) {

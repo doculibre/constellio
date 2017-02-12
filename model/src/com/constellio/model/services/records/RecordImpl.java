@@ -237,6 +237,7 @@ public class RecordImpl implements Record {
 				map.remove(codeAndType);
 			}
 		}
+
 		return this;
 	}
 
@@ -284,15 +285,15 @@ public class RecordImpl implements Record {
 		}
 
 		String codeAndType = metadata.getDataStoreCode();
-		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY) {
-			return (T) lazyVolatileValues.get(codeAndType);
-		}
-		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
-			return (T) eagerVolatileValues.get(codeAndType);
-		}
 
 		T returnedValue;
-		if (modifiedValues.containsKey(codeAndType)) {
+		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY) {
+			returnedValue = (T) lazyVolatileValues.get(codeAndType);
+		}
+		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
+			returnedValue = (T) eagerVolatileValues.get(codeAndType);
+
+		} else if (modifiedValues.containsKey(codeAndType)) {
 			returnedValue = (T) modifiedValues.get(codeAndType);
 
 		} else if (recordDTO != null) {
