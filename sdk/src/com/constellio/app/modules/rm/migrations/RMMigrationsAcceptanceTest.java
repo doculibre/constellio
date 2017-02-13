@@ -12,15 +12,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -28,6 +20,8 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.SolrUserCredential;
@@ -58,6 +52,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 						metadataSchemaTypes);
 				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
 				whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(metadataSchemaTypes);
+				whenMigratingToCurrentVersionThenValidateUserFolderWasAdded();
 			}
 		}
 	}
@@ -312,5 +307,17 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		} else {
 			return new SDKFoldersLocator().getInitialStatesFolder();
 		}
+	}
+
+	private void whenMigratingToCurrentVersionThenValidateUserFolderWasAdded() {
+		MetadataSchema defaultSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
+		MetadataSchema UserDocumentSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(UserDocument.SCHEMA_TYPE).getDefaultSchema();
+		assertThat(defaultSchema).isNotNull();
+		assertThat(defaultSchema.getMetadatas()).contains(
+				defaultSchema.getMetadata(UserFolder.USER_FOLDER),
+				defaultSchema.getMetadata(RMUserFolder.ADMINISTRATIVE_UNIT),
+				defaultSchema.getMetadata(RMUserFolder.CATEGORY),
+				defaultSchema.getMetadata(RMUserFolder.RETENTION_RULE));
+		assertThat(UserDocumentSchema.getMetadatas()).contains(UserDocumentSchema.getMetadata(UserDocument.USER_FOLDER));
 	}
 }
