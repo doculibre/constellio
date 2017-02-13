@@ -11839,6 +11839,27 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .badge {
+	position: relative;
+}
+
+.constellio .badge[data-badge]:after {
+	content: attr(data-badge);
+	position: absolute;
+	top: -10px;
+	right: -20px;
+	font-size: 0.7em;
+	background: #197de1;
+	color: white;
+	width: 24px;
+	height: 18px;
+	text-align: center;
+	line-height: 18px;
+	border-radius: 0%;
+	box-shadow: 0 0 1px #333;
+	z-index: 1;
+}
+
 .constellio .v-tabsheet-tabitemcell .v-caption {
 	font-size: 16px;
 }
@@ -12756,11 +12777,11 @@ div.v-layout.v-horizontal.v-widget {
 	content: " \f00c ";
 }
 
-.constellio .v-popupview-popup-header-advanced-search-form {
+.constellio .v-popupview-popup-header-popup {
 	width: 100%;
 }
 
-.constellio .v-popupview-popup-header-advanced-search-form .header-advanced-search-form-content-wrapper {
+.constellio .v-popupview-popup-header-popup .header-popup-content-wrapper {
 	position: absolute;
 	margin: 0 auto;
 	top: 52px;
@@ -12773,17 +12794,21 @@ div.v-layout.v-horizontal.v-widget {
 	border-radius: inherit;
 }
 
-.constellio .v-popupview-popup-header-advanced-search-form .header-advanced-search-form-content-wrapper .header-advanced-search-form-content {
+.constellio .v-popupview-popup-header-popup .header-popup-content-wrapper .header-popup-content {
 	width: 97%;
 	padding-top: 10px;
 	padding-bottom: 10px;
 }
 
-.constellio .v-popupview-popup-header-advanced-search-form .header-advanced-search-form-content-wrapper .header-advanced-search-form-content .header-advanced-search-form-content-label {
+.constellio .v-popupview-popup-header-popup .header-popup-content-wrapper .header-popup-content .header-popup-content-label {
 	height: 400px;
 }
 
-.constellio .v-popupview-popup-header-advanced-search-form .header-advanced-search-form-content-wrapper .header-advanced-search-form-content .header-advanced-search-form-clear-and-search-buttons {
+.constellio .v-popupview-popup-header-popup .header-popup-content-wrapper .header-popup-content .header-popup-clear-and-search-buttons {
+	width: 100%;
+}
+
+.constellio .v-popupview-popup-header-popup .header-popup-content-wrapper .header-popup-content .header-popup-selection-panel {
 	width: 100%;
 }
 
@@ -12972,6 +12997,12 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .header .header-search-button:after {
 	border: none;
+}
+
+.constellio .constellio-layout .header .header-selection-button {
+	position: fixed;
+	right: 150px;
+	margin-top: 15px;
 }
 
 .constellio .constellio-layout .header .header-collection-menu {

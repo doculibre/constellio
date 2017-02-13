@@ -48,11 +48,15 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private transient AppLayerFactory appLayerFactory;
 	private transient ModelLayerFactory modelLayerFactory;
 	private transient SchemasDisplayManager schemasDisplayManager;
+	private boolean advancedSearchFormVisible;
+	private boolean selectionPanelVisible;
 
 	private BasePresenterUtils presenterUtils;
 
 	private UserToVOBuilder voBuilder = new UserToVOBuilder();
 
+	private boolean refreshSelectionPanel;
+	
 	public ConstellioHeaderPresenter(ConstellioHeader header) {
 		this.header = header;
 		init();
@@ -170,6 +174,13 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		List<String> collections = userServices.getUser(getCurrentUser().getUsername()).getCollections();
 		header.setCollections(collections);
+		
+		if (sessionContext.getSelectedRecordIds().isEmpty()) {
+			header.setSelectionButtonEnabled(false);
+		} else {
+			header.setSelectionButtonEnabled(true);
+		}
+		updateSelectionCount();
 	}
 
 	public Resource getUserLogoResource() {
@@ -245,6 +256,90 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			}
 		}
 		throw new ImpossibleRuntimeException("Invalid language " + languageCode);
+	}
+
+	public void logoClicked() {
+		header.navigateTo().home();
+	}
+	
+	private long popupClosedTS = -1;
+	
+	void popupClosed() {
+		popupClosedTS = System.currentTimeMillis();
+		advancedSearchFormVisible = false;
+		selectionPanelVisible = false;
+	}
+	
+	private boolean isPopupClosedIgnored() {
+		return System.currentTimeMillis() - popupClosedTS < 500;
+	}
+
+	void advancedSearchFormButtonClicked() {
+		selectionPanelVisible = false;
+		if (advancedSearchFormVisible) {
+			advancedSearchFormVisible = false;
+		} else {
+			advancedSearchFormVisible = !isPopupClosedIgnored();
+		}
+		header.setAdvancedSearchFormVisible(advancedSearchFormVisible);
+	}
+
+	void selectionButtonClicked() {
+		advancedSearchFormVisible = false;
+		if (selectionPanelVisible) {
+			selectionPanelVisible = false;
+		} else {
+			selectionPanelVisible = !isPopupClosedIgnored();
+		}
+		header.setSelectionPanelVisible(selectionPanelVisible, refreshSelectionPanel);
+		refreshSelectionPanel = false;
+	}
+	
+	private void updateSelectionButton() {
+		SessionContext sessionContext = header.getSessionContext();
+		if (sessionContext.getSelectedRecordIds().isEmpty()) {
+			header.setSelectionButtonEnabled(false);
+		} else {
+			header.setSelectionButtonEnabled(true);
+		}
+		updateSelectionCount();
+	}
+
+	public void selectedRecordsCleared() {
+		refreshSelectionPanel = true;
+		updateSelectionButton();
+	}
+
+	public void selectedRecordIdRemoved(String recordId) {
+		refreshSelectionPanel = true;
+		updateSelectionButton();
+	}
+
+	public void selectedRecordIdAdded(String recordId) {
+		refreshSelectionPanel = true;
+		updateSelectionButton();
+	}
+
+	public void clearSelectionButtonClicked() {
+		SessionContext sessionContext = header.getSessionContext();
+		sessionContext.clearSelectedRecordIds();
+		refreshSelectionPanel = true;
+		header.setSelectionPanelVisible(true, refreshSelectionPanel);
+	}
+
+	public void selectionChanged(String recordId, Boolean selected) {
+		SessionContext sessionContext = header.getSessionContext();
+		if (selected) {
+			sessionContext.addSelectedRecordId(recordId);
+		} else {
+			sessionContext.removeSelectedRecordId(recordId);
+		}
+	}
+	
+	private void updateSelectionCount() {
+		SessionContext sessionContext = header.getSessionContext();
+		int selectionCount = sessionContext.getSelectedRecordIds().size();
+		header.setSelectionCount(selectionCount);
 	}
 	
 }

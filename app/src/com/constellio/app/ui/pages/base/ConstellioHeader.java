@@ -41,4 +41,12 @@ public interface ConstellioHeader extends Serializable {
 
 	void updateUIContent();
 	
+	void setSelectionButtonEnabled(boolean enabled);
+	
+	void setAdvancedSearchFormVisible(boolean visible);
+	
+	void setSelectionPanelVisible(boolean visible, boolean refresh);
+
+	void setSelectionCount(int selectionCount);
+	
 }

@@ -12,11 +12,12 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.pages.base.BaseSessionContext;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
-public class FakeSessionContext implements SessionContext {
+public class FakeSessionContext extends BaseSessionContext {
 
 	boolean fake;
 
@@ -25,6 +26,7 @@ public class FakeSessionContext implements SessionContext {
 	Locale locale;
 	Principal userPrincipal;
 	boolean forcedSignOut;
+	List<String> selectedRecordIds;
 
 	private static FakeSessionContext current;
 
@@ -32,6 +34,7 @@ public class FakeSessionContext implements SessionContext {
 		this.user = user;
 		this.collection = collection;
 		this.locale = Locale.FRENCH;
+		this.selectedRecordIds = new ArrayList<>();
 		FakeSessionContext.current = this;
 		this.fake = true;
 	}
@@ -219,6 +222,11 @@ public class FakeSessionContext implements SessionContext {
 	@Override
 	public void setForcedSignOut(boolean forcedSignOut) {
 		this.forcedSignOut = forcedSignOut;
+	}
+
+	@Override
+	protected List<String> ensureSelectedRecordIds() {
+		return selectedRecordIds;
 	}
 
 }

@@ -868,4 +868,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public boolean hasCurrentUserPermissionToUseCart() {
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
+
+	public void recordSelectionChanged(RecordVO recordVO, Boolean selected) {
+		String recordId = recordVO.getId();
+		SessionContext sessionContext = view.getSessionContext();
+		if (selected) {
+			sessionContext.addSelectedRecordId(recordId);
+		} else {
+			sessionContext.removeSelectedRecordId(recordId);
+		}
+	}
+	
 }

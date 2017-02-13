@@ -11,16 +11,22 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.framework.buttons.BadgeButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
+import com.constellio.app.ui.framework.components.BasePopupView;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.FieldEvents.FocusEvent;
@@ -38,6 +44,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -47,9 +54,11 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.PopupView;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
 import com.vaadin.ui.PopupView.PopupVisibilityListener;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -57,19 +66,32 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends HorizontalLayout implements ConstellioHeader {
-	private static final String ID = "header-advanced-search-form";
+	
+	private static final String POPUP_ID = "header-popup";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME = "header-show-advanced-search-button-popup-visible";
 
 	private List<String> collections = new ArrayList<>();
 
 	private final ConstellioHeaderPresenter presenter;
+	
 	private TextField searchField;
-	private ComboBox types;
-	private PopupView advancedSearchForm;
-	private Button clearAdvancedSearch;
+	private BadgeButton selectionButton;
+	
+	private BasePopupView popupView;
+	
+	private Button showAdvancedSearchButton;
+	private ComboBox advancedSearchSchemaTypeField;
+	private Component advancedSearchForm;
+	private Button clearAdvancedSearchButton;
 	private AdvancedSearchCriteriaComponent criteria;
-    
+	
+	private Component selectionPanel;
+	
+	private int selectionCount;
+	
+	private Boolean delayedSelectionButtonEnabled;
+	
     private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 
 	public ConstellioHeaderImpl() {
@@ -86,7 +108,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			@Override
 			public void click(MouseEvents.ClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
-					ConstellioUI.getCurrent().navigateTo().home();
+					presenter.logoClicked();
 				}
 			}
 		});
@@ -97,21 +119,21 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			@Override
 			public void focus(FocusEvent event) {
 				if (presenter.isValidAdvancedSearchCriterionPresent()) {
-					advancedSearchForm.setPopupVisible(true);
+					presenter.advancedSearchFormButtonClicked();
 				}
 			}
 		});
 
-		final Button showAdvancedSearch = new Button();
-		showAdvancedSearch.addStyleName("header-show-advanced-search-button");
-		showAdvancedSearch.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		showAdvancedSearch.addClickListener(new ClickListener() {
+		showAdvancedSearchButton = new Button();
+		showAdvancedSearchButton.addStyleName("header-show-advanced-search-button");
+		showAdvancedSearchButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		showAdvancedSearchButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				advancedSearchForm.setPopupVisible(true);
+				presenter.advancedSearchFormButtonClicked();
 			}
 		});
-		showAdvancedSearch.addStyleName(SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME);
+		showAdvancedSearchButton.addStyleName(SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME);
 
 		Button searchButton = new SearchButton();
 		searchButton.addStyleName("header-search-button");
@@ -131,29 +153,18 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		};
 		onEnterHandler.installOn(searchField);
 
-		advancedSearchForm = new PopupView("", buildAdvancedSearchUI());
-		advancedSearchForm.setId(ID);
-		advancedSearchForm.addStyleName(ID);
-		advancedSearchForm.setHideOnMouseOut(false);
-		advancedSearchForm.addPopupVisibilityListener(new PopupVisibilityListener() {
-			@Override
-			public void popupVisibilityChange(PopupVisibilityEvent event) {
-				if (event.isPopupVisible()) {
-					showAdvancedSearch.removeStyleName(SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME);
-					showAdvancedSearch.addStyleName(SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME);
-				} else {
-					showAdvancedSearch.removeStyleName(SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME);
-					showAdvancedSearch.addStyleName(SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME);
-				}
-				adjustSearchFieldContent();
-			}
-		});
-		
+		advancedSearchForm = buildAdvancedSearchUI();
+		popupView = newPopupView(advancedSearchForm);
 
 		MenuBar collectionMenu = buildCollectionMenu();
-		MenuBar headerMenu = buildActionMenu();
+		MenuBar actionMenu = buildActionMenu();
+		
+		selectionButton = buildSelectionButton();
+		setSelectionButtonIcon();
+		addSelectionListener();
+		selectionPanel = buildSelectionPanel();
 
-		addComponents(logo, searchField, showAdvancedSearch, searchButton, collectionMenu, headerMenu, advancedSearchForm);
+		addComponents(logo, searchField, showAdvancedSearchButton, searchButton, collectionMenu, actionMenu, selectionButton, popupView);
 //		setComponentAlignment(headerMenu, Alignment.MIDDLE_RIGHT);
 		setSizeFull();
 
@@ -169,18 +180,82 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			public void afterViewChange(ViewChangeEvent event) {
 				if (!(event.getNewView() instanceof AdvancedSearchView || event.getNewView() instanceof SimpleSearchView)) {
 					searchField.setValue(null);
-					types.setValue(null);
+					advancedSearchSchemaTypeField.setValue(null);
 					criteria.clear();
 					criteria.addEmptyCriterion().addEmptyCriterion();
-					clearAdvancedSearch.setEnabled(false);
+					clearAdvancedSearchButton.setEnabled(false);
 					adjustSearchFieldContent();
 				}
 			}
 		});
 	}
+	
+	private BasePopupView newPopupView(final Component component) {
+		Responsive.makeResponsive(component);
+		component.addStyleName("header-popup-content");
+		component.setWidthUndefined();
+		
+		Panel wrapper = new Panel(component);
+		wrapper.addStyleName("header-popup-content-wrapper");
+		
+		BasePopupView popupView = new BasePopupView("", wrapper);
+		popupView.setId(POPUP_ID);
+		popupView.addStyleName(POPUP_ID);
+		popupView.setHideOnMouseOut(false);
+		popupView.addPopupVisibilityListener(new PopupVisibilityListener() {
+			@Override
+			public void popupVisibilityChange(PopupVisibilityEvent event) {
+				if (component == advancedSearchForm) {
+					if (event.isPopupVisible()) {
+						showAdvancedSearchButton.removeStyleName(SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME);
+						showAdvancedSearchButton.addStyleName(SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME);
+					} else {
+						showAdvancedSearchButton.removeStyleName(SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME);
+						showAdvancedSearchButton.addStyleName(SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME);
+					}
+					adjustSearchFieldContent();
+				}
+				if (!event.isPopupVisible()) {
+					presenter.popupClosed();
+				}
+			}
+		});
+		return popupView;
+	}
+	
+	@Override
+	public void setAdvancedSearchFormVisible(boolean visible) {
+		if (visible) {
+			if (popupView.getContent().getPopupComponent() != advancedSearchForm) {
+				BasePopupView newPopupView = newPopupView(advancedSearchForm);
+				replaceComponent(popupView, newPopupView);
+				popupView = newPopupView;
+			}
+			popupView.setPopupVisible(true, false);
+		} else {
+			popupView.setPopupVisible(false, false);
+		}
+	}
+	
+	@Override
+	public void setSelectionPanelVisible(boolean visible, boolean refresh) {
+		if (visible) {
+			if (refresh) {
+				selectionPanel = buildSelectionPanel();
+			}
+			if (popupView.getContent().getPopupComponent() != selectionPanel) {
+				BasePopupView newPopupView = newPopupView(selectionPanel);
+				replaceComponent(popupView, newPopupView);
+				popupView = newPopupView;
+			}
+			popupView.setPopupVisible(true, false);
+		} else {
+			popupView.setPopupVisible(false, false);
+		}
+	}
 
 	private void adjustSearchFieldContent() {
-		if (advancedSearchForm.isPopupVisible()) {
+		if (popupView.isPopupVisible()) {
 			searchField.setInputPrompt("");
 		} else if (presenter.isValidAdvancedSearchCriterionPresent()) {
 			searchField.setInputPrompt($("AdvancedSearchView.advancedCriteriaPrompt"));
@@ -200,7 +275,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		});
 		addCriterion.addStyleName(ValoTheme.BUTTON_LINK);
 
-		HorizontalLayout top = new HorizontalLayout(buildTypeComponent(), addCriterion);
+		HorizontalLayout top = new HorizontalLayout(buildSchemaTypeComponent(), addCriterion);
 		top.setComponentAlignment(addCriterion, Alignment.BOTTOM_RIGHT);
 		top.setWidth("100%");
 
@@ -219,17 +294,17 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 
-		clearAdvancedSearch = new Button($("AdvancedSearchView.clearAdvancedSearch"));
-		clearAdvancedSearch.addStyleName(ValoTheme.BUTTON_LINK);
-		clearAdvancedSearch.addStyleName("clear-advanced-search-button");
-		clearAdvancedSearch.setEnabled(false);
-		clearAdvancedSearch.addClickListener(new ClickListener() {
+		clearAdvancedSearchButton = new Button($("AdvancedSearchView.clearAdvancedSearch"));
+		clearAdvancedSearchButton.addStyleName(ValoTheme.BUTTON_LINK);
+		clearAdvancedSearchButton.addStyleName("clear-advanced-search-button");
+		clearAdvancedSearchButton.setEnabled(false);
+		clearAdvancedSearchButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				types.setValue(null);
+				advancedSearchSchemaTypeField.setValue(null);
 				criteria.clear();
 				criteria.addEmptyCriterion().addEmptyCriterion();
-				clearAdvancedSearch.setEnabled(false);
+				clearAdvancedSearchButton.setEnabled(false);
 			}
 		});
 
@@ -243,43 +318,142 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 
-		HorizontalLayout bottom = new HorizontalLayout(advancedSearch, clearAdvancedSearch, savedSearches);
-		bottom.addStyleName("header-advanced-search-form-clear-and-search-buttons");
+		HorizontalLayout bottom = new HorizontalLayout(advancedSearch, clearAdvancedSearchButton, savedSearches);
+		bottom.addStyleName("header-popup-clear-and-search-buttons");
 		bottom.setSpacing(true);
 
 		VerticalLayout searchUI = new VerticalLayout(top, criteria, bottom);
-		Responsive.makeResponsive(searchUI);
-		searchUI.addStyleName("header-advanced-search-form-content");
-		searchUI.setWidthUndefined();
 		searchUI.setSpacing(true);
-
-		Panel wrapper = new Panel(searchUI);
-		wrapper.addStyleName("header-advanced-search-form-content-wrapper");
-		return wrapper;
+		return searchUI;
 	}
 
-	private Component buildTypeComponent() {
+	private Component buildSchemaTypeComponent() {
 		Label label = new Label($("AdvancedSearchView.type"));
 
-		types = new ComboBox();
+		advancedSearchSchemaTypeField = new ComboBox();
 		for (MetadataSchemaTypeVO schemaType : presenter.getSchemaTypes()) {
-			types.addItem(schemaType.getCode());
+			advancedSearchSchemaTypeField.addItem(schemaType.getCode());
 			String itemCaption = schemaType.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
-			types.setItemCaption(schemaType.getCode(), itemCaption);
+			advancedSearchSchemaTypeField.setItemCaption(schemaType.getCode(), itemCaption);
 		}
-		types.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
-		types.setNullSelectionAllowed(false);
-		types.addValueChangeListener(new ValueChangeListener() {
+		advancedSearchSchemaTypeField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+		advancedSearchSchemaTypeField.setNullSelectionAllowed(false);
+		advancedSearchSchemaTypeField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				selectAdvancedSearchSchemaType((String) types.getValue());
+				selectAdvancedSearchSchemaType((String) advancedSearchSchemaTypeField.getValue());
 			}
 		});
 
-		HorizontalLayout layout = new HorizontalLayout(label, types);
+		HorizontalLayout layout = new HorizontalLayout(label, advancedSearchSchemaTypeField);
 		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
 		layout.setSpacing(true);
 		return layout;
+	}
+	
+	private BadgeButton buildSelectionButton() {
+		BadgeButton selectionButton = new BadgeButton($("ConstellioHeader.selection"), selectionCount) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.selectionButtonClicked();
+			}
+		};
+		selectionButton.addStyleName("header-selection-button");
+		if (delayedSelectionButtonEnabled != null) {
+			selectionButton.setEnabled(delayedSelectionButtonEnabled);
+		}
+		return selectionButton;
+	}
+	
+	private void addSelectionListener() {
+		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		sessionContext.addSelectedRecordIdsChangeListener(new SelectedRecordIdsChangeListener() {
+			@Override
+			public void selectionCleared() {
+				presenter.selectedRecordsCleared();
+			}
+			
+			@Override
+			public void recordIdRemoved(String recordId) {
+				presenter.selectedRecordIdRemoved(recordId);
+			}
+			
+			@Override
+			public void recordIdAdded(String recordId) {
+				presenter.selectedRecordIdAdded(recordId);
+			}
+		});
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Component buildSelectionPanel() {
+		VerticalLayout selectionPanel = new VerticalLayout();
+		selectionPanel.setSpacing(true);
+//		selectionPanel.setWidth("100%");
+		
+		HorizontalLayout selectionLayout = new HorizontalLayout();
+		selectionLayout.setSpacing(true);
+		selectionLayout.setWidth("100%");
+		selectionLayout.addStyleName("header-popup-selection-panel");
+		
+		Table selectionTable = new Table();
+		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
+		selectionTable.addGeneratedColumn("checkBox", new ColumnGenerator() {
+			@Override
+			public Object generateCell(final Table source, final Object itemId, final Object columnId) {
+				final CheckBox selectionCheckBox = new CheckBox();
+				selectionCheckBox.setValue(true);
+				selectionCheckBox.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						Boolean selected = selectionCheckBox.getValue();
+						String recordId = (String) itemId;
+						presenter.selectionChanged(recordId, selected);
+					}
+				});
+				return selectionCheckBox;
+			}
+		});
+		selectionTable.setColumnHeader("checkBox", "");
+		selectionTable.setWidth("100%");
+		selectionTable.setColumnExpandRatio("recordId", 1);
+		selectionTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+		
+		List<String> selectedRecordIds = getSessionContext().getSelectedRecordIds();
+		for (String selectedRecordId : selectedRecordIds) {
+			ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordId);
+			Item item = selectionTable.addItem(selectedRecordId);
+			item.getItemProperty("recordId").setValue(referenceDisplay);
+		}
+		
+		VerticalLayout selectionActionMenu = new VerticalLayout();
+		selectionActionMenu.setWidth("200px");
+		selectionActionMenu.setSpacing(true);
+		selectionActionMenu.addComponent(new Label("Action!"));
+
+		HorizontalLayout buttonsLayout = new HorizontalLayout();
+		buttonsLayout.setSpacing(true);
+		
+		Button clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.clearSelectionButtonClicked();
+			}
+		};
+		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
+		
+		selectionLayout.addComponent(selectionTable);
+		selectionLayout.addComponent(selectionActionMenu);
+		
+		buttonsLayout.addComponent(clearSelectionButton);
+		
+		selectionPanel.addComponent(selectionLayout);
+		selectionPanel.addComponent(buttonsLayout);
+		
+		selectionLayout.setExpandRatio(selectionTable, 1);
+		selectionLayout.setComponentAlignment(selectionActionMenu, Alignment.TOP_RIGHT);
+		
+		return selectionPanel;
 	}
 
 	@Override
@@ -299,7 +473,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 	@Override
 	public ConstellioHeader hideAdvancedSearchPopup() {
-		advancedSearchForm.setPopupVisible(false);
+		popupView.setPopupVisible(false);
 		return this;
 	}
 
@@ -315,11 +489,11 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 	@Override
 	public void selectAdvancedSearchSchemaType(String schemaTypeCode) {
-		if (schemaTypeCode == null || !schemaTypeCode.equals(types.getValue())) {
-			types.setValue(schemaTypeCode);
+		if (schemaTypeCode == null || !schemaTypeCode.equals(advancedSearchSchemaTypeField.getValue())) {
+			advancedSearchSchemaTypeField.setValue(schemaTypeCode);
 		}
 		presenter.schemaTypeSelected(schemaTypeCode);
-		clearAdvancedSearch.setEnabled(true);
+		clearAdvancedSearchButton.setEnabled(true);
 	}
 
 	@Override
@@ -424,6 +598,34 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	@Override
 	public void setCollections(List<String> collections) {
 		this.collections = collections;
+	}
+
+	@Override
+	public void setSelectionButtonEnabled(boolean enabled) {
+		if (selectionButton != null) {
+			selectionButton.setEnabled(enabled);
+			setSelectionButtonIcon();
+		} else {
+			delayedSelectionButtonEnabled = enabled;
+		}
+	}
+	
+	private void setSelectionButtonIcon() {
+		Resource icon;
+		if (selectionButton.isEnabled()) {
+			icon = FontAwesome.CHECK_SQUARE_O;
+		} else {
+			icon = FontAwesome.SQUARE_O;
+		}
+		selectionButton.setIcon(icon);
+	}
+
+	@Override
+	public void setSelectionCount(int selectionCount) {
+		this.selectionCount = selectionCount;
+		if (selectionButton != null) {
+			selectionButton.setCount(selectionCount);
+		}
 	}
 	
 }

@@ -511,4 +511,13 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
+	
+	protected void addToSelectionButtonClicked() {
+		SessionContext sessionContext = view.getSessionContext();
+		List<String> selectedSearchResultRecordIds = view.getSelectedRecordIds();
+		for (String selectedRecordId : selectedSearchResultRecordIds) {
+			sessionContext.addSelectedRecordId(selectedRecordId);
+		}
+	}
+	
 }

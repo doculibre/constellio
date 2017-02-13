@@ -448,5 +448,30 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	public boolean isExpanded(Object itemId) {
 		return adaptee.isExpanded(itemId);
 	}
+	
+	public void loadUntil(T itemId, T parentId) {
+		Item existingItem = adaptee.getItem(itemId);
+		if (existingItem == null) {
+			loop1: while (existingItem == null) {
+				int start;
+				ObjectsResponse<T> extraObjectsResponse;
+				if (parentId == null) {
+					start = adaptee.rootItemIds().size();
+					// TODO Make sure that the last item is not a loader
+					extraObjectsResponse = dataProvider.getRootObjects(start, bufferSize);
+				} else {
+					start = adaptee.getChildren(parentId).size();
+					// TODO Make sure that the last item is not a loader
+					extraObjectsResponse = dataProvider.getChildren(parentId, start, bufferSize);
+				}
+				for (T rootObject : extraObjectsResponse.getObjects()) {
+					addItem(rootObject, parentId);
+					if (itemId.equals(rootObject)) {
+						break loop1;
+					}
+				}
+			}
+		}
+	}
 
 }

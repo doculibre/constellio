@@ -9,10 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -57,6 +55,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.users.UserServices;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
@@ -103,6 +102,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String idCopy = paramsMap.get("idCopy");
 		String parentId = paramsMap.get("parentId");
 		userDocumentId = paramsMap.get("userDocumentId");
+		newFile = "true".equals(paramsMap.get("newFile"));
 
 		Document document;
 		if (StringUtils.isNotBlank(id)) {
@@ -549,6 +549,32 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	public void viewAssembled() {
 		addContentFieldListeners();
+		DocumentContentField contentField = getContentField();
+		if (addView && newFile && !contentField.getNewFileWindow().isOpened()) {
+			contentField.getNewFileWindow().open();
+		}
+	}
+	
+	private void addNewFileCreatedListener() {
+		final DocumentContentField contentField = getContentField();
+		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
+			@Override
+			public void newFileCreated(Content content) {
+				view.getForm().commit();
+				contentField.setNewFileButtonVisible(false);
+				contentField.setMajorVersionFieldVisible(false);
+				contentField.getNewFileWindow().close();
+				ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content);
+				contentVersionVO.setMajorVersion(false);
+				contentVersionVO.setHash(null);
+				documentVO.setContent(contentVersionVO);
+				documentVO.setTitle(contentVersionVO.getFileName());
+				newFile = true;
+				view.getForm().reload();
+				// Will have been lost after reloading the form
+				addContentFieldListeners();
+			}
+		});
 	}
 
 	private void addContentFieldListeners() {
@@ -593,24 +619,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		});
 		contentField.setMajorVersionFieldVisible(!newFile);
-		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
-			@Override
-			public void newFileCreated(Content content) {
-				view.getForm().commit();
-				contentField.setNewFileButtonVisible(false);
-				contentField.setMajorVersionFieldVisible(false);
-				contentField.getNewFileWindow().close();
-				ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content);
-				contentVersionVO.setMajorVersion(false);
-				contentVersionVO.setHash(null);
-				documentVO.setContent(contentVersionVO);
-				documentVO.setTitle(contentVersionVO.getFileName());
-				newFile = true;
-				view.getForm().reload();
-				// Will have been lost after reloading the form
-				addContentFieldListeners();
-			}
-		});
+		addNewFileCreatedListener();
 
 		DocumentCopyRuleField copyRuleField = getCopyRuleField();
 		if (copyRuleField != null) {

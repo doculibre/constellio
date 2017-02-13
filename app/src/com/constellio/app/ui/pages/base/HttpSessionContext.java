@@ -3,9 +3,12 @@ package com.constellio.app.ui.pages.base;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_USER_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.FORCED_SIGN_OUT_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_IDS_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +16,7 @@ import javax.servlet.http.HttpSession;
 
 import com.constellio.app.ui.entities.UserVO;
 
-public class HttpSessionContext implements SessionContext {
+public class HttpSessionContext extends BaseSessionContext {
 	
 	private Locale currentLocale;
 	
@@ -82,6 +85,17 @@ public class HttpSessionContext implements SessionContext {
 	@Override
 	public void setForcedSignOut(boolean forcedSignOut) {
 		setAttribute(FORCED_SIGN_OUT_ATTRIBUTE, forcedSignOut);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	protected List<String> ensureSelectedRecordIds() {
+		List<String> selectedRecordIds = (List<String>) getAttribute(SELECTED_RECORD_IDS_ATTRIBUTE);
+		if (selectedRecordIds == null) {
+			selectedRecordIds = new ArrayList<>();
+			setAttribute(SELECTED_RECORD_IDS_ATTRIBUTE, selectedRecordIds);
+		}
+		return selectedRecordIds;
 	}
 
 }

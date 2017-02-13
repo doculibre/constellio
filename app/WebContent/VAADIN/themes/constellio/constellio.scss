@@ -62,6 +62,27 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.badge-button {
+		position:relative;
+	}
+	
+	.badge-button[data-badge]:after {
+		content:attr(data-badge);
+		position:absolute;
+		top:-10px;
+		right:-20px;
+		font-size:.7em;
+		background:#197de1;
+		color:white;
+		width:24px; 
+		height:18px;
+		text-align:center;
+		line-height:18px;
+		border-radius:0%;
+		box-shadow:0 0 1px #333;
+		z-index: 1;
+	}
+
 	.v-tabsheet-tabitemcell {
 		.v-caption {
 			font-size: $v-font-size;
@@ -593,10 +614,10 @@ $popup-view-z-index: 3;
 		content: " \f00c ";
 	}
 
-	.v-popupview-popup-header-advanced-search-form {
+	.v-popupview-popup-header-popup {
 		width: 100%;
 
-		.header-advanced-search-form-content-wrapper {
+		.header-popup-content-wrapper {
 			position: absolute;
 			margin: 0 auto;
 			top: 52px;
@@ -608,20 +629,24 @@ $popup-view-z-index: 3;
 			border-right: none;
 			border-radius: inherit;
 
-			.header-advanced-search-form-content {
+			.header-popup-content {
 				width: 97%;
 				padding-top: 10px;
 				padding-bottom: 10px;
 
-				.header-advanced-search-form-content-label {
+				.header-popup-content-label {
 					height: 400px;
 				}
 
-				.header-advanced-search-form-clear-and-search-buttons {
+				.header-popup-clear-and-search-buttons {
 					width: 100%;
 
 					.v-slot-advanced-search-button {
 					}
+				}
+				
+				.header-popup-selection-panel {
+					width: 100%;
 				}
 			}
 
@@ -632,7 +657,7 @@ $popup-view-z-index: 3;
 		position: absolute;
 	}
 
-	.header-advanced-search-form-content[width-range~="1101px-"] {
+	.header-popup-content[width-range~="1101px-"] {
 
 		.v-scrollable {
 //			overflow: hidden;
@@ -640,7 +665,7 @@ $popup-view-z-index: 3;
 
     }
 
-	.header-advanced-search-form-content[width-range~="801px-1100px"] {
+	.header-popup-content[width-range~="801px-1100px"] {
 
 		.v-scrollable {
 //			overflow: hidden;
@@ -648,7 +673,7 @@ $popup-view-z-index: 3;
 
     }
 
-	.header-advanced-search-form-content[width-range~="0-800px"] {
+	.header-popup-content[width-range~="0-800px"] {
     }
 
 	.back-button {
@@ -854,7 +879,13 @@ $popup-view-z-index: 3;
 				border: none;
 			}
 
-			.header-advanced-search-form {
+			.header-popup {
+			}
+			
+			.header-selection-button {
+				position: fixed;
+				right: 150px;
+				margin-top: 15px;
 			}
 			
 			.header-collection-menu {

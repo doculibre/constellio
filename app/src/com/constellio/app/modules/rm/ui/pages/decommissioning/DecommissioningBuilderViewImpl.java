@@ -134,7 +134,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		Button createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
 		createList.addStyleName(ValoTheme.BUTTON_LINK);
 		createList.addStyleName(CREATE_LIST);
-		return results.createSummary(buildSelectAllButton(), createList);
+		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), createList);
 	}
 
 	private Component buildAdministrativeUnitComponent() {
