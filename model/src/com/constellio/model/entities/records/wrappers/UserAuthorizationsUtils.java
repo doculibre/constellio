@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.util.HashSet;
 import java.util.List;
@@ -14,10 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
 
 public class UserAuthorizationsUtils {
@@ -150,9 +153,27 @@ public class UserAuthorizationsUtils {
 
 	public static KeySetMap<String, String> retrieveUserTokens(User user, AuthorizationDetailsFilter filter) {
 
+		SchemasRecordsServices schemas = user.getRolesDetails().getSchemasRecordsServices();
+
+		GroupAuthorizationsInheritance inheritance = schemas.getModelLayerFactory().getSystemConfigs()
+				.getGroupAuthorizationsInheritance();
+
+		Set<String> authsId;
+		if (inheritance == GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT) {
+			authsId = new HashSet<>();
+			authsId.addAll(user.getUserAuthorizations());
+			for (String groupId : user.getUserGroups()) {
+				Group group = schemas.getGroup(groupId);
+				authsId.addAll(getAuthsOfGroupAndChildGroups(group, schemas));
+			}
+
+		} else {
+			authsId = new HashSet<>(user.getAllUserAuthorizations());
+		}
+
 		KeySetMap<String, String> tokens = new KeySetMap<>();
 
-		for (String authId : user.getAllUserAuthorizations()) {
+		for (String authId : authsId) {
 			try {
 				AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
 				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)) {
@@ -164,6 +185,17 @@ public class UserAuthorizationsUtils {
 		}
 
 		return tokens;
+	}
+
+	private static Set<String> getAuthsOfGroupAndChildGroups(Group group, SchemasRecordsServices schemas) {
+		Set<String> auths = new HashSet<>();
+		auths.addAll(group.<String>getList(Schemas.AUTHORIZATIONS));
+
+		for (Group childGroup : schemas.searchGroups(where(schemas.group.parent()).isEqualTo(group))) {
+			auths.addAll(getAuthsOfGroupAndChildGroups(childGroup, schemas));
+		}
+
+		return auths;
 	}
 
 	public static Set<String> getRolesOnRecord(User user, Record record) {
