@@ -268,7 +268,7 @@ public class i18n {
 	public static String $(ValidationErrors errors) {
 		StringBuilder sb = new StringBuilder();
 		for (ValidationError error : errors.getValidationErrors()) {
-			sb.append(" - " + $(error) + "<br/>");
+			sb.append(" - " + $(error) + "<br/>" + "\n");
 		}
 		return sb.toString();
 	}
