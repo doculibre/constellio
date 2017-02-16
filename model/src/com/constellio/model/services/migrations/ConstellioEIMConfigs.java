@@ -58,6 +58,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration GROUP_AUTHORIZATIONS_INHERITANCE;
 
+	public static final SystemConfiguration REMOVE_EXTENSION_FROM_RECORD_TITLE;
+
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 			"   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
 			"	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
@@ -121,6 +123,8 @@ public class ConstellioEIMConfigs {
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
 				.scriptedBy(WriteZZRecordsScript.class));
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
+
+		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
 
 		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
@@ -203,6 +207,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isCmisNeverReturnAcl() {
 		return manager.getValue(CMIS_NEVER_RETURN_ACL);
+	}
+
+	public Boolean isRemoveExtensionFromRecordTitle(){
+		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {
