@@ -26,8 +26,10 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 			RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE.dependency();
 	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayParam =
 			RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE.dependency();
-	ConfigDependency<Integer> confiRequiredDaysBeforeYearEndParam =
+	ConfigDependency<Integer> configRequiredDaysBeforeYearEndParam =
 			RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR.dependency();
+	ConfigDependency<Boolean> configAddYEarIfDateIsEndOfYearParam =
+			RMConfigs.ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR.dependency();
 	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
 
 	@Override
@@ -42,12 +44,14 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 		List<CopyRetentionRule> copies = parameters.get(copiesParam);
 
 		String yearEnd = parameters.get(configYearEndParam);
-		int requiredDaysBeforeYearEnd = parameters.get(confiRequiredDaysBeforeYearEndParam);
+		boolean addYEarIfDateIsEndOfYear = parameters.get(configAddYEarIfDateIsEndOfYearParam);
+		int requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
 
 		LocalDate smallestClosingDate = null;
 		for (CopyRetentionRule copy : copies) {
 			LocalDate copyClosingDate = calculateForCopy(copy, parameters);
-			LocalDate yearEndDate = CalculatorUtils.toNextEndOfYearDate(copyClosingDate, yearEnd, requiredDaysBeforeYearEnd);
+			LocalDate yearEndDate = CalculatorUtils.toNextEndOfYearDate(copyClosingDate, yearEnd, requiredDaysBeforeYearEnd,
+					addYEarIfDateIsEndOfYear);
 			if (smallestClosingDate == null || (yearEndDate != null && smallestClosingDate.isAfter(yearEndDate))) {
 				smallestClosingDate = yearEndDate;
 			}
@@ -109,8 +113,9 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 				configCalculatedClosingDateParam,
 				configNumberOfYearWhenFixedDelayParam,
 				configNumberOfYearWhenVariableDelayParam,
-				confiRequiredDaysBeforeYearEndParam,
-				configYearEndParam);
+				configRequiredDaysBeforeYearEndParam,
+				configYearEndParam,
+				configAddYEarIfDateIsEndOfYearParam);
 	}
 
 }

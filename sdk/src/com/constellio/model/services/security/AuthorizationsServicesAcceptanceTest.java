@@ -50,16 +50,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
@@ -328,6 +328,27 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		for (RecordVerifier verifyRecord : $(FOLDER1)) {
 			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+	}
+
+	@Test
+	public void givenAuthsOnChildGroupThenOnlyInheritedIfChildToParentMode()
+			throws Exception {
+
+		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth2 = add(authorizationForGroup(rumors).on(TAXO1_CATEGORY2).giving(ROLE2));
+
+		//TODO Should be inherited in child groups : Robin would have ROLE1
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(sasquatch, gandalf, admin, alice, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).containsOnly(sasquatch, admin);
+		}
+
+		givenConfig(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE, GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(gandalf, admin, alice, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).containsOnly(sasquatch, gandalf, admin, alice, edouard);
 		}
 	}
 
