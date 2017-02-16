@@ -16,6 +16,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -61,6 +62,26 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		document.setDescription(null).setTitle("Z");
 		recordServices.update(document);
 
+	}
+
+	@Test
+	public void givenFolderIsMovedThenDocumentPathIsUpdated()
+			throws Exception {
+
+		Document document = rm.newDocumentWithId("zeDocument").setTitle("My document").setDescription("test")
+				.setFolder(records.folder_A03);
+		recordServices.add(document);
+
+		assertThat(document.getList(Schemas.PATH)).containsOnly(
+				"/admUnits/unitId_10/unitId_10a/A03/zeDocument",
+				"/plan/categoryId_X/categoryId_X100/categoryId_X110/A03/zeDocument");
+
+		recordServices.update(records.getFolder_A03().setCategoryEntered(records.categoryId_X120));
+
+		recordServices.refresh(document);
+		assertThat(document.getList(Schemas.PATH)).containsOnly(
+				"/admUnits/unitId_10/unitId_10a/A03/zeDocument",
+				"/plan/categoryId_X/categoryId_X100/categoryId_X120/A03/zeDocument");
 	}
 
 	@Test
@@ -133,12 +154,10 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 
 	}
 
-
 	@Test
 	public void givenPropertyArePreferedToFileNameWhenAddingMsgThenHasSubjectAsTitle()
 			throws Exception {
 		givenConfig(ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY, PROPERTIES_FILENAME_STYLES);
-
 
 		ContentManager contentManager = rm.getModelLayerFactory().getContentManager();
 		ContentVersionDataSummary datasummary = contentManager.upload(

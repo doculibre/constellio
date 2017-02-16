@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -51,6 +52,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -62,6 +64,7 @@ public class DecommissioningService {
 	private final RecordServices recordServices;
 	private final RMSchemasRecordsServices rm;
 	private final TaxonomiesSearchServices taxonomiesSearchServices;
+	private final ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
 	private final TaxonomiesManager taxonomiesManager;
 	private final SearchServices searchServices;
 	private final String collection;
@@ -74,6 +77,7 @@ public class DecommissioningService {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
+		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -419,7 +423,7 @@ public class DecommissioningService {
 
 	public List<String> getAllAdminUnitIdsHierarchyOf(String administrativeUnitId) {
 		Record record = rm.getAdministrativeUnit(administrativeUnitId).getWrappedRecord();
-		return taxonomiesSearchServices.getAllConceptIdsHierarchyOf(adminUnitsTaxonomy(), record);
+		return conceptNodesTaxonomySearchServices.getAllConceptIdsHierarchyOf(adminUnitsTaxonomy(), record);
 	}
 
 	public List<String> getChildrenAdministrativeUnit(String administrativeUnitId, User user) {
@@ -517,7 +521,7 @@ public class DecommissioningService {
 		Taxonomy principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(
 				rule.getCollection());
 		for (String unit : rule.getAdministrativeUnits()) {
-			List<String> currentUnits = taxonomiesSearchServices
+			List<String> currentUnits = conceptNodesTaxonomySearchServices
 					.getAllConceptIdsHierarchyOf(principalTaxonomy, rm.getAdministrativeUnit(unit).getWrappedRecord());
 			returnSet.addAll(currentUnits);
 		}
@@ -634,29 +638,31 @@ public class DecommissioningService {
 	}
 
 	public Folder duplicateStructureAndSave(Folder folder, User currentUser) {
-        return duplicateStructure(folder, currentUser, true);
+		return duplicateStructure(folder, currentUser, true);
 	}
 
-    public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
+	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
 
-        Transaction transaction = new Transaction();
-        Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
-        try {
-            recordServices.execute(transaction);
-        } catch (RecordServicesException e) {
-            throw new RuntimeException(e);
-        }
-        return duplicatedFolder;
-    }
+		Transaction transaction = new Transaction();
+		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		return duplicatedFolder;
+	}
 
-	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction, boolean forceTitleDuplication) {
+	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction,
+			boolean forceTitleDuplication) {
 		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
-			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction, forceTitleDuplication);
+			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction,
+					forceTitleDuplication);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
 		}
@@ -668,12 +674,12 @@ public class DecommissioningService {
 		MetadataSchema schema = newFolder.getSchema();
 
 		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-            newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
+			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
 		}
 
-        if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable() || forceTitleDuplication) {
-            newFolder.setTitle(folder.getTitle() + " (Copie)");
-        }
+		if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable() || forceTitleDuplication) {
+			newFolder.setTitle(folder.getTitle() + " (Copie)");
+		}
 
 		newFolder.setFormCreatedBy(currentUser);
 		newFolder.setFormCreatedOn(TimeProvider.getLocalDateTime());

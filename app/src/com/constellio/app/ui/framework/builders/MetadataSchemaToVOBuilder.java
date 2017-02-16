@@ -65,7 +65,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 
 		if (viewMode == VIEW_MODE.FORM) {
 			if (metadataCodes != null) {
-				if(addMetadataCodes){
+				if (addMetadataCodes) {
 					formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
 				}
 				formMetadataCodes.addAll(metadataCodes);
@@ -77,7 +77,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.DISPLAY) {
 			if (metadataCodes != null) {
-				if(addMetadataCodes){
+				if (addMetadataCodes) {
 					displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 				}
 				displayMetadataCodes.addAll(metadataCodes);
@@ -89,7 +89,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.TABLE) {
 			if (metadataCodes != null) {
-				if(addMetadataCodes){
+				if (addMetadataCodes) {
 					tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 				}
 				tableMetadataCodes.addAll(metadataCodes);
@@ -101,7 +101,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 		} else if (viewMode == VIEW_MODE.SEARCH) {
 			if (metadataCodes != null) {
-				if(addMetadataCodes){
+				if (addMetadataCodes) {
 					searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 				}
 				searchMetadataCodes.addAll(metadataCodes);

@@ -705,7 +705,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "It is snowing outside. Meilleur"));
 		recordServices.execute(transaction);
 
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.FRENCH_SEARCH_FIELD).query("meilleur")))
+		assertThat(
+				findRecords(from(zeSchema.instance()).where(zeSchema.stringMetadata().getAnalyzedField("fr")).query("meilleur")))
 				.containsOnly(expectedRecord);
 	}
 
@@ -728,11 +729,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(findRecords(from(zeSchema.instance())
 				.where(factory.metadatasHasAnalyzedValue("meilleur", zeSchema.stringMetadata())))).containsOnly(record1);
 
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("snowing")))).containsOnly(record3);
-
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("meilleur")))).containsOnly(record1);
 	}
 
 	//Broken multilingual @Test
@@ -747,8 +743,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Ceci est un number en francais : 42"));
 		recordServices.execute(transaction);
 
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.ENGLISH_SEARCH_FIELD).query("number"))).containsOnly(
-				expectedRecord, expectedRecord2);
 	}
 
 	//Multilinguage broken @Test
@@ -763,30 +757,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.largeTextMetadata(), "It is snowing outside. Meilleur"));
 		recordServices.execute(transaction);
 
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.FRENCH_SEARCH_FIELD).query("meilleur")))
-				.containsOnly(expectedRecord);
-
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("meilleur")))).containsOnly(expectedRecord);
-	}
-
-	//Multilinguage broken@Test
-	public void givenSearchableTextMetadataWhenSearchingRecordsUsingEnglishDefaultSearchFieldThenFindValidEnglishRecords()
-			throws Exception {
-
-		defineSchemasManager().using(schema.withALargeTextMetadata(whichIsSearchable));
-		transaction.addUpdate(expectedRecord = newRecordOfZeSchema()
-				.set(zeSchema.largeTextMetadata(), "This is some amazing text in document number 42"));
-		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema()
-				.set(zeSchema.largeTextMetadata(), "My favorite numbers are 42 and 666."));
-		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.largeTextMetadata(), "Ceci est un number en francais : 42"));
-		recordServices.execute(transaction);
-
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.ENGLISH_SEARCH_FIELD).query("number"))).containsOnly(
-				expectedRecord, expectedRecord2);
-
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("number")))).containsOnly(expectedRecord, expectedRecord2);
 	}
 
 	@Test

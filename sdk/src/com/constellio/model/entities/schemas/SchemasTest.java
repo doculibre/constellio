@@ -44,12 +44,6 @@ public class SchemasTest {
 	}
 
 	@Test
-	public void validateParentPath() {
-		assertThat(Schemas.PARENT_PATH).has(code("parentpath"));
-		assertThat(Schemas.PARENT_PATH.getDataStoreCode()).isEqualTo("parentpath_ss");
-	}
-
-	@Test
 	public void validateRemovedAuthorizations() {
 		assertThat(Schemas.REMOVED_AUTHORIZATIONS).has(code("removedauthorizations"));
 		assertThat(Schemas.REMOVED_AUTHORIZATIONS.getDataStoreCode()).isEqualTo("removedauthorizations_ss");
@@ -101,18 +95,6 @@ public class SchemasTest {
 	public void validateModifiedOn() {
 		assertThat(Schemas.MODIFIED_ON).has(code("modifiedOn"));
 		assertThat(Schemas.MODIFIED_ON.getDataStoreCode()).isEqualTo("modifiedOn_dt");
-	}
-
-	@Test
-	public void validateFrenchSearchField() {
-		assertThat(Schemas.FRENCH_SEARCH_FIELD).has(code("search"));
-		assertThat(Schemas.FRENCH_SEARCH_FIELD.getDataStoreCode()).isEqualTo("search_txt_fr");
-	}
-
-	@Test
-	public void validateEnglishSearchField() {
-		assertThat(Schemas.ENGLISH_SEARCH_FIELD).has(code("search"));
-		assertThat(Schemas.ENGLISH_SEARCH_FIELD.getDataStoreCode()).isEqualTo("search_txt_en");
 	}
 
 	@Test

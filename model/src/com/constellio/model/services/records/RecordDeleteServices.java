@@ -4,6 +4,7 @@ import static com.constellio.model.services.records.RecordLogicalDeleteOptions.L
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
@@ -614,7 +615,7 @@ public class RecordDeleteServices {
 			return false;
 		}
 		boolean hasReferences = false;
-		List<String> paths = record.getList(Schemas.PARENT_PATH);
+		List<String> paths = parentPaths(record);
 
 		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 			List<Metadata> typeReferencesMetadata = type.getAllNonParentReferences();

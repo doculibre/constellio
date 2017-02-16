@@ -980,7 +980,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.execute(
-				newTransactionWithNRecords(10000).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
+				newTransactionWithNRecords(100000).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
 	}
 
 	@Test(expected = RecordServicesRuntimeException_TransactionHasMoreThan100000Records.class)
@@ -988,7 +988,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.execute(
-				newTransactionWithNRecords(10001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
+				newTransactionWithNRecords(100001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
 	}
 
 	@SlowTest
@@ -1028,7 +1028,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.executeHandlingImpactsAsync(
-				newTransactionWithNRecords(10000).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
+				newTransactionWithNRecords(100000).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
 	}
 
 	@Test(expected = RecordServicesRuntimeException_TransactionHasMoreThan100000Records.class)
@@ -1036,7 +1036,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.executeHandlingImpactsAsync(
-				newTransactionWithNRecords(10001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
+				newTransactionWithNRecords(100001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
 	}
 
 	@Test

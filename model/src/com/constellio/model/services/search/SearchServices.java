@@ -95,6 +95,10 @@ public class SearchServices {
 		return recordsBatchIterator(100, query);
 	}
 
+	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition) {
+		return recordsIterator(new LogicalSearchQuery(condition));
+	}
+
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query) {
 		return recordsIterator(query, 100);
 	}
@@ -115,6 +119,18 @@ public class SearchServices {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
 		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize) {
+
+			@Override
+			public Record convert(RecordDTO recordDTO) {
+				return recordServices.toRecord(recordDTO, fullyLoaded);
+			}
+		};
+	}
+
+	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize, int skipping) {
+		ModifiableSolrParams params = addSolrModifiableParams(query);
+		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -201,7 +217,7 @@ public class SearchServices {
 		params.add(ShardParams.SHARDS_QT, "/spell");
 
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(query.getFieldBoosts());
+			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			params.add(DisMaxParams.MM, "1");
@@ -322,16 +338,26 @@ public class SearchServices {
 		return params;
 	}
 
-	private String getQfFor(List<SearchBoost> boosts) {
+	private String getQfFor(String collection, List<SearchBoost> boosts) {
 		StringBuilder sb = new StringBuilder();
+
+		Set<String> fieldsWithBoosts = new HashSet<>();
+
 		for (SearchBoost boost : boosts) {
 			sb.append(boost.getKey());
 			sb.append("^");
 			sb.append(boost.getValue());
 			sb.append(" ");
+			fieldsWithBoosts.add(boost.getKey());
 		}
-		sb.append("search_txt_");
-		sb.append(mainDataLanguage);
+		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
+			if (!fieldsWithBoosts.contains(metadata.getDataStoreCode())) {
+				sb.append(metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode() + " ");
+			}
+		}
+
+		//		sb.append("search_txt_");
+		//		sb.append(mainDataLanguage);
 		return sb.toString();
 	}
 

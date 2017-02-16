@@ -7,7 +7,7 @@ import java.util.List;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.robots.ui.components.breadcrumb.RobotBreadcrumbTrail;
-import com.constellio.app.modules.robots.ui.data.RobotLazyTreeDataProvider;
+import com.constellio.app.modules.robots.ui.data.RobotTreeNodesDataProvider;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
+import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -61,8 +62,10 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 		RecordDisplay display = new RecordDisplay(robot);
 		sheet.addTab(display, $("RobotConfigurationView.metadata"));
 
-		RobotLazyTreeDataProvider provider = new RobotLazyTreeDataProvider(
-				getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId());
+		//		LegacyRobotLazyTreeDataProvider provider = new LegacyRobotLazyTreeDataProvider(
+		//				getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId());
+		RecordLazyTreeDataProvider provider = new RecordLazyTreeDataProvider(new RobotTreeNodesDataProvider(
+				getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId()));
 		RecordLazyTree tree = new RecordLazyTree(provider);
 		tree.addItemClickListener(new ItemClickListener() {
 			@Override

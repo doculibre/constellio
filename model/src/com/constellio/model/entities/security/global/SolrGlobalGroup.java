@@ -106,7 +106,7 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 
 	@Override
 	public boolean isLocallyCreated() {
-		return get(LOCALLY_CREATED);
+		return Boolean.TRUE.equals(get(LOCALLY_CREATED));
 	}
 
 	@Override

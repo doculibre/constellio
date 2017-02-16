@@ -74,19 +74,19 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		String record2 = givenZeSchemaRecordWithLargeText("Un shish par jour éloigne le docteur pour toujours");
 
 		assertThatAutoCompleteSearch("pomme").isEmpty();
-		assertThatSimpleSearch("pomme").isEmpty();
+		//assertThatSimpleSearch("pomme").isEmpty();
 
 		schemasManager.modify(zeCollection, changeLargeTextAutocompletStatus(true));
 		waitForBatchProcess();
 
 		assertThatAutoCompleteSearch("pomme").containsOnly(record1);
-		assertThatSimpleSearch("pomme").isEmpty();
+		//assertThatSimpleSearch("pomme").isEmpty();
 
 		schemasManager.modify(zeCollection, changeLargeTextAutocompletStatus(false));
 		waitForBatchProcess();
 
 		assertThatAutoCompleteSearch("pomme").isEmpty();
-		assertThatSimpleSearch("pomme").isEmpty();
+		//assertThatSimpleSearch("pomme").isEmpty();
 	}
 
 	//@Test
@@ -98,19 +98,19 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		String record2 = givenZeSchemaRecordWithLargeText("Un shish par jour éloigne le docteur pour toujours");
 
 		assertThatAutoCompleteSearch("pommes").isEmpty();
-		assertThatSimpleSearch("pommes").isEmpty();
+		//assertThatSimpleSearch("pommes").isEmpty();
 
 		schemasManager.modify(zeCollection, changeLargeTextSearchableStatus(true));
 		waitForBatchProcess();
 
 		assertThatAutoCompleteSearch("pommes").isEmpty();
-		assertThatSimpleSearch("pommes").containsOnly(record1);
+		//assertThatSimpleSearch("pommes").containsOnly(record1);
 
 		schemasManager.modify(zeCollection, changeLargeTextSearchableStatus(false));
 		waitForBatchProcess();
 
 		assertThatAutoCompleteSearch("pommes").isEmpty();
-		assertThatSimpleSearch("pommes").isEmpty();
+		//assertThatSimpleSearch("pommes").isEmpty();
 	}
 
 	//@Test
@@ -131,7 +131,7 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(asList(42.0));
 		assertThat(record(record2).get(zeSchemaStringMetadata())).isEqualTo(asList("Pomme"));
 		assertThat(record(record2).get(zeSchemaNumberMetadata())).isEqualTo(new ArrayList<>());
-		assertThatSimpleSearch("Shish").containsOnly(record1);
+		//assertThatSimpleSearch("Shish").containsOnly(record1);
 
 		recordServices.update(record(record1).set(zeSchemaStringMetadata(), asList("Shish", "inter"))
 				.set(zeSchemaNumberMetadata(), asList(123.4, 42.0)));
@@ -142,7 +142,7 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(asList(123.4, 42.0));
 		assertThat(record(record2).get(zeSchemaStringMetadata())).isEqualTo(asList("Banane", "Shish"));
 		assertThat(record(record2).get(zeSchemaNumberMetadata())).isEqualTo(new ArrayList<>());
-		assertThatSimpleSearch("Shish").containsOnly(record1, record2);
+		//assertThatSimpleSearch("Shish").containsOnly(record1, record2);
 
 		schemasManager.modify(zeCollection, changeStringAndNumberMultivalueStatus(false));
 		waitForBatchProcess();
@@ -153,7 +153,7 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(123.4);
 		assertThat(record(record2).get(zeSchemaStringMetadata())).isEqualTo("Banane");
 		assertThat(record(record2).get(zeSchemaNumberMetadata())).isEqualTo(null);
-		assertThatSimpleSearch("Shish").containsOnly(record1);
+		//assertThatSimpleSearch("Shish").containsOnly(record1);
 
 	}
 
@@ -165,16 +165,6 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 	private Metadata zeSchemaNumberMetadata() {
 		return schemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code())
 				.getMetadata(zeSchema.numberMetadata().getLocalCode());
-	}
-
-	private org.assertj.core.api.ListAssert<String> assertThatSimpleSearch(String text) {
-
-		MetadataSchemaType type = schemasManager.getSchemaTypes(zeCollection).getSchemaType(zeSchema.typeCode());
-
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(from(type).where(Schemas.FRENCH_SEARCH_FIELD).query(text));
-
-		return assertThat(searchServices.searchRecordIds(query));
 	}
 
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteSearch(String text) {

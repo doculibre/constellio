@@ -246,7 +246,7 @@ public class ReindexingServices {
 
 		LogicalSearchQuery query = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(collection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PARENT_PATH));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PATH));
 
 		Iterator<Record> idsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 50000);
 		recordDao.recreateZeroCounterIndexesIn(collection, new RecordDTOIterator(idsIterator));

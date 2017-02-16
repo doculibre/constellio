@@ -54,9 +54,6 @@ public class Schemas {
 	public static final Metadata LOGICALLY_DELETED_ON = add(new Metadata("logicallyDeletedOn_dt", DATE_TIME, false));
 	public static final Metadata ERROR_ON_PHYSICAL_DELETION = add(new Metadata("errorOnPhysicalDeletion_s", BOOLEAN, false));
 
-	public static final Metadata SEARCH_FIELD = add(new Metadata("search_txt", TEXT, true));
-	public static final Metadata FRENCH_SEARCH_FIELD = add(new Metadata("search_txt_fr", TEXT, true));
-	public static final Metadata ENGLISH_SEARCH_FIELD = add(new Metadata("search_txt_en", TEXT, true));
 	public static final Metadata SPELL_CHECK_FIELD = add(new Metadata("_spell_text", TEXT, true));
 
 	//TODO : Remove
@@ -113,18 +110,6 @@ public class Schemas {
 
 	public static List<Metadata> getAllGlobalMetadatas() {
 		return Collections.unmodifiableList(allGlobalMetadatas);
-	}
-
-	public static Metadata getSearchFieldForLanguage(String languageCode) {
-		if (languageCode.equals("fr")) {
-			return FRENCH_SEARCH_FIELD;
-		} else {
-			return ENGLISH_SEARCH_FIELD;
-		}
-	}
-
-	public static List<Metadata> getAllSearchFields() {
-		return Arrays.asList(FRENCH_SEARCH_FIELD, ENGLISH_SEARCH_FIELD);
 	}
 
 	public static Metadata dummyMultiValueMetadata(Metadata metadata) {
