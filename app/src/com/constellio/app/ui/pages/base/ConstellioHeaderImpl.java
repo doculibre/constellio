@@ -31,6 +31,7 @@ import com.vaadin.event.FieldEvents.FocusEvent;
 import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.MouseEvents;
+import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.*;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
@@ -157,7 +158,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 		adjustSearchFieldContent();
 
-		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
+		getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
 				return true;
@@ -251,7 +252,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		}
 	}
 
-	private Component buildAdvancedSearchUI() {
+	protected Component buildAdvancedSearchUI() {
 		Button addCriterion = new Button($("add"));
 		addCriterion.addClickListener(new ClickListener() {
 
@@ -353,7 +354,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 	
 	private void addSelectionListener() {
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		SessionContext sessionContext = getSessionContext();
 		sessionContext.addSelectedRecordIdsChangeListener(new SelectedRecordIdsChangeListener() {
 			@Override
 			public void selectionCleared() {
@@ -570,6 +571,10 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		return ConstellioUI.getCurrentSessionContext();
 	}
 
+	public Navigator getNavigator() {
+		return UI.getCurrent().getNavigator();
+	}
+
 	@Override
 	public String getCollection() {
 		return getSessionContext().getCurrentCollection();
@@ -585,7 +590,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		ConstellioUI.getCurrent().updateContent();
 	}
 	
-	private MenuBar buildCollectionMenu() {
+	protected MenuBar buildCollectionMenu() {
 		MenuBar collectionMenu = new MenuBar();
 		if (!collections.isEmpty()) {
 			collectionMenu.setAutoOpen(true);
@@ -680,11 +685,6 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		if (selectionButton != null) {
 			selectionButton.setCount(selectionCount);
 		}
-	}
-
-	@Override
-	public Component getSelectionPanel() {
-		return selectionPanel;
 	}
 
 	@Override
