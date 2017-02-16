@@ -244,7 +244,7 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.setAttribute("encrypted", writeBoolean(metadata.isEncrypted()));
 		}
 		if (metadata.getTransiency() != null && metadata.getTransiency() != MetadataTransiency.PERSISTED) {
-			metadataElement.setAttribute("volatility", writeEnum(metadata.getTransiency()));
+			metadataElement.setAttribute("transiency", writeEnum(metadata.getTransiency()));
 		}
 		if (metadata.isChildOfRelationship()) {
 			metadataElement.setAttribute("childOfRelationship", writeBoolean(metadata.isChildOfRelationship()));
@@ -370,7 +370,7 @@ public class MetadataSchemaXMLWriter3 {
 		}
 
 		if (globalMetadataInCollection.getTransiency() != metadata.getTransiency()) {
-			metadataElement.setAttribute("volatility", writeEnum(metadata.getTransiency()));
+			metadataElement.setAttribute("transiency", writeEnum(metadata.getTransiency()));
 			different = true;
 		}
 		if (globalMetadataInCollection.isChildOfRelationship() != metadata.isChildOfRelationship()) {
