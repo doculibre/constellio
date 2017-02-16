@@ -153,12 +153,13 @@ public class BatchProcessingPresenterService {
 				return new MetadataToVOBuilder() {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
-							   MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							   boolean multivalue, boolean readOnly, Map<Locale, String> labels,
-							   Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-							   MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
-							   StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-							   String inputMask) {
+							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
+							boolean multivalue, boolean readOnly, Map<Locale, String> labels,
+							Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+							MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
+							AllowedReferences allowedReferences, boolean enabled,
+							StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+							String inputMask) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -173,7 +174,8 @@ public class BatchProcessingPresenterService {
 						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
 								super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 										readOnly,
-										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType,
+										allowedReferences,
 										enabled,
 										structureFactory, metadataGroup, defaultValue, inputMask) :
 								null;
@@ -257,7 +259,8 @@ public class BatchProcessingPresenterService {
 			}
 
 			List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
-			for (ModificationImpact impact : new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices)
+			for (ModificationImpact impact : new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices,
+					recordServices)
 					.findTransactionImpact(transaction, true)) {
 				impacts.add(new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
 			}

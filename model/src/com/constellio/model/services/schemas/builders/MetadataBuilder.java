@@ -1,5 +1,8 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataVolatility.PERSISTED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +30,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.contents.ContentFactory;
@@ -62,7 +66,7 @@ public class MetadataBuilder {
 	private boolean childOfRelationship = false;
 	private boolean taxonomyRelationship = false;
 	private boolean searchable = false;
-	private MetadataVolatility volatililty = MetadataVolatility.PERSISTED;
+	private MetadataVolatility volatililty = PERSISTED;
 	private boolean schemaAutocomplete = false;
 	private boolean sortable = false;
 	private boolean encrypted = false;
@@ -899,6 +903,14 @@ public class MetadataBuilder {
 		}
 		if (Boolean.FALSE == builder.getEnabled() && builder.isEssentialInSummary()) {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
+		}
+
+		if ((volatililty != null && volatililty != PERSISTED) && builder.getDataEntry().getType() == MANUAL) {
+			throw new MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient(code);
+		}
+
+		if ((volatililty != null && volatililty != PERSISTED) && builder.getType() == MetadataValueType.REFERENCE) {
+			throw new MetadataBuilderRuntimeException.ReferenceCannotBeTransient(code);
 		}
 	}
 

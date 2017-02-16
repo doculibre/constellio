@@ -890,7 +890,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public ModificationImpactCalculator newModificationImpactCalculator(TaxonomiesManager taxonomiesManager,
 			MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices) {
 		List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(metadataSchemaTypes.getCollection());
-		return new ModificationImpactCalculator(metadataSchemaTypes, taxonomies, searchServices);
+		return new ModificationImpactCalculator(metadataSchemaTypes, taxonomies, searchServices, this);
 
 	}
 
@@ -1041,4 +1041,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newAutomaticMetadataServices().loadVolatilesLazy((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 	}
 
+	@Override
+	public void reloadEagerVolatiles(RecordImpl record) {
+		newAutomaticMetadataServices().loadVolatilesEager((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+	}
 }

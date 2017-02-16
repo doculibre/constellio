@@ -235,7 +235,8 @@ public class RecordAutomaticMetadataServices {
 				}
 
 			} else if (dependency instanceof DynamicLocalDependency) {
-				addValueForDynamicLocalDependency(record, metadata, values, (DynamicLocalDependency) dependency, types);
+				addValueForDynamicLocalDependency(record, metadata, values, (DynamicLocalDependency) dependency, types,
+						recordProvider);
 
 			} else if (dependency instanceof ConfigDependency<?>) {
 				ConfigDependency<?> configDependency = (ConfigDependency<?>) dependency;
@@ -250,13 +251,20 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	private void addValueForDynamicLocalDependency(RecordImpl record, Metadata calculatedMetadata,
-			Map<Dependency, Object> values, DynamicLocalDependency dependency, MetadataSchemaTypes types) {
+			Map<Dependency, Object> values, DynamicLocalDependency dependency, MetadataSchemaTypes types,
+			RecordProvider recordProvider) {
 
 		Map<String, Object> dynamicDependencyValues = new HashMap<>();
 
 		MetadataList availableMetadatas = new MetadataList();
 		MetadataList availableMetadatasWithValue = new MetadataList();
 		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
+
+			if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY
+					&& record.getLazyVolatileValues().isEmpty()) {
+				loadVolatilesLazy(record, recordProvider);
+			}
+
 			if (new SchemaUtils().isDependentMetadata(calculatedMetadata, metadata, dependency)) {
 				availableMetadatas.add(metadata);
 				if (metadata.isMultivalue()) {
@@ -299,6 +307,7 @@ public class RecordAutomaticMetadataServices {
 			Dependency dependency) {
 		ReferenceDependency<?> referenceDependency = (ReferenceDependency<?>) dependency;
 		Metadata referenceMetadata = getMetadataFromDependency(record, referenceDependency);
+
 		if (!referenceMetadata.isMultivalue()) {
 			return addSingleValueReference(record, recordProvider, values, referenceDependency, referenceMetadata);
 		} else {
@@ -478,7 +487,14 @@ public class RecordAutomaticMetadataServices {
 		List<Object> values = new ArrayList<>();
 		for (String referencedRecordId : referencedRecordIds) {
 			if (referencedRecordId != null) {
-				Record referencedRecord = recordProvider.getRecord(referencedRecordId);
+				RecordImpl referencedRecord = (RecordImpl) recordProvider.getRecord(referencedRecordId);
+
+				//TODO
+				//				if (copiedMetadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY
+				//						&& referencedRecord.getLazyVolatileValues().isEmpty()) {
+				//					loadVolatilesLazy(referencedRecord, recordProvider);
+				//				}
+
 				if (copiedMetadata.isMultivalue()) {
 					values.addAll(referencedRecord.getList(copiedMetadata));
 				} else {

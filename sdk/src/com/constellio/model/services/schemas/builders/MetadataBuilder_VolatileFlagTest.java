@@ -12,7 +12,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagUndefinedOnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
 			throws Exception {
-		inheritedMetadataBuilder.setType(STRING);
+		inheritedMetadataBuilder.setType(STRING)
+				.defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -22,7 +23,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagUndefinedOnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
 			throws Exception {
-		inheritedMetadataBuilder.setType(STRING);
+		inheritedMetadataBuilder.setType(STRING)
+				.defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -32,7 +34,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagSetToFalseOnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
 			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.PERSISTED);
+		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.PERSISTED)
+				.defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -42,7 +45,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagSetToFalseOnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
 			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.PERSISTED);
+		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.PERSISTED)
+				.defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -52,7 +56,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagSetToVolatileLazyOnMetadataWithoutInheritanceWhenBuildingThenVolatile()
 			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY);
+		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY)
+				.defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -62,7 +67,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagSetToVolatileEagerOnMetadataWithoutInheritanceWhenBuildingThenVolatile()
 			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_EAGER);
+		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_EAGER)
+				.defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -72,7 +78,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagSetToVolatileLazyOnMetadataWithoutInheritanceWhenModifyingThenVolatile()
 			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY);
+		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY)
+				.defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -82,7 +89,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagSetToVolatileEagerOnMetadataWithoutInheritanceWhenModifyingThenVolatile()
 			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_EAGER);
+		metadataWithoutInheritanceBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_EAGER)
+				.defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -92,7 +100,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagOnMetadataWithInheritanceWhenBuildingThenSetToInheritedValue()
 			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY);
+		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY)
+				.defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -102,7 +111,8 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileFlagOnMetadataWithInheritanceWhenModifyingThenSetToInheritedValue()
 			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY);
+		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY)
+				.defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -112,7 +122,9 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileLazyFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
 			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY);
+		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_LAZY)
+				.defineDataEntry().asJexlScript("title");
+
 		assertThat(metadataWithInheritanceBuilder.getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_LAZY);
 
 	}
@@ -120,7 +132,9 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenVolatileEagerFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
 			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_EAGER);
+		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.VOLATILE_EAGER)
+				.defineDataEntry().asJexlScript("title");
+
 		assertThat(metadataWithInheritanceBuilder.getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_EAGER);
 
 	}
@@ -128,7 +142,9 @@ public class MetadataBuilder_VolatileFlagTest extends MetadataBuilderTest {
 	@Test
 	public void givenFalseFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
 			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.PERSISTED);
+		inheritedMetadataBuilder.setType(STRING).setVolatility(MetadataVolatility.PERSISTED)
+				.defineDataEntry().asJexlScript("title");
+
 		assertThat(metadataWithInheritanceBuilder.getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
 
 	}

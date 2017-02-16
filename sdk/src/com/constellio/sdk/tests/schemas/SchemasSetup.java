@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -132,4 +133,6 @@ public abstract class SchemasSetup {
 	public void refresh() {
 		types = manager.getSchemaTypes(collection);
 	}
+
+
 }

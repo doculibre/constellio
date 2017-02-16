@@ -295,4 +295,8 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		recordServices.loadLazyVolatiles(record);
 	}
 
+	@Override
+	public void reloadEagerVolatiles(RecordImpl record) {
+		recordServices.reloadEagerVolatiles(record);
+	}
 }

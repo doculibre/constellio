@@ -37,6 +37,18 @@ public class MetadataBuilderRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class MetadataEnteredManuallyCannotBeTransient extends MetadataBuilderRuntimeException {
+		public MetadataEnteredManuallyCannotBeTransient(String metadata) {
+			super("Metadata entered manually cannot be transient : " + metadata);
+		}
+	}
+
+	public static class ReferenceCannotBeTransient extends MetadataBuilderRuntimeException {
+		public ReferenceCannotBeTransient(String metadata) {
+			super("Reference metadata cannot be transient : " + metadata);
+		}
+	}
+
 	public static class EssentialMetadataInSummaryCannotBeDisabled extends MetadataBuilderRuntimeException {
 		public EssentialMetadataInSummaryCannotBeDisabled(String metadata) {
 			super("Metadata '" + metadata + "' cannot be disabled, since it is essential in summary");

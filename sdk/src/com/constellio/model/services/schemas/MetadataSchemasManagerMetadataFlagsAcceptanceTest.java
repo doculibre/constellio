@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_EAGER;
+import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_LAZY;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasCustomAttributes;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasVolatility;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
@@ -8,7 +10,9 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentia
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDuplicable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedForDeletion;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIncreaseDependencyLevel;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +24,8 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.schemas.ModificationImpactCalculatorAcceptSetup.TitleLengthCalculator;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -98,28 +104,80 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	@Test
 	public void whenAddUpdateSchemasThenSaveVolatileFlag()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata()
-				.withAnotherStringMetadata(whichHasVolatility(MetadataVolatility.VOLATILE_EAGER))
-				.withANumberMetadata(whichHasVolatility(MetadataVolatility.VOLATILE_LAZY)));
+		defineSchemasManager().using(schemas
+				.withAStringMetadata(whichIsScripted("title"))
+				.withAnotherStringMetadata(whichIsScripted("title"), whichHasVolatility(VOLATILE_EAGER))
+				.withANumberMetadata(whichIsScripted("title.length"), whichHasVolatility(MetadataVolatility.VOLATILE_LAZY)));
 
 		assertThat(zeSchema.stringMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
-		assertThat(zeSchema.anotherStringMetadata().getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_EAGER);
+		assertThat(zeSchema.anotherStringMetadata().getVolatility()).isEqualTo(VOLATILE_EAGER);
 		assertThat(zeSchema.numberMetadata().getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_LAZY);
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
-						.setVolatility(MetadataVolatility.VOLATILE_EAGER);
+						.setVolatility(VOLATILE_EAGER);
 				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode()).setVolatility(null);
 				types.getSchema(zeSchema.code()).get(zeSchema.numberMetadata().getLocalCode())
 						.setVolatility(MetadataVolatility.PERSISTED);
 			}
 		});
 
-		assertThat(zeSchema.stringMetadata().getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_EAGER);
+		assertThat(zeSchema.stringMetadata().getVolatility()).isEqualTo(VOLATILE_EAGER);
 		assertThat(zeSchema.anotherStringMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
 		assertThat(zeSchema.numberMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
+	}
+
+	@Test(expected = MetadataBuilderRuntimeException.ReferenceCannotBeTransient.class)
+	public void whenAddTransientLazyAutomaticReferenceMetadataThenException()
+			throws Exception {
+		defineSchemasManager().using(schemas
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsScripted("title"), whichHasVolatility(VOLATILE_LAZY)));
+	}
+
+	@Test(expected = MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient.class)
+	public void whenAddManualMetadataWithVolatileEagerThenException()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichHasVolatility(VOLATILE_EAGER)));
+	}
+
+	@Test(expected = MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient.class)
+	public void whenAddManualMetadataWithVolatileLazyThenException()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichHasVolatility(MetadataVolatility.VOLATILE_LAZY)));
+	}
+
+	@Test
+	public void whenUpdateManualMetadataWithVolatileLazyThenException()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichHasVolatility(MetadataVolatility.PERSISTED)));
+
+		try {
+			getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+				@Override
+				public void alter(MetadataSchemaTypesBuilder types) {
+					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
+							.setVolatility(VOLATILE_EAGER);
+				}
+			});
+			fail("Exception expected");
+		} catch (MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient e) {
+			//OK
+		}
+
+		try {
+			getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+				@Override
+				public void alter(MetadataSchemaTypesBuilder types) {
+					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
+							.setVolatility(VOLATILE_LAZY);
+				}
+			});
+			fail("Exception expected");
+		} catch (MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient e) {
+			//OK
+		}
 	}
 
 	@Test
@@ -227,4 +285,5 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 				new Delayed<>(getAppLayerFactory().getModulesManager()));
 
 	}
+
 }

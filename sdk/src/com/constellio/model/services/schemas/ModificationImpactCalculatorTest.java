@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -68,6 +69,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 
 	@Mock List<String> transactionRecordsList;
 	@Mock SearchServices searchServices;
+	@Mock RecordServices recordServices;
 
 	String zeSchemaMetadataCode = aString();
 	String anotherSchemaReferenceToZeSchemaMetadataCode = aString();
@@ -116,7 +118,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 
 		when(taxonomiesManager.getEnabledTaxonomies("zeCollection")).thenReturn(taxonomies);
 
-		impactCalculator = spy(new ModificationImpactCalculator(schemaTypes, taxonomies, searchServices));
+		impactCalculator = spy(new ModificationImpactCalculator(schemaTypes, taxonomies, searchServices, recordServices));
 
 		when(schemaTypes.getMetadata("anotherType_default_title")).thenReturn(anotherSchemaTitle);
 

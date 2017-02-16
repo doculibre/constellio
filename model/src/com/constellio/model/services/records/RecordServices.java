@@ -148,4 +148,6 @@ public interface RecordServices {
 	void recalculate(Record record);
 
 	void loadLazyVolatiles(RecordImpl record);
+
+	void reloadEagerVolatiles(RecordImpl record);
 }

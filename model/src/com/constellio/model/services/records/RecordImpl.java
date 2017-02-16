@@ -289,8 +289,8 @@ public class RecordImpl implements Record {
 		T returnedValue;
 		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY) {
 			returnedValue = (T) lazyVolatileValues.get(codeAndType);
-		}
-		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
+
+		} else if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
 			returnedValue = (T) eagerVolatileValues.get(codeAndType);
 
 		} else if (modifiedValues.containsKey(codeAndType)) {
@@ -539,7 +539,7 @@ public class RecordImpl implements Record {
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String metadataAtomicCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
 			Metadata metadata = schema.getMetadata(metadataAtomicCode);
-			if (metadata.getVolatility() == MetadataVolatility.PERSISTED) {
+			if (metadata.getVolatility() == MetadataVolatility.PERSISTED || metadata.getVolatility() == null) {
 				Object value = entry.getValue();
 
 				if (metadata.isEncrypted() && value != null) {
@@ -617,7 +617,7 @@ public class RecordImpl implements Record {
 			String localCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
-				if (metadata.getVolatility() == MetadataVolatility.PERSISTED) {
+				if (metadata.getVolatility() == MetadataVolatility.PERSISTED || metadata.getVolatility() == null) {
 					Object value = entry.getValue();
 
 					if (metadata.isEncrypted() && value != null) {
