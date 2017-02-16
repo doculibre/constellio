@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.base;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public abstract class BaseSessionContext implements SessionContext {
 	
@@ -14,10 +15,21 @@ public abstract class BaseSessionContext implements SessionContext {
 	}
 
 	@Override
-	public void addSelectedRecordId(String recordId) {
+	public Map<String, Long> getSelectedRecordSchemaTypeCodes() {
+		return Collections.unmodifiableMap(ensureSelectedRecordSchemaTypeCodes());
+	}
+
+	@Override
+	public void addSelectedRecordId(String recordId, String schemaTypeCode) {
 		List<String> selectedRecordIds = ensureSelectedRecordIds();
+		Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
 		if (!selectedRecordIds.contains(recordId)) {
 			selectedRecordIds.add(recordId);
+			if(selectedRecordSchemaTypeCodes.containsKey(schemaTypeCode)) {
+				selectedRecordSchemaTypeCodes.put(schemaTypeCode, selectedRecordSchemaTypeCodes.get(schemaTypeCode)+1);
+			} else {
+				selectedRecordSchemaTypeCodes.put(schemaTypeCode, 1L);
+			}
 			for (SelectedRecordIdsChangeListener listener : getSelectedRecordIdsChangeListeners()) {
 				listener.recordIdAdded(recordId);
 			}
@@ -25,9 +37,15 @@ public abstract class BaseSessionContext implements SessionContext {
 	}
 
 	@Override
-	public void removeSelectedRecordId(String recordId) {
+	public void removeSelectedRecordId(String recordId, String schemaTypeCode) {
 		List<String> selectedRecordIds = ensureSelectedRecordIds();
 		selectedRecordIds.remove(recordId);
+		Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
+		selectedRecordSchemaTypeCodes.put(schemaTypeCode, selectedRecordSchemaTypeCodes.get(schemaTypeCode)-1);
+		if(selectedRecordSchemaTypeCodes.get(selectedRecordSchemaTypeCodes.get(schemaTypeCode)) <= 0) {
+			selectedRecordSchemaTypeCodes.remove(schemaTypeCode);
+		}
+
 		for (SelectedRecordIdsChangeListener listener : getSelectedRecordIdsChangeListeners()) {
 			listener.recordIdRemoved(recordId);
 		}
@@ -37,6 +55,8 @@ public abstract class BaseSessionContext implements SessionContext {
 	public void clearSelectedRecordIds() {
 		List<String> selectedRecordIds = ensureSelectedRecordIds();
 		selectedRecordIds.clear();
+		Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
+		selectedRecordSchemaTypeCodes.clear();
 		for (SelectedRecordIdsChangeListener listener : getSelectedRecordIdsChangeListeners()) {
 			listener.selectionCleared();
 		}
@@ -56,4 +76,5 @@ public abstract class BaseSessionContext implements SessionContext {
 	
 	protected abstract List<String> ensureSelectedRecordIds();
 
+	protected abstract Map<String, Long> ensureSelectedRecordSchemaTypeCodes();
 }

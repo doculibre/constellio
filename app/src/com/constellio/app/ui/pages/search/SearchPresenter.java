@@ -1,28 +1,10 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.Map.Entry;
-
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
-import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
-import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.data.utils.TimeProvider;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -34,10 +16,13 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -60,6 +45,19 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.vaadin.server.StreamResource.StreamSource;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
@@ -516,8 +514,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		SessionContext sessionContext = view.getSessionContext();
 		List<String> selectedSearchResultRecordIds = view.getSelectedRecordIds();
 		for (String selectedRecordId : selectedSearchResultRecordIds) {
-			sessionContext.addSelectedRecordId(selectedRecordId);
+			Record record = modelLayerFactory.newRecordServices().getDocumentById(selectedRecordId);
+			sessionContext.addSelectedRecordId(selectedRecordId, record == null? null:record.getTypeCode());
 		}
 	}
-	
 }

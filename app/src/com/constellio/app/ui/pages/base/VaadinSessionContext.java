@@ -1,13 +1,11 @@
 package com.constellio.app.ui.pages.base;
 
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.vaadin.server.VaadinSession;
+
+import java.security.Principal;
+import java.util.*;
 
 public class VaadinSessionContext extends BaseSessionContext {
 
@@ -16,6 +14,7 @@ public class VaadinSessionContext extends BaseSessionContext {
 	public static final String USER_PRINCIPAL_ATTRIBUTE = VaadinSessionContext.class.getName() + ".userPrincipal";
 	public static final String FORCED_SIGN_OUT_ATTRIBUTE = VaadinSessionContext.class.getName() + ".forcedSignOut";
 	public static final String SELECTED_RECORD_IDS_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordIds";
+	public static final String SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordSchemaTypeCodes";
 
 	public VaadinSessionContext() {
 	}
@@ -91,4 +90,14 @@ public class VaadinSessionContext extends BaseSessionContext {
 		return selectedRecordIds;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	protected Map<String, Long> ensureSelectedRecordSchemaTypeCodes() {
+		Map<String, Long> selectedRecordSchemaTypeCodes = (Map<String, Long>) getAttribute(SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE);
+		if (selectedRecordSchemaTypeCodes == null) {
+			selectedRecordSchemaTypeCodes = new HashMap<>();
+			setAttribute(SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE, selectedRecordSchemaTypeCodes);
+		}
+		return selectedRecordSchemaTypeCodes;
+	}
 }
