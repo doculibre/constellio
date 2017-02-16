@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -125,7 +126,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         Button button = new Button("RMSelectionPanelExtension.checkInButton");
         if(!param.getIds().isEmpty()) {
             RecordVO documentVO = new RecordToVOBuilder().build(appLayerFactory.getModelLayerFactory().newRecordServices()
-                    .getDocumentById(param.getIds().get(0)), RecordVO.VIEW_MODE.TABLE, ConstellioUI.getCurrentSessionContext());
+                    .getDocumentById(param.getIds().get(0)), RecordVO.VIEW_MODE.TABLE, getSessionContext());
             final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(documentVO, documentVO.getMetadata(Document.CONTENT)) {
                 @Override
                 public void close() {
@@ -145,6 +146,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         button.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE));
         button.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE));
         ((VerticalLayout) param.getComponent()).addComponent(button);
+    }
+
+    protected SessionContext getSessionContext() {
+        return ConstellioUI.getCurrentSessionContext();
     }
 
     public void parentFolderButtonClicked(String parentId, List<String> recordIds)
@@ -191,7 +196,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             break;
                         case Document.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
-                            for(Metadata metadata: rmSchemas.wrapFolder(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            for(Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
                             }
                             newDocument.setFolder(parentId);
