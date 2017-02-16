@@ -1,46 +1,13 @@
 package com.constellio.app.extensions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.app.api.extensions.BatchProcessingExtension;
+import com.constellio.app.api.extensions.*;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
-import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
-import com.constellio.app.api.extensions.GenericRecordPageExtension;
-import com.constellio.app.api.extensions.PageExtension;
-import com.constellio.app.api.extensions.PagesComponentsExtension;
-import com.constellio.app.api.extensions.RecordExportExtension;
-import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
-import com.constellio.app.api.extensions.SearchPageExtension;
-import com.constellio.app.api.extensions.SystemCheckExtension;
-import com.constellio.app.api.extensions.TaxonomyPageExtension;
-import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
-import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
-import com.constellio.app.api.extensions.params.OnWriteRecordParams;
-import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
-import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
-import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
-import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
-import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
-import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.api.extensions.params.*;
+import com.constellio.app.api.extensions.taxonomies.*;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
-import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
-import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
-import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
-import com.constellio.app.extensions.api.cmis.params.CheckInParams;
-import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
-import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
-import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.extensions.api.cmis.params.*;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
@@ -62,6 +29,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+
+import java.util.*;
 
 public class AppLayerCollectionExtensions {
 
@@ -88,6 +57,8 @@ public class AppLayerCollectionExtensions {
 	public List<DownloadContentVersionLinkExtension> downloadContentVersionLinkExtensions = new ArrayList<>();
 
 	public VaultBehaviorsList<PagesComponentsExtension> pagesComponentsExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SelectionPanelExtension> selectionPanelExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
 
@@ -420,5 +391,11 @@ public class AppLayerCollectionExtensions {
 			repaired |= extension.tryRepairAutomaticValue(params);
 		}
 		return repaired;
+	}
+
+	public void addAvailableActions(AvailableActionsParam param) {
+		for (SelectionPanelExtension extension : selectionPanelExtensions) {
+			extension.addAvailableActions(param);
+		}
 	}
 }

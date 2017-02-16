@@ -1,11 +1,11 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+
+import java.io.Serializable;
+import java.util.List;
 
 public interface ConstellioHeader extends Serializable {
 	
@@ -48,5 +48,6 @@ public interface ConstellioHeader extends Serializable {
 	void setSelectionPanelVisible(boolean visible, boolean refresh);
 
 	void setSelectionCount(int selectionCount);
-	
+
+	void refreshSelectionPanel();
 }

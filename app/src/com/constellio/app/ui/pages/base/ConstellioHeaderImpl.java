@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -14,11 +9,14 @@ import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.buttons.BadgeButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BasePopupView;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
@@ -31,38 +29,27 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.FieldEvents.FocusEvent;
 import com.vaadin.event.FieldEvents.FocusListener;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.server.Page;
-import com.vaadin.server.Resource;
-import com.vaadin.server.Responsive;
-import com.vaadin.server.ThemeResource;
+import com.vaadin.server.*;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Image;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
 import com.vaadin.ui.PopupView.PopupVisibilityListener;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends HorizontalLayout implements ConstellioHeader {
@@ -425,11 +412,16 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			Item item = selectionTable.addItem(selectedRecordId);
 			item.getItemProperty("recordId").setValue(referenceDisplay);
 		}
+
+		VerticalLayout actionMenuLayout = new VerticalLayout();
+		actionMenuLayout.setSpacing(true);
+		actionMenuLayout.addComponent(new Label("Action!"));
+		buildSelectionPanelButtons(actionMenuLayout);
 		
 		VerticalLayout selectionActionMenu = new VerticalLayout();
 		selectionActionMenu.setWidth("200px");
 		selectionActionMenu.setSpacing(true);
-		selectionActionMenu.addComponent(new Label("Action!"));
+		selectionActionMenu.addComponent(actionMenuLayout);
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
@@ -454,6 +446,68 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		selectionLayout.setComponentAlignment(selectionActionMenu, Alignment.TOP_RIGHT);
 		
 		return selectionPanel;
+	}
+
+	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
+		WindowButton addToCartButton = buildAddToCartButton();
+		actionMenuLayout.addComponent(addToCartButton);
+
+		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
+	}
+
+	private WindowButton buildAddToCartButton() {
+		WindowButton windowButton = new WindowButton($("SearchView.addToCart"), $("SearchView.selectCart")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+
+				HorizontalLayout newCartLayout = new HorizontalLayout();
+				newCartLayout.setSpacing(true);
+				newCartLayout.addComponent(new Label($("CartView.newCart")));
+				final BaseTextField newCartTitleField;
+				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				BaseButton saveButton;
+				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+						getWindow().close();
+					}
+				});
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				TabSheet tabSheet = new TabSheet();
+				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
+				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(getSessionContext().getSelectedRecordIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
+				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(getSessionContext().getSelectedRecordIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				ownedCartsTable.setWidth("100%");
+				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				sharedCartsTable.setWidth("100%");
+				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
+				layout.addComponents(newCartLayout,tabSheet);
+				return layout;
+			}
+		};
+		return windowButton;
 	}
 
 	@Override
@@ -627,5 +681,14 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			selectionButton.setCount(selectionCount);
 		}
 	}
-	
+
+	@Override
+	public Component getSelectionPanel() {
+		return selectionPanel;
+	}
+
+	@Override
+	public void refreshSelectionPanel() {
+
+	}
 }

@@ -1,11 +1,12 @@
 package com.constellio.app.ui.pages.base;
 
+import com.constellio.app.ui.entities.UserVO;
+
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
-
-import com.constellio.app.ui.entities.UserVO;
+import java.util.Map;
 
 public interface SessionContext extends Serializable {
 
@@ -30,10 +31,12 @@ public interface SessionContext extends Serializable {
 	Principal getUserPrincipal();
 	
 	List<String> getSelectedRecordIds();
+
+	public Map<String, Long> getSelectedRecordSchemaTypeCodes();
 	
-	void addSelectedRecordId(String recordId);
+	void addSelectedRecordId(String recordId, String schemaTypeCode);
 	
-	void removeSelectedRecordId(String recordId);
+	void removeSelectedRecordId(String recordId, String schemaTypeCode);
 	
 	void clearSelectedRecordIds();
 	
