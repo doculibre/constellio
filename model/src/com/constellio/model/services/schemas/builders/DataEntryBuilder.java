@@ -3,6 +3,7 @@ package com.constellio.model.services.schemas.builders;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
 
 import java.util.Arrays;
 import java.util.List;
@@ -56,6 +57,20 @@ public class DataEntryBuilder {
 
 		CopiedDataEntry copiedDataEntry = new CopiedDataEntry(referenceMetadataCode, copiedMetadataCode);
 		metadata.dataEntry = copiedDataEntry;
+		return metadata;
+	}
+
+	public MetadataBuilder asReferenceCount(MetadataBuilder referenceToAgregatingSchemaType) {
+		if (!metadata.getCode().contains("_default_")) {
+			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
+		}
+
+		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
+					referenceToAgregatingSchemaType.getCode(), REFERENCE);
+		}
+
+		metadata.dataEntry = new AggregatedDataEntry(null, referenceToAgregatingSchemaType.getCode(), REFERENCE_COUNT);
 		return metadata;
 	}
 

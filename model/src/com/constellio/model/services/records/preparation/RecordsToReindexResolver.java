@@ -30,7 +30,7 @@ public class RecordsToReindexResolver {
 
 	}
 
-	private Set<String> findRecordsToReindexFromRecord(Record record, boolean allMetadatas) {
+	public Set<String> findRecordsToReindexFromRecord(Record record, boolean allMetadatas) {
 
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 

@@ -104,22 +104,28 @@ public class RecordAutomaticMetadataServices {
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
 		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
-		Metadata inputMetadata = types.getMetadata(aggregatedDataEntry.getInputMetadata());
 		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
-
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemaType).where(referenceMetadata).isEqualTo(record));
-		query.computeStatsOnField(inputMetadata);
-		query.setNumberOfRows(1000);
-		SPEQueryResponse response = searchServices.query(query);
 
 		if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {
-			Map<String, Object> statsValues = response.getStatValues(inputMetadata);
-			Double sum = statsValues == null ? 0.0 : (Double) response.getStatValues(inputMetadata).get("sum");
-			((RecordImpl) record).updateAutomaticValue(metadata, sum);
 
-		} else {
-			throw new ImpossibleRuntimeException("Unsupported aggregation type : " + aggregatedDataEntry.getAgregationType());
+			Metadata inputMetadata = types.getMetadata(aggregatedDataEntry.getInputMetadata());
+			query.computeStatsOnField(inputMetadata);
+			query.setNumberOfRows(1000);
+			SPEQueryResponse response = searchServices.query(query);
+
+			if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {
+				Map<String, Object> statsValues = response.getStatValues(inputMetadata);
+				Double sum = statsValues == null ? 0.0 : (Double) response.getStatValues(inputMetadata).get("sum");
+				((RecordImpl) record).updateAutomaticValue(metadata, sum);
+
+			} else {
+				throw new ImpossibleRuntimeException("Unsupported aggregation type : " + aggregatedDataEntry.getAgregationType());
+			}
+		} else if (aggregatedDataEntry.getAgregationType() == AggregationType.REFERENCE_COUNT) {
+			Double childrenCount = new Double(searchServices.getResultsCount(query));
+			((RecordImpl) record).updateAutomaticValue(metadata, childrenCount);
 		}
 
 	}

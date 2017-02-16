@@ -619,9 +619,11 @@ public class MetadataSchemaXMLWriter3 {
 
 		} else if (dataEntryValue.getType() == DataEntryType.AGGREGATED) {
 			AggregatedDataEntry agregatedDataEntry = (AggregatedDataEntry) dataEntryValue;
-			dataEntry.setAttribute("agregationType", agregatedDataEntry.getAgregationType().name());
+			dataEntry.setAttribute("agregationType", agregatedDataEntry.getAgregationType().getCode());
 			dataEntry.setAttribute("referenceMetadata", agregatedDataEntry.getReferenceMetadata());
-			dataEntry.setAttribute("inputMetadata", agregatedDataEntry.getInputMetadata());
+			if (agregatedDataEntry.getInputMetadata() != null) {
+				dataEntry.setAttribute("inputMetadata", agregatedDataEntry.getInputMetadata());
+			}
 
 		}
 
