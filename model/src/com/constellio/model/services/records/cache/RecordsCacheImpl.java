@@ -510,8 +510,10 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void set(Record record) {
-			Boolean logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
-			if (logicallyDeletedStatus == null || !logicallyDeletedStatus) {
+			Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+			if (logicallyDeletedStatus == null
+					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
+					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
 				this.record = record.getCopyOfOriginalRecord();
 			} else {
 				this.record = null;
