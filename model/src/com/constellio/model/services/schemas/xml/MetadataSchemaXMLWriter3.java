@@ -24,7 +24,7 @@ import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
@@ -243,8 +243,8 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isEncrypted()) {
 			metadataElement.setAttribute("encrypted", writeBoolean(metadata.isEncrypted()));
 		}
-		if (metadata.getVolatility() != null && metadata.getVolatility() != MetadataVolatility.PERSISTED) {
-			metadataElement.setAttribute("volatility", writeEnum(metadata.getVolatility()));
+		if (metadata.getTransiency() != null && metadata.getTransiency() != MetadataTransiency.PERSISTED) {
+			metadataElement.setAttribute("volatility", writeEnum(metadata.getTransiency()));
 		}
 		if (metadata.isChildOfRelationship()) {
 			metadataElement.setAttribute("childOfRelationship", writeBoolean(metadata.isChildOfRelationship()));
@@ -369,8 +369,8 @@ public class MetadataSchemaXMLWriter3 {
 			different = true;
 		}
 
-		if (globalMetadataInCollection.getVolatility() != metadata.getVolatility()) {
-			metadataElement.setAttribute("volatility", writeEnum(metadata.getVolatility()));
+		if (globalMetadataInCollection.getTransiency() != metadata.getTransiency()) {
+			metadataElement.setAttribute("volatility", writeEnum(metadata.getTransiency()));
 			different = true;
 		}
 		if (globalMetadataInCollection.isChildOfRelationship() != metadata.isChildOfRelationship()) {

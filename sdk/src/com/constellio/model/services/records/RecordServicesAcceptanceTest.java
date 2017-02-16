@@ -1,7 +1,7 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_EAGER;
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_LAZY;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
@@ -19,11 +19,10 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Char
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasVolatility;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -70,7 +69,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.MetadataVolatility;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.Validator;
@@ -1278,16 +1276,16 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenVolatileLazyMetadataThenNotSavedAndRetrievedOnRecordRecalculate()
+	public void givenTransientLazyMetadataThenNotSavedAndRetrievedOnRecordRecalculate()
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withANumberMetadata(
 				whichIsCalculatedUsing(TitleLengthCalculator.class),
-				whichHasVolatility(VOLATILE_LAZY)));
+				whichHasTransiency(TRANSIENT_LAZY)));
 
-		//TODO records in cache should lost volatile metadatas
+		//TODO records in cache should lost transient metadatas
 
-		//Save a record, it keeps the volatile metadatas
+		//Save a record, it keeps the transient metadatas
 		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
 		recordServices.add(record);
 		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(15.0);
@@ -1318,16 +1316,16 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenVolatileEagerMetadataThenNotSavedAndRetrievedOnRecordRetrieval()
+	public void givenTransientEagerMetadataThenNotSavedAndRetrievedOnRecordRetrieval()
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withANumberMetadata(
 				whichIsCalculatedUsing(TitleLengthCalculator.class),
-				whichHasVolatility(VOLATILE_EAGER)));
+				whichHasTransiency(TRANSIENT_EAGER)));
 
-		//TODO records in cache should lost volatile metadatas
+		//TODO records in cache should lost transient metadatas
 
-		//Save a record, it keeps the volatile metadatas
+		//Save a record, it keeps the transient metadatas
 		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
 		recordServices.add(record);
 		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(15.0);

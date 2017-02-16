@@ -2,7 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataVolatility.PERSISTED;
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -328,8 +328,8 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isSearchable();
 	}
 
-	public MetadataVolatility getVolatility() {
-		return getInheritedMetadataBehaviors().getVolatility();
+	public MetadataTransiency getTransiency() {
+		return getInheritedMetadataBehaviors().getTransiency();
 	}
 
 	public boolean isSortable() {

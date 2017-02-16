@@ -65,19 +65,19 @@ public class RecordsModificationBuilder {
 			Map<String, Object> modifiedValues = recordImpl.getModifiedValues();
 			modifiedMetadatasCodes.addAll(modifiedValues.keySet());
 
-			recordServices.reloadEagerVolatiles(recordImpl);
-			recordServices.reloadEagerVolatiles(originalRecord);
-			recordServices.loadLazyVolatiles(recordImpl);
-			recordServices.loadLazyVolatiles(originalRecord);
+			recordServices.reloadEagerTransientMetadatas(recordImpl);
+			recordServices.reloadEagerTransientMetadatas(originalRecord);
+			recordServices.loadLazyTransientMetadatas(recordImpl);
+			recordServices.loadLazyTransientMetadatas(originalRecord);
 
-			for (Metadata automaticMetadata : schemaType.getSchema(record.getSchemaCode()).getEagerVolatilesMetadatas()) {
+			for (Metadata automaticMetadata : schemaType.getSchema(record.getSchemaCode()).getEagerTransientMetadatas()) {
 				Object before = originalRecord.get(automaticMetadata);
 				Object after = recordImpl.get(automaticMetadata);
 				if (!LangUtils.isEqual(before, after)) {
 					modifiedMetadatasCodes.add(automaticMetadata.getDataStoreCode());
 				}
 			}
-			for (Metadata automaticMetadata : schemaType.getSchema(record.getSchemaCode()).getLazyVolatilesMetadatas()) {
+			for (Metadata automaticMetadata : schemaType.getSchema(record.getSchemaCode()).getLazyTransientMetadatas()) {
 				Object before = originalRecord.get(automaticMetadata);
 				Object after = recordImpl.get(automaticMetadata);
 				if (!LangUtils.isEqual(before, after)) {

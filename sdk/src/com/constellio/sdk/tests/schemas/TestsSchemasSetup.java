@@ -25,7 +25,7 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -117,12 +117,12 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
-	public static MetadataBuilderConfigurator whichHasVolatility(final MetadataVolatility volatility) {
+	public static MetadataBuilderConfigurator whichHasTransiency(final MetadataTransiency transiency) {
 		return new MetadataBuilderConfigurator() {
 
 			@Override
 			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
-				builder.setVolatility(volatility);
+				builder.setTransiency(transiency);
 			}
 
 		};

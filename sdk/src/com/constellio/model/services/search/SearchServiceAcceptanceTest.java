@@ -17,8 +17,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.CacheConfig;
-import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -47,8 +45,8 @@ import org.mockito.ArgumentCaptor;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_EAGER;
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_LAZY;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
@@ -2704,12 +2702,12 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenVolatileLazyMetadataThenNotSavedAndRetrievedOnRecordRecalculate()
+	public void givenTransientLazyMetadataThenNotSavedAndRetrievedOnRecordRecalculate()
 			throws Exception {
 
 		defineSchemasManager().using(schema.withANumberMetadata(
 				whichIsCalculatedUsing(TitleLengthCalculator.class),
-				whichHasVolatility(VOLATILE_LAZY)));
+				whichHasTransiency(TRANSIENT_LAZY)));
 
 		//TODO records in cache should lost volatile metadatas
 		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
@@ -2727,12 +2725,12 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenVolatileEagerMetadataThenNotSavedAndRetrievedOnRecordRetrieval()
+	public void givenTransientEagerMetadataThenNotSavedAndRetrievedOnRecordRetrieval()
 			throws Exception {
 
 		defineSchemasManager().using(schema.withANumberMetadata(
 				whichIsCalculatedUsing(TitleLengthCalculator.class),
-				whichHasVolatility(VOLATILE_EAGER)));
+				whichHasTransiency(TRANSIENT_EAGER)));
 
 		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
 		recordServices.add(record);

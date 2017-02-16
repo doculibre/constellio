@@ -68,7 +68,6 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
@@ -102,7 +101,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 
 public class RecordServicesImpl extends BaseRecordServices {
@@ -323,7 +321,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
 		Record record = new RecordImpl(recordDTO, allFields);
-		newAutomaticMetadataServices().loadVolatilesEager((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+		newAutomaticMetadataServices().loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 		return record;
 	}
 
@@ -360,7 +358,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record getDocumentById(String id) {
 		try {
 			Record record = new RecordImpl(recordDao.get(id), true);
-			newAutomaticMetadataServices().loadVolatilesEager((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+			newAutomaticMetadataServices().loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 			recordsCaches.insert(record);
 			return record;
 
@@ -1037,12 +1035,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	@Override
-	public void loadLazyVolatiles(RecordImpl record) {
-		newAutomaticMetadataServices().loadVolatilesLazy((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+	public void loadLazyTransientMetadatas(RecordImpl record) {
+		newAutomaticMetadataServices().loadTransientLazyMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 	}
 
 	@Override
-	public void reloadEagerVolatiles(RecordImpl record) {
-		newAutomaticMetadataServices().loadVolatilesEager((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+	public void reloadEagerTransientMetadatas(RecordImpl record) {
+		newAutomaticMetadataServices().loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 	}
 }

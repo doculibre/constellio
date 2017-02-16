@@ -1,6 +1,6 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataVolatility.PERSISTED;
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 
 import java.util.ArrayList;
@@ -27,10 +27,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.contents.ContentFactory;
@@ -66,7 +65,7 @@ public class MetadataBuilder {
 	private boolean childOfRelationship = false;
 	private boolean taxonomyRelationship = false;
 	private boolean searchable = false;
-	private MetadataVolatility volatililty = PERSISTED;
+	private MetadataTransiency transiency = PERSISTED;
 	private boolean schemaAutocomplete = false;
 	private boolean sortable = false;
 	private boolean encrypted = false;
@@ -179,7 +178,7 @@ public class MetadataBuilder {
 		builder.defaultRequirement = metadata.isDefaultRequirement();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
-		builder.volatililty = metadata.getVolatility();
+		builder.transiency = metadata.getTransiency();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -224,7 +223,7 @@ public class MetadataBuilder {
 		builder.undeletable = metadata.isUndeletable();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
-		builder.volatililty = metadata.getVolatility();
+		builder.transiency = metadata.getTransiency();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -403,13 +402,13 @@ public class MetadataBuilder {
 		return this;
 	}
 
-	public MetadataVolatility getVolatility() {
-		return inheritance == null ? volatililty : inheritance.getVolatility();
+	public MetadataTransiency getTransiency() {
+		return inheritance == null ? transiency : inheritance.getTransiency();
 	}
 
-	public MetadataBuilder setVolatility(MetadataVolatility volatililty) {
-		ensureCanModify("volatililty");
-		this.volatililty = volatililty;
+	public MetadataBuilder setTransiency(MetadataTransiency transiency) {
+		ensureCanModify("transiency");
+		this.transiency = transiency;
 		return this;
 	}
 
@@ -732,7 +731,7 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel, volatililty);
+				increasedDependencyLevel, transiency);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -905,11 +904,11 @@ public class MetadataBuilder {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
 		}
 
-		if ((volatililty != null && volatililty != PERSISTED) && builder.getDataEntry().getType() == MANUAL) {
+		if ((transiency != null && transiency != PERSISTED) && builder.getDataEntry().getType() == MANUAL) {
 			throw new MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient(code);
 		}
 
-		if ((volatililty != null && volatililty != PERSISTED) && builder.getType() == MetadataValueType.REFERENCE) {
+		if ((transiency != null && transiency != PERSISTED) && builder.getType() == MetadataValueType.REFERENCE) {
 			throw new MetadataBuilderRuntimeException.ReferenceCannotBeTransient(code);
 		}
 	}

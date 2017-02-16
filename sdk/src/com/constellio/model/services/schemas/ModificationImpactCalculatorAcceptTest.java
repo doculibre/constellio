@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_EAGER;
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_LAZY;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -20,7 +20,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -186,7 +186,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	@Test
 	public void givenLazyTransientCalculatedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withComputedTitleSizeCalculatedInAnotherSchema(VOLATILE_LAZY));
+		defineSchemasManager().using(schemas.withComputedTitleSizeCalculatedInAnotherSchema(TRANSIENT_LAZY));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -201,7 +201,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	@Test
 	public void givenEagerTransientCalculatedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withComputedTitleSizeCalculatedInAnotherSchema(MetadataVolatility.VOLATILE_EAGER));
+		defineSchemasManager().using(schemas.withComputedTitleSizeCalculatedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -216,7 +216,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	@Test
 	public void givenLazyTransientCopiedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(VOLATILE_LAZY));
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(TRANSIENT_LAZY));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -231,7 +231,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	@Test
 	public void givenEagerTransientCopiedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataVolatility.VOLATILE_EAGER));
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -246,8 +246,8 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
 	public void givenLazyTransientReferenceMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(VOLATILE_LAZY)
-				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(VOLATILE_LAZY));
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(TRANSIENT_LAZY)
+				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(TRANSIENT_LAZY));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -263,8 +263,8 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
 	public void givenEagerTransientReferenceMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataVolatility.VOLATILE_EAGER)
-				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(MetadataVolatility.VOLATILE_EAGER));
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER)
+				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(MetadataTransiency.TRANSIENT_EAGER));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -280,7 +280,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
 	public void givenLazyTransientMultivalueReferenceMetadataUsedByCalculatedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCalculatedMetadata(VOLATILE_LAZY));
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCalculatedMetadata(TRANSIENT_LAZY));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -297,7 +297,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
 	public void givenEagerTransientMultivalueReferenceMetadataUsedByCalculatedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCalculatedMetadata(VOLATILE_EAGER));
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCalculatedMetadata(TRANSIENT_EAGER));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -314,7 +314,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
 	public void givenLazyTransientMultivalueReferenceMetadataUsedByCopiedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCopiedMetadata(VOLATILE_LAZY));
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCopiedMetadata(TRANSIENT_LAZY));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -331,7 +331,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
 	public void givenEagerTransientMultivalueReferenceMetadataUsedByCopiedMetadataThenModificationPropagated()
 			throws Exception {
-		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCopiedMetadata(VOLATILE_EAGER));
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCopiedMetadata(TRANSIENT_EAGER));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));

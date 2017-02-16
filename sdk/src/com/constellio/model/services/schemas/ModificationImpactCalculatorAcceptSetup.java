@@ -4,7 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_LAZY;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.sdk.tests.TestUtils.asList;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
@@ -65,12 +65,12 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		return this;
 	}
 
-	public ModificationImpactCalculatorAcceptSetup withComputedTitleSizeCopiedInAnotherSchema(MetadataVolatility mode)
+	public ModificationImpactCalculatorAcceptSetup withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency mode)
 			throws Exception {
 
 		withAReferenceFromAnotherSchemaToZeSchema();
 
-		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setVolatility(mode)
+		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(mode)
 				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("copiedTitleLength").setType(NUMBER).defineDataEntry().asCopied(
@@ -79,13 +79,13 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		return this;
 	}
 
-	public ModificationImpactCalculatorAcceptSetup withComputedTitleSizeCalculatedInAnotherSchema(MetadataVolatility mode)
+	public ModificationImpactCalculatorAcceptSetup withComputedTitleSizeCalculatedInAnotherSchema(MetadataTransiency mode)
 			throws Exception {
 
 		withAReferenceFromAnotherSchemaToZeSchema();
 
 		zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).defineDataEntry().asCalculated(TitleLengthCalculator.class)
-				.setVolatility(mode);
+				.setTransiency(mode);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("calculatedTitleLength").setType(NUMBER).defineDataEntry()
 				.asCalculated(CalculatorCopyingZeSchemaTitleLengthPlusTwo.class);
@@ -217,22 +217,22 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 	}
 
 	public SchemasSetup withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(
-			MetadataVolatility volatility) {
+			MetadataTransiency transiency) {
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING);
-		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setVolatility(VOLATILE_LAZY)
+		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setTransiency(TRANSIENT_LAZY)
 				.defineDataEntry().asCalculated(ZeReferenceToZeSchemaCalculator.class);
 
 		return this;
 	}
 
 	public SchemasSetup withTransientMultivalueReferenceUsedByCopiedMetadata(
-			MetadataVolatility volatility)
+			MetadataTransiency transiency)
 			throws Exception {
 
 		withAReferenceFromAnotherSchemaToZeSchema();
 
-		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setVolatility(volatility)
+		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(transiency)
 				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("copiedTitleLength").setType(NUMBER).setMultivalue(true)
@@ -241,18 +241,18 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING).setMultivalue(true);
 		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setMultivalue(true)
-				.setVolatility(volatility).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
+				.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
 
 		return this;
 	}
 
 	public SchemasSetup withTransientMultivalueReferenceUsedByCalculatedMetadata(
-			MetadataVolatility volatility)
+			MetadataTransiency transiency)
 			throws Exception {
 
 		withAReferenceFromAnotherSchemaToZeSchema();
 
-		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setVolatility(volatility)
+		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(transiency)
 				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("calculatedTitleLength").setType(NUMBER).setMultivalue(true)
@@ -261,7 +261,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING).setMultivalue(true);
 		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setMultivalue(true)
-				.setVolatility(volatility).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
+				.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
 
 		return this;
 	}

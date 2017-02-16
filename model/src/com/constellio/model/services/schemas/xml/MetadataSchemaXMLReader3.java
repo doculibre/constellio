@@ -12,20 +12,18 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -306,11 +304,11 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEncrypted(readBooleanWithDefaultValue(encryptedStringValue, false));
 		}
 
-		String volatileStringValue = metadataElement.getAttributeValue("volatility");
-		if (inheriteGlobalMetadata && volatileStringValue == null) {
-			metadataBuilder.setVolatility(globalMetadataInCollectionSchema.getVolatility());
+		String transientStringValue = metadataElement.getAttributeValue("transiency");
+		if (inheriteGlobalMetadata && transientStringValue == null) {
+			metadataBuilder.setTransiency(globalMetadataInCollectionSchema.getTransiency());
 		} else {
-			metadataBuilder.setVolatility(readEnum(volatileStringValue, MetadataVolatility.class));
+			metadataBuilder.setTransiency(readEnum(transientStringValue, MetadataTransiency.class));
 		}
 
 		String searchableStringValue = metadataElement.getAttributeValue("searchable");

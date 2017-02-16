@@ -291,12 +291,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void loadLazyVolatiles(RecordImpl record) {
-		recordServices.loadLazyVolatiles(record);
+	public void loadLazyTransientMetadatas(RecordImpl record) {
+		recordServices.loadLazyTransientMetadatas(record);
 	}
 
 	@Override
-	public void reloadEagerVolatiles(RecordImpl record) {
-		recordServices.reloadEagerVolatiles(record);
+	public void reloadEagerTransientMetadatas(RecordImpl record) {
+		recordServices.reloadEagerTransientMetadatas(record);
 	}
 }

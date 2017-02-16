@@ -1,9 +1,9 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_EAGER;
-import static com.constellio.model.entities.schemas.MetadataVolatility.VOLATILE_LAZY;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasCustomAttributes;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasVolatility;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
@@ -21,10 +21,9 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.schemas.ModificationImpactCalculatorAcceptSetup.TitleLengthCalculator;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -102,63 +101,63 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	}
 
 	@Test
-	public void whenAddUpdateSchemasThenSaveVolatileFlag()
+	public void whenAddUpdateSchemasThenSaveTransientFlag()
 			throws Exception {
 		defineSchemasManager().using(schemas
 				.withAStringMetadata(whichIsScripted("title"))
-				.withAnotherStringMetadata(whichIsScripted("title"), whichHasVolatility(VOLATILE_EAGER))
-				.withANumberMetadata(whichIsScripted("title.length"), whichHasVolatility(MetadataVolatility.VOLATILE_LAZY)));
+				.withAnotherStringMetadata(whichIsScripted("title"), whichHasTransiency(TRANSIENT_EAGER))
+				.withANumberMetadata(whichIsScripted("title.length"), whichHasTransiency(MetadataTransiency.TRANSIENT_LAZY)));
 
-		assertThat(zeSchema.stringMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
-		assertThat(zeSchema.anotherStringMetadata().getVolatility()).isEqualTo(VOLATILE_EAGER);
-		assertThat(zeSchema.numberMetadata().getVolatility()).isEqualTo(MetadataVolatility.VOLATILE_LAZY);
+		assertThat(zeSchema.stringMetadata().getTransiency()).isEqualTo(MetadataTransiency.PERSISTED);
+		assertThat(zeSchema.anotherStringMetadata().getTransiency()).isEqualTo(TRANSIENT_EAGER);
+		assertThat(zeSchema.numberMetadata().getTransiency()).isEqualTo(MetadataTransiency.TRANSIENT_LAZY);
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
-						.setVolatility(VOLATILE_EAGER);
-				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode()).setVolatility(null);
+						.setTransiency(TRANSIENT_EAGER);
+				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode()).setTransiency(null);
 				types.getSchema(zeSchema.code()).get(zeSchema.numberMetadata().getLocalCode())
-						.setVolatility(MetadataVolatility.PERSISTED);
+						.setTransiency(MetadataTransiency.PERSISTED);
 			}
 		});
 
-		assertThat(zeSchema.stringMetadata().getVolatility()).isEqualTo(VOLATILE_EAGER);
-		assertThat(zeSchema.anotherStringMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
-		assertThat(zeSchema.numberMetadata().getVolatility()).isEqualTo(MetadataVolatility.PERSISTED);
+		assertThat(zeSchema.stringMetadata().getTransiency()).isEqualTo(TRANSIENT_EAGER);
+		assertThat(zeSchema.anotherStringMetadata().getTransiency()).isEqualTo(MetadataTransiency.PERSISTED);
+		assertThat(zeSchema.numberMetadata().getTransiency()).isEqualTo(MetadataTransiency.PERSISTED);
 	}
 
 	@Test(expected = MetadataBuilderRuntimeException.ReferenceCannotBeTransient.class)
 	public void whenAddTransientLazyAutomaticReferenceMetadataThenException()
 			throws Exception {
 		defineSchemasManager().using(schemas
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsScripted("title"), whichHasVolatility(VOLATILE_LAZY)));
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsScripted("title"), whichHasTransiency(TRANSIENT_LAZY)));
 	}
 
 	@Test(expected = MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient.class)
-	public void whenAddManualMetadataWithVolatileEagerThenException()
+	public void whenAddManualMetadataWithTransientEagerThenException()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata(whichHasVolatility(VOLATILE_EAGER)));
+		defineSchemasManager().using(schemas.withAStringMetadata(whichHasTransiency(TRANSIENT_EAGER)));
 	}
 
 	@Test(expected = MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient.class)
-	public void whenAddManualMetadataWithVolatileLazyThenException()
+	public void whenAddManualMetadataWithTransientLazyThenException()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata(whichHasVolatility(MetadataVolatility.VOLATILE_LAZY)));
+		defineSchemasManager().using(schemas.withAStringMetadata(whichHasTransiency(MetadataTransiency.TRANSIENT_LAZY)));
 	}
 
 	@Test
-	public void whenUpdateManualMetadataWithVolatileLazyThenException()
+	public void whenUpdateManualMetadataWithTransientLazyThenException()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata(whichHasVolatility(MetadataVolatility.PERSISTED)));
+		defineSchemasManager().using(schemas.withAStringMetadata(whichHasTransiency(MetadataTransiency.PERSISTED)));
 
 		try {
 			getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
 					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
-							.setVolatility(VOLATILE_EAGER);
+							.setTransiency(TRANSIENT_EAGER);
 				}
 			});
 			fail("Exception expected");
@@ -171,7 +170,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
 					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
-							.setVolatility(VOLATILE_LAZY);
+							.setTransiency(TRANSIENT_LAZY);
 				}
 			});
 			fail("Exception expected");

@@ -2,7 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import com.constellio.model.entities.EnumWithSmallCode;
 
-public enum MetadataVolatility implements EnumWithSmallCode {
+public enum MetadataTransiency implements EnumWithSmallCode {
 
 	/**
 	 * The metadata is persisted, is available with search conditions and is only computed once. This is the default behavior.
@@ -14,18 +14,18 @@ public enum MetadataVolatility implements EnumWithSmallCode {
 	 * The value is loaded when calling com.constellio.model.services.records.RecordServices.recalculate
 	 * For sake of uniformity, the metadata is not kept in caches
 	 */
-	VOLATILE_LAZY("L"),
+	TRANSIENT_LAZY("L"),
 
 	/**
 	 * The metadata is not persisted, and will be loaded when the record is retrieved from the datastore.
 	 * For sake of uniformity, the metadata is kept in caches.
 	 *
 	 */
-	VOLATILE_EAGER("E");
+	TRANSIENT_EAGER("E");
 
 	private String code;
 
-	MetadataVolatility(String code) {
+	MetadataTransiency(String code) {
 		this.code = code;
 	}
 

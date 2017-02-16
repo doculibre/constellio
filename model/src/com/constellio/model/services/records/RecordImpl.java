@@ -13,8 +13,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +32,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.MetadataVolatility;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -58,8 +56,8 @@ public class RecordImpl implements Record {
 	private long version;
 	private boolean disconnected = false;
 	private RecordDTO recordDTO;
-	private Map<String, Object> lazyVolatileValues = new HashMap<String, Object>();
-	private Map<String, Object> eagerVolatileValues = new HashMap<String, Object>();
+	private Map<String, Object> lazyTransientValues = new HashMap<String, Object>();
+	private Map<String, Object> eagerTransientValues = new HashMap<String, Object>();
 	private Map<String, Object> structuredValues;
 	private List<String> followers;
 	private boolean fullyLoaded;
@@ -81,9 +79,9 @@ public class RecordImpl implements Record {
 		this.fullyLoaded = true;
 	}
 
-	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerVolatileValues) {
+	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues) {
 		this(recordDTO, true);
-		this.eagerVolatileValues = new HashMap<>(eagerVolatileValues);
+		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
 	public RecordImpl(RecordDTO recordDTO) {
@@ -214,11 +212,11 @@ public class RecordImpl implements Record {
 		validateSetArguments(metadata, value);
 
 		Map<String, Object> map = modifiedValues;
-		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
-			map = eagerVolatileValues;
+		if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_EAGER) {
+			map = eagerTransientValues;
 
-		} else if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY) {
-			map = lazyVolatileValues;
+		} else if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY) {
+			map = lazyTransientValues;
 		}
 
 		Object correctedValue = correctValue(value);
@@ -287,11 +285,11 @@ public class RecordImpl implements Record {
 		String codeAndType = metadata.getDataStoreCode();
 
 		T returnedValue;
-		if (metadata.getVolatility() == MetadataVolatility.VOLATILE_LAZY) {
-			returnedValue = (T) lazyVolatileValues.get(codeAndType);
+		if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY) {
+			returnedValue = (T) lazyTransientValues.get(codeAndType);
 
-		} else if (metadata.getVolatility() == MetadataVolatility.VOLATILE_EAGER) {
-			returnedValue = (T) eagerVolatileValues.get(codeAndType);
+		} else if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_EAGER) {
+			returnedValue = (T) eagerTransientValues.get(codeAndType);
 
 		} else if (modifiedValues.containsKey(codeAndType)) {
 			returnedValue = (T) modifiedValues.get(codeAndType);
@@ -539,7 +537,7 @@ public class RecordImpl implements Record {
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String metadataAtomicCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
 			Metadata metadata = schema.getMetadata(metadataAtomicCode);
-			if (metadata.getVolatility() == MetadataVolatility.PERSISTED || metadata.getVolatility() == null) {
+			if (metadata.getTransiency() == MetadataTransiency.PERSISTED || metadata.getTransiency() == null) {
 				Object value = entry.getValue();
 
 				if (metadata.isEncrypted() && value != null) {
@@ -617,7 +615,7 @@ public class RecordImpl implements Record {
 			String localCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
-				if (metadata.getVolatility() == MetadataVolatility.PERSISTED || metadata.getVolatility() == null) {
+				if (metadata.getTransiency() == MetadataTransiency.PERSISTED || metadata.getTransiency() == null) {
 					Object value = entry.getValue();
 
 					if (metadata.isEncrypted() && value != null) {
@@ -849,7 +847,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, eagerVolatileValues);
+		return new RecordImpl(recordDTO, eagerTransientValues);
 	}
 
 	@Override
@@ -999,12 +997,12 @@ public class RecordImpl implements Record {
 		return (value instanceof String) && StringUtils.isBlank((String) value);
 	}
 
-	public Map<String, Object> getLazyVolatileValues() {
-		return lazyVolatileValues;
+	public Map<String, Object> getLazyTransientValues() {
+		return lazyTransientValues;
 	}
 
-	public Map<String, Object> getEagerVolatileValues() {
-		return eagerVolatileValues;
+	public Map<String, Object> getEagerTransientValues() {
+		return eagerTransientValues;
 	}
 
 	@Override
