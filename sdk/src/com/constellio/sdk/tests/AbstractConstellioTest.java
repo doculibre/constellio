@@ -87,6 +87,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
@@ -1393,6 +1395,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Session newCMISSessionAsUserInZeCollection(String username) {
 		ensureNotUnitTest();
 		return newCMISSessionAsUserInCollection(username, zeCollection);
+	}
+
+	protected void reindexIfRequired() {
+		ensureNotUnitTest();
+		if (getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()) {
+			ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		}
 	}
 
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {

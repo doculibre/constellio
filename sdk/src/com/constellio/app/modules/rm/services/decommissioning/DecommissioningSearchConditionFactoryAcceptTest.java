@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -269,9 +270,9 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	public void whenSearchingDocumentActiveToDestructionThenObtainsValidResults()
 			throws Exception {
 
-		//assertThat(records.getFolder_A07().getExpectedDepositDate()).isEqualTo(date(2007, 10, 31));
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		reindexIfRequired();
 		waitForBatchProcess();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
@@ -329,6 +330,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		reindexIfRequired();
 		waitForBatchProcess();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
@@ -361,6 +363,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		reindexIfRequired();
 		waitForBatchProcess();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
