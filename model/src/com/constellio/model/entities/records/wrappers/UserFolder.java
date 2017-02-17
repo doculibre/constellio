@@ -12,19 +12,19 @@ public class UserFolder extends RecordWrapper {
 
     public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
-    public static final String PARENT = "parent";
+    public static final String PARENT_USER_FOLDER = "parentUserFolder";
 
 
-    public UserFolder(Record record, MetadataSchemaTypes types, String typeRequirement) {
-        super(record, types, typeRequirement);
+    public UserFolder(Record record, MetadataSchemaTypes types) {
+        super(record, types, SCHEMA_TYPE);
     }
 
     public UserFolder getParent() {
-        return get(PARENT);
+        return get(PARENT_USER_FOLDER);
     }
 
     public UserFolder setParent(UserFolder userFolder) {
-        set(PARENT, userFolder);
+        set(PARENT_USER_FOLDER, userFolder);
         return this;
     }
 }

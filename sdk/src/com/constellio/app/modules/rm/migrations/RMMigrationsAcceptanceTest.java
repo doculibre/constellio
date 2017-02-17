@@ -314,7 +314,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchema UserDocumentSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(UserDocument.SCHEMA_TYPE).getDefaultSchema();
 		assertThat(defaultSchema).isNotNull();
 		assertThat(defaultSchema.getMetadatas()).contains(
-				defaultSchema.getMetadata(UserFolder.USER_FOLDER),
+				defaultSchema.getMetadata(UserFolder.PARENT_USER_FOLDER),
 				defaultSchema.getMetadata(RMUserFolder.ADMINISTRATIVE_UNIT),
 				defaultSchema.getMetadata(RMUserFolder.CATEGORY),
 				defaultSchema.getMetadata(RMUserFolder.RETENTION_RULE));

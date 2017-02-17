@@ -44,7 +44,7 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
             MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(UserFolder.SCHEMA_TYPE);
             MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
             type.setSecurity(false);
-            defaultSchema.create(UserFolder.PARENT).setType(MetadataValueType.REFERENCE).setEssential(false).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
+            defaultSchema.create(UserFolder.PARENT_USER_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
 
             typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.USER_FOLDER).setEssential(false).setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
         }
