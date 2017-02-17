@@ -272,7 +272,11 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+
+		assertThat(getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()).isTrue();
+		//TODO Gabriel : Le changement de la config CALCULATED_CLOSING_DATE devrait demander une réindexation plutôt que partir un traîtement en lot
 		reindexIfRequired();
+
 		waitForBatchProcess();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
@@ -330,7 +334,11 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+
+		assertThat(getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()).isTrue();
+		//TODO Gabriel : Le changement de la config CALCULATED_CLOSING_DATE devrait demander une réindexation plutôt que partir un traîtement en lot
 		reindexIfRequired();
+
 		waitForBatchProcess();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
@@ -363,7 +371,11 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+
+		assertThat(getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()).isTrue();
+		//TODO Gabriel : Le changement de la config CALCULATED_CLOSING_DATE devrait demander une réindexation plutôt que partir un traîtement en lot
 		reindexIfRequired();
+
 		waitForBatchProcess();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
