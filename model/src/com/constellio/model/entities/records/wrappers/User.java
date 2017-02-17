@@ -51,6 +51,7 @@ public class User extends RecordWrapper {
 	public static final String SIGNATURE = "signature";
 	public static final String LOGIN_LANGUAGE_CODE = "loginLanguageCode";
 	public static final String VISIBLE_TABLE_COLUMNS = "visibleTableColumns";
+	public static final String AGENT_ENABLED = "agentEnabled";
 
 	private transient Roles roles;
 
@@ -484,5 +485,9 @@ public class User extends RecordWrapper {
 
 	public Roles getRolesDetails() {
 		return roles;
+	}
+
+	public boolean isAgentEnabled() {
+		return get(AGENT_ENABLED);
 	}
 }
