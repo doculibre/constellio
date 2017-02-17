@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
@@ -131,7 +132,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		if (testCase.contains("rm") && !testCase.contains("es")) {
 			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE);
+					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE, Printable.SCHEMA_TYPE);
 		} else {
 			assertThat(allSchemaTypesWithSecurity()).doesNotContain(Category.SCHEMA_TYPE);
 		}

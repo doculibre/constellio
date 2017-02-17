@@ -3,7 +3,12 @@ package com.constellio.app.services.migrations.scripts;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import com.constellio.app.modules.reports.wrapper.Printable;
+import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +18,9 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CoreMigrationTo_7_1 implements MigrationScript {
 
@@ -26,10 +34,17 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
             throws Exception {
-
+        givenNewPermissionsToRGDandADMRoles(collection, appLayerFactory.getModelLayerFactory());
         new CoreSchemaAlterationFor7_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 
+    }
+
+    private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
+        Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
+        List<String> newAdmPermissions = new ArrayList<>();
+        newAdmPermissions.add(CorePermissions.MANAGE_LABELS);
+        modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(newAdmPermissions));
     }
 
     private class CoreSchemaAlterationFor7_1 extends MetadataSchemasAlterationHelper {
