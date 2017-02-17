@@ -291,12 +291,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void loadLazyTransientMetadatas(RecordImpl record) {
+	public void loadLazyTransientMetadatas(Record record) {
 		recordServices.loadLazyTransientMetadatas(record);
 	}
 
 	@Override
-	public void reloadEagerTransientMetadatas(RecordImpl record) {
+	public void reloadEagerTransientMetadatas(Record record) {
 		recordServices.reloadEagerTransientMetadatas(record);
 	}
 }

@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProc
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -243,13 +244,41 @@ public class BatchProcessingPresenterService {
 
 	private BatchProcessResults toBatchProcessResults(Transaction transaction) {
 
+		MetadataSchemaTypes types = schemas.getTypes();
 		List<BatchProcessRecordModifications> recordModificationses = new ArrayList<>();
 		for (Record record : transaction.getModifiedRecords()) {
 
+			Record originalRecord = record.getCopyOfOriginalRecord();
+			List<Metadata> modifiedMetadatas = new ArrayList<>();
+			modifiedMetadatas.addAll(record.getModifiedMetadatas(types));
+			recordServices.recalculate(originalRecord);
+			recordServices.recalculate(record);
+			//			recordServices.loadLazyTransientMetadatas(originalRecord);
+			//			recordServices.reloadEagerTransientMetadatas(originalRecord);
+			//			recordServices.loadLazyTransientMetadatas(record);
+			//			recordServices.reloadEagerTransientMetadatas(record);
+
+			for (Metadata metadata : types.getSchema(record.getSchemaCode()).getLazyTransientMetadatas()) {
+				if (!LangUtils.isEqual(record.get(metadata), originalRecord.get(metadata))) {
+					if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
+							.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
+						modifiedMetadatas.add(metadata);
+					}
+				}
+			}
+
+			for (Metadata metadata : types.getSchema(record.getSchemaCode()).getEagerTransientMetadatas()) {
+				if (!LangUtils.isEqual(record.get(metadata), originalRecord.get(metadata))) {
+					if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
+							.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
+						modifiedMetadatas.add(metadata);
+					}
+				}
+			}
+
 			List<BatchProcessRecordFieldModification> recordFieldModifications = new ArrayList<>();
 			List<BatchProcessPossibleImpact> impacts = new ArrayList<>();
-			Record originalRecord = record.getCopyOfOriginalRecord();
-			for (Metadata metadata : record.getModifiedMetadatas(schemas.getTypes())) {
+			for (Metadata metadata : modifiedMetadatas) {
 				if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
 						.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
 					String valueBefore = convertToString(metadata, originalRecord.get(metadata));

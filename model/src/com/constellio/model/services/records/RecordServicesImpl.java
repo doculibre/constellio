@@ -321,7 +321,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
 		Record record = new RecordImpl(recordDTO, allFields);
-		newAutomaticMetadataServices().loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+		newAutomaticMetadataServices()
+				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 		return record;
 	}
 
@@ -358,7 +359,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record getDocumentById(String id) {
 		try {
 			Record record = new RecordImpl(recordDao.get(id), true);
-			newAutomaticMetadataServices().loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 			recordsCaches.insert(record);
 			return record;
 
@@ -1031,16 +1033,18 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void recalculate(Record record) {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
-				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), new TransactionRecordsReindexation());
+				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), TransactionRecordsReindexation.ALL());
 	}
 
 	@Override
-	public void loadLazyTransientMetadatas(RecordImpl record) {
-		newAutomaticMetadataServices().loadTransientLazyMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+	public void loadLazyTransientMetadatas(Record record) {
+		newAutomaticMetadataServices()
+				.loadTransientLazyMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 	}
 
 	@Override
-	public void reloadEagerTransientMetadatas(RecordImpl record) {
-		newAutomaticMetadataServices().loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+	public void reloadEagerTransientMetadatas(Record record) {
+		newAutomaticMetadataServices()
+				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
 	}
 }
