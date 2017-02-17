@@ -20,6 +20,7 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.io.IOUtils;
 
@@ -106,6 +107,11 @@ public class RMMigrationTo6_7 implements MigrationScript {
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.CONTAINER_TYPE)
                     .setType(MetadataValueType.REFERENCE).setMultivalue(true).setEssential(false).setUndeletable(true)
                     .defineReferencesTo(typesBuilder.getSchemaType(ContainerRecordType.SCHEMA_TYPE));
+
+            MetadataBuilder parentStorage = typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.PARENT_STORAGE_SPACE);
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.NUMBER_OF_CHILD)
+                    .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+                    .defineDataEntry().asReferenceCount(parentStorage);
         }
     }
 

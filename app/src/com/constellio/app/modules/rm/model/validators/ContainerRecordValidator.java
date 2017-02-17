@@ -69,7 +69,7 @@ public class ContainerRecordValidator implements RecordValidator {
 		while (currentStorage != null) {
 
 			if(currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
-				containerRecordTypeList = currentStorage.getContainerType();
+//				containerRecordTypeList = currentStorage.getContainerType();
 				break;
 			} else if(currentStorage.getParentStorageSpace() == null) {
 				break;

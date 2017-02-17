@@ -41,9 +41,6 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public void typeSelected(String type) {
 		String newSchemaCode = getLinkedSchemaCodeOf(type);
-		if (container.getSchema().getCode().equals(newSchemaCode)) {
-			return;
-		}
 		if (editMode) {
 			view.setType(container.<String>get(ContainerRecord.TYPE));
 			view.showErrorMessage($("AddEditContainerView.cannotChangeSchema"));
@@ -89,11 +86,11 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			String localCode = metadataVO.getLocalCode();
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
-				if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (metadata.getDataEntry().getType() == DataEntryType.MANUAL && !metadata.isSystemReserved()) {
 					container.set(metadata, record.get(metadataVO));
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
-				// Do nothing
+				e.printStackTrace();
 			}
 		}
 		return new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());

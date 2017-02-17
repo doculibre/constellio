@@ -42,14 +42,14 @@ public class StorageSpaceValidator implements RecordValidator {
 			params.getValidationErrors().add(StorageSpaceValidator.class, CHILD_CAPACITY_MUST_BE_LESSER_OR_EQUAL_TO_PARENT_CAPACITY, parameters);
 		}
 
-		List<ContainerRecordType> containerRecordTypeList = storageSpace.getContainerType();
-		if(!canContain(parentStorageSpace, containerRecordTypeList, params.getRecordProvider(), params.getTypes())) {
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put(CONTAINER_TYPE, formatToParameter(containerRecordTypeList));
-			parameters.put(PARENT_CONTAINER_TYPE, formatToParameter(parentStorageSpace.getContainerType()));
-
-			params.getValidationErrors().add(StorageSpaceValidator.class, CONTAINER_TYPE_MUST_BE_INCLUDED_IN_PARENT_STORAGE_SPACE, parameters);
-		}
+//		List<ContainerRecordType> containerRecordTypeList = storageSpace.getContainerType();
+//		if(!canContain(parentStorageSpace, containerRecordTypeList, params.getRecordProvider(), params.getTypes())) {
+//			Map<String, Object> parameters = new HashMap<>();
+//			parameters.put(CONTAINER_TYPE, formatToParameter(containerRecordTypeList));
+//			parameters.put(PARENT_CONTAINER_TYPE, formatToParameter(parentStorageSpace.getContainerType()));
+//
+//			params.getValidationErrors().add(StorageSpaceValidator.class, CONTAINER_TYPE_MUST_BE_INCLUDED_IN_PARENT_STORAGE_SPACE, parameters);
+//		}
 	}
 
 	private String formatToParameter(Long parameter) {
@@ -75,7 +75,7 @@ public class StorageSpaceValidator implements RecordValidator {
 		while (currentStorage != null) {
 
 			if(currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
-				containerRecordTypeList = currentStorage.getContainerType();
+//				containerRecordTypeList = currentStorage.getContainerType();
 				break;
 			} else if(currentStorage.getParentStorageSpace() == null) {
 				break;

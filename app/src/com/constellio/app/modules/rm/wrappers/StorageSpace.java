@@ -40,6 +40,8 @@ public class StorageSpace extends RecordWrapper {
 
 	public static final String CONTAINER_TYPE = "containerType";
 
+	public static final String NUMBER_OF_CHILD = "numberOfChild";
+
 	public StorageSpace(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -159,7 +161,11 @@ public class StorageSpace extends RecordWrapper {
 		return this;
 	}
 
-	public List<ContainerRecordType> getContainerType() {
+	public List<String> getContainerType() {
 		return get(CONTAINER_TYPE);
+	}
+
+	public Double getNumberOfChild() {
+		return get(NUMBER_OF_CHILD);
 	}
 }
