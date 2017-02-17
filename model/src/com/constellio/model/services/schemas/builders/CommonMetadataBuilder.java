@@ -18,13 +18,13 @@ import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalcul
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
-import com.constellio.model.services.schemas.calculators.TokensCalculator3;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 
 public class CommonMetadataBuilder {
@@ -61,6 +61,7 @@ public class CommonMetadataBuilder {
 	public static final String MARKED_FOR_REINDEXING = "markedForReindexing";
 	public static final String ATTACHED_ANCESTORS = "attachedAncestors";
 	public static final String ALL_REMOVED_AUTHS = "allRemovedAuths";
+	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -424,6 +425,19 @@ public class CommonMetadataBuilder {
 				}
 			}
 		});
+
+		metadata.put(SCHEMA_AUTOCOMPLETE_FIELD, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA_AUTOCOMPLETE_FIELD).setType(STRING)
+						.setMultivalue(true).setEssential(true)
+						.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
 	}
 
 	public void addCommonMetadataToAllExistingSchemas(MetadataSchemaTypesBuilder types) {

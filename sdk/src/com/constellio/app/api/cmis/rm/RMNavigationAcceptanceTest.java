@@ -124,7 +124,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		List<String> documentsInA05 = getModelLayerFactory().newSearchServices().searchRecordIds(from(rm.document.schemaType())
 				.where(rm.document.folder()).isEqualTo(records.folder_A05));
 
-		assertThatRecords(rm.searchEvents(ALL)).extracting("type", "username", "recordId").containsOnly(
+		assertThatRecords(rm.searchEvents(ALL)).extracting("type", "username", "recordId").contains(
 				tuple("view_folder", "gandalf", "A02"),
 				tuple("modify_folder", "gandalf", "A02"),
 				tuple("modify_folder", "gandalf", "A02"),

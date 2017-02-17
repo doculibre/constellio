@@ -229,7 +229,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("document_default_retentionRule", "1 (Rule #1)", "3 (Rule #3)"),
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
-				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T"),
+				tuple("document_default_autocomplete", "[-, baleine, de, livre, recettes]",
+						"[-, baleine, bouc, de, livre, recettes]")
+
 		);
 	}
 
@@ -275,16 +278,18 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_title", "Alouette", "Mon dossier")
+				tuple("folder_default_title", "Alouette", "Mon dossier"),
+				tuple("folder_default_autocomplete", "[alouette]", "[dossier, mon]")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_title", "Baleine", "Mon dossier")
+				tuple("folder_default_title", "Baleine", "Mon dossier"),
+				tuple("folder_default_autocomplete", "[baleine]", "[dossier, mon]")
 		);
 
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Alouette");
@@ -297,16 +302,18 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_title", "Alouette", "Mon dossier")
+				tuple("folder_default_title", "Alouette", "Mon dossier"),
+				tuple("folder_default_autocomplete", "[alouette]", "[dossier, mon]")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_title", "Baleine", "Mon dossier")
+				tuple("folder_default_title", "Baleine", "Mon dossier"),
+				tuple("folder_default_autocomplete", "[baleine]", "[dossier, mon]")
 		);
 
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
@@ -369,7 +376,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Alouette", "Mon dossier"),
@@ -387,10 +394,11 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_default_enumMeta", null, "Versé"),
 				tuple("folder_default_enumsMeta", "[]", "[Semi-actif, Actif]"),
 				tuple("folder_default_referencedFolderMeta", null, "A06 (Bison)"),
-				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
+				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]"),
+				tuple("folder_default_autocomplete", "[alouette]", "[dossier, mon]")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Baleine", "Mon dossier"),
@@ -408,7 +416,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_default_enumMeta", null, "Versé"),
 				tuple("folder_default_enumsMeta", "[]", "[Semi-actif, Actif]"),
 				tuple("folder_default_referencedFolderMeta", null, "A06 (Bison)"),
-				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
+				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]"),
+				tuple("folder_default_autocomplete", "[baleine]", "[dossier, mon]")
 		);
 
 	}
