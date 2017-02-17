@@ -426,16 +426,16 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		recordServices.physicallyDelete(records.zeSchemaRecord1(), User.GOD);
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 
-		//		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
-		//				tuple("zeSchemaRecord2", 2.0, 0.0),
-		//				tuple("zeSchemaRecord3", 3.0, 0.42857142857142855),
-		//				tuple("zeSchemaRecord4", 4.0, 0.5714285714285714)
-		//		);
-		//
-		//		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
-		//				tuple("anotherSchemaRecord1", 1.0, 10.0, null),
-		//				tuple("anotherSchemaRecord2", 7.0, 70.0, 7.0)
-		//		);
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord2", 2.0, 0.0),
+				tuple("zeSchemaRecord3", 3.0, 0.42857142857142855),
+				tuple("zeSchemaRecord4", 4.0, 0.5714285714285714)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 0.0, 00.0, 7.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 7.0)
+		);
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", 7.0, 70.0),
@@ -468,10 +468,6 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		recordServices.physicallyDelete(records.zeSchemaRecord4(), User.GOD);
 		waitForAgregatedMetadatasCalculation();
 
-		//TODO Fix this problem!! It should not be required to reindex
-		//		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "refCount").containsOnly(
 				tuple("anotherSchemaRecord1", 1.0),
 				tuple("anotherSchemaRecord2", 2.0)
@@ -479,9 +475,6 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		recordServices.update(records.zeSchemaRecord2().set(zeSchema.metadata("ref"), "anotherSchemaRecord1"));
 		waitForAgregatedMetadatasCalculation();
-
-		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "refCount").containsOnly(
 				tuple("anotherSchemaRecord1", 2.0),
