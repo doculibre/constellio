@@ -157,7 +157,6 @@ public class MetadataSchemaTypeBuilder {
 		return newLabels;
 	}
 
-	@Deprecated
 	public MetadataSchemaBuilder createCustomSchema(String localCode) {
 		for (MetadataSchemaBuilder customSchema : customSchemas) {
 			if (localCode.equals(customSchema.getLocalCode())) {
