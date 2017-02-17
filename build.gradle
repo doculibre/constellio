@@ -67,6 +67,9 @@ allprojects {
             name "sonatype vaadin"
             url "https://oss.sonatype.org/content/repositories/vaadin/"
         }
+        flatDir {
+            dirs 'libs/'
+        }
     }
 
     dependencies {
@@ -102,6 +105,16 @@ allprojects {
         compile "javax.servlet.jsp:jsp-api:2.2"
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
+
+        compile files("${rootDir}/libs/commons-beanutils-1.8.2.jar")
+        compile files("${rootDir}/libs/commons-collections-3.2.1.jar")
+        compile files("${rootDir}/libs/commons-dbcp-1.2.2.jar")
+        compile files("${rootDir}/libs/commons-digester-2.1.jar")
+        compile files("${rootDir}/libs/groovy-all-2.0.1.jar")
+        compile files("${rootDir}/libs/iText-2.1.7.jar")
+        compile files("${rootDir}/libs/jasperreports-6.3.0.jar")
+        compile files("${rootDir}/libs/com.lowagie.text-2.1.7.jar")
+        compile files("${rootDir}/libs/barbecue-1.5-beta1.jar")
     }
 
     configurations {
@@ -125,6 +138,23 @@ war {
         }
         from("reportsRecource/") {
             into("resources/reports")
+        }
+    }
+
+    if (new File(rootDir, "../constellio-plugins").exists()) {
+        def updatePlugins = [":plugins:plugin001", ":plugins:plugin002", ":plugins:plugin003", ":plugins:plugin004",
+                             ":plugins:plugin005", ":plugins:plugin006", ":plugins:plugin007", ":plugins:plugin008",
+                             ":plugins:plugin009", ":plugins:plugin010", ":plugins:plugin012", ":plugins:plugin015",
+                             ":plugins:plugin016", ":plugins:plugin017", ":plugins:plugin018", ":plugins:plugin019",
+                             ":plugins:plugin020"]
+        def installPlugins = [':plugins:plugin023']
+
+        from(files(updatePlugins.collect { project(it).jar.outputs.files })) {
+            into "plugins-to-update"
+        }
+
+        from(files(installPlugins.collect { project(it).jar.outputs.files })) {
+            into "plugins-to-install"
         }
     }
 

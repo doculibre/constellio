@@ -15,6 +15,7 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -204,8 +205,12 @@ public class MetadataNetworkBuilder {
 
 		} else if (DataEntryType.AGGREGATED == metadata.getDataEntry().getType()) {
 			AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
-			List<Metadata> metadatas = asList(builder.metadata(dataEntry.getReferenceMetadata()),
-					builder.metadata(dataEntry.getInputMetadata()));
+
+			List<Metadata> metadatas = new ArrayList<>();
+			metadatas.add(builder.metadata(dataEntry.getReferenceMetadata()));
+			if (dataEntry.getAgregationType() == AggregationType.SUM) {
+				metadatas.add(builder.metadata(dataEntry.getInputMetadata()));
+			}
 			builder.addNetworkLink(metadata, metadatas, true);
 
 		}

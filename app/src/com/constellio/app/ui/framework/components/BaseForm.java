@@ -207,6 +207,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			fieldLayout = tabs.get(tabCaption);
 			if (fieldLayout == null) {
 				fieldLayout = new VerticalLayout();
+				fieldLayout.setWidth("100%");
 				tabs.put(tabCaption, fieldLayout);
 				fieldLayout.setSpacing(true);
 				if (tabIcon != null) {

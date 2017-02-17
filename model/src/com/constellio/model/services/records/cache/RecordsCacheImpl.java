@@ -1,19 +1,28 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
@@ -22,6 +31,9 @@ import com.constellio.model.services.search.query.logical.condition.SchemaFilter
 
 public class RecordsCacheImpl implements RecordsCache {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheImpl.class);
+
+	String collection;
 	SchemaUtils schemaUtils = new SchemaUtils();
 
 	Map<String, RecordHolder> cacheById = new HashMap<>();
@@ -31,6 +43,15 @@ public class RecordsCacheImpl implements RecordsCache {
 	Map<String, PermanentCache> permanentCaches = new HashMap<>();
 
 	Map<String, CacheConfig> cachedTypes = new HashMap<>();
+
+	ModelLayerFactory modelLayerFactory;
+	SearchServices searchServices;
+
+	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
+		this.collection = collection;
+		this.modelLayerFactory = modelLayerFactory;
+		this.searchServices = modelLayerFactory.newSearchServices();
+	}
 
 	public boolean isCached(String id) {
 		RecordHolder holder = cacheById.get(id);
@@ -269,6 +290,16 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		recordByMetadataCache.put(cacheConfig.getSchemaType(), new RecordByMetadataCache(cacheConfig));
+
+		if (cacheConfig.isLoadedInitially()) {
+			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
+			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
+			for (Iterator<Record> it = searchServices.recordsIterator(from(schemaType).returnAll()); it.hasNext(); ) {
+				insert(it.next());
+			}
+		}
+
 	}
 
 	@Override

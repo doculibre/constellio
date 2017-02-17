@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtensio
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
@@ -154,7 +155,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_5_50(),
 				new RMMigrationTo6_5_54(),
 				new RMMigrationTo6_6(),
-				new RMMigrationTo6_7()
+				new RMMigrationTo6_7(),
+				new RMMigrationTo7_1()
 		);
 	}
 
@@ -192,6 +194,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public void configureNavigation(NavigationConfig config) {
 		RMNavigationConfiguration.configureNavigation(config);
 	}
+
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
@@ -243,6 +246,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 
 		extensions.schemaTypeAccessExtensions.add(new RMGenericRecordPageExtension());
+		extensions.schemaTypeAccessExtensions.add(new LabelSchemaRestrictionPageExtension());
 		extensions.taxonomyAccessExtensions.add(new RMTaxonomyPageExtension(collection));
 		extensions.pageAccessExtensions.add(new RMModulePageExtension());
 		extensions.downloadContentVersionLinkExtensions.add(new RMDownloadContentVersionLinkExtension());
@@ -297,6 +301,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
+
 		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
 			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
 			Iterator<Record> authsIterator = modelLayerFactory.newSearchServices().recordsIterator(new LogicalSearchQuery(

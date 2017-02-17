@@ -400,11 +400,15 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public boolean isTypeInPrincipalTaxonomy(MetadataSchemaType type) {
-		Taxonomy typeTaxonomy = getTaxonomyFor(type.getCollection(), type.getCode());
+		return isTypeInPrincipalTaxonomy(type.getCollection(), type.getCode());
+	}
+
+	public boolean isTypeInPrincipalTaxonomy(String collection, String typeCode) {
+		Taxonomy typeTaxonomy = getTaxonomyFor(collection, typeCode);
 		if (typeTaxonomy == null) {
 			return false;
 		} else {
-			Taxonomy principalTaxonomy = getPrincipalTaxonomy(type.getCollection());
+			Taxonomy principalTaxonomy = getPrincipalTaxonomy(collection);
 			return principalTaxonomy != null && principalTaxonomy.getCode().equals(typeTaxonomy.getCode());
 		}
 	}

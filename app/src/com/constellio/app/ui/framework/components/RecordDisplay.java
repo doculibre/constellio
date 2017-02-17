@@ -75,6 +75,7 @@ public class RecordDisplay extends BaseDisplay {
 			verticalLayout.addStyleName("record-comments-layout");
 			verticalLayout.setWidth("100%");
 			verticalLayout.setSpacing(true);
+			verticalLayout.addStyleName("record-comments-editor");
 			mainLayout.addComponent(verticalLayout);
 		} else {
 			super.addCaptionAndDisplayComponent(captionLabel, displayComponent);

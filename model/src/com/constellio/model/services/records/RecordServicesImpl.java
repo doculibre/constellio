@@ -994,7 +994,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	private void validateNotTooMuchRecords(Transaction transaction) {
-		if (transaction.getRecords().size() > 10000) {
+		if (transaction.getRecords().size() > 100000) {
 			throw new RecordServicesRuntimeException_TransactionHasMoreThan100000Records(transaction.getRecords().size());
 
 		} else if (transaction.getRecords().size() > 1000) {

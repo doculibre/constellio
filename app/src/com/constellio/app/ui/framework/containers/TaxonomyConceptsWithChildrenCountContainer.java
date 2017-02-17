@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
@@ -75,8 +76,8 @@ public class TaxonomyConceptsWithChildrenCountContainer extends ContainerAdapter
 			@Override
 			public Integer getValue() {
 				Record record = modelLayerFactory.newRecordServices().getDocumentById(recordVO.getId());
-				LogicalSearchQuery query = modelLayerFactory.newTaxonomiesSearchService()
-						.getChildConceptsQuery(taxonomy, record, new TaxonomiesSearchOptions());
+				LogicalSearchQuery query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
+						.getChildNodesQuery(taxonomy, record, new TaxonomiesSearchOptions());
 				return (int) modelLayerFactory.newSearchServices().getResultsCount(query);
 			}
 

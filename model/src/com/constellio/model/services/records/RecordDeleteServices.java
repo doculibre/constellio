@@ -4,6 +4,7 @@ import static com.constellio.model.services.records.RecordLogicalDeleteOptions.L
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
@@ -53,6 +54,7 @@ import com.constellio.model.services.records.RecordServicesException.ValidationE
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
+import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -315,6 +317,11 @@ public class RecordDeleteServices {
 
 		if (recordsWithUnremovableReferences.isEmpty()) {
 
+			Set<String> ids = new HashSet<>();
+			for (Record aRecord : records) {
+				ids.addAll(new RecordsToReindexResolver(types).findRecordsToReindexFromRecord(aRecord, true));
+			}
+
 			deleteContents(records);
 			List<RecordDTO> recordsDTO = newRecordUtils().toRecordDTOList(records);
 
@@ -323,6 +330,16 @@ public class RecordDeleteServices {
 						new TransactionDTO(RecordsFlushing.NOW).withDeletedRecords(recordsDTO));
 			} catch (OptimisticLocking optimisticLocking) {
 				throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId(), optimisticLocking);
+			}
+
+			Transaction transaction = new Transaction();
+			transaction.add(recordServices.getDocumentById(record.getCollection()));
+			transaction.addAllRecordsToReindex(ids);
+
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
 			}
 
 			for (Record hierarchyRecord : records) {
@@ -614,7 +631,7 @@ public class RecordDeleteServices {
 			return false;
 		}
 		boolean hasReferences = false;
-		List<String> paths = record.getList(Schemas.PARENT_PATH);
+		List<String> paths = parentPaths(record);
 
 		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 			List<Metadata> typeReferencesMetadata = type.getAllNonParentReferences();

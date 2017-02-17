@@ -22,6 +22,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordWrapper implements Serializable, CollectionObject {
@@ -136,7 +137,7 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	}
 
 	public List<String> getParentPaths() {
-		return wrappedRecord.getList(Schemas.PARENT_PATH);
+		return RecordUtils.parentPaths(wrappedRecord);
 	}
 
 	public List<String> getRemovedAuthorizations() {

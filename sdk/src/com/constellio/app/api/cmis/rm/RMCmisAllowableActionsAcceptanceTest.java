@@ -39,6 +39,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -295,14 +296,12 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void printTaxonomies(User user) {
-		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		StringBuilder stringBuilder = new StringBuilder();
 		for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(zeCollection)) {
 			stringBuilder.append(taxonomy.getCode() + " : \n");
-			for (Record record : taxonomiesSearchServices
+			for (Record record : new ConceptNodesTaxonomySearchServices(getModelLayerFactory())
 					.getRootConcept(zeCollection, taxonomy.getCode(), new TaxonomiesSearchOptions().setRows(100))) {
-
 				printConcept(user, taxonomy.getCode(), record, 1, stringBuilder);
 			}
 			stringBuilder.append("\n\n");

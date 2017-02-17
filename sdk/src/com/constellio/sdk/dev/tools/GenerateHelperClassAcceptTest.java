@@ -9,6 +9,7 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocu
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -74,7 +75,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(Facet.DEFAULT_SCHEMA, Facet.class);
 		wrappers.put(UserDocument.DEFAULT_SCHEMA, UserDocument.class);
 		wrappers.put(SolrAuthorizationDetails.DEFAULT_SCHEMA, SolrAuthorizationDetails.class);
-
+		wrappers.put(Printable.DEFAULT_SCHEMA, Printable.class);
 		System.out.println(header());
 
 		printGeneratedSchemas(wrappers, false);
@@ -104,6 +105,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		wrappers.put(ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.class);
 		wrappers.put(StorageSpace.DEFAULT_SCHEMA, StorageSpace.class);
+		wrappers.put(PrintableLabel.SCHEMA_NAME, PrintableLabel.class);
 
 		System.out.println(header());
 

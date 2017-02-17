@@ -124,14 +124,21 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					return presenter.getTemplates();
 				}
 			};
-			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
+			final LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
 					$("SearchView.printLabels"),
-					this,
-					labelTemplatesFactory,
-					presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
+					getConstellioFactories().getAppLayerFactory(),
+					getSessionContext().getCurrentCollection(),
+					schemaType, getSelectedRecordIds(), getSessionContext().getCurrentUser().getUsername());
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
+			labelsButton.addClickListener(new Button.ClickListener() {
+				@Override
+				public void buttonClick(Button.ClickEvent event) {
+					labelsButton.setIds(getSelectedRecordIds());
+				}
+			});
 			selectionActions.add(labelsButton);
+			System.out.println(getSelectedRecordIds());
 		}
 
 		if (schemaType.equals(Document.SCHEMA_TYPE)) {

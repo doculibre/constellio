@@ -6,18 +6,16 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.vaadin.data.Container;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
-import com.constellio.app.ui.framework.buttons.ReportButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -135,8 +133,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		slip.setEnabled(presenter.canPrintReports());
 		buttons.add(slip);
 
-		Button labels = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-				presenter.getTemplates(), presenter.getLabelsReportFactory());
+		Button labels = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection(), ContainerRecord.SCHEMA_TYPE, presenter.getContainerId(), getSessionContext().getCurrentUser().getUsername());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 

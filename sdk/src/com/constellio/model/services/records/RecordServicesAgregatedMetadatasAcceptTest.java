@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -22,6 +23,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
@@ -38,8 +40,7 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	RecordServicesAgregatedMetadatasAcceptTestRecords records = new RecordServicesAgregatedMetadatasAcceptTestRecords();
 	SearchServices searchServices;
 
-	@Before
-	public void setUp()
+	public void setUpWithAgregatedSumMetadatas()
 			throws Exception {
 		givenBackgroundThreadsEnabled();
 		defineSchemasManager().using(schemas.with(new MetadataSchemaTypesConfigurator() {
@@ -79,11 +80,33 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 	}
 
+	public void setUpWithAgregatedReferenceCountMetadatas()
+			throws Exception {
+		givenBackgroundThreadsEnabled();
+		defineSchemasManager().using(schemas.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaTypeBuilder zeType = schemaTypes.getSchemaType(zeSchema.typeCode());
+				MetadataSchemaTypeBuilder anotherType = schemaTypes.getSchemaType(anotherSchema.typeCode());
+				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType(thirdSchema.typeCode());
+
+				MetadataBuilder zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
+
+				MetadataBuilder anotherSchemaRefCount = anotherType.getDefaultSchema().create("refCount").setType(NUMBER)
+						.defineDataEntry().asReferenceCount(zeRef);
+			}
+		}));
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+
+	}
+
 	@Test
 	public void givenMetadatasCreatingCyclicDependenciesOverSchemaTypesThenDividedByLevels()
 			throws Exception {
 
-		//schemas.getTypes().get
+		setUpWithAgregatedSumMetadatas();
+
 		assertThat(getNetworkLinks()).containsOnly(
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_sum", 1),
@@ -106,6 +129,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAgregatedSumMetadataWhenAddingRecordsInSameTransactionThenGoodSums()
 			throws Exception {
+		setUpWithAgregatedSumMetadatas();
+
 		records.setupInOneTransaction(schemas, getModelLayerFactory());
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
@@ -130,6 +155,7 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAgregatedSumMetadataWhenReindexingThenGoodValues()
 			throws Exception {
+		setUpWithAgregatedSumMetadatas();
 		records.setupWithNothingComputed(schemas, getModelLayerFactory());
 
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
@@ -175,6 +201,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAgregatedSumMetadataWhenAddingRecordsInMultipleTransactionsThenGoodSums()
 			throws Exception {
+		setUpWithAgregatedSumMetadatas();
+
 		records.setupInMultipleTransaction(schemas, getModelLayerFactory());
 
 		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
@@ -199,6 +227,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Test
 	public void givenModifiedRecordNumberMetadatasThenUpdateSums()
 			throws Exception {
+		setUpWithAgregatedSumMetadatas();
+
 		records.setupInOneTransaction(schemas, getModelLayerFactory());
 
 		Transaction transaction = new Transaction();
@@ -228,6 +258,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Test
 	public void givenRemovedRecordNumberMetadatasThenUpdateSums()
 			throws Exception {
+		setUpWithAgregatedSumMetadatas();
+
 		records.setupInOneTransaction(schemas, getModelLayerFactory());
 
 		Transaction transaction = new Transaction();
@@ -257,6 +289,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Test
 	public void givenModifiedRecordReferenceMetadatasThenUpdateSums()
 			throws Exception {
+		setUpWithAgregatedSumMetadatas();
+
 		records.setupInOneTransaction(schemas, getModelLayerFactory());
 
 		Transaction transaction = new Transaction();
@@ -287,6 +321,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Test
 	public void givenRemovedRecordReferenceMetadatasThenUpdateSums()
 			throws Exception {
+		setUpWithAgregatedSumMetadatas();
+
 		records.setupInOneTransaction(schemas, getModelLayerFactory());
 
 		Transaction transaction = new Transaction();
@@ -355,6 +391,113 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
+	}
+
+	@Test
+	public void givenDeletedRecordThenUpdateSums()
+			throws Exception {
+		setUpWithAgregatedSumMetadatas();
+
+		records.setupInOneTransaction(schemas, getModelLayerFactory());
+
+		Transaction transaction = new Transaction();
+		transaction.add(records.zeSchemaRecord2().set(zeSchema.metadata("ref"), null));
+		recordServices.execute(transaction);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0, 10.0, 8.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 8.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 8.0, 80.0),
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
+		);
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.125),
+				tuple("zeSchemaRecord2", 2.0, 0.0),
+				tuple("zeSchemaRecord3", 3.0, 0.375),
+				tuple("zeSchemaRecord4", 4.0, 0.5)
+		);
+
+		recordServices.logicallyDelete(records.zeSchemaRecord1(), User.GOD);
+		recordServices.physicallyDelete(records.zeSchemaRecord1(), User.GOD);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord2", 2.0, 0.0),
+				tuple("zeSchemaRecord3", 3.0, 0.42857142857142855),
+				tuple("zeSchemaRecord4", 4.0, 0.5714285714285714)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 0.0, 00.0, 7.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 7.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 7.0, 70.0),
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
+		);
+
+	}
+
+	@Test
+	public void givenAgregatedReferenceCountWhenAddOrRemoveRecordsThenAgregatedMetadataUpdated()
+			throws Exception {
+		setUpWithAgregatedReferenceCountMetadatas();
+		records.setupEmpty(schemas, getModelLayerFactory());
+
+		tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "zeSchemaRecord1").set("ref", "anotherSchemaRecord1"));
+		tx.add(new TestRecord(zeSchema, "zeSchemaRecord2").set("ref", "anotherSchemaRecord2"));
+		tx.add(new TestRecord(zeSchema, "zeSchemaRecord3").set("ref", "anotherSchemaRecord2"));
+		tx.add(new TestRecord(zeSchema, "zeSchemaRecord4").set("ref", "anotherSchemaRecord2"));
+		tx.add(new TestRecord(anotherSchema, "anotherSchemaRecord1"));
+		tx.add(new TestRecord(anotherSchema, "anotherSchemaRecord2"));
+		executeAndWait(tx);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "refCount").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0),
+				tuple("anotherSchemaRecord2", 3.0)
+		);
+
+		recordServices.logicallyDelete(records.zeSchemaRecord4(), User.GOD);
+		recordServices.physicallyDelete(records.zeSchemaRecord4(), User.GOD);
+		waitForAgregatedMetadatasCalculation();
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "refCount").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0),
+				tuple("anotherSchemaRecord2", 2.0)
+		);
+
+		recordServices.update(records.zeSchemaRecord2().set(zeSchema.metadata("ref"), "anotherSchemaRecord1"));
+		waitForAgregatedMetadatasCalculation();
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "refCount").containsOnly(
+				tuple("anotherSchemaRecord1", 2.0),
+				tuple("anotherSchemaRecord2", 1.0)
+		);
+
+		recordServices.add(new TestRecord(zeSchema).set(zeSchema.metadata("ref"), "anotherSchemaRecord1"));
+		waitForAgregatedMetadatasCalculation();
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "refCount").containsOnly(
+				tuple("anotherSchemaRecord1", 3.0),
+				tuple("anotherSchemaRecord2", 1.0)
+		);
+	}
+
+	private void executeAndWait(Transaction tx)
+			throws RecordServicesException {
+		recordServices.execute(tx);
+		waitForAgregatedMetadatasCalculation();
+	}
+
+	private void waitForAgregatedMetadatasCalculation() {
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 	}
 
 	private List<Tuple> getNetworkLinks() {

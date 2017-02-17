@@ -1,19 +1,27 @@
 package com.constellio.model.services.contents;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.contents.ContentImplRuntimeException.*;
-import com.constellio.model.utils.Lazy;
+import java.math.BigDecimal;
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustNotBeCheckedOut;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_NoSuchVersion;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
+import com.constellio.model.utils.Lazy;
 
 public class ContentImpl implements Content {
 
@@ -87,6 +95,19 @@ public class ContentImpl implements Content {
 		content.id = id;
 		content.currentVersion = currentVersion;
 		content.history = history;
+		return content;
+	}
+
+	public static ContentImpl createSystemContent(String filename, ContentVersionDataSummary newVersion) {
+		validateFilenameArgument(filename);
+		String fileName = correctFilename(filename);
+		String id = UUID.randomUUID().toString();
+		boolean major = true;
+		ContentImpl content = new ContentImpl();
+		content.id = id;
+		content.history = new ArrayList<>();
+		content.dirty = true;
+		content.setNewCurrentVersion(new ContentVersion(newVersion, fileName, "1.0", null, TimeProvider.getLocalDateTime(), null));
 		return content;
 	}
 

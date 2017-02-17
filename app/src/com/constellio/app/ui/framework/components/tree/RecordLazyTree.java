@@ -41,7 +41,7 @@ public class RecordLazyTree extends LazyTree<String> {
 	@Override
 	public Resource getItemIcon(Object itemId) {
 		boolean expanded = isExpanded(itemId);
-		return itemsConverter.getIcon((String) itemId, expanded);
+		return getDataProvider().getIcon((String) itemId, expanded);
 	}
 
 	@Override
