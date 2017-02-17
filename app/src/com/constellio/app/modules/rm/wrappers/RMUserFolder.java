@@ -15,15 +15,17 @@ public class RMUserFolder extends UserFolder {
 
     public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 
-    public RMUserFolder(Record record, MetadataSchemaTypes types, String typeRequirement) {
-        super(record, types, typeRequirement);
+    public static final String PARENT_FOLDER = "parentFolder";
+
+    public RMUserFolder(Record record, MetadataSchemaTypes types) {
+        super(record, types);
     }
 
     public RetentionRule getRetentionRule() {
         return get(RETENTION_RULE);
     }
 
-    public UserFolder setRetentionRule(RetentionRule retentionRule) {
+    public RMUserFolder setRetentionRule(RetentionRule retentionRule) {
         set(RETENTION_RULE, retentionRule);
         return this;
     }
@@ -32,7 +34,7 @@ public class RMUserFolder extends UserFolder {
         return get(CATEGORY);
     }
 
-    public UserFolder setCategory(Category category) {
+    public RMUserFolder setCategory(Category category) {
         set(CATEGORY, category);
         return this;
     }
@@ -41,8 +43,17 @@ public class RMUserFolder extends UserFolder {
         return get(ADMINISTRATIVE_UNIT);
     }
 
-    public UserFolder setAdministrativeUnit(AdministrativeUnit administrativeUnit) {
+    public RMUserFolder setAdministrativeUnit(AdministrativeUnit administrativeUnit) {
         set(ADMINISTRATIVE_UNIT, administrativeUnit);
         return this;
+    }
+
+    public RMUserFolder setParentFolder(Folder folder) {
+        set(PARENT_FOLDER, folder);
+        return this;
+    }
+
+    public Folder getParentFolder() {
+        return get(PARENT_FOLDER);
     }
 }
