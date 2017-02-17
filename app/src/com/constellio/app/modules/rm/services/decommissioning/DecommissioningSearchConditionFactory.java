@@ -136,35 +136,35 @@ public class DecommissioningSearchConditionFactory {
 
 	public LogicalSearchCondition documentTransfer(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.defaultDocumentSchema().get(SAME_SEMI_ACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.document.sameSemiActiveFateAsFolder()).isFalse()
 				.andWhere(schemas.documentPlanifiedTransferDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition documentActiveToDeposit(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
 				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition documentActiveToDestroy(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
 				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition documentSemiActiveToDeposit(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
 				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition documentSemiActiveToDestroy(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
 				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}

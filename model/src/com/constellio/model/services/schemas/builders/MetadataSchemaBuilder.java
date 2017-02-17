@@ -28,6 +28,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Can
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
@@ -427,6 +428,17 @@ public class MetadataSchemaBuilder {
 		automaticMetadatas.addAll(autoMetas);
 		automaticMetadatas.addAll(autoMetasBasedOnSequence);
 
+		List<Metadata> lazyTransientsMetadatas = new ArrayList<>();
+		List<Metadata> eagerTransientsMetadatas = new ArrayList<>();
+		for (Metadata automaticMetadata : automaticMetadatas) {
+			if (automaticMetadata.getTransiency() == MetadataTransiency.TRANSIENT_EAGER) {
+				eagerTransientsMetadatas.add(automaticMetadata);
+			}
+			if (automaticMetadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY) {
+				lazyTransientsMetadatas.add(automaticMetadata);
+			}
+		}
+
 		List<RecordPreparationStep> steps = new ArrayList<>();
 		steps.add(new UpdateCreationModificationUsersAndDateRecordPreparationStep());
 		steps.add(new ValidateMetadatasRecordPreparationStep(newMetadatas.onlyManuals().onlyNonSystemReserved()));
@@ -449,7 +461,8 @@ public class MetadataSchemaBuilder {
 
 		List<Metadata> contentMetadatas = newMetadatas.onlyWithType(MetadataValueType.CONTENT)
 				.sortedUsing(new ContentsComparator());
-		return new MetadataSchemaCalculatedInfos(steps, automaticMetadatas, contentMetadatas);
+		return new MetadataSchemaCalculatedInfos(steps, automaticMetadatas, contentMetadatas, lazyTransientsMetadatas,
+				eagerTransientsMetadatas);
 	}
 
 	public static class ContentsComparator implements Comparator<Metadata> {

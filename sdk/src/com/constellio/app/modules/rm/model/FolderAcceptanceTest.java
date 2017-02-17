@@ -31,6 +31,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
+
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -42,6 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.*;
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
@@ -1532,6 +1534,26 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder4.getCloseDate()).isEqualTo(march31(2001));
 		assertThat(folder4.getExpectedTransferDate()).isEqualTo(march31(1995));
 		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2020));
+	}
+
+	@Test
+	public void test()
+			throws Exception {
+
+		//		Folder folderA7 = rm.wrapFolder(recordServices.getDocumentById(records.folder_A07));
+		//		assertThat(folderA7.getExpectedDepositDate()).isEqualTo(date(2007, 10, 31));
+		//		assertThat(folderA7.getExpectedDepositDate()).isEqualTo(date(2007, 10, 31));
+
+		Folder folder = rm.newFolderWithId("zeFolder").setTitle("Bouc").setAdministrativeUnitEntered(records.unitId_10a)
+				.setCategoryEntered(records.categoryId_Z112).setRetentionRuleEntered(records.ruleId_3)
+				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4));
+
+		recordServices.update(folder);
+
+		folder = rm.wrapFolder(recordServices.getDocumentById(folder.getId()));
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(date(2007, 12, 31));
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(date(2007, 12, 31));
+
 	}
 
 	@Test
