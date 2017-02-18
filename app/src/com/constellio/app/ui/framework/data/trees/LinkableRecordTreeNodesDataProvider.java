@@ -15,6 +15,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.taxonomies.FastContinueInfos;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.users.UserServices;
 
@@ -23,12 +24,20 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 	String taxonomyCode;
 	String schemaTypeCode;
 	boolean writeAccess;
+	TaxonomiesSearchFilter filter;
 
 	public LinkableRecordTreeNodesDataProvider(String taxonomyCode, String schemaTypeCode, boolean writeAccess) {
+		this(taxonomyCode, schemaTypeCode, writeAccess, null);
+	}
+
+	public LinkableRecordTreeNodesDataProvider(String taxonomyCode, String schemaTypeCode, boolean writeAccess,
+			TaxonomiesSearchFilter filter) {
 		this.taxonomyCode = taxonomyCode;
 		this.schemaTypeCode = schemaTypeCode;
 		this.writeAccess = writeAccess;
+		this.filter = filter;
 	}
+
 
 	@Override
 	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize, FastContinueInfos infos) {
@@ -56,7 +65,7 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		return taxonomyCode;
 	}
 
-	private TaxonomiesSearchOptions newTaxonomiesSearchOptions(int rows, int startRow, FastContinueInfos infos) {
+	protected TaxonomiesSearchOptions newTaxonomiesSearchOptions(int rows, int startRow, FastContinueInfos infos) {
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(rows, startRow, StatusFilter.ACTIVES)
 				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
@@ -64,6 +73,7 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		if (writeAccess) {
 			options.setRequiredAccess(Role.WRITE);
 		}
+		options.setFilter(filter);
 
 		return options;
 	}

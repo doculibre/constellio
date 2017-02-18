@@ -15,9 +15,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.common.params.SolrParams;
@@ -58,7 +56,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
@@ -332,25 +329,24 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		//givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
-		options.setLinkableItemsCondition(where(IDENTIFIER).isNot(containingText("Z"))
+		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
+
+		filter.setLinkableConceptsCondition(where(IDENTIFIER).isNot(containingText("Z"))
 				.andWhere(IDENTIFIER).isContainingText("2"));
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
-				.has(numFoundAndListSize(2))
-				//TODO Bug!
-				.has(linkable(records.categoryId_X))
-				.has(unlinkable(records.categoryId_Z))
-				//.has(unlinkable(records.categoryId_Z, records.categoryId_X))
-				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
-				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X))
+				.has(resultsInOrder(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X));
 
-		options.setLinkableItemsCondition(where(IDENTIFIER).is(containingText("Z")).orWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
+				.orWhere(IDENTIFIER).isContainingText("2"));
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
 				.has(numFoundAndListSize(2))
-				.has(linkable(records.categoryId_Z))
-				.has(unlinkable(records.categoryId_X))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
@@ -369,7 +365,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X110, options)
 				.is(empty());
 
-		options.setLinkableItemsCondition(where(IDENTIFIER).is(containingText("Z")).andWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
+				.andWhere(IDENTIFIER).isContainingText("2"));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100, options)
 				.has(numFoundAndListSize(2))

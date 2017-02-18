@@ -19,7 +19,7 @@ public class TaxonomiesSearchOptions {
 	private boolean hasChildrenFlagCalculated = true;
 	private boolean showInvisibleRecordsInLinkingMode = true;
 	private FastContinueInfos fastContinueInfos;
-	private LogicalSearchCondition linkableItemsCondition;
+	private TaxonomiesSearchFilter filter;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -43,7 +43,7 @@ public class TaxonomiesSearchOptions {
 		this.returnedMetadatasFilter = cloned.returnedMetadatasFilter;
 		this.showInvisibleRecordsInLinkingMode = cloned.showInvisibleRecordsInLinkingMode;
 		this.fastContinueInfos = cloned.fastContinueInfos;
-		this.linkableItemsCondition = cloned.linkableItemsCondition;
+		this.filter = cloned.filter;
 	}
 
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
@@ -151,13 +151,16 @@ public class TaxonomiesSearchOptions {
 
 	}
 
-	public LogicalSearchCondition getLinkableItemsCondition() {
-		return linkableItemsCondition;
+	public TaxonomiesSearchOptions(ReturnedMetadatasFilter returnedMetadatasFilter) {
+		this.returnedMetadatasFilter = returnedMetadatasFilter;
 	}
 
-	public TaxonomiesSearchOptions setLinkableItemsCondition(
-			LogicalSearchCondition linkableItemsCondition) {
-		this.linkableItemsCondition = linkableItemsCondition;
+	public TaxonomiesSearchFilter getFilter() {
+		return filter;
+	}
+
+	public TaxonomiesSearchOptions setFilter(TaxonomiesSearchFilter filter) {
+		this.filter = filter;
 		return this;
 	}
 }

@@ -9,9 +9,7 @@ import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childConceptsQuery;
@@ -182,13 +180,16 @@ public class TaxonomiesSearchServices {
 		public boolean isSelectingAConcept() {
 			return forSelectionOfSchemaType != null && taxonomy.getSchemaTypes().contains(forSelectionOfSchemaType.getCode());
 		}
+
+		public LogicalSearchCondition applyLinkableConceptsCondition(LogicalSearchCondition condition) {
+			if (options.getFilter() != null && options.getFilter().getLinkableConceptsCondition() != null) {
+				return allConditions(condition, options.getFilter().getLinkableConceptsCondition());
+			} else {
+				return condition;
+			}
+		}
 	}
 
-	private static class GetNonTaxonomyRecordsResponse {
-		SPEQueryResponse speQueryResponse;
-		int continueAtIndex;
-		List<Record> notYetShownChildrenWithoutAccessToInclude;
-	}
 
 	private LinkableTaxonomySearchResponse getVisibleChildrenRecords(GetChildrenContext ctx) {
 
@@ -444,15 +445,19 @@ public class TaxonomiesSearchServices {
 						.where(PATH_PARTS).isEqualTo(context.record.getId())
 						.andWhere(Schemas.LINKABLE).isTrueOrNull()
 						.andWhere(schemaTypeIsIn(context.taxonomy.getSchemaTypes()));
+
+				condition = context.applyLinkableConceptsCondition(condition);
+
 				facetQuery = newQueryForFacets(condition, null, context.options);
 
 				for (Record record : batch) {
 					facetQuery.addQueryFacet(CHILDREN_QUERY, "id:" + record.getId());
 				}
 			} else {
+				LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(
+						context, context.isHiddenInvisibleInTree());
 
-				facetQuery = newQueryForFacets(findVisibleNonTaxonomyRecordsInStructure(context,
-						context.isHiddenInvisibleInTree()), context);
+				facetQuery = newQueryForFacets(condition, context);
 			}
 			facetQuery.addQueryFacets(CHILDREN_QUERY, facetQueriesFor(context.taxonomy, batch));
 
@@ -584,8 +589,12 @@ public class TaxonomiesSearchServices {
 
 			LogicalSearchQuery facetQuery;
 			if (selectingAConcept) {
-				LogicalSearchCondition condition = fromTypeIn(taxonomy).where(VISIBLE_IN_TREES).isTrueOrNull().andWhere(LINKABLE)
-						.isTrueOrNull();
+				LogicalSearchCondition condition = fromTypeIn(taxonomy)
+						.where(VISIBLE_IN_TREES).isTrueOrNull()
+						.andWhere(LINKABLE).isTrueOrNull();
+				if (options.getFilter() != null && options.getFilter().getLinkableConceptsCondition() != null) {
+					condition = allConditions(condition, options.getFilter().getLinkableConceptsCondition());
+				}
 				facetQuery = newQueryForFacets(condition, null, options);
 
 			} else if (options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
