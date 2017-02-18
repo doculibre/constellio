@@ -21,8 +21,18 @@ public class RMUserFolder extends UserFolder {
         super(record, types);
     }
 
-    public RetentionRule getRetentionRule() {
+    public String getRetentionRule() {
         return get(RETENTION_RULE);
+    }
+
+    public RMUserFolder setRetentionRule(String retentionRule) {
+        set(RETENTION_RULE, retentionRule);
+        return this;
+    }
+
+    public RMUserFolder setRetentionRule(Record retentionRule) {
+        set(RETENTION_RULE, retentionRule);
+        return this;
     }
 
     public RMUserFolder setRetentionRule(RetentionRule retentionRule) {
@@ -30,8 +40,18 @@ public class RMUserFolder extends UserFolder {
         return this;
     }
 
-    public Category getCategory() {
+    public String getCategory() {
         return get(CATEGORY);
+    }
+
+    public RMUserFolder setCategory(String category) {
+        set(CATEGORY, category);
+        return this;
+    }
+
+    public RMUserFolder setCategory(Record category) {
+        set(CATEGORY, category);
+        return this;
     }
 
     public RMUserFolder setCategory(Category category) {
@@ -39,12 +59,32 @@ public class RMUserFolder extends UserFolder {
         return this;
     }
 
-    public AdministrativeUnit getAdministrativeUnit() {
+    public String getAdministrativeUnit() {
         return get(ADMINISTRATIVE_UNIT);
+    }
+
+    public RMUserFolder setAdministrativeUnit(String administrativeUnit) {
+        set(ADMINISTRATIVE_UNIT, administrativeUnit);
+        return this;
+    }
+
+    public RMUserFolder setAdministrativeUnit(Record administrativeUnit) {
+        set(ADMINISTRATIVE_UNIT, administrativeUnit);
+        return this;
     }
 
     public RMUserFolder setAdministrativeUnit(AdministrativeUnit administrativeUnit) {
         set(ADMINISTRATIVE_UNIT, administrativeUnit);
+        return this;
+    }
+
+    public RMUserFolder setParentFolder(String folder) {
+        set(PARENT_FOLDER, folder);
+        return this;
+    }
+
+    public RMUserFolder setParentFolder(Record folder) {
+        set(PARENT_FOLDER, folder);
         return this;
     }
 
@@ -53,7 +93,8 @@ public class RMUserFolder extends UserFolder {
         return this;
     }
 
-    public Folder getParentFolder() {
+    public String getParentFolder() {
         return get(PARENT_FOLDER);
     }
+    
 }

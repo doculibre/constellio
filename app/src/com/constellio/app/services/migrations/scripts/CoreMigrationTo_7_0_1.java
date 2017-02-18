@@ -1,21 +1,18 @@
 package com.constellio.app.services.migrations.scripts;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
-import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import sun.plugin.javascript.navig4.Document;
 
 /**
  * Created by Nicolas D'Amours on 2017-
@@ -35,7 +32,6 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
 
         public CoreAlternationFor7_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
             super(collection, migrationResourcesProvider, appLayerFactory);
-
         }
 
         @Override
@@ -44,9 +40,14 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
             MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(UserFolder.SCHEMA_TYPE);
             MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
             type.setSecurity(false);
+            defaultSchema.create(UserFolder.USER).setType(MetadataValueType.REFERENCE).setEssential(true).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+            defaultSchema.create(UserFolder.FORM_CREATED_ON).setType(MetadataValueType.DATE_TIME).setEssential(false);
+            defaultSchema.create(UserFolder.FORM_MODIFIED_ON).setType(MetadataValueType.DATE_TIME).setEssential(false);
             defaultSchema.create(UserFolder.PARENT_USER_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
 
             typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.USER_FOLDER).setEssential(false).setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
+            typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_CREATED_ON).setEssential(false).setType(MetadataValueType.DATE_TIME);
+            typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_MODIFIED_ON).setEssential(false).setType(MetadataValueType.DATE_TIME);
         }
     }
 }
