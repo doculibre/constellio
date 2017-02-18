@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
 import static com.constellio.sdk.tests.TestUtils.noDuplicates;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -154,6 +156,9 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchema retentionRuleSchema = metadataSchemaTypes.getSchema(RetentionRule.DEFAULT_SCHEMA);
 
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
+
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
+				.getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
 
 	}
 
@@ -327,7 +332,6 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		MetadataSchema defaultSchema = types.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
 		MetadataSchema userDocumentSchema = types.getSchemaType(UserDocument.SCHEMA_TYPE).getDefaultSchema();
-		MetadataSchema userCredentialSchema = types.getSchemaType(SolrUserCredential.SCHEMA_TYPE).getDefaultSchema();
 		assertThat(defaultSchema).isNotNull();
 		assertThat(defaultSchema.getMetadatas()).contains(
 				defaultSchema.getMetadata(UserFolder.USER),

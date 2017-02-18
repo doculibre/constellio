@@ -33,6 +33,8 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String MS_EXCHANGE_DELEGATE_LIST = "msExchangeDelegateList";
 	public static final String DN = "dn";
 
+	public static final String AGENT_STATUS = "agentStatus";
+
 	public SolrUserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
@@ -301,4 +303,13 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public UserCredential withDN(String dn) {
 		return setDn(dn);
 	}
+
+	public AgentStatus getAgentStatus() {
+		return getEnumWithDefaultValue(AGENT_STATUS, AgentStatus.DISABLED);
+	}
+
+	public SolrUserCredential setAgentStatus() {
+		return get(AGENT_STATUS);
+	}
+
 }
