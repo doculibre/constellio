@@ -65,7 +65,7 @@ public class ConceptNodesTaxonomySearchServices {
 		query.filteredByStatus(options.getIncludeStatus());
 		query.setStartRow(options.getStartRow());
 		query.setNumberOfRows(options.getRows());
-		query.setReturnedMetadatas(options.getReturnedMetadatasFilter());
+		query.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.LINKABLE));
 		query.sortAsc(CODE).sortAsc(TITLE);
 		return query;
 	}

@@ -4,6 +4,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class TaxonomiesSearchOptions {
 
@@ -18,6 +19,7 @@ public class TaxonomiesSearchOptions {
 	private boolean hasChildrenFlagCalculated = true;
 	private boolean showInvisibleRecordsInLinkingMode = true;
 	private FastContinueInfos fastContinueInfos;
+	private LogicalSearchCondition linkableItemsCondition;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -41,6 +43,7 @@ public class TaxonomiesSearchOptions {
 		this.returnedMetadatasFilter = cloned.returnedMetadatasFilter;
 		this.showInvisibleRecordsInLinkingMode = cloned.showInvisibleRecordsInLinkingMode;
 		this.fastContinueInfos = cloned.fastContinueInfos;
+		this.linkableItemsCondition = cloned.linkableItemsCondition;
 	}
 
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
@@ -148,4 +151,13 @@ public class TaxonomiesSearchOptions {
 
 	}
 
+	public LogicalSearchCondition getLinkableItemsCondition() {
+		return linkableItemsCondition;
+	}
+
+	public TaxonomiesSearchOptions setLinkableItemsCondition(
+			LogicalSearchCondition linkableItemsCondition) {
+		this.linkableItemsCondition = linkableItemsCondition;
+		return this;
+	}
 }

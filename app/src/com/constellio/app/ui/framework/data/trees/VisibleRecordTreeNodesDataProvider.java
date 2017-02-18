@@ -44,7 +44,7 @@ public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataPr
 
 		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start, infos);
 		return modelLayerFactory.newTaxonomiesSearchService().getVisibleRootConceptResponse(
-				currentUser, currentUser.getCollection(), taxonomyCode, taxonomiesSearchOptions);
+				currentUser, currentUser.getCollection(), taxonomyCode, taxonomiesSearchOptions, null);
 	}
 
 	@Override
