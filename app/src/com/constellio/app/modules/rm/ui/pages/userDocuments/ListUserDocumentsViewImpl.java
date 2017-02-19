@@ -10,42 +10,38 @@ import java.util.List;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 
-import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserDocumentContainerButton;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.ContentVersionDisplay;
-import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseMultiFileUpload;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.Builder;
-import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
-import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
+	
 	public static final String STYLE_NAME = "user-documents";
 	public static final String STYLE_LAYOUT = STYLE_NAME + "-layout";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
@@ -53,27 +49,34 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	public static final String CAPTION_PROPERTY_ID = "caption";
 	public static final String FOLDER_PROPERTY_ID = "folder";
 
+	List<RecordVODataProvider> dataProviders;
+	
 	private DragAndDropWrapper dragAndDropWrapper;
 	private VerticalLayout mainLayout;
 	private MultiFileUpload multiFileUpload;
-	private HorizontalLayout setFolderLayout;
-	private LookupRecordField setFolderLookupField;
-	private Button setFolderButton;
-	private List<UserDocumentVO> selectedUserDocuments = new ArrayList<>();
-	private ButtonsContainer<IndexedContainer> userDocumentsContainer;
-	private RecordVOTable userDocumentsTable;
+	private RecordVOLazyContainer userContentContainer;
+	private ButtonsContainer<RecordVOLazyContainer> buttonsContainer;
+	private RecordVOTable userContentTable;
 	private ListUserDocumentsPresenter presenter;
-	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
 
 	private Builder<ContainerButton> classifyButtonFactory;
 
 	public ListUserDocumentsViewImpl() {
+		presenter = new ListUserDocumentsPresenter(this);
+	}
 
+	@Override
+	protected String getTitle() {
+		return $("ListUserDocumentsView.viewTitle");
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
 		if (classifyButtonFactory == null) {
 			classifyButtonFactory = new Builder<ContainerButton>() {
 				@Override
 				public ContainerButton build() {
-					return new DeclareUserDocumentContainerButton();
+					return new DeclareUserContentContainerButton();
 				}
 			};
 		}
@@ -93,20 +96,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		};
 		multiFileUpload.setWidth("100%");
 
-		setFolderLayout = new HorizontalLayout();
-		setFolderLayout.setSpacing(true);
-
-		setFolderLookupField = new LookupRecordField(Folder.SCHEMA_TYPE);
-
-		setFolderButton = new Button($("ListUserDocumentsView.setFolder"));
-		setFolderButton.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.setFolderButtonClicked();
-			}
-		});
-
-		userDocumentsContainer = new ButtonsContainer<IndexedContainer>(new IndexedContainer()) {
+		userContentContainer = new RecordVOLazyContainer(dataProviders);
+		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer) {
 			@Override
 			public Collection<?> getContainerPropertyIds() {
 				List<Object> containerPropertyIds = new ArrayList<>();
@@ -123,21 +114,16 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 					Property<?> selectProperty = new AbstractProperty<Boolean>() {
 						@Override
 						public Boolean getValue() {
-							UserDocumentVO userDocumentVO = (UserDocumentVO) itemId;
-							return selectedUserDocuments.contains(userDocumentVO);
+							RecordVO recordVO = (RecordVO) ((RecordVOItem) userContentContainer.getItem(itemId)).getRecord();
+							return presenter.isSelected(recordVO);
 						}
 
 						@Override
 						public void setValue(Boolean newValue)
 								throws com.vaadin.data.Property.ReadOnlyException {
-							UserDocumentVO userDocumentVO = (UserDocumentVO) itemId;
-							if (Boolean.TRUE.equals(newValue)) {
-								if (!selectedUserDocuments.contains(userDocumentVO)) {
-									selectedUserDocuments.add(userDocumentVO);
-								}
-							} else {
-								selectedUserDocuments.remove(userDocumentVO);
-							}
+							RecordVO recordVO = (RecordVO) ((RecordVOItem) userContentContainer.getItem(itemId)).getRecord();
+							boolean selected = Boolean.TRUE.equals(newValue);
+							presenter.selectionChanged(recordVO, selected);
 						}
 
 						@Override
@@ -165,129 +151,62 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				return ownType;
 			}
 		};
-		userDocumentsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
-		userDocumentsContainer.addContainerProperty(FOLDER_PROPERTY_ID, Component.class, null);
+		buttonsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
+		buttonsContainer.addContainerProperty(FOLDER_PROPERTY_ID, Component.class, null);
 
-		userDocumentsContainer.addButton(classifyButtonFactory.build());
-		userDocumentsContainer.addButton(new ContainerButton() {
+		buttonsContainer.addButton(classifyButtonFactory.build());
+		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteButtonClicked((UserDocumentVO) itemId);
+						presenter.deleteButtonClicked((RecordVO) itemId);
 					}
 				};
 			}
 		});
 
-		userDocumentsTable = new RecordVOTable();
-		userDocumentsTable.setContainerDataSource(userDocumentsContainer);
-		userDocumentsTable.setWidth("100%");
-		userDocumentsTable.addStyleName(TABLE_STYLE_NAME);
-		userDocumentsTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
-		userDocumentsTable.setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
-		userDocumentsTable.setColumnHeader(SELECT_PROPERTY_ID, $("ListUserDocumentsView.selectColumnTitle"));
-		userDocumentsTable.setColumnHeader(CAPTION_PROPERTY_ID, $("ListUserDocumentsView.captionColumnTitle"));
-		userDocumentsTable.setColumnHeader(FOLDER_PROPERTY_ID, $("ListUserDocumentsView.folderColumnTitle"));
-		userDocumentsTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-		userDocumentsTable.setColumnExpandRatio(CAPTION_PROPERTY_ID, 1);
+		userContentTable = new RecordVOTable();
+		userContentTable.setContainerDataSource(buttonsContainer);
+		userContentTable.setWidth("100%");
+		userContentTable.addStyleName(TABLE_STYLE_NAME);
+		userContentTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
+		userContentTable.setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
+		userContentTable.setColumnHeader(SELECT_PROPERTY_ID, $("ListUserDocumentsView.selectColumnTitle"));
+		userContentTable.setColumnHeader(CAPTION_PROPERTY_ID, $("ListUserDocumentsView.captionColumnTitle"));
+		userContentTable.setColumnHeader(FOLDER_PROPERTY_ID, $("ListUserDocumentsView.folderColumnTitle"));
+		userContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		userContentTable.setColumnExpandRatio(CAPTION_PROPERTY_ID, 1);
 
-		mainLayout.addComponents(multiFileUpload, setFolderLayout, userDocumentsTable);
-		setFolderLayout.addComponents(setFolderLookupField, setFolderButton);
-
-		mainLayout.setComponentAlignment(setFolderLayout, Alignment.MIDDLE_CENTER);
+		mainLayout.addComponents(multiFileUpload, userContentTable);
 
 		dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(multiFileUpload);
-	}
-
-	@Override
-	public String getFolderId() {
-		return setFolderLookupField.getValue();
-	}
-
-	@Override
-	public void setFolderId(String folderId) {
-		setFolderLookupField.setValue(folderId);
-	}
-
-	@Override
-	public List<UserDocumentVO> getSelectedUserDocuments() {
-		return selectedUserDocuments;
-	}
-
-	@Override
-	public void setSelectedUserDocuments(List<UserDocumentVO> userDocuments) {
-		this.selectedUserDocuments = userDocuments;
-	}
-
-	@Override
-	protected String getTitle() {
-		return $("ListUserDocumentsView.viewTitle");
-	}
-
-	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
 		return dragAndDropWrapper;
 	}
 
 	@Override
-	protected void afterViewAssembled(ViewChangeEvent event) {
-		presenter = new ListUserDocumentsPresenter(this);
-		presenter.viewAssembled();
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		presenter.forParams(event.getParameters());
 	}
 
-	protected Component newCaptionComponent(UserDocumentVO userDocumentVO) {
+	protected Component newCaptionComponent(RecordVO recordVO) {
 		Component captionComponent;
-		ContentVersionVO contentVersionVO = userDocumentVO.getContent();
-		if (contentVersionVO != null) {
-			String filename = contentVersionVO.getFileName();
-			captionComponent = new ContentVersionDisplay(userDocumentVO, contentVersionVO, filename);
+		if (recordVO instanceof UserDocumentVO) {
+			UserDocumentVO userDocumentVO = (UserDocumentVO) recordVO;
+			ContentVersionVO contentVersionVO = userDocumentVO.getContent();
+			if (contentVersionVO != null) {
+				String filename = contentVersionVO.getFileName();
+				captionComponent = new ContentVersionDisplay(recordVO, contentVersionVO, filename);
+			} else {
+				captionComponent = new Label("");
+			}
 		} else {
-			captionComponent = new Label("");
+			captionComponent = new Label(recordVO.getTitle());
 		}
 		return captionComponent;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<UserDocumentVO> getUserDocuments() {
-		return (List<UserDocumentVO>) userDocumentsContainer.getItemIds();
-	}
-
-	@Override
-	public void setUserDocuments(List<UserDocumentVO> userDocumentVOs) {
-		userDocumentsContainer.removeAllItems();
-		for (UserDocumentVO userDocumentVO : userDocumentVOs) {
-			addUserDocument(userDocumentVO);
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void addUserDocument(UserDocumentVO userDocumentVO) {
-		if (!userDocumentsContainer.containsId(userDocumentVO)) {
-			String folderId = userDocumentVO.getFolder();
-			String folderCaption;
-			if (folderId != null) {
-				folderCaption = recordIdToCaptionConverter.convertToPresentation(folderId, String.class, getLocale());
-			} else {
-				folderCaption = null;
-			}
-			userDocumentsContainer.addItem(userDocumentVO);
-			Item userDocumentItem = userDocumentsContainer.getItem(userDocumentVO);
-			Component captionComponent = newCaptionComponent(userDocumentVO);
-			Label folderLabel = new Label(folderCaption);
-			userDocumentItem.getItemProperty(CAPTION_PROPERTY_ID).setValue(captionComponent);
-			userDocumentItem.getItemProperty(FOLDER_PROPERTY_ID).setValue(folderLabel);
-		}
-	}
-
-	@Override
-	public void removeUserDocument(UserDocumentVO userDocumentVO) {
-		userDocumentsContainer.removeItem(userDocumentVO);
 	}
 
 	@Override
@@ -303,5 +222,10 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	public void setClassifyButtonFactory(Builder<ContainerButton> classifyButtonFactory) {
 		this.classifyButtonFactory = classifyButtonFactory;
+	}
+
+	@Override
+	public void setUserContent(List<RecordVODataProvider> dataProviders) {
+		this.dataProviders = dataProviders;
 	}
 }

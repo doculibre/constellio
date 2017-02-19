@@ -50,7 +50,7 @@ public class TaskTable extends RecordVOTable {
 		// Display
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -62,7 +62,7 @@ public class TaskTable extends RecordVOTable {
 		// Edit
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -79,7 +79,7 @@ public class TaskTable extends RecordVOTable {
 		// Complete
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new IconButton(COMPLETE_ICON, $("TaskTable.complete")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -96,7 +96,7 @@ public class TaskTable extends RecordVOTable {
 		// Close
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new IconButton(CLOSE_ICON, $("TaskTable.close")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -118,7 +118,7 @@ public class TaskTable extends RecordVOTable {
 		// Delete
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

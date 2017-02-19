@@ -38,7 +38,7 @@ public class ListAddRemoveTaskFollowerField extends ListAddRemoveField<TaskFollo
 	protected ContainerButton addEditButton() {
 		return new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				final TaskFollowerVO followerVO = convertObjectAsTaskFollowerVO(itemId);
 				EditButton editButton = new EditButton() {
 					@Override

@@ -175,7 +175,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button addButton = new AddButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -215,7 +215,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 	private void addUserButtons(final UserCredentialVODataProvider dataProvider, ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -229,7 +229,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -246,7 +246,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -266,7 +266,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 	private void addSubGroupButtons(final GlobalGroupVODataProvider dataProvider, ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button displaySubGroupButton = new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -282,7 +282,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button editSubGroupButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -302,7 +302,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button deleteSubGroupButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

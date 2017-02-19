@@ -92,7 +92,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 			ButtonsContainer<MetadataVOLazyContainer> buttonsContainer = new ButtonsContainer<>(recordsContainer, "buttons");
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					return new EditButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -106,7 +106,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					return new DeleteButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {

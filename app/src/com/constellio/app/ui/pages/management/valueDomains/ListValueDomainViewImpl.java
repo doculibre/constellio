@@ -104,7 +104,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 		ButtonsContainer container = new ButtonsContainer<>(elements, "buttons");
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -116,7 +116,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				WindowButton editButton = new WindowButton(
 						$("edit"), $("ListValueDomainView.labelColumn"), WindowConfiguration.modalDialog("400px", "150px")) {
 					@Override

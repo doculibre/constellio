@@ -305,7 +305,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		}
 		valuesAndButtonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -377,7 +377,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	protected ContainerButton addEditButton() {
 		return new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				EditButton editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {

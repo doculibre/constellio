@@ -215,7 +215,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button addButton = new AddButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -239,7 +239,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 			ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button displayButton = new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -254,7 +254,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -271,7 +271,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

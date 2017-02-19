@@ -76,7 +76,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 		final ButtonsContainer<RecordVOLazyContainer> buttonsContainer = new ButtonsContainer<>(container);
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -88,7 +88,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 		});
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -116,7 +116,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 		final ButtonsContainer<RecordVOLazyContainer> buttonsContainer = new ButtonsContainer<>(container);
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -128,7 +128,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 		});
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
