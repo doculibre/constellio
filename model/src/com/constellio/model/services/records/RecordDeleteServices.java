@@ -256,16 +256,20 @@ public class RecordDeleteServices {
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
-		for(Record recordInHierarchy : records) {
+		if (schemas.getTypes().hasType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+			for(Record recordInHierarchy : records) {
+				for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
+						where(schemas.authorizationDetails.target()).isEqualTo(recordInHierarchy.getId()))) {
+
+					authorizationsServices.execute(authorizationDeleteRequest(details));
+				}
+			}
 			for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
-					where(schemas.authorizationDetails.target()).isEqualTo(recordInHierarchy.getId()))) {
+					where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 				authorizationsServices.execute(authorizationDeleteRequest(details));
 			}
 		}
-		for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
-				where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
-			authorizationsServices.execute(authorizationDeleteRequest(details));
-		}
+
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
 
