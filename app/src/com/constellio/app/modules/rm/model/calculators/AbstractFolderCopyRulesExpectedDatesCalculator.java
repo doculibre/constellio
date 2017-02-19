@@ -23,6 +23,8 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 			RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR.dependency();
 
 	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
+	ConfigDependency<Boolean> configAddYearIfCalculationDateIsEndOfYearParam =
+			RMConfigs.ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR.dependency();
 
 	@Override
 	public List<LocalDate> calculate(CalculatorParameters parameters) {
@@ -30,7 +32,7 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 		List<CopyRetentionRule> applicableCopyRules = parameters.get(applicableCopyRulesParam);
 		String yearEnd = parameters.get(configYearEndParam);
 		int requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
-
+		boolean addYearIfCalculationDateIsEndOfYearParam = parameters.get(configAddYearIfCalculationDateIsEndOfYearParam);
 		List<LocalDate> result = new ArrayList<>();
 		for (int i = 0; i < applicableCopyRules.size(); i++) {
 			CopyRetentionRule applicableCopyRule = applicableCopyRules.get(i);
@@ -40,7 +42,8 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 			} else if (CalculatorUtils.isEndOfYear(copyRuleCalculedDate, yearEnd)) {
 				result.add(copyRuleCalculedDate);
 			} else {
-				result.add(CalculatorUtils.toNextEndOfYearDate(copyRuleCalculedDate, yearEnd, requiredDaysBeforeYearEnd));
+				result.add(CalculatorUtils.toNextEndOfYearDate(copyRuleCalculedDate, yearEnd, requiredDaysBeforeYearEnd,
+						addYearIfCalculationDateIsEndOfYearParam));
 			}
 		}
 
@@ -69,6 +72,7 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 		dependencies.add(applicableCopyRulesParam);
 		dependencies.add(configRequiredDaysBeforeYearEndParam);
 		dependencies.add(configYearEndParam);
+		dependencies.add(configAddYearIfCalculationDateIsEndOfYearParam);
 		dependencies.addAll(getCopyRuleDateCalculationDependencies());
 
 		return dependencies;

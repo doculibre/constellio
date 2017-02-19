@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm;
 
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
@@ -8,11 +13,6 @@ import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -30,7 +30,9 @@ public class RMConfigs {
 			DECOMMISSIONING_DATE_BASED_ON,
 			CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE,
 			CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE,
-			YEAR_END_DATE, REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR,
+			YEAR_END_DATE,
+			REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR,
+			ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR,
 			CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD,
 			CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD,
 			COPY_RULE_TYPE_ALWAYS_MODIFIABLE,
@@ -120,6 +122,9 @@ public class RMConfigs {
 		add(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR = decommissioning
 				.createInteger("closeDateRequiredDaysBeforeYearEnd")
 				.withDefaultValue(90));
+
+		add(ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR = decommissioning
+				.createBooleanTrueByDefault("addYearIfCalculationDateIsEndOfYear"));
 
 		// Delete (if true) or keep (if false) folder records upon destruction via decommissioning
 		add(DELETE_FOLDER_RECORDS_WITH_DESTRUCTION = decommissioning
@@ -225,8 +230,9 @@ public class RMConfigs {
 
 		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
 				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
-		
-		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay").withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
+
+		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
+				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -406,9 +412,9 @@ public class RMConfigs {
 	public boolean isCalculateOpenDateBasedOnFirstTimerangePart() {
 		return manager.getValue(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART);
 	}
-	
+
 	public String getDefaultTabInFolderDisplay() {
 		return manager.getValue(DEFAULT_TAB_IN_FOLDER_DISPLAY);
 	}
-	
+
 }

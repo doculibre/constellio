@@ -12,6 +12,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -817,7 +818,14 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			}
 			return this;
 		}
-	}
+
+        public void logicallyThenPhysicallyDelete(String id) {
+			Record record =record(id);
+			User user = userServices.getUserInCollection(username, record.getCollection());
+			recordServices.logicallyDelete(record, user);
+			recordServices.physicallyDelete(record, user);
+        }
+    }
 
 	protected AuthorizationModificationRequest authorizationOnRecord(String authorizationId, String recordId) {
 		return new AuthorizationModificationRequest(authorizationId, zeCollection, recordId);
@@ -1083,5 +1091,11 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			users.add(username);
 		}
 		return users;
+	}
+
+	protected void givenRecordIsLogicallyThenPhysicallyDeleted(String folderId) {
+		Record record = record(folderId);
+		recordServices.logicallyDelete(record, User.GOD);
+		recordServices.physicallyDelete(record, User.GOD);
 	}
 }
