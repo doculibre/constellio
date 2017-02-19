@@ -22,6 +22,8 @@ import static org.joda.time.LocalDate.now;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.UserServices;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
@@ -253,6 +255,44 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				"La valeur «Framboise» de la métadonnée «Titre» ne respecte pas le format «AAAA-AAAA»"
 		);
 	}
+
+	@Test
+	public void givenAuthorizationWithInvalidTargetThenDetectedAndFixed()
+			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		User dakotaInZeCollection = userServices.getUserInCollection(dakota, zeCollection);
+
+		Transaction tx = new Transaction();
+		tx.add(schemas.newSolrAuthorizationDetailsWithId("zeInvalidAuth").setTarget("anInvalidRecord").setRoles(asList("R")));
+		tx.add(dakotaInZeCollection.set(Schemas.AUTHORIZATIONS, asList("zeInvalidAuth")));
+		getModelLayerFactory().newRecordServices().execute(tx);
+		assertThat(dakotaInZeCollection.getUserAuthorizations()).containsOnly("zeInvalidAuth");
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(0);
+
+		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
+		assertThat(dakotaInZeCollection.getUserAuthorizations()).isEmpty();
+	}
+
 
 	@Test
 	public void givenLogicallyDeletedAdministrativeUnitsAndCategoriesThenRepairRestoreThem()

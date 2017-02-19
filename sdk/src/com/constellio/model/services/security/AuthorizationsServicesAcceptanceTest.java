@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
@@ -72,8 +73,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	//TODO Mieux tester la journalisation des modifications
 
+	boolean checkIfChuckNorrisHasAccessToEverythingInZeCollection = true;
+
 	LogicalSearchQuery recordsWithPrincipalPath = new LogicalSearchQuery(
 			fromAllSchemasIn(zeCollection).where(PRINCIPAL_PATH).isNotNull());
+
+	@Before
+	public void enableAfterTestValidation() {
+		checkIfChuckNorrisHasAccessToEverythingInZeCollection = true;
+	}
 
 	@After
 	public void checkIfARecordHasAnInvalidAuthorization() {
@@ -84,7 +92,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void checkIfChuckNorrisHasAccessToEverythingInZeCollection()
 			throws Exception {
 
-		if (records != null) {
+		if (records != null && checkIfChuckNorrisHasAccessToEverythingInZeCollection) {
 			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.chuckNorrisIn(zeCollection));
 			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(
 					users.chuckNorrisIn(zeCollection));
@@ -1816,6 +1824,28 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 		waitForBatchProcess();
 		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1);
+	}
+
+	@Test
+	public void givenAuthorizationOnRecordWhenPhysicallyDeletingTheRecordThenAuthorizationDeleted()
+			throws Exception {
+
+		checkIfChuckNorrisHasAccessToEverythingInZeCollection = false;
+		auth1 = add(authorizationForUser(bob).on(FOLDER1).givingReadAccess());
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER2_1).givingReadAccess());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(FOLDER1).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER2_1).givingRead().forPrincipals(heroes)
+		);
+
+		givenRecordIsLogicallyThenPhysicallyDeleted(FOLDER1);
+		givenRecordIsLogicallyThenPhysicallyDeleted(FOLDER2);
+
+
+
+		assertThatAllAuthorizations().isEmpty();
+
 	}
 
 }
