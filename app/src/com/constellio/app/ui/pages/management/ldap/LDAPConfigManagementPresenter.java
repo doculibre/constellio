@@ -160,6 +160,9 @@ public class LDAPConfigManagementPresenter extends
 				&& (getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || getLDAPUserSyncConfiguration().getScheduleTime() != null);
 	}
 
+	public void deleteUsedUserButtonClick() {
+	}
+
 	private class ForceSynchThread implements Runnable {
 		private final LDAPSynchProgressionInfo info;
 
