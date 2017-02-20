@@ -948,7 +948,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@InDevelopmentTest
 	public void tryingToPhysicallyDeleteUser() throws RecordServicesException {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -982,7 +981,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@InDevelopmentTest
 	public void tryingToDeleteAllUser() throws Exception {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
