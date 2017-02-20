@@ -845,6 +845,10 @@ public class UserServices {
 		}
 	}
 
+	public void safePhysicalDeleteAllUnusedUser() throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
+		List<UserCredential> listUsers = this.getAllUserCredentials();
+	}
+
 	public void safePhysicalDeleteUser(String username) throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
 		UserCredential user = getUser(username);
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();

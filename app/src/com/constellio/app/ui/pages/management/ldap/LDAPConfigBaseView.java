@@ -2,8 +2,11 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.vaadin.navigator.ViewChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +51,10 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected ScheduleComponent scheduleComponentField;
 	protected Button saveButton;
 	private BaseButton forceUsersSynchronization;
+
+	protected Button deleteUnusedUserButton, activateLDAPButton;
+
+	private boolean isLDAPactive = false;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
@@ -110,11 +117,11 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		});
 	}
 
-	protected void buildLDAPActiveCheckBox() {
-		LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
-		ldapAuthenticationActive = new CheckBox($("ldap.authentication.active"));
-		ldapAuthenticationActive.setValue(ldapServerConfiguration.getLdapAuthenticationActive());
-	}
+//	protected void buildLDAPActiveCheckBox() {
+//		LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
+//		ldapAuthenticationActive = new CheckBox($("ldap.authentication.active"));
+//		ldapAuthenticationActive.setValue(ldapServerConfiguration.getLdapAuthenticationActive());
+//	}
 
 	protected void buildUsersAcceptRegex(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		String usersAcceptanceRegex = ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex();
@@ -201,6 +208,28 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		buttonsPanel.setContent(hLayout);
 		layout.addComponent(buttonsPanel);
 		layout.setComponentAlignment(buttonsPanel, Alignment.BOTTOM_RIGHT);
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
+
+		deleteUnusedUserButton = new AddButton($("DisplayLabelViewImpl.menu.addLabelButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.deleteUsedUserButtonClick();
+			}
+		};
+
+		activateLDAPButton = new AddButton(isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				isLDAPactive = !isLDAPactive;
+			}
+		};
+		actionMenuButtons.add(deleteUnusedUserButton);
+		actionMenuButtons.add(activateLDAPButton);
+		return actionMenuButtons;
 	}
 
 	protected abstract String getAuthenticationPassword();
