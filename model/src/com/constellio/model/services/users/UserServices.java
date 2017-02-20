@@ -8,6 +8,8 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import java.util.*;
 
 import com.constellio.model.entities.schemas.*;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -845,8 +847,23 @@ public class UserServices {
 		}
 	}
 
-	public void safePhysicalDeleteAllUnusedUser() throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
-		List<UserCredential> listUsers = this.getAllUserCredentials();
+	public List<UserCredential> safePhysicalDeleteAllUnusedUser() {
+		List<UserCredential> nonDeletedUser = new ArrayList<>();
+		Predicate<UserCredential> filter = new Predicate<UserCredential>() {
+			@Override
+			public boolean apply(UserCredential input) {
+				return input.getStatus().equals(UserCredentialStatus.DELETED);
+			}
+		};
+		Collection<UserCredential> deletedUsers = Collections2.filter(this.getAllUserCredentials(), filter);
+		for (UserCredential credential : deletedUsers) {
+			try {
+				safePhysicalDeleteUser(credential.getUsername());
+			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+				nonDeletedUser.add(credential);
+			}
+		}
+		return nonDeletedUser;
 	}
 
 	public void safePhysicalDeleteUser(String username) throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {

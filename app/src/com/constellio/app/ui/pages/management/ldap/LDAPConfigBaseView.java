@@ -214,17 +214,18 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 
-		deleteUnusedUserButton = new AddButton($("DisplayLabelViewImpl.menu.addLabelButton")) {
+		deleteUnusedUserButton = new AddButton($("ldap.authentication.deleteUnusedUser")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.deleteUsedUserButtonClick();
 			}
 		};
 
-		activateLDAPButton = new AddButton(isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
+		activateLDAPButton = new AddButton(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				isLDAPactive = !isLDAPactive;
+				this.setCaption(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
 			}
 		};
 		actionMenuButtons.add(deleteUnusedUserButton);

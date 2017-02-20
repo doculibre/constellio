@@ -981,6 +981,34 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
+	@Test
+	@InDevelopmentTest
+	public void tryingToDeleteAllUser() throws Exception {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		User chuck = users.chuckNorrisIn(zeCollection);
+		Cart c = rm.getOrCreateUserCart(chuck);
+		Transaction t = new Transaction();
+		t.add(c);
+		recordServices.execute(t);
+		userServices = getModelLayerFactory().newUserServices();
+		for (UserCredential user : users.getAllUsers()) {
+			if (!user.isSystemAdmin()) {
+				for (String collection : user.getCollections()) {
+					if (!collection.equals("_system_")) {
+						userServices.getUserInCollection(user.getUsername(), collection).setStatus(UserCredentialStatus.DELETED);
+					}
+				}
+				user.withStatus(UserCredentialStatus.DELETED);
+				userServices.addUpdateUserCredential(user);
+			}
+		}
+
+		assertThat(userServices.safePhysicalDeleteAllUnusedUser()).extracting("username").containsExactly(chuck.getUsername());
+	}
+
 
 	// ----- Utils methods
 

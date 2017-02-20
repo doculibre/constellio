@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.model.entities.security.global.UserCredential;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,6 +162,14 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public void deleteUsedUserButtonClick() {
+		List<UserCredential> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUser();
+		if (nonDeletedUser.size() > 0) {
+			String message = $("ldap.authentication.unDeletedUser") + "<br>";
+			for (UserCredential userCredential : nonDeletedUser) {
+				message += userCredential.getUsername() + "<br>";
+			}
+			this.view.showMessage(message);
+		}
 	}
 
 	private class ForceSynchThread implements Runnable {

@@ -32,7 +32,6 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		layout = new VerticalLayout();
 		layout.setSizeFull();
 		layout.setSpacing(true);
-		layout.addComponent(super.ldapAuthenticationActive);
 		buildDirectoryTypeField();
 		layout.addComponent(super.directoryTypeField);
 
