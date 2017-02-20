@@ -571,4 +571,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			e.printStackTrace();
 		}
 	}
+
+	public void reorderRequested() {
+		view.navigate().to(RMViews.class).orderDecommissioningList(decommissioningList().getId());
+	}
 }

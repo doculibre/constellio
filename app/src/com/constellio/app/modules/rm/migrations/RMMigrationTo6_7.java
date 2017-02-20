@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.model.calculators.container.ContainerRecord
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceLinearSizeCalculator;
+import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceTitleCalculator;
 import com.constellio.app.modules.rm.model.validators.ContainerRecordValidator;
 import com.constellio.app.modules.rm.model.validators.StorageSpaceValidator;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -112,6 +113,9 @@ public class RMMigrationTo6_7 implements MigrationScript {
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.NUMBER_OF_CHILD)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
                     .defineDataEntry().asReferenceCount(parentStorage);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.TITLE)
+                    .defineDataEntry().asCalculated(StorageSpaceTitleCalculator.class);
         }
     }
 

@@ -141,6 +141,10 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
 	}
 
+	public void orderDecommissioningList(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.ORDER_DECOMMISSIONING_LIST_CONFIGURATION + "/" + entityId);
+	}
+
 	// USER DOCUMENTS
 
 	public void listUserDocuments() {

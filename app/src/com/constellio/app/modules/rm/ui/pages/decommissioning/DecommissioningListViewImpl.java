@@ -164,9 +164,21 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildPrintButton());
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildFoldersCertificateButton());
+		buttons.add(buildOrderFolders());
 		buttons.add(buildAddFoldersButton());
 		buttons.add(buildRemoveFoldersButton());
 		return buttons;
+	}
+
+	private Button buildOrderFolders() {
+		Button button = new Button($("DecommissioningList.order"));
+		button.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.reorderRequested();
+			}
+		});
+		return button;
 	}
 
 	@Override
