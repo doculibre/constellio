@@ -1,5 +1,6 @@
 plugins {
     id "org.sonarqube" version "1.2"
+    //id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
 
 apply plugin: 'war'
@@ -67,9 +68,6 @@ allprojects {
             name "sonatype vaadin"
             url "https://oss.sonatype.org/content/repositories/vaadin/"
         }
-        flatDir {
-            dirs 'libs/'
-        }
     }
 
     dependencies {
@@ -105,16 +103,6 @@ allprojects {
         compile "javax.servlet.jsp:jsp-api:2.2"
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
-
-        compile files("${rootDir}/libs/commons-beanutils-1.8.2.jar")
-        compile files("${rootDir}/libs/commons-collections-3.2.1.jar")
-        compile files("${rootDir}/libs/commons-dbcp-1.2.2.jar")
-        compile files("${rootDir}/libs/commons-digester-2.1.jar")
-        compile files("${rootDir}/libs/groovy-all-2.0.1.jar")
-        compile files("${rootDir}/libs/iText-2.1.7.jar")
-        compile files("${rootDir}/libs/jasperreports-6.3.0.jar")
-        compile files("${rootDir}/libs/com.lowagie.text-2.1.7.jar")
-        compile files("${rootDir}/libs/barbecue-1.5-beta1.jar")
     }
 
     configurations {
@@ -123,13 +111,13 @@ allprojects {
     }
 
     jar {
-        version = '7.0.5'
+        version = '7.0.8'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "7.0.5"
+    version = "7.0.8"
 
     webInf {
 
@@ -184,32 +172,6 @@ task compilePlugin() {
         String projectName = new File("./jarProject").text.trim()
         dependsOn project(projectName).build
     }
-}
-
-task compileAllPlugins() {
-    dependsOn project(":plugins:plugin001").build
-    dependsOn project(":plugins:plugin002").build
-    dependsOn project(":plugins:plugin003").build
-    dependsOn project(":plugins:plugin004").build
-    dependsOn project(":plugins:plugin005").build
-    dependsOn project(":plugins:plugin006").build
-    dependsOn project(":plugins:plugin007").build
-    dependsOn project(":plugins:plugin008").build
-    dependsOn project(":plugins:plugin009").build
-    dependsOn project(":plugins:plugin010").build
-    dependsOn project(":plugins:plugin011").build
-    dependsOn project(":plugins:plugin012").build
-    dependsOn project(":plugins:plugin013").build
-    dependsOn project(":plugins:plugin014").build
-    dependsOn project(":plugins:plugin015").build
-    dependsOn project(":plugins:plugin016").build
-    dependsOn project(":plugins:plugin017").build
-    dependsOn project(":plugins:plugin018").build
-    dependsOn project(":plugins:plugin019").build
-    dependsOn project(":plugins:plugin020").build
-    dependsOn project(":plugins:plugin021").build
-    dependsOn project(":plugins:plugin023").build
-
 }
 
 task unWar(type: Copy) {

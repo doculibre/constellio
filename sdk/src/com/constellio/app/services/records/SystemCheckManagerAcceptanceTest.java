@@ -28,7 +28,10 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -348,6 +351,63 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
 		assertThat(frenchMessages(systemCheckResults.errors)).contains(
 				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 référence un enregistrement inexistant : zeFolder"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+	}
+
+	@Test
+	public void givenDestructionOrDepositDateIsAfterTransferDateThenProblemFoundAndFixed()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
+
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
+		Transaction transaction = new Transaction();
+
+		//Probleme
+		transaction.add(records.getFolder_A01().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
+				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
+
+		//Probleme
+		transaction.add(records.getFolder_A02().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
+				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
+
+		//OK
+		transaction.add(records.getFolder_A03().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
+				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
+
+		//Probleme
+		transaction.add(records.getFolder_A04().setManualArchivisticStatus(FolderStatus.ACTIVE)
+				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
+
+		//Probleme
+		transaction.add(records.getFolder_A05().setManualArchivisticStatus(FolderStatus.ACTIVE)
+				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
+
+		//OK
+		transaction.add(records.getFolder_A06().setManualArchivisticStatus(FolderStatus.ACTIVE)
+				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"Dossier A01-Abeille : Date de destruction avant la date de transfert",
+				"Dossier A02-Aigle : Date de versement avant la date de transfert",
+				"Dossier A04-Baleine : Date de destruction avant la date de transfert",
+				"Dossier A05-Belette : Date de versement avant la date de transfert"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"Dossier A01-Abeille : Date de destruction avant la date de transfert",
+				"Dossier A02-Aigle : Date de versement avant la date de transfert",
+				"Dossier A04-Baleine : Date de destruction avant la date de transfert",
+				"Dossier A05-Belette : Date de versement avant la date de transfert"
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);

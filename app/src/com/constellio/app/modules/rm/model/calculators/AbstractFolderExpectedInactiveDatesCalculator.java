@@ -78,8 +78,13 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
+
 			} else if (expectedTransferDate == null && input.inactiveNumberOfYearWhenVariableDelayPeriod != -1) {
 				baseTransferDate = input.decommissioningDate;
+
+			} else if (expectedTransferDate == null && copyRule.getActiveRetentionPeriod().isFixed()) {
+				baseTransferDate = input.decommissioningDate;
+
 			} else {
 				baseTransferDate = expectedTransferDate;
 			}
