@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
@@ -26,13 +27,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
@@ -498,5 +500,52 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 		addOrUpdate(decommissioningList().getWrappedRecord());
 		refreshView();
+	}
+
+	public void autoFillContainersRequested(Map<String, Double> linearSize) {
+		linearSize = sortByValue(linearSize);
+		LogicalSearchQuery query = buildContainerQuery(linearSize.values().iterator().next());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		List<ContainerRecord> containerRecordList = rm.wrapContainerRecords(modelLayerFactory.newSearchServices().search(query));
+		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>(linearSize.entrySet());
+		for(Map.Entry<String, Double> entry: listOfEntry) {
+			while(!containerRecordList.isEmpty() && !fill(containerRecordList.get(0), entry)) {
+				containerRecordList.remove(0);
+			}
+		}
+	}
+
+	private boolean fill(ContainerRecord containerRecord, Map.Entry<String, Double> entry) {
+		if(containerRecord.getAvailableSize() >= entry.getValue()) {
+			containerRecord.setLinearSizeEntered(containerRecord.getLinearSize() + entry.getValue());
+			return true;
+		}
+		return false;
+	}
+
+	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
+				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList.getAdministrativeUnit()),
+				where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList.getDecommissioningListType().getDecommissioningType()),
+				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize)
+		)).sortAsc(rm.containerRecord.availableSize());
+	}
+
+	private Map<String, Double> sortByValue(Map<String, Double> linearSize) {
+		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>( linearSize.entrySet() );
+		Collections.sort(listOfEntry, new Comparator<Map.Entry<String, Double>>() {
+			@Override
+			public int compare(Map.Entry<String, Double> entry1, Map.Entry<String, Double> entry2) {
+				return entry1.getValue().compareTo(entry2.getValue());
+			}
+		});
+
+		Map<String, Double> result = new LinkedHashMap<>();
+		for (Map.Entry<String, Double> entry : listOfEntry)
+		{
+			result.put( entry.getKey(), entry.getValue() );
+		}
+		return result;
 	}
 }

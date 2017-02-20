@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -18,6 +11,12 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	ModelLayerFactory appLayerFactory;
@@ -27,7 +26,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		super(collection, modelLayerFactory);
 	}
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
@@ -333,6 +332,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("administrativeUnit");
 		}
 
+		public Metadata administrativeUnits() {
+			return metadata("administrativeUnits");
+		}
+
+		public Metadata availableSize() {
+			return metadata("availableSize");
+		}
+
 		public Metadata borrowDate() {
 			return metadata("borrowDate");
 		}
@@ -379,6 +386,18 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata identifier() {
 			return metadata("identifier");
+		}
+
+		public Metadata linearSize() {
+			return metadata("linearSize");
+		}
+
+		public Metadata linearSizeEntered() {
+			return metadata("linearSizeEntered");
+		}
+
+		public Metadata linearSizeSum() {
+			return metadata("linearSizeSum");
 		}
 
 		public Metadata planifiedReturnDate() {
@@ -809,14 +828,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("borrowed");
 		}
 
-		public Metadata calendarYear() {
-			return metadata("calendarYear");
-		}
-
-		public Metadata calendarYearEntered() {
-			return metadata("calendarYearEntered");
-		}
-
 		public Metadata category() {
 			return metadata("category");
 		}
@@ -1015,71 +1026,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
-
-	public Printable wrapReportConfig(Record record) {
-		return record == null ? null : new Printable(record, getTypes());
-	}
-
-	public List<Printable> wrapReportConfigs(List<Record> records) {
-		List<Printable> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new Printable(record, getTypes()));
-		}
-
-		return wrapped;
-	}
-
-	public List<Printable> searchReportConfigs(LogicalSearchQuery query) {
-		return wrapReportConfigs(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public List<Printable> searchReportConfigs(LogicalSearchCondition condition) {
-		MetadataSchemaType type = reportsrecords.schemaType();
-		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
-		return wrapReportConfigs(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public Printable getReportConfig(String id) {
-		return wrapReportConfig(get(id));
-	}
-
-	public List<Printable> getReportConfigs(List<String> ids) {
-		return wrapReportConfigs(get(ids));
-	}
-
-	public Printable getReportConfigWithLegacyId(String legacyId) {
-		return wrapReportConfig(getByLegacyId(reportsrecords.schemaType(), legacyId));
-	}
-
-	public Printable newReportConfig() {
-		return wrapReportConfig(create(reportsrecords.schema()));
-	}
-
-	public Printable newReportConfigWithId(String id) {
-		return wrapReportConfig(create(reportsrecords.schema(), id));
-	}
-
-	public final SchemaTypeShortcuts_reportsrecords_default reportsrecords
-			= new SchemaTypeShortcuts_reportsrecords_default("reportsrecords_default");
-
-	public class SchemaTypeShortcuts_reportsrecords_default extends SchemaTypeShortcuts {
-		protected SchemaTypeShortcuts_reportsrecords_default(String schemaCode) {
-			super(schemaCode);
-		}
-
-		public Metadata NULL() {
-			return metadata("NULL");
-		}
-
-		public Metadata Height() {
-			return metadata("192");
-		}
-
-		public Metadata Width() {
-			return metadata("384");
-		}
-	}
-
 	public Folder wrapFolder(Record record) {
 		return record == null ? null : new Folder(record, getTypes());
 	}
@@ -1158,6 +1104,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("administrativeUnitAncestors");
 		}
 
+		public Metadata administrativeUnitCode() {
+			return metadata("administrativeUnitCode");
+		}
+
 		public Metadata administrativeUnitEntered() {
 			return metadata("administrativeUnitEntered");
 		}
@@ -1200,14 +1150,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata borrowingType() {
 			return metadata("borrowingType");
-		}
-
-		public Metadata calendarYear() {
-			return metadata("calendarYear");
-		}
-
-		public Metadata calendarYearEntered() {
-			return metadata("calendarYearEntered");
 		}
 
 		public Metadata category() {
@@ -1314,6 +1256,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("mainCopyRuleIdEntered");
 		}
 
+		public Metadata manualArchivisticStatus() {
+			return metadata("manualArchivisticStatus");
+		}
+
+		public Metadata manualExpectedDepositDate() {
+			return metadata("manualExpectedDepositDate");
+		}
+
+		public Metadata manualExpectedDesctructionDate() {
+			return metadata("manualExpectedDesctructionDate");
+		}
+
+		public Metadata manualExpectedTransferDate() {
+			return metadata("manualExpectedTransferDate");
+		}
+
 		public Metadata mediaType() {
 			return metadata("mediaType");
 		}
@@ -1354,6 +1312,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("semiactiveRetentionType");
 		}
 
+		public Metadata timerange() {
+			return metadata("timerange");
+		}
+
 		public Metadata type() {
 			return metadata("type");
 		}
@@ -1364,6 +1326,68 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata uniformSubdivisionEntered() {
 			return metadata("uniformSubdivisionEntered");
+		}
+	}
+	public PrintableLabel wrapPrintableLabel(Record record) {
+		return record == null ? null : new PrintableLabel(record, getTypes());
+	}
+
+	public List<PrintableLabel> wrapPrintableLabels(List<Record> records) {
+		List<PrintableLabel> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new PrintableLabel(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<PrintableLabel> searchPrintableLabels(LogicalSearchQuery query) {
+		return wrapPrintableLabels(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<PrintableLabel> searchPrintableLabels(LogicalSearchCondition condition) {
+		MetadataSchemaType type = printable.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapPrintableLabels(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public PrintableLabel getPrintableLabel(String id) {
+		return wrapPrintableLabel(get(id));
+	}
+
+	public List<PrintableLabel> getPrintableLabels(List<String> ids) {
+		return wrapPrintableLabels(get(ids));
+	}
+
+	public PrintableLabel getPrintableLabelWithLegacyId(String legacyId) {
+		return wrapPrintableLabel(getByLegacyId(printable.schemaType(),  legacyId));
+	}
+
+	public PrintableLabel newPrintableLabel() {
+		return wrapPrintableLabel(create(printable_label.schema()));
+	}
+
+	public PrintableLabel newPrintableLabelWithId(String id) {
+		return wrapPrintableLabel(create(printable_label.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_printable_label printable_label
+			= new SchemaTypeShortcuts_printable_label("printable_label");
+	public class SchemaTypeShortcuts_printable_label extends SchemaTypeShortcuts_printable_default {
+		protected SchemaTypeShortcuts_printable_label(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata colonne() {
+			return metadata("colonne");
+		}
+
+		public Metadata ligne() {
+			return metadata("ligne");
+		}
+
+		public Metadata typelabel() {
+			return metadata("typelabel");
 		}
 	}
 	public RetentionRule wrapRetentionRule(Record record) {
@@ -1566,6 +1590,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
+		public Metadata availableSize() {
+			return metadata("availableSize");
+		}
+
 		public Metadata capacity() {
 			return metadata("capacity");
 		}
@@ -1578,12 +1606,32 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("comments");
 		}
 
+		public Metadata containerType() {
+			return metadata("containerType");
+		}
+
 		public Metadata decommissioningType() {
 			return metadata("decommissioningType");
 		}
 
 		public Metadata description() {
 			return metadata("description");
+		}
+
+		public Metadata linearSize() {
+			return metadata("linearSize");
+		}
+
+		public Metadata linearSizeEntered() {
+			return metadata("linearSizeEntered");
+		}
+
+		public Metadata linearSizeSum() {
+			return metadata("linearSizeSum");
+		}
+
+		public Metadata numberOfChild() {
+			return metadata("numberOfChild");
 		}
 
 		public Metadata parentStorageSpace() {
@@ -1662,78 +1710,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata retentionRule() {
 			return metadata("retentionRule");
-		}
-	}
-
-	public PrintableLabel wrapRMReport(Record record) {
-		return record == null ? null : new PrintableLabel(record, getTypes());
-	}
-
-	public List<PrintableLabel> wrapRMReports(List<Record> records) {
-		List<PrintableLabel> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new PrintableLabel(record, getTypes()));
-		}
-
-		return wrapped;
-	}
-
-	public List<PrintableLabel> searchRMReports(LogicalSearchQuery query) {
-		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public List<PrintableLabel> searchRMReports(LogicalSearchCondition condition) {
-		MetadataSchemaType type = reportsrecords.schemaType();
-		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
-		return wrapRMReports(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public PrintableLabel getRMReport(String id) {
-		return wrapRMReport(get(id));
-	}
-
-	public List<PrintableLabel> getRMReports(List<String> ids) {
-		return wrapRMReports(get(ids));
-	}
-
-	public PrintableLabel getRMReportWithLegacyId(String legacyId) {
-		return wrapRMReport(getByLegacyId(reportsrecords.schemaType(), legacyId));
-	}
-
-	public PrintableLabel newRMReport() {
-		return wrapRMReport(create(reportsrecords_label.schema()));
-	}
-
-	public PrintableLabel newRMReportWithId(String id) {
-		return wrapRMReport(create(reportsrecords_label.schema(), id));
-	}
-
-	public final SchemaTypeShortcuts_reportsrecords_label reportsrecords_label
-			= new SchemaTypeShortcuts_reportsrecords_label(PrintableLabel.SCHEMA_NAME);
-
-	public class SchemaTypeShortcuts_reportsrecords_label extends SchemaTypeShortcuts_reportsrecords_default {
-		protected SchemaTypeShortcuts_reportsrecords_label(String schemaCode) {
-			super(schemaCode);
-		}
-
-		public Metadata colonne() {
-			return metadata("colonne");
-		}
-
-		public Metadata height() {
-			return metadata("height");
-		}
-
-		public Metadata ligne() {
-			return metadata("ligne");
-		}
-
-		public Metadata typelabel() {
-			return metadata("typelabel");
-		}
-
-		public Metadata width() {
-			return metadata("width");
 		}
 	}
 /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/

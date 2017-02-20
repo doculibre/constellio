@@ -472,6 +472,16 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		});
 
+		Button autoFillContainers = new Button($("DecommissioningListView.autoFillContainers"));
+		autoFillContainers.addStyleName(ValoTheme.BUTTON_LINK);
+		autoFillContainers.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+//				presenter.autoFillContainersRequested();
+			}
+		});
+
+
 		removeFolders = buildRemoveFoldersButton();
 		removeFolders.addStyleName(ValoTheme.BUTTON_LINK);
 
@@ -540,7 +550,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.attachTo(table);
 	}
 
-	private Component buildContainerComponent(List<DecomListContainerDetail> containerDetails) {
+	private Component  buildContainerComponent(List<DecomListContainerDetail> containerDetails) {
 		Label header = new Label($("DecommissioningListView.containers"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
