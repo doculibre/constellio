@@ -1,7 +1,6 @@
 package com.constellio.app.ui.framework.data;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
 import java.io.IOException;
@@ -67,8 +66,7 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCode);
 			typesByCode.add(type);
 		} else {
-			SchemaUtils schemaUtils = new SchemaUtils();
-			String schemaTypeCodeFromSchema = schemaUtils.getSchemaTypeCode(schemaCode);
+			String schemaTypeCodeFromSchema = SchemaUtils.getSchemaTypeCode(schemaCode);
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCodeFromSchema);
 			typesByCode.add(type);
 		}

@@ -16,6 +16,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.ContentVersionDisplay;
+import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.upload.BaseMultiFileUpload;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -46,8 +47,6 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	public static final String STYLE_LAYOUT = STYLE_NAME + "-layout";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
 	public static final String SELECT_PROPERTY_ID = "select";
-	public static final String CAPTION_PROPERTY_ID = "caption";
-	public static final String FOLDER_PROPERTY_ID = "folder";
 
 	List<RecordVODataProvider> dataProviders;
 	
@@ -57,9 +56,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private RecordVOLazyContainer userContentContainer;
 	private ButtonsContainer<RecordVOLazyContainer> buttonsContainer;
 	private RecordVOTable userContentTable;
-	private ListUserDocumentsPresenter presenter;
-
 	private Builder<ContainerButton> classifyButtonFactory;
+	
+	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
+
+	private ListUserDocumentsPresenter presenter;
 
 	public ListUserDocumentsViewImpl() {
 		presenter = new ListUserDocumentsPresenter(this);
@@ -151,8 +152,6 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				return ownType;
 			}
 		};
-		buttonsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
-		buttonsContainer.addContainerProperty(FOLDER_PROPERTY_ID, Component.class, null);
 
 		buttonsContainer.addButton(classifyButtonFactory.build());
 		buttonsContainer.addButton(new ContainerButton() {
@@ -161,7 +160,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteButtonClicked((RecordVO) itemId);
+						RecordVO recordVO = ((RecordVOItem) buttonsContainer.getItem(itemId)).getRecord();
+						presenter.deleteButtonClicked(recordVO);
 					}
 				};
 			}
@@ -172,12 +172,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		userContentTable.setWidth("100%");
 		userContentTable.addStyleName(TABLE_STYLE_NAME);
 		userContentTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
-		userContentTable.setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
 		userContentTable.setColumnHeader(SELECT_PROPERTY_ID, $("ListUserDocumentsView.selectColumnTitle"));
-		userContentTable.setColumnHeader(CAPTION_PROPERTY_ID, $("ListUserDocumentsView.captionColumnTitle"));
-		userContentTable.setColumnHeader(FOLDER_PROPERTY_ID, $("ListUserDocumentsView.folderColumnTitle"));
 		userContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-		userContentTable.setColumnExpandRatio(CAPTION_PROPERTY_ID, 1);
 
 		mainLayout.addComponents(multiFileUpload, userContentTable);
 
@@ -204,7 +200,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				captionComponent = new Label("");
 			}
 		} else {
-			captionComponent = new Label(recordVO.getTitle());
+			captionComponent = new Label(recordIdToCaptionConverter.convertToPresentation(recordVO.getId(), String.class, getLocale()));
 		}
 		return captionComponent;
 	}

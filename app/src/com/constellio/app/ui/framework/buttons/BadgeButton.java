@@ -2,8 +2,6 @@ package com.constellio.app.ui.framework.buttons;
 
 public abstract class BadgeButton extends BaseButton {
 	
-	public static final String STYLE_NAME = "button-badge";
-	
 	private String textCaption;
 	
 	private int count;
@@ -60,7 +58,7 @@ public abstract class BadgeButton extends BaseButton {
 	
 	private void adjustCaption() {
 		if (badgeVisible && (count > 0 || badgeVisibleWhenZero)) {
-			super.setCaption("<span class=\"badge\" data-badge=\"" + count + "\">" + textCaption + "</span>");
+			super.setCaption("<span class=\"badge-button\" data-badge=\"" + count + "\">" + textCaption + "</span>");
 		} else {
 			super.setCaption(textCaption);
 		}

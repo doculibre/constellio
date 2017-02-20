@@ -12,6 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -176,20 +179,24 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	}
 
 	public void deleteButtonClicked(RecordVO userContentVO) {
+		User currentUser = getCurrentUser();
 		Record record = toRecord(userContentVO);
 		String schemaTypeCode = userContentVO.getSchema().getTypeCode();
 		try {
-			delete(record);
 			if (UserFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				RMUserFolder userFolder = rm.wrapUserFolder(record);
+				DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
+				decommissioningService.deleteUserFolder(userFolder, currentUser);
 				userFoldersDataProvider.fireDataRefreshEvent();
 			} else {
+				delete(record);
 				userDocumentsDataProvider.fireDataRefreshEvent();
 			}
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
-
 	}
 
 }

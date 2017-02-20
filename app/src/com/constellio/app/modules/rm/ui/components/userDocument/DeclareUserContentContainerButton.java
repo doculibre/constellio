@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
+import com.constellio.app.ui.entities.UserFolderVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -44,15 +45,15 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 					}
 				};
 			} else {
-				declareUserContentButton = newDefaultClassifyButton(icon, userDocumentVO);
+				declareUserContentButton = newDefaultClassifyUserDocumentButton(icon, userDocumentVO);
 			}
+		} else if (recordVO instanceof UserFolderVO) {
+			UserFolderVO userFolderVO = (UserFolderVO) recordVO;
+			Resource icon = new ThemeResource("images/icons/folder/folder_into.png");
+			declareUserContentButton = newDefaultClassifyUserFolderButton(icon, userFolderVO);
 		} else {
-			declareUserContentButton = new BaseButton("FIXME!") {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					System.out.println("FIXME!");
-				}
-			};
+			declareUserContentButton = new Button();
+			declareUserContentButton.setVisible(false);
 		}
 		return declareUserContentButton;
 	}
@@ -96,8 +97,8 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 		}
 	}
 
-	protected Button newDefaultClassifyButton(Resource icon, final UserDocumentVO userDocumentVO) {
-		return new BaseButton($("ListUserDocumentsView.declareDocument")) {
+	protected Button newDefaultClassifyUserDocumentButton(Resource icon, final UserDocumentVO userDocumentVO) {
+		return new BaseButton($("ListUserDocumentsView.declareDocument"), icon, true) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				String userDocumentId = userDocumentVO.getId();
@@ -105,9 +106,21 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				for (Window window : ConstellioUI.getCurrent().getWindows()) {
 					window.close();
 				}
-
 			}
-
 		};
 	}
+
+	protected Button newDefaultClassifyUserFolderButton(Resource icon, final UserFolderVO userFolderVO) {
+		return new BaseButton($("ListUserDocumentsView.declareFolder"), icon, true) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				String userFolderId = userFolderVO.getId();
+				ConstellioUI.getCurrent().navigateTo().declareUserFolder(userFolderId);
+				for (Window window : ConstellioUI.getCurrent().getWindows()) {
+					window.close();
+				}
+			}
+		};
+	}
+	
 }

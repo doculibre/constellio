@@ -31,6 +31,10 @@ public abstract class WindowButton extends Button implements Button.ClickListene
 	}
 
 	public WindowButton(String caption, String windowCaption) {
+		this(null, caption, windowCaption);
+	}
+
+	public WindowButton(Resource icon, String caption, String windowCaption) {
 		this(caption, windowCaption, WindowConfiguration.modalDialog("50%", "50%"));
 	}
 

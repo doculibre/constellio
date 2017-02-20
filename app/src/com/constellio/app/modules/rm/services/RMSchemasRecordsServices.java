@@ -25,8 +25,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +43,13 @@ import com.auxilii.msgparser.Message;
 import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMObject;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -56,6 +61,11 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -142,13 +152,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public ContainerRecordType newContainerRecordTypeWithId(String id) {
 		return new ContainerRecordType(create(containerRecordTypeSchema(), id), getTypes());
 	}
-
-	//
-	public UserDocument getUserDocument(String id) {
-		return new UserDocument(get(id), getTypes());
-	}
-
-	//
 
 	//Document
 
@@ -553,6 +556,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//User document
 
+	public UserDocument getUserDocument(String id) {
+		return new UserDocument(get(id), getTypes());
+	}
+
 	public MetadataSchemaType userDocumentSchemaType() {
 		return getTypes().getSchemaType(UserDocument.SCHEMA_TYPE);
 	}
@@ -587,6 +594,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//User Folder
 
+	public RMUserFolder getUserFolder(String id) {
+		return new RMUserFolder(get(id), getTypes());
+	}
+	
 	public MetadataSchemaType userFolderSchemaType() {
 		return getTypes().getSchemaType(UserFolder.SCHEMA_TYPE);
 	}

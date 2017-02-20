@@ -647,6 +647,42 @@ $popup-view-z-index: 3;
 				
 				.header-popup-selection-panel {
 					width: 100%;
+					
+				    .header-selection-panel-actions {
+					    width: 225px;
+					    border: 1px solid #3a434d;
+					    border-radius: 4px;
+
+						.v-button {
+					    	color: white;
+					    	font-weight: normal;
+							text-decoration: none;
+							font-size: 14px;
+							width: 100%;
+							border-radius: 0;
+							text-align: left;
+							border: none;
+
+						    background-color: #414B56;
+							//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
+							background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
+						}
+
+					    .v-button:hover {
+					    	color: #197de1;
+						    background-color: #3a434d;
+					    }
+
+					    .v-button:after {
+							box-shadow: none;
+							border: none;
+					    }
+
+					    .v-disabled:hover {
+					    	color: white;
+						    background-color: #414B56;
+					    }
+				    }
 				}
 			}
 
