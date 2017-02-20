@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.model.validators;
 
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordProvider;
@@ -42,14 +41,14 @@ public class StorageSpaceValidator implements RecordValidator {
 			params.getValidationErrors().add(StorageSpaceValidator.class, CHILD_CAPACITY_MUST_BE_LESSER_OR_EQUAL_TO_PARENT_CAPACITY, parameters);
 		}
 
-//		List<ContainerRecordType> containerRecordTypeList = storageSpace.getContainerType();
-//		if(!canContain(parentStorageSpace, containerRecordTypeList, params.getRecordProvider(), params.getTypes())) {
-//			Map<String, Object> parameters = new HashMap<>();
-//			parameters.put(CONTAINER_TYPE, formatToParameter(containerRecordTypeList));
-//			parameters.put(PARENT_CONTAINER_TYPE, formatToParameter(parentStorageSpace.getContainerType()));
-//
-//			params.getValidationErrors().add(StorageSpaceValidator.class, CONTAINER_TYPE_MUST_BE_INCLUDED_IN_PARENT_STORAGE_SPACE, parameters);
-//		}
+		List<String> containerRecordTypeList = storageSpace.getContainerType();
+		if(!canContain(parentStorageSpace, containerRecordTypeList, params.getRecordProvider(), params.getTypes())) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(CONTAINER_TYPE, formatToParameter(containerRecordTypeList));
+			parameters.put(PARENT_CONTAINER_TYPE, formatToParameter(parentStorageSpace.getContainerType()));
+
+			params.getValidationErrors().add(StorageSpaceValidator.class, CONTAINER_TYPE_MUST_BE_INCLUDED_IN_PARENT_STORAGE_SPACE, parameters);
+		}
 	}
 
 	private String formatToParameter(Long parameter) {
@@ -59,23 +58,23 @@ public class StorageSpaceValidator implements RecordValidator {
 		return parameter.toString();
 	}
 
-	private String formatToParameter(List<ContainerRecordType> parameter) {
+	private String formatToParameter(List<String> parameter) {
 		if(parameter == null || parameter.isEmpty()) {
 			return "";
 		}
 		return parameter.toString();
 	}
 
-	public boolean canContain(StorageSpace storageSpace, List<ContainerRecordType> checkedContainerRecordType, RecordProvider recordProvider, MetadataSchemaTypes types) {
+	public boolean canContain(StorageSpace storageSpace, List<String> checkedContainerRecordType, RecordProvider recordProvider, MetadataSchemaTypes types) {
 		if(checkedContainerRecordType == null || checkedContainerRecordType.isEmpty()) {
 			return true;
 		}
-		List<ContainerRecordType> containerRecordTypeList = new ArrayList<>();
+		List<String> containerRecordTypeList = new ArrayList<>();
 		StorageSpace currentStorage = storageSpace;
 		while (currentStorage != null) {
 
 			if(currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
-//				containerRecordTypeList = currentStorage.getContainerType();
+				containerRecordTypeList = currentStorage.getContainerType();
 				break;
 			} else if(currentStorage.getParentStorageSpace() == null) {
 				break;

@@ -71,6 +71,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 		buttons.add(buildProcessButton());
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildAddDocumentsButton());
+		buttons.add(buildRemoveDocumentsButton());
 		return buttons;
 	}
 
@@ -87,7 +88,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 		});
 
 		RecordVODataProvider dataProvider = presenter.getDocuments();
-		VerticalLayout layout = new VerticalLayout(display, buildRemoveDocumentsButton(), buildDocumentTable(dataProvider), comments);
+		VerticalLayout layout = new VerticalLayout(display, buildDocumentTable(dataProvider), comments);
 		for(int i = 0; i < dataProvider.size(); i++) {
 			selected.put(new Integer(i), false);
 		}

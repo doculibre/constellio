@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.model.validators;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordProvider;
@@ -64,12 +63,12 @@ public class ContainerRecordValidator implements RecordValidator {
 		if(containerRecordType == null) {
 			return true;
 		}
-		List<ContainerRecordType> containerRecordTypeList = new ArrayList<>();
+		List<String> containerRecordTypeList = new ArrayList<>();
 		StorageSpace currentStorage = storageSpace;
 		while (currentStorage != null) {
 
 			if(currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
-//				containerRecordTypeList = currentStorage.getContainerType();
+				containerRecordTypeList = currentStorage.getContainerType();
 				break;
 			} else if(currentStorage.getParentStorageSpace() == null) {
 				break;
@@ -77,6 +76,6 @@ public class ContainerRecordValidator implements RecordValidator {
 			currentStorage = new StorageSpace(recordProvider.getRecord(storageSpace.getParentStorageSpace()), types);
 		}
 
-		return (containerRecordTypeList == null || containerRecordTypeList.isEmpty()) ? true : containerRecordTypeList.contains(new ContainerRecordType(recordProvider.getRecord(containerRecordType), types));
+		return (containerRecordTypeList == null || containerRecordTypeList.isEmpty()) ? true : containerRecordTypeList.contains(containerRecordType);
 	}
 }

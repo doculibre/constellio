@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.container.fields;
 
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
+import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -41,10 +42,12 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 
     private String containerRecordType;
 
-    public ContainerStorageSpaceLookupField(String containerRecordType) {
+    private AddEditContainerPresenter presenter;
+
+    public ContainerStorageSpaceLookupField(String containerRecordType, AddEditContainerPresenter presenter) {
         this(StorageSpace.SCHEMA_TYPE, null, containerRecordType);
         this.containerRecordType =  containerRecordType;
-
+        this.presenter = presenter;
     }
 
     private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, String containerRecordType) {
@@ -76,6 +79,7 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
                 List<Record> recordList = constellioFactories.getModelLayerFactory().newSearchServices().search(buildQuery(constellioFactories.getModelLayerFactory(), sessionContext));
                 if(recordList != null && !recordList.isEmpty()) {
                     ContainerStorageSpaceLookupField.this.setFieldValue(recordList.get(0).getId());
+                    presenter.typeSelected(containerRecordType);
                 }
             }
 

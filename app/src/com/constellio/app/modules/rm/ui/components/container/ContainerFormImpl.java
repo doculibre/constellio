@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
+import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -15,8 +16,8 @@ import java.util.List;
  */
 public abstract class ContainerFormImpl extends RecordForm implements ContainerForm {
 
-    public ContainerFormImpl(RecordVO record) {
-        this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE)));
+    public ContainerFormImpl(RecordVO record, AddEditContainerPresenter presenter) {
+        this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE), presenter));
     }
 
     public ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {

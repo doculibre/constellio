@@ -165,6 +165,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildFoldersCertificateButton());
 		buttons.add(buildAddFoldersButton());
+		buttons.add(buildRemoveFoldersButton());
 		return buttons;
 	}
 
@@ -494,11 +495,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		});
 
-
-		removeFolders = buildRemoveFoldersButton();
-		removeFolders.addStyleName(ValoTheme.BUTTON_LINK);
-
-		HorizontalLayout controls = new HorizontalLayout(label, container, placeFolders, createContainer, searchContainer, autoFillContainers, removeFolders);
+		HorizontalLayout controls = new HorizontalLayout(label, container, placeFolders, createContainer, searchContainer, autoFillContainers);
 		controls.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
 		controls.setSpacing(true);
 		controls.setVisible(presenter.shouldAllowContainerEditing());

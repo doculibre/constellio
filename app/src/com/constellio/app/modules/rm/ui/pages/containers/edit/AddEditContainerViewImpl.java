@@ -98,7 +98,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 	}
 
 	private ContainerFormImpl newForm() {
-		return new ContainerFormImpl(container) {
+		return new ContainerFormImpl(container, presenter) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {

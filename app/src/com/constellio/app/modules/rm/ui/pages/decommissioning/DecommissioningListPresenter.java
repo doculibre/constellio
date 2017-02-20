@@ -33,6 +33,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
@@ -144,7 +147,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void folderPlacedInContainer(FolderDetailVO folder, ContainerVO container) {
 		folder.setContainerRecordId(container.getId());
-		decommissioningList().getFolderDetail(folder.getFolderId()).setContainerRecordId(container.getId());
+		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderLinearSize(folder.getLinearSize()).setContainerRecordId(container.getId());
 		addOrUpdate(decommissioningList().getWrappedRecord());
 
 		view.setProcessable(folder);
@@ -504,6 +507,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		linearSize = sortByValue(linearSize);
 		LogicalSearchQuery query = buildContainerQuery(linearSize.values().iterator().next());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		//TODO CAN BE NULL
+		if(modelLayerFactory.newSearchServices().getResultsCount(query) == 0) {
+			view.showErrorMessage($("DecommissioningListView.noContainerFound"));
+			return;
+		}
 		List<ContainerRecord> containerRecordList = rm.wrapContainerRecords(modelLayerFactory.newSearchServices().search(query));
 		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>(linearSize.entrySet());
 		for(Map.Entry<String, Double> entry: listOfEntry) {
@@ -514,9 +522,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	private boolean fill(ContainerRecord containerRecord, Map.Entry<String, Double> entry) {
+		recordServices().recalculate(containerRecord);
 		if(containerRecord.getAvailableSize() >= entry.getValue()) {
 			try {
-				recordServices().update(rmRecordsServices.getFolder(entry.getKey()).setContainer(containerRecord));
+				recordServices().update(rmRecordsServices.getFolder(entry.getKey()).setContainer(containerRecord).setLinearSize(entry.getValue()));
 				folderPlacedInContainer(view.getPackageableFolder(entry.getKey()), view.getContainer(containerRecord));
 				return true;
 			} catch (RecordServicesException e) {
@@ -527,13 +536,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
-//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-//		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
-//				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList.getAdministrativeUnit()),
-////				where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList.getDecommissioningListType().getDecommissioningType()),
-//				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize)
-//		)).sortAsc(rm.containerRecord.availableSize());
-		return null;
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
+				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList.getAdministrativeUnit()),
+				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize),
+				anyConditions(
+						where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList.getDecommissioningListType().getDecommissioningType()),
+						where(rm.containerRecord.decommissioningType()).isNull()
+				)
+		)).sortAsc(rm.containerRecord.availableSize());
 	}
 
 	private Map<String, Double> sortByValue(Map<String, Double> linearSize) {
