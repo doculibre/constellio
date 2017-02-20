@@ -38,9 +38,9 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		return folderExcluded;
 	}
 
-	public DecomListFolderDetail setFolderIncluded(boolean folderIncluded) {
+	public DecomListFolderDetail setFolderExcluded(boolean folderExcluded) {
 		dirty = true;
-		this.folderExcluded = !folderIncluded;
+		this.folderExcluded = folderExcluded;
 		return this;
 	}
 

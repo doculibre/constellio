@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+    <record id="412903">
+        <identifier>00001</identifier>
+        <decommissioningType>T</decommissioningType>
+        <administrativeUnit>code:2014AKA</administrativeUnit>
+        <temporaryIdentifier>00001</temporaryIdentifier>
+        <type>60003</type>
+    </record>
+    <record id="412904">
+        <identifier>00002</identifier>
+        <decommissioningType>T</decommissioningType>
+        <administrativeUnit>code:2014AKA</administrativeUnit>
+        <temporaryIdentifier>00002</temporaryIdentifier>
+        <type>60004</type>
+    </record>
+</records>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+	<record id="40">
+        <description></description>
+        <title>test</title>
+        <folderDetails multivalue="true" type="structure">
+            <item containerRecordId="412903" folderId="00000000087" folderExcluded="true" reversedSort="true" folderLinearSize="42.0"/>
+			<item containerRecordId="412904" folderId="00000000088"/>
+			<item containerRecordId="412905"/>
+        </folderDetails>
+    </record>
+</records>
