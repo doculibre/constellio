@@ -17,6 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,7 +94,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule()
+				.withAllTestUsers());
 		givenBackgroundThreadsEnabled();
 		withSpiedServices(ModelLayerConfiguration.class);
 		configure(new ModelLayerConfigurationAlteration() {
@@ -939,6 +946,41 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(globalGroupsManager.getAllGroups()).hasSize(3);
 		assertThat(globalGroupsManager.getActiveGroups()).hasSize(3);
 	}
+
+	@Test
+	@InDevelopmentTest
+	public void tryingToPhysicallyDeleteUser() throws RecordServicesException {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		User chuck = users.chuckNorrisIn(zeCollection);
+		Cart c = rm.getOrCreateUserCart(chuck);
+		Transaction t = new Transaction();
+		t.add(c);
+		recordServices.execute(t);
+		userServices = getModelLayerFactory().newUserServices();
+		List<String> aliceCollection = users.alice().getCollections();
+		try {
+			userServices.safePhysicalDeleteUser(users.alice().getUsername());
+			int compteur = 0;
+			for (String collection : aliceCollection) {
+				try {
+					userServices.getUserInCollection(users.alice().getUsername(), collection);
+				} catch (Exception e) {
+					assertThat(e).isInstanceOf(UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser.class);
+					compteur++;
+				}
+			}
+			assertThat(compteur).isEqualTo(aliceCollection.size());
+			userServices.safePhysicalDeleteUser(chuck.getUsername());
+			fail();
+		} catch (Exception e) {
+			assertThat(e).isInstanceOf(UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically.class);
+			e.printStackTrace();
+		}
+	}
+
 
 	// ----- Utils methods
 
