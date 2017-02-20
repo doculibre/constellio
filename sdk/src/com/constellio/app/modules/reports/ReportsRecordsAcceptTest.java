@@ -23,18 +23,19 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.joda.time.LocalDate;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Nicolas D'amours & Charles Blanchette on 2017-01-16.
@@ -65,15 +66,15 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
         ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
-        Printable r = rm.newReportConfig();
+        Printable r = rm.newPrintableLabel();
         r.setTitle(title);
         r.setJasperFile(c);
         Transaction t = new Transaction();
         t.add(r);
         recordServices.execute(t);
 
-        LogicalSearchCondition condition = from(rm.reportsrecords.schemaType()).where(rm.reportsrecords.title()).isEqualTo(title);
-        Printable retour = rm.wrapReportConfig(ss.searchSingleResult(condition));
+        LogicalSearchCondition condition = from(rm.printable_label.schemaType()).where(rm.printable_label.title()).isEqualTo(title);
+        Printable retour = rm.wrapPrintableLabel(ss.searchSingleResult(condition));
         assertThat(retour.getTitle()).isEqualTo(title);
         assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
     }
@@ -84,8 +85,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
         ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
-        Printable r = rm.newReportConfig();
-        PrintableLabel printableLabel = rm.newRMReport();
+        Printable r = rm.newPrintableLabel();
+        PrintableLabel printableLabel = rm.newPrintableLabel();
         printableLabel.setJasperFile(c);
         printableLabel.setTitle(title);
 
@@ -93,8 +94,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         t.add(printableLabel);
         recordServices.execute(t);
 
-        LogicalSearchCondition condition = from(rm.reportsrecords.schemaType()).where(rm.reportsrecords.title()).isEqualTo(title);
-        PrintableLabel retour = rm.wrapRMReport(ss.searchSingleResult(condition));
+        LogicalSearchCondition condition = from(rm.printable_label.schemaType()).where(rm.printable_label.title()).isEqualTo(title);
+        PrintableLabel retour = rm.wrapPrintableLabel(ss.searchSingleResult(condition));
         assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
         assertThat(retour.getTitle()).isEqualTo(title);
     }

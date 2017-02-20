@@ -33,8 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
@@ -517,19 +515,25 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	private boolean fill(ContainerRecord containerRecord, Map.Entry<String, Double> entry) {
 		if(containerRecord.getAvailableSize() >= entry.getValue()) {
-			containerRecord.setLinearSizeEntered(containerRecord.getLinearSize() + entry.getValue());
-			return true;
+			try {
+				recordServices().update(rmRecordsServices.getFolder(entry.getKey()).setContainer(containerRecord));
+				folderPlacedInContainer(view.getPackageableFolder(entry.getKey()), view.getContainer(containerRecord));
+				return true;
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
 		}
 		return false;
 	}
 
 	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
-				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList.getAdministrativeUnit()),
-				where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList.getDecommissioningListType().getDecommissioningType()),
-				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize)
-		)).sortAsc(rm.containerRecord.availableSize());
+//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+//		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
+//				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList.getAdministrativeUnit()),
+////				where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList.getDecommissioningListType().getDecommissioningType()),
+//				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize)
+//		)).sortAsc(rm.containerRecord.availableSize());
+		return null;
 	}
 
 	private Map<String, Double> sortByValue(Map<String, Double> linearSize) {
@@ -547,5 +551,13 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			result.put( entry.getKey(), entry.getValue() );
 		}
 		return result;
+	}
+
+	public void addContainerToDecommissioningList(ContainerRecord containerRecord) {
+		try {
+			recordServices().update(decommissioningList().addContainerDetailsFrom(asList(containerRecord)));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
 	}
 }

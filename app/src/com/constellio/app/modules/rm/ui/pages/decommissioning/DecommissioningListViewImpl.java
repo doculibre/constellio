@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailT
 import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
@@ -27,7 +28,9 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -477,7 +480,17 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		autoFillContainers.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-//				presenter.autoFillContainersRequested();
+				Map<String, Double> linearSizes = new HashMap<>();
+				for (Object itemId : packageableFolders.getItemIds()) {
+					FolderDetailVO currentFolder = (FolderDetailVO) itemId;
+					if(currentFolder.getLinearSize() == null) {
+						showErrorMessage($("DecommissioningListView.allFoldersMustHaveLinearSize"));
+						return;
+					}
+					linearSizes.put(currentFolder.getFolderId(), currentFolder.getLinearSize());
+				}
+				presenter.autoFillContainersRequested(linearSizes);
+				presenter.refreshView();
 			}
 		});
 
@@ -485,7 +498,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		removeFolders = buildRemoveFoldersButton();
 		removeFolders.addStyleName(ValoTheme.BUTTON_LINK);
 
-		HorizontalLayout controls = new HorizontalLayout(label, container, placeFolders, createContainer, searchContainer, removeFolders);
+		HorizontalLayout controls = new HorizontalLayout(label, container, placeFolders, createContainer, searchContainer, autoFillContainers, removeFolders);
 		controls.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
 		controls.setSpacing(true);
 		controls.setVisible(presenter.shouldAllowContainerEditing());
@@ -579,5 +592,34 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		container.setItemCaptionPropertyId("caption");
 		container.setNullSelectionAllowed(false);
 		return container;
+	}
+
+	public FolderDetailVO getPackageableFolder(String folderId) {
+		FolderDetailVO folder = null;
+		for (Object itemId : packageableFolders.getItemIds()) {
+			FolderDetailVO currentFolder = (FolderDetailVO) itemId;
+			if(folderId.equals((currentFolder.getFolderId()))) {
+				folder = currentFolder;
+				break;
+			}
+		}
+		return folder;
+	}
+
+	public ContainerVO getContainer(ContainerRecord containerRecord) {
+		ContainerVO containerVO = null;
+		for (Object itemId : containerVOs.getItemIds()) {
+			ContainerVO currentContainer = (ContainerVO) itemId;
+			if(containerRecord.getId().equals((currentContainer.getId()))) {
+				containerVO = currentContainer;
+				break;
+			}
+		}
+		if(containerVO == null) {
+			containerVO = new ContainerVO(containerRecord.getId(), containerRecord.getTitle());
+			containerVOs.addItem(containerVO);
+			presenter.addContainerToDecommissioningList(containerRecord);
+		}
+		return containerVO;
 	}
 }
