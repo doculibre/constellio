@@ -92,6 +92,7 @@ dependencies {
     compile "com.jgoodies:jgoodies-common:1.7.0"
     compile "nl.bitwalker:UserAgentUtils:1.2.4"
     compile "org.jasig.cas:cas-client-core:3.1.10"
+
 }
 
 war {
