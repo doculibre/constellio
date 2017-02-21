@@ -25,7 +25,7 @@ public class OrderDecommissioningListViewImpl extends BaseViewImpl implements Or
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		decommissioningList = presenter.forRecordId(event.getParameters()).getDecommissioningList();
+		decommissioningList = presenter.forParams(event.getParameters()).getDecommissioningList();
 	}
 
 	@Override
@@ -119,7 +119,7 @@ public class OrderDecommissioningListViewImpl extends BaseViewImpl implements Or
 	private void refreshList() {
 		listSelect.removeAllItems();
 
-		for (FolderDetailVO folderDetailVO : presenter.getProcessableFolders()) {
+		for (FolderDetailVO folderDetailVO : presenter.getFolderDetails()) {
 			listSelect.addItem(folderDetailVO);
 			String tmp = presenter.getLabelForCode(folderDetailVO);
 			listSelect.setItemCaption(folderDetailVO, tmp);

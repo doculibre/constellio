@@ -33,9 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
@@ -235,6 +233,46 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isExcluded()) {
 				result.add(builder.build(folder));
+			}
+		}
+		return result;
+	}
+
+	public List<String> getFoldersToValidateIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded()) {
+				result.add(folder.getFolderId());
+			}
+		}
+		return result;
+	}
+
+	public List<String> getPackageableFoldersIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+				result.add(folder.getFolderId());
+			}
+		}
+		return result;
+	}
+
+	public List<String> getProcessableFoldersIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded() && decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+				result.add(folder.getFolderId());
+			}
+		}
+		return result;
+	}
+
+	public List<String> getExcludedFoldersIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isExcluded()) {
+				result.add(folder.getFolderId());
 			}
 		}
 		return result;
@@ -548,20 +586,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	private Map<String, Double> sortByValue(Map<String, Double> linearSize) {
-		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>( linearSize.entrySet() );
-		Collections.sort(listOfEntry, new Comparator<Map.Entry<String, Double>>() {
-			@Override
-			public int compare(Map.Entry<String, Double> entry1, Map.Entry<String, Double> entry2) {
-				return entry1.getValue().compareTo(entry2.getValue());
-			}
-		});
-
-		Map<String, Double> result = new LinkedHashMap<>();
-		for (Map.Entry<String, Double> entry : listOfEntry)
-		{
-			result.put( entry.getKey(), entry.getValue() );
-		}
-		return result;
+		return null;
 	}
 
 	public void addContainerToDecommissioningList(ContainerRecord containerRecord) {
@@ -572,7 +597,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 	}
 
-	public void reorderRequested() {
-		view.navigate().to(RMViews.class).orderDecommissioningList(decommissioningList().getId());
+	public void reorderRequested(OrderDecommissioningListPresenter.TableType type) {
+		view.navigate().to(RMViews.class).orderDecommissioningList(decommissioningList().getId(), type);
+	}
+
+	public String getOrderNumber(String folderId) {
+		int orderNumber = getExcludedFoldersIds().indexOf(folderId);
+		orderNumber = orderNumber == -1 ? getPackageableFoldersIds().indexOf(folderId) : orderNumber;
+		orderNumber = orderNumber == -1? getProcessableFoldersIds().indexOf(folderId) : orderNumber;
+		orderNumber = orderNumber == -1? getFoldersToValidateIds().indexOf(folderId) : orderNumber;
+		return String.valueOf(orderNumber + 1);
 	}
 }

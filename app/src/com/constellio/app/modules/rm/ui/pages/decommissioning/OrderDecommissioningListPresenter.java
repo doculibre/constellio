@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -15,7 +16,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.SchemasRecordsServices;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,16 +29,35 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 	private transient DecommissioningService decommissioningService;
 	private transient DecommissioningList decommissioningList;
 	private transient FolderDetailToVOBuilder folderDetailToVOBuilder;
+	private TableType type;
+
+	public enum TableType {
+		TO_VALIDATE, PACKAGEABLE, PROCESSABLE, EXCLUDED
+	}
 
 	public OrderDecommissioningListPresenter(OrderDecommissioningListView view) {
 		super(view);
 		codeTitles = new ArrayList<>();
 	}
 
-	public OrderDecommissioningListPresenter forRecordId(String recordId) {
-		this.recordId = recordId;
-		init();
+	public OrderDecommissioningListPresenter forParams(String params) {
+		if (StringUtils.isNotBlank(params)) {
+			String[] parts = params.split("/", 2);
+			String recordID = parts[0];
+			String type = parts[1];
+			forRecordId(recordID);
+			forType(type);
+			init();
+		}
 		return this;
+	}
+
+	public void forRecordId(String recordId) {
+		this.recordId = recordId;
+	}
+
+	public void forType(String type) {
+		this.type = TableType.valueOf(type);
 	}
 
 	public RecordVO getDecommissioningList() {
@@ -52,9 +72,8 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 
 	private void init() {
 		folderDetailVOs = new HashMap<>();
-		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory);
 
-		for (FolderDetailWithType folderDetail : decommissioningList().getFolderDetailsWithType()) {
+		for (FolderDetailWithType folderDetail : getLimitedFolderDetailsWithType()) {
 			FolderDetailVO folderDetailVO = folderDetailToVOBuilder().build(folderDetail);
 			folderDetailVOs.put(folderDetail.getFolderId(), folderDetailVO);
 			codeTitles.add(folderDetail.getFolderId());
@@ -78,7 +97,7 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 	}
 
 	public void cancelButtonClicked() {
-		view.navigate().to().listFacetConfiguration();
+		view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList().getId());
 	}
 
 	public void swap(String value, int offset) {
@@ -91,11 +110,7 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 	}
 
 	public void saveButtonClicked() {
-		List<DecomListFolderDetail> result = new ArrayList<>();
-		for (DecomListFolderDetail folder :  decommissioningList().getFolderDetails()) {
-			result.add(folder);
-		}
-
+		List<DecomListFolderDetail> result = getAllFolderDetailsWithType();
 		List<DecomListFolderDetail> sortedResult = new ArrayList<>();
 		for(String id: codeTitles) {
 			for(DecomListFolderDetail folder: result) {
@@ -103,6 +118,12 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 					sortedResult.add(folder);
 					break;
 				}
+			}
+		}
+		for(DecomListFolderDetail folder: result) {
+			if(!sortedResult.contains(folder)) {
+				sortedResult.add(folder);
+				break;
 			}
 		}
 		try {
@@ -114,25 +135,6 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 		view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList().getId());
 	}
 
-//	public List<String> getFolderDetailsTitle() {
-//		if (codeTitles == null) {
-//			List<Entry<String, FolderDetailVO>> entries = new ArrayList<>(folderDetailVOs.entrySet());
-//			Collections.sort(entries, new Comparator<Entry<String, FolderDetailVO>>() {
-//				@Override
-//				public int compare(Entry<String, FolderDetailVO> o1, Entry<String, FolderDetailVO> o2) {
-//					return new Integer(o1.getValue().getOrder()).compareTo(o2.getValue().getOrder());
-//				}
-//			});
-//
-//			codeTitles = new ArrayList<>();
-//			for (Map.Entry<String, FolderDetailVO> entry : entries) {
-//				codeTitles.add(entry.getKey());
-//			}
-//		}
-//		return codeTitles;
-//		return null;
-//	}
-
 	public String getLabelForCode(FolderDetailVO folderDetailVO) {
 		return recordServices().getDocumentById(folderDetailVO.getFolderId()).getTitle();
 	}
@@ -143,18 +145,18 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 		return schemaPresenterUtils.toRecord(recordVO);
 	}
 
-	public List<FolderDetailVO> getProcessableFolders() {
+	public List<FolderDetailVO> getFolderDetails() {
 		if (codeTitles == null) {
 			FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 			List<FolderDetailVO> result = new ArrayList<>();
-			for (FolderDetailWithType folder :  decommissioningList().getFolderDetailsWithType()) {
+			for (FolderDetailWithType folder :  getLimitedFolderDetailsWithType()) {
 				result.add(builder.build(folder));
 			}
 			return result;
 		} else {
 			FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 			List<FolderDetailVO> result = new ArrayList<>();
-			for (FolderDetailWithType folder :  decommissioningList().getFolderDetailsWithType()) {
+			for (FolderDetailWithType folder :  getLimitedFolderDetailsWithType()) {
 				result.add(builder.build(folder));
 			}
 
@@ -199,4 +201,66 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 		return rmRecordsServices;
 	}
 
+	public List<DecomListValidation> getValidations() {
+		return decommissioningList().getValidations();
+	}
+
+	private List<FolderDetailWithType> getFoldersToValidate() {
+		List<FolderDetailWithType> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded()) {
+				result.add(folder);
+			}
+		}
+		return result;
+	}
+
+	private List<FolderDetailWithType> getPackageableFolders() {
+		List<FolderDetailWithType> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+				result.add(folder);
+			}
+		}
+		return result;
+	}
+
+	private List<FolderDetailWithType> getProcessableFolders() {
+		List<FolderDetailWithType> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded() && decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+				result.add(folder);
+			}
+		}
+		return result;
+	}
+
+	private List<FolderDetailWithType> getExcludedFolders() {
+		List<FolderDetailWithType> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isExcluded()) {
+				result.add(folder);
+			}
+		}
+		return result;
+	}
+
+	private List<FolderDetailWithType> getLimitedFolderDetailsWithType() {
+		switch (type) {
+			case TO_VALIDATE:
+				return getFoldersToValidate();
+			case PACKAGEABLE:
+				return getPackageableFolders();
+			case PROCESSABLE:
+				return getProcessableFolders();
+			case EXCLUDED:
+				return getExcludedFolders();
+			default:
+				return new ArrayList<>();
+		}
+	}
+
+	private List<DecomListFolderDetail> getAllFolderDetailsWithType() {
+		return decommissioningList().getFolderDetails();
+	}
 }

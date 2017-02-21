@@ -164,20 +164,48 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildPrintButton());
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildFoldersCertificateButton());
-		buttons.add(buildOrderFolders());
 		buttons.add(buildAddFoldersButton());
 		buttons.add(buildRemoveFoldersButton());
 		return buttons;
 	}
 
-	private Button buildOrderFolders() {
-		Button button = new Button($("DecommissioningList.order"));
-		button.addClickListener(new ClickListener() {
+	private Button buildOrderFoldersToValidateButton() {
+		Button button = new LinkButton($("DecommissioningListView.order")) {
 			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.reorderRequested();
+			protected void buttonClick(ClickEvent event) {
+				presenter.reorderRequested(OrderDecommissioningListPresenter.TableType.TO_VALIDATE);
 			}
-		});
+		};
+		return button;
+	}
+
+	private Button buildOrderProcessableFoldersButton() {
+		Button button = new LinkButton($("DecommissioningListView.order")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.reorderRequested(OrderDecommissioningListPresenter.TableType.PROCESSABLE);
+			}
+		};
+		return button;
+	}
+
+	private Button buildOrderPackageableFoldersButton() {
+		Button button = new LinkButton($("DecommissioningListView.order")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.reorderRequested(OrderDecommissioningListPresenter.TableType.PACKAGEABLE);
+			}
+		};
+		return button;
+	}
+
+	private Button buildOrderExcludedFoldersButton() {
+		Button button = new LinkButton($("DecommissioningListView.order")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.reorderRequested(OrderDecommissioningListPresenter.TableType.EXCLUDED);
+			}
+		};
 		return button;
 	}
 
@@ -514,7 +542,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		packageableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		VerticalLayout layout = new VerticalLayout(header, controls, packageableFolders);
+		VerticalLayout layout = new VerticalLayout(header, controls, packageableFolders, buildOrderPackageableFoldersButton());
 		layout.setSpacing(true);
 
 		return layout;
@@ -526,7 +554,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		foldersToValidate = buildFolderTable(folders, false);
 
-		VerticalLayout layout = new VerticalLayout(header, foldersToValidate);
+		VerticalLayout layout = new VerticalLayout(header, foldersToValidate, buildOrderFoldersToValidateButton());
 		layout.setSpacing(true);
 
 		return layout;
@@ -540,7 +568,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		processableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		VerticalLayout layout = new VerticalLayout(header, processableFolders);
+		VerticalLayout layout = new VerticalLayout(header, processableFolders, buildOrderProcessableFoldersButton());
 		layout.setSpacing(true);
 
 		return layout;
@@ -552,7 +580,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		excludedFolders = buildFolderTable(folders, false);
 
-		VerticalLayout layout = new VerticalLayout(header, excludedFolders);
+		VerticalLayout layout = new VerticalLayout(header, excludedFolders, buildOrderExcludedFoldersButton());
 		layout.setSpacing(true);
 
 		return layout;
@@ -569,6 +597,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.displayingCategory(presenter.shouldDisplayCategoryInDetails())
 				.displayingSort(presenter.shouldDisplaySort())
 				.displayingValidation(presenter.shouldDisplayValidation())
+				.displayingOrderNumber(true)
 				.attachTo(table);
 	}
 

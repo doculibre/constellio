@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
@@ -18,13 +13,14 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
@@ -33,6 +29,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String RETENTION_RULE = "rule";
 	public static final String CATEGORY_CODE = "categoryCode";
 	public static final String SORT = "sort";
+	public static final String ORDER = "order";
 	public static final String MEDIUM = "medium";
 	public static final String CONTAINER = "container";
 	public static final String LINEAR_SIZE = "linearSize";
@@ -45,6 +42,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	private boolean displayCategory;
 	private boolean displaySort;
 	private boolean displayValidation;
+	private boolean displayOrderNumber;
 
 	public FolderDetailTableGenerator(DecommissioningListPresenter presenter, DecommissioningListViewImpl view,
 			boolean packageable) {
@@ -77,6 +75,11 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		return this;
 	}
 
+	public FolderDetailTableGenerator displayingOrderNumber(boolean displayOrderNumber) {
+		this.displayOrderNumber = displayOrderNumber;
+		return this;
+	}
+
 	public BaseTable attachTo(BaseTable table) {
 		List<String> visibleColumns = new ArrayList<>();
 		boolean inValidationStatus = presenter.isInValidation();
@@ -92,6 +95,13 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			table.addGeneratedColumn(VALIDATION_CHECKBOX, this);
 			table.setColumnHeader(VALIDATION_CHECKBOX, $("DecommissioningListView.folderDetails.checkbox"));
 			visibleColumns.add(VALIDATION_CHECKBOX);
+		}
+
+		if (displayOrderNumber) {
+			table.addGeneratedColumn(ORDER, this);
+			table.setColumnHeader(ORDER, $(""));
+			table.setColumnAlignment(ORDER, Align.CENTER);
+			visibleColumns.add(ORDER);
 		}
 
 		table.addGeneratedColumn(FOLDER_ID, this);
@@ -169,9 +179,15 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			return buildContainer(detail);
 		case LINEAR_SIZE:
 			return buildLinearSize(detail);
+		case ORDER:
+			return buildOrderNumber(detail);
 		}
 
 		return null;
+	}
+
+	private Object buildOrderNumber(FolderDetailVO detail) {
+		return new Label(presenter.getOrderNumber(detail.getFolderId()));
 	}
 
 	private Component buildCheckBox(final FolderDetailVO detail) {
