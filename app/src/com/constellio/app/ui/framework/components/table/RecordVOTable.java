@@ -53,6 +53,10 @@ public class RecordVOTable extends BaseTable {
 		super(null);
 		init();
 	}
+	
+	public RecordVOTable(Container dataSource) {
+		this(null, dataSource);
+	}
 
 	public RecordVOTable(String caption, Container dataSource) {
 		this(caption, dataSource, false);
@@ -150,6 +154,7 @@ public class RecordVOTable extends BaseTable {
 		return false;
 	}
 
+	@SuppressWarnings("rawtypes")
 	protected RecordVO getRecordVOForTitleColumn(Item item) {
 		if (item instanceof RecordVOItem) {
 			return ((RecordVOItem) item).getRecord();

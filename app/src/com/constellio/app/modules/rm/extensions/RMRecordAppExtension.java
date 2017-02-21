@@ -93,10 +93,18 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		String fileName = null;
 		Record record = params.getRecord();
 		String schemaCode = record.getSchemaCode();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
 			Document document = new Document(record, types());
 			Content content = document.getContent();
+			if (content != null && content.getCurrentVersion() != null) {
+				fileName = content.getCurrentVersion().getFilename();
+			} else {
+				fileName = "document";
+			}
+		} else if (schemaTypeCode.equals(UserDocument.SCHEMA_TYPE)) {
+			UserDocument userDocument = new UserDocument(record, types());
+			Content content = userDocument.getContent();
 			if (content != null && content.getCurrentVersion() != null) {
 				fileName = content.getCurrentVersion().getFilename();
 			} else {

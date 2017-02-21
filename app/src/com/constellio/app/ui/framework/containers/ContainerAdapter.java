@@ -2,7 +2,10 @@ package com.constellio.app.ui.framework.containers;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.Filterable;
@@ -15,16 +18,32 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Property.ValueChangeNotifier;
 import com.vaadin.data.util.AbstractContainer;
+import com.vaadin.data.util.AbstractProperty;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
+import com.vaadin.ui.CheckBox;
 
 @SuppressWarnings("serial")
-public abstract class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
+public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
 		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier {
+	
+	public static final String SELECT_PROPERTY_ID = "select";
 
 	protected T adapted;
+	
+	private boolean selectProperty;
+	
+	private Set<Object> selectedItemIds = new HashSet<>();
+	
+	private Set<SelectionChangeListener> selectionChangeListeners = new HashSet<>();
 
 	public ContainerAdapter(T adapted) {
+		this(adapted, false);
+	}
+
+	public ContainerAdapter(T adapted, boolean selectProperty) {
 		this.adapted = adapted;
+		this.selectProperty = selectProperty;
 	}
 
 	public T getNestedContainer() {
@@ -34,6 +53,9 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 	@Override
 	public Collection<?> getContainerPropertyIds() {
 		List<Object> propertyIds = new ArrayList<>();
+		if (selectProperty) {
+			propertyIds.add(SELECT_PROPERTY_ID);
+		}
 		Collection<?> adaptedPropertyIds = adapted.getContainerPropertyIds();
 		Collection<?> ownPropertyIds = getOwnContainerPropertyIds();
 		propertyIds.addAll(adaptedPropertyIds);
@@ -42,15 +64,47 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 	}
 
 	@Override
-	public Property<?> getContainerProperty(Object itemId, Object propertyId) {
-		Property<?> ownProperty = getOwnContainerProperty(itemId, propertyId);
-		return ownProperty != null ? ownProperty : adapted.getContainerProperty(itemId, propertyId);
+	public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
+		Property<?> property;
+		if (SELECT_PROPERTY_ID.equals(propertyId)) {
+			Property<?> selectProperty = new AbstractProperty<Boolean>() {
+				@Override
+				public Boolean getValue() {
+					return isSelected(itemId);
+				}
+
+				@Override
+				public void setValue(Boolean newValue)
+						throws com.vaadin.data.Property.ReadOnlyException {
+					boolean selected = Boolean.TRUE.equals(newValue);
+					setSelected(itemId, selected);
+				}
+
+				@Override
+				public Class<? extends Boolean> getType() {
+					return Boolean.class;
+				}
+			};
+			CheckBox checkBox = new CheckBox();
+			checkBox.setPropertyDataSource(selectProperty);
+			property = new ObjectProperty<CheckBox>(checkBox);
+		} else {
+			Property<?> ownProperty = getOwnContainerProperty(itemId, propertyId);
+			property = ownProperty != null ? ownProperty : adapted.getContainerProperty(itemId, propertyId);
+		}	
+		return property;
 	}
 
 	@Override
 	public Class<?> getType(Object propertyId) {
-		Class<?> ownType = getOwnType(propertyId);
-		return ownType != null ? ownType : adapted.getType(propertyId);
+		Class<?> propertyType;
+		if (SELECT_PROPERTY_ID.equals(propertyId)) {
+			propertyType = CheckBox.class;
+		} else {
+			Class<?> ownType = getOwnType(propertyId);
+			propertyType = ownType != null ? ownType : adapted.getType(propertyId);
+		}
+		return propertyType;
 	}
 
 	@Override
@@ -329,10 +383,50 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 			return new ArrayList<>();
 		}
 	}
+	
+	public boolean isSelected(Object itemId) {
+		return selectedItemIds.contains(itemId);
+	}
+	
+	public void setSelected(Object itemId, boolean selected) {
+		if (selected) {
+			selectedItemIds.add(itemId);
+		} else {
+			selectedItemIds.remove(itemId);
+		}
+		for (SelectionChangeListener listener : selectionChangeListeners) {
+			listener.selectionChanged(itemId, selected);
+		}
+	}
+	
+	public List<SelectionChangeListener> getSelectionChangeListeners() {
+		return new ArrayList<>(selectionChangeListeners);
+	}
+	
+	public void addSelectionChangeListener(SelectionChangeListener listener) {
+		this.selectionChangeListeners.add(listener);
+	}
+	
+	public void removeSelectionChangeListener(SelectionChangeListener listener) {
+		this.selectionChangeListeners.remove(listener);
+	}
+	
+	public static interface SelectionChangeListener {
+		
+		void selectionChanged(Object itemId, boolean selected);
+		
+	}
 
-	protected abstract Collection<?> getOwnContainerPropertyIds();
+	protected Collection<?> getOwnContainerPropertyIds() {
+		return Collections.emptyList();
+	}
 
-	protected abstract Class<?> getOwnType(Object propertyId);
+	protected Class<?> getOwnType(Object propertyId) {
+		return null;
+	}
 
-	protected abstract Property<?> getOwnContainerProperty(Object itemId, Object propertyId);
+	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
+		return null;
+	}
+	
 }
