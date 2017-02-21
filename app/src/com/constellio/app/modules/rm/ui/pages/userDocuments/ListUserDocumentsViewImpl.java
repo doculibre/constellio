@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.components.ContentVersionDisplay;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.upload.BaseMultiFileUpload;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -48,6 +49,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private MultiFileUpload multiFileUpload;
 	private RecordVOLazyContainer userContentContainer;
 	private ButtonsContainer<RecordVOLazyContainer> buttonsContainer;
+	private SelectionTableAdapter userContentSelectTableAdapter;
 	private RecordVOTable userContentTable;
 	private Builder<ContainerButton> classifyButtonFactory;
 	
@@ -91,22 +93,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		multiFileUpload.setWidth("100%");
 
 		userContentContainer = new RecordVOLazyContainer(dataProviders);
-		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer, true) {
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				return presenter.isSelected(recordVO);
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				presenter.selectionChanged(recordVO, selected);
-			}
-			
-		};
+		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer);
 
 		buttonsContainer.addButton(classifyButtonFactory.build());
 		buttonsContainer.addButton(new ContainerButton() {
@@ -127,10 +114,25 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		userContentTable.setWidth("100%");
 		userContentTable.addStyleName(TABLE_STYLE_NAME);
 		userContentTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
-		userContentTable.setColumnHeader(ButtonsContainer.SELECT_PROPERTY_ID, $("ListUserDocumentsView.selectColumnTitle"));
 		userContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		
+		userContentSelectTableAdapter = new SelectionTableAdapter(userContentTable) {
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				return presenter.isSelected(recordVO);
+			}
 
-		mainLayout.addComponents(multiFileUpload, userContentTable);
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				presenter.selectionChanged(recordVO, selected);
+			}
+		};
+
+		mainLayout.addComponents(multiFileUpload, userContentSelectTableAdapter);
 
 		dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
@@ -141,6 +143,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.forParams(event.getParameters());
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 
 	protected Component newCaptionComponent(RecordVO recordVO) {
@@ -179,4 +186,5 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	public void setUserContent(List<RecordVODataProvider> dataProviders) {
 		this.dataProviders = dataProviders;
 	}
+	
 }

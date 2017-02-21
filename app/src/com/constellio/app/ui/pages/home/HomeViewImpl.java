@@ -22,9 +22,9 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
-import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -139,32 +139,31 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildRecentItemTable(RecentItemTable recentItems) {
 		String tableId = "HomeView." + recentItems.getCode();
-		RecentTable table = new RecentTable(tableId,
+		final RecentTable table = new RecentTable(tableId,
 				recentItems.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
 		table.setSizeFull();
 		table.addStyleName("record-table");
-		return table;
-	}
-
-	private Table buildRecordTable(final RecordTable recordTable) {
-		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		ContainerAdapter<RecordVOLazyContainer> containerAdapter = new ContainerAdapter<RecordVOLazyContainer>(new RecordVOLazyContainer(dataProvider), true) {
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) getItem(itemId);
-				String recordId = item.getRecord().getId();
-				return presenter.isSelected(recordId);
-			}
-
+		return new SelectionTableAdapter(table) {
 			@Override
 			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) getItem(itemId);
-				String recordId = item.getRecord().getId();
+				RecordVO recordVO = table.getRecordVO(itemId);
+				String recordId = recordVO.getId();
 				presenter.selectionChanged(recordId, selected);
 			}
+			
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVO recordVO = table.getRecordVO(itemId);
+				String recordId = recordVO.getId();
+				return presenter.isSelected(recordId);
+			}
 		};
-		RecordVOTable table = new RecordVOTable(containerAdapter);
-		table.setColumnHeader(ContainerAdapter.SELECT_PROPERTY_ID, "");
+	}
+
+	private Component buildRecordTable(final RecordTable recordTable) {
+		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
+		final RecordVOTable table = new RecordVOTable(container);
 		((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
 		table.addStyleName("record-table");
 		table.setSizeFull();
@@ -186,7 +185,21 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			}
 		});
-		return table;
+		return new SelectionTableAdapter(table) {
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				String recordId = item.getRecord().getId();
+				return presenter.isSelected(recordId);
+			}
+
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				String recordId = item.getRecord().getId();
+				presenter.selectionChanged(recordId, selected);
+			}
+		};
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
@@ -271,27 +284,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		public RecentTable(String tableId, List<RecentItem> recentItems) {
 			super(tableId);
 			
-			ContainerAdapter<BeanItemContainer> containerAdapter = new ContainerAdapter<BeanItemContainer>(new BeanItemContainer<>(RecentItem.class, recentItems), true) {
-				@Override
-				public boolean isSelected(Object itemId) {
-					BeanItem<RecentItem> item = (BeanItem<RecentItem>) getItem(itemId);
-					String recordId = item.getBean().getId();
-					return presenter.isSelected(recordId);
-				}
-
-				@Override
-				public void setSelected(Object itemId, boolean selected) {
-					BeanItem<RecentItem> item = (BeanItem<RecentItem>) getItem(itemId);
-					String recordId = item.getBean().getId();
-					presenter.selectionChanged(recordId, selected);
-				}
-			}; 
-			setContainerDataSource(containerAdapter);
+			BeanItemContainer container = new BeanItemContainer<>(RecentItem.class, recentItems);
+			setContainerDataSource(container);
 
 			addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 
-			setVisibleColumns(ContainerAdapter.SELECT_PROPERTY_ID, RecentItem.CAPTION, RecentItem.LAST_ACCESS);
-			setColumnHeader(ContainerAdapter.SELECT_PROPERTY_ID, "");
+			setVisibleColumns(RecentItem.CAPTION, RecentItem.LAST_ACCESS);
 			setColumnHeader(RecentItem.CAPTION, $("HomeView.recentItem.caption"));
 			setColumnHeader(RecentItem.LAST_ACCESS, $("HomeView.recentItem.lastAccess"));
 			setColumnExpandRatio(RecentItem.CAPTION, 1);
@@ -310,8 +308,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				@Override
 				public String getStyle(Table source, Object itemId, Object propertyId) {
 					if (RecentItem.CAPTION.equals(propertyId)) {
-						BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
-						RecordVO recordVO = recordVOItem.getBean().getRecord();
+						RecordVO recordVO = getRecordVO(itemId);
 						try {
 							String extension = FileIconUtils.getExtension(recordVO);
 							if (extension != null) {
@@ -335,6 +332,13 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return new ObjectProperty<>(value);
 			}
 			return super.getContainerProperty(itemId, propertyId);
+		}
+		
+		@SuppressWarnings("unchecked")
+		private RecordVO getRecordVO(Object itemId) {
+			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
+			RecordVO recordVO = recordVOItem.getBean().getRecord();
+			return recordVO;
 		}
 	}
 

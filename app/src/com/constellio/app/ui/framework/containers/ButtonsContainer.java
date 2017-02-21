@@ -26,30 +26,19 @@ public class ButtonsContainer<T extends Container & Indexed & Sortable> extends 
 	private String buttonsPropertyId = "constellio-buttons-container";
 
 	private List<ContainerButton> containerButtons = new ArrayList<ContainerButton>();
-	
-	public ButtonsContainer(T adaptee) {
-		this(adaptee, false);
-	}
 
 	/**
 	 * @param adaptee Must implement {@link com.vaadin.data.Container.Indexed} and {@link com.vaadin.data.Container.Sortable}
 	 */
-	public ButtonsContainer(T adaptee, boolean selectProperty) {
-		this(adaptee, DEFAULT_BUTTONS_PROPERTY_ID, selectProperty);
+	public ButtonsContainer(T adaptee) {
+		this(adaptee, DEFAULT_BUTTONS_PROPERTY_ID);
 	}
 
 	/**
 	 * @param adaptee Must implement {@link com.vaadin.data.Container.Indexed} and {@link com.vaadin.data.Container.Sortable}
 	 */
 	public ButtonsContainer(T adaptee, String buttonsPropertyId) {
-		this(adaptee, buttonsPropertyId, false);
-	}
-
-	/**
-	 * @param adaptee Must implement {@link com.vaadin.data.Container.Indexed} and {@link com.vaadin.data.Container.Sortable}
-	 */
-	public ButtonsContainer(T adaptee, String buttonsPropertyId, boolean selectProperty) {
-		super(adaptee, selectProperty);
+		super(adaptee);
 		if (buttonsPropertyId == null) {
 			throw new IllegalArgumentException("buttonsPropertyId cannot be null");
 		}

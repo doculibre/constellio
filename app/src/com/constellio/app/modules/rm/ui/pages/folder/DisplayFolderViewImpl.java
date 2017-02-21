@@ -42,6 +42,7 @@ import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -70,7 +71,6 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -80,7 +80,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -470,21 +469,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
 		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
-		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer, true) {
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				return presenter.isSelected(recordVO);
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				presenter.recordSelectionChanged(recordVO, selected);
-			}
-		};
+		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
@@ -542,9 +527,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return button;
 			}
 		});
-		Table table = new RecordVOTable();
+		final Table table = new RecordVOTable();
 		table.setSizeFull();
-		table.setColumnHeader(ButtonsContainer.SELECT_PROPERTY_ID, "");
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -563,7 +547,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		table.setContainerDataSource(container);
 		
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(folderContentComponent, table);
+		tabSheet.replaceComponent(folderContentComponent, new SelectionTableAdapter(table) {
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				return presenter.isSelected(recordVO);
+			}
+
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				presenter.recordSelectionChanged(recordVO, selected);
+			}
+		});
 		folderContentComponent = table;
 	}
 

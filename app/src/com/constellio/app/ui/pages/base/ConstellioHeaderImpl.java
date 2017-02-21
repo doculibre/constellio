@@ -22,7 +22,7 @@ import com.constellio.app.ui.framework.components.converters.CollectionCodeToLab
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
@@ -34,7 +34,6 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.event.FieldEvents.FocusEvent;
 import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.event.ItemClickEvent;
@@ -403,7 +402,20 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		selectionLayout.setWidth("100%");
 		selectionLayout.addStyleName("header-popup-selection-panel");
 		
-		ContainerAdapter<IndexedContainer> container = new ContainerAdapter<IndexedContainer>(new IndexedContainer(), true) {
+		final Table selectionTable = new Table();
+		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
+		selectionTable.setWidth("100%");
+		selectionTable.setColumnExpandRatio("recordId", 1);
+		selectionTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+		
+		List<String> selectedRecordIds = getSessionContext().getSelectedRecordIds();
+		for (String selectedRecordId : selectedRecordIds) {
+			ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordId);
+			Item item = selectionTable.addItem(selectedRecordId);
+			item.getItemProperty("recordId").setValue(referenceDisplay);
+		}
+
+		SelectionTableAdapter selectionTableAdapter = new SelectionTableAdapter(selectionTable) {
 			@Override
 			public boolean isSelected(Object itemId) {
 				String recordId = (String) itemId;
@@ -415,21 +427,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				String recordId = (String) itemId;
 				presenter.selectionChanged(recordId, selected);
 			}
-		}; 
-		Table selectionTable = new Table();
-		selectionTable.setContainerDataSource(container);
-		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
-		selectionTable.setColumnHeader(ContainerAdapter.SELECT_PROPERTY_ID, "");
-		selectionTable.setWidth("100%");
-		selectionTable.setColumnExpandRatio("recordId", 1);
-		selectionTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		
-		List<String> selectedRecordIds = getSessionContext().getSelectedRecordIds();
-		for (String selectedRecordId : selectedRecordIds) {
-			ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordId);
-			Item item = selectionTable.addItem(selectedRecordId);
-			item.getItemProperty("recordId").setValue(referenceDisplay);
-		}
+		};
 
 		VerticalLayout actionMenuLayout = new VerticalLayout();
 		actionMenuLayout.addStyleName("header-selection-panel-actions");
@@ -451,7 +449,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		};
 		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
 		
-		selectionLayout.addComponent(selectionTable);
+		selectionLayout.addComponent(selectionTableAdapter);
 		selectionLayout.addComponent(selectionActionMenu);
 		
 		buttonsLayout.addComponent(clearSelectionButton);
@@ -460,7 +458,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		selectionPanel.addComponent(buttonsLayout);
 		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 		
-		selectionLayout.setExpandRatio(selectionTable, 1);
+		selectionLayout.setExpandRatio(selectionTableAdapter, 1);
 		selectionLayout.setComponentAlignment(selectionActionMenu, Alignment.TOP_RIGHT);
 		
 		return selectionPanel;

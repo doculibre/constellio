@@ -4,30 +4,34 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SelectDeselectAllButton extends BaseButton {
 	
-	private boolean selectAllMode;
+	private boolean allDeselected;
 	
 	private String selectAllCaption;
 	
 	private String deselectAllCaption;
 
 	public SelectDeselectAllButton() {
-		this($("selectAll"), $("deselectAll"), true);
+		this(true);
 	}
 
-	public SelectDeselectAllButton(String selectAllCaption, String deselectAllCaption, boolean selectAllMode) {
-		super(selectAllCaption);
+	public SelectDeselectAllButton(boolean allDeselected) {
+		this($("selectAll"), $("deselectAll"), allDeselected);
+	}
+
+	public SelectDeselectAllButton(String selectAllCaption, String deselectAllCaption, boolean allDeselected) {
+		super(allDeselected ? selectAllCaption : deselectAllCaption);
 		this.selectAllCaption = selectAllCaption;
 		this.deselectAllCaption = deselectAllCaption;
-		this.selectAllMode = selectAllMode;
+		this.allDeselected = allDeselected;
 	}
 
-	public boolean isSelectAllMode() {
-		return selectAllMode;
+	public boolean isAllDeselected() {
+		return allDeselected;
 	}
 
-	public void setSelectAllMode(boolean selectAllMode) {
-		this.selectAllMode = selectAllMode;
-		if (selectAllMode) {
+	public void setAllDeselected(boolean allSelected) {
+		this.allDeselected = allSelected;
+		if (allSelected) {
 			setCaption(selectAllCaption);
 		} else {
 			setCaption(deselectAllCaption);
@@ -36,14 +40,14 @@ public abstract class SelectDeselectAllButton extends BaseButton {
 
 	@Override
 	protected void buttonClick(ClickEvent event) {
-		if (selectAllMode) {
+		if (allDeselected) {
 			onSelectAll(event);
 			setCaption(deselectAllCaption);
 		} else {
 			onDeselectAll(event);
 			setCaption(selectAllCaption);
 		}
-		selectAllMode = !selectAllMode;
+		allDeselected = !allDeselected;
 	}
 	
 	protected abstract void onSelectAll(ClickEvent event);

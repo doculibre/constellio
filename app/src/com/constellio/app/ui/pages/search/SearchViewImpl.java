@@ -220,7 +220,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(false);
 				if (selectDeselectAllButton != null) {
-					selectDeselectAllButton.setSelectAllMode(true);
+					selectDeselectAllButton.setAllDeselected(true);
 				}
 			}
 		});

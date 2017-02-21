@@ -42,6 +42,9 @@ public abstract class BaseSessionContext implements SessionContext {
 		selectedRecordIds.remove(recordId);
 		Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
 		Long selectionCountForSchemaType = selectedRecordSchemaTypeCodes.get(schemaTypeCode);
+		if (selectionCountForSchemaType == null) {
+			selectionCountForSchemaType = 0L;
+		}
 		selectedRecordSchemaTypeCodes.put(schemaTypeCode, --selectionCountForSchemaType);
 		if (selectionCountForSchemaType <= 0) {
 			selectedRecordSchemaTypeCodes.remove(schemaTypeCode);
