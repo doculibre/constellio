@@ -28,30 +28,21 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.vaadin.server.Page;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import org.apache.commons.io.IOUtils;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
-
-import org.apache.commons.io.IOUtils;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -148,7 +139,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addCheckInButton(final AvailableActionsParam param) {
-        Button button = new Button("RMSelectionPanelExtension.checkInButton");
+        Button checkInButton = new Button($("ConstellioHeader.selection.actions.checkIn"));
         if(!param.getIds().isEmpty()) {
             RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
             Map<RecordVO, MetadataVO> records = new HashMap<>();
@@ -163,19 +154,23 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     }
                 }
             }
-            final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(records);
             final int numberOfRecords = records.size();
-
-            button.addClickListener(new Button.ClickListener() {
-                @Override
-                public void buttonClick(Button.ClickEvent event) {
-                    if(numberOfRecords > 0) {
+            if(numberOfRecords > 0) {
+                final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(records);
+                checkInButton.addClickListener(new Button.ClickListener() {
+                    @Override
+                    public void buttonClick(Button.ClickEvent event) {
                         uploadWindow.open(true);
-                    } else {
+                    }
+                });
+            } else {
+                checkInButton.addClickListener(new Button.ClickListener() {
+                    @Override
+                    public void buttonClick(Button.ClickEvent event) {
                         showErrorMessage($("RMSelectionPanelExtension.noApplicableRecords"));
                     }
-                }
-            });
+                });
+            }
         }
 
         setStyles(checkInButton);
