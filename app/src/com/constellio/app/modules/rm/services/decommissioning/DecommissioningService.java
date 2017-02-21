@@ -1,21 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -25,14 +9,7 @@ import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
@@ -67,6 +44,17 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecommissioningService {
 	private final AppLayerFactory appLayerFactory;
@@ -649,17 +637,29 @@ public class DecommissioningService {
         return duplicateStructure(folder, currentUser, true);
 	}
 
-    public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
+	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
 
-        Transaction transaction = new Transaction();
-        Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
-        try {
-            recordServices.execute(transaction);
-        } catch (RecordServicesException e) {
-            throw new RuntimeException(e);
-        }
-        return duplicatedFolder;
-    }
+		Transaction transaction = new Transaction();
+		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		return duplicatedFolder;
+	}
+
+	public Folder duplicateStructureAndDocuments(Folder folder, User currentUser, boolean forceTitleDuplication) {
+
+		Transaction transaction = new Transaction();
+		Folder duplicatedFolder = duplicateStructureAndDocumentsAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		return duplicatedFolder;
+	}
 
 	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction, boolean forceTitleDuplication) {
 		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
@@ -671,6 +671,31 @@ public class DecommissioningService {
 			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction, forceTitleDuplication);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
+		}
+		return duplicatedFolder;
+	}
+
+	private Folder duplicateStructureAndDocumentsAndAddToTransaction(Folder folder, User currentUser, Transaction transaction, boolean forceTitleDuplication) {
+		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
+		transaction.add(duplicatedFolder);
+
+		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
+		for (Folder child : children) {
+			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction, forceTitleDuplication);
+			duplicatedChild.setTitle(child.getTitle());
+			duplicatedChild.setParentFolder(duplicatedFolder);
+		}
+
+		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
+		for (Document child : childrenDocuments) {
+			Document newDocument = rm.newDocument();
+			for(Metadata metadata: child.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+				newDocument.set(metadata, child.get(metadata));
+			}
+			newDocument.setFolder(duplicatedFolder);
+			transaction.add(newDocument);
 		}
 		return duplicatedFolder;
 	}

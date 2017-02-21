@@ -73,7 +73,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
                 where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0))
         ));
 
-        extension.duplicateButtonClicked(records.folder_A20, param.getIds());
+        extension.duplicateButtonClicked(records.folder_A20, param);
         assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
                 .doesNotContain(records.folder_A20);
         assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
