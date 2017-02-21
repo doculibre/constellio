@@ -97,7 +97,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
-	public static final int DEFAULT_VOLATILE_FOLDER_CACHE_SIZE = 10000;
+	public static final int DEFAULT_VOLATILE_EVENTS_CACHE_SIZE = 10000;
+	public static final int DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE = 10000;
 	public static final int DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE = 100;
 
 	@Override
@@ -310,7 +311,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				authsIterator.next();
 			}
 		}
-		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDER_CACHE_SIZE));
+		cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
+		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
 
 	}

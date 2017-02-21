@@ -169,7 +169,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
 				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
-
+		when(params.get(calculator.configAddYearIfCalculationDateIsEndOfYearParam)).thenReturn(true);
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
 
@@ -186,7 +186,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
 				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
-
+		when(params.get(calculator.configAddYearIfCalculationDateIsEndOfYearParam)).thenReturn(true);
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}
 }
