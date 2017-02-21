@@ -9,6 +9,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -27,6 +28,9 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -276,7 +280,9 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	private void initUploadWindow() {
-		updateWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
+		Map<RecordVO, MetadataVO> record = new HashMap<>();
+		record.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+		updateWindow = new UpdateContentVersionWindowImpl(record) {
 			@Override
 			public void close() {
 				super.close();

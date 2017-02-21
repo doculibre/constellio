@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -22,10 +23,14 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -38,7 +43,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     public RMSelectionPanelExtension(AppLayerFactory appLayerFactory, String collection) {
         this.appLayerFactory = appLayerFactory;
         this.collection = collection;
-        this.ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
+        this.ioServices = this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
     }
 
     @Override
@@ -98,13 +103,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         String parentId = field.getValue();
-                        try {
-                            duplicateButtonClicked(parentId, param.getIds());
-                        } catch (Throwable e) {
-//                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
-//                            showErrorMessage("DisplayFolderView.parentFolderException");
-                            e.printStackTrace();
-                        }
+                        duplicateButtonClicked(parentId, param.getIds());
                         getWindow().close();
                     }
                 };
@@ -125,20 +124,30 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     public void addCheckInButton(final AvailableActionsParam param) {
         Button button = new Button("RMSelectionPanelExtension.checkInButton");
         if(!param.getIds().isEmpty()) {
-            RecordVO documentVO = new RecordToVOBuilder().build(appLayerFactory.getModelLayerFactory().newRecordServices()
-                    .getDocumentById(param.getIds().get(0)), RecordVO.VIEW_MODE.TABLE, getSessionContext());
-            final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(documentVO, documentVO.getMetadata(Document.CONTENT)) {
-                @Override
-                public void close() {
-                    super.close();
-//                presenter.updateWindowClosed();
+            RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+            Map<RecordVO, MetadataVO> records = new HashMap<>();
+            RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
+            for(String id: param.getIds()) {
+                Record record = recordServices.getDocumentById(id);
+                if(record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+                    if(isCheckInPossible(param, id)) {
+                        RecordVO documentVo = recordToVOBuilder.build(appLayerFactory.getModelLayerFactory().newRecordServices()
+                                .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, getSessionContext());
+                        records.put(documentVo, documentVo.getMetadata(Document.CONTENT));
+                    }
                 }
-            };
+            }
+            final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(records);
+            final int numberOfRecords = records.size();
 
             button.addClickListener(new Button.ClickListener() {
                 @Override
                 public void buttonClick(Button.ClickEvent event) {
-                    uploadWindow.open(true);
+                    if(numberOfRecords > 0) {
+                        uploadWindow.open(true);
+                    } else {
+                        showErrorMessage($("RMSelectionPanelExtension.noApplicableRecords"));
+                    }
                 }
             });
         }
@@ -155,36 +164,44 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     public void parentFolderButtonClicked(String parentId, List<String> recordIds)
             throws RecordServicesException {
 
+        List<String> couldNotMove = new ArrayList<>();
         if (isNotBlank(parentId)) {
             RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
             RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
             for(String id: recordIds) {
+                Record record = recordServices.getDocumentById(id);
                 try {
-                    Record record = recordServices.getDocumentById(id);
                     switch (record.getTypeCode()) {
                         case Folder.SCHEMA_TYPE:
                             recordServices.update(rmSchemas.getFolder(id).setParentFolder(parentId));
                             break;
                         case Document.SCHEMA_TYPE:
                             recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
+                            break;
+                        default:
+                            couldNotMove.add(record.getTitle());
                     }
                 } catch (RecordServicesException.ValidationException e) {
-                    e.printStackTrace();
-//                    view.showErrorMessage($(e.getErrors()));
+                    couldNotMove.add(record.getTitle());
                 }
             }
         }
+
+        if(couldNotMove.isEmpty()) {
+            showErrorMessage($("RMSelectionPanelExtension.actionCompleted"));
+        } else {
+            showErrorMessage($("RMSelectionPanelExtension.couldNotDuplicate"));
+        }
     }
 
-    public void duplicateButtonClicked(String parentId, List<String> recordIds)
-            throws RecordServicesException {
-
+    public void duplicateButtonClicked(String parentId, List<String> recordIds) {
+        List<String> couldNotDuplicate = new ArrayList<>();
         if (isNotBlank(parentId)) {
             RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
             RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
             for(String id: recordIds) {
+                Record record = recordServices.getDocumentById(id);
                 try {
-                    Record record = recordServices.getDocumentById(id);
                     switch (record.getTypeCode()) {
                         case Folder.SCHEMA_TYPE:
                             Folder newFolder = rmSchemas.newFolder();
@@ -201,12 +218,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             }
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
+                            break;
+                        default:
+                            couldNotDuplicate.add(record.getTitle());
                     }
-                } catch (RecordServicesException.ValidationException e) {
-                    e.printStackTrace();
-//                    view.showErrorMessage($(e.getErrors()));
+                } catch (RecordServicesException e) {
+                    couldNotDuplicate.add(record.getTitle());
                 }
             }
+        }
+
+        if(couldNotDuplicate.isEmpty()) {
+            showErrorMessage($("RMSelectionPanelExtension.actionCompleted"));
+        } else {
+            showErrorMessage($("RMSelectionPanelExtension.couldNotDuplicate"));
         }
     }
 
@@ -231,5 +256,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         User currentUser = param.getUser();
         Content content = getContent(id);
         return content != null && currentUser.getId().equals(content.getCheckoutUserId());
+    }
+
+    public void showErrorMessage(String errorMessage) {
+        Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
+        notification.setHtmlContentAllowed(true);
+        notification.show(Page.getCurrent());
     }
 }
