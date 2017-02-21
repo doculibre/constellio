@@ -2602,7 +2602,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		retentionRule.setCode("Ze rule");
 		retentionRule.setTitle("Ze rule");
 		retentionRule.setApproved(true);
-		//		retentionRule.setCategories(asList(zeCategory));
+		//		retentionRule.setChildrenNodes(asList(zeCategory));
 		retentionRule.setCopyRetentionRules(rules);
 
 		return transaction.add(retentionRule);
