@@ -105,7 +105,7 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 
 	private RecordDataTreeNode toTreeNode(TaxonomySearchRecord searchRecord) {
 		Record record = searchRecord.getRecord();
-		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		String schemaType = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
 		String caption = SchemaCaptionUtils.getCaptionForRecord(record);
 		String description = record.get(Schemas.DESCRIPTION_STRING);
 		if (description == null) {

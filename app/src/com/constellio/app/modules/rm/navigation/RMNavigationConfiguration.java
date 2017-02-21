@@ -79,6 +79,8 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
 
 public class RMNavigationConfiguration implements Serializable {
+
+	public static final String NEW_DOCUMENT = "newDocument";
 	public static final String ADD_FOLDER = "addFolder";
 	public static final String ADD_DOCUMENT = "addDocument";
 
@@ -187,6 +189,17 @@ public class RMNavigationConfiguration implements Serializable {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
 			}
 		}, 0);
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(NEW_DOCUMENT) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).newDocument();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
+			}
+		}, 1);
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -197,7 +210,7 @@ public class RMNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
-		}, 1);
+		}, 2);
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {

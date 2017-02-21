@@ -4,13 +4,14 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIV
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -27,21 +28,32 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -680,6 +692,148 @@ public class DecommissioningService {
 
 		return newFolder;
 	}
+	
+	public List<RMUserFolder> getSubUserFolders(RMUserFolder userFolder) {
+		List<RMUserFolder> subUserFolders = new ArrayList<>();
+		MetadataSchema userFolderSchema = rm.userFolderSchema();
+		Metadata parentUserFolderMetadata = userFolderSchema.getMetadata(UserFolder.PARENT_USER_FOLDER);
+
+		LogicalSearchQuery subFoldersQuery = new LogicalSearchQuery();
+		subFoldersQuery.setCondition(LogicalSearchQueryOperators.from(userFolderSchema).where(parentUserFolderMetadata).isEqualTo(userFolder.getWrappedRecord()));
+		for (Record subFolderRecord : searchServices.search(subFoldersQuery)) {
+			RMUserFolder subUserFolder = rm.wrapUserFolder(subFolderRecord);
+			subUserFolders.add(subUserFolder);
+		}
+		return subUserFolders;
+	}
+	
+	public List<UserDocument> getUserDocuments(RMUserFolder userFolder) {
+		List<UserDocument> userDocuments = new ArrayList<>();
+		
+		MetadataSchema userDocumentSchema = rm.userDocumentSchema();
+		Metadata userFolderMetadata = userDocumentSchema.getMetadata(UserDocument.USER_FOLDER);
+
+		LogicalSearchQuery userDocumentsQuery = new LogicalSearchQuery();
+		userDocumentsQuery.setCondition(LogicalSearchQueryOperators.from(userDocumentSchema).where(userFolderMetadata).isEqualTo(userFolder.getWrappedRecord()));
+		for (Record userDocumentRecord : searchServices.search(userDocumentsQuery)) {
+			UserDocument userDocument = rm.wrapUserDocument(userDocumentRecord);
+			userDocuments.add(userDocument);
+		}
+		
+		return userDocuments;
+	}
+
+	public void duplicateSubStructureAndSave(Folder folder, RMUserFolder userFolder, User currentUser) throws RecordServicesException, IOException {
+		Transaction transaction = new Transaction();
+		List<RMUserFolder> subUserFolders = getSubUserFolders(userFolder);
+		for (RMUserFolder subUserFolder : subUserFolders) {
+			duplicateStructureAndSave(subUserFolder, folder, currentUser, transaction);
+		}
+		List<UserDocument> userDocuments = getUserDocuments(userFolder);
+		for (UserDocument userDocument : userDocuments) {
+			Document document = rm.newDocument();
+			populateDocumentFromUserDocument(document, userDocument, currentUser);
+			document.setFolder(folder);
+			transaction.add(document);
+		}
+		recordServices.execute(transaction);
+	}
+	
+	private void duplicateStructureAndSave(RMUserFolder userFolder, Folder parentFolder, User currentUser, Transaction transaction) throws IOException {
+		Folder folder = rm.newFolder();
+		populateFolderFromUserFolder(folder, userFolder, currentUser);
+		folder.setParentFolder(parentFolder);
+		transaction.add(folder);
+		
+		List<RMUserFolder> subUserFolders = getSubUserFolders(userFolder);
+		for (RMUserFolder subUserFolder : subUserFolders) {
+			// Recursive call
+			duplicateStructureAndSave(subUserFolder, folder, currentUser, transaction);
+		}
+		List<UserDocument> userDocuments = getUserDocuments(userFolder);
+		for (UserDocument userDocument : userDocuments) {
+			Document document = rm.newDocument();
+			populateDocumentFromUserDocument(document, userDocument, currentUser);
+			document.setFolder(parentFolder);
+			transaction.add(document);
+		}
+	}
+	
+	public void populateFolderFromUserFolder(Folder folder, RMUserFolder userFolder, User currentUser) {
+		folder.setTitle(userFolder.getTitle());
+		LocalDate openDate;
+		if (userFolder.getFormCreatedOn() != null) {
+			openDate = new LocalDate(userFolder.getFormCreatedOn());
+		} else {
+			openDate = TimeProvider.getLocalDate();
+		}
+		folder.setOpenDate(openDate);
+		folder.setFormCreatedBy(currentUser);
+		folder.setFormCreatedOn(userFolder.getFormCreatedOn());
+		folder.setFormModifiedBy(currentUser);
+		folder.setFormModifiedOn(userFolder.getFormModifiedOn());
+		if (userFolder.getParentFolder() != null) {
+			folder.setParentFolder(userFolder.getParentFolder());
+		} else {
+			folder.setAdministrativeUnitEntered(userFolder.getAdministrativeUnit());
+			folder.setCategoryEntered(userFolder.getCategory());
+			folder.setRetentionRuleEntered(userFolder.getRetentionRule());
+		}
+	}
+	
+	public void populateDocumentFromUserDocument(Document document, UserDocument userDocument, User currentUser) throws IOException {
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		
+		String filename = userDocument.getTitle();
+		String contentInputStreamId = userDocument.getContent().getCurrentVersion().getHash();
+		try (InputStream inputStream = contentManager.getContentInputStream(contentInputStreamId, "DecommissioningServices.populateDocumentFromUserDocument.in")) {
+			ContentVersionDataSummary contentVersion = contentManager.upload(inputStream, "DecommissioningServices.populateDocumentFromUserDocument.upload");
+			Content content = contentManager.createMajor(currentUser, filename, contentVersion);
+			document.setContent(content);
+		} 
+		document.setTitle(filename);
+		document.setFolder(userDocument.getFolder());
+		document.setContent(userDocument.getContent());
+		document.setFormCreatedBy(currentUser);
+		document.setFormCreatedOn(userDocument.getFormCreatedOn());
+		document.setFormModifiedBy(currentUser);
+		document.setFormModifiedOn(userDocument.getFormModifiedOn());
+	}
+	
+	public void deleteUserFolder(RMUserFolder userFolder, User currentUser) {
+		List<RMUserFolder> subUserFolders = getSubUserFolders(userFolder);
+		for (RMUserFolder subUserFolder : subUserFolders) {
+			// Recursive call
+			deleteUserFolder(subUserFolder, currentUser);
+		}
+		
+		List<UserDocument> userDocuments = getUserDocuments(userFolder);
+		for (UserDocument userDocument : userDocuments) {
+			delete(userDocument.getWrappedRecord(), null, true, currentUser);
+		}
+		delete(userFolder.getWrappedRecord(), null, true, currentUser);
+	}
+	
+	private void delete(Record record, String reason, boolean physically, User user) {
+		boolean putFirstInTrash = putFirstInTrash(record);
+		if (recordServices.isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+			recordServices.logicallyDelete(record, user);
+			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
+			if (physically && !putFirstInTrash) {
+				recordServices.physicallyDelete(record, user);
+			}
+		}
+	}
+
+	private boolean putFirstInTrash(Record record) {
+		ModelLayerExtensions ext = modelLayerFactory.getExtensions();
+		if (ext == null) {
+			return false;
+		}
+		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		return extensions.isPutInTrashBeforePhysicalDelete(event);
+	}
 
 	private List<Record> getFoldersInContainer(ContainerRecord container, Metadata... metadatas) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
@@ -732,5 +886,6 @@ public class DecommissioningService {
 	private DecommissioningSecurityService securityService() {
 		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
+	
 }
 

@@ -289,7 +289,8 @@ public class SchemaUtils {
 	public boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
 			DynamicLocalDependency dependency) {
 		return !calculatedMetadata.getLocalCode().equals(otherMetadata.getLocalCode())
-				&& !otherMetadata.isGlobal() && dependency.isDependentOf(otherMetadata);
+				&& (dependency.isIncludingGlobalMetadatas() || !otherMetadata.isGlobal())
+				&& dependency.isDependentOf(otherMetadata);
 	}
 
 	public static String getMetadataLocalCodeWithoutPrefix(Metadata metadata) {

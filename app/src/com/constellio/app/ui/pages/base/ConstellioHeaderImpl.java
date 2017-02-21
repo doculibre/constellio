@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.base;
 
+import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -415,8 +416,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		}
 
 		VerticalLayout actionMenuLayout = new VerticalLayout();
-		actionMenuLayout.setSpacing(true);
-		actionMenuLayout.addComponent(new Label("Action!"));
+		actionMenuLayout.addStyleName("header-selection-panel-actions");
 		buildSelectionPanelButtons(actionMenuLayout);
 		
 		VerticalLayout selectionActionMenu = new VerticalLayout();
@@ -442,6 +442,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		
 		selectionPanel.addComponent(selectionLayout);
 		selectionPanel.addComponent(buttonsLayout);
+		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 		
 		selectionLayout.setExpandRatio(selectionTable, 1);
 		selectionLayout.setComponentAlignment(selectionActionMenu, Alignment.TOP_RIGHT);
@@ -451,13 +452,13 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
 		WindowButton addToCartButton = buildAddToCartButton();
+		SelectionPanelExtension.setStyles(addToCartButton);
 		actionMenuLayout.addComponent(addToCartButton);
-
 		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
 	}
 
 	private WindowButton buildAddToCartButton() {
-		WindowButton windowButton = new WindowButton($("SearchView.addToCart"), $("SearchView.selectCart")) {
+		WindowButton windowButton = new WindowButton($("ConstellioHeader.selection.actions.addToCart"), $("ConstellioHeader.selection.actions.addToCart")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -508,6 +509,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				return layout;
 			}
 		};
+		SelectionPanelExtension.setStyles(windowButton);
 		return windowButton;
 	}
 

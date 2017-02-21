@@ -473,7 +473,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(nestedContainer);
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				int index = (int) itemId;
 				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new EditButton() {
@@ -492,7 +492,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				int index = (int) itemId;
 				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
@@ -512,7 +512,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				int index = (int) itemId;
 				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new DisplayButton() {

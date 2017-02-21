@@ -25,7 +25,7 @@ public abstract class BaseSessionContext implements SessionContext {
 		Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
 		if (!selectedRecordIds.contains(recordId)) {
 			selectedRecordIds.add(recordId);
-			if(selectedRecordSchemaTypeCodes.containsKey(schemaTypeCode)) {
+			if (selectedRecordSchemaTypeCodes.containsKey(schemaTypeCode)) {
 				selectedRecordSchemaTypeCodes.put(schemaTypeCode, selectedRecordSchemaTypeCodes.get(schemaTypeCode)+1);
 			} else {
 				selectedRecordSchemaTypeCodes.put(schemaTypeCode, 1L);
@@ -41,8 +41,9 @@ public abstract class BaseSessionContext implements SessionContext {
 		List<String> selectedRecordIds = ensureSelectedRecordIds();
 		selectedRecordIds.remove(recordId);
 		Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
-		selectedRecordSchemaTypeCodes.put(schemaTypeCode, selectedRecordSchemaTypeCodes.get(schemaTypeCode)-1);
-		if(selectedRecordSchemaTypeCodes.get(selectedRecordSchemaTypeCodes.get(schemaTypeCode)) <= 0) {
+		Long selectionCountForSchemaType = selectedRecordSchemaTypeCodes.get(schemaTypeCode);
+		selectedRecordSchemaTypeCodes.put(schemaTypeCode, --selectionCountForSchemaType);
+		if (selectionCountForSchemaType <= 0) {
 			selectedRecordSchemaTypeCodes.remove(schemaTypeCode);
 		}
 

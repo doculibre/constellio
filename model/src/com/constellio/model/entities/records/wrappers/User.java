@@ -13,11 +13,11 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
-import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.security.roles.Roles;
 
 public class User extends RecordWrapper {
@@ -51,6 +51,7 @@ public class User extends RecordWrapper {
 	public static final String SIGNATURE = "signature";
 	public static final String LOGIN_LANGUAGE_CODE = "loginLanguageCode";
 	public static final String VISIBLE_TABLE_COLUMNS = "visibleTableColumns";
+	public static final String AGENT_ENABLED = "agentEnabled";
 
 	private transient Roles roles;
 
@@ -261,6 +262,10 @@ public class User extends RecordWrapper {
 
 	public List<String> getGroupsAuthorizations() {
 		return get(GROUPS_AUTHORIZATIONS);
+	}
+
+	public List<String> getUserAuthorizations() {
+		return get(Schemas.AUTHORIZATIONS.getLocalCode());
 	}
 
 	public List<String> getAllUserAuthorizations() {
@@ -484,5 +489,9 @@ public class User extends RecordWrapper {
 
 	public Roles getRolesDetails() {
 		return roles;
+	}
+
+	public boolean isAgentEnabled() {
+		return get(AGENT_ENABLED);
 	}
 }

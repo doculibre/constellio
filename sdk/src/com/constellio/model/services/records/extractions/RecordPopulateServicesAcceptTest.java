@@ -8,7 +8,6 @@ import com.constellio.app.modules.robots.model.actions.RunExtractorsActionExecut
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
-import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.entities.records.Content;
@@ -25,7 +24,6 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder.ContentsComparator;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -47,6 +45,7 @@ import java.util.regex.Pattern;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.REMOVE_EXTENSION_FROM_RECORD_TITLE;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
@@ -963,6 +962,46 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenRemoveExtensionFromDocumentIsSelected()
+			throws Exception {
+
+		givenConfig(TITLE_METADATA_POPULATE_PRIORITY, TitleMetadataPopulatePriority.FILENAME);
+		givenConfig(METADATA_POPULATE_PRIORITY, MetadataPopulatePriority.REGEX_STYLES_PROPERTIES);
+		givenConfig(REMOVE_EXTENSION_FROM_RECORD_TITLE, true);
+		//TODO
+
+		defineSchemasManager().using(schemas.with(fourMetadatas()
+				.withStringMeta(
+						mappedOnProperties(titleProperty),
+						mappedOnStyles(titleStyle),
+						populatedByRegex("Édouard").onMetadata("requiredContent").settingValue(
+								"Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
+						populatedByRegex("Gandalf").onMetadata("requiredContent").settingValue(
+								"Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
+				)
+				.withTitle(mappedOnProperties(titleProperty), mappedOnStyles(titleStyle))));
+
+		Record record = new TestRecord(zeSchemas).set(zeSchemas.requiredContent(),
+				createContent(documentWithStylesAndProperties1));
+		services.populate(record);
+		assertThatRecord(record)
+				.hasMetadataValue(zeSchemas.stringMeta(), "Édouard Lechat")
+				.hasMetadataValue(Schemas.TITLE, "file");
+		recordServices.add(record);
+
+		record.set(zeSchemas.requiredContent(), contentManager.createMajor(admin, "ze.docx", documentWithStylesAndProperties2));
+		services.populate(record);
+		assertThatRecord(record)
+				.hasMetadataValue(zeSchemas.stringMeta(), "Gandalf Leblanc")
+				.hasMetadataValue(Schemas.TITLE, "ze");
+
+		validateThatARecordWithAContentWithStylesAndNoPropertiesAndNoRegexAndNoExtensionWillPopulateUsingStyles(andTitleIsFileName);
+		validateThatARecordWithAContentWithPropertiesAndEmptyStylesAndNoRegexAndNoExtensionWillPopulateUsingProperties(andTitleIsFileName);
+		validateThatARecordWithAContentWithRegexAndNoPropertiesAndNoStylesAndNoExtensionWillPopulateUsingRegex();
+		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesAndNoExtensionWillNotBePopulated();
+	}
+
+	@Test
 	public void whenCreatingADocumentWithACategoryMappedOnADocumentTypeThenSetToCustomSchema()
 			throws Exception {
 
@@ -1204,12 +1243,28 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "file.docx");
 	}
 
+	private void validateThatARecordWithAContentWithRegexAndNoPropertiesAndNoStylesAndNoExtensionWillPopulateUsingRegex() {
+		Record record = new TestRecord(zeSchemas)
+				.set(zeSchemas.requiredContent(), createContent(onlyWithRegex));
+		services.populate(record);
+		assertThatRecord(record).hasMetadataValue(zeSchemas.stringMeta(), "Édouard Lechat");
+		assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "file");
+	}
+
 	private void validateThatARecordWithAContentWithoutRegexPropertiesAndStylesWillNotBePopulated() {
 		Record record = new TestRecord(zeSchemas)
 				.set(zeSchemas.requiredContent(), createContent(documentWithEmptyStylesAndNoProperties));
 		services.populate(record);
 		assertThatRecord(record).hasNoMetadataValue(zeSchemas.stringMeta());
 		assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "file.docx");
+	}
+
+	private void validateThatARecordWithAContentWithoutRegexPropertiesAndStylesAndNoExtensionWillNotBePopulated() {
+		Record record = new TestRecord(zeSchemas)
+				.set(zeSchemas.requiredContent(), createContent(documentWithEmptyStylesAndNoProperties));
+		services.populate(record);
+		assertThatRecord(record).hasNoMetadataValue(zeSchemas.stringMeta());
+		assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "file");
 	}
 
 	private void validateThatARecordWithAContentWithStylesAndNoPropertiesAndNoRegexWillPopulateUsingStyles(
@@ -1224,6 +1279,35 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 			assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "file.docx");
 		} else {
 			assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "Mon premier contrat");
+		}
+	}
+
+	private void validateThatARecordWithAContentWithStylesAndNoPropertiesAndNoRegexAndNoExtensionWillPopulateUsingStyles(
+			boolean titleIsFileName) {
+		Record record = new TestRecord(zeSchemas)
+				.set(zeSchemas.requiredContent(), createContent(documentWithStylesAndNoProperties));
+		services.populate(record);
+		assertThatRecord(record)
+				.hasMetadataValue(zeSchemas.stringMeta(), "Mon premier contrat");
+
+		if (titleIsFileName) {
+			assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "file");
+		} else {
+			assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "Mon premier contrat");
+		}
+	}
+
+	private void validateThatARecordWithAContentWithPropertiesAndEmptyStylesAndNoRegexAndNoExtensionWillPopulateUsingProperties(
+			boolean titleIsFileName) {
+		Record record = new TestRecord(zeSchemas)
+				.set(zeSchemas.requiredContent(), createContent(documentWithEmptyStylesAndProperties));
+		services.populate(record);
+		assertThatRecord(record).hasMetadataValue(zeSchemas.stringMeta(), "zeTitle");
+
+		if (titleIsFileName) {
+			assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "file");
+		} else {
+			assertThatRecord(record).hasMetadataValue(Schemas.TITLE, "zeTitle");
 		}
 	}
 
