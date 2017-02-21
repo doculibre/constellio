@@ -332,16 +332,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 Record record = recordServices.getDocumentById(id);
                 try {
                     switch (record.getTypeCode()) {
-                        case Folder.SCHEMA_TYPE:
-                            Folder newFolder = decommissioningService(param).duplicateStructureAndDocuments(rmSchemas.wrapFolder(record), param.getUser(), true);
+                        case UserFolder.SCHEMA_TYPE:
+                            Folder newFolder = rmSchemas.newFolder();
+                            decommissioningService(param).populateFolderFromUserFolder(newFolder, rmSchemas.wrapUserFolder(record), param.getUser());
                             newFolder.setParentFolder(parentId);
                             recordServices.add(newFolder);
+                            decommissioningService(param).duplicateStructureAndDocuments(rmSchemas.wrapFolder(record), param.getUser(), true);
                             break;
-                        case Document.SCHEMA_TYPE:
+                        case UserDocument.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
-                            for(Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-                                newDocument.set(metadata, record.get(metadata));
-                            }
+                            decommissioningService(param).populateDocumentFromUserDocument(newDocument, rmSchemas.wrapUserDocument(record), param.getUser());
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
                             break;
@@ -349,6 +349,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             couldNotMove.add(record.getTitle());
                     }
                 } catch (RecordServicesException e) {
+                    couldNotMove.add(record.getTitle());
+                } catch (IOException e) {
                     couldNotMove.add(record.getTitle());
                 }
             }
