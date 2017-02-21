@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.navigation;
 
+import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.vaadin.navigator.Navigator;
@@ -141,8 +142,8 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
 	}
 
-	public void orderDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.ORDER_DECOMMISSIONING_LIST_CONFIGURATION + "/" + entityId);
+	public void orderDecommissioningList(String entityId, OrderDecommissioningListPresenter.TableType type) {
+		navigator.navigateTo(NavigatorConfigurationService.ORDER_DECOMMISSIONING_LIST_CONFIGURATION + "/" + entityId + "/" + type.name());
 	}
 
 	// USER DOCUMENTS
