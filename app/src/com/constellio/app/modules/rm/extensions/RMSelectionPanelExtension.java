@@ -337,7 +337,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             decommissioningService(param).populateFolderFromUserFolder(newFolder, rmSchemas.wrapUserFolder(record), param.getUser());
                             newFolder.setParentFolder(parentId);
                             recordServices.add(newFolder);
-                            decommissioningService(param).duplicateStructureAndDocuments(rmSchemas.wrapFolder(record), param.getUser(), true);
+                            decommissioningService(param).duplicateSubStructureAndSave(newFolder, rmSchemas.wrapUserFolder(record), param.getUser());
                             break;
                         case UserDocument.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
