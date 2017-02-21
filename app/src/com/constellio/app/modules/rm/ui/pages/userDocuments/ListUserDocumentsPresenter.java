@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.ui.pages.userDocuments;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,8 +48,6 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	private static Logger LOGGER = LoggerFactory.getLogger(ListUserDocumentsPresenter.class);
 
 	private UserDocumentToVOBuilder voBuilder = new UserDocumentToVOBuilder();
-	
-	private List<RecordVO> userContentSelection = new ArrayList<RecordVO>();
 	
 	private RecordVODataProvider userFoldersDataProvider;
 	
@@ -111,14 +108,19 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	}
 
 	boolean isSelected(RecordVO recordVO) {
-		return userContentSelection.contains(recordVO);
+		SessionContext sessionContext = view.getSessionContext();
+		return sessionContext.getSelectedRecordIds().contains(recordVO.getId());
 	}
 	
 	void selectionChanged(RecordVO recordVO, boolean selected) {
-		if (selected && !userContentSelection.contains(recordVO)) {
-			userContentSelection.add(recordVO);
+		String recordId = recordVO.getId();
+		String schemaTypeCode = recordVO.getSchema().getTypeCode();
+		SessionContext sessionContext = view.getSessionContext();
+		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
+		if (selected && !selectedRecordIds.contains(recordId)) {
+			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
 		} else if (!selected) {
-			userContentSelection.remove(recordVO);
+			sessionContext.removeSelectedRecordId(recordId, schemaTypeCode);
 		}
 	}
 

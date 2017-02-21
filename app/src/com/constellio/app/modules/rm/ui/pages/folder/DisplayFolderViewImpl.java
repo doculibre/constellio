@@ -470,7 +470,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
 		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
-		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(nestedContainer);
+		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer, true) {
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				return presenter.isSelected(recordVO);
+			}
+
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				presenter.recordSelectionChanged(recordVO, selected);
+			}
+		};
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
@@ -530,6 +544,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 		Table table = new RecordVOTable();
 		table.setSizeFull();
+		table.setColumnHeader(ButtonsContainer.SELECT_PROPERTY_ID, "");
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -545,29 +560,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			}
 		});
-		final String selectionColumnId = "selection";
-		table.addGeneratedColumn(selectionColumnId, new ColumnGenerator() {
-			@Override
-			public Object generateCell(final Table source, final Object itemId, final Object columnId) {
-				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				String recordId = recordVO.getId();
-				boolean selected = getSessionContext().getSelectedRecordIds().contains(recordId);
-				final CheckBox selectionCheckBox = new CheckBox();
-				selectionCheckBox.setValue(selected);
-				selectionCheckBox.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						Boolean selected = selectionCheckBox.getValue();
-						RecordVOItem item = (RecordVOItem) source.getItem(itemId);
-						RecordVO recordVO = item.getRecord();
-						presenter.recordSelectionChanged(recordVO, selected);
-					}
-				});
-				return selectionCheckBox;
-			}
-		});
-		table.setColumnHeader(selectionColumnId, "");
 		table.setContainerDataSource(container);
 		
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
@@ -899,6 +891,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 //		Page.getCurrent().open(agentURL, null);
 //	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void downloadContentVersion(RecordVO recordVO, ContentVersionVO contentVersionVO) {
 		ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);

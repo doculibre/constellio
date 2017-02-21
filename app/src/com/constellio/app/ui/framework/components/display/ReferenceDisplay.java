@@ -113,12 +113,12 @@ public class ReferenceDisplay extends Button {
 
 		NavigationParams navigationParams = null;
 		if (recordVO != null) {
-			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
+			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
 			navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(),
 					this);
 		} else if (recordId != null) {
 			Record record = recordServices.getDocumentById(recordId);
-			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
 			navigationParams = new NavigationParams(ui.navigate(), recordId, schemaTypeCode, Page.getCurrent(),
 					this);
 		}

@@ -1,5 +1,14 @@
 package com.constellio.app.ui.pages.home;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu;
+
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -15,6 +24,8 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
+import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
@@ -32,17 +43,12 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	
@@ -142,14 +148,32 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Table buildRecordTable(final RecordTable recordTable) {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		RecordVOTable table = new RecordVOTable(dataProvider);
-		((DocumentContextMenuImpl)table.getContextMenu()).setParentView(this);
+		ContainerAdapter<RecordVOLazyContainer> containerAdapter = new ContainerAdapter<RecordVOLazyContainer>(new RecordVOLazyContainer(dataProvider), true) {
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) getItem(itemId);
+				String recordId = item.getRecord().getId();
+				return presenter.isSelected(recordId);
+			}
+
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) getItem(itemId);
+				String recordId = item.getRecord().getId();
+				presenter.selectionChanged(recordId, selected);
+			}
+		};
+		RecordVOTable table = new RecordVOTable(containerAdapter);
+		table.setColumnHeader(ContainerAdapter.SELECT_PROPERTY_ID, "");
+		((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
-			MetadataVO property = (MetadataVO) item;
-			if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
-				table.setColumnWidth(property, 180);
+			if (item instanceof MetadataVO) {
+				MetadataVO property = (MetadataVO) item;
+				if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
+					table.setColumnWidth(property, 180);
+				}
 			}
 		}
 		table.addItemClickListener(new ItemClickListener() {
@@ -243,13 +267,31 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private class RecentTable extends BaseTable {
 		
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public RecentTable(String tableId, List<RecentItem> recentItems) {
 			super(tableId);
-			setContainerDataSource(new BeanItemContainer<>(RecentItem.class, recentItems));
+			
+			ContainerAdapter<BeanItemContainer> containerAdapter = new ContainerAdapter<BeanItemContainer>(new BeanItemContainer<>(RecentItem.class, recentItems), true) {
+				@Override
+				public boolean isSelected(Object itemId) {
+					BeanItem<RecentItem> item = (BeanItem<RecentItem>) getItem(itemId);
+					String recordId = item.getBean().getId();
+					return presenter.isSelected(recordId);
+				}
+
+				@Override
+				public void setSelected(Object itemId, boolean selected) {
+					BeanItem<RecentItem> item = (BeanItem<RecentItem>) getItem(itemId);
+					String recordId = item.getBean().getId();
+					presenter.selectionChanged(recordId, selected);
+				}
+			}; 
+			setContainerDataSource(containerAdapter);
 
 			addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 
-			setVisibleColumns(RecentItem.CAPTION, RecentItem.LAST_ACCESS);
+			setVisibleColumns(ContainerAdapter.SELECT_PROPERTY_ID, RecentItem.CAPTION, RecentItem.LAST_ACCESS);
+			setColumnHeader(ContainerAdapter.SELECT_PROPERTY_ID, "");
 			setColumnHeader(RecentItem.CAPTION, $("HomeView.recentItem.caption"));
 			setColumnHeader(RecentItem.LAST_ACCESS, $("HomeView.recentItem.lastAccess"));
 			setColumnExpandRatio(RecentItem.CAPTION, 1);
@@ -258,7 +300,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				@Override
 				public void itemClick(ItemClickEvent event) {
 					if (event.getButton() == MouseButton.LEFT) {
-						@SuppressWarnings("unchecked")
 						BeanItem<RecentItem> item = (BeanItem<RecentItem>) event.getItem();
 						presenter.recordClicked(item.getBean().getId(), null);
 					}
@@ -269,7 +310,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				@Override
 				public String getStyle(Table source, Object itemId, Object propertyId) {
 					if (RecentItem.CAPTION.equals(propertyId)) {
-						@SuppressWarnings("unchecked")
 						BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
 						RecordVO recordVO = recordVOItem.getBean().getRecord();
 						try {

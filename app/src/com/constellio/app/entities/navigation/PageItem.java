@@ -36,6 +36,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 	}
 
 	public static abstract class RecentItemTable extends PageItem {
+		
 		protected RecentItemTable(String code) {
 			super(code, Type.RECENT_ITEM_TABLE);
 		}

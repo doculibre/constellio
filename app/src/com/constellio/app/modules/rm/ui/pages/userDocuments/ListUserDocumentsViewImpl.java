@@ -3,8 +3,6 @@ package com.constellio.app.modules.rm.ui.pages.userDocuments;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.vaadin.dialogs.ConfirmDialog;
@@ -26,16 +24,12 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.Builder;
-import com.vaadin.data.Property;
-import com.vaadin.data.util.AbstractProperty;
-import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
@@ -46,7 +40,6 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	public static final String STYLE_NAME = "user-documents";
 	public static final String STYLE_LAYOUT = STYLE_NAME + "-layout";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
-	public static final String SELECT_PROPERTY_ID = "select";
 
 	List<RecordVODataProvider> dataProviders;
 	
@@ -98,59 +91,21 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		multiFileUpload.setWidth("100%");
 
 		userContentContainer = new RecordVOLazyContainer(dataProviders);
-		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer) {
+		buttonsContainer = new ButtonsContainer<RecordVOLazyContainer>(userContentContainer, true) {
 			@Override
-			public Collection<?> getContainerPropertyIds() {
-				List<Object> containerPropertyIds = new ArrayList<>();
-				Collection<?> parentContainerPropertyIds = super.getContainerPropertyIds();
-				containerPropertyIds.add(SELECT_PROPERTY_ID);
-				containerPropertyIds.addAll(parentContainerPropertyIds);
-				return containerPropertyIds;
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				return presenter.isSelected(recordVO);
 			}
 
 			@Override
-			protected Property<?> getOwnContainerProperty(final Object itemId, final Object propertyId) {
-				Property<?> property;
-				if (SELECT_PROPERTY_ID.equals(propertyId)) {
-					Property<?> selectProperty = new AbstractProperty<Boolean>() {
-						@Override
-						public Boolean getValue() {
-							RecordVO recordVO = (RecordVO) ((RecordVOItem) userContentContainer.getItem(itemId)).getRecord();
-							return presenter.isSelected(recordVO);
-						}
-
-						@Override
-						public void setValue(Boolean newValue)
-								throws com.vaadin.data.Property.ReadOnlyException {
-							RecordVO recordVO = (RecordVO) ((RecordVOItem) userContentContainer.getItem(itemId)).getRecord();
-							boolean selected = Boolean.TRUE.equals(newValue);
-							presenter.selectionChanged(recordVO, selected);
-						}
-
-						@Override
-						public Class<? extends Boolean> getType() {
-							return Boolean.class;
-						}
-					};
-					CheckBox checkBox = new CheckBox();
-					checkBox.setPropertyDataSource(selectProperty);
-					property = new ObjectProperty<CheckBox>(checkBox);
-				} else {
-					property = super.getOwnContainerProperty(itemId, propertyId);
-				}
-				return property;
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				presenter.selectionChanged(recordVO, selected);
 			}
-
-			@Override
-			protected Class<?> getOwnType(Object propertyId) {
-				Class<?> ownType;
-				if (SELECT_PROPERTY_ID.equals(propertyId)) {
-					ownType = CheckBox.class;
-				} else {
-					ownType = super.getOwnType(propertyId);
-				}
-				return ownType;
-			}
+			
 		};
 
 		buttonsContainer.addButton(classifyButtonFactory.build());
@@ -172,7 +127,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		userContentTable.setWidth("100%");
 		userContentTable.addStyleName(TABLE_STYLE_NAME);
 		userContentTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
-		userContentTable.setColumnHeader(SELECT_PROPERTY_ID, $("ListUserDocumentsView.selectColumnTitle"));
+		userContentTable.setColumnHeader(ButtonsContainer.SELECT_PROPERTY_ID, $("ListUserDocumentsView.selectColumnTitle"));
 		userContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 
 		mainLayout.addComponents(multiFileUpload, userContentTable);
