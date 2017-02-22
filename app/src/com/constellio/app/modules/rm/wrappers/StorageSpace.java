@@ -73,6 +73,11 @@ public class StorageSpace extends RecordWrapper {
 		return get(CAPACITY) == null ? null : ((Double) get(CAPACITY)).longValue();
 	}
 
+	public StorageSpace setCapacity(int capacity) {
+		set(CAPACITY, new Long(capacity));
+		return this;
+	}
+
 	public StorageSpace setCapacity(Long capacity) {
 		set(CAPACITY, capacity);
 		return this;
@@ -159,7 +164,6 @@ public class StorageSpace extends RecordWrapper {
 		set(CONTAINER_TYPE, containerRecordType);
 		return this;
 	}
-
 
 	public List<String> getContainerType() {
 		return get(CONTAINER_TYPE);

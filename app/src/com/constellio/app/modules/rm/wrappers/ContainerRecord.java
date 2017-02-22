@@ -70,6 +70,11 @@ public class ContainerRecord extends RecordWrapper {
 		return get(CAPACITY);
 	}
 
+	public ContainerRecord setCapacity(long capacity) {
+		set(CAPACITY, capacity);
+		return this;
+	}
+
 	public ContainerRecord setCapacity(Double capacity) {
 		set(CAPACITY, capacity);
 		return this;
