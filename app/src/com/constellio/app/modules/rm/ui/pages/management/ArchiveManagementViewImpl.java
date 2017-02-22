@@ -16,6 +16,8 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 	public static final String DECOMMISSIONING = "decommissioning-caption";
 	public static final ThemeResource NEW_CONTAINER_ICON = new ThemeResource("images/icons/config/container-add.png");
 	public static final String NEW_CONTAINER = "new-container";
+	public static final ThemeResource MULTIPLE_CONTAINERS_ICON = new ThemeResource("images/icons/config/boxes-add.png");
+	public static final String MULTIPLE_CONTAINERS = "new-boxes";
 	public static final ThemeResource CONTAINERS_ICON = new ThemeResource("images/icons/config/box.png");
 	public static final String CONTAINERS = "containers-caption";
 	public static final ThemeResource REPORTS_ICON = new ThemeResource("images/icons/config/report.png");
@@ -45,14 +47,14 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		decommissioning.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		decommissioning.addStyleName(DECOMMISSIONING);
 
-		multipleContainers = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainers"), false) {
+		multipleContainers = new IconButton(MULTIPLE_CONTAINERS_ICON, $("ArchiveManagementView.newContainers"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.multipleContainersButtonClicked();
 			}
 		};
 		multipleContainers.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		multipleContainers.addStyleName(NEW_CONTAINER);
+		multipleContainers.addStyleName(MULTIPLE_CONTAINERS);
 		multipleContainers.setVisible(presenter.isMultipleContainersButtonVisible());
 
 		newContainer = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainer"), false) {
