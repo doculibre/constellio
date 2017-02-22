@@ -87,7 +87,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 	//OK
 	@Test
-	public void givenStorageSpacesHaveCapacityLesserThanParentButGreaterWithEnteredLinearSizeThenException()
+	public void givenStorageSpacesHaveCapacityLesserThanParentButGreaterWithEnteredLinearSizeThenNoException()
 			throws Exception {
 
 		StorageSpace parentStorageSpace = buildStorageSpace().setCapacity(10L).setLinearSizeEntered(2L);
@@ -95,12 +95,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(buildStorageSpace().setParentStorageSpace(parentStorageSpace).setCapacity(7L));
 
-		try {
-			recordServices.add(buildStorageSpace().setParentStorageSpace(parentStorageSpace).setCapacity(2L));
-			fail("Exception expected");
-		} catch (RecordServicesException.ValidationException e) {
-			//OK
-		}
+		recordServices.add(buildStorageSpace().setParentStorageSpace(parentStorageSpace).setCapacity(2L));
 
 		recordServices.add(buildStorageSpace().setParentStorageSpace(parentStorageSpace).setCapacity(1L));
 	}
@@ -120,12 +115,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(storageSpace.setCapacity(2L));
 
-		try {
-			recordServices.update(storageSpace.setCapacity(3L));
-			fail("Exception expected");
-		} catch (RecordServicesException.ValidationException e) {
-			//OK
-		}
+		recordServices.update(storageSpace.setCapacity(3L));
 	}
 
 	//OK
@@ -160,4 +150,28 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 	//TODO Rien si le parent n'a pas de capacity
 	//TODO Rien si l'enfant n'a pas de capacity
 
+	//OK
+	@Test
+	public void whenSavingAContainerRecordWithoutCapacityThenNoException()
+			throws Exception {
+
+		StorageSpace parentStorageSpace1 = buildStorageSpace().setCapacity(10L);
+		recordServices.add(parentStorageSpace1);
+
+		StorageSpace parentStorageSpace2 = buildStorageSpace();
+		recordServices.add(parentStorageSpace2);
+
+		StorageSpace child1 = buildStorageSpace().setParentStorageSpace(parentStorageSpace1);
+		StorageSpace child2 = buildStorageSpace().setParentStorageSpace(parentStorageSpace1);
+		StorageSpace child3 = buildStorageSpace().setParentStorageSpace(parentStorageSpace1);
+		StorageSpace child4 = buildStorageSpace().setParentStorageSpace(parentStorageSpace2).setCapacity(5);
+
+		recordServices.add(child1);
+		recordServices.add(child2);
+		recordServices.add(child3);
+		recordServices.add(child4);
+
+		recordServices.update(child1.setDescription("test"));
+		recordServices.update(child4.setDescription("test"));
+	}
 }

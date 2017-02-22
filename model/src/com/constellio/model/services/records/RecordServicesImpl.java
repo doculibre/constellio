@@ -497,17 +497,22 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
 
+		ValidationErrors errors = new ValidationErrors();
+		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
 		for (Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeSave(
-							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas));
+							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas, singleRecordTransaction, errors));
 				} else {
 					extensions.callRecordInCreationBeforeSave(
-							new RecordInCreationBeforeSaveEvent(record, transaction.getUser()));
+							new RecordInCreationBeforeSaveEvent(record, transaction.getUser(), singleRecordTransaction, errors));
 				}
 			}
+		}
+		if (!errors.isEmpty()) {
+			throw new RecordServicesException.ValidationException(transaction, errors);
 		}
 
 	}
@@ -624,12 +629,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
 						transaction.getCollection());
 
-				ValidationErrors errors = new ValidationErrors();
-
-				List<RecordEvent> recordEvents = prepareRecordEvents(modifiedOrUnsavedRecords, metadataSchemaTypes, errors);
-				if (!errors.isEmpty()) {
-					throw new RecordServicesException.ValidationException(transaction, errors);
-				}
+				List<RecordEvent> recordEvents = prepareRecordEvents(modifiedOrUnsavedRecords, metadataSchemaTypes);
 
 				TransactionResponseDTO transactionResponseDTO = recordDao.execute(transactionDTO);
 
@@ -656,8 +656,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	private List<RecordEvent> prepareRecordEvents(List<Record> modifiedOrUnsavedRecords, MetadataSchemaTypes types,
-			ValidationErrors errors) {
+	private List<RecordEvent> prepareRecordEvents(List<Record> modifiedOrUnsavedRecords, MetadataSchemaTypes types) {
 		List<RecordEvent> events = new ArrayList<>();
 
 		for (Record record : modifiedOrUnsavedRecords) {
@@ -673,11 +672,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					events.add(
-							new RecordModificationEvent(record, modifiedMetadatas, modifiedOrUnsavedRecords.size() == 1, errors));
+							new RecordModificationEvent(record, modifiedMetadatas));
 				}
 
 			} else {
-				events.add(new RecordCreationEvent(record, modifiedOrUnsavedRecords.size() == 1, errors));
+				events.add(new RecordCreationEvent(record));
 			}
 		}
 

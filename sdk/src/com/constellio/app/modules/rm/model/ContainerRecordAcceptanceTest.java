@@ -96,7 +96,7 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 
 	//OK
 	@Test
-	public void givenContainerRecordsHaveCapacityLesserThanParentButGreaterWithEnteredLinearSizeThenException()
+	public void givenContainerRecordsHaveCapacityLesserThanParentButGreaterWithEnteredLinearSizeThenNoException()
 			throws Exception {
 
 		StorageSpace parentStorageSpace = buildStorageSpace().setCapacity(10L).setLinearSizeEntered(2L);
@@ -104,19 +104,14 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(buildContainerRecord().setStorageSpace(parentStorageSpace).setCapacity(7L));
 
-		try {
-			recordServices.add(buildContainerRecord().setStorageSpace(parentStorageSpace).setCapacity(2L));
-			fail("Exception expected");
-		} catch (RecordServicesException.ValidationException e) {
-			//OK
-		}
+		recordServices.add(buildContainerRecord().setStorageSpace(parentStorageSpace).setCapacity(2L));
 
 		recordServices.add(buildContainerRecord().setStorageSpace(parentStorageSpace).setCapacity(1L));
 	}
 
 	//OK
 	@Test
-	public void givenContainerRecordsHaveCapacityLesserThanParentButGreaterWithEnteredLinearSizeWhenModifyingThenException()
+	public void givenContainerRecordsHaveCapacityLesserThanParentButGreaterWithEnteredLinearSizeWhenModifyingThenNoException()
 			throws Exception {
 
 		StorageSpace parentStorageSpace = buildStorageSpace().setCapacity(10L).setLinearSizeEntered(2L);
@@ -129,12 +124,7 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(containerRecord.setCapacity(2L));
 
-		try {
-			recordServices.update(containerRecord.setCapacity(3L));
-			fail("Exception expected");
-		} catch (RecordServicesException.ValidationException e) {
-			//OK
-		}
+		recordServices.update(containerRecord.setCapacity(3L));
 	}
 
 	//OK
@@ -166,6 +156,28 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	//TODO Rien si le parent n'a pas de capacity
-	//TODO Rien si l'enfant n'a pas de capacity
+	//OK
+	@Test
+	public void whenSavingAContainerRecordWithoutCapacityThenNoException()
+			throws Exception {
+
+		StorageSpace parentStorageSpace1 = buildStorageSpace().setCapacity(10L);
+		recordServices.add(parentStorageSpace1);
+
+		StorageSpace parentStorageSpace2 = buildStorageSpace();
+		recordServices.add(parentStorageSpace2);
+
+		ContainerRecord child1 = buildContainerRecord().setStorageSpace(parentStorageSpace1);
+		ContainerRecord child2 = buildContainerRecord().setStorageSpace(parentStorageSpace1);
+		ContainerRecord child3 = buildContainerRecord().setStorageSpace(parentStorageSpace1);
+		ContainerRecord child4 = buildContainerRecord().setStorageSpace(parentStorageSpace2).setCapacity(5);
+
+		recordServices.add(child1);
+		recordServices.add(child2);
+		recordServices.add(child3);
+		recordServices.add(child4);
+
+		recordServices.update(child1.setDescription("test"));
+		recordServices.update(child4.setDescription("test"));
+	}
 }

@@ -1,28 +1,14 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordCreationEvent implements RecordEvent {
 
 	Record record;
 
-	boolean singleRecordTransaction;
-
-	ValidationErrors validationErrors;
-
-	public RecordCreationEvent(Record record, boolean singleRecordTransaction, ValidationErrors errors) {
+	public RecordCreationEvent(Record record) {
 		this.record = record;
-		this.singleRecordTransaction = singleRecordTransaction;
-	}
-
-	public boolean isSingleRecordTransaction() {
-		return singleRecordTransaction;
-	}
-
-	public ValidationErrors getValidationErrors() {
-		return validationErrors;
 	}
 
 	public Record getRecord() {
