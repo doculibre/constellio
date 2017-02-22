@@ -125,6 +125,8 @@ public class RMMigrationTo6_7 implements MigrationScript {
 
         transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.CONTAINER_TYPE)
                 .withInputType(MetadataInputType.LOOKUP));
+        transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));
+        transactionBuilder.add(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA+"_"+ContainerRecord.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));
         transactionBuilder.add(manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.CONTAINER_TYPE));
         manager.execute(transactionBuilder.build());
     }
