@@ -17,9 +17,11 @@ import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
+import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
@@ -34,6 +36,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.schemas.Schemas;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
@@ -45,6 +48,8 @@ import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
@@ -164,7 +169,9 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
-		((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
+		if ((DocumentContextMenuImpl) table.getContextMenu() != null) {
+			((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
+		}
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
@@ -280,6 +287,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private class RecentTable extends BaseTable {
 		
+		private static final String MENUBAR_PROPERTY_ID = "menuBar";
+		
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public RecentTable(String tableId, List<RecentItem> recentItems) {
 			super(tableId);
@@ -321,6 +330,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					return null;
 				}
 			});
+			
+			addMenuBarColumn(recentItems);
 		}
 
 		@Override
@@ -339,6 +350,42 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
 			RecordVO recordVO = recordVOItem.getBean().getRecord();
 			return recordVO;
+		}
+		
+		protected void addMenuBarColumn(List<RecentItem> recentItems) {
+			boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null; 
+			if (!menuBarColumnGenerated) {
+				boolean menuBarRequired = false;
+				for (RecentItem recentItem : recentItems) {
+					String schemaCode = recentItem.getRecord().getSchema().getCode();
+					List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+					for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+						if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
+							menuBarRequired = true;
+							break;
+						}
+					}
+				}
+				if (menuBarRequired) {
+					addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
+						@Override
+						public Object generateCell(Table source, Object itemId, Object columnId) {
+							RecordVO recordVO = getRecordVO(itemId);
+
+							MenuBar menuBar = null;
+							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+								menuBar = recordMenuBarHandler.get(recordVO);
+								if (menuBar != null) {
+									break;
+								}
+							}
+							return menuBar != null ? menuBar : new Label("");
+						}
+					});
+					setColumnHeader(MENUBAR_PROPERTY_ID, "");
+				}
+			}
 		}
 	}
 

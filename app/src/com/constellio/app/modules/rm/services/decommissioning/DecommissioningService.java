@@ -779,7 +779,7 @@ public class DecommissioningService {
 		for (UserDocument userDocument : userDocuments) {
 			Document document = rm.newDocument();
 			populateDocumentFromUserDocument(document, userDocument, currentUser);
-			document.setFolder(parentFolder);
+			document.setFolder(folder);
 			transaction.add(document);
 		}
 	}

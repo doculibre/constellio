@@ -256,7 +256,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void createPDFAButtonClicked() {
-		presenterUtils.createPDFA();
+		presenterUtils.createPDFAButtonClicked();
 
 	}
 

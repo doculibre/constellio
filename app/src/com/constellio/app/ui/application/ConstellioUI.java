@@ -13,12 +13,14 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
+import com.constellio.app.modules.rm.ui.menuBar.RMRecordMenuBarHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.SSOServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
+import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.handlers.ConstellioErrorHandler;
 import com.constellio.app.ui.i18n.i18n;
@@ -66,6 +68,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
 	
+	private List<RecordMenuBarHandler> recordMenuBarHandlers = new ArrayList<>();
+	
 	private Map<String, Object> uiContext = new HashMap<>();
 
 	public final RequestHandler requestHandler = new ConstellioResourceHandler();
@@ -87,6 +91,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
 		addRecordContextMenuHandler(new RMRecordContextMenuHandler(constellioFactories));
+		addRecordMenuBarHandler(new RMRecordMenuBarHandler(constellioFactories));
 
 		List<InitUIListener> initUIListeners = appLayerFactory.getInitUIListeners();
 		for (InitUIListener initUIListener : initUIListeners) {
@@ -321,6 +326,18 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	public List<RecordContextMenuHandler> getRecordContextMenuHandlers() {
 		return recordContextMenuHandlers;
+	}
+	
+	public void addRecordMenuBarHandler(RecordMenuBarHandler recordMenuBarHandler) {
+		this.recordMenuBarHandlers.add(recordMenuBarHandler); 
+	}
+	
+	public void removeRecordMenuBarHandler(RecordMenuBarHandler recordMenuBarHandler) {
+		this.recordContextMenuHandlers.remove(recordMenuBarHandler);
+	}
+	
+	public List<RecordMenuBarHandler> getRecordMenuBarHandlers() {
+		return recordMenuBarHandlers;
 	}
 
 	public static ConstellioUI getCurrent() {

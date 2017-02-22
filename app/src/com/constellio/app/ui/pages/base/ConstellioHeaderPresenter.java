@@ -65,7 +65,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private transient ModelLayerFactory modelLayerFactory;
 	private transient SchemasDisplayManager schemasDisplayManager;
 	private boolean advancedSearchFormVisible;
-	private boolean selectionPanelVisible;
 
 	private BasePresenterUtils presenterUtils;
 
@@ -286,7 +285,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	void popupClosed() {
 		popupClosedTS = System.currentTimeMillis();
 		advancedSearchFormVisible = false;
-		selectionPanelVisible = false;
 	}
 	
 	private boolean isPopupClosedIgnored() {
@@ -294,7 +292,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	void advancedSearchFormButtonClicked() {
-		selectionPanelVisible = false;
 		if (advancedSearchFormVisible) {
 			advancedSearchFormVisible = false;
 		} else {
@@ -304,13 +301,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	void selectionButtonClicked() {
-		advancedSearchFormVisible = false;
-		if (selectionPanelVisible) {
-			selectionPanelVisible = false;
-		} else {
-			selectionPanelVisible = !isPopupClosedIgnored();
-		}
-		header.setSelectionPanelVisible(selectionPanelVisible, refreshSelectionPanel);
+		header.setSelectionPanelVisible(true, refreshSelectionPanel);
 		refreshSelectionPanel = false;
 	}
 	

@@ -414,7 +414,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getMoveInFolderButtonState(User user, Folder folder) {
-		return getEditButtonState(user, folder);
+//		return getEditButtonState(user, folder);
+		return ComponentState.INVISIBLE;
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {

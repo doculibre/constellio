@@ -469,6 +469,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
 		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
+		
 		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
 		container.addButton(new ContainerButton() {
 			@Override
@@ -544,7 +545,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			}
 		});
-		table.setContainerDataSource(container);
+		table.setContainerDataSource(nestedContainer);
 		
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
 		tabSheet.replaceComponent(folderContentComponent, new SelectionTableAdapter(table) {

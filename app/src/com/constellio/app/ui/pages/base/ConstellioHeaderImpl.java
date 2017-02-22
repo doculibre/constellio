@@ -1,5 +1,10 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -7,10 +12,10 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.framework.buttons.BadgeButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BasePopupView;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
@@ -35,17 +40,34 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.*;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.Responsive;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
 import com.vaadin.ui.PopupView.PopupVisibilityListener;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
@@ -60,7 +82,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	private final ConstellioHeaderPresenter presenter;
 	
 	private TextField searchField;
-	private BadgeButton selectionButton;
+	private WindowButton selectionButton;
 	
 	private BasePopupView popupView;
 	
@@ -227,14 +249,17 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			if (refresh) {
 				selectionPanel = buildSelectionPanel();
 			}
-			if (popupView.getContent().getPopupComponent() != selectionPanel) {
-				BasePopupView newPopupView = newPopupView(selectionPanel);
-				replaceComponent(popupView, newPopupView);
-				popupView = newPopupView;
-			}
-			popupView.setPopupVisible(true, false);
-		} else {
-			popupView.setPopupVisible(false, false);
+//			if (popupView.getContent().getPopupComponent() != selectionPanel) {
+//				BasePopupView newPopupView = newPopupView(selectionPanel);
+//				replaceComponent(popupView, newPopupView);
+//				popupView = newPopupView;
+//			}
+//			popupView.setPopupVisible(true, false);
+//		} else {
+//			popupView.setPopupVisible(false, false);
+		}
+		if (selectionPanel.isVisible() != visible) {
+			selectionPanel.setVisible(visible);
 		}
 	}
 
@@ -335,13 +360,22 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		return layout;
 	}
 	
-	private BadgeButton buildSelectionButton() {
-		BadgeButton selectionButton = new BadgeButton($("ConstellioHeader.selection"), selectionCount) {
+	private WindowButton buildSelectionButton() {
+		WindowConfiguration config = new WindowConfiguration(true, true, "100%", null);
+		WindowButton selectionButton = new WindowButton($("ConstellioHeader.selection"), $("ConstellioHeader.selectionPanelTitle"), config) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
+			protected Component buildWindowContent() {
+				return selectionPanel;
+			}
+
+			@Override
+			protected boolean acceptWindowOpen(ClickEvent event) {
 				presenter.selectionButtonClicked();
+				return selectionPanel.isVisible();
 			}
 		};
+		selectionButton.setBadgeVisible(true);
+		selectionButton.setBadgeCount(selectionCount);
 		selectionButton.addStyleName("header-selection-button");
 		if (delayedSelectionButtonEnabled != null) {
 			selectionButton.setEnabled(delayedSelectionButtonEnabled);
@@ -378,7 +412,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		HorizontalLayout selectionLayout = new HorizontalLayout();
 		selectionLayout.setSpacing(true);
 		selectionLayout.setWidth("100%");
-		selectionLayout.addStyleName("header-popup-selection-panel");
+		selectionLayout.addStyleName("header-selection-panel");
 		
 		final Table selectionTable = new Table();
 		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
@@ -411,15 +445,6 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		actionMenuLayout.addStyleName("header-selection-panel-actions");
 		buildSelectionPanelButtons(actionMenuLayout);
 
-		Button clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.clearSelectionButtonClicked();
-			}
-		};
-		SelectionPanelExtension.setStyles(clearSelectionButton);
-		actionMenuLayout.addComponent(clearSelectionButton);
-
 		VerticalLayout selectionActionMenu = new VerticalLayout();
 		selectionActionMenu.setWidth("200px");
 		selectionActionMenu.setSpacing(true);
@@ -427,13 +452,13 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
-		
-		selectionLayout.addComponent(selectionTableAdapter);
-		selectionLayout.addComponent(selectionActionMenu);
 
 		selectionPanel.addComponent(selectionLayout);
 		selectionPanel.addComponent(buttonsLayout);
 		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
+		
+		selectionLayout.addComponent(selectionTableAdapter);
+		selectionLayout.addComponent(selectionActionMenu);
 		
 		selectionLayout.setExpandRatio(selectionTableAdapter, 1);
 		selectionLayout.setComponentAlignment(selectionActionMenu, Alignment.TOP_RIGHT);
@@ -676,7 +701,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	public void setSelectionCount(int selectionCount) {
 		this.selectionCount = selectionCount;
 		if (selectionButton != null) {
-			selectionButton.setCount(selectionCount);
+			selectionButton.setBadgeCount(selectionCount);
 		}
 	}
 
