@@ -1,7 +1,6 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
@@ -11,23 +10,9 @@ public class RecordModificationEvent implements RecordEvent {
 
 	Record record;
 
-	boolean singleRecordTransaction;
-
-	ValidationErrors errors;
-
-	public RecordModificationEvent(Record record, MetadataList modifiedMetadatas, boolean singleRecordTransaction,
-			ValidationErrors errors) {
+	public RecordModificationEvent(Record record, MetadataList modifiedMetadatas) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
-		this.singleRecordTransaction = singleRecordTransaction;
-	}
-
-	public boolean isSingleRecordTransaction() {
-		return singleRecordTransaction;
-	}
-
-	public ValidationErrors getValidationErrors() {
-		return errors;
 	}
 
 	public Record getRecord() {

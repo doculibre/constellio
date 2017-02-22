@@ -19,9 +19,9 @@ import com.constellio.model.extensions.events.records.RecordLogicalDeletionValid
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
-import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -66,6 +66,13 @@ public class ModelLayerCollectionExtensions {
 			if (extension.getDecoratedSchemaType().equals(schemaType)) {
 				extension.prevalidate(params);
 			}
+		}
+	}
+
+	public void callTransactionExecutionBeforeSave(
+			TransactionExecutionBeforeSaveEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.transactionExecutionBeforeSave(event);
 		}
 	}
 

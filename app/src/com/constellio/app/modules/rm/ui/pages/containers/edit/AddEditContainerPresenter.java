@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Iterator;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -19,11 +25,6 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataList;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Iterator;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEditContainerView> {
 	protected RecordVO container;
@@ -74,21 +75,25 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public void saveButtonClicked(RecordVO record) {
-		if(multipleMode) {
-			if(numberOfContainer < 1) {
+		if (multipleMode) {
+			if (numberOfContainer < 1) {
 				view.showErrorMessage($("AddEditContainerView.invalidNumberOfContainer"));
 				return;
 			}
 			try {
 				createMultipleContainer(toRecord(record), numberOfContainer);
 				view.navigate().to(RMViews.class).archiveManagement();
+			} catch (RecordServicesException.ValidationException e) {
+				view.showMessage($(e.getErrors()));
+
 			} catch (RecordServicesException e) {
-				e.printStackTrace();
+				view.showMessage($(e));
 			}
 		} else {
 			addOrUpdate(toRecord(record));
 			view.navigate().to(RMViews.class).displayContainer(record.getId());
 		}
+
 	}
 
 	public void cancelRequested() {
@@ -145,12 +150,14 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		return multipleMode;
 	}
 
-	public void createMultipleContainer(Record record, Integer value) throws RecordServicesException {
-		MetadataList modifiedMetadatas = record.getModifiedMetadatas(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
+	public void createMultipleContainer(Record record, Integer value)
+			throws RecordServicesException {
+		MetadataList modifiedMetadatas = record
+				.getModifiedMetadatas(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
 		Transaction transaction = new Transaction();
 		transaction.add(record);
 
-		for(int i = 0; i < value-1; i++) {
+		for (int i = 0; i < value - 1; i++) {
 			Record container = newContainerRecord();
 			Iterator<Metadata> iterator = modifiedMetadatas.iterator();
 			while (iterator.hasNext()) {
@@ -160,6 +167,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			transaction.add(container);
 		}
 		recordServices().execute(transaction);
+
 	}
 
 	public void setNumberOfContainer(int i) {
