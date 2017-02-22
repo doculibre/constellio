@@ -35,6 +35,7 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
                     mainLayout.setSpacing(true);
 
                     final BaseIntegerField integerField = new BaseIntegerField($("AddEditContainerView.numberOfContainer"));
+                    integerField.setRequired(true);
 
                     HorizontalLayout buttonLayout = new HorizontalLayout();
                     buttonLayout.setSpacing(true);
@@ -42,7 +43,8 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
                     newLayoutSaveButton.addClickListener(new ClickListener() {
                         @Override
                         public void buttonClick(ClickEvent event) {
-                            presenter.setNumberOfContainer(Integer.parseInt(integerField.getValue()));
+                            int numberOfContainer = integerField.getValue().matches("^\\d+$") ? Integer.parseInt(integerField.getValue()) : 0;
+                            presenter.setNumberOfContainer(numberOfContainer);
                             callTrySave();
                             getWindow().close();
                         }

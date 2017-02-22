@@ -51,4 +51,7 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		return user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething();
 	}
 
+	public boolean isMultipleContainersButtonVisible() {
+		return true;
+	}
 }

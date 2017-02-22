@@ -53,6 +53,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		};
 		multipleContainers.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		multipleContainers.addStyleName(NEW_CONTAINER);
+		multipleContainers.setVisible(presenter.isMultipleContainersButtonVisible());
 
 		newContainer = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainer"), false) {
 			@Override

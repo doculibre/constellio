@@ -11,12 +11,17 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataList;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Iterator;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -70,8 +75,16 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public void saveButtonClicked(RecordVO record) {
 		if(multipleMode) {
-			createMultipleContainer(numberOfContainer);
-			view.navigate().to(RMViews.class).displayContainer(record.getId());
+			if(numberOfContainer < 1) {
+				view.showErrorMessage($("AddEditContainerView.invalidNumberOfContainer"));
+				return;
+			}
+			try {
+				createMultipleContainer(toRecord(record), numberOfContainer);
+				view.navigate().to(RMViews.class).archiveManagement();
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
 		} else {
 			addOrUpdate(toRecord(record));
 			view.navigate().to(RMViews.class).displayContainer(record.getId());
@@ -132,10 +145,21 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		return multipleMode;
 	}
 
-	public void createMultipleContainer(Integer value) {
-		for(int i = 0; i < value; i++) {
-			System.out.println("Ah!!!!!!!!!!");
+	public void createMultipleContainer(Record record, Integer value) throws RecordServicesException {
+		MetadataList modifiedMetadatas = record.getModifiedMetadatas(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
+		Transaction transaction = new Transaction();
+		transaction.add(record);
+
+		for(int i = 0; i < value-1; i++) {
+			Record container = newContainerRecord();
+			Iterator<Metadata> iterator = modifiedMetadatas.iterator();
+			while (iterator.hasNext()) {
+				Metadata metadata = iterator.next();
+				container.set(metadata, record.get(metadata));
+			}
+			transaction.add(container);
 		}
+		recordServices().execute(transaction);
 	}
 
 	public void setNumberOfContainer(int i) {
