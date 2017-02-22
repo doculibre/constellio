@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -7,13 +11,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.joda.time.LocalDate;
-
-import java.util.List;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+	public static final String LOCALIZATION = "localization";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String ADMINISTRATIVE_UNITS = "administrativeUnits";
 	public static final String BORROW_DATE = "borrowDate";
@@ -41,8 +43,6 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
 	public static final String AVAILABLE_SIZE = "availableSize";
 
-
-
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -60,6 +60,10 @@ public class ContainerRecord extends RecordWrapper {
 	public ContainerRecord setDescription(String description) {
 		set(DESCRIPTION, description);
 		return this;
+	}
+
+	public String getLocalization() {
+		return get(LOCALIZATION);
 	}
 
 	public Double getCapacity() {

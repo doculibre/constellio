@@ -1,14 +1,13 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import java.util.List;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-
-import java.util.List;
 
 public class StorageSpace extends RecordWrapper {
 
@@ -71,7 +70,7 @@ public class StorageSpace extends RecordWrapper {
 	}
 
 	public Long getCapacity() {
-		return get(CAPACITY) == null ? null:((Double) get(CAPACITY)).longValue();
+		return get(CAPACITY) == null ? null : ((Double) get(CAPACITY)).longValue();
 	}
 
 	public StorageSpace setCapacity(Long capacity) {
@@ -156,10 +155,11 @@ public class StorageSpace extends RecordWrapper {
 		return get(AVAILABLE_SIZE);
 	}
 
-	public StorageSpace setContainerType(List<ContainerRecordType> containerRecordType) {
+	public StorageSpace setContainerType(List<?> containerRecordType) {
 		set(CONTAINER_TYPE, containerRecordType);
 		return this;
 	}
+
 
 	public List<String> getContainerType() {
 		return get(CONTAINER_TYPE);
