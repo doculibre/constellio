@@ -23,13 +23,21 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEditContainerView> {
 	protected RecordVO container;
 	protected boolean editMode;
+	protected boolean multipleMode;
+	protected int numberOfContainer = 1;
+
+	public static final String STYLE_NAME = "window-button";
+	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
+	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
 
 	public AddEditContainerPresenter(AddEditContainerView view) {
 		super(view, ContainerRecord.DEFAULT_SCHEMA);
 	}
 
 	public AddEditContainerPresenter forParams(String parameters) {
-		editMode = StringUtils.isNotBlank(parameters);
+		StringUtils.countMatches(parameters, "/");
+		editMode = StringUtils.isNotBlank(parameters) && StringUtils.countMatches(parameters, "/") == 0;
+		multipleMode = StringUtils.countMatches(parameters, "/") > 0;
 		Record container = editMode ? getRecord(parameters) : newContainerRecord();
 		this.container = new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());
 		return this;
@@ -61,8 +69,13 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public void saveButtonClicked(RecordVO record) {
-		addOrUpdate(toRecord(record));
-		view.navigate().to(RMViews.class).displayContainer(record.getId());
+		if(multipleMode) {
+			createMultipleContainer(numberOfContainer);
+			view.navigate().to(RMViews.class).displayContainer(record.getId());
+		} else {
+			addOrUpdate(toRecord(record));
+			view.navigate().to(RMViews.class).displayContainer(record.getId());
+		}
 	}
 
 	public void cancelRequested() {
@@ -111,8 +124,21 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		return !editMode;
 	}
 
-
 	public boolean isEditMode() {
 		return editMode;
+	}
+
+	public boolean isMultipleMode() {
+		return multipleMode;
+	}
+
+	public void createMultipleContainer(Integer value) {
+		for(int i = 0; i < value; i++) {
+			System.out.println("Ah!!!!!!!!!!");
+		}
+	}
+
+	public void setNumberOfContainer(int i) {
+		numberOfContainer = i;
 	}
 }

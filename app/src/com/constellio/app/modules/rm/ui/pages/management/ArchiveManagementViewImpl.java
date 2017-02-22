@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.management;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -10,6 +8,8 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveManagementView {
 	public static final ThemeResource DECOMMISSIONING_ICON = new ThemeResource("images/icons/config/platform_truck.png");
@@ -23,7 +23,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 
 	private final ArchiveManagementPresenter presenter;
 
-	private Button decommissioning, newContainer, containers, reports;
+	private Button decommissioning, multipleContainers, newContainer, containers, reports;
 
 	public ArchiveManagementViewImpl() {
 		presenter = new ArchiveManagementPresenter(this);
@@ -44,6 +44,15 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		};
 		decommissioning.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		decommissioning.addStyleName(DECOMMISSIONING);
+
+		multipleContainers = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainers"), false) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.multipleContainersButtonClicked();
+			}
+		};
+		multipleContainers.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		multipleContainers.addStyleName(NEW_CONTAINER);
 
 		newContainer = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainer"), false) {
 			@Override
@@ -73,7 +82,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		reports.addStyleName(REPORTS);
 
 		presenter.onViewAssembled();
-		CssLayout layout = new CssLayout(decommissioning, newContainer, containers, reports);
+		CssLayout layout = new CssLayout(decommissioning, multipleContainers, newContainer, containers, reports);
 		layout.addStyleName("view-group");
 
 		return layout;
