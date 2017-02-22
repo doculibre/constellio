@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -91,7 +92,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				try {
 					recordServices.refresh(unit);
 					if (!unit.getWrappedRecord().isDisconnected()) {
-						recordServices.add(unit.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
+						recordServices.add(unit.<Boolean, RecordWrapper>set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
 
 						if (recordServices.isLogicallyThenPhysicallyDeletable(unit.getWrappedRecord(), User.GOD)) {
 							recordServices.logicallyDelete(unit.getWrappedRecord(), User.GOD);
@@ -124,7 +125,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				try {
 					recordServices.refresh(category);
 					if (!category.getWrappedRecord().isDisconnected()) {
-						recordServices.add(category.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
+						recordServices.add(category.<Boolean, RecordWrapper>set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
 						if (recordServices.isLogicallyThenPhysicallyDeletable(category.getWrappedRecord(), User.GOD)) {
 							recordServices.logicallyDelete(category.getWrappedRecord(), User.GOD);
 							recordServices.physicallyDelete(category.getWrappedRecord(), User.GOD);

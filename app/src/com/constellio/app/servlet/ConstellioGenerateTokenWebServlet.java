@@ -18,10 +18,11 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 
 public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
-	private static final String USERNAME = "username";
-	private static final String PASSWORD = "password";
-	private static final String DURATION = "duration";
-	private static final String AS_USER = "asUser";
+	public static final String TEXT_XML_CHARSET_UTF_8 = "text/xml;charset=UTF-8";
+	public static final String USERNAME = "username";
+	public static final String PASSWORD = "password";
+	public static final String DURATION = "duration";
+	public static final String AS_USER = "asUser";
 
 	public static final String BAD_DURATION = "Bad Duration. Example : 14d or 24h";
 	public static final String PARAM_USERNAME_REQUIRED = "Parameter 'username' required";
@@ -124,7 +125,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 		sb.append(token);
 		sb.append("</token></response>");
 
-		resp.setContentType("text/xml;charset=UTF-8");
+		resp.setContentType(TEXT_XML_CHARSET_UTF_8);
 		resp.getWriter().write(sb.toString());
 
 	}
