@@ -85,7 +85,9 @@ public class TransactionsLogImportHandler {
 
 						try {
 							transaction = transactions.take().transaction;
-							transaction.setRecordsFlushing(RecordsFlushing.LATER());
+							if (transaction != null) {
+								transaction.setRecordsFlushing(RecordsFlushing.LATER());
+							}
 						} catch (InterruptedException e) {
 							throw new RuntimeException(e);
 						}

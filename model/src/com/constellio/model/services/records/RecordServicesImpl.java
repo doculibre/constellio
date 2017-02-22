@@ -102,7 +102,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 
 public class RecordServicesImpl extends BaseRecordServices {
@@ -624,7 +623,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 			try {
 				MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
 						transaction.getCollection());
-				List<RecordEvent> recordEvents = prepareRecordEvents(modifiedOrUnsavedRecords, metadataSchemaTypes);
+
+				ValidationErrors errors = new ValidationErrors();
+
+				List<RecordEvent> recordEvents = prepareRecordEvents(modifiedOrUnsavedRecords, metadataSchemaTypes, errors);
+				if (!errors.isEmpty()) {
+					throw new RecordServicesException.ValidationException(transaction, errors);
+				}
+
 				TransactionResponseDTO transactionResponseDTO = recordDao.execute(transactionDTO);
 
 				modelFactory.newLoggingServices().logTransaction(transaction);
@@ -650,7 +656,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	private List<RecordEvent> prepareRecordEvents(List<Record> modifiedOrUnsavedRecords, MetadataSchemaTypes types) {
+	private List<RecordEvent> prepareRecordEvents(List<Record> modifiedOrUnsavedRecords, MetadataSchemaTypes types,
+			ValidationErrors errors) {
 		List<RecordEvent> events = new ArrayList<>();
 
 		for (Record record : modifiedOrUnsavedRecords) {
@@ -665,11 +672,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 				} else {
 
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					events.add(new RecordModificationEvent(record, modifiedMetadatas));
+					events.add(
+							new RecordModificationEvent(record, modifiedMetadatas, modifiedOrUnsavedRecords.size() == 1, errors));
 				}
 
 			} else {
-				events.add(new RecordCreationEvent(record));
+				events.add(new RecordCreationEvent(record, modifiedOrUnsavedRecords.size() == 1, errors));
 			}
 		}
 
