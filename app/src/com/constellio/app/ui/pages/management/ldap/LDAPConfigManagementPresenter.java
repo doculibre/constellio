@@ -14,9 +14,9 @@ import com.constellio.model.conf.ldap.EmptyUrlsRuntimeException;
 import com.constellio.model.conf.ldap.InvalidUrlRuntimeException;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
@@ -52,12 +52,7 @@ public class LDAPConfigManagementPresenter extends
 				.getLdapConfigurationManager();
 		try {
 			ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
-
-			if (ldapConfigManager.getNextUsersSyncFireTime() == null) {
-                view.showMessage($("ldap.config.saved"));
-            } else {
-				view.showMessage($("ldap.config.saved") + " " + $("ldap.config.nextUserSyncFireTime", ldapConfigManager.getNextUsersSyncFireTime()));
-			}
+			view.showMessage($("ldap.config.saved"));
 		} catch (TooShortDurationRuntimeException e) {
 			view.showErrorMessage($("ldap.TooShortDurationRuntimeException"));
 		} catch (EmptyDomainsRuntimeException e) {
@@ -155,9 +150,9 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public boolean isForceSynchVisible() {
-		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing()
-				&& getLDAPServerConfiguration().getLdapAuthenticationActive()
-				&& (getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || getLDAPUserSyncConfiguration().getScheduleTime() != null);
+		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
+				.getLdapAuthenticationActive()
+				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null;
 	}
 
 	private class ForceSynchThread implements Runnable {

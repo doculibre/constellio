@@ -4,14 +4,16 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
+import com.constellio.app.ui.framework.components.DurationPanel;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.ScheduleComponent;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
@@ -45,7 +47,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected Field groupsRejectionRegexField;
 	protected TextArea testAuthentication;
 	protected CollectionsSelectionPanel collectionsComponent;
-	protected ScheduleComponent scheduleComponentField;
+	protected DurationPanel durationField;
 	protected Button saveButton;
 	private BaseButton forceUsersSynchronization;
 
@@ -140,9 +142,12 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		groupsRejectionRegexField.setCaption($("ldap.syncConfiguration.groupFilter.rejectedRegex"));
 	}
 
-    protected void buildSynchronizationScheduleFields(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-        scheduleComponentField = new ScheduleComponent(ldapUserSyncConfiguration.getScheduleTime(), ldapUserSyncConfiguration.getDurationBetweenExecution());
-    }
+	protected void buildDurationField(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		Duration duration = ldapUserSyncConfiguration.getDurationBetweenExecution();
+		durationField = new DurationPanel();
+		durationField.setCaption($("ldap.syncConfiguration.durationBetweenExecution"));
+		durationField.setDuration(duration);
+	}
 
 	protected void buildCollectionsPanel() {
 		String title = $("ImportUsersFileViewImpl.collection");
