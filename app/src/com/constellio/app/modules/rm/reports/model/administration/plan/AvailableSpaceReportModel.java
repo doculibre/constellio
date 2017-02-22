@@ -49,7 +49,7 @@ public class AvailableSpaceReportModel {
 
         private String title;
 
-        private long availableSpace;
+        private double availableSpace;
 
         private List<AvailableSpaceReportModelNode> childrenNodes = new ArrayList<>();
 
@@ -80,11 +80,11 @@ public class AvailableSpaceReportModel {
             return this;
         }
 
-        public long getAvailableSpace() {
+        public double getAvailableSpace() {
             return availableSpace;
         }
 
-        public AvailableSpaceReportModelNode setAvailableSpace(long availableSpace) {
+        public AvailableSpaceReportModelNode setAvailableSpace(double availableSpace) {
             this.availableSpace = availableSpace;
             return this;
         }
