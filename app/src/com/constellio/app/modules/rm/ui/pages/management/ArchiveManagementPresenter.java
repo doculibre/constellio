@@ -3,8 +3,10 @@ package com.constellio.app.modules.rm.ui.pages.management;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 
 public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementView> {
 	public ArchiveManagementPresenter(ArchiveManagementView view) {
@@ -52,6 +54,7 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 	}
 
 	public boolean isMultipleContainersButtonVisible() {
-		return true;
+		return DataEntryType.SEQUENCE.equals(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER).getDataEntry().getType());
 	}
 }
