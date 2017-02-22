@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.model;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import org.junit.Before;
@@ -10,6 +11,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -179,5 +181,54 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(child1.setDescription("test"));
 		recordServices.update(child4.setDescription("test"));
+	}
+
+	//OK
+	@Test
+	public void whenAddingMultipleContainerRecordsContainerWithCapacityHigherThanStorageSpaceThenException()
+			throws Exception {
+
+		StorageSpace parentStorageSpace1 = buildStorageSpace().setCapacity(20L);
+		StorageSpace parentStorageSpace2 = buildStorageSpace().setCapacity(20L);
+		StorageSpace parentStorageSpace3 = buildStorageSpace().setCapacity(20L);
+		recordServices.add(parentStorageSpace1);
+		recordServices.add(parentStorageSpace2);
+		recordServices.add(parentStorageSpace3);
+
+		Transaction tx = new Transaction();
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+
+		try {
+			recordServices.execute(tx);
+			fail("Error");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(1);
+		}
+
+		tx = new Transaction();
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace2).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace2).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace2).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace3).setCapacity(8));
+
+		try {
+			recordServices.execute(tx);
+			fail("Error");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(2);
+		}
+
+		tx = new Transaction();
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(8));
+		tx.add(buildContainerRecord().setStorageSpace(parentStorageSpace1).setCapacity(2));
+
+		recordServices.execute(tx);
+
 	}
 }

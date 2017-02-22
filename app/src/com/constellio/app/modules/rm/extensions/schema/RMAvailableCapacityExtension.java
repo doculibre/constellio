@@ -3,18 +3,20 @@ package com.constellio.app.modules.rm.extensions.schema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 
@@ -32,22 +34,16 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 	}
 
 	@Override
-	public void recordCreated(RecordCreationEvent event) {
-
-	}
-
-	@Override
-	public void recordModified(RecordModificationEvent event) {
-
+	public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
+		if (event.isOnlySchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			validateContainerRecord(event.getValidationErrors(), rm.wrapContainerRecords(event.getTransaction().getRecords()));
+		}
 	}
 
 	@Override
 	public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
 		if (event.isSingleRecordTransaction() && event.isSchemaType(StorageSpace.SCHEMA_TYPE)) {
 			validateStorageSpace(event.getValidationErrors(), rm.wrapStorageSpace(event.getRecord()));
-		}
-		if (event.isSingleRecordTransaction() && event.isSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-			validateContainerRecord(event.getValidationErrors(), rm.wrapContainerRecord(event.getRecord()));
 		}
 	}
 
@@ -56,39 +52,57 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 		if (event.isSingleRecordTransaction() && event.isSchemaType(StorageSpace.SCHEMA_TYPE)) {
 			validateStorageSpace(event.getValidationErrors(), rm.wrapStorageSpace(event.getRecord()));
 		}
-		if (event.isSingleRecordTransaction() && event.isSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-			validateContainerRecord(event.getValidationErrors(), rm.wrapContainerRecord(event.getRecord()));
+	}
+
+	private void validateContainerRecord(ValidationErrors errors, List<ContainerRecord> containerRecords) {
+
+		KeyListMap<String, ContainerRecord> containerRecordsInMap = new KeyListMap<>();
+
+		for (ContainerRecord containerRecord : containerRecords) {
+			if (containerRecord.getStorageSpace() != null) {
+				containerRecordsInMap.add(containerRecord.getStorageSpace(), containerRecord);
+			}
+		}
+
+		for (Map.Entry<String, List<ContainerRecord>> entry : containerRecordsInMap.getMapEntries()) {
+			StorageSpace storageSpace = rm.getStorageSpace(entry.getKey());
+			validateContainerRecord(errors, storageSpace, entry.getValue());
 		}
 	}
 
-	private void validateContainerRecord(ValidationErrors errors, ContainerRecord containerRecord) {
+	private void validateContainerRecord(ValidationErrors errors, StorageSpace storageSpace,
+			List<ContainerRecord> containerRecords) {
 
-		if (containerRecord.getStorageSpace() != null) {
-			StorageSpace storageSpace = rm.getStorageSpace(containerRecord.getStorageSpace());
+		List<ContainerRecord> containerRecordsAtSameLevel = rm.searchContainerRecords(from(rm.containerRecord.schemaType())
+				.where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())
+				.andWhere(rm.containerRecord.capacity()).isNotNull());
 
-			List<ContainerRecord> containerRecordsAtSameLevel = rm.searchContainerRecords(from(rm.containerRecord.schemaType())
-					.where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())
-					.andWhere(rm.containerRecord.capacity()).isNotNull());
+		if (storageSpace.getCapacity() != null && storageSpace.getLinearSizeEntered() == null) {
+			long totalCapacity = 0;
 
-			if (storageSpace.getCapacity() != null && storageSpace.getLinearSizeEntered() == null
-					&& containerRecord.getCapacity() != null) {
-				long totalCapacity = containerRecord.getCapacity().longValue();
-				for (ContainerRecord record : containerRecordsAtSameLevel) {
-					if (!record.getId().equals(containerRecord.getId())) {
-						totalCapacity += record.getCapacity();
-					}
+			Set<String> ids = new HashSet<>();
+			for (ContainerRecord containerRecord : containerRecords) {
+				ids.add(containerRecord.getId());
+				if (containerRecord.getCapacity() != null) {
+					totalCapacity += containerRecord.getCapacity().longValue();
 				}
+			}
 
-				if (totalCapacity > storageSpace.getCapacity()) {
-					Map<String, Object> parameters = new HashMap<>();
-					parameters.put("storageSpace", storageSpace.getTitle());
-
-					errors.add(RMAvailableCapacityExtension.class, INSUFFICIENT_CONTAINER_RECORD_CAPACITY_ERROR, parameters);
+			for (ContainerRecord record : containerRecordsAtSameLevel) {
+				if (!ids.contains(record.getId())) {
+					totalCapacity += record.getCapacity();
 				}
+			}
 
+			if (totalCapacity > storageSpace.getCapacity()) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("storageSpace", storageSpace.getTitle());
+
+				errors.add(RMAvailableCapacityExtension.class, INSUFFICIENT_CONTAINER_RECORD_CAPACITY_ERROR, parameters);
 			}
 
 		}
+
 	}
 
 	private void validateStorageSpace(ValidationErrors errors, StorageSpace storageSpace) {

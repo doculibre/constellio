@@ -68,6 +68,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
@@ -499,6 +500,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		ValidationErrors errors = new ValidationErrors();
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
+
+		extensions.callTransactionExecutionBeforeSave(new TransactionExecutionBeforeSaveEvent(transaction, errors));
+
 		for (Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
 				if (record.isSaved()) {
