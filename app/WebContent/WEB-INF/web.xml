@@ -146,25 +146,25 @@
         <load-on-startup>2</load-on-startup>
     </servlet>
 
-<!--     <servlet> -->
-<!--         <servlet-name>Jersey REST Service</servlet-name> -->
-<!--         <servlet-class>com.constellio.app.modules.JerseyRestServiceServlet</servlet-class> -->
+    <servlet>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioServletContainer</servlet-class>
 <!--         Register resources and providers under com.constellio.app.api.admin.services package. -->
-<!--         <init-param> -->
-<!--             <param-name>jersey.config.server.provider.packages</param-name> -->
-<!--             <param-value>com.constellio.app.api.admin.services;scc.services.document.rest</param-value> -->
-<!--         </init-param> -->
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>com.constellio.app.api.admin.services</param-value>
+        </init-param>
 
-<!--         <init-param> -->
-<!--             <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name> -->
-<!--             <param-value>true</param-value> -->
-<!--         </init-param> -->
-<!--         <init-param> -->
-<!--             <param-name>com.sun.jersey.config.feature.TracePerRequest</param-name> -->
-<!--             <param-value>true</param-value> -->
-<!--         </init-param> -->
-<!--         <load-on-startup>1</load-on-startup> -->
-<!--     </servlet> -->
+        <init-param>
+            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.feature.TracePerRequest</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
 
     <servlet>
         <servlet-name>Search Service</servlet-name>
@@ -389,10 +389,10 @@
         <session-timeout>60</session-timeout>
     </session-config>
 
-<!--     <servlet-mapping> -->
-<!--         <servlet-name>Jersey REST Service</servlet-name> -->
-<!--         <url-pattern>/rest/*</url-pattern> -->
-<!--     </servlet-mapping> -->
+    <servlet-mapping>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>Search Service</servlet-name>
