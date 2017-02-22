@@ -194,6 +194,10 @@ public class RMViews extends CoreViews {
         navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER);
     }
 
+	public void addMultipleContainers() {
+		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/m/t");
+	}
+
     public void editContainer(String containerId) {
         navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);
     }

@@ -11,25 +11,38 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataList;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Iterator;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEditContainerView> {
 	protected RecordVO container;
 	protected boolean editMode;
+	protected boolean multipleMode;
+	protected int numberOfContainer = 1;
+
+	public static final String STYLE_NAME = "window-button";
+	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
+	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
 
 	public AddEditContainerPresenter(AddEditContainerView view) {
 		super(view, ContainerRecord.DEFAULT_SCHEMA);
 	}
 
 	public AddEditContainerPresenter forParams(String parameters) {
-		editMode = StringUtils.isNotBlank(parameters);
+		StringUtils.countMatches(parameters, "/");
+		editMode = StringUtils.isNotBlank(parameters) && StringUtils.countMatches(parameters, "/") == 0;
+		multipleMode = StringUtils.countMatches(parameters, "/") > 0;
 		Record container = editMode ? getRecord(parameters) : newContainerRecord();
 		this.container = new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());
 		return this;
@@ -61,8 +74,21 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public void saveButtonClicked(RecordVO record) {
-		addOrUpdate(toRecord(record));
-		view.navigate().to(RMViews.class).displayContainer(record.getId());
+		if(multipleMode) {
+			if(numberOfContainer < 1) {
+				view.showErrorMessage($("AddEditContainerView.invalidNumberOfContainer"));
+				return;
+			}
+			try {
+				createMultipleContainer(toRecord(record), numberOfContainer);
+				view.navigate().to(RMViews.class).archiveManagement();
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
+		} else {
+			addOrUpdate(toRecord(record));
+			view.navigate().to(RMViews.class).displayContainer(record.getId());
+		}
 	}
 
 	public void cancelRequested() {
@@ -111,8 +137,32 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		return !editMode;
 	}
 
-
 	public boolean isEditMode() {
 		return editMode;
+	}
+
+	public boolean isMultipleMode() {
+		return multipleMode;
+	}
+
+	public void createMultipleContainer(Record record, Integer value) throws RecordServicesException {
+		MetadataList modifiedMetadatas = record.getModifiedMetadatas(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
+		Transaction transaction = new Transaction();
+		transaction.add(record);
+
+		for(int i = 0; i < value-1; i++) {
+			Record container = newContainerRecord();
+			Iterator<Metadata> iterator = modifiedMetadatas.iterator();
+			while (iterator.hasNext()) {
+				Metadata metadata = iterator.next();
+				container.set(metadata, record.get(metadata));
+			}
+			transaction.add(container);
+		}
+		recordServices().execute(transaction);
+	}
+
+	public void setNumberOfContainer(int i) {
+		numberOfContainer = i;
 	}
 }

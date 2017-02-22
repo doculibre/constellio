@@ -4,20 +4,66 @@ import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPr
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
-import com.vaadin.ui.Field;
+import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
+import com.vaadin.ui.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * Created by Constellio on 2017-01-11.
  */
 public abstract class ContainerFormImpl extends RecordForm implements ContainerForm {
 
-    public ContainerFormImpl(RecordVO record, AddEditContainerPresenter presenter) {
+    public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter) {
         this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE), presenter));
+        if(presenter.isMultipleMode()) {
+            WindowButton newSaveButton = new WindowButton(saveButton.getCaption(), saveButton.getCaption()) {
+                @Override
+                public void buttonClick(ClickEvent event) {
+                    super.buttonClick(event);
+                }
+
+                @Override
+                protected Component buildWindowContent() {
+                    VerticalLayout mainLayout = new VerticalLayout();
+                    mainLayout.setSpacing(true);
+
+                    final BaseIntegerField integerField = new BaseIntegerField($("AddEditContainerView.numberOfContainer"));
+                    integerField.setRequired(true);
+
+                    HorizontalLayout buttonLayout = new HorizontalLayout();
+                    buttonLayout.setSpacing(true);
+                    Button newLayoutSaveButton = new Button(saveButton.getCaption());
+                    newLayoutSaveButton.addClickListener(new ClickListener() {
+                        @Override
+                        public void buttonClick(ClickEvent event) {
+                            int numberOfContainer = integerField.getValue().matches("^\\d+$") ? Integer.parseInt(integerField.getValue()) : 0;
+                            presenter.setNumberOfContainer(numberOfContainer);
+                            callTrySave();
+                            getWindow().close();
+                        }
+                    });
+                    Button newLayoutCancelButton = new Button(cancelButton.getCaption());
+                    newLayoutCancelButton.addClickListener(new ClickListener() {
+                        @Override
+                        public void buttonClick(ClickEvent event) {
+                            getWindow().close();
+                        }
+                    });
+                    buttonLayout.addComponents(newLayoutCancelButton, newLayoutSaveButton);
+
+                    mainLayout.addComponents(integerField, buttonLayout);
+                    return mainLayout;
+                }
+            };
+            buttonsLayout.replaceComponent(saveButton, newSaveButton);
+        }
     }
 
     public ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {

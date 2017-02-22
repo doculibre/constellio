@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.management;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -11,11 +9,15 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveManagementView {
 	public static final ThemeResource DECOMMISSIONING_ICON = new ThemeResource("images/icons/config/platform_truck.png");
 	public static final String DECOMMISSIONING = "decommissioning-caption";
 	public static final ThemeResource NEW_CONTAINER_ICON = new ThemeResource("images/icons/config/container-add.png");
 	public static final String NEW_CONTAINER = "new-container";
+	public static final ThemeResource MULTIPLE_CONTAINERS_ICON = new ThemeResource("images/icons/config/boxes-add.png");
+	public static final String MULTIPLE_CONTAINERS = "new-boxes";
 	public static final ThemeResource CONTAINERS_ICON = new ThemeResource("images/icons/config/box.png");
 	public static final String CONTAINERS = "containers-caption";
 	public static final ThemeResource REPORTS_ICON = new ThemeResource("images/icons/config/report.png");
@@ -23,7 +25,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 
 	private final ArchiveManagementPresenter presenter;
 
-	private Button decommissioning, newContainer, containers, reports;
+	private Button decommissioning, multipleContainers, newContainer, containers, reports;
 
 	public ArchiveManagementViewImpl() {
 		presenter = new ArchiveManagementPresenter(this);
@@ -44,6 +46,16 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		};
 		decommissioning.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		decommissioning.addStyleName(DECOMMISSIONING);
+
+		multipleContainers = new IconButton(MULTIPLE_CONTAINERS_ICON, $("ArchiveManagementView.newContainers"), false) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.multipleContainersButtonClicked();
+			}
+		};
+		multipleContainers.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		multipleContainers.addStyleName(MULTIPLE_CONTAINERS);
+		multipleContainers.setVisible(presenter.isMultipleContainersButtonVisible());
 
 		newContainer = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainer"), false) {
 			@Override
@@ -73,7 +85,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		reports.addStyleName(REPORTS);
 
 		presenter.onViewAssembled();
-		CssLayout layout = new CssLayout(decommissioning, newContainer, containers, reports);
+		CssLayout layout = new CssLayout(decommissioning, multipleContainers, newContainer, containers, reports);
 		layout.addStyleName("view-group");
 
 		return layout;
