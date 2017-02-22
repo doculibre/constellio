@@ -586,7 +586,20 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	private Map<String, Double> sortByValue(Map<String, Double> linearSize) {
-		return null;
+		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>( linearSize.entrySet() );
+		Collections.sort(listOfEntry, new Comparator<Map.Entry<String, Double>>() {
+			@Override
+			public int compare(Map.Entry<String, Double> entry1, Map.Entry<String, Double> entry2) {
+				return entry1.getValue().compareTo(entry2.getValue());
+			}
+		});
+
+		Map<String, Double> result = new LinkedHashMap<>();
+		for (Map.Entry<String, Double> entry : listOfEntry)
+		{
+			result.put( entry.getKey(), entry.getValue() );
+		}
+		return result;
 	}
 
 	public void addContainerToDecommissioningList(ContainerRecord containerRecord) {
