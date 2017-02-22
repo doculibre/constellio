@@ -2,14 +2,17 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -36,8 +39,6 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		layout = new VerticalLayout();
 		layout.setSizeFull();
 		layout.setSpacing(true);
-		buildLDAPActiveCheckBox();
-		layout.addComponent(super.ldapAuthenticationActive);
 		buildDirectoryTypeField();
 		layout.addComponent(super.directoryTypeField);
 

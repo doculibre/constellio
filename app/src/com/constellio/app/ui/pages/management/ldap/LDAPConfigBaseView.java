@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.Duration;
@@ -50,6 +51,10 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected DurationPanel durationField;
 	protected Button saveButton;
 	private BaseButton forceUsersSynchronization;
+
+	protected Button deleteUnusedUserButton, activateLDAPButton;
+
+	private boolean isLDAPactive = false;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
@@ -206,6 +211,29 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		buttonsPanel.setContent(hLayout);
 		layout.addComponent(buttonsPanel);
 		layout.setComponentAlignment(buttonsPanel, Alignment.BOTTOM_RIGHT);
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
+
+		deleteUnusedUserButton = new AddButton($("ldap.authentication.deleteUnusedUser")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.deleteUsedUserButtonClick();
+			}
+		};
+
+		activateLDAPButton = new AddButton(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				isLDAPactive = !isLDAPactive;
+				this.setCaption(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
+			}
+		};
+		actionMenuButtons.add(deleteUnusedUserButton);
+		actionMenuButtons.add(activateLDAPButton);
+		return actionMenuButtons;
 	}
 
 	protected abstract String getAuthenticationPassword();
