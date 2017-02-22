@@ -15,7 +15,7 @@ public class AvailableSpaceReportModel {
 
     public static final String UNIT = "cm";
 
-    private Boolean showFullSpaces = false;
+    private Boolean showFullSpaces = true;
 
     private StreamFactory<InputStream> headerLogo;
 

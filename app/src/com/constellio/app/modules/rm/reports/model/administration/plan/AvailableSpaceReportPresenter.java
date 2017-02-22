@@ -47,19 +47,12 @@ public class AvailableSpaceReportPresenter {
     private RMSchemasRecordsServices rm;
     private ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
     private MetadataSchemaTypes types;
-    private boolean showFullSpaces;
+    private boolean showFullSpaces = true;
 
     public AvailableSpaceReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
         this.collection = collection;
         this.modelLayerFactory = modelLayerFactory;
     }
-
-    public AvailableSpaceReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean showFullSpaces) {
-        this.collection = collection;
-        this.modelLayerFactory = modelLayerFactory;
-        this.showFullSpaces = showFullSpaces;
-    }
-
 
     public AvailableSpaceReportModel build() {
         init();
