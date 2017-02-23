@@ -1,27 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserDocumentVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;
@@ -42,6 +27,16 @@ import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUserDocumentsView> {
 
@@ -182,8 +177,17 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 
 	public void deleteButtonClicked(RecordVO userContentVO) {
 		User currentUser = getCurrentUser();
-		Record record = toRecord(userContentVO);
 		String schemaTypeCode = userContentVO.getSchema().getTypeCode();
+		Record record;
+		if (UserFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			this.setSchemaCode(UserFolder.DEFAULT_SCHEMA);
+			record = toRecord(userContentVO);
+			this.setSchemaCode(UserDocument.DEFAULT_SCHEMA);
+		} else {
+			record = toRecord(userContentVO);
+		}
+
+
 		try {
 			if (UserFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
