@@ -334,6 +334,7 @@ public class RecordVOTable extends BaseTable {
 					}
 				});
 				setColumnHeader(MENUBAR_PROPERTY_ID, "");
+				setColumnCollapsible(MENUBAR_PROPERTY_ID, false);
 			}
 		}
 	}
