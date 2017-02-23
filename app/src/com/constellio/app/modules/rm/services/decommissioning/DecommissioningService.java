@@ -838,6 +838,10 @@ public class DecommissioningService {
 		}
 		delete(userFolder.getWrappedRecord(), null, true, currentUser);
 	}
+
+	public void deleteUserDocument(UserDocument userDocument, User currentUser) {
+		delete(userDocument.getWrappedRecord(), null, true, currentUser);
+	}
 	
 	private void delete(Record record, String reason, boolean physically, User user) {
 		boolean putFirstInTrash = putFirstInTrash(record);
