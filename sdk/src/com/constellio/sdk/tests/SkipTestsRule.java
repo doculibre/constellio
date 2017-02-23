@@ -99,7 +99,12 @@ public class SkipTestsRule implements TestRule {
 	}
 
 	public boolean isSkipped(Class<?> testClass, Description description) {
-		return wasSkipped = evaluateIfSkipped(testClass, description);
+		try {
+			return wasSkipped = evaluateIfSkipped(testClass, description);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	public boolean evaluateIfSkipped(Class<?> testClass, Description description) {
@@ -297,9 +302,9 @@ public class SkipTestsRule implements TestRule {
 	@Override
 	public Statement apply(final Statement base, Description description) {
 
-		if (isUnitMode) {
-			return base;
-		}
+		//		if (isUnitMode) {
+		//			return base;
+		//		}
 
 		if (isSkipped(description.getTestClass(), description)) {
 			return newSkipStatement();

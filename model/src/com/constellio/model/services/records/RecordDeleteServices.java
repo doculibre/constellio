@@ -1,12 +1,11 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.lang.Boolean.TRUE;
 
 import java.util.ArrayList;
@@ -16,6 +15,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -87,6 +88,8 @@ public class RecordDeleteServices {
 
 	private final ModelLayerExtensions extensions;
 
+	private final ModelLayerFactory modelLayerFactory;
+
 	public RecordDeleteServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this.recordDao = recordDao;
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -96,6 +99,7 @@ public class RecordDeleteServices {
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.extensions = modelLayerFactory.getExtensions();
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public boolean isRestorable(Record record, User user) {
@@ -251,7 +255,24 @@ public class RecordDeleteServices {
 
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
 
+		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
+		if (schemas.getTypes().hasType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+			for(Record recordInHierarchy : records) {
+				for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
+						where(schemas.authorizationDetails.target()).isEqualTo(recordInHierarchy.getId()))) {
+
+					authorizationsServices.execute(authorizationDeleteRequest(details));
+				}
+			}
+			for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
+					where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
+				authorizationsServices.execute(authorizationDeleteRequest(details));
+			}
+		}
+
+
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
+
 		if (options.isSetMostReferencesToNull()) {
 
 			//Collections.sort(records, sortByLevelFromLeafToRoot());
@@ -260,6 +281,9 @@ public class RecordDeleteServices {
 				String type = new SchemaUtils().getSchemaTypeCode(recordInHierarchy.getSchemaCode());
 				final List<Metadata> metadatas = types.getAllMetadatas().onlyReferencesToType(type).onlyNonParentReferences()
 						.onlyManuals();
+
+
+
 				if (!metadatas.isEmpty()) {
 					try {
 						new ActionExecutorInBatch(searchServices, "Remove references to '" + recordInHierarchy.getId() + "'",

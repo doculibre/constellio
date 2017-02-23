@@ -2,10 +2,14 @@ package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import java.util.*;
 
+import com.constellio.model.entities.schemas.*;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -24,9 +28,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -844,5 +845,37 @@ public class UserServices {
 				return false;
 			}
 		}
+	}
+
+	public List<UserCredential> safePhysicalDeleteAllUnusedUser() {
+		List<UserCredential> nonDeletedUser = new ArrayList<>();
+		Predicate<UserCredential> filter = new Predicate<UserCredential>() {
+			@Override
+			public boolean apply(UserCredential input) {
+				return input.getStatus().equals(UserCredentialStatus.DELETED);
+			}
+		};
+		Collection<UserCredential> deletedUsers = Collections2.filter(this.getAllUserCredentials(), filter);
+		for (UserCredential credential : deletedUsers) {
+			try {
+				safePhysicalDeleteUser(credential.getUsername());
+			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+				nonDeletedUser.add(credential);
+			}
+		}
+		return nonDeletedUser;
+	}
+
+	public void safePhysicalDeleteUser(String username) throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
+		UserCredential user = getUser(username);
+		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
+		for (String collection : collections) {
+			String userId = this.getUserInCollection(user.getUsername(), collection).getId();
+			if (searchServices.hasResults(from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES).isEqualTo(userId))) {
+				throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
+			}
+		}
+		recordServices.logicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
 	}
 }

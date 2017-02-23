@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.vaadin.shared.ui.label.ContentMode;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -32,6 +31,7 @@ import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -309,7 +309,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 			}
 		};
 		actionMenuButtons.add(editButton);
-		if (ADMIN.equals(userCredentialVO.getUsername())) {
+		if (ADMIN.equals(userCredentialVO.getUsername()) || presenter.userNotLDAPSynced(userCredentialVO.getUsername())) {
 			editButton.setEnabled(presenter.canModifyPassword(userCredentialVO.getUsername()));
 		} else {
 			editButton.setEnabled(presenter.canAddOrModify());
