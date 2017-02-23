@@ -39,7 +39,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigBaseView.class);
 	protected final LDAPConfigManagementPresenter presenter;
 
-	protected CheckBox ldapAuthenticationActive;
 	protected Field directoryTypeField;
 	protected String previousDirectoryType;
 
@@ -55,10 +54,11 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 
 	protected Button deleteUnusedUserButton, activateLDAPButton;
 
-	private boolean isLDAPactive = false;
+	protected boolean isLDAPactive = false;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
+		presenter.getLDAPServerConfiguration().getLdapAuthenticationActive();
 	}
 
 	@Override
@@ -116,12 +116,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 				previousDirectoryType = newValue;
 			}
 		});
-	}
-
-	protected void buildLDAPActiveCheckBox() {
-		LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
-		ldapAuthenticationActive = new CheckBox($("ldap.authentication.active"));
-		ldapAuthenticationActive.setValue(ldapServerConfiguration.getLdapAuthenticationActive());
 	}
 
 	protected void buildUsersAcceptRegex(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
