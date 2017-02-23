@@ -2,15 +2,18 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
+import com.constellio.app.ui.framework.components.DurationPanel;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.ScheduleComponent;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
@@ -19,6 +22,7 @@ import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
@@ -45,9 +49,13 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected Field groupsRejectionRegexField;
 	protected TextArea testAuthentication;
 	protected CollectionsSelectionPanel collectionsComponent;
-	protected ScheduleComponent scheduleComponentField;
+	protected DurationPanel durationField;
 	protected Button saveButton;
 	private BaseButton forceUsersSynchronization;
+
+	protected Button deleteUnusedUserButton, activateLDAPButton;
+
+	private boolean isLDAPactive = false;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
@@ -140,9 +148,12 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		groupsRejectionRegexField.setCaption($("ldap.syncConfiguration.groupFilter.rejectedRegex"));
 	}
 
-    protected void buildSynchronizationScheduleFields(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-        scheduleComponentField = new ScheduleComponent(ldapUserSyncConfiguration.getScheduleTime(), ldapUserSyncConfiguration.getDurationBetweenExecution());
-    }
+	protected void buildDurationField(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		Duration duration = ldapUserSyncConfiguration.getDurationBetweenExecution();
+		durationField = new DurationPanel();
+		durationField.setCaption($("ldap.syncConfiguration.durationBetweenExecution"));
+		durationField.setDuration(duration);
+	}
 
 	protected void buildCollectionsPanel() {
 		String title = $("ImportUsersFileViewImpl.collection");
@@ -201,6 +212,29 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		buttonsPanel.setContent(hLayout);
 		layout.addComponent(buttonsPanel);
 		layout.setComponentAlignment(buttonsPanel, Alignment.BOTTOM_RIGHT);
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
+
+		deleteUnusedUserButton = new AddButton($("ldap.authentication.deleteUnusedUser")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.deleteUsedUserButtonClick();
+			}
+		};
+
+		activateLDAPButton = new AddButton(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				isLDAPactive = !isLDAPactive;
+				this.setCaption(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
+			}
+		};
+		actionMenuButtons.add(deleteUnusedUserButton);
+		actionMenuButtons.add(activateLDAPButton);
+		return actionMenuButtons;
 	}
 
 	protected abstract String getAuthenticationPassword();
