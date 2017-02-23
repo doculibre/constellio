@@ -226,7 +226,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 				this.setCaption(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
 			}
 		};
-		actionMenuButtons.add(deleteUnusedUserButton);
+		//actionMenuButtons.add(deleteUnusedUserButton);
 		actionMenuButtons.add(activateLDAPButton);
 		return actionMenuButtons;
 	}
