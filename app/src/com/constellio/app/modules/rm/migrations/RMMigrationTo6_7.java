@@ -94,7 +94,7 @@ public class RMMigrationTo6_7 implements MigrationScript {
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE_SUM)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
                     typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.STORAGE_SPACE),
-                    typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.LINEAR_SIZE)
+                    typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.CAPACITY)
             );
 
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE)
