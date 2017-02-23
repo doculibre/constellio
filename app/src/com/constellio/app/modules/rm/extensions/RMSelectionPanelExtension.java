@@ -105,7 +105,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         };
         setStyles(moveInFolderButton);
         moveInFolderButton.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
-//        moveInFolderButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
+        moveInFolderButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
         ((VerticalLayout) param.getComponent()).addComponent(moveInFolderButton);
     }
 
@@ -139,7 +139,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         };
         setStyles(duplicateButton);
         duplicateButton.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
-//        duplicateButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
+        duplicateButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
         ((VerticalLayout) param.getComponent()).addComponent(duplicateButton);
     }
 
@@ -178,7 +178,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         };
         setStyles(classifyButton);
         classifyButton.setEnabled(param.getSchemaTypeCodes().contains(UserDocument.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(UserFolder.SCHEMA_TYPE));
-//        moveInFolderButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
+        classifyButton.setVisible(param.getSchemaTypeCodes().contains(UserDocument.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(UserFolder.SCHEMA_TYPE));
         ((VerticalLayout) param.getComponent()).addComponent(classifyButton);
     }
 
@@ -221,8 +221,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         });
 
         setStyles(checkInButton);
-        checkInButton.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE));
-//        checkInButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE));
+        checkInButton.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
+        checkInButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
         ((VerticalLayout) param.getComponent()).addComponent(checkInButton);
     }
 
@@ -235,8 +235,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
         });
         setStyles(button);
-        button.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE));
-//        button.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE));
+        button.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
+        button.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
         ((VerticalLayout) param.getComponent()).addComponent(button);
     }
 
@@ -338,12 +338,14 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             newFolder.setParentFolder(parentId);
                             recordServices.add(newFolder);
                             decommissioningService(param).duplicateSubStructureAndSave(newFolder, rmSchemas.wrapUserFolder(record), param.getUser());
+                            decommissioningService(param).deleteUserFolder(rmSchemas.wrapUserFolder(record), param.getUser());
                             break;
                         case UserDocument.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
                             decommissioningService(param).populateDocumentFromUserDocument(newDocument, rmSchemas.wrapUserDocument(record), param.getUser());
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
+                            decommissioningService(param).deleteUserDocument(rmSchemas.wrapUserDocument(record), param.getUser());
                             break;
                         default:
                             couldNotMove.add(record.getTitle());
