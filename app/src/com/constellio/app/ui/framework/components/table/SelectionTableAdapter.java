@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.vaadin.data.Container;
@@ -18,6 +10,11 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SelectionTableAdapter extends VerticalLayout {
 	
@@ -62,6 +59,8 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 					SelectionTableAdapter.this.deselectAll();
 				}
 			};
+			toggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+			toggleButton.addStyleName(ValoTheme.BUTTON_LINK);
 			if (table.getItemIds().isEmpty()) {
 				toggleButton.setVisible(false);
 			}
