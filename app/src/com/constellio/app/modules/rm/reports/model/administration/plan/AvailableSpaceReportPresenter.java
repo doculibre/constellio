@@ -47,11 +47,17 @@ public class AvailableSpaceReportPresenter {
     private RMSchemasRecordsServices rm;
     private ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
     private MetadataSchemaTypes types;
-    private boolean showFullSpaces = true;
+    private boolean showFullSpaces;
 
     public AvailableSpaceReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
         this.collection = collection;
         this.modelLayerFactory = modelLayerFactory;
+    }
+
+    public AvailableSpaceReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean showFullSpaces) {
+        this.collection = collection;
+        this.modelLayerFactory = modelLayerFactory;
+        this.showFullSpaces = showFullSpaces;
     }
 
     public AvailableSpaceReportModel build() {
@@ -69,7 +75,7 @@ public class AvailableSpaceReportPresenter {
                 parent.setCode(rootRecord.getSchemaCode()).setTitle(rootRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
                 List<Record> childStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(rootRecord, new TaxonomiesSearchOptions().setRows(10000));
                 if (childStorageSpaces != null) {
-                    parent.setAvailableSpace(parent.getAvailableSpace() + createChildRow(parent, childStorageSpaces));
+                    createChildRow(parent, childStorageSpaces);
                 }
                 model.getRootNodes().addAll(Arrays.asList(parent));
             }
@@ -77,41 +83,39 @@ public class AvailableSpaceReportPresenter {
         return model;
     }
 
-    private double createChildRow(AvailableSpaceReportModelNode parent, List<Record> childStorageSpaces) {
-        double totalCapacity = 0.0D;
+    private void createChildRow(AvailableSpaceReportModelNode parent, List<Record> childStorageSpaces) {
+//        double totalCapacity = 0.0D;
         for (Record childRecord : childStorageSpaces) {
-            double currentTotal = 0.0;
+//            double currentTotal = 0.0;
             AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
             StorageSpace storageSpace = new StorageSpace(childRecord, types);
             child.setCode(childRecord.getSchemaCode()).setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
             List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, new TaxonomiesSearchOptions().setRows(10000));
             if (subChildStorageSpaces != null) {
-                currentTotal += createChildRow(child, subChildStorageSpaces);
+                createChildRow(child, subChildStorageSpaces);
             }
 
             LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace);
             LogicalSearchQuery query = new LogicalSearchQuery(condition);
             List<ContainerRecord> containerRecords = rm.searchContainerRecords(query);
             if (containerRecords != null) {
-                currentTotal += createContainerRecordRow(child, containerRecords);
+                createContainerRecordRow(child, containerRecords);
             }
 
-            child.setAvailableSpace(currentTotal + child.getAvailableSpace());
+//            child.setAvailableSpace(currentTotal + child.getAvailableSpace());
             parent.getChildrenNodes().add(child);
-            totalCapacity += currentTotal;
+//            totalCapacity += currentTotal;
         }
-        return totalCapacity;
     }
 
-    private double createContainerRecordRow(AvailableSpaceReportModelNode parent, List<ContainerRecord> containerRecords) {
-        double totalCapacity = 0.0D;
+    private void createContainerRecordRow(AvailableSpaceReportModelNode parent, List<ContainerRecord> containerRecords) {
+//        double totalCapacity = 0.0D;
         for (ContainerRecord boite : containerRecords) {
             AvailableSpaceReportModelNode childBox = new AvailableSpaceReportModelNode();
             childBox.setTitle(boite.getTitle()).setCode(boite.getId()).setAvailableSpace(boite.getAvailableSize() != null ? boite.getAvailableSize() : 0);
-            totalCapacity += childBox.getAvailableSpace();
+//            totalCapacity += childBox.getAvailableSpace();
             parent.getChildrenNodes().add(childBox);
         }
-        return totalCapacity;
     }
 
     private void init() {

@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.*;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportWithoutRecordsParameters;
-import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -36,7 +35,8 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
                 "Reports.AdministrativeUnits",
                 "Reports.AdministrativeUnitsAndUsers",
                 "Reports.Users",
-                "Reports.AvailableSpaceReport");
+                "Reports.AvailableSpaceReport",
+                "Reports.AvailableSpaceReportAll");
     }
 
     public NewReportWriterFactory getReport(String report) {
@@ -64,6 +64,9 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
                 return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
             case "Reports.AvailableSpaceReport":
                 return rmModuleExtensions.getReportBuilderFactories().availableSpaceBuilderFactory.getValue();
+            case "Reports.AvailableSpaceReportAll":
+                return rmModuleExtensions.getReportBuilderFactories().availableSpaceBuilderFactory.getValue();
+
         }
 
         throw new RuntimeException("BUG: Unknown report: " + report);
@@ -92,7 +95,9 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
             case "Reports.ClassificationPlanByAdministrativeUnit":
                 return new ClassificationReportPlanParameters(false, schemaTypeValue);
             case "Reports.AvailableSpaceReport":
-                return new AvailableSpaceReportParameters();
+                return new AvailableSpaceReportParameters(false);
+            case "Reports.AvailableSpaceReportAll":
+                return new AvailableSpaceReportParameters(true);
         }
 
         throw new RuntimeException("BUG: Unknown report: " + report);

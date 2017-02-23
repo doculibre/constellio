@@ -15,7 +15,7 @@ public class AvailableSpaceReportModel {
 
     public static final String UNIT = "cm";
 
-    private Boolean showFullSpaces = true;
+    private Boolean showFullSpaces;
 
     private StreamFactory<InputStream> headerLogo;
 
@@ -50,7 +50,7 @@ public class AvailableSpaceReportModel {
     }
 
     public String getTitle() {
-        return this.isShowFullSpaces() ? $("AvailableSpaceReport.TitleAll") : $("AvailableSpaceReport.Title");
+        return this.isShowFullSpaces() ? $("AvailableSpaceReport.All") : $("AvailableSpaceReport.Title");
     }
 
     public static class AvailableSpaceReportModelNode {
