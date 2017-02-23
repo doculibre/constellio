@@ -345,7 +345,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 	
 	private WindowButton buildSelectionButton() {
-		WindowConfiguration config = new WindowConfiguration(true, true, "100%", null);
+		WindowConfiguration config = new WindowConfiguration(true, true, "80%", null);
 		WindowButton selectionButton = new WindowButton($("ConstellioHeader.selection"), $("ConstellioHeader.selectionPanelTitle"), config) {
 			@Override
 			protected Component buildWindowContent() {
@@ -386,24 +386,24 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 	}
-	
+
 	@SuppressWarnings({ "unchecked" })
 	private Component buildSelectionPanel() {
-		VerticalLayout selectionPanel = new VerticalLayout();
+		final VerticalLayout selectionPanel = new VerticalLayout();
 		selectionPanel.setSpacing(true);
 //		selectionPanel.setWidth("100%");
-		
+
 		HorizontalLayout selectionLayout = new HorizontalLayout();
 		selectionLayout.setSpacing(true);
 		selectionLayout.setWidth("100%");
 		selectionLayout.addStyleName("header-selection-panel");
-		
+
 		final Table selectionTable = new Table();
 		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
 		selectionTable.setWidth("100%");
 		selectionTable.setColumnExpandRatio("recordId", 1);
 		selectionTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		
+
 		List<String> selectedRecordIds = getSessionContext().getSelectedRecordIds();
 		for (String selectedRecordId : selectedRecordIds) {
 			ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordId);
@@ -437,16 +437,35 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
 
+		Button clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.clearSelectionButtonClicked();
+			}
+		};
+		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
+
+		Button closeButton = new BaseButton($("ConstellioHeader.close")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				closeWindow();
+			}
+		};
+
+		buttonsLayout.addComponents(clearSelectionButton, closeButton);
+		buttonsLayout.setDefaultComponentAlignment(Alignment.BOTTOM_LEFT);
+		buttonsLayout.setSpacing(true);
+
 		selectionPanel.addComponent(selectionLayout);
 		selectionPanel.addComponent(buttonsLayout);
-		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
-		
+		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_LEFT);
+
 		selectionLayout.addComponent(selectionTableAdapter);
 		selectionLayout.addComponent(selectionActionMenu);
-		
+
 		selectionLayout.setExpandRatio(selectionTableAdapter, 1);
 		selectionLayout.setComponentAlignment(selectionActionMenu, Alignment.TOP_RIGHT);
-		
+
 		return selectionPanel;
 	}
 
@@ -694,5 +713,11 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	@Override
 	public void refreshSelectionPanel() {
 
+	}
+
+	public void closeWindow() {
+		for (Window window : new ArrayList<>(UI.getCurrent().getWindows())) {
+			window.close();
+		}
 	}
 }
