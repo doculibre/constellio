@@ -334,10 +334,19 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	public void clearSelectionButtonClicked() {
-		Set<Map.Entry<String, String>> entries = unselectedRecordsWithSchema.entrySet();
 		SessionContext sessionContext = header.getSessionContext();
-		for(Map.Entry<String, String> entry: entries) {
-			sessionContext.removeSelectedRecordId(entry.getKey(), entry.getValue());
+		List<String> selectedRecordIds = new ArrayList<>(sessionContext.getSelectedRecordIds());
+		for(String id: unselectedRecordsWithSchema.keySet()) {
+			selectedRecordIds.remove(id);
+		}
+
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		String currentCollection = sessionContext.getCurrentCollection();
+		for (String id: selectedRecordIds) {
+			Record record = searchServices.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(currentCollection)
+					.where(Schemas.IDENTIFIER).isEqualTo(id));
+			String schemaTypeCode = record == null? null:record.getTypeCode();
+			sessionContext.removeSelectedRecordId(id, schemaTypeCode);
 		}
 
 		refreshSelectionPanel = true;
