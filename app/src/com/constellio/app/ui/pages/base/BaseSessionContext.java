@@ -39,19 +39,21 @@ public abstract class BaseSessionContext implements SessionContext {
 	@Override
 	public void removeSelectedRecordId(String recordId, String schemaTypeCode) {
 		List<String> selectedRecordIds = ensureSelectedRecordIds();
-		selectedRecordIds.remove(recordId);
-		Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
-		Long selectionCountForSchemaType = selectedRecordSchemaTypeCodes.get(schemaTypeCode);
-		if (selectionCountForSchemaType == null) {
-			selectionCountForSchemaType = 0L;
-		}
-		selectedRecordSchemaTypeCodes.put(schemaTypeCode, --selectionCountForSchemaType);
-		if (selectionCountForSchemaType <= 0) {
-			selectedRecordSchemaTypeCodes.remove(schemaTypeCode);
-		}
+		if(selectedRecordIds.contains(recordId)) {
+			selectedRecordIds.remove(recordId);
+			Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
+			Long selectionCountForSchemaType = selectedRecordSchemaTypeCodes.get(schemaTypeCode);
+			if (selectionCountForSchemaType == null) {
+				selectionCountForSchemaType = 0L;
+			}
+			selectedRecordSchemaTypeCodes.put(schemaTypeCode, --selectionCountForSchemaType);
+			if (selectionCountForSchemaType <= 0) {
+				selectedRecordSchemaTypeCodes.remove(schemaTypeCode);
+			}
 
-		for (SelectedRecordIdsChangeListener listener : getSelectedRecordIdsChangeListeners()) {
-			listener.recordIdRemoved(recordId);
+			for (SelectedRecordIdsChangeListener listener : getSelectedRecordIdsChangeListeners()) {
+				listener.recordIdRemoved(recordId);
+			}
 		}
 	}
 
