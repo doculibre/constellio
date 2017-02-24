@@ -9,6 +9,7 @@ import java.util.*;
 
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.global.*;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.apache.commons.collections.CollectionUtils;
@@ -70,6 +71,7 @@ public class UserServices {
     private final RolesManager rolesManager;
     private final ModelLayerConfiguration modelLayerConfiguration;
     private final UniqueIdGenerator secondaryUniqueIdGenerator;
+    private final AuthorizationsServices authorizationsServices;
 
     public UserServices(ModelLayerFactory modelLayerFactory) {
         this.userCredentialsManager = modelLayerFactory.getUserCredentialsManager();
@@ -83,6 +85,7 @@ public class UserServices {
         this.ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
         this.rolesManager = modelLayerFactory.getRolesManager();
         this.secondaryUniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getSecondaryUniqueIdGenerator();
+        this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
     }
 
     public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
@@ -884,7 +887,7 @@ public class UserServices {
     public void physicallyRemoveGroup(Group group, String collection) {
         LOGGER.info("physicallyRemoveGroup : " + group.getCode());
 
-        List<UserCredential> userInGroup = this.getGlobalGroupActifUsers(group.getCode());
+        List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
         if (userInGroup.size() != 0 ||
                 searchServices.hasResults(from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES).isEqualTo(group.getId()))) {
             LOGGER.warn("Exception on physicallyRemoveGroup : " + group.getCode());

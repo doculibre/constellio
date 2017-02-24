@@ -94,8 +94,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule()
-				.withAllTestUsers());
 		givenBackgroundThreadsEnabled();
 		withSpiedServices(ModelLayerConfiguration.class);
 		configure(new ModelLayerConfigurationAlteration() {
@@ -949,6 +947,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void tryingToPhysicallyDeleteUser() throws RecordServicesException {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		Users users = new Users();
@@ -982,6 +982,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void tryingToDeleteAllUser() throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		Users users = new Users();
