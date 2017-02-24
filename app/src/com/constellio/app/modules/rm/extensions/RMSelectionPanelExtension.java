@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
@@ -93,6 +94,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         }
                         getWindow().close();
                     }
+
+                    @Override
+                    public boolean isVisible() {
+                        return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE));
+                    }
+
+                    @Override
+                    public boolean isEnabled() {
+                        return isVisible();
+                    }
                 };
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
                 HorizontalLayout hLayout = new HorizontalLayout();
@@ -104,8 +115,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
         };
         setStyles(moveInFolderButton);
-        moveInFolderButton.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
-        moveInFolderButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
+        moveInFolderButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
+        moveInFolderButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(moveInFolderButton);
     }
 
@@ -127,6 +138,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         duplicateButtonClicked(parentId, param);
                         getWindow().close();
                     }
+
+                    @Override
+                    public boolean isVisible() {
+                        return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE));
+                    }
+
+                    @Override
+                    public boolean isEnabled() {
+                        return isVisible();
+                    }
                 };
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
                 HorizontalLayout hLayout = new HorizontalLayout();
@@ -138,8 +159,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
         };
         setStyles(duplicateButton);
-        duplicateButton.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
-        duplicateButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(Folder.SCHEMA_TYPE));
+        duplicateButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
+        duplicateButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(duplicateButton);
     }
 
@@ -175,15 +196,35 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 verticalLayout.addComponent(hLayout);
                 return verticalLayout;
             }
+
+            @Override
+            public boolean isVisible() {
+                return containsOnly(param.getSchemaTypeCodes(), asList(UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isVisible();
+            }
         };
         setStyles(classifyButton);
-        classifyButton.setEnabled(param.getSchemaTypeCodes().contains(UserDocument.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(UserFolder.SCHEMA_TYPE));
-        classifyButton.setVisible(param.getSchemaTypeCodes().contains(UserDocument.SCHEMA_TYPE) || param.getSchemaTypeCodes().contains(UserFolder.SCHEMA_TYPE));
+        classifyButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE)));
+        classifyButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(classifyButton);
     }
 
     public void addCheckInButton(final AvailableActionsParam param) {
-        Button checkInButton = new Button($("ConstellioHeader.selection.actions.checkIn"));
+        Button checkInButton = new Button($("ConstellioHeader.selection.actions.checkIn")) {
+            @Override
+            public boolean isVisible() {
+                return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isVisible();
+            }
+        };
         checkInButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -221,13 +262,23 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         });
 
         setStyles(checkInButton);
-        checkInButton.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
-        checkInButton.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
+        checkInButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
+        checkInButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(checkInButton);
     }
 
     private void addSendEmailButton(final AvailableActionsParam param) {
-        Button button = new Button($("ConstellioHeader.selection.actions.prepareEmail"));
+        Button button = new Button($("ConstellioHeader.selection.actions.prepareEmail")) {
+            @Override
+            public boolean isVisible() {
+                return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isVisible();
+            }
+        };
         button.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -235,8 +286,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
         });
         setStyles(button);
-        button.setEnabled(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
-        button.setVisible(param.getSchemaTypeCodes().contains(Document.SCHEMA_TYPE) && param.getSchemaTypeCodes().size() == 1);
+        button.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
+        button.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(button);
     }
 
@@ -496,5 +547,14 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
         notification.setHtmlContentAllowed(true);
         notification.show(Page.getCurrent());
+    }
+
+    public boolean containsOnly(List<String> list, List<String> values) {
+        for(String value: list) {
+            if(!values.contains(value)) {
+                return false;
+            }
+        }
+        return true && list.size() > 0;
     }
 }
