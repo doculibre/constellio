@@ -17,10 +17,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDateTime;
@@ -40,11 +43,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactoryUtils;
@@ -1009,6 +1007,89 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.safePhysicalDeleteAllUnusedUsers()).extracting("username").containsExactly(chuck.getUsername());
 	}
 
+	@Test
+	public void tryingToSafeDeleteAllUnusedGlobalGroups()
+			throws Exception {
+		RMTestRecords records = new RMTestRecords(zeCollection);
+		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
+		GlobalGroup g1 = globalGroupsManager.create("G1", null, GlobalGroupStatus.INACTIVE, true),
+				g2 = globalGroupsManager.create("G2", null, GlobalGroupStatus.ACTIVE, true),
+				g3 = globalGroupsManager.create("G3", null, GlobalGroupStatus.ACTIVE, true),
+				g4 = globalGroupsManager.create("G4", null, GlobalGroupStatus.INACTIVE, true);
+
+		Transaction t = new Transaction();
+		t.addAll(asList(g1, g2, g3, g4));
+		recordServices.execute(t);
+		UserCredential chuck = userCredentialsManager.getUserCredential(records.getChuckNorris().getUsername());
+
+		chuck.withGlobalGroups(asList(g2.getCode(), g3.getCode(), g4.getCode()));
+		userCredentialsManager.addUpdate(chuck);
+
+		assertThat(userServices.safePhysicalDeleteAllUnusedGlobalGroups()).doesNotContain(g1).contains(g2, g3, g4);
+		assertThat(globalGroupsManager.getGlobalGroupWithCode(g1.getCode())).isNull();
+	}
+
+	@Test
+	public void tryingToPhysicallyRemoveGlobalGroup() throws Exception {
+		RMTestRecords records = new RMTestRecords(zeCollection);
+		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
+
+		GlobalGroup g1 = globalGroupsManager.create("G1", null, GlobalGroupStatus.ACTIVE, true),
+				g2 = globalGroupsManager.create("G2", null, GlobalGroupStatus.ACTIVE, true);
+		Transaction t = new Transaction();
+		t.addAll(asList(g1, g2));
+		recordServices.execute(t);
+		UserCredential gandalf = userCredentialsManager.getUserCredential(records.getGandalf_managerInABC().getUsername());
+
+		gandalf.withGlobalGroups(asList(g2.getCode()));
+
+		userCredentialsManager.addUpdate(gandalf);
+
+		assertThat(userServices.physicallyRemoveGlobalGroup(g1)).isEmpty();
+
+		assertThat(userServices.physicallyRemoveGlobalGroup(g2)).containsOnly(g2);
+	}
+
+	@Test
+	@InDevelopmentTest
+	public void tryingToSafePhysicalDeleteAllUnusedGroups() {
+		RMTestRecords records = new RMTestRecords(zeCollection);
+		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
+
+		Group g1 = rm.newGroupWithId("G1");
+		g1.setTitle("Group 1");
+
+		Group g2 = rm.newGroupWithId("G2");
+		g2.setTitle("Group 2");
+
+		Group g3 = rm.newGroupWithId("G3");
+		g3.setTitle("Group 3");
+
+		Group g4 = rm.newGroupWithId("G4");
+		g4.setTitle("Group 4");
+
+		Transaction t = new Transaction();
+
+		UserCredential chuck = userCredentialsManager.getUserCredential(records.getChuckNorris().getUsername());
+		chuck.withGlobalGroups(asList(g2.getCode(), g3.getCode()));
+
+
+	}
 
 	// ----- Utils methods
 
