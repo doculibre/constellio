@@ -71,6 +71,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private UserToVOBuilder voBuilder = new UserToVOBuilder();
 
 	private boolean refreshSelectionPanel;
+	private Map<String, String> unselectedRecordsWithSchema;
 	
 	public ConstellioHeaderPresenter(ConstellioHeader header) {
 		this.header = header;
@@ -185,6 +186,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		appLayerFactory = constellioFactories.getAppLayerFactory();
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		this.presenterUtils = new BasePresenterUtils(constellioFactories, sessionContext);
+		this.unselectedRecordsWithSchema = new HashMap<>();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		List<String> collections = userServices.getUser(getCurrentUser().getUsername()).getCollections();
@@ -332,15 +334,18 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	public void clearSelectionButtonClicked() {
+		Set<Map.Entry<String, String>> entries = unselectedRecordsWithSchema.entrySet();
 		SessionContext sessionContext = header.getSessionContext();
-		sessionContext.clearSelectedRecordIds();
+		for(Map.Entry<String, String> entry: entries) {
+			sessionContext.removeSelectedRecordId(entry.getKey(), entry.getValue());
+		}
+
 		refreshSelectionPanel = true;
 		header.setSelectionPanelVisible(true, refreshSelectionPanel);
 	}
 
 	public boolean isSelected(String recordId) {
-		SessionContext sessionContext = header.getSessionContext();
-		return sessionContext.getSelectedRecordIds().contains(recordId);
+		return !unselectedRecordsWithSchema.containsKey(recordId);
 	}
 
 	public void selectionChanged(String recordId, Boolean selected) {
@@ -351,8 +356,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		String schemaTypeCode = record == null? null:record.getTypeCode();
 		if (selected) {
 			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
+			unselectedRecordsWithSchema.remove(recordId);
 		} else {
-			sessionContext.removeSelectedRecordId(recordId, schemaTypeCode);
+			unselectedRecordsWithSchema.put(recordId, schemaTypeCode);
 		}
 	}
 	
@@ -366,9 +372,24 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	 * FIXME Remove Vaadin references from presenter
 	 */
 	public void buildSelectionPanelActionButtons(Component actionMenuLayout) {
-		AvailableActionsParam param = new AvailableActionsParam(header.getSessionContext().getSelectedRecordIds(),
-				new ArrayList<>(header.getSessionContext().getSelectedRecordSchemaTypeCodes().keySet()), getCurrentUser(), actionMenuLayout);
-		appLayerFactory.getExtensions().forCollection(header.getCollection()).addAvailableActions(param);
+		appLayerFactory.getExtensions().forCollection(header.getCollection()).addAvailableActions(buildAvailableActionsParam(actionMenuLayout));
+	}
+
+	public AvailableActionsParam buildAvailableActionsParam(Component actionMenuLayout) {
+		List<String> selectedRecordIds = new ArrayList<>(header.getSessionContext().getSelectedRecordIds());
+		Map<String, Long> selectedRecordSchemaTypeCodes = new HashMap<>(header.getSessionContext().getSelectedRecordSchemaTypeCodes());
+		Set<Map.Entry<String, String>> entries = unselectedRecordsWithSchema.entrySet();
+		for(Map.Entry<String, String> entry: entries) {
+			selectedRecordIds.remove(entry.getKey());
+			if(selectedRecordSchemaTypeCodes.get(entry.getValue()) == 1L) {
+				selectedRecordSchemaTypeCodes.remove(entry.getValue());
+			} else {
+				selectedRecordSchemaTypeCodes.put(entry.getValue(), selectedRecordSchemaTypeCodes.get(entry.getValue()) - 1);
+			}
+		}
+
+		return new AvailableActionsParam(selectedRecordIds, new ArrayList<>(selectedRecordSchemaTypeCodes.keySet()),
+				getCurrentUser(), actionMenuLayout);
 	}
 
 	public void createNewCartAndAddToItRequested(String title) {

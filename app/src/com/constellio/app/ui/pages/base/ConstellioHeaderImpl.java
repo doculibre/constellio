@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -470,13 +471,14 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 
 	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
-		WindowButton addToCartButton = buildAddToCartButton();
+		WindowButton addToCartButton = buildAddToCartButton(actionMenuLayout);
 		SelectionPanelExtension.setStyles(addToCartButton);
 		actionMenuLayout.addComponent(addToCartButton);
 		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
 	}
 
-	private WindowButton buildAddToCartButton() {
+	private WindowButton buildAddToCartButton(VerticalLayout actionMenuLayout) {
+		final AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 		WindowButton windowButton = new WindowButton($("ConstellioHeader.selection.actions.addToCart"), $("ConstellioHeader.selection.actions.addToCart")) {
 			@Override
 			protected Component buildWindowContent() {
@@ -503,7 +505,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSessionContext().getSelectedRecordIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
+						presenter.addToCartRequested(param.getIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
@@ -513,7 +515,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSessionContext().getSelectedRecordIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
+						presenter.addToCartRequested(param.getIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
