@@ -78,6 +78,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	private AdvancedSearchCriteriaComponent criteria;
 	
 	private Component selectionPanel;
+	private Table selectionTable;
 	
 	private int selectionCount;
 	
@@ -399,7 +400,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		selectionLayout.setWidth("100%");
 		selectionLayout.addStyleName("header-selection-panel");
 
-		final Table selectionTable = new Table();
+		selectionTable = new Table();
 		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
 		selectionTable.setWidth("100%");
 		selectionTable.setColumnExpandRatio("recordId", 1);
@@ -720,6 +721,12 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	public void closeWindow() {
 		for (Window window : new ArrayList<>(UI.getCurrent().getWindows())) {
 			window.close();
+		}
+	}
+
+	public void removeRecordsFromPanel(List<String> idList) {
+		for(String id: idList) {
+			selectionTable.removeItem(id);
 		}
 	}
 }

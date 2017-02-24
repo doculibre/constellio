@@ -349,8 +349,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			sessionContext.removeSelectedRecordId(id, schemaTypeCode);
 		}
 
-		refreshSelectionPanel = true;
-		header.setSelectionPanelVisible(true, refreshSelectionPanel);
+		header.removeRecordsFromPanel(selectedRecordIds);
+		updateSelectionCount();
 	}
 
 	public boolean isSelected(String recordId) {
