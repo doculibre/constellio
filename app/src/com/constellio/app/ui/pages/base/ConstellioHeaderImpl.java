@@ -425,6 +425,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			public void setSelected(Object itemId, boolean selected) {
 				String recordId = (String) itemId;
 				presenter.selectionChanged(recordId, selected);
+				refreshButtons();
 			}
 		};
 
@@ -534,7 +535,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 			@Override
 			public boolean isVisible() {
-				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && param.getIds().size() > 0;
 			}
 
 			@Override
@@ -543,8 +544,8 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		};
 		SelectionPanelExtension.setStyles(windowButton);
-		windowButton.setEnabled(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally());
-		windowButton.setVisible(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally());
+		windowButton.setEnabled(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && param.getIds().size() > 0);
+		windowButton.setVisible(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && param.getIds().size() > 0);
 		return windowButton;
 	}
 
@@ -739,6 +740,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		for(String id: idList) {
 			selectionTable.removeItem(id);
 		}
+		refreshButtons();
 	}
 
 	public boolean containsOnly(List<String> list, List<String> values) {
@@ -748,5 +750,10 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		}
 		return true;
+	}
+
+	public void refreshButtons() {
+		actionMenuLayout.removeAllComponents();
+		buildSelectionPanelButtons(actionMenuLayout);
 	}
 }
