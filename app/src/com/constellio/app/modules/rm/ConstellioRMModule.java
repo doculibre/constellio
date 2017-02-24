@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -17,22 +8,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMDocumentExtension;
-import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
-import com.constellio.app.modules.rm.extensions.RMEmailDocumentRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMFolderExtension;
-import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
-import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
-import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
-import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
-import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
-import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
-import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
-import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
-import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
-import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.*;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
@@ -62,6 +38,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "rm";
@@ -242,6 +227,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMCheckInAlertsRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMFolderExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new SessionContextRecordExtension());
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
