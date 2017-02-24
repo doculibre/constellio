@@ -54,11 +54,9 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 
 	protected Button deleteUnusedUserButton, activateLDAPButton;
 
-	protected volatile boolean isLDAPactive = false;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
-		isLDAPactive = presenter.getLDAPServerConfiguration().getLdapAuthenticationActive();
 	}
 
 	@Override
@@ -219,11 +217,12 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 			}
 		};
 
-		activateLDAPButton = new AddButton(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
+		activateLDAPButton = new AddButton(!presenter.isLDAPActive() ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				isLDAPactive = !isLDAPactive;
-				this.setCaption(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
+
+				presenter.setLDAPActive(!presenter.isLDAPActive());
+				this.setCaption(!presenter.isLDAPActive() ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
 			}
 		};
 		//actionMenuButtons.add(deleteUnusedUserButton);

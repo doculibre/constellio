@@ -30,8 +30,11 @@ public class LDAPConfigManagementPresenter extends
 										   BasePresenter<LDAPConfigManagementView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigManagementPresenter.class);
 
+	private boolean isLDAPActive = false;
+
 	public LDAPConfigManagementPresenter(LDAPConfigManagementView view) {
 		super(view);
+		this.setLDAPActive(getLDAPServerConfiguration().getLdapAuthenticationActive());
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
@@ -165,6 +168,15 @@ public class LDAPConfigManagementPresenter extends
 			}
 			this.view.showMessage(message);
 		}
+	}
+
+	public LDAPConfigManagementPresenter setLDAPActive(boolean active) {
+		this.isLDAPActive = active;
+		return this;
+	}
+
+	public boolean isLDAPActive() {
+		return isLDAPActive;
 	}
 
 	private class ForceSynchThread implements Runnable {
