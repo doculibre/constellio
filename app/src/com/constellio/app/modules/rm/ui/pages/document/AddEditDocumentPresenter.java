@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +57,6 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.users.UserServices;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
@@ -70,10 +71,13 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private boolean newFile;
+	ConstellioEIMConfigs eimConfigs;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
 		initTransientObjects();
+		eimConfigs = modelLayerFactory.getSystemConfigs();
+
 	}
 
 	@Override
@@ -554,7 +558,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			contentField.getNewFileWindow().open();
 		}
 	}
-	
+
 	private void addNewFileCreatedListener() {
 		final DocumentContentField contentField = getContentField();
 		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
@@ -596,6 +600,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
                         documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
                         documentVO.getContent().setMajorVersion(null);
                         documentVO.getContent().setHash(null);
+                        String filename = contentVersionVO.getFileName();
+                        if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+                            filename = FilenameUtils.removeExtension(filename);
+                        }
+                        documentVO.setTitle(filename);
                         view.setRecord(documentVO);
                         view.getForm().reload();
                     } catch (final IcapException e) {
