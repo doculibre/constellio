@@ -1004,7 +1004,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			}
 		}
 
-		assertThat(userServices.safePhysicalDeleteAllUnusedUser()).extracting("username").containsExactly(chuck.getUsername());
+		assertThat(userServices.safePhysicalDeleteAllUnusedUsers()).extracting("username").containsExactly(chuck.getUsername());
 	}
 
 

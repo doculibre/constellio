@@ -54,11 +54,11 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 
 	protected Button deleteUnusedUserButton, activateLDAPButton;
 
-	protected boolean isLDAPactive = false;
+	protected volatile boolean isLDAPactive = false;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
-		presenter.getLDAPServerConfiguration().getLdapAuthenticationActive();
+		isLDAPactive = presenter.getLDAPServerConfiguration().getLdapAuthenticationActive();
 	}
 
 	@Override

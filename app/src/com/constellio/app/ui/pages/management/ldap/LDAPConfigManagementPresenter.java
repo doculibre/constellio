@@ -157,7 +157,7 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public void deleteUsedUserButtonClick() {
-		List<UserCredential> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUser();
+		List<UserCredential> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUsers();
 		if (nonDeletedUser.size() > 0) {
 			String message = $("ldap.authentication.unDeletedUser") + "<br>";
 			for (UserCredential userCredential : nonDeletedUser) {
