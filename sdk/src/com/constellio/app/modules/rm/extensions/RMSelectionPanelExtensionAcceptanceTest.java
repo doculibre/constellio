@@ -29,6 +29,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -90,13 +91,30 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
                 .doesNotContain(records.folder_A20);
 
-        long numberOfNewDocumentAndFolderInFolderA20 = getModelLayerFactory().newSearchServices().getResultsCount(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
+        List<Record> recordList = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
                 .whereAllConditions(
                         where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0)),
                         where(Schemas.IDENTIFIER).isNotIn(existingIds)
                 )
         ));
-        assertThat(numberOfNewDocumentAndFolderInFolderA20).isEqualTo(24);
+        assertThat(recordList.size()).isEqualTo(24);
+        assertThatRecords(recordList).extractingMetadatas("title").containsOnly(
+                tuple("Abeille - Document contrat numérique avec un autre exemplaire"),
+                tuple("Aigle - Document procès verbal analogique avec un autre exemplaire"),
+                tuple("Aigle (Copie)"), tuple("Abeille - Petit guide"),
+                tuple("Abeille - Document procès verbal analogique avec un autre exemplaire"),
+                tuple("Aigle - Document contrat analogique avec un autre exemplaire"),
+                tuple("Aigle - Document numérique avec le même exemplaire"),
+                tuple("Abeille (Copie)"), tuple("Abeille - Livre de recettes"), tuple("Aigle - Petit guide"),
+                tuple("Aigle - Document procès verbal numérique avec un autre exemplaire"),
+                tuple("Poire.odt"), tuple("Abeille - Typologie"), tuple("Aigle - Histoire"), tuple("Abeille - Histoire"),
+                tuple("Aigle - Document contrat numérique avec un autre exemplaire"),
+                tuple("Abeille - Document analogique avec le même exemplaire"),
+                tuple("Abeille - Document numérique avec le même exemplaire"),
+                tuple("Aigle - Document analogique avec le même exemplaire"),
+                tuple("Abeille - Document procès verbal numérique avec un autre exemplaire"), tuple("Lynx.odt"),
+                tuple("Aigle - Livre de recettes"), tuple("Abeille - Document contrat analogique avec un autre exemplaire"),
+                tuple("Aigle - Typologie"));
     }
 
     @Test
@@ -110,20 +128,16 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         ));
         extension.classifyButtonClicked(records.folder_A20, param);
 
-        long numberOfNewDocumentAndFolderInFolderA20 = getModelLayerFactory().newSearchServices().getResultsCount(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
-                .whereAllConditions(
-                        where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0)),
-                        where(Schemas.IDENTIFIER).isNotIn(existingIds)
-                )
-        ));
-        List<Record> search = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
+        List<Record> recordList = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
                 .whereAllConditions(
                         where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0)),
                         where(Schemas.IDENTIFIER).isNotIn(existingIds)
                 )
         ));
 
-        assertThat(numberOfNewDocumentAndFolderInFolderA20).isEqualTo(7);
+        assertThat(recordList.size()).isEqualTo(7);
+        assertThatRecords(recordList).extractingMetadatas("title").containsOnly(tuple("UDoc1"), tuple("UDoc2"), tuple("UFol1"),
+                tuple("UFol2"), tuple("USubFol1"), tuple("USubDoc1"), tuple("USubDoc2"));
     }
 
     public AvailableActionsParam buildParamWithDocumentsAndFoldersAndContainers() {
