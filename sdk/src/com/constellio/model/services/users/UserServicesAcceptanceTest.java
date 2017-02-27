@@ -959,7 +959,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		List<String> aliceCollection = users.alice().getCollections();
 		try {
-			userServices.safePhysicalDeleteUser(users.alice().getUsername());
+			userServices.safePhysicalDeleteUserCredential(users.alice().getUsername());
 			int compteur = 0;
 			for (String collection : aliceCollection) {
 				try {
@@ -970,7 +970,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				}
 			}
 			assertThat(compteur).isEqualTo(aliceCollection.size());
-			userServices.safePhysicalDeleteUser(chuck.getUsername());
+			userServices.safePhysicalDeleteUserCredential(chuck.getUsername());
 			fail();
 		} catch (Exception e) {
 			assertThat(e).isInstanceOf(UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically.class);
@@ -1004,7 +1004,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			}
 		}
 
-		assertThat(userServices.safePhysicalDeleteAllUnusedUsers()).extracting("username").containsExactly(chuck.getUsername());
+		assertThat(userServices.safePhysicalDeleteAllUnusedUserCredentials()).extracting("username").containsExactly(chuck.getUsername());
 	}
 
 	@Test
