@@ -1136,10 +1136,100 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			userServices.physicallyRemoveGroup(g2, zeCollection);
 			fail();
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
-			assertThat(true).isTrue();
+
 		}
 
 	}
+
+	@Test
+	public void TryingToSafePhysicalDeleteAllUnusedUsers() throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		User chuck = users.chuckNorrisIn(zeCollection);
+		Cart c = rm.getOrCreateUserCart(chuck);
+		Transaction t = new Transaction();
+		t.add(c);
+		recordServices.execute(t);
+		userServices = getModelLayerFactory().newUserServices();
+		assertThat(userServices.getUserInCollection("alice", zeCollection)).isNotNull();
+		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential("alice"), zeCollection);
+		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
+		userServices.safePhysicalDeleteAllUnusedUsers(zeCollection);
+		try {
+			userServices.getUserInCollection("alice", zeCollection);
+			fail();
+		} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
+			//OK !
+		}
+	}
+
+	@Test
+	public void TryingToPhysicallyRemoveUser() throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		Users users = new Users();
+		users.setUp(getModelLayerFactory().newUserServices());
+		User chuck = users.chuckNorrisIn(zeCollection);
+		User alice = users.aliceIn(zeCollection);
+		Cart c = rm.getOrCreateUserCart(chuck);
+		Transaction t = new Transaction();
+		t.add(c);
+		recordServices.execute(t);
+		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential("alice"), zeCollection);
+		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
+
+		try {
+			userServices.physicallyRemoveUser(chuck, zeCollection);
+			fail();
+		} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+			System.out.println(e.getMessage());
+			//OK !
+		}
+
+		userServices.physicallyRemoveUser(alice, zeCollection);
+		try {
+			userServices.getUserInCollection(alice.getUsername(), zeCollection);
+			fail();
+		} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
+			//OK !
+		}
+	}
+
+	@Test
+	@InDevelopmentTest
+	public void TryingToRestoreDeletedGroup() throws Exception {
+		RMTestRecords records = new RMTestRecords(zeCollection);
+		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		userServices = getModelLayerFactory().newUserServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
+		Group heroes = records.getHeroes();
+		GlobalGroup heroesGlobalGroup = globalGroupsManager.getGlobalGroupWithCode(heroes.getCode());
+
+		userServices.removeGroupFromCollections(userCredentialsManager.getUserCredential("admin"), heroes.getCode(), asList(heroes.getCollection()));
+		globalGroupsManager.logicallyRemoveGroup(heroesGlobalGroup);
+
+		Transaction t = new Transaction();
+		t.add(heroes);
+		recordServices.execute(t);
+
+		userServices.restoreDeletedGroup(heroes.getCode(), zeCollection);
+
+		assertThat(userServices.getGroupIdInCollection(heroes.getCode(), zeCollection)).isNotNull();
+	}
+
+
 
 	// ----- Utils methods
 
