@@ -563,7 +563,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		recordServices().recalculate(containerRecord);
 		if(containerRecord.getAvailableSize() >= entry.getValue()) {
 			try {
-				recordServices().update(rmRecordsServices.getFolder(entry.getKey()).setContainer(containerRecord).setLinearSize(entry.getValue()));
+				recordServices().update(rmRecordsServices().getFolder(entry.getKey()).setContainer(containerRecord).setLinearSize(entry.getValue()));
 				folderPlacedInContainer(view.getPackageableFolder(entry.getKey()), view.getContainer(containerRecord));
 				return true;
 			} catch (RecordServicesException e) {
@@ -576,10 +576,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
-				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList.getAdministrativeUnit()),
+				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList().getAdministrativeUnit()),
 				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize),
 				anyConditions(
-						where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList.getDecommissioningListType().getDecommissioningType()),
+						where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList().getDecommissioningListType().getDecommissioningType()),
 						where(rm.containerRecord.decommissioningType()).isNull()
 				)
 		)).sortAsc(rm.containerRecord.availableSize());
