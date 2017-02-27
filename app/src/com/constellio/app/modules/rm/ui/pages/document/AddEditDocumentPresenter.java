@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -71,10 +72,13 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private boolean newFile;
+	ConstellioEIMConfigs eimConfigs;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
 		initTransientObjects();
+		eimConfigs = modelLayerFactory.getSystemConfigs();
+
 	}
 
 	@Override
@@ -604,7 +608,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				contentVersionVO.setMajorVersion(false);
 				contentVersionVO.setHash(null);
 				documentVO.setContent(contentVersionVO);
-				documentVO.setTitle(contentVersionVO.getFileName());
+				String filename = contentVersionVO.getFileName();
+				if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+					filename = FilenameUtils.removeExtension(filename);
+				}
+				documentVO.setTitle(filename);
 				newFile = true;
 				view.getForm().reload();
 				// Will have been lost after reloading the form

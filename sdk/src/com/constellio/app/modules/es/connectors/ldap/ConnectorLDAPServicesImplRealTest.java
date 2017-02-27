@@ -22,10 +22,11 @@ import org.junit.Test;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.InvalidSearchFilterRuntimeException;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.RegexFilter;
+import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 
 @InternetTest
-public class ConnectorLDAPServicesImplRealTest {
+public class ConnectorLDAPServicesImplRealTest extends ConstellioTest {
 	ConnectorLDAPServices connectorLDAPServices;
 
 	@Before

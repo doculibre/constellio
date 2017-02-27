@@ -1,21 +1,16 @@
 package com.constellio.model.conf.ldap.services;
 
-import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
-import com.constellio.model.conf.ldap.user.LDAPGroup;
-import com.constellio.model.conf.ldap.user.LDAPUser;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.microsoft.aad.adal4j.AuthenticationContext;
-import com.microsoft.aad.adal4j.AuthenticationResult;
-import com.microsoft.aad.adal4j.ClientCredential;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -24,10 +19,26 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.concurrent.*;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
+import com.constellio.model.conf.ldap.user.LDAPGroup;
+import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.microsoft.aad.adal4j.AuthenticationContext;
+import com.microsoft.aad.adal4j.AuthenticationResult;
+import com.microsoft.aad.adal4j.ClientCredential;
 
 /**
  */
@@ -48,7 +59,7 @@ public class AzureAdClient {
     static class RequestHelper {
 
         @VisibleForTesting
-        static int maxResults = 100;
+        static int maxResults = 150;
 
         private static String getResponseText(final Response response) {
             return response.readEntity(String.class).replace("\uFEFF", "");
@@ -152,41 +163,51 @@ public class AzureAdClient {
             }
         }
 
-        private Invocation.Builder completeQueryBuilding(WebTarget webTarget) {
-            return webTarget
-                    .queryParam("api-version", GRAPH_API_VERSION)
-                    .request(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
-        }
+        private Invocation.Builder completeQueryBuilding(WebTarget webTarget, String filter) {
+            WebTarget newWebTarget = webTarget.queryParam("api-version", GRAPH_API_VERSION);
 
-        private Invocation.Builder completeQueryBuilding(WebTarget webTarget, String skipToken) {
-            if (skipToken == null) {
-                return webTarget
-                        .queryParam("$top", maxResults)
-                        .queryParam("api-version", GRAPH_API_VERSION)
+            if (StringUtils.isNotEmpty(filter)) {
+                return newWebTarget
+                        .queryParam("$filter", filter)
                         .request(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
             }
 
-            return webTarget
-                    .queryParam("$top", maxResults)
-                    .queryParam("$skiptoken", skipToken)
-                    .queryParam("api-version", GRAPH_API_VERSION)
+            return newWebTarget
                     .request(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
         }
 
-        private JSONArray submitQueryWithoutPagination(WebTarget webTarget) {
+        private Invocation.Builder completeQueryBuilding(WebTarget webTarget, String filter, String skipToken) {
+            WebTarget newWebTarget = webTarget.queryParam("api-version", GRAPH_API_VERSION).queryParam("$top", maxResults);
+
+            if (StringUtils.isNotEmpty(filter)) {
+                newWebTarget = newWebTarget.queryParam("$filter", filter);
+            }
+
+            if (skipToken == null) {
+                return newWebTarget
+                        .request(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
+            }
+
+            return newWebTarget
+                    .queryParam("$skiptoken", skipToken)
+                    .request(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
+        }
+
+        private JSONArray submitQueryWithoutPagination(WebTarget webTarget, String filter) {
             String responseText;
 
             acquireAccessToken();
 
-            Response response = completeQueryBuilding(webTarget).get();
+            Response response = completeQueryBuilding(webTarget, filter).get();
 
             if (response.getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 refreshAccessToken();
 
-                response = completeQueryBuilding(webTarget).get();
+                response = completeQueryBuilding(webTarget, filter).get();
             }
 
             if (new Integer(response.getStatus()).toString().startsWith("5")){
@@ -195,7 +216,7 @@ public class AzureAdClient {
                 } catch (InterruptedException ignored) {
                 }
 
-                response = completeQueryBuilding(webTarget, null).get();
+                response = completeQueryBuilding(webTarget, filter).get();
             }
 
             responseText = getResponseText(response);
@@ -210,7 +231,7 @@ public class AzureAdClient {
             }
         }
 
-        private List<JSONArray> submitQueryWithPagination(WebTarget webTarget) {
+        private List<JSONArray> submitQueryWithPagination(WebTarget webTarget, String filter) {
             List<JSONArray> result = new ArrayList<>();
 
             String responseText;
@@ -219,12 +240,12 @@ public class AzureAdClient {
             do {
                 acquireAccessToken();
 
-                Response response = completeQueryBuilding(webTarget, skipToken).get();
+                Response response = completeQueryBuilding(webTarget, filter, skipToken).get();
 
                 if (response.getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                     refreshAccessToken();
 
-                    response = completeQueryBuilding(webTarget, skipToken).get();
+                    response = completeQueryBuilding(webTarget, filter, skipToken).get();
                 }
 
                 if (new Integer(response.getStatus()).toString().startsWith("5")){
@@ -234,7 +255,7 @@ public class AzureAdClient {
                         break;
                     }
 
-                    response = completeQueryBuilding(webTarget, skipToken).get();
+                    response = completeQueryBuilding(webTarget, filter, skipToken).get();
                 }
 
                 responseText = getResponseText(response);
@@ -254,25 +275,52 @@ public class AzureAdClient {
         }
 
         @VisibleForTesting
-        List<JSONArray> getAllUsersResponse() {
-            return submitQueryWithPagination(webTarget.path("users"));
+        List<JSONArray> getAllUsersResponse(List<String> userGroups, String usersFilter) {
+            List<JSONArray> jsonArrayList;
+
+            if (CollectionUtils.isNotEmpty(userGroups)) {
+                jsonArrayList = new ArrayList<>();
+
+                for (JSONArray jsonArray : getAllGroupsResponse(buildUserGroupsFilter(userGroups))) {
+                    for (int i = 0, length = jsonArray.length(); i < length; i++) {
+                        String objectId = jsonArray.getJSONObject(i).optString("objectId");
+
+                        jsonArrayList.addAll(getGroupMembersResponse(objectId));
+                    }
+                }
+            } else {
+                jsonArrayList = getAllUsersResponse(usersFilter);
+            }
+
+            return jsonArrayList;
+        }
+
+        private String buildUserGroupsFilter(List<String> userGroups) {
+            return Joiner.on(" and ").join(CollectionUtils.collect(userGroups, new Transformer() {
+                @Override
+                public Object transform(Object input) {
+                    return "(displayName eq '" + input + "')";
+                }
+            }));
+        }
+
+        List<JSONArray> getAllUsersResponse(String usersFilter) {
+            return submitQueryWithPagination(webTarget.path("users"), usersFilter);
         }
 
         @VisibleForTesting
-        JSONArray getUserGroupsResponse(final String userObjectId) {
-            // Paging is not supported for link searches, cf. https://graph.microsoft.io/en-us/docs/overview/paging
-            return submitQueryWithoutPagination(webTarget.path("users").path(userObjectId).path("$links").path("memberOf"));
+        List<JSONArray> getUserGroupsResponse(final String userObjectId) {
+            return submitQueryWithPagination(webTarget.path("users").path(userObjectId).path("$links").path("memberOf"), null);
         }
 
         @VisibleForTesting
-        List<JSONArray> getAllGroupsResponse() {
-            return submitQueryWithPagination(webTarget.path("groups"));
+        List<JSONArray> getAllGroupsResponse(String groupsFilter) {
+            return submitQueryWithPagination(webTarget.path("groups"), groupsFilter);
         }
 
         @VisibleForTesting
-        JSONArray getGroupMembersResponse(final String groupObjectId) {
-            // Paging is not supported for link searches, cf. https://graph.microsoft.io/en-us/docs/overview/paging
-            return submitQueryWithoutPagination(webTarget.path("groups").path(groupObjectId).path("$links").path("members"));
+        List<JSONArray> getGroupMembersResponse(final String groupObjectId) {
+            return submitQueryWithPagination(webTarget.path("groups").path(groupObjectId).path("$links").path("members"), null);
         }
 
         private JSONObject getObjectResponseByUrl(final String objectUrl) {
@@ -310,13 +358,14 @@ public class AzureAdClient {
         }
 
         private Response getObjectByUrl(final String objectUrl) {
-            return completeQueryBuilding(client.target(objectUrl)).get();
+            return completeQueryBuilding(client.target(objectUrl), null).get();
         }
 
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AzureAdClient.class);
 
+    // TODO : Use "graph.microsoft.com/v1.0" instead as recommended in https://blogs.msdn.microsoft.com/aadgraphteam/2016/07/08/microsoft-graph-or-azure-ad-graph/
     private static final String GRAPH_API_URL = "https://graph.windows.net/";
 
     private static final String GRAPH_API_VERSION = "1.6";
@@ -329,7 +378,6 @@ public class AzureAdClient {
 
     public AzureAdClient(final LDAPServerConfiguration ldapServerConfiguration, final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
         this.ldapServerConfiguration = ldapServerConfiguration;
-
         this.ldapUserSyncConfiguration = ldapUserSyncConfiguration;
     }
 
@@ -343,7 +391,9 @@ public class AzureAdClient {
                 ldapUserSyncConfiguration.getClientId(),
                 ldapUserSyncConfiguration.getClientSecret());
 
-        for (JSONArray jsonArray : requestHelper.getAllUsersResponse()) {
+        List<JSONArray> jsonArrayList = requestHelper.getAllUsersResponse(ldapUserSyncConfiguration.getUserGroups(), ldapUserSyncConfiguration.getUsersFilter());
+
+        for (JSONArray jsonArray : jsonArrayList) {
             for (int i = 0, length = jsonArray.length(); i < length; i++) {
                 String userName = jsonArray.getJSONObject(i).optString("userPrincipalName");
 
@@ -368,7 +418,7 @@ public class AzureAdClient {
                 ldapUserSyncConfiguration.getClientId(),
                 ldapUserSyncConfiguration.getClientSecret());
 
-        for (JSONArray jsonArray : requestHelper.getAllGroupsResponse()) {
+        for (JSONArray jsonArray : requestHelper.getAllGroupsResponse(ldapUserSyncConfiguration.getGroupsFilter())) {
             for (int i = 0, length = jsonArray.length(); i < length; i++) {
                 String groupName = jsonArray.getJSONObject(i).optString("displayName");
 
@@ -393,7 +443,8 @@ public class AzureAdClient {
 
         int pageNum = 1;
 
-        for (JSONArray groupsArray : requestHelper.getAllGroupsResponse()) {
+        List<JSONArray> stuff = requestHelper.getAllGroupsResponse(ldapUserSyncConfiguration.getGroupsFilter());
+        for (JSONArray groupsArray : stuff) {
             int groupsPageSize = groupsArray.length();
 
             LOGGER.info("Processing groups page " + pageNum++ + " having " + groupsPageSize + " items");
@@ -406,27 +457,28 @@ public class AzureAdClient {
                         ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
                     } else {
                         ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
-                    }                }
+                    }
 
-                JSONArray membersArray = requestHelper.getGroupMembersResponse(ldapGroup.getDistinguishedName());
+                    for (JSONArray membersArray : requestHelper.getGroupMembersResponse(ldapGroup.getDistinguishedName())) {
+                        for (int im = 0, membersCount = membersArray.length(); im < membersCount; im++) {
+                            String objectUrl = membersArray.getJSONObject(im).optString("url");
 
-                for (int im = 0, membersCount = membersArray.length(); im < membersCount; im++) {
-                    String objectUrl = membersArray.getJSONObject(im).optString("url");
+                            if (objectUrl.endsWith("Microsoft.DirectoryServices.User")) {
+                                JSONObject jsonObject = requestHelper.getObjectResponseByUrl(objectUrl);
 
-                    if (objectUrl.endsWith("Microsoft.DirectoryServices.User")) {
-                        JSONObject jsonObject = requestHelper.getObjectResponseByUrl(objectUrl);
+                                LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
 
-                        LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
+                                //if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+                                if (ldapUsers.containsKey(ldapUser.getId())) {
+                                    ldapUser = ldapUsers.get(ldapUser.getId());
+                                } else {
+                                    ldapUsers.put(ldapUser.getId(), ldapUser);
+                                }
 
-                        if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
-                            if (ldapUsers.containsKey(ldapUser.getId())) {
-                                ldapUser = ldapUsers.get(ldapUser.getId());
-                            } else {
-                                ldapUsers.put(ldapUser.getId(), ldapUser);
+                                ldapGroup.addUser(ldapUser.getId());
+                                ldapUser.addGroup(ldapGroup);
+                                //}
                             }
-
-                            ldapGroup.addUser(ldapUser.getId());
-                            ldapUser.addGroup(ldapGroup);
                         }
                     }
                 }
@@ -453,8 +505,9 @@ public class AzureAdClient {
         ldapUser.setEnabled(Boolean.valueOf(userJsonObject.optString("accountEnabled")));
         ldapUser.setLieuTravail(userJsonObject.optString("department"));
         ldapUser.setMsExchDelegateListBL(null); // TODO
-        if (!StringUtils.isEmpty(userJsonObject.optString("refreshTokensValidFromDateTime"))) {
-            ldapUser.setLastLogon(new DateTime(userJsonObject.optString("refreshTokensValidFromDateTime")).toDate());
+        String refreshTokensValidFromDateTime = userJsonObject.optString("refreshTokensValidFromDateTime");
+        if (!StringUtils.isEmpty(refreshTokensValidFromDateTime) && !"null".equals(refreshTokensValidFromDateTime)) {
+            ldapUser.setLastLogon(new DateTime(refreshTokensValidFromDateTime).toDate());
         }
 
         return ldapUser;
@@ -470,13 +523,20 @@ public class AzureAdClient {
 
         int pageNum = 1;
 
-        for (JSONArray userArray : requestHelper.getAllUsersResponse()) {
+        List<JSONArray> jsonArrayList = requestHelper.getAllUsersResponse(ldapUserSyncConfiguration.getUserGroups(), ldapUserSyncConfiguration.getUsersFilter());
+
+        for (JSONArray userArray : jsonArrayList) {
             int groupsPageSize = userArray.length();
 
-            LOGGER.info("Processing groups page " + pageNum++ + " having " + groupsPageSize + " items");
+            LOGGER.info("Processing users page " + pageNum++ + " having " + groupsPageSize + " items");
 
             for (int iu = 0; iu < groupsPageSize; iu++) {
-                LDAPUser ldapUser = buildLDAPUserFromJsonObject(userArray.getJSONObject(iu));
+                JSONObject jsonObject = userArray.getJSONObject(iu);
+                if (jsonObject.has("url")) {
+                    jsonObject = requestHelper.getObjectResponseByUrl(jsonObject.optString("url"));
+                }
+
+                LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
 
                 if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
                     if (ldapUsers.containsKey(ldapUser.getId())) {
@@ -484,27 +544,28 @@ public class AzureAdClient {
                     } else {
                         ldapUsers.put(ldapUser.getId(), ldapUser);
                     }
-                }
+                    //}
 
-                JSONArray membershipsArray = requestHelper.getUserGroupsResponse(ldapUser.getId());
+                    for (JSONArray membershipsArray : requestHelper.getUserGroupsResponse(ldapUser.getId())) {
+                        for (int im = 0, membershipsCount = membershipsArray.length(); im < membershipsCount; im++) {
+                            String objectUrl = membershipsArray.getJSONObject(im).optString("url");
 
-                for (int im = 0, membershipsCount = membershipsArray.length(); im < membershipsCount; im++) {
-                    String objectUrl = membershipsArray.getJSONObject(im).optString("url");
+                            if (objectUrl.endsWith("Microsoft.DirectoryServices.Group")) {
+                                jsonObject = requestHelper.getObjectResponseByUrl(objectUrl);
 
-                    if (objectUrl.endsWith("Microsoft.DirectoryServices.Group")) {
-                        JSONObject jsonObject = requestHelper.getObjectResponseByUrl(objectUrl);
+                                LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(jsonObject);
 
-                        LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(jsonObject);
+                                //if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+                                    if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
+                                        ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
+                                    } else {
+                                        ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
+                                    }
 
-                        if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
-                            if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
-                                ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
-                            } else {
-                                ldapGroups.put(ldapGroup.getDistinguishedName(), ldapGroup);
+                                    ldapGroup.addUser(ldapUser.getId());
+                                    ldapUser.addGroup(ldapGroup);
+                                //}
                             }
-
-                            ldapGroup.addUser(ldapUser.getId());
-                            ldapUser.addGroup(ldapGroup);
                         }
                     }
                 }

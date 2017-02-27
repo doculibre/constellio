@@ -46,7 +46,6 @@ public class AzureADServices implements LDAPServices {
         final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
 
         azureAdClient.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
-
         azureAdClient.getUsersAndTheirGroups(ldapGroups, ldapUsers);
 
         return new LDAPUsersAndGroups(new HashSet<>(ldapUsers.values()), new HashSet<>(ldapGroups.values()));
