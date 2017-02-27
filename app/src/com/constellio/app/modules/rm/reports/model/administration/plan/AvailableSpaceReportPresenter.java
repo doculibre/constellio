@@ -3,21 +3,17 @@ package com.constellio.app.modules.rm.reports.model.administration.plan;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AvailableSpaceReportModel.AvailableSpaceReportModelNode;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
@@ -26,12 +22,11 @@ import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 /**
  * Created by Charles Blanchette on 2017-02-20.
@@ -66,14 +61,14 @@ public class AvailableSpaceReportPresenter {
         AvailableSpaceReportModel model = new AvailableSpaceReportModel();
         model.setShowFullSpaces(showFullSpaces);
         List<Record> rootStorageSpaces = conceptNodesTaxonomySearchServices
-                .getRootConcept(collection, RMTaxonomies.STORAGES, new TaxonomiesSearchOptions().setRows(10000));
+                .getRootConcept(collection, RMTaxonomies.STORAGES, searchOptions.setRows(10000));
 
         if (rootStorageSpaces != null) {
             for (Record rootRecord : rootStorageSpaces) {
                 AvailableSpaceReportModelNode parent = new AvailableSpaceReportModelNode();
                 StorageSpace storageSpace = new StorageSpace(rootRecord, types);
                 parent.setCode(rootRecord.getSchemaCode()).setTitle(rootRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
-                List<Record> childStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(rootRecord, new TaxonomiesSearchOptions().setRows(10000));
+                List<Record> childStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(rootRecord, searchOptions.setRows(10000));
                 if (childStorageSpaces != null) {
                     createChildRow(parent, childStorageSpaces);
                 }
@@ -90,7 +85,7 @@ public class AvailableSpaceReportPresenter {
             AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
             StorageSpace storageSpace = new StorageSpace(childRecord, types);
             child.setCode(childRecord.getSchemaCode()).setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
-            List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, new TaxonomiesSearchOptions().setRows(10000));
+            List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, searchOptions.setRows(10000));
             if (subChildStorageSpaces != null) {
                 createChildRow(child, subChildStorageSpaces);
             }
