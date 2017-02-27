@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderFie
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -389,14 +390,14 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             newFolder.setParentFolder(parentId);
                             recordServices.add(newFolder);
                             decommissioningService(param).duplicateSubStructureAndSave(newFolder, rmSchemas.wrapUserFolder(record), param.getUser());
-                            decommissioningService(param).deleteUserFolder(rmSchemas.wrapUserFolder(record), param.getUser());
+                            deleteUserFolder(param, rmSchemas.wrapUserFolder(record), param.getUser());
                             break;
                         case UserDocument.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
                             decommissioningService(param).populateDocumentFromUserDocument(newDocument, rmSchemas.wrapUserDocument(record), param.getUser());
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
-                            decommissioningService(param).deleteUserDocument(rmSchemas.wrapUserDocument(record), param.getUser());
+                            deleteUserDocument(param, rmSchemas.wrapUserDocument(record), param.getUser());
                             break;
                         default:
                             couldNotMove.add(record.getTitle());
@@ -414,6 +415,14 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         } else {
             showErrorMessage($("ConstellioHeader.selection.actions.couldNotClassify"));
         }
+    }
+
+    protected void deleteUserFolder(AvailableActionsParam param, RMUserFolder rmUserFolder, User user) {
+        decommissioningService(param).deleteUserFolder(rmUserFolder, user);
+    }
+
+    protected void deleteUserDocument(AvailableActionsParam param, UserDocument userDocument, User user) {
+        decommissioningService(param).deleteUserDocument(userDocument, user);
     }
 
     private void emailPreparationRequested(AvailableActionsParam param) {

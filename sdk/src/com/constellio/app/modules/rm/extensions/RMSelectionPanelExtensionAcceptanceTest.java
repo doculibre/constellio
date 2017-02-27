@@ -2,9 +2,17 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -44,6 +52,8 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         doReturn(FakeSessionContext.adminInCollection(zeCollection)).when(extension).getSessionContext();
         doNothing().when(extension).addCheckInButton(any(AvailableActionsParam.class));
         doNothing().when(extension).showErrorMessage(any(String.class));
+        doNothing().when(extension).deleteUserFolder(any(AvailableActionsParam.class), any(RMUserFolder.class), any(User.class));
+        doNothing().when(extension).deleteUserDocument(any(AvailableActionsParam.class), any(UserDocument.class), any(User.class));
     }
 
     @Test
@@ -89,18 +99,53 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         assertThat(numberOfNewDocumentAndFolderInFolderA20).isEqualTo(24);
     }
 
+    @Test
+    public void givenClassifyButtonClickedThenClassifedCorrectly() throws RecordServicesException {
+        buildUserDocumentsAndUserFolders();
+        AvailableActionsParam param = buildParamWithUserDocumentsAndUserFolders();
+        extension.addAvailableActions(param);
+
+        List<String> existingIds = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).
+                where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0))
+        ));
+        extension.classifyButtonClicked(records.folder_A20, param);
+
+        long numberOfNewDocumentAndFolderInFolderA20 = getModelLayerFactory().newSearchServices().getResultsCount(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
+                .whereAllConditions(
+                        where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0)),
+                        where(Schemas.IDENTIFIER).isNotIn(existingIds)
+                )
+        ));
+        List<Record> search = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
+                .whereAllConditions(
+                        where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0)),
+                        where(Schemas.IDENTIFIER).isNotIn(existingIds)
+                )
+        ));
+
+        assertThat(numberOfNewDocumentAndFolderInFolderA20).isEqualTo(7);
+    }
+
     public AvailableActionsParam buildParamWithDocumentsAndFoldersAndContainers() {
         return new AvailableActionsParam(asList(records.document_A79, records.document_B33, records.folder_A01, records.folder_A02, records.containerId_bac01, records.containerId_bac02),
-                asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), records.getAdmin(), layout);
+                asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), records.getAdmin(), layout);
     }
 
-    public AvailableActionsParam buildParamWithDocumentsOnly() {
-        return new AvailableActionsParam(asList(records.document_A79, records.document_B33),
-                asList(Document.SCHEMA_TYPE), records.getAdmin(), layout);
+    public void buildUserDocumentsAndUserFolders() throws RecordServicesException {
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, appLayerFactory);
+        Transaction transaction = new Transaction();
+        transaction.add(rm.newUserDocumentWithId("UDoc1").setContent(records.getDocumentWithContent_A19().getContent()).setTitle("UDoc1"));
+        transaction.add(rm.newUserDocumentWithId("UDoc2").setContent(records.getDocumentWithContent_A19().getContent()).setTitle("UDoc2"));
+        transaction.add(rm.newUserFolderWithId("UFol1").setTitle("UFol1"));
+        transaction.add(rm.newUserFolderWithId("UFol2").setTitle("UFol2"));
+        transaction.add(rm.newUserFolderWithId("USubFol1").setParent("UFol2").setTitle("USubFol1"));
+        transaction.add(rm.newUserDocumentWithId("USubDoc1").setUserFolder("USubFol1").setContent(records.getDocumentWithContent_A19().getContent()).setTitle("USubDoc1"));
+        transaction.add(rm.newUserDocumentWithId("USubDoc2").setUserFolder("USubFol1").setContent(records.getDocumentWithContent_A19().getContent()).setTitle("USubDoc2"));
+        appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
     }
 
-    public AvailableActionsParam buildParamWithFoldersOnly() {
-        return new AvailableActionsParam(asList(records.folder_A01, records.folder_A02),
-                asList(Folder.SCHEMA_TYPE), records.getAdmin(), layout);
+    public AvailableActionsParam buildParamWithUserDocumentsAndUserFolders() {
+        return new AvailableActionsParam(asList("UDoc1", "UDoc2", "UFol1", "UFol2"),
+                asList(UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE), records.getAdmin(), layout);
     }
 }
