@@ -67,6 +67,12 @@ public class UserServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserServicesRuntimeException_CannotSafeDeletePhysically extends UserServicesRuntimeException {
+		public UserServicesRuntimeException_CannotSafeDeletePhysically(String username) {
+			super(username.equals("chuck") ? "You cannot delete chuck, chuck deletes you." : "Cannot delete " + username + " since it's been doing things.");
+		}
+	}
+
 	public static class UserServicesRuntimeException_InvalidGroup extends UserServicesRuntimeException {
 		private final String groupCode;
 

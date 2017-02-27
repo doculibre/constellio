@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.model.entities.security.global.UserCredential;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +15,9 @@ import com.constellio.model.conf.ldap.EmptyUrlsRuntimeException;
 import com.constellio.model.conf.ldap.InvalidUrlRuntimeException;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
@@ -29,8 +30,11 @@ public class LDAPConfigManagementPresenter extends
 										   BasePresenter<LDAPConfigManagementView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigManagementPresenter.class);
 
+	private boolean isLDAPActive = false;
+
 	public LDAPConfigManagementPresenter(LDAPConfigManagementView view) {
 		super(view);
+		this.setLDAPActive(getLDAPServerConfiguration().getLdapAuthenticationActive());
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
@@ -52,12 +56,7 @@ public class LDAPConfigManagementPresenter extends
 				.getLdapConfigurationManager();
 		try {
 			ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
-
-			if (ldapConfigManager.getNextUsersSyncFireTime() == null) {
-                view.showMessage($("ldap.config.saved"));
-            } else {
-				view.showMessage($("ldap.config.saved") + " " + $("ldap.config.nextUserSyncFireTime", ldapConfigManager.getNextUsersSyncFireTime()));
-			}
+			view.showMessage($("ldap.config.saved"));
 		} catch (TooShortDurationRuntimeException e) {
 			view.showErrorMessage($("ldap.TooShortDurationRuntimeException"));
 		} catch (EmptyDomainsRuntimeException e) {
@@ -155,9 +154,29 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public boolean isForceSynchVisible() {
-		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing()
-				&& getLDAPServerConfiguration().getLdapAuthenticationActive()
-				&& (getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || getLDAPUserSyncConfiguration().getScheduleTime() != null);
+		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
+				.getLdapAuthenticationActive()
+				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null;
+	}
+
+	public void deleteUsedUserButtonClick() {
+		List<UserCredential> nonDeletedUser = userServices().safePhysicalDeleteAllUnusedUsers();
+		if (nonDeletedUser.size() > 0) {
+			String message = $("ldap.authentication.unDeletedUser") + "<br>";
+			for (UserCredential userCredential : nonDeletedUser) {
+				message += userCredential.getUsername() + "<br>";
+			}
+			this.view.showMessage(message);
+		}
+	}
+
+	public LDAPConfigManagementPresenter setLDAPActive(boolean active) {
+		this.isLDAPActive = active;
+		return this;
+	}
+
+	public boolean isLDAPActive() {
+		return isLDAPActive;
 	}
 
 	private class ForceSynchThread implements Runnable {
