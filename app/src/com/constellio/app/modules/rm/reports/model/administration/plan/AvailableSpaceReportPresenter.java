@@ -79,9 +79,7 @@ public class AvailableSpaceReportPresenter {
     }
 
     private void createChildRow(AvailableSpaceReportModelNode parent, List<Record> childStorageSpaces) {
-//        double totalCapacity = 0.0D;
         for (Record childRecord : childStorageSpaces) {
-//            double currentTotal = 0.0;
             AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
             StorageSpace storageSpace = new StorageSpace(childRecord, types);
             child.setCode(childRecord.getSchemaCode()).setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
@@ -96,19 +94,14 @@ public class AvailableSpaceReportPresenter {
             if (containerRecords != null) {
                 createContainerRecordRow(child, containerRecords);
             }
-
-//            child.setAvailableSpace(currentTotal + child.getAvailableSpace());
             parent.getChildrenNodes().add(child);
-//            totalCapacity += currentTotal;
         }
     }
 
     private void createContainerRecordRow(AvailableSpaceReportModelNode parent, List<ContainerRecord> containerRecords) {
-//        double totalCapacity = 0.0D;
         for (ContainerRecord boite : containerRecords) {
             AvailableSpaceReportModelNode childBox = new AvailableSpaceReportModelNode();
             childBox.setTitle(boite.getTitle()).setCode(boite.getId()).setAvailableSpace(boite.getAvailableSize() != null ? boite.getAvailableSize() : 0);
-//            totalCapacity += childBox.getAvailableSpace();
             parent.getChildrenNodes().add(childBox);
         }
     }

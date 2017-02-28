@@ -35,6 +35,8 @@ public class StorageSpace extends RecordWrapper {
 
 	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
 
+	public static final String CHILD_LINEAR_SIZE_SUM = "childLinearSizeSum";
+
 	public static final String AVAILABLE_SIZE = "availableSize";
 
 	public static final String CONTAINER_TYPE = "containerType";
@@ -146,6 +148,10 @@ public class StorageSpace extends RecordWrapper {
 	public StorageSpace setLinearSizeEntered(double linearSizeEntered) {
 		set(LINEAR_SIZE_ENTERED, linearSizeEntered);
 		return this;
+	}
+
+	public Double getChildLinearSizeSum() {
+		return get(CHILD_LINEAR_SIZE_SUM);
 	}
 
 	public Double getLinearSizeSum() {

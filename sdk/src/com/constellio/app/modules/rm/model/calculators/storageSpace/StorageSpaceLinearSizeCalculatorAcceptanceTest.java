@@ -35,7 +35,8 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
 
     SearchServices searchServices;
 
-    @Mock CalculatorParameters parameters;
+    @Mock
+    CalculatorParameters parameters;
 
     @Before
     public void setUp() {
@@ -52,7 +53,7 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
     }
 
     @Test
-    public void givenParametersThenCalculatorReturnsGoodValue()  {
+    public void givenParametersThenCalculatorReturnsGoodValue() {
         when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(5));
 
         assertThat(calculator.calculate(parameters)).isEqualTo(5);
@@ -68,6 +69,37 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
         when(parameters.get(calculator.linearSizeSumParam)).thenReturn(null);
 
         assertThat(calculator.calculate(parameters)).isNull();
+
+        when(parameters.get(calculator.numberOfChildSizeSumParam)).thenReturn(new Double(2));
+
+        when(parameters.get(calculator.childLinearSizeSumParam)).thenReturn(new Double(5));
+
+        assertThat(calculator.calculate(parameters)).isEqualTo(5);
+
+        when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(10));
+
+        assertThat(calculator.calculate(parameters)).isEqualTo(5);
+
+        when(parameters.get(calculator.numberOfChildSizeSumParam)).thenReturn(new Double(0));
+
+        assertThat(calculator.calculate(parameters)).isEqualTo(10);
+    }
+
+    @Test
+    public void givenStorageSpaceHasChildStorageSpaceThenLinearSizeIsEqualToChildSumSum()
+            throws RecordServicesException {
+
+        StorageSpace parentStorage = buildDefaultStorageSpace().setCapacity(200);
+        recordServices.add(parentStorage);
+        StorageSpace childStorage = buildChildStorageSpace().setCapacity(100).setParentStorageSpace(parentStorage);
+        recordServices.add(childStorage);
+
+        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+        assertThat(rm.wrapStorageSpace(record).getCapacity()).isEqualTo(200L);
+        assertThat(rm.wrapStorageSpace(record).getChildLinearSizeSum()).isEqualTo(new Double(100));
+        assertThat(rm.wrapStorageSpace(record).getAvailableSize()).isEqualTo(new Double(100));
+
     }
 
     @Test
@@ -130,6 +162,10 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
 
     public StorageSpace buildDefaultStorageSpace() {
         return rm.newStorageSpaceWithId("storageTest").setCode("TEST").setTitle("storageTest");
+    }
+
+    public StorageSpace buildChildStorageSpace() {
+        return rm.newStorageSpaceWithId("childStorage").setCode("CHILD").setTitle("childStorage");
     }
 
     public void addContainersLinkedToStorageSpace(String storageID)
