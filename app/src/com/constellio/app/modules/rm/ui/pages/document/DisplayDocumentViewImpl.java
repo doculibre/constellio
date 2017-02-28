@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -489,7 +490,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(checkOutButton);
 		actionMenuButtons.add(finalizeButton);
 
-		actionMenuButtons.add(startWorkflowButton);
+		if (presenter.hasPermissionToStartWorkflow()) {
+			actionMenuButtons.add(startWorkflowButton);
+		}
 
 		return actionMenuButtons;
 	}

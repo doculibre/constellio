@@ -370,7 +370,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(returnFolderButton);
 		actionMenuButtons.add(reminderReturnFolderButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
-		actionMenuButtons.add(startWorkflowButton);
+		if (presenter.hasPermissionToStartWorkflow()) {
+			actionMenuButtons.add(startWorkflowButton);
+		}
 
 		return actionMenuButtons;
 	}
@@ -881,6 +883,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			});
 			return table;
 		}
+
 	}
 
     @Override
