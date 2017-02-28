@@ -5,10 +5,12 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -17,6 +19,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataList;
 import org.apache.commons.lang3.StringUtils;
@@ -180,5 +183,17 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	public boolean isSequenceActivated() {
 		return DataEntryType.SEQUENCE.equals(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 				.getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER).getDataEntry().getType());
+	}
+
+	public SessionContext getSessionContext() {
+		return view.getSessionContext();
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
+	}
+
+	public ConstellioFactories getConstellioFactories() {
+		return view.getConstellioFactories();
 	}
 }

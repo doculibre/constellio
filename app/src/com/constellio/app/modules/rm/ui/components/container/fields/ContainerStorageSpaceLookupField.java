@@ -4,7 +4,6 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderFie
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -45,18 +44,18 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
     private AddEditContainerPresenter presenter;
 
     public ContainerStorageSpaceLookupField(String containerRecordType, AddEditContainerPresenter presenter) {
-        this(StorageSpace.SCHEMA_TYPE, null, containerRecordType);
+        this(StorageSpace.SCHEMA_TYPE, null, containerRecordType, presenter);
         this.containerRecordType =  containerRecordType;
         this.presenter = presenter;
     }
 
-    private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, String containerRecordType) {
-        this(schemaTypeCode, schemaCode, false, containerRecordType);
+    private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, String containerRecordType, AddEditContainerPresenter presenter) {
+        this(schemaTypeCode, schemaCode, false, containerRecordType, presenter);
     }
 
-    private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, boolean writeAccess, String containerRecordType) {
-        super(new RecordTextInputDataProvider(ConstellioFactories.getInstance(), ConstellioUI.getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess),
-                getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, false, containerRecordType));
+    private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, boolean writeAccess, String containerRecordType, AddEditContainerPresenter presenter) {
+        super(new RecordTextInputDataProvider(presenter.getConstellioFactories(), presenter.getSessionContext(), schemaTypeCode, schemaCode, writeAccess),
+                getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, false, containerRecordType, presenter));
         setItemConverter(new RecordIdToCaptionConverter());
     }
 
@@ -74,30 +73,32 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
         suggestedButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-                SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-                List<Record> recordList = constellioFactories.getModelLayerFactory().newSearchServices().search(buildQuery(constellioFactories.getModelLayerFactory(), sessionContext));
-                if(recordList != null && !recordList.isEmpty()) {
-                    ContainerStorageSpaceLookupField.this.setFieldValue(recordList.get(0).getId());
-                    presenter.typeSelected(containerRecordType);
-                }
-            }
-
-            private LogicalSearchQuery buildQuery(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-                MetadataSchemaType storageSpaceType = modelLayerFactory.getMetadataSchemasManager()
-                        .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
-                return new LogicalSearchQuery().setCondition(from(storageSpaceType).whereAllConditions(
-                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
-                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(0),
-                        anyConditions(
-                                where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isContaining(asList(containerRecordType)),
-                                where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
-                        )
-                ));
+                suggestedButtonClicked();
             }
         });
 
         return suggestedButton;
+    }
+
+    public void suggestedButtonClicked() {
+        List<Record> recordList = presenter.getModelLayerFactory().newSearchServices().search(buildQuery(presenter.getModelLayerFactory(), presenter.getSessionContext()));
+        if(recordList != null && !recordList.isEmpty()) {
+            ContainerStorageSpaceLookupField.this.setFieldValue(recordList.get(0).getId());
+            presenter.typeSelected(containerRecordType);
+        }
+    }
+
+    private LogicalSearchQuery buildQuery(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+        MetadataSchemaType storageSpaceType = modelLayerFactory.getMetadataSchemasManager()
+                .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
+        return new LogicalSearchQuery().setCondition(from(storageSpaceType).whereAllConditions(
+                where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
+                where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(0),
+                anyConditions(
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isContaining(asList(containerRecordType)),
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
+                )
+        ));
     }
 
     @Override
@@ -112,12 +113,13 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 
 
     private static LookupTreeDataProvider<String>[] getTreeDataProvider(final String schemaTypeCode, final String schemaCode,
-                                                                        boolean writeAccess, boolean onlySuggestions, final String containerRecordType) {
-        SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+                                                                        boolean writeAccess, boolean onlySuggestions, final String containerRecordType,
+                                                                        AddEditContainerPresenter presenter) {
+        SessionContext sessionContext = presenter.getSessionContext();
         final String collection = sessionContext.getCurrentCollection();
         UserVO currentUserVO = sessionContext.getCurrentUser();
 
-        ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+        ConstellioFactories constellioFactories = presenter.getConstellioFactories();
         final ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
         UserServices userServices = modelLayerFactory.newUserServices();
         MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
@@ -134,15 +136,15 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
         for (Taxonomy taxonomy : taxonomies) {
             String taxonomyCode = taxonomy.getCode();
             if (StringUtils.isNotBlank(taxonomyCode)) {
-                dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, writeAccess, getDataProvider(taxonomyCode, containerRecordType)));
+                dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, writeAccess, getDataProvider(taxonomyCode, containerRecordType, presenter)));
             }
         }
         return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
     }
 
-    static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, String containerRecordType) {
-        ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-        SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+    static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, String containerRecordType, AddEditContainerPresenter presenter) {
+        ConstellioFactories constellioFactories = presenter.getConstellioFactories();
+        SessionContext sessionContext = presenter.getSessionContext();
         MetadataSchemaType storageSpaceType = constellioFactories.getModelLayerFactory().getMetadataSchemasManager()
                 .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
         LogicalSearchCondition searchCondition = from(storageSpaceType).whereAllConditions(
