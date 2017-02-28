@@ -152,7 +152,4 @@ public class ConditionTemplateFactory {
 		return metadatasHasAnalyzedValue(value, asList(Schemas.TITLE));
 	}
 
-	public ConditionTemplate searchFieldHasAnalyzedValue(String value) {
-		return metadatasHasAnalyzedValue(value, asList(Schemas.SEARCH_FIELD));
-	}
 }

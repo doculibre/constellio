@@ -395,4 +395,5 @@ public class MetadataSchemaType {
 	public boolean isParentOfOtherRecords(String typeCode) {
 		return false;
 	}
+
 }

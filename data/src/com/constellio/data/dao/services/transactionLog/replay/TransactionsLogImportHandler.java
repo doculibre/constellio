@@ -1,12 +1,15 @@
 package com.constellio.data.dao.services.transactionLog.replay;
 
+import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -52,6 +55,14 @@ public class TransactionsLogImportHandler {
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+
+		try {
+			bigVaultServer.softCommit();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void pushTransaction(BigVaultServerTransaction transaction) {
@@ -74,11 +85,13 @@ public class TransactionsLogImportHandler {
 
 						try {
 							transaction = transactions.take().transaction;
+
 						} catch (InterruptedException e) {
 							throw new RuntimeException(e);
 						}
 
 						if (transaction != null) {
+							transaction.setRecordsFlushing(RecordsFlushing.LATER());
 							if (!transaction.isParallelisable()) {
 								availableThreads.acquire(parallelism);
 								availableThreads.release(parallelism);

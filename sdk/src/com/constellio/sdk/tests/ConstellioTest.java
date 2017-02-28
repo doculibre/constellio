@@ -6,9 +6,11 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.sdk.tests.annotations.PreserveState;
 
 public class ConstellioTest extends AbstractConstellioTest {
+	protected Transaction tx;
 	public static final String ANSI_RESET = "\u001B[0m";
 	private static boolean isCurrentPreservingState;
 

@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
@@ -289,4 +290,13 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		recordServices.recalculate(record);
 	}
 
+	@Override
+	public void loadLazyTransientMetadatas(Record record) {
+		recordServices.loadLazyTransientMetadatas(record);
+	}
+
+	@Override
+	public void reloadEagerTransientMetadatas(Record record) {
+		recordServices.reloadEagerTransientMetadatas(record);
+	}
 }

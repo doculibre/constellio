@@ -68,7 +68,6 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
@@ -102,7 +101,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 
 public class RecordServicesImpl extends BaseRecordServices {
@@ -322,7 +320,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
-		return new RecordImpl(recordDTO, allFields);
+		Record record = new RecordImpl(recordDTO, allFields);
+		newAutomaticMetadataServices()
+				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+		return record;
 	}
 
 	public List<Record> toRecords(List<RecordDTO> recordDTOs, boolean allFields) {
@@ -357,7 +358,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record getDocumentById(String id) {
 		try {
-			return new RecordImpl(recordDao.get(id), true);
+			Record record = new RecordImpl(recordDao.get(id), true);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+			recordsCaches.insert(record);
+			return record;
+
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
 		}
@@ -586,6 +592,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				recordsToInsert.add(record);
 			}
 		}
+
 		recordsCaches.insert(collection, recordsToInsert);
 
 	}
@@ -883,7 +890,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public ModificationImpactCalculator newModificationImpactCalculator(TaxonomiesManager taxonomiesManager,
 			MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices) {
 		List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(metadataSchemaTypes.getCollection());
-		return new ModificationImpactCalculator(metadataSchemaTypes, taxonomies, searchServices);
+		return new ModificationImpactCalculator(metadataSchemaTypes, taxonomies, searchServices, this);
 
 	}
 
@@ -994,7 +1001,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	private void validateNotTooMuchRecords(Transaction transaction) {
-		if (transaction.getRecords().size() > 10000) {
+		if (transaction.getRecords().size() > 100000) {
 			throw new RecordServicesRuntimeException_TransactionHasMoreThan100000Records(transaction.getRecords().size());
 
 		} else if (transaction.getRecords().size() > 1000) {
@@ -1026,7 +1033,18 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void recalculate(Record record) {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
-				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), new TransactionRecordsReindexation());
+				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), TransactionRecordsReindexation.ALL());
 	}
 
+	@Override
+	public void loadLazyTransientMetadatas(Record record) {
+		newAutomaticMetadataServices()
+				.loadTransientLazyMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+	}
+
+	@Override
+	public void reloadEagerTransientMetadatas(Record record) {
+		newAutomaticMetadataServices()
+				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords());
+	}
 }

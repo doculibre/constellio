@@ -134,6 +134,14 @@ public class MetadataSchema {
 		return calculatedInfos.getAutomaticMetadatas();
 	}
 
+	public List<Metadata> getEagerTransientMetadatas() {
+		return calculatedInfos.getEagerTransientMetadatas();
+	}
+
+	public List<Metadata> getLazyTransientMetadatas() {
+		return calculatedInfos.getLazyTransientMetadatas();
+	}
+
 	public List<Metadata> getTaxonomyRelationshipReferences(List<Taxonomy> taxonomies) {
 		List<Metadata> returnedMetadata = new ArrayList<>();
 

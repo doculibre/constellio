@@ -48,4 +48,33 @@ public abstract class ActionExecutorInBatch {
 		}
 	}
 
+	public static class WithoutException extends ActionExecutorInBatch {
+
+		public WithoutException(SearchServices searchServices, String actionName, int batchSize) {
+			super(searchServices, actionName, batchSize);
+		}
+
+		@Override
+		public void doActionOnBatch(List<Record> records) {
+
+		}
+
+		@Override
+		public void execute(LogicalSearchQuery query) {
+			try {
+				super.execute(query);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		public void execute(LogicalSearchCondition condition) {
+			try {
+				super.execute(condition);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 }

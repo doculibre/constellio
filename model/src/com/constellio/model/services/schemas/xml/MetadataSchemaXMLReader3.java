@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas.xml;
 
 import static com.constellio.model.entities.schemas.entries.AggregationType.SUM;
+import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,11 +24,13 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -42,6 +45,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
@@ -302,6 +306,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEncrypted(readBooleanWithDefaultValue(encryptedStringValue, false));
 		}
 
+		String transientStringValue = metadataElement.getAttributeValue("transiency");
+		if (inheriteGlobalMetadata && transientStringValue == null) {
+			metadataBuilder.setTransiency(globalMetadataInCollectionSchema.getTransiency());
+		} else {
+			metadataBuilder.setTransiency(readEnum(transientStringValue, MetadataTransiency.class));
+		}
+
 		String searchableStringValue = metadataElement.getAttributeValue("searchable");
 		if (inheriteGlobalMetadata && searchableStringValue == null) {
 			metadataBuilder.setSearchable(globalMetadataInCollectionSchema.isSearchable());
@@ -389,6 +400,10 @@ public class MetadataSchemaXMLReader3 {
 		setPopulateConfigs(metadataBuilder, metadataElement);
 
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
+	}
+
+	private <T> T readEnum(String code, Class<T> clazz) {
+		return (T) EnumWithSmallCodeUtils.toEnum((Class) clazz, code);
 	}
 
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {
@@ -584,9 +599,11 @@ public class MetadataSchemaXMLReader3 {
 				metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(metadataProvidingSequenceCode);
 
 			} else if (dataEntry.getAttributeValue("agregationType") != null) {
+				AggregationType aggregationType = (AggregationType)
+						toEnum(AggregationType.class, dataEntry.getAttributeValue("agregationType"));
 				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
 				String inputMetadata = dataEntry.getAttributeValue("inputMetadata");
-				metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, SUM));
+				metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, aggregationType));
 			}
 		} else if (!isInheriting(metadataElement)) {
 			if (collectionSchemaBuilder == null) {

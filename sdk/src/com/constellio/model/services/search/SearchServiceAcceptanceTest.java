@@ -5,6 +5,10 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -41,6 +45,10 @@ import org.mockito.ArgumentCaptor;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.ids;
@@ -705,7 +713,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "It is snowing outside. Meilleur"));
 		recordServices.execute(transaction);
 
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.FRENCH_SEARCH_FIELD).query("meilleur")))
+		assertThat(
+				findRecords(from(zeSchema.instance()).where(zeSchema.stringMetadata().getAnalyzedField("fr")).query("meilleur")))
 				.containsOnly(expectedRecord);
 	}
 
@@ -728,11 +737,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(findRecords(from(zeSchema.instance())
 				.where(factory.metadatasHasAnalyzedValue("meilleur", zeSchema.stringMetadata())))).containsOnly(record1);
 
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("snowing")))).containsOnly(record3);
-
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("meilleur")))).containsOnly(record1);
 	}
 
 	//Broken multilingual @Test
@@ -747,8 +751,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Ceci est un number en francais : 42"));
 		recordServices.execute(transaction);
 
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.ENGLISH_SEARCH_FIELD).query("number"))).containsOnly(
-				expectedRecord, expectedRecord2);
 	}
 
 	//Multilinguage broken @Test
@@ -763,30 +765,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.largeTextMetadata(), "It is snowing outside. Meilleur"));
 		recordServices.execute(transaction);
 
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.FRENCH_SEARCH_FIELD).query("meilleur")))
-				.containsOnly(expectedRecord);
-
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("meilleur")))).containsOnly(expectedRecord);
-	}
-
-	//Multilinguage broken@Test
-	public void givenSearchableTextMetadataWhenSearchingRecordsUsingEnglishDefaultSearchFieldThenFindValidEnglishRecords()
-			throws Exception {
-
-		defineSchemasManager().using(schema.withALargeTextMetadata(whichIsSearchable));
-		transaction.addUpdate(expectedRecord = newRecordOfZeSchema()
-				.set(zeSchema.largeTextMetadata(), "This is some amazing text in document number 42"));
-		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema()
-				.set(zeSchema.largeTextMetadata(), "My favorite numbers are 42 and 666."));
-		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.largeTextMetadata(), "Ceci est un number en francais : 42"));
-		recordServices.execute(transaction);
-
-		assertThat(findRecords(from(zeSchema.instance()).where(Schemas.ENGLISH_SEARCH_FIELD).query("number"))).containsOnly(
-				expectedRecord, expectedRecord2);
-
-		assertThat(findRecords(from(zeSchema.instance())
-				.where(factory.searchFieldHasAnalyzedValue("number")))).containsOnly(expectedRecord, expectedRecord2);
 	}
 
 	@Test
@@ -2723,6 +2701,53 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenTransientLazyMetadataThenNotSavedAndRetrievedOnRecordRecalculate()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withANumberMetadata(
+				whichIsCalculatedUsing(TitleLengthCalculator.class),
+				whichHasTransiency(TRANSIENT_LAZY)));
+
+		//TODO records in cache should lost volatile metadatas
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+
+		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
+
+		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata())).isNull();
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+
+		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
+		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
+		assertThat(recordInCache.get(zeSchema.numberMetadata())).isNull();
+	}
+
+	@Test
+	public void givenTransientEagerMetadataThenNotSavedAndRetrievedOnRecordRetrieval()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withANumberMetadata(
+				whichIsCalculatedUsing(TitleLengthCalculator.class),
+				whichHasTransiency(TRANSIENT_EAGER)));
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+
+		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
+
+		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata()))
+				.isEqualTo(15.0);
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+
+		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
+		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
+		assertThat(recordInCache.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+
+	}
+
 	private void givenSchemasInDiferentsCollections()
 			throws Exception {
 
@@ -2988,5 +3013,35 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	private Record newRecordOfOotherSchemaInCollection2() {
 		return new TestRecord(otherSchemaInCollection2);
+	}
+
+	public static final class TitleLengthCalculator implements MetadataValueCalculator<Double> {
+
+		LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE.getLocalCode());
+
+		@Override
+		public Double calculate(CalculatorParameters parameters) {
+			return (double) parameters.get(titleDependency).length();
+		}
+
+		@Override
+		public Double getDefaultValue() {
+			return 0.0;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return MetadataValueType.NUMBER;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return asList(titleDependency);
+		}
 	}
 }

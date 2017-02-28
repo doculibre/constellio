@@ -146,4 +146,8 @@ public interface RecordServices {
 	void recalculate(RecordWrapper recordWrapper);
 
 	void recalculate(Record record);
+
+	void loadLazyTransientMetadatas(Record record);
+
+	void reloadEagerTransientMetadatas(Record record);
 }

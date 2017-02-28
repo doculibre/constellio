@@ -23,12 +23,15 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest {
 
 	@Mock SearchServices searchServices;
+
+	@Mock RecordServices recordServices;
 
 	@Mock MetadataSchemaTypes types;
 
@@ -194,7 +197,7 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 		when(anotherType.getAllParentReferences())
 				.thenReturn(Arrays.asList(anotherSchemaReferenceToZeSchema));
 
-		calculator = new ModificationImpactCalculator(types, taxonomies, searchServices);
+		calculator = new ModificationImpactCalculator(types, taxonomies, searchServices, recordServices);
 	}
 
 	@Test

@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProc
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -153,12 +154,13 @@ public class BatchProcessingPresenterService {
 				return new MetadataToVOBuilder() {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
-							   MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							   boolean multivalue, boolean readOnly, Map<Locale, String> labels,
-							   Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-							   MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
-							   StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-							   String inputMask) {
+							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
+							boolean multivalue, boolean readOnly, Map<Locale, String> labels,
+							Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+							MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
+							AllowedReferences allowedReferences, boolean enabled,
+							StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+							String inputMask) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -173,7 +175,8 @@ public class BatchProcessingPresenterService {
 						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
 								super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 										readOnly,
-										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType,
+										allowedReferences,
 										enabled,
 										structureFactory, metadataGroup, defaultValue, inputMask) :
 								null;
@@ -241,13 +244,41 @@ public class BatchProcessingPresenterService {
 
 	private BatchProcessResults toBatchProcessResults(Transaction transaction) {
 
+		MetadataSchemaTypes types = schemas.getTypes();
 		List<BatchProcessRecordModifications> recordModificationses = new ArrayList<>();
 		for (Record record : transaction.getModifiedRecords()) {
 
+			Record originalRecord = record.getCopyOfOriginalRecord();
+			List<Metadata> modifiedMetadatas = new ArrayList<>();
+			modifiedMetadatas.addAll(record.getModifiedMetadatas(types));
+			recordServices.recalculate(originalRecord);
+			recordServices.recalculate(record);
+			//			recordServices.loadLazyTransientMetadatas(originalRecord);
+			//			recordServices.reloadEagerTransientMetadatas(originalRecord);
+			//			recordServices.loadLazyTransientMetadatas(record);
+			//			recordServices.reloadEagerTransientMetadatas(record);
+
+			for (Metadata metadata : types.getSchema(record.getSchemaCode()).getLazyTransientMetadatas()) {
+				if (!LangUtils.isEqual(record.get(metadata), originalRecord.get(metadata))) {
+					if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
+							.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
+						modifiedMetadatas.add(metadata);
+					}
+				}
+			}
+
+			for (Metadata metadata : types.getSchema(record.getSchemaCode()).getEagerTransientMetadatas()) {
+				if (!LangUtils.isEqual(record.get(metadata), originalRecord.get(metadata))) {
+					if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
+							.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
+						modifiedMetadatas.add(metadata);
+					}
+				}
+			}
+
 			List<BatchProcessRecordFieldModification> recordFieldModifications = new ArrayList<>();
 			List<BatchProcessPossibleImpact> impacts = new ArrayList<>();
-			Record originalRecord = record.getCopyOfOriginalRecord();
-			for (Metadata metadata : record.getModifiedMetadatas(schemas.getTypes())) {
+			for (Metadata metadata : modifiedMetadatas) {
 				if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
 						.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
 					String valueBefore = convertToString(metadata, originalRecord.get(metadata));
@@ -257,7 +288,8 @@ public class BatchProcessingPresenterService {
 			}
 
 			List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
-			for (ModificationImpact impact : new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices)
+			for (ModificationImpact impact : new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices,
+					recordServices)
 					.findTransactionImpact(transaction, true)) {
 				impacts.add(new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
 			}

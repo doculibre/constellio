@@ -20,10 +20,10 @@ public class AggregatedDataEntry implements DataEntry {
 		this.referenceMetadata = referenceMetadata;
 		this.agregationType = agregationType;
 
-		String inputMetadataSchema = new SchemaUtils().getSchemaCode(inputMetadata);
+		String inputMetadataSchema = inputMetadata == null ? null : new SchemaUtils().getSchemaCode(inputMetadata);
 		String referenceMetadataSchema = new SchemaUtils().getSchemaCode(referenceMetadata);
 
-		if (!inputMetadataSchema.endsWith("_default")) {
+		if (inputMetadataSchema != null && !inputMetadataSchema.endsWith("_default")) {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata, NUMBER);
 		}
 
@@ -31,7 +31,7 @@ public class AggregatedDataEntry implements DataEntry {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("referenceMetadata", referenceMetadata, REFERENCE);
 		}
 
-		if (!inputMetadataSchema.equals(referenceMetadataSchema)) {
+		if (inputMetadataSchema != null && !inputMetadataSchema.equals(referenceMetadataSchema)) {
 			throw new DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType(inputMetadata, referenceMetadata);
 		}
 	}

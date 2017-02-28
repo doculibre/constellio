@@ -177,7 +177,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
 				.addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 
-		BatchProcessResults results = presenterService.execute(request);
+		BatchProcessResults results = presenterService.simulate(request);
 
 		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
 				tuple(records.folder_A04, "Baleine"),

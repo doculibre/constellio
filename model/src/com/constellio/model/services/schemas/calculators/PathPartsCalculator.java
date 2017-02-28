@@ -20,7 +20,7 @@ public class PathPartsCalculator implements MetadataValueCalculator<List<String>
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		return getPathsParts(parameters.get(pathDependency));
+		return getPathsParts(parameters.getId(), parameters.get(pathDependency));
 	}
 
 	@Override
@@ -43,22 +43,36 @@ public class PathPartsCalculator implements MetadataValueCalculator<List<String>
 		return Arrays.asList(pathDependency);
 	}
 
-	private List<String> getPathsParts(List<String> paths) {
+	private List<String> getPathsParts(String id, List<String> paths) {
 		Set<String> pathsParts = new HashSet<>();
 
 		for (String path : paths) {
+			String last = null;
 			if (path != null) {
 				String[] splittedPath = path.split("/");
 				if (splittedPath.length >= 3) {
 					String taxonomyCode = splittedPath[1];
 					for (int i = 2; i < splittedPath.length; i++) {
 						int level = i - 2;
-						pathsParts.add(taxonomyCode + "_" + level + "_" + splittedPath[i]);
+						String pathAncestorId = splittedPath[i];
+						if (!id.equals(pathAncestorId)) {
+							pathsParts.add(pathAncestorId);
+							last = pathAncestorId;
+						}
+
 					}
 				}
 			}
+			if (last != null) {
+				pathsParts.add("_LAST_" + last);
+			}
 
 		}
+
+		if (pathsParts.isEmpty() && !paths.isEmpty()) {
+			pathsParts.add("R");
+		}
+
 		return new ArrayList<>(pathsParts);
 	}
 
