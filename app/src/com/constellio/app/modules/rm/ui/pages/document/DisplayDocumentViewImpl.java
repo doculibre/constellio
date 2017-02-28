@@ -475,6 +475,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			//actionMenuButtons.add(sign);
 		}
 		startWorkflowButton = new StartWorkflowButton();
+		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);
@@ -489,10 +490,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
 		actionMenuButtons.add(finalizeButton);
-
-		if (presenter.hasPermissionToStartWorkflow()) {
-			actionMenuButtons.add(startWorkflowButton);
-		}
+		actionMenuButtons.add(startWorkflowButton);
 
 		return actionMenuButtons;
 	}

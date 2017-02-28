@@ -46,8 +46,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		});
 
-		if (presenter.areWorkflowsEnabled() && presenter.hasPermissionToStartWorkflow()) {
-			buttons.add(new StartWorkflowButton());
+		if (presenter.areWorkflowsEnabled()) {
+			Button startWorkflowButton = new StartWorkflowButton();
+			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
+			buttons.add(startWorkflowButton);
 		}
 		return buttons;
 	}

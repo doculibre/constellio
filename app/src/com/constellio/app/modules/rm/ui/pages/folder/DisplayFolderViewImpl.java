@@ -352,6 +352,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		};
 
 		startWorkflowButton = new StartWorkflowButton();
+		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
 		actionMenuButtons.add(addDocumentButton);
 		actionMenuButtons.add(addSubFolderButton);
@@ -370,9 +371,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(returnFolderButton);
 		actionMenuButtons.add(reminderReturnFolderButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
-		if (presenter.hasPermissionToStartWorkflow()) {
-			actionMenuButtons.add(startWorkflowButton);
-		}
+		actionMenuButtons.add(startWorkflowButton);
 
 		return actionMenuButtons;
 	}
