@@ -97,6 +97,12 @@ public class RMMigrationTo6_7 implements MigrationScript {
                     typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.CAPACITY)
             );
 
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.CHILD_LINEAR_SIZE_SUM)
+                    .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
+                    typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).getMetadata(StorageSpace.PARENT_STORAGE_SPACE),
+                    typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).getMetadata(StorageSpace.CAPACITY)
+            );
+
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
                     .defineDataEntry().asCalculated(StorageSpaceLinearSizeCalculator.class);
@@ -123,20 +129,19 @@ public class RMMigrationTo6_7 implements MigrationScript {
         SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
         SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
-        transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.CONTAINER_TYPE)
+        transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CONTAINER_TYPE)
                 .withInputType(MetadataInputType.LOOKUP));
-        transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));
-        transactionBuilder.add(manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(StorageSpace.DEFAULT_SCHEMA+"_"+StorageSpace.CONTAINER_TYPE));
-        transactionBuilder.add(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA+"_"+ContainerRecord.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));
+        transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));
+        transactionBuilder.add(manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CONTAINER_TYPE));
+        transactionBuilder.add(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));
 
         manager.execute(transactionBuilder.build());
     }
 
     private void reloadEmailTemplates() {
-        if(appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
+        if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
             reloadEmailTemplate("alertWhenDecommissioningListCreatedTemplate_en.html", RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
-        }
-        else {
+        } else {
             reloadEmailTemplate("alertWhenDecommissioningListCreatedTemplate.html", RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
         }
     }

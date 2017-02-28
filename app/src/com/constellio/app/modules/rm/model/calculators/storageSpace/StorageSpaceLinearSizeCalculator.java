@@ -17,12 +17,22 @@ public class StorageSpaceLinearSizeCalculator implements MetadataValueCalculator
 
     LocalDependency<Double> linearSizeSumParam = LocalDependency.toANumber(StorageSpace.LINEAR_SIZE_SUM);
 
+    LocalDependency<Double> childLinearSizeSumParam = LocalDependency.toANumber(StorageSpace.CHILD_LINEAR_SIZE_SUM);
+
+    LocalDependency<Double> numberOfChildSizeSumParam = LocalDependency.toANumber(StorageSpace.NUMBER_OF_CHILD);
+
     @Override
     public Double calculate(CalculatorParameters parameters) {
         Double enteredLinearSizeParam = parameters.get(this.enteredLinearSizeParam);
         Double enteredLinearSizeSumParam = parameters.get(this.linearSizeSumParam);
+        Double enteredChildLinearSizeSumParam = parameters.get(this.childLinearSizeSumParam);
+        Double enteredNumberOfChildSizeSumParam = parameters.get(this.numberOfChildSizeSumParam);
 
-        return enteredLinearSizeParam != null ? enteredLinearSizeParam : enteredLinearSizeSumParam;
+        if (enteredNumberOfChildSizeSumParam != null && enteredNumberOfChildSizeSumParam > 0) {
+            return enteredChildLinearSizeSumParam;
+        } else {
+            return enteredLinearSizeParam != null ? enteredLinearSizeParam : enteredLinearSizeSumParam;
+        }
     }
 
     @Override
@@ -42,6 +52,6 @@ public class StorageSpaceLinearSizeCalculator implements MetadataValueCalculator
 
     @Override
     public List<? extends Dependency> getDependencies() {
-        return asList(enteredLinearSizeParam, linearSizeSumParam);
+        return asList(enteredLinearSizeParam, linearSizeSumParam, childLinearSizeSumParam, numberOfChildSizeSumParam);
     }
 }
