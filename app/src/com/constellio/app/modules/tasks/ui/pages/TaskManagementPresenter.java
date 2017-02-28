@@ -290,4 +290,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		RMConfigs configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		return configs.areWorkflowsEnabled();
 	}
+
+	public boolean hasPermissionToStartWorkflow() {
+		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
+	}
 }

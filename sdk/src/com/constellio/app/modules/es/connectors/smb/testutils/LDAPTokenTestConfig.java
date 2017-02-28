@@ -1,8 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.testutils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.Duration;
@@ -43,20 +41,8 @@ public class LDAPTokenTestConfig {
 		return SDKPasswords.testSmbUsername();
 	}
 
-	public static List<String> getScheduleTimeList() {
-		return Arrays.asList();
-	}
-
 	public static List<String> getUsersWithoutGroupsBaseContextList() {
 		return  Arrays.asList("CN=Users,DC=test,DC=doculibre,DC=ca");
-	}
-
-	public static List<String> getUserFilterGroupsList() {
-		return Arrays.asList();
-	}
-
-	public static boolean isMembershipAutomaticDerivationActivated() {
-		return true;
 	}
 
 	public static RegexFilter getUserFiler() {
@@ -76,17 +62,8 @@ public class LDAPTokenTestConfig {
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(List<String> selectedCollectionsCodes){
-		return new LDAPUserSyncConfiguration(getUser(),
-				getPassword(),
-				getUserFiler(),
-				getGroupFiler(),
-				null,
-				getScheduleTimeList(),
-				getGroupBaseContextList(),
-				getUsersWithoutGroupsBaseContextList(),
-				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated(),
-				selectedCollectionsCodes);
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), null, getGroupBaseContextList(),
+				getUsersWithoutGroupsBaseContextList(), selectedCollectionsCodes);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(){
@@ -94,15 +71,6 @@ public class LDAPTokenTestConfig {
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(Duration duration) {
-		return new LDAPUserSyncConfiguration(getUser(),
-				getPassword(),
-				getUserFiler(),
-				getGroupFiler(),
-				duration,
-				getScheduleTimeList(),
-				getGroupBaseContextList(),
-				getUsersWithoutGroupsBaseContextList(),
-				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated());
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), duration, getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
 	}
 }

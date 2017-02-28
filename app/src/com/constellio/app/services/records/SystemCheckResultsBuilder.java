@@ -3,9 +3,7 @@ package com.constellio.app.services.records;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Language;
@@ -113,6 +111,10 @@ public class SystemCheckResultsBuilder {
 
 	public void addNewValidationError(RecordServicesException.ValidationException validationException) {
 		results.errors.addAll(validationException.getErrors().getValidationErrors());
+	}
+
+	public void addNewValidationError(Class<?> clazz, String errorCode, Map<String, Object> parameters) {
+		results.errors.add(clazz, errorCode, parameters);
 	}
 
 	public <T> T get(String key) {
