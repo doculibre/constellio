@@ -26,11 +26,11 @@ public class TasksMigrationTo7_0 implements MigrationScript {
     }
 
     public void updateRole(AppLayerFactory factory, String collection) {
-        RolesManager rolesManager = factory.getModelLayerFactory().getRolesManager();
-        Role administrator = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
-        List<String> permissions = new ArrayList<>(administrator.getOperationPermissions());
-        permissions.add(TasksPermissionsTo.START_WORKFLOWS);
-
-        rolesManager.updateRole(administrator.withPermissions(permissions));
+//        RolesManager rolesManager = factory.getModelLayerFactory().getRolesManager();
+//        Role administrator = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
+//        List<String> permissions = new ArrayList<>(administrator.getOperationPermissions());
+//        permissions.add(TasksPermissionsTo.START_WORKFLOWS);
+//
+//        rolesManager.updateRole(administrator.withPermissions(permissions));
     }
 }
