@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -121,11 +122,12 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
         importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
 
-        DecommissioningList decommissioningList40 = rm.getDecommissioningListWithLegacyId("40");
-        List<DecomListFolderDetail> decomListFolderDetails = decommissioningList40.getFolderDetails();
-        assertThat(decommissioningList40.getDescription()).isNull();
-        assertThat(decommissioningList40.getTitle()).isEqualTo("test");
+        DecommissioningList decomList;
 
+        decomList = rm.getDecommissioningListWithLegacyId("40");
+        List<DecomListFolderDetail> decomListFolderDetails = decomList.getFolderDetails();
+        assertThat(decomList.getDescription()).isNull();
+        assertThat(decomList.getTitle()).isEqualTo("test");
         assertThat(decomListFolderDetails.get(0).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("660").getId());
         assertThat(decomListFolderDetails.get(0).getContainerRecordId()).isEqualTo("412903");
         assertThat(decomListFolderDetails.get(0).isFolderExcluded()).isTrue();
@@ -137,22 +139,26 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(decomListFolderDetails.get(1).isFolderExcluded()).isFalse();
         assertThat(decomListFolderDetails.get(1).isReversedSort()).isFalse();
         assertThat(decomListFolderDetails.get(1).getFolderLinearSize()).isEqualTo(0.0);
-//
-//        assertThat(decomListFolderDetails.get(2).getFolderId()).isNull();
-//        assertThat(decomListFolderDetails.get(2).getContainerRecordId()).isEqualTo("412905");
-//        assertThat(decomListFolderDetails.get(2).isFolderExcluded()).isFalse();
-//        assertThat(decomListFolderDetails.get(2).isReversedSort()).isFalse();
-//        assertThat(decomListFolderDetails.get(2).getFolderLinearSize()).isEqualTo(0.0);
 
-//        DecommissioningList decommissioningList41 = rm.getDecommissioningListWithLegacyId("41");
-//        decomListFolderDetails = decommissioningList41.getFolderDetails();
-//        List<DecomListContainerDetail> decomListContainerDetails = decommissioningList41.getContainerDetails();
-//        assertThat(decommissioningList41.getDescription()).isNull();
-//        assertThat(decommissioningList41.getTitle()).isEqualTo("Decommissioning list sans folder details");
-//        assertThat(decomListFolderDetails.size()).isEqualTo(0);
-//
-//        assertThat(decomListContainerDetails.get(0).getContainerRecordId()).isEqualTo("412903");
-//        assertThat(decomListContainerDetails.get(0).isFull()).isTrue();
+        decomList = rm.getDecommissioningListWithLegacyId("41");
+        decomListFolderDetails = decomList.getFolderDetails();
+        List<DecomListContainerDetail> decomListContainerDetails = decomList.getContainerDetails();
+        assertThat(decomList.getDescription()).isNull();
+        assertThat(decomList.getTitle()).isEqualTo("test41");
+        assertThat(decomListFolderDetails.size()).isEqualTo(0);
+
+        assertThat(decomListContainerDetails.get(0).getContainerRecordId()).isEqualTo("412903");
+        assertThat(decomListContainerDetails.get(0).isFull()).isTrue();
+
+        decomList = rm.getDecommissioningListWithLegacyId("42");
+        List<Comment> decomListComments = decomList.getComments();
+        assertThat(decomList.getTitle()).isEqualTo("test42");
+        assertThat(decomListComments.get(0).getMessage()).isEqualTo("message test");
+        assertThat(decomListComments.get(0).getUserId()).isEqualTo("007");
+        assertThat(decomListComments.get(0).getUsername()).isEqualTo("charlocool");
+        assertThat(decomListComments.get(0).getDateTime()).isInstanceOf(LocalDateTime.class);
+
+        assertThat(decomListComments.get(1).getMessage()).isEqualTo("super message");
     }
 
     @Test

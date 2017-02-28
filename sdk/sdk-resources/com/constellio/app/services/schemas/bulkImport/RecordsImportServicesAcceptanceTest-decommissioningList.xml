@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <records>
-	<record id="40">
+    <record id="40">
         <description></description>
         <title>test</title>
         <folderDetails multivalue="true" type="structure">
-            <item containerRecordId="412903" folderId="00000000087" folderExcluded="true" reversedSort="true" folderLinearSize="42.0"/>
-			<item containerRecordId="412904" folderId="00000000088"/>
-			<item containerRecordId="412905"/>
+            <item containerRecordId="412903" folderId="00000000087" folderExcluded="true" reversedSort="true"
+                  folderLinearSize="42.0"/>
+            <item containerRecordId="412904" folderId="00000000088"/>
+            <item containerRecordId="412905"/>
         </folderDetails>
+    </record>
+    <record id="41">
+        <description></description>
+        <title>test41</title>
+        <containerDetails multivalue="true" type="structure">
+            <item containerRecordId="412903" full="true"/>
+        </containerDetails>
+    </record>
+    <record id="42">
+        <description></description>
+        <title>test42</title>
+        <comments multivalue="true" type="structure">
+            <item message="message test" username="charlocool" userId="007" dateTime="2017-02-28"/>
+            <item message="super message" username="charlocool" userId="007" dateTime="2017-02-28"/>
+        </comments>
     </record>
 </records>
