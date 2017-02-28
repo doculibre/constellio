@@ -414,6 +414,14 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			item.getItemProperty("recordId").setValue(referenceDisplay);
 		}
 
+		Button clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.clearSelectionButtonClicked();
+			}
+		};
+		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
+
 		SelectionTableAdapter selectionTableAdapter = new SelectionTableAdapter(selectionTable) {
 			@Override
 			public boolean isSelected(Object itemId) {
@@ -428,6 +436,11 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				refreshButtons();
 			}
 		};
+		Component component = selectionTableAdapter.getComponent(0);
+		HorizontalLayout topButtonsLayout = new HorizontalLayout(component, clearSelectionButton);
+		topButtonsLayout.setSpacing(true);
+		selectionTableAdapter.addComponent(topButtonsLayout, 0);
+		selectionTableAdapter.removeComponent(component);
 
 		actionMenuLayout = new VerticalLayout();
 		actionMenuLayout.addStyleName("header-selection-panel-actions");
@@ -441,14 +454,6 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
 
-		Button clearSelectionButton = new BaseButton($("ConstellioHeader.clearSelection")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.clearSelectionButtonClicked();
-			}
-		};
-		clearSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
-
 		Button closeButton = new BaseButton($("ConstellioHeader.close")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -456,13 +461,13 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		};
 
-		buttonsLayout.addComponents(clearSelectionButton, closeButton);
-		buttonsLayout.setDefaultComponentAlignment(Alignment.BOTTOM_LEFT);
+		buttonsLayout.addComponents(closeButton);
+		buttonsLayout.setDefaultComponentAlignment(Alignment.BOTTOM_RIGHT);
 		buttonsLayout.setSpacing(true);
 
 		selectionPanel.addComponent(selectionLayout);
 		selectionPanel.addComponent(buttonsLayout);
-		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_LEFT);
+		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_RIGHT);
 
 		selectionLayout.addComponent(selectionTableAdapter);
 		selectionLayout.addComponent(selectionActionMenu);
