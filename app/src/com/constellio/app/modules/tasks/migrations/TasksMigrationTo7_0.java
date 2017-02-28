@@ -11,6 +11,8 @@ import com.constellio.model.services.security.roles.RolesManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+
 /**
  * Created by Marco on 2017-02-27.
  */
@@ -26,11 +28,8 @@ public class TasksMigrationTo7_0 implements MigrationScript {
     }
 
     public void updateRole(AppLayerFactory factory, String collection) {
-//        RolesManager rolesManager = factory.getModelLayerFactory().getRolesManager();
-//        Role administrator = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
-//        List<String> permissions = new ArrayList<>(administrator.getOperationPermissions());
-//        permissions.add(TasksPermissionsTo.START_WORKFLOWS);
-//
-//        rolesManager.updateRole(administrator.withPermissions(permissions));
+        RolesManager rolesManager = factory.getModelLayerFactory().getRolesManager();
+        Role administrator = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
+        rolesManager.updateRole(administrator.withNewPermissions(asList(TasksPermissionsTo.START_WORKFLOWS)));
     }
 }
