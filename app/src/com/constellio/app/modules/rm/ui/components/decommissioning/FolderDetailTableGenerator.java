@@ -143,7 +143,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
 		visibleColumns.add(MEDIUM);
 
-		if (!inValidationStatus) {
+		if (!inValidationStatus && presenter.canCurrentUserManageStorageSpaces()) {
 			table.addGeneratedColumn(CONTAINER, this);
 			table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
 			visibleColumns.add(CONTAINER);

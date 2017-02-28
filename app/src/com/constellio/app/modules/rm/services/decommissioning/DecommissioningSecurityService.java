@@ -1,11 +1,8 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainPresenter;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -13,9 +10,14 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecommissioningSecurityService {
 	RMSchemasRecordsServices rm;
@@ -31,7 +33,8 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean hasAccessToDecommissioningMainPage(User user) {
-		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
+		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
+				|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).globally()) {
 			return true;
 		}
 		return searchServices.hasResults(
@@ -44,7 +47,12 @@ public class DecommissioningSecurityService {
 	}
 
 	private boolean hasProcessPermissionOnList(User user, DecommissioningList list) {
-		return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+		if(isListOfSearchTypeTransfer(list)) {
+			return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST) ||
+					hasPermissionOnList(user, list, RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST);
+		} else {
+			return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+		}
 	}
 
 	private boolean hasManageDecommissioningPermissionOnList(User user, DecommissioningList list) {
@@ -52,7 +60,12 @@ public class DecommissioningSecurityService {
 	}
 
 	private boolean hasEditPermissionOnList(User user, DecommissioningList list) {
-		return hasPermissionOnList(user, list, RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
+		if(isListOfSearchTypeTransfer(list)) {
+			return hasPermissionOnList(user, list, RMPermissionsTo.EDIT_DECOMMISSIONING_LIST) ||
+					hasPermissionOnList(user, list, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST);
+		} else {
+			return hasPermissionOnList(user, list, RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
+		}
 	}
 
 	private boolean hasPermissionOnList(User user, DecommissioningList list, String permission) {
@@ -70,7 +83,7 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean canCreateLists(User user) {
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething();
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() || user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
 	}
 
 	public boolean canAskApproval(DecommissioningList list, User user) {
@@ -98,8 +111,9 @@ public class DecommissioningSecurityService {
 	}
 
 	public List<String> getVisibleTabsInDecommissioningMainPage(User user) {
+		List<String> tabs;
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
-			return Arrays.asList(
+			tabs = new ArrayList<>(Arrays.asList(
 					DecommissioningMainPresenter.CREATE,
 					DecommissioningMainPresenter.GENERATED,
 					DecommissioningMainPresenter.PENDING_VALIDATION,
@@ -108,16 +122,29 @@ public class DecommissioningSecurityService {
 					DecommissioningMainPresenter.PENDING_APPROVAL,
 					DecommissioningMainPresenter.TO_APPROVE,
 					DecommissioningMainPresenter.APPROVED,
-					DecommissioningMainPresenter.PROCESSED);
+					DecommissioningMainPresenter.PROCESSED));
 		} else if (user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).onSomething()) {
-			return Arrays.asList(
+			tabs = new ArrayList<>(Arrays.asList(
 					DecommissioningMainPresenter.PENDING_VALIDATION,
 					DecommissioningMainPresenter.TO_VALIDATE,
 					DecommissioningMainPresenter.VALIDATED,
-					DecommissioningMainPresenter.TO_APPROVE);
+					DecommissioningMainPresenter.TO_APPROVE));
 		} else {
-			return Arrays.asList(DecommissioningMainPresenter.TO_VALIDATE);
+			tabs = new ArrayList<>(Arrays.asList(DecommissioningMainPresenter.TO_VALIDATE));
 		}
+
+		if(!tabs.contains(DecommissioningMainPresenter.CREATE) && user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally()) {
+			tabs.add(0, DecommissioningMainPresenter.CREATE);
+		}
+		if(!tabs.contains(DecommissioningMainPresenter.GENERATED) && user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).globally()) {
+			if(tabs.contains(DecommissioningMainPresenter.CREATE)) {
+				tabs.add(1, DecommissioningMainPresenter.GENERATED);
+			}
+			else {
+				tabs.add(0, DecommissioningMainPresenter.GENERATED);
+			}
+		}
+		return tabs;
 	}
 	
 	public boolean canCreateContainers(User user) {
@@ -127,5 +154,8 @@ public class DecommissioningSecurityService {
 	public boolean hasAccessToManageContainersPage(User user) {
 		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
-	
+
+	public boolean isListOfSearchTypeTransfer(DecommissioningList list) {
+		return DecommissioningListType.FOLDERS_TO_TRANSFER.equals(list.getDecommissioningListType()) && OriginStatus.ACTIVE.equals(list.getOriginArchivisticStatus());
+	}
 }

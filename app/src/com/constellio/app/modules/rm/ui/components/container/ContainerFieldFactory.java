@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.components.RMRecordFieldFactory;
 import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
@@ -26,6 +27,10 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 		switch (metadataVO.getLocalCode()) {
 			case ContainerRecord.STORAGE_SPACE:
 				field = new ContainerStorageSpaceLookupField(containerRecordType, presenter);
+				if(!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
+					field.setVisible(false);
+					field.setEnabled(false);
+				}
 				break;
 			default:
 				field = super.build(recordVO, metadataVO);

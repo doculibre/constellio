@@ -477,9 +477,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		if (container.size() > 0) {
 			container.setValue(containerVOs.getIdByIndex(container.size() - 1));
 		}
+		container.setEnabled(presenter.canCurrentUserManageStorageSpaces());
+		container.setVisible(presenter.canCurrentUserManageStorageSpaces());
 
 		Button placeFolders = new Button($("DecommissioningListView.placeInContainer"));
-		placeFolders.setEnabled(container.size() > 0);
+		placeFolders.setEnabled(container.size() > 0 && presenter.canCurrentUserManageStorageSpaces());
+		placeFolders.setVisible(presenter.canCurrentUserManageStorageSpaces());
 		placeFolders.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -498,8 +501,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		});
 
+
 		Button createContainer = new Button($("DecommissioningListView.createContainer"));
 		createContainer.addStyleName(ValoTheme.BUTTON_LINK);
+		createContainer.setEnabled(presenter.canCurrentUserManageStorageSpaces());
+		createContainer.setVisible(presenter.canCurrentUserManageStorageSpaces());
 		createContainer.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -509,6 +515,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		Button searchContainer = new Button($("DecommissioningListView.searchContainer"));
 		searchContainer.addStyleName(ValoTheme.BUTTON_LINK);
+		searchContainer.setEnabled(presenter.canCurrentUserManageStorageSpaces());
+		searchContainer.setVisible(presenter.canCurrentUserManageStorageSpaces());
 		searchContainer.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -534,6 +542,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				presenter.refreshView();
 			}
 		});
+		autoFillContainers.setEnabled(presenter.canCurrentUserManageStorageSpaces());
+		autoFillContainers.setVisible(presenter.canCurrentUserManageStorageSpaces());
 
 		HorizontalLayout controls = new HorizontalLayout(label, container, placeFolders, createContainer, searchContainer, autoFillContainers);
 		controls.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
