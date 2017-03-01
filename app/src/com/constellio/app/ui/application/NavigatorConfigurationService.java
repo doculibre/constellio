@@ -168,7 +168,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String EDIT_METADATA_EXTRACTOR = "editMetadataExtractor";
 
 	public static final String TAXONOMY_SEARCH = "taxonomySearch";
-	
+
 	public static final String SYSTEM_CHECK = "systemCheck";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();

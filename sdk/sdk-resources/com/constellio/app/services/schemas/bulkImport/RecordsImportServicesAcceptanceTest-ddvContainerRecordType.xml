@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<records datePattern="yyyy-MM-dd" datetimePattern="yyyy-MM-dd HH:mm:ss">
+  <record id="60001">
+    <code>FB00</code>
+    <title>boite_de_base</title>
+  </record>
+  <record id="60002">
+    <code>FB01</code>
+    <title>boite_13 cm</title>
+  </record>
+  <record id="60003">
+    <code>FB02</code>
+    <title>boite_18 cm</title>
+  </record>
+  <record id="60004">
+    <code>FB03</code>
+    <title>boite_30 cm</title>
+  </record>
+  <record id="60005">
+    <code>FB04</code>
+    <title>boite_Chèques et irréguliers</title>
+  </record>
+  <record id="60023">
+    <code>FB05</code>
+    <title>boite_Boite chaussures</title>
+  </record>
+  <record id="60024">
+    <code>FB06</code>
+    <title>boite_13 cm C</title>
+  </record>
+  <record id="60025">
+    <code>FB07</code>
+    <title>boite_Irrégulier</title>
+  </record>
+  <record id="60035">
+    <code>FB08</code>
+    <title>boite_Boîte diplôme</title>
+  </record>
+  <record id="60036">
+    <code>FB09</code>
+    <title>boite_Boîtes cassettes-vidéos</title>
+  </record>
+  <record id="60041">
+    <code>FB10</code>
+    <title>boite_Plans</title>
+  </record>
+</records>
