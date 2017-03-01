@@ -1,6 +1,4 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
-
-import com.constellio.app.modules.batchImport.BatchImportPlugin;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
@@ -13,7 +11,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
-import com.constellio.migration.server.MigrationServicesPlugin;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -82,9 +79,6 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		givenBackgroundThreadsEnabled();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
-
-		givenInstalledModule(BatchImportPlugin.class);
-		givenInstalledModule(MigrationServicesPlugin.class);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
