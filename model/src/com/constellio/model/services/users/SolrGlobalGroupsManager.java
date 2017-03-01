@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
@@ -73,7 +74,7 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	public void logicallyRemoveGroup(GlobalGroup group) {
 		Transaction transaction = new Transaction();
 		for (GlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
-			transaction.add(((SolrGlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE));
+			transaction.add(((SolrGlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE).set(Schemas.LOGICALLY_DELETED_STATUS, true));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);

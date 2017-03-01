@@ -132,4 +132,6 @@ public abstract class SchemasSetup {
 	public void refresh() {
 		types = manager.getSchemaTypes(collection);
 	}
+
+
 }

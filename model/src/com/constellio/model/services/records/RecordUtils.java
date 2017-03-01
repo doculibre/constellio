@@ -226,17 +226,6 @@ public class RecordUtils {
 		return false;
 	}
 
-	public List<String> getModifiedMetadatasDataStoreCodes(List<Record> records) {
-		Set<String> modifiedMetadatasCodes = new HashSet<>();
-		for (Record record : records) {
-			RecordImpl recordImpl = (RecordImpl) record;
-			Map<String, Object> modifiedValues = recordImpl.getModifiedValues();
-			modifiedMetadatasCodes.addAll(modifiedValues.keySet());
-		}
-
-		return new ArrayList<>(modifiedMetadatasCodes);
-	}
-
 	SchemaUtils newSchemaUtils() {
 		return new SchemaUtils();
 	}

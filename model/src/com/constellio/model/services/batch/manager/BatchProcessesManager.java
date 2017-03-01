@@ -2,14 +2,12 @@ package com.constellio.model.services.batch.manager;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import javafx.scene.layout.Background;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jdom2.Document;
@@ -28,7 +26,6 @@ import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;

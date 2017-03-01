@@ -24,6 +24,7 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -305,6 +306,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEncrypted(readBooleanWithDefaultValue(encryptedStringValue, false));
 		}
 
+		String transientStringValue = metadataElement.getAttributeValue("transiency");
+		if (inheriteGlobalMetadata && transientStringValue == null) {
+			metadataBuilder.setTransiency(globalMetadataInCollectionSchema.getTransiency());
+		} else {
+			metadataBuilder.setTransiency(readEnum(transientStringValue, MetadataTransiency.class));
+		}
+
 		String searchableStringValue = metadataElement.getAttributeValue("searchable");
 		if (inheriteGlobalMetadata && searchableStringValue == null) {
 			metadataBuilder.setSearchable(globalMetadataInCollectionSchema.isSearchable());
@@ -392,6 +400,10 @@ public class MetadataSchemaXMLReader3 {
 		setPopulateConfigs(metadataBuilder, metadataElement);
 
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
+	}
+
+	private <T> T readEnum(String code, Class<T> clazz) {
+		return (T) EnumWithSmallCodeUtils.toEnum((Class) clazz, code);
 	}
 
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {

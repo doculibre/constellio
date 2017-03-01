@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -407,5 +408,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void refreshEvents() {
 		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		view.setEvents(getEventsDataProvider());
+	}
+
+	public boolean hasPermissionToStartWorkflow() {
+		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
 	}
 }

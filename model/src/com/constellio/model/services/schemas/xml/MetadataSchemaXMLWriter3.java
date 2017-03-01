@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataLayerLogger;
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -23,6 +24,7 @@ import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
@@ -241,6 +243,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isEncrypted()) {
 			metadataElement.setAttribute("encrypted", writeBoolean(metadata.isEncrypted()));
 		}
+		if (metadata.getTransiency() != null && metadata.getTransiency() != MetadataTransiency.PERSISTED) {
+			metadataElement.setAttribute("transiency", writeEnum(metadata.getTransiency()));
+		}
 		if (metadata.isChildOfRelationship()) {
 			metadataElement.setAttribute("childOfRelationship", writeBoolean(metadata.isChildOfRelationship()));
 		}
@@ -361,6 +366,11 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (globalMetadataInCollection.isEncrypted() != metadata.isEncrypted()) {
 			metadataElement.setAttribute("encrypted", writeBoolean(metadata.isEncrypted()));
+			different = true;
+		}
+
+		if (globalMetadataInCollection.getTransiency() != metadata.getTransiency()) {
+			metadataElement.setAttribute("transiency", writeEnum(metadata.getTransiency()));
 			different = true;
 		}
 		if (globalMetadataInCollection.isChildOfRelationship() != metadata.isChildOfRelationship()) {
@@ -485,6 +495,10 @@ public class MetadataSchemaXMLWriter3 {
 
 	private String writeBoolean(boolean enabled) {
 		return enabled ? "t" : "f";
+	}
+
+	private String writeEnum(EnumWithSmallCode value) {
+		return value.getCode();
 	}
 
 	private Element toPopulateConfigsElement(MetadataPopulateConfigs populateConfigs) {

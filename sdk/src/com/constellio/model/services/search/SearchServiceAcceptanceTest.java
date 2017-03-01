@@ -5,6 +5,10 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -41,6 +45,10 @@ import org.mockito.ArgumentCaptor;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.ids;
@@ -2693,6 +2701,53 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenTransientLazyMetadataThenNotSavedAndRetrievedOnRecordRecalculate()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withANumberMetadata(
+				whichIsCalculatedUsing(TitleLengthCalculator.class),
+				whichHasTransiency(TRANSIENT_LAZY)));
+
+		//TODO records in cache should lost volatile metadatas
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+
+		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
+
+		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata())).isNull();
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+
+		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
+		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
+		assertThat(recordInCache.get(zeSchema.numberMetadata())).isNull();
+	}
+
+	@Test
+	public void givenTransientEagerMetadataThenNotSavedAndRetrievedOnRecordRetrieval()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withANumberMetadata(
+				whichIsCalculatedUsing(TitleLengthCalculator.class),
+				whichHasTransiency(TRANSIENT_EAGER)));
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+
+		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
+
+		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata()))
+				.isEqualTo(15.0);
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+
+		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
+		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
+		assertThat(recordInCache.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+
+	}
+
 	private void givenSchemasInDiferentsCollections()
 			throws Exception {
 
@@ -2958,5 +3013,35 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	private Record newRecordOfOotherSchemaInCollection2() {
 		return new TestRecord(otherSchemaInCollection2);
+	}
+
+	public static final class TitleLengthCalculator implements MetadataValueCalculator<Double> {
+
+		LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE.getLocalCode());
+
+		@Override
+		public Double calculate(CalculatorParameters parameters) {
+			return (double) parameters.get(titleDependency).length();
+		}
+
+		@Override
+		public Double getDefaultValue() {
+			return 0.0;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return MetadataValueType.NUMBER;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return asList(titleDependency);
+		}
 	}
 }

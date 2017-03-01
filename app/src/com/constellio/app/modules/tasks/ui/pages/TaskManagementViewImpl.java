@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -45,8 +46,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		});
 
-		if (presenter.areWorkflowsEnabled()) {
-			buttons.add(new StartWorkflowButton());
+		if (presenter.areWorkflowsEnabled() && presenter.hasPermissionToStartWorkflow()) {
+			Button startWorkflowButton = new StartWorkflowButton();
+			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
+			buttons.add(startWorkflowButton);
 		}
 		return buttons;
 	}

@@ -113,7 +113,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		List<Taxonomy> taxonomies = getModelLayerFactory().getTaxonomiesManager().getEnabledTaxonomies(zeCollection);
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(zeCollection);
-		impactCalculator = new ModificationImpactCalculator(types, taxonomies, searchServices);
+		impactCalculator = new ModificationImpactCalculator(types, taxonomies, searchServices, recordServices);
 	}
 
 	@Test

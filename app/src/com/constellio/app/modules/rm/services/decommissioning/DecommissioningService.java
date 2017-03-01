@@ -689,8 +689,7 @@ public class DecommissioningService {
 
 	private List<Record> getFoldersInContainer(ContainerRecord container, Metadata... metadatas) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folder.container()).isEqualTo(container))
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
+				from(rm.folderSchemaType()).where(rm.folder.container()).isEqualTo(container));
 		return searchServices.search(query);
 	}
 

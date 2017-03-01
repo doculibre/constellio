@@ -9,15 +9,21 @@ public class MetadataSchemaCalculatedInfos {
 	List<RecordPreparationStep> recordPreparationSteps;
 
 	List<Metadata> automaticMetadatas;
+	List<Metadata> lazyTransientsMetadatas;
+	List<Metadata> eagerTransientsMetadatas;
 	private List<Metadata> contentMetadatasForPopulate;
 
 	public MetadataSchemaCalculatedInfos(
 			List<RecordPreparationStep> recordPreparationSteps,
 			List<Metadata> automaticMetadatas,
-			List<Metadata> contentMetadatasForPopulate) {
+			List<Metadata> contentMetadatasForPopulate,
+			List<Metadata> lazyTransientsMetadatas,
+			List<Metadata> eagerTransientsMetadatas) {
 		this.recordPreparationSteps = recordPreparationSteps;
 		this.automaticMetadatas = automaticMetadatas;
 		this.contentMetadatasForPopulate = contentMetadatasForPopulate;
+		this.lazyTransientsMetadatas = lazyTransientsMetadatas;
+		this.eagerTransientsMetadatas = eagerTransientsMetadatas;
 	}
 
 	public List<RecordPreparationStep> getRecordPreparationSteps() {
@@ -30,5 +36,13 @@ public class MetadataSchemaCalculatedInfos {
 
 	public List<Metadata> getContentMetadatasForPopulate() {
 		return contentMetadatasForPopulate;
+	}
+
+	public List<Metadata> getLazyTransientMetadatas() {
+		return lazyTransientsMetadatas;
+	}
+
+	public List<Metadata> getEagerTransientMetadatas() {
+		return eagerTransientsMetadatas;
 	}
 }
