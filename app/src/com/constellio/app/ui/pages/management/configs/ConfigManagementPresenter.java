@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.configs;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.ui.entities.SystemConfigurationGroupVO;
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
@@ -15,6 +11,10 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ConfigManagementPresenter extends BasePresenter<ConfigManagementView> {
 
 	public ConfigManagementPresenter(ConfigManagementView view) {
@@ -22,6 +22,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 	}
 
 	public void saveButtonClicked(String groupCode, SystemConfigurationGroupdataProvider dataProvider) {
+		boolean isReindexationNeeded = false;
 		SystemConfigurationGroupVO systemConfigurationGroup = dataProvider.getSystemConfigurationGroup(groupCode);
 		if (!systemConfigurationGroup.isUpdated()) {
 			return;
@@ -46,6 +47,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 				SystemConfiguration systemConfiguration = previousConfigs.get(i);
 				SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 				if (systemConfigurationVO.isUpdated()) {
+					isReindexationNeeded = isReindexationNeeded || systemConfigurationsManager.doesSetValueRequireReindexing(systemConfiguration, systemConfigurationVO.getValue());
 					systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue());
 					systemConfigurationVO.afterSetValue();
 					systemConfigurationGroup.valueSave(i);
