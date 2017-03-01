@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,6 +29,9 @@ import org.jdom2.output.XMLOutputter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import org.joda.time.LocalDate;
@@ -35,6 +39,7 @@ import org.joda.time.LocalDate;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 /**
  * Created by Nicolas D'Amours & Charles Blanchette on 2017-01-16.
@@ -51,6 +56,7 @@ public class ReportUtils {
     private String collection;
     private String usr;
     private UserServices userServices;
+    private List<DataField> otherDataForContainer;
 
     public ReportUtils(String collection, AppLayerFactory appLayerFactory, String usr) {
         this.factory = appLayerFactory;
@@ -63,6 +69,13 @@ public class ReportUtils {
         this.numberOfCopies = 1;
         this.usr = usr;
         this.userServices = factory.getModelLayerFactory().newUserServices();
+        this.otherDataForContainer = getotherDataForContainer();
+    }
+
+    private List<DataField> getotherDataForContainer() {
+        List<DataField> data = new ArrayList<>();
+        data.add(new DataField("dispositionDate", DecommissioningService.class).setMethod("getDispositionDate", ContainerRecord.class).setInstance(new DecommissioningService(this.collection, this.factory)));
+        return data;
     }
 
     /**
@@ -103,14 +116,14 @@ public class ReportUtils {
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
                 if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                    List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+                    List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
                     List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
                     for (Record refRecords : referenceRecords) {
                         Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
                         refElementCode.setText(refRecords.get(Schemas.CODE) + "");
                         Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
                         refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
-                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        metadatas.addContent(asList(refElementCode, refElementTitle));
                     }
                 } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
                     if (fol.get(metadonnee.getCode()) != null) {
@@ -118,7 +131,7 @@ public class ReportUtils {
                         refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
                         Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
                         refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
-                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        metadatas.addContent(asList(refElementCode, refElementTitle));
                     }
                 } else {
                     Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
@@ -144,7 +157,7 @@ public class ReportUtils {
      */
     public String convertFolderWithIdentifierToXML(String id, ReportField... parameters) throws Exception {
         if (id == null) throw new NullArgumentException("The id is null !");
-        return convertFolderWithIdentifierToXML(Arrays.asList(id), parameters);
+        return convertFolderWithIdentifierToXML(asList(id), parameters);
     }
 
     /**
@@ -187,14 +200,14 @@ public class ReportUtils {
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
                     if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                        List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+                        List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
                         List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
                         for (Record refRecords : referenceRecords) {
                             Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
                             refElementCode.setText(refRecords.get(Schemas.CODE) + "");
                             Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
                             refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
-                            metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
                         }
                     } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
                         if (fol.get(metadonnee.getCode()) != null) {
@@ -202,7 +215,7 @@ public class ReportUtils {
                             refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
                             Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
                             refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
-                            metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
                         }
                     } else {
                         Element m = new Element(metadonnee.getLabel() != null ? escapeForXmlTag(metadonnee.getLabel()) : metadonnee.getCode().split("_")[2]);
@@ -256,14 +269,14 @@ public class ReportUtils {
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
                 if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                    List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
+                    List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
                     List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
                     for (Record refRecords : referenceRecords) {
                         Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
                         refElementCode.setText(refRecords.get(Schemas.CODE) + "");
                         Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
                         refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
-                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        metadatas.addContent(asList(refElementCode, refElementTitle));
                     }
                 } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
                     if (con.get(metadonnee.getCode()) != null) {
@@ -271,13 +284,20 @@ public class ReportUtils {
                         refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
                         Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
                         refElementTitle.setText(con.get(metadonnee.getCode()) + "");
-                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        metadatas.addContent(asList(refElementCode, refElementTitle));
                     }
                 } else {
                     Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
                     m.setText(metadonnee.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
                     metadatas.addContent(m);
                 }
+            }
+            for (DataField dataField : this.otherDataForContainer) {
+                Element e = new Element(dataField.getKey());
+                String value = dataField.calculate(new Object[]{con}) + "";
+                System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
+                e.setText(value);
+                metadatas.addContent(e);
             }
             container.setContent(metadatas);
             root.addContent(container);
@@ -297,7 +317,7 @@ public class ReportUtils {
      */
     public String convertContainerWithIdentifierToXML(String id, ReportField... parameters) throws Exception {
         if (id == null) throw new NullArgumentException("The id is null !");
-        return convertContainerWithIdentifierToXML(Arrays.asList(id), parameters);
+        return convertContainerWithIdentifierToXML(asList(id), parameters);
     }
 
     /**
@@ -339,14 +359,14 @@ public class ReportUtils {
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
                 if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                    List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? Arrays.asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : Arrays.asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
+                    List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
                     List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
                     for (Record refRecords : referenceRecords) {
                         Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
                         refElementCode.setText(refRecords.get(Schemas.CODE) + "");
                         Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
                         refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
-                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        metadatas.addContent(asList(refElementCode, refElementTitle));
                     }
                 } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
                     if (con.get(metadonnee.getCode()) != null) {
@@ -354,13 +374,20 @@ public class ReportUtils {
                         refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
                         Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
                         refElementTitle.setText(con.get(metadonnee.getCode()) + "");
-                        metadatas.addContent(Arrays.asList(refElementCode, refElementTitle));
+                        metadatas.addContent(asList(refElementCode, refElementTitle));
                     }
                 } else {
                     Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
                     m.setText(metadonnee.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
                     metadatas.addContent(m);
                 }
+            }
+            for (DataField dataField : this.otherDataForContainer) {
+                Element e = new Element(dataField.getKey());
+                String value = dataField.calculate(new Object[]{con}) + "";
+                System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
+                e.setText(value);
+                metadatas.addContent(e);
             }
             container.setContent(metadatas);
             root.addContent(container);
@@ -440,5 +467,45 @@ public class ReportUtils {
      */
     public static String escapeForXmlTag(String input) {
         return input.replace(" ", "_").replaceAll("[éèëê]", "e").replaceAll("[àâáä]", "a").replaceAll("[öòóô]", "o").replace("'", "").replaceAll("-", "_").replaceAll("[üùúû]", "u").replaceAll("[îìíï]", "i").replaceAll("[\\( \\)]", "").replaceAll("[&$%]", "").toLowerCase();
+    }
+
+    private class DataField {
+        private String key;
+        private Class clazz;
+        private String method;
+        private Object instance;
+        private Class<?>[] methodParams;
+
+        public DataField(String key, Class clazz) {
+            this.key = key;
+            this.clazz = clazz;
+        }
+
+        public DataField setMethod(String method, Class<?>... params) {
+            this.method = method;
+            this.methodParams = params;
+            return this;
+        }
+
+        public DataField setInstance(Object instance) {
+            this.instance = instance;
+            return this;
+        }
+
+        public String getKey() {
+            return this.key;
+        }
+
+        public Class getClazz() {
+            return this.clazz;
+        }
+
+        public String getMethod() {
+            return this.method;
+        }
+
+        public Object calculate(Object[] parameters) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+            return this.clazz.getMethod(this.method, this.methodParams).invoke(this.instance, parameters);
+        }
     }
 }

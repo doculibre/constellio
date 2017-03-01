@@ -177,8 +177,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         ByteArrayInputStream stream2 = new ByteArrayInputStream(xmlWithNullParameter.getBytes("UTF-8"));
         Document document2 = builder.build(stream2);
         Element element = (Element) document2.getRootElement().getChildren().get(0);
-        assertThat(element.getChild("metadatas").getChildren().size()).isEqualTo(rm.containerRecord.schema().getMetadatas().size());
-        assertThat(element.getChild("metadatas").getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac01().getTitle());
+        assertThat(element.getChild("metadatas").getChildren().size()).isGreaterThanOrEqualTo(rm.containerRecord.schema().getMetadatas().size());
+        assertThat(element.getChild("metadatas").getChild(rm.containerRecord.title().getLocalCode()).getValue()).isEqualTo(records.getContainerBac01().getTitle());
     }
 
     @Test
@@ -208,8 +208,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         Document docWithMultiple = builder.build(streamWithMultipleIds);
         List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
         assertThat(meta2.size()).isEqualTo(2);
-        assertThat(meta2.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac05().getTitle());
-        assertThat(meta2.get(1).getChild("metadatas").getChild(rm.containerRecord.title().getLabel(i18n.getLanguage()).toLowerCase()).getValue()).isEqualTo(records.getContainerBac07().getTitle());
+        assertThat(meta2.get(0).getChild("metadatas").getChild(rm.containerRecord.title().getLocalCode()).getValue()).isEqualTo(records.getContainerBac05().getTitle());
+        assertThat(meta2.get(1).getChild("metadatas").getChild(rm.containerRecord.title().getLocalCode()).getValue()).isEqualTo(records.getContainerBac07().getTitle());
     }
 
     @Test
