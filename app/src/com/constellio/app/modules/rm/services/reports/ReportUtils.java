@@ -107,40 +107,42 @@ public class ReportUtils {
             }
             parameters = temp.toArray(new ReportField[0]);
         }
-        for (Folder fol : foldersFound) {
-            Element folder = new Element("folder");
-            Element metadatas = new Element("metadatas");
-            for (ReportField metadonnee : parameters) {
-                MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+        for (int i = 0; i < this.numberOfCopies; i++) {
+            for (Folder fol : foldersFound) {
+                Element folder = new Element("folder");
+                Element metadatas = new Element("metadatas");
+                for (ReportField metadonnee : parameters) {
+                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
 //                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
-                if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+                    if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                    List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
-                    List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
-                    for (Record refRecords : referenceRecords) {
-                        Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
-                        refElementCode.setText(refRecords.get(Schemas.CODE) + "");
-                        Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
-                        refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
-                        metadatas.addContent(asList(refElementCode, refElementTitle));
+                        List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+                        List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
+                        for (Record refRecords : referenceRecords) {
+                            Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                            refElementCode.setText(refRecords.get(Schemas.CODE) + "");
+                            Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                            refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
+                        }
+                    } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
+                        if (fol.get(metadonnee.getCode()) != null) {
+                            Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
+                            refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
+                            Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
+                            refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
+                        }
+                    } else {
+                        Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
+                        m.setText(metadonnee.formatData(fol.get(metadonnee.getCode()) != null ? fol.get(metadonnee.getCode()) + "" : null));
+                        metadatas.addContent(m);
                     }
-                } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-                    if (fol.get(metadonnee.getCode()) != null) {
-                        Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-                        refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
-                        Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-                        refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
-                        metadatas.addContent(asList(refElementCode, refElementTitle));
-                    }
-                } else {
-                    Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
-                    m.setText(metadonnee.formatData(fol.get(metadonnee.getCode()) != null ? fol.get(metadonnee.getCode()) + "" : null));
-                    metadatas.addContent(m);
                 }
+                folder.setContent(metadatas);
+                root.addContent(folder);
             }
-            folder.setContent(metadatas);
-            root.addContent(folder);
         }
         XMLOutputter xmlOutputter = new XMLOutputter(DEV ? Format.getPrettyFormat() : Format.getCompactFormat());
         return xmlOutputter.outputString(document);
@@ -260,47 +262,49 @@ public class ReportUtils {
             }
             parameters = temp.toArray(new ReportField[0]);
         }
-        for (ContainerRecord con : containersFound) {
-            Element container = new Element("container");
-            Element metadatas = new Element("metadatas");
-            for (ReportField metadonnee : parameters) {
-                MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+        for (int i = 0; i < this.numberOfCopies; i++) {
+            for (ContainerRecord con : containersFound) {
+                Element container = new Element("container");
+                Element metadatas = new Element("metadatas");
+                for (ReportField metadonnee : parameters) {
+                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
 //                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
-                if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+                    if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                    List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
-                    List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
-                    for (Record refRecords : referenceRecords) {
-                        Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
-                        refElementCode.setText(refRecords.get(Schemas.CODE) + "");
-                        Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
-                        refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
-                        metadatas.addContent(asList(refElementCode, refElementTitle));
+                        List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
+                        List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
+                        for (Record refRecords : referenceRecords) {
+                            Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                            refElementCode.setText(refRecords.get(Schemas.CODE) + "");
+                            Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                            refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
+                        }
+                    } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
+                        if (con.get(metadonnee.getCode()) != null) {
+                            Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
+                            refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
+                            Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
+                            refElementTitle.setText(con.get(metadonnee.getCode()) + "");
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
+                        }
+                    } else {
+                        Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
+                        m.setText(metadonnee.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
+                        metadatas.addContent(m);
                     }
-                } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-                    if (con.get(metadonnee.getCode()) != null) {
-                        Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-                        refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
-                        Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-                        refElementTitle.setText(con.get(metadonnee.getCode()) + "");
-                        metadatas.addContent(asList(refElementCode, refElementTitle));
-                    }
-                } else {
-                    Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
-                    m.setText(metadonnee.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
-                    metadatas.addContent(m);
                 }
+                for (DataField dataField : this.otherDataForContainer) {
+                    Element e = new Element(dataField.getKey());
+                    String value = dataField.calculate(new Object[]{con}) + "";
+                    System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
+                    e.setText(value);
+                    metadatas.addContent(e);
+                }
+                container.setContent(metadatas);
+                root.addContent(container);
             }
-            for (DataField dataField : this.otherDataForContainer) {
-                Element e = new Element(dataField.getKey());
-                String value = dataField.calculate(new Object[]{con}) + "";
-                System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
-                e.setText(value);
-                metadatas.addContent(e);
-            }
-            container.setContent(metadatas);
-            root.addContent(container);
         }
         XMLOutputter xmlOutputter = new XMLOutputter(DEV ? Format.getPrettyFormat() : Format.getCompactFormat());
         return xmlOutputter.outputString(document);
@@ -350,47 +354,49 @@ public class ReportUtils {
             }
             parameters = temp.toArray(new ReportField[0]);
         }
-        for (ContainerRecord con : containersFound) {
-            Element container = new Element("container");
-            Element metadatas = new Element("metadatas");
-            for (ReportField metadonnee : parameters) {
-                MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+        for (int i = 0; i < this.numberOfCopies; i++) {
+            for (ContainerRecord con : containersFound) {
+                Element container = new Element("container");
+                Element metadatas = new Element("metadatas");
+                for (ReportField metadonnee : parameters) {
+                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
 //                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
-                if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+                    if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                    List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
-                    List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
-                    for (Record refRecords : referenceRecords) {
-                        Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
-                        refElementCode.setText(refRecords.get(Schemas.CODE) + "");
-                        Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
-                        refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
-                        metadatas.addContent(asList(refElementCode, refElementTitle));
+                        List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
+                        List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
+                        for (Record refRecords : referenceRecords) {
+                            Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                            refElementCode.setText(refRecords.get(Schemas.CODE) + "");
+                            Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                            refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
+                        }
+                    } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
+                        if (con.get(metadonnee.getCode()) != null) {
+                            Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
+                            refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
+                            Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
+                            refElementTitle.setText(con.get(metadonnee.getCode()) + "");
+                            metadatas.addContent(asList(refElementCode, refElementTitle));
+                        }
+                    } else {
+                        Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
+                        m.setText(metadonnee.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
+                        metadatas.addContent(m);
                     }
-                } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-                    if (con.get(metadonnee.getCode()) != null) {
-                        Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-                        refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
-                        Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-                        refElementTitle.setText(con.get(metadonnee.getCode()) + "");
-                        metadatas.addContent(asList(refElementCode, refElementTitle));
-                    }
-                } else {
-                    Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
-                    m.setText(metadonnee.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
-                    metadatas.addContent(m);
                 }
+                for (DataField dataField : this.otherDataForContainer) {
+                    Element e = new Element(dataField.getKey());
+                    String value = dataField.calculate(new Object[]{con}) + "";
+                    System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
+                    e.setText(value);
+                    metadatas.addContent(e);
+                }
+                container.setContent(metadatas);
+                root.addContent(container);
             }
-            for (DataField dataField : this.otherDataForContainer) {
-                Element e = new Element(dataField.getKey());
-                String value = dataField.calculate(new Object[]{con}) + "";
-                System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
-                e.setText(value);
-                metadatas.addContent(e);
-            }
-            container.setContent(metadatas);
-            root.addContent(container);
         }
         XMLOutputter xmlOutputter = new XMLOutputter(DEV ? Format.getPrettyFormat() : Format.getCompactFormat());
         return xmlOutputter.outputString(document);
