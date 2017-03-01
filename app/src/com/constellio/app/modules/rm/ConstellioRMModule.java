@@ -35,6 +35,7 @@ import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactory
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
+import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
@@ -97,6 +98,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 	public static final int DEFAULT_VOLATILE_FOLDER_CACHE_SIZE = 10000;
 	public static final int DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE = 100;
+	public static final int DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE = 100;
 
 	@Override
 	public String getName() {
@@ -267,6 +269,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
+		extensions.recordImportExtensions.add(new DecommissioningListImportExtension(collection, modelLayerFactory));
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
