@@ -1,17 +1,16 @@
 package com.constellio.app.ui.pages.search.batchProcessing.entities;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.*;
 
 public class BatchProcessRequest {
 
 	private List<String> ids = new ArrayList<>();
+
+	private LogicalSearchQuery query;
 
 	private Map<String, Object> modifiedMetadatas = new HashMap<>();
 
@@ -19,9 +18,15 @@ public class BatchProcessRequest {
 
 	private MetadataSchemaType schemaType;
 
-	public BatchProcessRequest(List<String> ids, User user,
-			MetadataSchemaType schemaType, Map<String, Object> modifiedMetadatas) {
-		this.ids = Collections.unmodifiableList(ids);
+	public BatchProcessRequest(List<String> ids, LogicalSearchQuery query, User user,
+							   MetadataSchemaType schemaType, Map<String, Object> modifiedMetadatas) {
+		if(ids != null) {
+			this.ids = Collections.unmodifiableList(ids);
+		} else {
+			this.ids = Collections.unmodifiableList(new ArrayList<String>());
+		}
+
+		this.query = query;
 		this.user = user;
 		this.schemaType = schemaType;
 		this.modifiedMetadatas = Collections.unmodifiableMap(modifiedMetadatas);
@@ -68,6 +73,15 @@ public class BatchProcessRequest {
 
 	public BatchProcessRequest setSchemaType(MetadataSchemaType schemaType) {
 		this.schemaType = schemaType;
+		return this;
+	}
+
+	public LogicalSearchQuery getQuery() {
+		return query;
+	}
+
+	public BatchProcessRequest setQuery(LogicalSearchQuery query) {
+		this.query = query;
 		return this;
 	}
 

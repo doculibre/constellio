@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.extensions.app;
 
-import java.util.List;
-
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.RecordWithCopyRetentionRuleFieldFactory;
@@ -9,6 +7,9 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.List;
 
 public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExtension {
 	public static final String BATCH_PROCESSING_FIELD_FACTORY_KEY = BatchProcessingRecordFactoryExtension.class.getName();
@@ -25,7 +26,7 @@ public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExt
 					(schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE))) {
 				recordFieldFactory = new RecordWithCopyRetentionRuleFieldFactory(schemaType,
 						params.getRecordIdThatCopyRetentionRuleDependantOn()
-						, params.getSelectedTypeId(), params.getSelectedRecords());
+						, params.getSelectedTypeId(), params.getQuery(), params.getSelectedRecords());
 			} else {
 				recordFieldFactory = super.newRecordFieldFactory(params);
 			}
@@ -40,11 +41,13 @@ public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExt
 		private final String schemaType;
 		private String recordIdThatCopyRetentionRuleDependantOn;
 		private List<String> selectedRecords;
+		private LogicalSearchQuery query;
 
 		public BatchProcessingFieldFactoryExtensionParams(String key, MetadataFieldFactory metadataFieldFactory,
-				String schemaType) {
+														  String schemaType, LogicalSearchQuery query) {
 			super(key, metadataFieldFactory);
 			this.schemaType = schemaType;
+			this.query = query;
 		}
 
 		public String getSchemaType() {
@@ -67,6 +70,15 @@ public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExt
 		public BatchProcessingFieldFactoryExtensionParams setRecordIdThatCopyRetentionRuleDependantOn(
 				String recordIdThatCopyRetentionRuleDependantOn) {
 			this.recordIdThatCopyRetentionRuleDependantOn = recordIdThatCopyRetentionRuleDependantOn;
+			return this;
+		}
+
+		public LogicalSearchQuery getQuery() {
+			return query;
+		}
+
+		public BatchProcessingFieldFactoryExtensionParams setQuery(LogicalSearchQuery query) {
+			this.query = query;
 			return this;
 		}
 

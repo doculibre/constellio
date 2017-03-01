@@ -34,6 +34,20 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.jdom2.Document;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
 public class BatchProcessesManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -88,6 +102,24 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return get(batchProcess.getId());
 	}
 
+	public BatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action, String username, String title) {
+		BatchProcess batchProcess = addBatchProcessInStandby(query, action, username, title);
+		markAsPending(batchProcess);
+		return get(batchProcess.getId());
+	}
+
+	public BatchProcess addPendingBatchProcess(List<String> records, BatchProcessAction action, String username, String title, String collection) {
+		BatchProcess batchProcess = addBatchProcessInStandby(records, action, username, title, collection);
+		markAsPending(batchProcess);
+		return get(batchProcess.getId());
+	}
+
+	public BatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action) {
+		BatchProcess batchProcess = addBatchProcessInStandby(query, action);
+		markAsPending(batchProcess);
+		return get(batchProcess.getId());
+	}
+
 	public BatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action) {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		String collection = condition.getCollection();
@@ -108,6 +140,34 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		long recordsCount = searchServices.getResultsCount(logicalQuery);
 		updateBatchProcesses(
 				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action));
+
+		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+	}
+
+	public BatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String username, String title) {
+		String collection = logicalQuery.getCondition().getCollection();
+		String id = newBatchProcessId();
+
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(logicalQuery);
+		String solrQuery = SolrUtils.toSingleQueryString(params);
+
+		LocalDateTime requestDateTime = getCurrentTime();
+
+		long recordsCount = searchServices.getResultsCount(logicalQuery);
+		updateBatchProcesses(
+				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action, username, title));
+
+		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+	}
+
+	public BatchProcess addBatchProcessInStandby(List<String> records, BatchProcessAction action, String username, String title, String collection) {
+		String id = newBatchProcessId();
+
+		LocalDateTime requestDateTime = getCurrentTime();
+
+		long recordsCount = records.size();
+		updateBatchProcesses(
+				newAddBatchProcessDocumentAlteration(id, records, collection, requestDateTime, (int) recordsCount, action, username, title));
 
 		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
@@ -141,7 +201,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	private BatchProcess withQueryIfBatchProcessFromPreviousFramework(BatchProcess batchProcess) {
-		if (batchProcess != null && batchProcess.getQuery() == null) {
+		if (batchProcess != null && batchProcess.getQuery() == null && batchProcess.getRecords() == null) {
 			List<String> records = getRecords(batchProcess);
 			LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER).isIn(records);
 			ModifiableSolrParams params = searchServices.addSolrModifiableParams(new LogicalSearchQuery(condition));
@@ -242,13 +302,39 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	DocumentAlteration newAddBatchProcessDocumentAlteration(final String id, final String query, final String collection,
-			final LocalDateTime requestDateTime,
-			final int recordsCount, final BatchProcessAction action) {
+															final LocalDateTime requestDateTime,
+															final int recordsCount, final BatchProcessAction action) {
 		return new DocumentAlteration() {
 
 			@Override
 			public void alter(Document document) {
 				newBatchProcessListWriter(document).addBatchProcess(id, query, collection, requestDateTime, recordsCount, action);
+			}
+		};
+	}
+
+	DocumentAlteration newAddBatchProcessDocumentAlteration(final String id, final String query, final String collection,
+															final LocalDateTime requestDateTime,
+															final int recordsCount, final BatchProcessAction action,
+															final String username, final String title) {
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).addBatchProcess(id, query, collection, requestDateTime, recordsCount, action, username, title);
+			}
+		};
+	}
+
+	DocumentAlteration newAddBatchProcessDocumentAlteration(final String id, final List<String> records, final String collection,
+															final LocalDateTime requestDateTime,
+															final int recordsCount, final BatchProcessAction action,
+															final String username, final String title) {
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).addBatchProcess(id, records, collection, requestDateTime, recordsCount, action, username, title);
 			}
 		};
 	}

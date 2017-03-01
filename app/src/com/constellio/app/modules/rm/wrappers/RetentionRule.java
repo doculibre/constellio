@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -15,6 +9,11 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class RetentionRule extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "retentionRule";
@@ -185,6 +184,16 @@ public class RetentionRule extends RecordWrapper {
 	public CopyRetentionRule getCopyRetentionRuleWithCode(String code) {
 		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {
 			if (code.equals(copyRetentionRule.getCode())) {
+				return copyRetentionRule;
+			}
+		}
+
+		return null;
+	}
+
+	public CopyRetentionRule getCopyRetentionRuleByString(String copyRule) {
+		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {
+			if (copyRule.equals(copyRetentionRule.toString())) {
 				return copyRetentionRule;
 			}
 		}
