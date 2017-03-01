@@ -397,22 +397,24 @@ public class LDAPServicesImpl implements LDAPServices {
 	@Override
 	public List<String> getTestSynchronisationGroups(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		List<String> returnGroups = new ArrayList<>();
+		Set<String> returnGroups = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-				ldapServerConfiguration.getFollowReferences(), activeDirectory);
-		if (ctx != null) {
-			Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
-					ldapUserSyncConfiguration.getGroupFilter());
-			if (!groups.isEmpty()) {
+		List<String> urls = ldapServerConfiguration.getUrls();
+		for(String url: urls) {
+			LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), url,
+					ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+					ldapServerConfiguration.getFollowReferences(), activeDirectory);
+			if (ctx != null) {
+				Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
+						ldapUserSyncConfiguration.getGroupFilter());
 				for (LDAPGroup group : groups) {
 					returnGroups.add(group.getSimpleName());
 				}
 			}
 		}
-		return returnGroups;
+
+		return new ArrayList<>(returnGroups);
 	}
 
 	@Override
@@ -449,21 +451,23 @@ public class LDAPServicesImpl implements LDAPServices {
 	@Override
 	public List<String> getTestSynchronisationUsersNames(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		List<String> returnUsers = new ArrayList<>();
+		Set<String> returnUsers = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-				ldapServerConfiguration.getFollowReferences(), activeDirectory);
-		if (ctx != null) {
-
-			Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
+		List<String> urls = ldapServerConfiguration.getUrls();
+		for(String url: urls) {
+			LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), url,
+					ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+					ldapServerConfiguration.getFollowReferences(), activeDirectory);
+			if (ctx != null) {
+			    Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
 					ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter());
 
-			returnUsers.addAll(users);
+				returnUsers.addAll(users);
+			}
 		}
 
-		return returnUsers;
+		return new ArrayList<>(returnUsers);
 	}
 
 
