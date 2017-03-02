@@ -4,9 +4,8 @@
         <description></description>
         <title>test</title>
         <folderDetails multivalue="true" type="structure">
-            <item containerRecordId="412903" folderId="00000000087" folderExcluded="true" reversedSort="true"
-                  folderLinearSize="42.0"/>
-            <item containerRecordId="412904" folderId="00000000088"/>
+            <item containerRecordId="412903" folderId="00000000103" folderExcluded="true" reversedSort="true" folderLinearSize="42.0"/>
+            <item containerRecordId="412904" folderId="00000000104"/>
             <item containerRecordId="412905"/>
         </folderDetails>
     </record>

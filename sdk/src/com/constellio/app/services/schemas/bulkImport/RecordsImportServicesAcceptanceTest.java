@@ -114,6 +114,13 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
     }
 
+    /**
+     * Ce test passe super bien lorsqu'il est lancé en solo.
+     * Il faudrait voir pour ce qui est du folderId,
+     * il ne faudrait pas qu'il soit le id mais plutôt le legacy id
+     * dans le xml.
+     * @throws Exception
+     */
     @Test
     public void whenImportingZipOfXMLFilesDecommissioningListThenImportedCorrectly() throws Exception {
 
@@ -161,17 +168,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(decomListComments.get(1).getMessage()).isEqualTo("super message");
     }
 
-    @Test
-    public void petitTest() throws Exception {
-
-        File zipFile = buildZipWith("administrativeUnit.xml", "category.xml", "containerRecord.xml", "ddvContainerRecordType.xml", "folder.xml", "document.xml",
-                "retentionRule.xml", "ddvDocumentType.xml", "decommissioningList.xml");
-
-        importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
-        System.out.println(rm.getFolderWithLegacyId("670").getId());
-    }
-
-
     @Test(expected = RecordServicesRuntimeException.IdAlreadyExisting.class)
     public void givenRecordsWithIdAlreadyExistingWhenImportingZipOfXMLFilesWithRealIdsThenException()
             throws Exception {
@@ -217,7 +213,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         givenTimeIs(shishOClock);
 
         Folder folder660 = rm.getFolderWithLegacyId("660");
-        System.out.println("Je suis là : " + folder660.getId());
         assertThat(folder660.getId()).isNotEqualTo("660");
         assertThat(folder660.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
         assertThat(folder660.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
