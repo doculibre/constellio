@@ -17,6 +17,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.sdk.tests.AbstractConstellioTest;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.jdom.Document;
@@ -63,8 +64,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void createReportLabelAndAssignData() throws Exception {
         String title = "test REcords 1";
-        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
-        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
+        File file = getFile("Avery_5162_Vide.jasper");
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
         Printable r = rm.newPrintableLabel();
         r.setTitle(title);
@@ -82,8 +83,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void createRecordsLabelAndAssignData() throws Exception {
         String title = "Test records 2";
-        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
-        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
+        File file = getFile("Avery_5162_Vide.jasper");
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
         Printable r = rm.newPrintableLabel();
         PrintableLabel printableLabel = rm.newPrintableLabel();
@@ -259,5 +260,12 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         System.out.println(records.getCategory_X110().getCode());
         System.out.println(records.getCategory_X110().getTitle());
         System.out.println(xml);
+    }
+
+    private static File getFile(String name) {
+        File resourcesDir = AbstractConstellioTest.getResourcesDir();
+        String pathInResourcesDir =
+                ReportsRecordsAcceptTest.class.getName().replace(".", File.separator) + File.separator + name;
+        return new File(resourcesDir, pathInResourcesDir);
     }
 }
