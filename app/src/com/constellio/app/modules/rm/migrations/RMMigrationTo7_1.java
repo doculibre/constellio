@@ -75,7 +75,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
                 .withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
         );
         displayManager.execute(transaction.build());
-        createDefaultLabel(collection, appLayerFactory, provider);
+        createDefaultLabel(collection, factory, provider);
     }
 
     private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
@@ -101,7 +101,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		userServices = model.newUserServices();
 		Transaction trans = new Transaction();
 		File f = provider.getFile("defaultJasperFiles");
-		List<File> files = getFolders(f);
+		List<File> files = getFolders(f, provider);
 		for (File fi : files) {
 			Record record = rs.newRecordWithSchema(metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL));
 			String type = fi.getName().matches("(.)+_(Container.jasper)") ? ContainerRecord.SCHEMA_TYPE : Folder.SCHEMA_TYPE;
