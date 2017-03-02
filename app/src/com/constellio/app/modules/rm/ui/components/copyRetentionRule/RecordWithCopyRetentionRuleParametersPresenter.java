@@ -1,16 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
@@ -23,6 +14,7 @@ import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -35,6 +27,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.SearchServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
 	RecordWithCopyRetentionRuleParametersFields fields;
@@ -76,7 +73,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			fieldsModifications.put(copyRetentionRuleDependencyMetadata.getCode(), dependencyValue);
 		}
 		//fieldsModifications.put(Folder.COPY_STATUS_ENTERED, CopyType.PRINCIPAL);
-		return new BatchProcessRequest(fields.getSelectedRecords(), user, schemaType, fieldsModifications);
+		return new BatchProcessRequest(fields.getSelectedRecords(), fields.getQuery(), user, schemaType, fieldsModifications);
 	}
 
 	String getDependencyValue() {
@@ -119,6 +116,32 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 
 	List<CopyRetentionRule> getOptions(BatchProcessRequest request) {
 
+		if(request.getQuery() != null) {
+			return getOptionsWithQuery(request);
+		}
+		else {
+			return getOptionsWithIds(request);
+		}
+	}
+
+	private List<CopyRetentionRule> getOptionsWithQuery(BatchProcessRequest request) {
+		List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
+		CopyRetentionRuleFactory copyRetentionRuleFactory = new CopyRetentionRuleFactory();
+		SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();
+
+		SPEQueryResponse response = searchServices.query(request.getQuery().setNumberOfRows(0).addFieldFacet("applicableCopyRule_ss"));
+		Map<String, List<FacetValue>> applicableCopyRuleList = response.getFieldFacetValues();
+		for(FacetValue facetValue: applicableCopyRuleList.get("applicableCopyRule_ss")) {
+			if(facetValue.getQuantity() == response.getNumFound()) {
+				copyRetentionRules.add((CopyRetentionRule) copyRetentionRuleFactory.build(facetValue.getValue()));
+			}
+		}
+
+
+		return copyRetentionRules;
+	}
+
+	private List<CopyRetentionRule> getOptionsWithIds(BatchProcessRequest request) {
 		ConstellioFactories constellioFactories = fields.getConstellioFactories();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();

@@ -1,8 +1,8 @@
 package com.constellio.app.ui.pages.search;
 
-import java.util.List;
-
 import com.constellio.app.ui.pages.base.BaseView;
+
+import java.util.List;
 
 public interface SearchView extends BaseView {
 	
@@ -13,6 +13,8 @@ public interface SearchView extends BaseView {
 	void refreshFacets();
 
 	List<String> getSelectedRecordIds();
+
+	List<String> getUnselectedRecordIds();
 
 	void setSearchExpression(String expression);
 
