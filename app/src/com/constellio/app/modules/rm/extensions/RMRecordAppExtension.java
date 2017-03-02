@@ -53,14 +53,14 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			}
 			setNiceTitle(recordVO, params.getRecord(), schemaTypeCode, schemaCode, Document.DESCRIPTION);
 		} else if (schemaTypeCode.equals(UserDocument.SCHEMA_TYPE)) {
-				ContentVersionVO contentVersion = recordVO.getMetadataValue(recordVO.getMetadata(UserDocument.CONTENT)).getValue();
-				if (contentVersion != null) {
-					resourceKey = contentVersion.getFileName();
-					extension = StringUtils.lowerCase(FilenameUtils.getExtension(resourceKey));
-				} else {
-					resourceKey = getDocumentIconPath();
-					extension = "document";
-				}
+			ContentVersionVO contentVersion = recordVO.getMetadataValue(recordVO.getMetadata(UserDocument.CONTENT)).getValue();
+			if (contentVersion != null) {
+				resourceKey = contentVersion.getFileName();
+				extension = StringUtils.lowerCase(FilenameUtils.getExtension(resourceKey));
+			} else {
+				resourceKey = getDocumentIconPath();
+				extension = "document";
+			}
 		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
 			resourceKey = getFolderIconPath(recordVO, false);
 			extension = getFolderExtension(recordVO, false);

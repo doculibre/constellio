@@ -23,8 +23,8 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -36,7 +36,6 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.schemas.Schemas;
-import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
@@ -144,21 +143,21 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildRecentItemTable(RecentItemTable recentItems) {
 		String tableId = "HomeView." + recentItems.getCode();
-		final RecentTable table = new RecentTable(tableId,
+		final RecentTable recentTable = new RecentTable(tableId,
 				recentItems.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
-		table.setSizeFull();
-		table.addStyleName("record-table");
-		return new SelectionTableAdapter(table) {
+		recentTable.setSizeFull();
+		recentTable.addStyleName("record-table");
+		return new RecordVOSelectionTableAdapter(recentTable) {
 			@Override
 			public void setSelected(Object itemId, boolean selected) {
-				RecordVO recordVO = table.getRecordVO(itemId);
+				RecordVO recordVO = recentTable.getRecordVO(itemId);
 				String recordId = recordVO.getId();
 				presenter.selectionChanged(recordId, selected);
 			}
 			
 			@Override
 			public boolean isSelected(Object itemId) {
-				RecordVO recordVO = table.getRecordVO(itemId);
+				RecordVO recordVO = recentTable.getRecordVO(itemId);
 				String recordId = recordVO.getId();
 				return presenter.isSelected(recordId);
 			}
@@ -192,7 +191,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			}
 		});
-		return new SelectionTableAdapter(table) {
+		return new RecordVOSelectionTableAdapter(table) {
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);

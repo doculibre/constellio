@@ -1,5 +1,14 @@
 package com.constellio.app.ui.framework.components.table;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.vaadin.data.Container;
@@ -12,21 +21,17 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public abstract class SelectionTableAdapter extends VerticalLayout {
 	
 	public static final String SELECT_PROPERTY_ID = "select";
 	
-	private SelectDeselectAllButton toggleButton;
+	protected SelectDeselectAllButton toggleButton;
 	
-	private ContainerAdapter<?> dataSourceAdapter;
+	protected ContainerAdapter<?> dataSourceAdapter;
 	
-	private Map<Object, Property<?>> itemSelectProperties = new HashMap<>();
+	protected Map<Object, Property<?>> itemSelectProperties = new HashMap<>();
 	
-	private Table table;
+	protected Table table;
 	
 	public SelectionTableAdapter() {
 		this(null);
@@ -84,14 +89,16 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 							selectProperty = new AbstractProperty<Boolean>() {
 								@Override
 								public Boolean getValue() {
-									return isSelected(itemId);
+									return itemId != null ? isSelected(itemId) : null;
 								}
 
 								@Override
 								public void setValue(Boolean newValue)
 										throws com.vaadin.data.Property.ReadOnlyException {
-									boolean selected = Boolean.TRUE.equals(newValue);
-									setSelected(itemId, selected);
+									if (itemId != null) {
+										boolean selected = Boolean.TRUE.equals(newValue);
+										setSelected(itemId, selected);
+									}
 								}
 
 								@Override
@@ -99,12 +106,11 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 									return Boolean.class;
 								}
 							};
-							CheckBox checkBox = new CheckBox();
+							CheckBox checkBox = new SelectionCheckBox();
 							checkBox.setPropertyDataSource(selectProperty);
 							property = new ObjectProperty<CheckBox>(checkBox);
 							itemSelectProperties.put(itemId, property);
 						}
-						
 					} else {
 						property = super.getContainerProperty(itemId, propertyId);
 					}	
@@ -150,11 +156,23 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		return dataSourceAdapter;
 	}
 	
-	private CheckBox getCheckBox(Object itemId) {
-		return (CheckBox) dataSourceAdapter.getContainerProperty(itemId, SELECT_PROPERTY_ID).getValue();
+	private SelectionCheckBox getCheckBox(Object itemId) {
+		return (SelectionCheckBox) dataSourceAdapter.getContainerProperty(itemId, SELECT_PROPERTY_ID).getValue();
 	}
 	
-	private boolean isAllItemsSelected() {
+	protected boolean isChecked(Object itemId) {
+		SelectionCheckBox checkBox = getCheckBox(itemId);
+		return checkBox != null ? checkBox.getInternalValue() : null;
+	}
+	
+	protected void setChecked(Object itemId, boolean checked) {
+		SelectionCheckBox checkBox = getCheckBox(itemId);
+		if (checkBox != null) {
+			checkBox.setInternalValue(checked);
+		}
+	}
+	
+	protected boolean isAllItemsSelected() {
 		boolean allItemsSelected;
 		if (table != null) {
 			Collection<?> itemIds = table.getItemIds();
@@ -174,7 +192,10 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 	public void selectAll() {
 		if (table != null) {
 			for (Object itemId : table.getItemIds()) {
-				getCheckBox(itemId).setValue(true);
+				CheckBox checkBox = getCheckBox(itemId);
+				if (checkBox != null && !Boolean.TRUE.equals(checkBox.getValue())) {
+					checkBox.setValue(true);
+				}
 			}
 		}
 	}
@@ -182,7 +203,10 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 	public void deselectAll() {
 		if (table != null) {
 			for (Object itemId : table.getItemIds()) {
-				getCheckBox(itemId).setValue(false);
+				CheckBox checkBox = getCheckBox(itemId);
+				if (checkBox != null && !Boolean.FALSE.equals(checkBox.getValue())) {
+					checkBox.setValue(false);
+				}
 			}
 		}
 	}
@@ -190,5 +214,19 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 	public abstract boolean isSelected(Object itemId);
 	
 	public abstract void setSelected(Object itemId, boolean selected);
+	
+	private static class SelectionCheckBox extends CheckBox {
+
+		@Override
+		public Boolean getInternalValue() {
+			return super.getInternalValue();
+		}
+
+		@Override
+		public void setInternalValue(Boolean newValue) {
+			super.setInternalValue(newValue);
+		}
+		
+	}
 
 }

@@ -10,12 +10,14 @@ import org.vaadin.easyuploads.MultiFileUpload;
 
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.ContentVersionDisplay;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.upload.BaseMultiFileUpload;
+import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -25,6 +27,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.Builder;
+import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
@@ -109,14 +112,36 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			}
 		});
 
-		userContentTable = new RecordVOTable();
+		userContentTable = new RecordVOTable() {
+			@Override
+			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+				Component metadataComponent;
+				if (metadataValue.getMetadata().codeMatches(UserDocument.TITLE)) {
+					metadataComponent = newCaptionComponent(recordVO);
+				} else {
+					metadataComponent = super.buildMetadataComponent(metadataValue, recordVO);
+				}
+				return metadataComponent;
+			}
+
+			@Override
+			protected String getTitleColumnStyle(RecordVO recordVO) {
+				String style;
+				if (UserDocument.SCHEMA_TYPE.equals(recordVO.getSchema().getTypeCode())) {
+					style = null;
+				} else {
+					style = super.getTitleColumnStyle(recordVO);
+				}
+				return style;
+			}
+		};
 		userContentTable.setContainerDataSource(buttonsContainer);
 		userContentTable.setWidth("100%");
 		userContentTable.addStyleName(TABLE_STYLE_NAME);
 		userContentTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 		userContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		
-		userContentSelectTableAdapter = new SelectionTableAdapter(userContentTable) {
+		userContentSelectTableAdapter = new RecordVOSelectionTableAdapter(userContentTable) {
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);

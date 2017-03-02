@@ -390,10 +390,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		Set<Map.Entry<String, String>> entries = unselectedRecordsWithSchema.entrySet();
 		for(Map.Entry<String, String> entry: entries) {
 			selectedRecordIds.remove(entry.getKey());
-			if(selectedRecordSchemaTypeCodes.get(entry.getValue()) == 1L) {
-				selectedRecordSchemaTypeCodes.remove(entry.getValue());
-			} else {
-				selectedRecordSchemaTypeCodes.put(entry.getValue(), selectedRecordSchemaTypeCodes.get(entry.getValue()) - 1);
+			if (selectedRecordSchemaTypeCodes.containsKey(entry.getValue())) {
+				if (selectedRecordSchemaTypeCodes.get(entry.getValue()) == 1L) {
+					selectedRecordSchemaTypeCodes.remove(entry.getValue());
+				} else {
+					selectedRecordSchemaTypeCodes.put(entry.getValue(), selectedRecordSchemaTypeCodes.get(entry.getValue()) - 1);
+				}
 			}
 		}
 

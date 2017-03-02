@@ -124,18 +124,14 @@ public class RecordVOTable extends BaseTable {
 		setCellStyleGenerator(new CellStyleGenerator() {
 			@Override
 			public String getStyle(Table source, Object itemId, Object propertyId) {
+				String columnStyle;
 				if (isTitleColumn(propertyId)) {
-					try {
-						RecordVO recordVO = getRecordVOForTitleColumn(getItem(itemId));
-						String extension = FileIconUtils.getExtension(recordVO);
-						if (extension != null && !isDecomList(recordVO)) {
-							return "file-icon-" + extension;
-						}
-					} catch (Exception e) {
-						// Do Nothing;
-					}
+					RecordVO recordVO = getRecordVOForTitleColumn(getItem(itemId));
+					columnStyle = getTitleColumnStyle(recordVO);
+				} else {
+					columnStyle = null;
 				}
-				return null;
+				return columnStyle;
 			}
 
 			private boolean isTitleColumn(Object id) {
@@ -150,6 +146,22 @@ public class RecordVOTable extends BaseTable {
 			}
 		});
 	}	
+	
+	protected String getTitleColumnStyle(RecordVO recordVO) {
+		String style;
+		try {
+			String extension = FileIconUtils.getExtension(recordVO);
+			if (extension != null && !isDecomList(recordVO)) {
+				style = "file-icon-" + extension;
+			} else {
+				style = null;
+			}
+		} catch (Exception e) {
+			// Do Nothing;
+			style = null;
+		}
+		return style;
+	}
 
 	private boolean isDecomList(RecordVO recordVO) {
 		if (recordVO.getSchema() != null) {
@@ -255,9 +267,9 @@ public class RecordVOTable extends BaseTable {
 		if (schemaVOs != null && !schemaVOs.isEmpty()) {
 			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
 			setColumnExpandRatio(titleMetadata, 1);
-//			if (isContextMenuPossible()) {
-//				addContextMenu();
-//			}
+			if (isContextMenuPossible()) {
+				addContextMenu();
+			}
 			addMenuBarColumn();
 		}
 	}

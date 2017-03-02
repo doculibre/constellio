@@ -11839,6 +11839,22 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .auto-scroll {
+	overflow: auto;
+}
+
+.constellio .no-scroll {
+	overflow: hidden;
+}
+
+.constellio .no-scroll-horizontal {
+	overflow-x: hidden;
+}
+
+.constellio .no-scroll-vertical {
+	overflow-y: hidden;
+}
+
 .constellio .button-badge {
 	position: relative;
 }
@@ -12719,7 +12735,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .window-button-window .v-scrollable .window-button-window-content {
-	overflow: auto;
 	padding-left: 10px;
 	margin-top: 5px;
 }
@@ -12808,17 +12823,17 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
-.constellio .header-selection-panel {
+.constellio .header-selection-panel .header-selection-panel-layout {
 	width: 100%;
 }
 
-.constellio .header-selection-panel .header-selection-panel-actions {
+.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions {
 	width: 225px;
 	border: 1px solid #3a434d;
 	border-radius: 4px;
 }
 
-.constellio .header-selection-panel .header-selection-panel-actions .v-button {
+.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button {
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -12831,17 +12846,17 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
 }
 
-.constellio .header-selection-panel .header-selection-panel-actions .v-button:hover {
+.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button:hover {
 	color: #197de1;
 	background-color: #3a434d;
 }
 
-.constellio .header-selection-panel .header-selection-panel-actions .v-button:after {
+.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button:after {
 	box-shadow: none;
 	border: none;
 }
 
-.constellio .header-selection-panel .header-selection-panel-actions .v-disabled:hover {
+.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-disabled:hover {
 	color: white;
 	background-color: #414B56;
 }
