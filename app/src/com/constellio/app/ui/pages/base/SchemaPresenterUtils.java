@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +87,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final List<BatchProcess> addOrUpdate(Record record) {
-		return addOrUpdate(record, getCurrentUser());
+		return addOrUpdate(record, getCurrentUser(), RecordsFlushing.NOW());
 	}
 
 	public final List<BatchProcess> addOrUpdateWithoutUser(Record record) {
@@ -92,10 +95,18 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final List<BatchProcess> addOrUpdate(Record record, User user) {
+		return addOrUpdate(record, user, RecordsFlushing.NOW());
+	}
+
+	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordsFlushing recordFlushing) {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		createTransaction.addUpdate(record);
+		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
+				|| !modelLayerFactory().getRecordsCaches().getCache(getCollection()).isCached(record.getId())) {
+			createTransaction.setRecordFlushing(recordFlushing);
+		}
 		try {
 			return recordServices().executeHandlingImpactsAsync(createTransaction);
 		} catch (RecordServicesException e) {

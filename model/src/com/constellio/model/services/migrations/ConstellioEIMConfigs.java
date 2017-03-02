@@ -254,4 +254,8 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(DEFAULT_TAXONOMY);
 	}
 
+	public int getTransactionDelay() {
+		return manager.getValue(TRANSACTION_DELAY);
+	}
+
 }

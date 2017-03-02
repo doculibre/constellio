@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -254,7 +255,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			folder.setFormCreatedBy(getCurrentUser()).setFormCreatedOn(time);
 		}
 		folder.setFormModifiedBy(getCurrentUser()).setFormModifiedOn(time);
-		addOrUpdate(folder.getWrappedRecord());
+		addOrUpdate(folder.getWrappedRecord(), RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
 		view.navigate().to(RMViews.class).displayFolder(folder.getId());
 	}
 

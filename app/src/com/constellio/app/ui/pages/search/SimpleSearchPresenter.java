@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.model.services.records.RecordImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,13 +201,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setFreeTextSearch(searchExpression)
 				.setPageNumber(pageNumber)
 				.setPageLength(selectedPageLength);
-		try {
-			recordServices().update(search);
+		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+		modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord());
+//			recordServices().update(search);
 			if (refreshPage) {
 				view.navigate().to().simpleSearchReplay(search.getId());
 			}
-		} catch (RecordServicesException e) {
-			LOGGER.info("TEMPORARY SAVE ERROR", e);
-		}
 	}
 }

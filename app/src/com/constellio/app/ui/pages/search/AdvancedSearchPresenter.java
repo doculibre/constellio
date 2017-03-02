@@ -22,6 +22,8 @@ import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportPa
 import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.model.services.records.RecordImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -379,7 +381,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public Record getTemporarySearchRecord() {
 		try {
-			return recordServices().getDocumentById(searchID);
+			return modelLayerFactory.getRecordsCaches().getCache(collection).get(searchID);
 		} catch (Exception e) {
 			//TODO exception
 			e.printStackTrace();
@@ -412,13 +414,16 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setResultsViewMode(resultsViewMode)
 				.setPageLength(selectedPageLength);
 		try {
-			recordServices().update(search);
+			((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord());
+			//recordServices().update(search);
 			if (refreshPage) {
 				view.navigate().to().advancedSearchReplay(search.getId());
 			}
-		} catch (RecordServicesException e) {
-			LOGGER.info("TEMPORARY SAVE ERROR", e);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+
 	}
 
 	@Override

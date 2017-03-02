@@ -35,6 +35,12 @@ public class DataLayerSystemExtensions {
 		}
 	}
 
+	public void afterCommmit(BigVaultServerTransaction transaction, long qtime) {
+		for (BigVaultServerExtension extension : bigVaultServerExtension) {
+			extension.afterCommit(transaction, qtime);
+		}
+	}
+
 	//----------------- Callers ---------------
 
 	public boolean isDocumentFieldLoggedInTransactionLog(final String field, final String schema, final String collection,

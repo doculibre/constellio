@@ -9,8 +9,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordImpl;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -318,8 +320,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				document.getContent().renameCurrentVersion(currentTitle);
 			}
 		}
-
-		addOrUpdate(record);
+		addOrUpdate(record, RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
 		if (userDocumentId != null) {
 			UserServices userServices = modelLayerFactory.newUserServices();
 			Record userDocumentRecord = userDocumentPresenterUtils.getRecord(userDocumentId);

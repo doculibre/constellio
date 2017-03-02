@@ -322,7 +322,10 @@ public class BigVaultServer implements Cloneable {
 
 	public void softCommit()
 			throws IOException, SolrServerException {
+		long start = new Date().getTime();
 		trySoftCommit(0);
+		long end = new Date().getTime();
+		extensions.afterCommmit(null, end - start);
 	}
 
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
