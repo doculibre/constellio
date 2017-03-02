@@ -7,6 +7,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.services.records.RecordImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,13 +264,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.setPageNumber(pageNumber)
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
-		try {
-			recordServices().update(search);
-			if (refreshPage) {
-				view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
-			}
-		} catch (RecordServicesException e) {
-			LOGGER.info("TEMPORARY SAVE ERROR", e);
+		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
+		//recordServices().update(search);
+		if (refreshPage) {
+			view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
 		}
 	}
 

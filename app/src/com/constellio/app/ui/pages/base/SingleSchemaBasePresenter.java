@@ -6,6 +6,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
@@ -55,6 +56,10 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 
 	public final Metadata getMetadata(String code) {
 		return schemaPresenterUtils.getMetadata(code);
+	}
+
+	protected List<BatchProcess> addOrUpdate(Record record, RecordsFlushing recordsFlushing) {
+		return schemaPresenterUtils.addOrUpdate(record, getCurrentUser(), recordsFlushing);
 	}
 
 	protected List<BatchProcess> addOrUpdate(Record record) {

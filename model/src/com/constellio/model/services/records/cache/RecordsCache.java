@@ -22,6 +22,8 @@ public interface RecordsCache {
 
 	Record insert(Record record);
 
+	Record forceInsert(Record record);
+
 	void invalidateRecordsOfType(String recordType);
 
 	void invalidate(List<String> recordIds);

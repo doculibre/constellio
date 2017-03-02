@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
@@ -45,9 +44,7 @@ public class BatchProcessingButton extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
-
-		List<String> records = view.getSelectedRecordIds();
-		if (!presenter.hasWriteAccessOnAllRecords(view.getSelectedRecordIds())) {
+		if (!presenter.hasWriteAccessOnAllRecords()) {
 			return new Label($("AdvancedSearchView.requireWriteAccess"));
 		}
 
@@ -57,7 +54,7 @@ public class BatchProcessingButton extends WindowButton {
 		typeField = new LookupRecordField(typeSchemaType);
 		// FIXME All schemas don't have a type field
 		typeField.setCaption($("BatchProcessingButton.type"));
-		String originType = presenter.getOriginType(view.getSelectedRecordIds());
+		String originType = presenter.getOriginType();
 		if (originType != null) {
 			typeField.setValue(originType);
 		}
@@ -86,12 +83,12 @@ public class BatchProcessingButton extends WindowButton {
 		String selectedType = typeField.getValue();
 		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
 		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
-		return new BatchProcessingForm(presenter.newRecordVO(view.getSelectedRecordIds(), originSchema, view.getSessionContext()),
+		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()),
 				fieldFactory);
 	}
 
 	private RecordFieldFactory newFieldFactory(String selectedType) {
-		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), selectedType, view.getSelectedRecordIds());
+		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), selectedType);
 		return new RecordFieldFactoryWithNoTypeNoContent(fieldFactory);
 	}
 
@@ -108,7 +105,8 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), viewObject);
+
 						downloadBatchProcessingResults(inputStream);
 					} catch (RecordServicesException.ValidationException e) {
 						view.showErrorMessage($(e.getErrors()));
@@ -127,11 +125,10 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						InputStream inputStream = presenter.processBatchButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+						presenter.processBatchButtonClicked(typeField.getValue(), viewObject);
 
 						getWindow().close();
 
-						downloadBatchProcessingResults(inputStream);
 						batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
 					} catch (RecordServicesException.ValidationException e) {
 						view.showErrorMessage($(e.getErrors()));

@@ -283,14 +283,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setPageNumber(pageNumber)
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
-		try {
-			recordServices().update(search);
+		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
+		//recordServices().update(search);
 			if (refreshPage) {
 				view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
 			}
-		} catch (RecordServicesException e) {
-			LOGGER.info("TEMPORARY SAVE ERROR", e);
-		}
 	}
 
 	@Override

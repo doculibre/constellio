@@ -1,21 +1,5 @@
 package com.constellio.model.services.configs;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.EnumUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -55,6 +39,15 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.InstanciationUtils;
+import org.apache.commons.lang3.EnumUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SystemConfigurationsManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -100,15 +93,16 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	}
 
-	public void signalDefaultValueModification(final SystemConfiguration config, final Object previousDefaultValue) {
+	public boolean signalDefaultValueModification(final SystemConfiguration config, final Object previousDefaultValue) {
 		String propertyKey = config.getPropertyKey();
 		Object currentValue = toObject(config, configValues.getProperties().get(propertyKey));
 		if (currentValue == null) {
-			reindex(config, config.getDefaultValue(), previousDefaultValue);
+			return reindex(config, config.getDefaultValue(), previousDefaultValue);
 		}
+		return false;
 	}
 
-	public void setValue(final SystemConfiguration config, final Object newValue) {
+	public boolean setValue(final SystemConfiguration config, final Object newValue) {
 
 		if (config.getType() == SystemConfigurationType.BINARY) {
 			StreamFactory<InputStream> streamFactory = (StreamFactory<InputStream>) newValue;
@@ -165,13 +159,30 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			if (config.equals(ConstellioEIMConfigs.IN_UPDATE_PROCESS)) {
 				configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
 			} else {
-				reindex(config, newValue, oldValue);
+				return reindex(config, newValue, oldValue);
 			}
-
 		}
+		return false;
 	}
 
-	private void reindex(SystemConfiguration config, Object newValue, Object oldValue) {
+	public boolean doesSetValueRequireReindexing(final SystemConfiguration config, final Object newValue) {
+		if (config.getType() != SystemConfigurationType.BINARY) {
+			final Object oldValue = getValue(config);
+
+			ValidationErrors errors = new ValidationErrors();
+			validate(config, newValue, errors);
+			if (!errors.getValidationErrors().isEmpty()) {
+				throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), newValue);
+			}
+			if (config.equals(ConstellioEIMConfigs.IN_UPDATE_PROCESS)) {
+			} else {
+				return doesReindexNeedToSetFlag(config, newValue, oldValue);
+			}
+		}
+		return false;
+	}
+
+	private boolean doesReindexNeedToSetFlag(SystemConfiguration config, Object newValue, Object oldValue) {
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		SystemConfigurationScript<Object> listener = getInstanciatedScriptFor(config);
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
@@ -179,6 +190,25 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
 
 		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
+		int totalRecordsToReindex = 0;
+		for(BatchProcess process: batchProcesses) {
+			totalRecordsToReindex += process.getTotalRecordsCount();
+		}
+		return totalRecordsToReindex > 10000;
+	}
+
+	private boolean reindex(SystemConfiguration config, Object newValue, Object oldValue) {
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		SystemConfigurationScript<Object> listener = getInstanciatedScriptFor(config);
+		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
+		ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
+		Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
+
+		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
+		int totalRecordsToReindex = 0;
+		for(BatchProcess process: batchProcesses) {
+			totalRecordsToReindex += process.getTotalRecordsCount();
+		}
 		try {
 
 			if (listener != null) {
@@ -213,6 +243,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			}
 
 			throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
+		} finally {
+			return totalRecordsToReindex > 10000;
 		}
 	}
 

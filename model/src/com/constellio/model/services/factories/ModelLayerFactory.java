@@ -1,17 +1,5 @@
 package com.constellio.model.services.factories;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-
-import java.io.IOException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -65,18 +53,24 @@ import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
-import com.constellio.model.services.users.UserPhotosServices;
-import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.*;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 import com.constellio.model.services.workflows.WorkflowExecutor;
 import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
 import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
 import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexManager;
 import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactory extends LayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactory.class);
@@ -241,6 +235,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public BatchProcessesManager getBatchProcessesManager() {
 		return batchProcessesManager;
+	}
+
+	public BatchProcessesManager newBatchProcessesManager() {
+		return new BatchProcessesManager(this);
 	}
 
 	public FoldersLocator getFoldersLocator() {

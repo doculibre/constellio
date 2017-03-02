@@ -60,6 +60,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration REMOVE_EXTENSION_FROM_RECORD_TITLE;
 
+	public static final SystemConfiguration TRANSACTION_DELAY;
+
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 			"   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
 			"	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
@@ -139,6 +141,7 @@ public class ConstellioEIMConfigs {
 				.createEnum("groupAuthorizationsInheritance", GroupAuthorizationsInheritance.class)
 				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
 
+		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(10));
 		//
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -252,6 +255,10 @@ public class ConstellioEIMConfigs {
 
 	public String getDefaultTaxonomy() {
 		return manager.getValue(DEFAULT_TAXONOMY);
+	}
+
+	public int getTransactionDelay() {
+		return manager.getValue(TRANSACTION_DELAY);
 	}
 
 }

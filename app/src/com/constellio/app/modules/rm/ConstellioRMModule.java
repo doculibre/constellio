@@ -85,6 +85,7 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -96,9 +97,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
-	public static final int DEFAULT_VOLATILE_FOLDER_CACHE_SIZE = 10000;
+	public static final int DEFAULT_VOLATILE_EVENTS_CACHE_SIZE = 10000;
+	public static final int DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE = 10000;
 	public static final int DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE = 100;
-	public static final int DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE = 100;
 
 	@Override
 	public String getName() {
@@ -152,7 +153,11 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_5_34(),
 				new RMMigrationTo6_5_36(),
 				new RMMigrationTo6_5_37(),
-				new RMMigrationTo6_5_50()
+				new RMMigrationTo6_5_50(),
+				new RMMigrationTo6_5_54(),
+				new RMMigrationTo6_6(),
+				new RMMigrationTo7_1(),
+				new RMMigrationTo_7_1_francis()
 		);
 	}
 
@@ -241,6 +246,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 
 		extensions.schemaTypeAccessExtensions.add(new RMGenericRecordPageExtension());
+		extensions.schemaTypeAccessExtensions.add(new LabelSchemaRestrictionPageExtension());
 		extensions.taxonomyAccessExtensions.add(new RMTaxonomyPageExtension(collection));
 		extensions.pageAccessExtensions.add(new RMModulePageExtension());
 		extensions.downloadContentVersionLinkExtensions.add(new RMDownloadContentVersionLinkExtension());
@@ -295,8 +301,20 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
-		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDER_CACHE_SIZE));
+
+		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
+			Iterator<Record> authsIterator = modelLayerFactory.newSearchServices().recordsIterator(new LogicalSearchQuery(
+					from(rm.authorizationDetails.schemaType()).returnAll()), 10000);
+			while (authsIterator.hasNext()) {
+				authsIterator.next();
+			}
+		}
+		cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
+		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
+		cache.configureCache(CacheConfig.volatileCache(rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
+
 	}
 
 	@Override
