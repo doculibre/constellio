@@ -1,30 +1,5 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
-import static java.util.Arrays.asList;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.*;
-import java.util.*;
-
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportWriter;
-import com.constellio.app.modules.rm.wrappers.RMObject;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.LangUtils;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -49,6 +24,7 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
@@ -383,7 +359,12 @@ public class BatchProcessingPresenterService {
 			recordServices.validateTransaction(transaction);
 		}
 
-		BatchProcessResults results = toBatchProcessResults(transactionList);
+		BatchProcessResults results = null;
+		if(transactionList.size() == 1) {
+			results = toBatchProcessResults(transactionList.get(0));
+		} else {
+			results = toBatchProcessResults(transactionList);
+		}
 
 		System.out.println("\nRESULTS : ");
 		System.out.println(results);
