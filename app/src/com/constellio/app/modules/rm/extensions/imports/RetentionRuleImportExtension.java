@@ -1,9 +1,6 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_ENUM_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_NUMBER_VALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
-import static com.constellio.app.ui.i18n.i18n.$;
 import static org.apache.commons.lang3.StringUtils.join;
 
 import java.util.ArrayList;
@@ -13,9 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -23,6 +17,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
@@ -70,6 +66,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	public static final String RULES_TYPE_FOLDER = "folderRules";
 	public static final String TITLE = "title";
 	public static final String DESCRIPTION = "description";
+	public static final String ESSENTIAL = "essential";
 
 	private final RMSchemasRecordsServices rm;
 
@@ -361,6 +358,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		copyRetentionRule.setCode(mapCopyRetentionRule.get(CODE));
 		copyRetentionRule.setTitle(mapCopyRetentionRule.get(TITLE));
 		copyRetentionRule.setDescription(mapCopyRetentionRule.get(DESCRIPTION));
+		copyRetentionRule.setEssential("true".equals(mapCopyRetentionRule.get(ESSENTIAL)));
 
 		CopyType copyType = (mapCopyRetentionRule.get(COPY_TYPE).toUpperCase()).equals("P") ?
 				CopyType.PRINCIPAL :
@@ -396,11 +394,9 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 
 		String ignoreActivePeriodStr = mapCopyRetentionRule.get(IGNORE_ACTIVE_PERIOD);
-		if (ignoreActivePeriodStr != null)
-		{
+		if (ignoreActivePeriodStr != null) {
 			copyRetentionRule.setIgnoreActivePeriod(Boolean.getBoolean(ignoreActivePeriodStr));
 		}
-
 
 		String semiActiveRetentionPeriodValue = mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD);
 		if (semiActiveRetentionPeriodValue.startsWith("var:")) {

@@ -109,22 +109,13 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		if (downloadDocumentButtonVisible) {
 			String fileName = contentVersionVO.getFileName();
 			Resource icon = FileIconUtils.getIcon(fileName);
-			ContextMenuItem downloadDocumentButton = addItem(contentVersionVO.toString(), icon);
+			ContextMenuItem downloadDocumentButton = addItem($("DocumentContextMenu.openDocument"), icon);
 			downloadDocumentButton.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@SuppressWarnings("deprecation")
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					if (contentVersionVO != null) {
 						String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
-						if (agentURL != null) {
-//							Page.getCurrent().open(agentURL, null);
-							new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
-						} else {
-							ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
-							Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
-							Page.getCurrent().open(downloadedResource, null, false);
-						}
-					}
+						Page.getCurrent().open(agentURL, "_top");
 				}
 			});
 		}

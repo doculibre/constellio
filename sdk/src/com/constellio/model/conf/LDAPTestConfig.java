@@ -2,16 +2,14 @@ package com.constellio.model.conf;
 
 import static java.util.Arrays.asList;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.Duration;
 
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.sdk.SDKPasswords;
 
 public class LDAPTestConfig {
@@ -24,9 +22,11 @@ public class LDAPTestConfig {
 		return SDKPasswords.testLDAPServer();
 	}
 
+
 	public static List<String> getExchangeLDAPDevServerUrl() {
 		return asList(SDKPasswords.testExchangeLDAPServer());
 	}
+
 
 	public static List<String> getDomains() {
 		return asList(new String[] { "test" });
@@ -48,21 +48,9 @@ public class LDAPTestConfig {
 		return "administrator";
 	}
 
-    public static List<String> getScheduleTimeList() {
-        return Arrays.asList();
-    }
-
 	public static List<String> getUsersWithoutGroupsBaseContextList() {
 		return asList("CN=Users,DC=test,DC=doculibre,DC=ca");
 	}
-
-    public static List<String> getUserFilterGroupsList() {
-        return Arrays.asList();
-    }
-
-    public static boolean isMembershipAutomaticDerivationActivated() {
-        return true;
-    }
 
 	public static RegexFilter getUserFiler() {
 		return new RegexFilter(".*", "testAuj");
@@ -86,17 +74,9 @@ public class LDAPTestConfig {
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(
 			List<String> selectedCollectionsCodes) {
-		return new LDAPUserSyncConfiguration(getUser(),
-                getPassword(),
-                getUserFiler(),
-                getGroupFiler(),
-                null,
-                Collections.<String>emptyList(),
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), null,
 				getGroupBaseContextList(),
-				getUsersWithoutGroupsBaseContextList(),
-                getUserFilterGroupsList(),
-                isMembershipAutomaticDerivationActivated(),
-                selectedCollectionsCodes);
+				getUsersWithoutGroupsBaseContextList(), selectedCollectionsCodes);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
@@ -104,47 +84,24 @@ public class LDAPTestConfig {
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(Duration duration) {
-		return new LDAPUserSyncConfiguration(getUser(),
-				getPassword(),
-				getUserFiler(),
-				getGroupFiler(),
-				duration,
-                getScheduleTimeList(),
-				getGroupBaseContextList(),
-				getUsersWithoutGroupsBaseContextList(),
-				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated());
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), duration,
+				getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(String password) {
-		return new LDAPUserSyncConfiguration(getUser(),
-				password,
-				getUserFiler(),
-				getGroupFiler(),
-				null,
-                getScheduleTimeList(),
-				getGroupBaseContextList(),
-				getUsersWithoutGroupsBaseContextList(),
-				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated());
+		return new LDAPUserSyncConfiguration(getUser(), password, getUserFiler(), getGroupFiler(), null,
+				getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
 	}
+
 
 	public static LDAPServerConfiguration getExchangeLDAPServerConfiguration() {
 		return new LDAPServerConfiguration(getExchangeLDAPDevServerUrl(), getDomains(), getDirectoryType(), true, false);
 	}
 
 	public static LDAPUserSyncConfiguration getExchangeLDAPUserSyncConfiguration() {
-		return new LDAPUserSyncConfiguration(getUser(),
-				SDKPasswords.testExchangeLDAPPassword(),
-				new RegexFilter("indexer.*", null),
-				getGroupFiler(),
-				null,
-                getScheduleTimeList(),
+		return new LDAPUserSyncConfiguration(getUser(), SDKPasswords.testExchangeLDAPPassword(), new RegexFilter("indexer.*", null), getGroupFiler(), null,
 				getGroupBaseContextList(),
-				getUsersWithoutGroupsBaseContextList(),
-				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated(),
-				asList("zeCollection"));
+				getUsersWithoutGroupsBaseContextList(), asList("zeCollection"));
 	}
 
 	public static LDAPServerConfiguration getLDAPSServerConfiguration() {

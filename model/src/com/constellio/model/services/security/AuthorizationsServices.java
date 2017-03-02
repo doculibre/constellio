@@ -382,9 +382,13 @@ public class AuthorizationsServices {
 				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) details);
 			}
 
-			Record target = recordServices.getDocumentById(details.getTarget());
-			if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
-				transaction.recordsToResetIfNoAuths.add(target.getId());
+			try {
+				Record target = recordServices.getDocumentById(details.getTarget());
+				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
+					transaction.recordsToResetIfNoAuths.add(target.getId());
+				}
+			} catch(RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				//Record does not exist. So nothing to do
 			}
 		} catch (NoSuchAuthorizationWithId e) {
 			//No problemo

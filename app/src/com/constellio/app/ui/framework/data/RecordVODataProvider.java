@@ -36,6 +36,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	RecordToVOBuilder voBuilder;
 	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 	SessionContext sessionContext;
+	private int batchSize = 20;
 
 	@Deprecated
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
@@ -104,7 +105,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 		Record record = cache.get(index);
 		if (record == null) {
 			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
-			List<Record> recordList = searchServices.search(query);
+			List<Record> recordList = searchServices.search(query, batchSize);
 			if (!recordList.isEmpty()) {
 				record = recordList.get(index);
 				cache.put(index, record);
@@ -118,7 +119,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	public int size() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 		if (size == null) {
-			size = searchServices.search(query).size();
+			size = searchServices.search(query, batchSize).size();
 		}
 		return size;
 	}
@@ -126,7 +127,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
 		List<RecordVO> recordVOs = new ArrayList<>();
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
-		List<Record> recordList = searchServices.search(query);
+		List<Record> recordList = searchServices.search(query, batchSize);
 		for (int i = startIndex; i < startIndex + numberOfItems && i < recordList.size(); i++) {
 			Record record = recordList.get(i);
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext);
@@ -154,4 +155,8 @@ public abstract class RecordVODataProvider implements DataProvider {
 	}
 
 	protected abstract LogicalSearchQuery getQuery();
+
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
 }

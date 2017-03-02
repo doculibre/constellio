@@ -29,8 +29,15 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 	}
 
 	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders) {
-		super(new RecordVOLazyQueryDefinition(dataProviders, false), new RecordVOLazyQueryFactory(dataProviders));
+		this(dataProviders, 100);
+	}
+
+	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize) {
+		super(new RecordVOLazyQueryDefinition(dataProviders, false, batchSize), new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
+		for(RecordVODataProvider dataProvider : dataProviders) {
+			dataProvider.setBatchSize(batchSize);
+		}
 		for (RecordVODataProvider dataProvider : dataProviders) {
 			dataProvider.addDataRefreshListener(new DataRefreshListener() {
 				@Override
@@ -95,8 +102,8 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 		 * //@param batchSize
 		 * //@param idPropertyId
 		 */
-		public RecordVOLazyQueryDefinition(List<RecordVODataProvider> dataProviders, boolean tableMetadatasOnly) {
-			super(true, 100, null);
+		public RecordVOLazyQueryDefinition(List<RecordVODataProvider> dataProviders, boolean tableMetadatasOnly, int batchSize) {
+			super(true, batchSize, null);
 			this.dataProviders = dataProviders;
 
 			List<MetadataVO> queryMetadataVOs = new ArrayList<>();
@@ -163,7 +170,8 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 					RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, startIndex);
 					RecordVODataProvider firstDataProvider = dataProviderAndRecordIndex.dataProvider;
 					int startIndexForFirstDataProvider = dataProviderAndRecordIndex.recordIndex;
-					
+
+
 					List<RecordVO> recordVOsFromFirstDataProvider = firstDataProvider.listRecordVOs(startIndexForFirstDataProvider, count);
 					for (RecordVO recordVO : recordVOsFromFirstDataProvider) {
 						Item item = new RecordVOItem(recordVO);
