@@ -50,8 +50,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 		assertThat(
 				metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE).isDefaultRequirement())
 				.isTrue();
-		assertThat(
-				metadataSchemaTypes.getSchema(StorageSpace.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE).isDefaultRequirement())
+		assertThat(metadataSchemaTypes.getSchema(StorageSpace.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE).isDefaultRequirement())
 				.isTrue();
 		assertThat(metadataSchemaTypes.getSchema(UniformSubdivision.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE)
 				.isDefaultRequirement()).isTrue();

@@ -68,6 +68,8 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
@@ -101,6 +103,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 
 public class RecordServicesImpl extends BaseRecordServices {
@@ -504,17 +507,25 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
 
+		ValidationErrors errors = new ValidationErrors();
+		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
+
+		extensions.callTransactionExecutionBeforeSave(new TransactionExecutionBeforeSaveEvent(transaction, errors));
+
 		for (Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeSave(
-							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas));
+							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas, singleRecordTransaction, errors));
 				} else {
 					extensions.callRecordInCreationBeforeSave(
-							new RecordInCreationBeforeSaveEvent(record, transaction.getUser()));
+							new RecordInCreationBeforeSaveEvent(record, transaction.getUser(), singleRecordTransaction, errors));
 				}
 			}
+		}
+		if (!errors.isEmpty()) {
+			throw new RecordServicesException.ValidationException(transaction, errors);
 		}
 
 	}
@@ -631,7 +642,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 			try {
 				MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
 						transaction.getCollection());
+
 				List<RecordEvent> recordEvents = prepareRecordEvents(modifiedOrUnsavedRecords, metadataSchemaTypes);
+
 				TransactionResponseDTO transactionResponseDTO = recordDao.execute(transactionDTO);
 
 				modelFactory.newLoggingServices().logTransaction(transaction);
@@ -672,7 +685,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				} else {
 
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					events.add(new RecordModificationEvent(record, modifiedMetadatas));
+					events.add(
+							new RecordModificationEvent(record, modifiedMetadatas));
 				}
 
 			} else {

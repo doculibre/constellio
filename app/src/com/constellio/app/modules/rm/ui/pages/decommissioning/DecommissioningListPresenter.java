@@ -1,24 +1,18 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
@@ -33,6 +27,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
 		implements NewReportPresenter {
@@ -143,7 +145,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void folderPlacedInContainer(FolderDetailVO folder, ContainerVO container) {
 		folder.setContainerRecordId(container.getId());
-		decommissioningList().getFolderDetail(folder.getFolderId()).setContainerRecordId(container.getId());
+		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderLinearSize(folder.getLinearSize()).setContainerRecordId(container.getId());
 		addOrUpdate(decommissioningList().getWrappedRecord());
 
 		view.setProcessable(folder);
@@ -236,6 +238,46 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return result;
 	}
 
+	public List<String> getFoldersToValidateIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded()) {
+				result.add(folder.getFolderId());
+			}
+		}
+		return result;
+	}
+
+	public List<String> getPackageableFoldersIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+				result.add(folder.getFolderId());
+			}
+		}
+		return result;
+	}
+
+	public List<String> getProcessableFoldersIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded() && decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+				result.add(folder.getFolderId());
+			}
+		}
+		return result;
+	}
+
+	public List<String> getExcludedFoldersIds() {
+		List<String> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isExcluded()) {
+				result.add(folder.getFolderId());
+			}
+		}
+		return result;
+	}
+
 	public List<DecomListContainerDetail> getContainerDetails() {
 		return decommissioningList().getContainerDetails();
 	}
@@ -312,7 +354,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return folderDetailToVOBuilder;
 	}
 
-	private DecommissioningList decommissioningList() {
+	public DecommissioningList decommissioningList() {
 		if (decommissioningList == null) {
 			decommissioningList = rmRecordsServices().getDecommissioningList(recordId);
 		}
@@ -452,5 +494,131 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			deleteConfirmMessage = $("DecommissioningListView.deleteList");
 		}
 		return deleteConfirmMessage;
+	}
+
+	public void addFoldersButtonClicked() {
+		if(calculateSearchType() != null) {
+			view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, calculateSearchType().toString());
+		}
+	}
+
+	public SearchType calculateSearchType() {
+		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.activeToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.activeToDestroy;
+				case FOLDERS_TO_TRANSFER:
+					return SearchType.transfer;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentActiveToDestroy;
+				case DOCUMENTS_TO_TRANSFER:
+					return SearchType.documentTransfer;
+			}
+		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.semiActiveToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.semiActiveToDestroy;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentSemiActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentSemiActiveToDestroy;
+			}
+		}
+		return null;
+	}
+
+	public void removeFoldersButtonClicked(List<FolderDetailVO> selected) {
+		for(FolderDetailVO folderDetailVO: selected) {
+			decommissioningList().removeFolderDetail(folderDetailVO.getFolderId());
+		}
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		refreshView();
+	}
+
+	public void autoFillContainersRequested(Map<String, Double> linearSize) {
+		linearSize = sortByValue(linearSize);
+		LogicalSearchQuery query = buildContainerQuery(linearSize.values().iterator().next());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		//TODO CAN BE NULL
+		if(modelLayerFactory.newSearchServices().getResultsCount(query) == 0) {
+			view.showErrorMessage($("DecommissioningListView.noContainerFound"));
+			return;
+		}
+		List<ContainerRecord> containerRecordList = rm.wrapContainerRecords(modelLayerFactory.newSearchServices().search(query));
+		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>(linearSize.entrySet());
+		for(Map.Entry<String, Double> entry: listOfEntry) {
+			while(!containerRecordList.isEmpty() && !fill(containerRecordList.get(0), entry)) {
+				containerRecordList.remove(0);
+			}
+		}
+	}
+
+	private boolean fill(ContainerRecord containerRecord, Map.Entry<String, Double> entry) {
+		recordServices().recalculate(containerRecord);
+		if(containerRecord.getAvailableSize() >= entry.getValue()) {
+			try {
+				recordServices().update(rmRecordsServices().getFolder(entry.getKey()).setContainer(containerRecord).setLinearSize(entry.getValue()));
+				folderPlacedInContainer(view.getPackageableFolder(entry.getKey()), view.getContainer(containerRecord));
+				return true;
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+
+	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
+				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList().getAdministrativeUnit()),
+				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize),
+				anyConditions(
+						where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList().getDecommissioningListType().getDecommissioningType()),
+						where(rm.containerRecord.decommissioningType()).isNull()
+				)
+		)).sortAsc(rm.containerRecord.availableSize());
+	}
+
+	private Map<String, Double> sortByValue(Map<String, Double> linearSize) {
+		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>( linearSize.entrySet() );
+		Collections.sort(listOfEntry, new Comparator<Map.Entry<String, Double>>() {
+			@Override
+			public int compare(Map.Entry<String, Double> entry1, Map.Entry<String, Double> entry2) {
+				return entry1.getValue().compareTo(entry2.getValue());
+			}
+		});
+
+		Map<String, Double> result = new LinkedHashMap<>();
+		for (Map.Entry<String, Double> entry : listOfEntry)
+		{
+			result.put( entry.getKey(), entry.getValue() );
+		}
+		return result;
+	}
+
+	public void addContainerToDecommissioningList(ContainerRecord containerRecord) {
+		try {
+			recordServices().update(decommissioningList().addContainerDetailsFrom(asList(containerRecord)));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void reorderRequested(OrderDecommissioningListPresenter.TableType type) {
+		view.navigate().to(RMViews.class).orderDecommissioningList(decommissioningList().getId(), type);
+	}
+
+	public String getOrderNumber(String folderId) {
+		int orderNumber = getExcludedFoldersIds().indexOf(folderId);
+		orderNumber = orderNumber == -1 ? getPackageableFoldersIds().indexOf(folderId) : orderNumber;
+		orderNumber = orderNumber == -1? getProcessableFoldersIds().indexOf(folderId) : orderNumber;
+		orderNumber = orderNumber == -1? getFoldersToValidateIds().indexOf(folderId) : orderNumber;
+		return String.valueOf(orderNumber + 1);
 	}
 }

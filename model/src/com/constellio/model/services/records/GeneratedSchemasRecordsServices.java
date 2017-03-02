@@ -8,6 +8,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.awt.print.Printable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,11 +21,82 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 		super(collection, modelLayerFactory);
 	}
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
-
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
+
+
+	public SolrAuthorizationDetails wrapSolrAuthorizationDetails(Record record) {
+		return record == null ? null : new SolrAuthorizationDetails(record, getTypes());
+	}
+
+	public List<SolrAuthorizationDetails> wrapSolrAuthorizationDetailss(List<Record> records) {
+		List<SolrAuthorizationDetails> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new SolrAuthorizationDetails(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<SolrAuthorizationDetails> searchSolrAuthorizationDetailss(LogicalSearchQuery query) {
+		return wrapSolrAuthorizationDetailss(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<SolrAuthorizationDetails> searchSolrAuthorizationDetailss(LogicalSearchCondition condition) {
+		MetadataSchemaType type = authorizationDetails.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapSolrAuthorizationDetailss(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
+		return wrapSolrAuthorizationDetails(get(id));
+	}
+
+	public List<SolrAuthorizationDetails> getSolrAuthorizationDetailss(List<String> ids) {
+		return wrapSolrAuthorizationDetailss(get(ids));
+	}
+
+	public SolrAuthorizationDetails getSolrAuthorizationDetailsWithLegacyId(String legacyId) {
+		return wrapSolrAuthorizationDetails(getByLegacyId(authorizationDetails.schemaType(),  legacyId));
+	}
+
+	public SolrAuthorizationDetails newSolrAuthorizationDetails() {
+		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema()));
+	}
+
+	public SolrAuthorizationDetails newSolrAuthorizationDetailsWithId(String id) {
+		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_authorizationDetails_default authorizationDetails
+			= new SchemaTypeShortcuts_authorizationDetails_default("authorizationDetails_default");
+	public class SchemaTypeShortcuts_authorizationDetails_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_authorizationDetails_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata endDate() {
+			return metadata("endDate");
+		}
+
+		public Metadata roles() {
+			return metadata("roles");
+		}
+
+		public Metadata startDate() {
+			return metadata("startDate");
+		}
+
+		public Metadata synced() {
+			return metadata("synced");
+		}
+
+		public Metadata target() {
+			return metadata("target");
+		}
+	}
 	public Collection wrapCollection(Record record) {
 		return record == null ? null : new Collection(record, getTypes());
 	}
@@ -61,7 +133,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public Collection getCollectionWithLegacyId(String legacyId) {
-		return wrapCollection(getByLegacyId(collection.schemaType(), legacyId));
+		return wrapCollection(getByLegacyId(collection.schemaType(),  legacyId));
 	}
 
 	public Collection newCollection() {
@@ -74,7 +146,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 	public final SchemaTypeShortcuts_collection_default collection
 			= new SchemaTypeShortcuts_collection_default("collection_default");
-
 	public class SchemaTypeShortcuts_collection_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_collection_default(String schemaCode) {
 			super(schemaCode);
@@ -92,7 +163,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("name");
 		}
 	}
-
 	public EmailToSend wrapEmailToSend(Record record) {
 		return record == null ? null : new EmailToSend(record, getTypes());
 	}
@@ -125,7 +195,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public EmailToSend getEmailToSendWithLegacyId(String legacyId) {
-		return wrapEmailToSend(getByLegacyId(emailToSend.schemaType(), legacyId));
+		return wrapEmailToSend(getByLegacyId(emailToSend.schemaType(),  legacyId));
 	}
 
 	public EmailToSend newEmailToSend() {
@@ -138,7 +208,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 	public final SchemaTypeShortcuts_emailToSend_default emailToSend
 			= new SchemaTypeShortcuts_emailToSend_default("emailToSend_default");
-
 	public class SchemaTypeShortcuts_emailToSend_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_emailToSend_default(String schemaCode) {
 			super(schemaCode);
@@ -184,7 +253,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("tryingCount");
 		}
 	}
-
 	public Event wrapEvent(Record record) {
 		return record == null ? null : new Event(record, getTypes());
 	}
@@ -217,7 +285,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public Event getEventWithLegacyId(String legacyId) {
-		return wrapEvent(getByLegacyId(event.schemaType(), legacyId));
+		return wrapEvent(getByLegacyId(event.schemaType(),  legacyId));
 	}
 
 	public Event newEvent() {
@@ -230,7 +298,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 	public final SchemaTypeShortcuts_event_default event
 			= new SchemaTypeShortcuts_event_default("event_default");
-
 	public class SchemaTypeShortcuts_event_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_event_default(String schemaCode) {
 			super(schemaCode);
@@ -268,6 +335,10 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("recordIdentifier");
 		}
 
+		public Metadata recordVersion() {
+			return metadata("recordVersion");
+		}
+
 		public Metadata type() {
 			return metadata("type");
 		}
@@ -280,7 +351,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("username");
 		}
 	}
-
 	public Facet wrapFacet(Record record) {
 		return record == null ? null : new Facet(record, getTypes());
 	}
@@ -313,7 +383,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public Facet getFacetWithLegacyId(String legacyId) {
-		return wrapFacet(getByLegacyId(facet.schemaType(), legacyId));
+		return wrapFacet(getByLegacyId(facet.schemaType(),  legacyId));
 	}
 
 	public Facet newFacet() {
@@ -326,7 +396,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 	public final SchemaTypeShortcuts_facet_default facet
 			= new SchemaTypeShortcuts_facet_default("facet_default");
-
 	public class SchemaTypeShortcuts_facet_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_facet_default(String schemaCode) {
 			super(schemaCode);
@@ -368,7 +437,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("usedByModule");
 		}
 	}
-
 	public Group wrapGroup(Record record) {
 		return record == null ? null : new Group(record, getTypes());
 	}
@@ -405,7 +473,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public Group getGroupWithLegacyId(String legacyId) {
-		return wrapGroup(getByLegacyId(group.schemaType(), legacyId));
+		return wrapGroup(getByLegacyId(group.schemaType(),  legacyId));
 	}
 
 	public Group newGroup() {
@@ -418,10 +486,13 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 	public final SchemaTypeShortcuts_group_default group
 			= new SchemaTypeShortcuts_group_default("group_default");
-
 	public class SchemaTypeShortcuts_group_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_group_default(String schemaCode) {
 			super(schemaCode);
+		}
+
+		public Metadata allauthorizations() {
+			return metadata("allauthorizations");
 		}
 
 		public Metadata code() {
@@ -444,15 +515,72 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("title");
 		}
 	}
+	public Printable wrapPrintable(Record record) {
+		return record == null ? null : null;//new Printable(record, getTypes());
+	}
 
+	public List<Printable> wrapPrintables(List<Record> records) {
+		List<Printable> wrapped = new ArrayList<>();
+		for (Record record : records) {
+//			wrapped.add(new Printable(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<Printable> searchPrintables(LogicalSearchQuery query) {
+		return wrapPrintables(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<Printable> searchPrintables(LogicalSearchCondition condition) {
+		MetadataSchemaType type = printable.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapPrintables(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Printable getPrintable(String id) {
+		return wrapPrintable(get(id));
+	}
+
+	public List<Printable> getPrintables(List<String> ids) {
+		return wrapPrintables(get(ids));
+	}
+
+	public Printable getPrintableWithLegacyId(String legacyId) {
+		return wrapPrintable(getByLegacyId(printable.schemaType(),  legacyId));
+	}
+
+	public Printable newPrintable() {
+		return wrapPrintable(create(printable.schema()));
+	}
+
+	public Printable newPrintableWithId(String id) {
+		return wrapPrintable(create(printable.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_printable_default printable
+			= new SchemaTypeShortcuts_printable_default("printable_default");
+	public class SchemaTypeShortcuts_printable_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_printable_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata isdeletable() {
+			return metadata("isdeletable");
+		}
+
+		public Metadata jasperfile() {
+			return metadata("jasperfile");
+		}
+	}
 	public User wrapUser(Record record) {
-		return record == null ? null : wrapUser(record);
+		return record == null ? null : null;//new User(record, getTypes());
 	}
 
 	public List<User> wrapUsers(List<Record> records) {
 		List<User> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(wrapUser(record));
+//			wrapped.add(new User(record, getTypes()));
 		}
 
 		return wrapped;
@@ -477,7 +605,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public User getUserWithLegacyId(String legacyId) {
-		return wrapUser(getByLegacyId(user.schemaType(), legacyId));
+		return wrapUser(getByLegacyId(user.schemaType(),  legacyId));
 	}
 
 	public User newUser() {
@@ -490,7 +618,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 	public final SchemaTypeShortcuts_user_default user
 			= new SchemaTypeShortcuts_user_default("user_default");
-
 	public class SchemaTypeShortcuts_user_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_user_default(String schemaCode) {
 			super(schemaCode);
@@ -560,6 +687,10 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("loginLanguageCode");
 		}
 
+		public Metadata personalEmails() {
+			return metadata("personalEmails");
+		}
+
 		public Metadata phone() {
 			return metadata("phone");
 		}
@@ -591,8 +722,11 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 		public Metadata usertokens() {
 			return metadata("usertokens");
 		}
-	}
 
+		public Metadata visibleTableColumns() {
+			return metadata("visibleTableColumns");
+		}
+	}
 	public UserDocument wrapUserDocument(Record record) {
 		return record == null ? null : new UserDocument(record, getTypes());
 	}
@@ -625,7 +759,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public UserDocument getUserDocumentWithLegacyId(String legacyId) {
-		return wrapUserDocument(getByLegacyId(userDocument.schemaType(), legacyId));
+		return wrapUserDocument(getByLegacyId(userDocument.schemaType(),  legacyId));
 	}
 
 	public UserDocument newUserDocument() {
@@ -638,7 +772,6 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 	public final SchemaTypeShortcuts_userDocument_default userDocument
 			= new SchemaTypeShortcuts_userDocument_default("userDocument_default");
-
 	public class SchemaTypeShortcuts_userDocument_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userDocument_default(String schemaCode) {
 			super(schemaCode);
@@ -652,78 +785,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("user");
 		}
 	}
-
-	public SolrAuthorizationDetails wrapSolrAuthorizationDetails(Record record) {
-		return record == null ? null : new SolrAuthorizationDetails(record, getTypes());
-	}
-
-	public List<SolrAuthorizationDetails> wrapSolrAuthorizationDetailss(List<Record> records) {
-		List<SolrAuthorizationDetails> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new SolrAuthorizationDetails(record, getTypes()));
-		}
-
-		return wrapped;
-	}
-
-	public List<SolrAuthorizationDetails> searchSolrAuthorizationDetailss(LogicalSearchQuery query) {
-		return wrapSolrAuthorizationDetailss(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public List<SolrAuthorizationDetails> searchSolrAuthorizationDetailss(LogicalSearchCondition condition) {
-		MetadataSchemaType type = authorizationDetails.schemaType();
-		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
-		return wrapSolrAuthorizationDetailss(modelLayerFactory.newSearchServices().search(query));
-	}
-
-	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
-		return wrapSolrAuthorizationDetails(get(id));
-	}
-
-	public List<SolrAuthorizationDetails> getSolrAuthorizationDetailss(List<String> ids) {
-		return wrapSolrAuthorizationDetailss(get(ids));
-	}
-
-	public SolrAuthorizationDetails getSolrAuthorizationDetailsWithLegacyId(String legacyId) {
-		return wrapSolrAuthorizationDetails(getByLegacyId(authorizationDetails.schemaType(),  legacyId));
-	}
-
-	public SolrAuthorizationDetails newSolrAuthorizationDetails() {
-		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema()));
-	}
-
-	public SolrAuthorizationDetails newSolrAuthorizationDetailsWithId(String id) {
-		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema(), id));
-	}
-
-	public final SchemaTypeShortcuts_authorizationDetails_default authorizationDetails
-			= new SchemaTypeShortcuts_authorizationDetails_default("authorizationDetails_default");
-	public class SchemaTypeShortcuts_authorizationDetails_default extends SchemaTypeShortcuts {
-		protected SchemaTypeShortcuts_authorizationDetails_default(String schemaCode) {
-			super(schemaCode);
-		}
-
-		public Metadata endDate() {
-			return metadata("endDate");
-		}
-
-		public Metadata roles() {
-			return metadata("roles");
-		}
-
-		public Metadata startDate() {
-			return metadata("startDate");
-		}
-
-		public Metadata target() {
-			return metadata("target");
-		}
-
-		public Metadata synced() {
-			return metadata("synced");
-		}
-	}
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 }

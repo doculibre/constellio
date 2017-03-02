@@ -30,6 +30,7 @@ public class FolderDetailToVOBuilder {
 		folderDetailVO.setSortable(folder.getInactiveDisposalType() == DisposalType.SORT);
 		folderDetailVO.setReversedSort(detail.isReversedSort());
 		folderDetailVO.setSelected(false);
+		folderDetailVO.setLinearSize(detailWithType.getDetail().getFolderLinearSize());
 
 		return folderDetailVO;
 	}

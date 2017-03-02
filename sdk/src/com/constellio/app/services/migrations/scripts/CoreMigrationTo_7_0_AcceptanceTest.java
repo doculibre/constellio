@@ -15,6 +15,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.dev.tools.SecurityUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 
+import java.io.File;
+
 public class CoreMigrationTo_7_0_AcceptanceTest extends ConstellioTest {
 
 	@Test

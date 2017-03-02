@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
@@ -27,6 +19,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class GetXMLButton extends WindowButton {
     public static final String BASE_FORM = "base-form";
@@ -125,8 +128,8 @@ public class GetXMLButton extends WindowButton {
     }
 
     public List<PrintableLabel> getTemplates(String type) {
-        LogicalSearchCondition condition = from(rm.newRMReport().getSchema()).where(rm.newRMReport().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(type);
-        return rm.wrapRMReports(ss.search(new LogicalSearchQuery(condition)));
+        LogicalSearchCondition condition = from(rm.newPrintableLabel().getSchema()).where(rm.newPrintableLabel().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(type);
+        return rm.wrapPrintableLabels(ss.search(new LogicalSearchQuery(condition)));
     }
 
     public static interface RecordSelector extends Serializable {

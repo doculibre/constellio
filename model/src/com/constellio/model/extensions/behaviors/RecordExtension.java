@@ -15,6 +15,7 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEven
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 
 public class RecordExtension {
 
@@ -56,6 +57,10 @@ public class RecordExtension {
 	}
 
 	public void setRecordCategory(RecordSetCategoryEvent event) {
+	}
+
+	public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
+
 	}
 
 	public ExtensionBooleanResult isRecordModifiableBy(IsRecordModifiableByParams params) {

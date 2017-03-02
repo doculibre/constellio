@@ -2,11 +2,10 @@ package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
-
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -16,6 +15,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+	public static final String LOCALIZATION = "localization";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String ADMINISTRATIVE_UNITS = "administrativeUnits";
 	public static final String BORROW_DATE = "borrowDate";
@@ -38,6 +38,10 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String BORROWED = "borrowed";
 	public static final String CAPACITY = "capacity";
 	public static final String FILL_RATIO_ENTRED = "fillRatioEntered";
+	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";
+	public static final String LINEAR_SIZE = "linearSize";
+	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
+	public static final String AVAILABLE_SIZE = "availableSize";
 
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
@@ -58,8 +62,17 @@ public class ContainerRecord extends RecordWrapper {
 		return this;
 	}
 
+	public String getLocalization() {
+		return get(LOCALIZATION);
+	}
+
 	public Double getCapacity() {
 		return get(CAPACITY);
+	}
+
+	public ContainerRecord setCapacity(long capacity) {
+		set(CAPACITY, capacity);
+		return this;
 	}
 
 	public ContainerRecord setCapacity(Double capacity) {
@@ -299,5 +312,26 @@ public class ContainerRecord extends RecordWrapper {
 	public ContainerRecord setBorrowed(Boolean borrowed) {
 		set(BORROWED, borrowed);
 		return this;
+	}
+
+	public Double getLinearSizeEntered() {
+		return get(LINEAR_SIZE_ENTERED);
+	}
+
+	public ContainerRecord setLinearSizeEntered(double linearSizeEntered) {
+		set(LINEAR_SIZE_ENTERED, linearSizeEntered);
+		return this;
+	}
+
+	public Double getLinearSizeSum() {
+		return get(LINEAR_SIZE_SUM);
+	}
+
+	public Double getLinearSize() {
+		return get(LINEAR_SIZE);
+	}
+
+	public Double getAvailableSize() {
+		return get(AVAILABLE_SIZE);
 	}
 }
