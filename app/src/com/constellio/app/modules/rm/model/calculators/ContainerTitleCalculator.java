@@ -20,13 +20,13 @@ public class ContainerTitleCalculator implements MetadataValueCalculator<String>
 	public String calculate(CalculatorParameters parameters) {
 
 		String identifier = parameters.get(identifierParam);
-		if(identifier != null) {
-			StringBuilder sb = new StringBuilder(identifier);
-			while (sb.length() < 5) {
-				sb.insert(0,'0');
-			}
-			identifier = sb.toString();
-		}
+//		if(identifier != null) {
+//			StringBuilder sb = new StringBuilder(identifier);
+//			while (sb.length() < 5) {
+//				sb.insert(0,'0');
+//			}
+//			identifier = sb.toString();
+//		}
 		String temporaryIdentifier = parameters.get(temporaryIdentifierParam);
 
 		return identifier != null ? identifier : temporaryIdentifier;
