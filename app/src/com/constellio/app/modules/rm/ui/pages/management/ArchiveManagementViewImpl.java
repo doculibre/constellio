@@ -22,8 +22,6 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
     public static final String CONTAINERS = "containers-caption";
     public static final ThemeResource REPORTS_ICON = new ThemeResource("images/icons/config/report.png");
     public static final String REPORTS = "reports-caption";
-    public static final String AVAILABLE_SPACE = "availableSpace-caption";
-    public static final ThemeResource AVAILABLE_SPACE_ICON = new ThemeResource("images/icons/config/shelf.png");
 
     private final ArchiveManagementPresenter presenter;
 
@@ -75,15 +73,6 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
         };
         reports.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
         reports.addStyleName(REPORTS);
-
-//        availableSpace = new IconButton(AVAILABLE_SPACE_ICON, $("ArchiveManagementView.availableSpace"), false) {
-//            @Override
-//            protected void buttonClick(ClickEvent event) {
-//
-//            }
-//        };
-//        availableSpace.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-//        availableSpace.addStyleName(AVAILABLE_SPACE);
 
         presenter.onViewAssembled();
         CssLayout layout = new CssLayout(decommissioning, newContainer, containers, reports);
