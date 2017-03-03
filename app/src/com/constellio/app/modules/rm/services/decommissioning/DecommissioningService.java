@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.services.factories.AppLayerFactory;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -736,6 +737,10 @@ public class DecommissioningService {
 
 	private DecommissioningSecurityService securityService() {
 		return new DecommissioningSecurityService(collection, appLayerFactory);
+	}
+
+	public String getDecommissionningLabel(ContainerRecord record) {
+		return record.getDecommissioningType().getLabel();
 	}
 }
 

@@ -2,6 +2,8 @@ package com.constellio.app.modules.rm.model.enums;
 
 import com.constellio.model.entities.EnumWithSmallCode;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public enum DecommissioningType implements EnumWithSmallCode {
 
 	TRANSFERT_TO_SEMI_ACTIVE("T"), DEPOSIT("C"), DESTRUCTION("D");
@@ -14,6 +16,10 @@ public enum DecommissioningType implements EnumWithSmallCode {
 
 	public String getCode() {
 		return code;
+	}
+
+	public String getLabel() {
+		return $("DecommissioningType." + this.getCode());
 	}
 
 }
