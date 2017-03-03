@@ -1,22 +1,26 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class DecommissioningListQueryFactory {
 	RMSchemasRecordsServices rm;
@@ -40,6 +44,21 @@ public class DecommissioningListQueryFactory {
 			return newQueryWithAdministrativeUnitFilter(condition, user);
 		} else {
 			return LogicalSearchQuery.returningNoResults();
+		}
+	}
+
+	public LogicalSearchQuery getGeneratedTransferListsQuery(User user) {
+		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() || user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).globally()) {
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
+					.whereAllConditions(
+							where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.GENERATED),
+							where(rm.decommissioningList.type()).isEqualTo(DecommissioningListType.FOLDERS_TO_TRANSFER),
+							where(rm.decommissioningList.analogicalMedium()).isTrue(),
+							where(rm.decommissioningList.electronicMedium()).isFalse()
+					);
+			return newQueryWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST));
+		} else {
+			return getGeneratedListsQuery(user);
 		}
 	}
 
@@ -81,7 +100,7 @@ public class DecommissioningListQueryFactory {
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
 					.where(rm.decommissioningList.status()).isIn(
-							Arrays.asList(DecomListStatus.IN_APPROVAL, DecomListStatus.IN_VALIDATION))
+							asList(DecomListStatus.IN_APPROVAL, DecomListStatus.IN_VALIDATION))
 					.andWhere(rm.decommissioningList.approvalRequest()).isNotNull();
 			return newQueryWithAdministrativeUnitFilter(condition, user);
 		} else {
@@ -131,6 +150,20 @@ public class DecommissioningListQueryFactory {
 		} else {
 			List<String> administrativeUnits = authorizationsServices.getConceptsForWhichUserHasPermission(permission, user);
 			return new LogicalSearchQuery(condition.andWhere(rm.decommissioningList.administrativeUnit()).isIn(administrativeUnits))
+					.sortAsc(Schemas.TITLE);
+		}
+	}
+
+	private LogicalSearchQuery newQueryWithAdministrativeUnitFilter(
+			LogicalSearchCondition condition, User user, List<String> permissionList) {
+		if (user.hasAny(permissionList).globally()) {
+			return new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
+		} else {
+			Set<String> administrativeUnits = new HashSet<>();
+			for(String permission: permissionList) {
+				administrativeUnits.addAll(authorizationsServices.getConceptsForWhichUserHasPermission(permission, user));
+			}
+			return new LogicalSearchQuery(condition.andWhere(rm.decommissioningList.administrativeUnit()).isIn(new ArrayList<Object>(administrativeUnits)))
 					.sortAsc(Schemas.TITLE);
 		}
 	}

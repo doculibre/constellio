@@ -43,7 +43,7 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
                     newLayoutSaveButton.addClickListener(new ClickListener() {
                         @Override
                         public void buttonClick(ClickEvent event) {
-                            int numberOfContainer = integerField.getValue().matches("^\\d+$") ? Integer.parseInt(integerField.getValue()) : 0;
+                            int numberOfContainer = integerField.getValue() != null && integerField.getValue().matches("^\\d+$") ? Integer.parseInt(integerField.getValue()) : 0;
                             presenter.setNumberOfContainer(numberOfContainer);
                             callTrySave();
                             getWindow().close();

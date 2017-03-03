@@ -1,11 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListQueryFactory;
@@ -26,6 +22,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<DecommissioningMainView> {
 	public static final String CREATE = "create";
@@ -127,7 +128,11 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	private LogicalSearchQuery getQueryForTab(String tabId) {
 		switch (tabId) {
 		case GENERATED:
-			return queryFactory().getGeneratedListsQuery(getCurrentUser());
+			if(presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
+				return queryFactory().getGeneratedListsQuery(getCurrentUser());
+			} else {
+				return queryFactory().getGeneratedTransferListsQuery(getCurrentUser());
+			}
 		case PENDING_VALIDATION:
 			return queryFactory().getListsPendingValidationQuery(getCurrentUser());
 		case TO_VALIDATE:
@@ -181,5 +186,9 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 			deleteConfirmMessage = $("DecommissioningMainView.deleteList");
 		}
 		return deleteConfirmMessage;
+	}
+
+	public User getUser() {
+		return getCurrentUser();
 	}
 }

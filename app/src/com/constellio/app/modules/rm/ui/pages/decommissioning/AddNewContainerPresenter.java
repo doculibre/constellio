@@ -1,14 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -18,6 +14,11 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddNewContainerPresenter extends AddEditContainerPresenter {
 	private transient RMSchemasRecordsServices rmRecordsServices;
@@ -79,7 +80,9 @@ public class AddNewContainerPresenter extends AddEditContainerPresenter {
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(restrictedRecord);
+		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(restrictedRecord) ||
+				new DecommissioningSecurityService(view.getCollection(), appLayerFactory).hasPermissionToCreateTransferOnList(decommissioningList, user);
 	}
 
 	private RMSchemasRecordsServices rmRecordsServices() {
