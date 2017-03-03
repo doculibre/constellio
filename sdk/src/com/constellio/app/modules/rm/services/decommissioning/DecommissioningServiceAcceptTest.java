@@ -1,10 +1,16 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -133,5 +139,32 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 		recordServices.logicallyDelete(records.getFolder_A04().getWrappedRecord(), User.GOD);
 		long folders = service.getFolderCountForRetentionRule("ruleId_1");
 		assertThat(folders).isEqualTo(19);
+	}
+
+	@Test
+	public void givenDecomissioningTypeTryingToGetLabel() throws Exception {
+		ContainerRecord containerRecordDesctruction = rm.newContainerRecord();
+		containerRecordDesctruction.setDecommissioningType(DecommissioningType.DESTRUCTION);
+		containerRecordDesctruction.setIdentifier("D1");
+		containerRecordDesctruction.setTemporaryIdentifier("D1");
+		containerRecordDesctruction.setType(records.containerTypeId_boite22x22);
+		ContainerRecord containerRecordTransfert = rm.newContainerRecord();
+		containerRecordTransfert.setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
+		containerRecordTransfert.setIdentifier("T1");
+		containerRecordTransfert.setTemporaryIdentifier("T1");
+		containerRecordTransfert.setType(records.containerTypeId_boite22x22);
+		ContainerRecord containerRecordDeposit = rm.newContainerRecord();
+		containerRecordDeposit.setDecommissioningType(DecommissioningType.DEPOSIT);
+		containerRecordDeposit.setIdentifier("C1");
+		containerRecordDeposit.setTemporaryIdentifier("C1");
+		containerRecordDeposit.setType(records.containerTypeId_boite22x22);
+
+		Transaction t = new Transaction();
+		t.addAll(containerRecordDeposit, containerRecordDesctruction, containerRecordTransfert);
+		recordServices.execute(t);
+
+		assertThat(containerRecordDesctruction.getDecommissioningType().getLabel()).isEqualTo($("DecommissioningType.D"));
+		assertThat(containerRecordDeposit.getDecommissioningType().getLabel()).isEqualTo($("DecommissioningType.C"));
+		assertThat(containerRecordTransfert.getDecommissioningType().getLabel()).isEqualTo($("DecommissioningType.T"));
 	}
 }

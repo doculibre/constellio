@@ -21,6 +21,7 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRXmlUtils;
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.hadoop.hdfs.util.Diff;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -74,7 +75,10 @@ public class ReportUtils {
 
     private List<DataField> getotherDataForContainer() {
         List<DataField> data = new ArrayList<>();
-        data.add(new DataField("dispositionDate", DecommissioningService.class).setMethod("getDispositionDate", ContainerRecord.class).setInstance(new DecommissioningService(this.collection, this.factory)));
+        data.addAll(asList(
+                new DataField("dispositionDate", DecommissioningService.class).setMethod("getDispositionDate", ContainerRecord.class).setInstance(new DecommissioningService(this.collection, this.factory)),
+                new DataField("decommissioningLabel", DecommissioningService.class).setMethod("getDecommissionningLabel", ContainerRecord.class).setInstance(new DecommissioningService(this.collection, this.factory))
+        ));
         return data;
     }
 
