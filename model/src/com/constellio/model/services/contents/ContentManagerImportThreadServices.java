@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -316,11 +315,15 @@ public class ContentManagerImportThreadServices {
 	}
 
 	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index() {
-		if (!indexProperties.exists()) {
+		return readFileNameSHA1Index(indexProperties);
+	}
+
+	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index(File sha1Properties) {
+		if (!sha1Properties.exists()) {
 			return Collections.emptyMap();
 		}
 		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
-		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(indexProperties).entrySet()) {
+		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(sha1Properties).entrySet()) {
 			final String value = entry.getValue();
 			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
 				@Override
