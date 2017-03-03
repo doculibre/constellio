@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
@@ -107,7 +108,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething();
+		String[] parts = params.split("/", 3);
+		if(SearchType.transfer.equals(SearchType.valueOf(parts[0]))) {
+			return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
+					user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
+		} else {
+			return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething();
+		}
 	}
 
 	@Override
@@ -264,6 +271,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			condition = selectByDecommissioningStatus();
 		} else {
 			condition = allConditions(selectByDecommissioningStatus(), selectByAdvancedSearchCriteria(criteria));
+		}
+
+		if(!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
+				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally()) {
+			if(searchType.isFolderSearch()) {
+				condition = condition.andWhere(rmRecordServices().folder.mediaType()).isEqualTo(FolderMediaType.ANALOG);
+			}
 		}
 	}
 
