@@ -1,30 +1,10 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.UNKNOWN;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilderWithDefinedIds;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DecomListStatus;
-import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -37,6 +17,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
@@ -159,25 +150,25 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		);
 
 		assertThat(records.getStorageSpaceS01().getCode()).isEqualTo("S01");
-		assertThat(records.getStorageSpaceS01().getTitle()).isEqualTo("Etagere 1");
+		assertThat(records.getStorageSpaceS01().getTitle()).isEqualTo("S01");
 
 		assertThat(records.getStorageSpaceS01_01().getCode()).isEqualTo("S01-01");
-		assertThat(records.getStorageSpaceS01_01().getTitle()).isEqualTo("Tablette 1");
+		assertThat(records.getStorageSpaceS01_01().getTitle()).isEqualTo("S01-S01-01");
 		assertThat(records.getStorageSpaceS01_01().getParentStorageSpace()).isEqualTo("S01");
 
 		assertThat(records.getStorageSpaceS01_02().getCode()).isEqualTo("S01-02");
-		assertThat(records.getStorageSpaceS01_02().getTitle()).isEqualTo("Tablette 2");
+		assertThat(records.getStorageSpaceS01_02().getTitle()).isEqualTo("S01-S01-02");
 		assertThat(records.getStorageSpaceS01_02().getParentStorageSpace()).isEqualTo("S01");
 
 		assertThat(records.getStorageSpaceS02().getCode()).isEqualTo("S02");
-		assertThat(records.getStorageSpaceS02().getTitle()).isEqualTo("Etagere 2");
+		assertThat(records.getStorageSpaceS02().getTitle()).isEqualTo("S02");
 
 		assertThat(records.getStorageSpaceS02_01().getCode()).isEqualTo("S02-01");
-		assertThat(records.getStorageSpaceS02_01().getTitle()).isEqualTo("Tablette 1");
+		assertThat(records.getStorageSpaceS02_01().getTitle()).isEqualTo("S02-S02-01");
 		assertThat(records.getStorageSpaceS02_01().getParentStorageSpace()).isEqualTo("S02");
 
 		assertThat(records.getStorageSpaceS02_02().getCode()).isEqualTo("S02-02");
-		assertThat(records.getStorageSpaceS02_02().getTitle()).isEqualTo("Tablette 2");
+		assertThat(records.getStorageSpaceS02_02().getTitle()).isEqualTo("S02-S02-02");
 		assertThat(records.getStorageSpaceS02_02().getParentStorageSpace()).isEqualTo("S02");
 	}
 
