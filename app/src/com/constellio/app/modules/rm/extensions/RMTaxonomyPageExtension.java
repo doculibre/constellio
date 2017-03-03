@@ -94,7 +94,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		//				}
 		//
 		//				@Override
-		//				public String getLabel() {
+		//				public String getTitle() {
 		//					return $("TaxonomyManagementView.retentionRules");
 		//				}
 		//

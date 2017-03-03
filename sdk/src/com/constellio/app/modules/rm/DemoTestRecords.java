@@ -1,29 +1,10 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -50,6 +31,20 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.*;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.*;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static java.util.Arrays.asList;
 
 public class DemoTestRecords {
 
@@ -835,27 +830,33 @@ public class DemoTestRecords {
 		transaction.add(schemas.newDecommissioningListWithId(list_01)).setTitle("Listes avec plusieurs supports à détruire")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
 				.setContainerDetailsFor(containerId_bac18, containerId_bac19)
+				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setFolderDetailsFor(asList(folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_02)).setTitle("Liste analogique à détruire")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
+				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setFolderDetailsFor(asList(folder_A54, folder_A55, folder_A56));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_03)).setTitle("Liste hybride à fermer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_CLOSE)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setFolderDetailsFor(asList(folder_A01, folder_A02, folder_A03));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_04)).setTitle("Liste analogique à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setContainerDetailsFor(containerId_bac14, containerId_bac15)
 				.setFolderDetailsFor(asList(folder_A22, folder_A23, folder_A24));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_05)).setTitle("Liste hybride à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setFolderDetailsFor(asList(folder_A19, folder_A20, folder_A21));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_06)).setTitle("Liste électronique à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setFolderDetailsFor(asList(folder_A25, folder_A26, folder_A27));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_07)).setTitle("Liste analogique à détruire")

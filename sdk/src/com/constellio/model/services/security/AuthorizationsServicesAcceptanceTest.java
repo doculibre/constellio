@@ -1842,8 +1842,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenRecordIsLogicallyThenPhysicallyDeleted(FOLDER1);
 		givenRecordIsLogicallyThenPhysicallyDeleted(FOLDER2);
 
-
-
 		assertThatAllAuthorizations().isEmpty();
 
 	}

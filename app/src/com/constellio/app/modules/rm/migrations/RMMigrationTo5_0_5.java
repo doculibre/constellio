@@ -149,8 +149,8 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 		//		private void setEmailLabelsToDefaultValueInsteadOfInit(MetadataSchemaBuilder emailSchemaBuilder) {
 		//
 		//			for (MetadataBuilder metadata : emailSchemaBuilder.getMetadatas()) {
-		//				if (metadata.getLabel() != null && metadata.getLabel().startsWith("init.") && metadata.getInheritance() != null) {
-		//					metadata.setLabel(null);
+		//				if (metadata.getTitle() != null && metadata.getTitle().startsWith("init.") && metadata.getInheritance() != null) {
+		//					metadata.setTitle(null);
 		//				}
 		//			}
 		//		}

@@ -3,8 +3,11 @@ package com.constellio.model.services.taxonomies;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -12,9 +15,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.common.params.SolrParams;
@@ -320,6 +321,65 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X110)
 				.is(empty());
+	}
+
+	@Test
+	public void givenSpecialConditionWhenSelectingASecondaryConceptThenReturnRecordsBasedOnCondition()
+			throws Exception {
+
+		//givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
+
+		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
+
+		filter.setLinkableConceptsCondition(where(IDENTIFIER).isNot(containingText("Z"))
+				.andWhere(IDENTIFIER).isContainingText("2"));
+
+		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X))
+				.has(resultsInOrder(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X));
+
+		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
+				.orWhere(IDENTIFIER).isContainingText("2"));
+
+		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X, options)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X100))
+				.has(resultsInOrder(records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X100, options)
+				.has(numFoundAndListSize(1))
+				.has(linkable(records.categoryId_X120))
+				.has(resultsInOrder(records.categoryId_X120))
+				.has(noItemsWithChildren());
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X110, options)
+				.is(empty());
+
+		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
+				.andWhere(IDENTIFIER).isContainingText("2"));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100, options)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_Z110))
+				.has(linkable(records.categoryId_Z120))
+				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z110));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110, options)
+				.has(numFoundAndListSize(1))
+				.has(linkable(records.categoryId_Z112))
+				.has(resultsInOrder(records.categoryId_Z112))
+				.has(noItemsWithChildren());
 	}
 
 	@Test
@@ -769,11 +829,10 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z)
-				.has(numFoundAndListSize(4))
-				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
+				.has(numFoundAndListSize(3))
+				.has(unlinkable(records.categoryId_Z100))
 				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999))
-				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
-						records.categoryId_ZE42))
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z999, records.categoryId_ZE42))
 				.has(itemsWithChildren(records.categoryId_Z100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100)
@@ -783,67 +842,26 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(itemsWithChildren(records.categoryId_Z110));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110)
-				.has(numFoundAndListSize(2))
-				.has(unlinkable(records.categoryId_Z111))
+				.has(numFoundAndListSize(1))
 				.has(linkable(records.categoryId_Z112))
-				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
-				.has(noItemsWithChildren());
-
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z112)
-				.is(empty());
-
-	}
-
-	@Test
-	public void givenUserHaveAuthorizationsOnAnAdministrativeUnitThenAllCategoriesTreeVisibleForCategorySelectionWithInterval()
-			throws Exception {
-
-		givenUserHasReadAccessTo(records.unitId_12);
-
-		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy()
-				.has(numFoundAndListSize(2))
-				.has(linkable(records.categoryId_X))
-				.has(unlinkable(records.categoryId_Z))
-				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
-				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
-
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z)
-				.has(numFoundAndListSize(4))
-				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
-				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999))
-				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
-						records.categoryId_ZE42))
-				.has(itemsWithChildren(records.categoryId_Z100));
-
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100)
-				.has(numFoundAndListSize(2))
-				.has(linkable(records.categoryId_Z110, records.categoryId_Z120))
-				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
-				.has(itemsWithChildren(records.categoryId_Z110));
-
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110)
-				.has(numFoundAndListSize(2))
-				.has(unlinkable(records.categoryId_Z111))
-				.has(linkable(records.categoryId_Z112))
-				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
+				.has(resultsInOrder(records.categoryId_Z112))
 				.has(noItemsWithChildren());
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z112)
 				.is(empty());
 
 		// This test fails because numFound does not match the number of records in interval.
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110,
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100,
 				new TaxonomiesSearchOptions().setStartRow(0).setRows(1))
-				.has(resultsInOrder(records.categoryId_Z111))
-				.has(noItemsWithChildren())
+				.has(resultsInOrder(records.categoryId_Z110))
+				.has(itemsWithChildren(records.categoryId_Z110))
 				.has(numFound(2)).has(listSize(1));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110,
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100,
 				new TaxonomiesSearchOptions().setStartRow(1).setRows(1))
-				.has(resultsInOrder(records.categoryId_Z112))
+				.has(resultsInOrder(records.categoryId_Z120))
 				.has(noItemsWithChildren())
 				.has(numFound(2)).has(listSize(1));
-
 	}
 
 	@Test
@@ -1483,11 +1501,10 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z)
-				.has(numFoundAndListSize(4))
-				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
+				.has(numFoundAndListSize(3))
+				.has(unlinkable(records.categoryId_Z100))
 				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999))
-				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
-						records.categoryId_ZE42))
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z999, records.categoryId_ZE42))
 				.has(itemsWithChildren(records.categoryId_Z100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100)
@@ -1580,25 +1597,23 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z)
-				.has(numFoundAndListSize(4))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_ZE42))
-				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999))
-				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
-						records.categoryId_ZE42))
+				.has(unlinkable(records.categoryId_Z100))
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_ZE42))
 				.has(itemsWithChildren(records.categoryId_Z100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100)
-				.has(numFoundAndListSize(2))
+				.has(numFoundAndListSize(1))
 				.has(linkable(records.categoryId_Z110))
-				.has(unlinkable(records.categoryId_Z120))
-				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
-				.has(itemsWithChildren(records.categoryId_Z110));
-
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110)
-				.has(numFoundAndListSize(2))
-				.has(unlinkable(records.categoryId_Z111, records.categoryId_Z112))
-				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
+				.has(resultsInOrder(records.categoryId_Z110))
 				.has(noItemsWithChildren());
+
+		//		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110)
+		//				.has(numFoundAndListSize(2))
+		//				.has(unlinkable(records.categoryId_Z111, records.categoryId_Z112))
+		//				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
+		//				.has(noItemsWithChildren());
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z112)
 				.is(empty());

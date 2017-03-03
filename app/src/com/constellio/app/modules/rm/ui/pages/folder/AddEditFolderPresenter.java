@@ -1,31 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.*;
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -37,21 +11,7 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTransferDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.*;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -59,21 +19,31 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.wrappers.Folder.*;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
     private static final String ID = "id";
@@ -488,33 +458,30 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustUniformSubdivisionField() {
 		FolderUniformSubdivisionField uniformSubdivisionField = (FolderUniformSubdivisionField) view.getForm().getCustomField(
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
-		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
-		if (uniformSubdivisionField != null && parentFolderField != null) {
+		if (uniformSubdivisionField != null) {
+
+			if (new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areUniformSubdivisionEnabled()) {
+				uniformSubdivisionField.setVisible(true);
+			} else {
+				uniformSubdivisionField.setVisible(false);
+			}
+
 			String parentFolderId = parentFolderField.getFieldValue();
 			if (parentFolderId != null) {
 				Record parentFolder = getRecord(parentFolderId);
 				Folder parentFolderWrapper = new Folder(parentFolder, types());
 				String parentFolderUniformSubdivisionId = parentFolderWrapper.getUniformSubdivisionEntered();
-				String folderUniformSubdivisionId = folderVO.getUniformSubdivision();
 
 				// The child folder must be linked to the same category as its parent
 				if (parentFolderUniformSubdivisionId != null) {
-					if (!parentFolderUniformSubdivisionId.equals(folderUniformSubdivisionId)) {
-						folderVO.setUniformSubdivision(parentFolderUniformSubdivisionId);
-					}
+					folderVO.setUniformSubdivision(parentFolderUniformSubdivisionId);
+					uniformSubdivisionField.setFieldValue(parentFolderUniformSubdivisionId);
 					// No need to display the field
 					if (uniformSubdivisionField.isVisible()) {
 						setFieldVisible(uniformSubdivisionField, false, Folder.UNIFORM_SUBDIVISION_ENTERED);
 					}
-				} else if (!uniformSubdivisionField.isVisible()) {
-					setFieldVisible(uniformSubdivisionField, true, Folder.UNIFORM_SUBDIVISION_ENTERED);
 				}
-			} else {
-				setFieldVisible(uniformSubdivisionField, false, Folder.UNIFORM_SUBDIVISION_ENTERED);
-			}
-			if (uniformSubdivisionField.isVisible() && (categoryField == null || !categoryField.isVisible())) {
-				setFieldVisible(uniformSubdivisionField, false, Folder.UNIFORM_SUBDIVISION_ENTERED);
 			}
 		}
 	}

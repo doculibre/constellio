@@ -2,6 +2,7 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordInCreationBeforeSaveEvent implements RecordEvent {
@@ -9,9 +10,16 @@ public class RecordInCreationBeforeSaveEvent implements RecordEvent {
 	Record record;
 	private User transactionUser;
 
-	public RecordInCreationBeforeSaveEvent(Record record, User transactionUser) {
+	boolean singleRecordTransaction;
+
+	ValidationErrors validationErrors;
+
+	public RecordInCreationBeforeSaveEvent(Record record, User transactionUser, boolean singleRecordTransaction,
+			ValidationErrors validationErrors) {
 		this.record = record;
 		this.transactionUser = transactionUser;
+		this.singleRecordTransaction = singleRecordTransaction;
+		this.validationErrors = validationErrors;
 	}
 
 	public Record getRecord() {
@@ -28,5 +36,13 @@ public class RecordInCreationBeforeSaveEvent implements RecordEvent {
 
 	public User getTransactionUser() {
 		return transactionUser;
+	}
+
+	public boolean isSingleRecordTransaction() {
+		return singleRecordTransaction;
+	}
+
+	public ValidationErrors getValidationErrors() {
+		return validationErrors;
 	}
 }

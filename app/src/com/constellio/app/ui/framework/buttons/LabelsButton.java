@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.*;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
@@ -32,6 +25,15 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextField;
 import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class LabelsButton extends WindowButton {
     @PropertyId("startPosition")
@@ -147,8 +149,8 @@ public class LabelsButton extends WindowButton {
     }
 
     public List<PrintableLabel> getTemplates(String type) {
-        LogicalSearchCondition condition = from(rm.newRMReport().getSchema()).where(rm.newRMReport().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(type);
-        return rm.wrapRMReports(ss.search(new LogicalSearchQuery(condition)));
+        LogicalSearchCondition condition = from(rm.newPrintableLabel().getSchema()).where(rm.newPrintableLabel().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(type);
+        return rm.wrapPrintableLabels(ss.search(new LogicalSearchQuery(condition)));
     }
 
     public static interface RecordSelector extends Serializable {

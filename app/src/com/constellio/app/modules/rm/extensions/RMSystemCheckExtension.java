@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
@@ -30,6 +17,18 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class RMSystemCheckExtension extends SystemCheckExtension {
 
@@ -148,7 +147,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		if (configs.allowModificationOfArchivisticStatusAndExpectedDates().isAlwaysEnabledOrDuringImportOnly()) {
 			Iterator<Record> foldersIterator = searchServices.recordsIterator(query(from(rm.folder.schemaType())
 					.where(rm.folder.manualExpectedDepositDate()).isNotNull()
-					.orWhere(rm.folder.manualExpectedDestructionDate()).isNotNull()));
+					.orWhere(rm.folder.manualExpectedDesctructionDate()).isNotNull()));
 
 			while (foldersIterator.hasNext()) {
 				Folder folder = rm.wrapFolder(foldersIterator.next());

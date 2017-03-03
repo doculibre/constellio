@@ -20,7 +20,8 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -28,8 +29,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 
-
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 /**
@@ -128,7 +127,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
     protected Record newRecord() {
         super.setSchemaCode(PrintableLabel.SCHEMA_NAME);
         Record record = super.newRecord();
-        PrintableLabel report = rmSchemasRecordsServices.wrapRMReport(record);
+        PrintableLabel report = rmSchemasRecordsServices.wrapPrintableLabel(record);
         return record;
     }
 
