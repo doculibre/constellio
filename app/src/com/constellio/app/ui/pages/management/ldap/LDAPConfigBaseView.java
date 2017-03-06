@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaadin.ui.*;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,23 +24,13 @@ import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchPro
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
 
 public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPConfigManagementView {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigBaseView.class);
 	protected final LDAPConfigManagementPresenter presenter;
 
-	protected CheckBox ldapAuthenticationActive;
 	protected Field directoryTypeField;
 	protected String previousDirectoryType;
 
@@ -55,7 +46,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 
 	protected Button deleteUnusedUserButton, activateLDAPButton;
 
-	private boolean isLDAPactive = false;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
@@ -115,12 +105,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 				previousDirectoryType = newValue;
 			}
 		});
-	}
-
-	protected void buildLDAPActiveCheckBox() {
-		LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
-		ldapAuthenticationActive = new CheckBox($("ldap.authentication.active"));
-		ldapAuthenticationActive.setValue(ldapServerConfiguration.getLdapAuthenticationActive());
 	}
 
 	protected void buildUsersAcceptRegex(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
@@ -224,14 +208,32 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 			}
 		};
 
-		activateLDAPButton = new AddButton(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
+		activateLDAPButton = new AddButton(!presenter.isLDAPActive() ? $("ldap.authentication.active") : $("ldap.authentication.inactive")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				isLDAPactive = !isLDAPactive;
-				this.setCaption(!isLDAPactive ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
+				ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create(
+						presenter.isLDAPActive() ? $("ldap.authentication.inactive.caption") : $("ldap.authentication.active.caption"),
+						presenter.isLDAPActive() ? $("ldap.authentication.inactive.msg") : $("ldap.authentication.active.msg"),
+						$("OK"),
+						$("cancel"),
+						null);
+				confirmDialog.getOkButton().addClickListener(new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.setLDAPActive(!presenter.isLDAPActive());
+						activateLDAPButton.setCaption(!presenter.isLDAPActive() ? $("ldap.authentication.active") : $("ldap.authentication.inactive"));
+					}
+				});
+				confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
+					@Override
+					public void onClose(ConfirmDialog dialog) {
+
+					}
+				}, true);
+
 			}
 		};
-		actionMenuButtons.add(deleteUnusedUserButton);
+		//actionMenuButtons.add(deleteUnusedUserButton);
 		actionMenuButtons.add(activateLDAPButton);
 		return actionMenuButtons;
 	}

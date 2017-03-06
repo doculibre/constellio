@@ -505,8 +505,9 @@ public class AzureAdClient {
         ldapUser.setEnabled(Boolean.valueOf(userJsonObject.optString("accountEnabled")));
         ldapUser.setLieuTravail(userJsonObject.optString("department"));
         ldapUser.setMsExchDelegateListBL(null); // TODO
-        if (!StringUtils.isEmpty(userJsonObject.optString("refreshTokensValidFromDateTime"))) {
-            ldapUser.setLastLogon(new DateTime(userJsonObject.optString("refreshTokensValidFromDateTime")).toDate());
+        String refreshTokensValidFromDateTime = userJsonObject.optString("refreshTokensValidFromDateTime");
+        if (!StringUtils.isEmpty(refreshTokensValidFromDateTime) && !"null".equals(refreshTokensValidFromDateTime)) {
+            ldapUser.setLastLogon(new DateTime(refreshTokensValidFromDateTime).toDate());
         }
 
         return ldapUser;

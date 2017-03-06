@@ -160,7 +160,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_5_37(),
 				new RMMigrationTo6_5_50(),
 				new RMMigrationTo6_5_54(),
-				new RMMigrationTo6_6()
+				new RMMigrationTo6_6()//,
+				//new RMMigrationTo7_0_11()
 		);
 	}
 

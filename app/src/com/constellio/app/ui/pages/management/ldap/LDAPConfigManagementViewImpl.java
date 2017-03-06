@@ -183,7 +183,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			AzureADServerConfig serverConfig = new AzureADServerConfig()
 					.setAuthorityTenantId(azurAuthenticationTab.getAuthorityTenantId())
 					.setClientId(azurAuthenticationTab.getClientId());
-			return new LDAPServerConfiguration(serverConfig, ldapAuthenticationActive.getValue());
+			return new LDAPServerConfiguration(serverConfig, presenter.isLDAPActive());
 		}
 	}
 
@@ -218,7 +218,6 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			addComponent(groupsAcceptanceRegexField);
 			buildGroupsRejectRegex(ldapUserSyncConfiguration);
 			addComponent(groupsRejectionRegexField);
-
 		}
 
 		public String getApplicationKey() {
@@ -274,7 +273,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		}
 		public LDAPServerConfiguration getLDAPServerConfiguration() {
 			return new LDAPServerConfiguration(urlsField.getValues(),
-					domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue(),
+					domainsField.getValues(), getDirectoryType(), presenter.isLDAPActive(),
 					followReferences.getValue());
 		}
 	}
