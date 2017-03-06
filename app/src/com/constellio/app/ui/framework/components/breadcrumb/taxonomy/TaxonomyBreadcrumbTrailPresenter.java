@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.components.breadcrumb.taxonomy;
 
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -50,8 +52,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 		breadcrumbItems.add(new TaxonomyRootBreadcrumbItem());
 
-		String[] pathParts = ((String) taxonomyPresenterUtils.getRecord(conceptId).getList(Schemas.PARENT_PATH).get(0))
-				.split("/");
+		String[] pathParts = ((String) parentPaths(taxonomyPresenterUtils.getRecord(conceptId)).get(0)).split("/");
 		for (int i = 0; i < pathParts.length; i++) {
 			String pathPart = pathParts[i];
 			if (!taxonomyCode.equals(pathPart) && StringUtils.isNotBlank(pathPart)) {
@@ -59,7 +60,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 			}
 		}
 		breadcrumbItems.add(new TaxonomyBreadcrumbItem(conceptId));
-		
+
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}

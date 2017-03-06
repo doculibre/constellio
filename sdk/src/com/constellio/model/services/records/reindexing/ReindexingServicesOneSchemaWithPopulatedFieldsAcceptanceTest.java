@@ -103,7 +103,7 @@ public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extend
 	private List<String> freeTextSearch(String terms) {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		ConditionTemplateFactory factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
-		ConditionTemplate conditionTemplate = factory.searchFieldHasAnalyzedValue(terms);
+		ConditionTemplate conditionTemplate = factory.metadatasHasAnalyzedValue(terms, zeSchema.largeTextMetadata());
 		LogicalSearchCondition condition = from(zeSchema.instance()).where(conditionTemplate);
 		return searchServices.searchRecordIds(new LogicalSearchQuery(condition));
 	}

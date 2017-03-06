@@ -68,8 +68,7 @@ public class PathLookupField extends LookupField<String> {
 			@Override
 			public Resource getItemIcon(Object itemId) {
 				boolean expanded = isExpanded(itemId);
-				RecordIdToCaptionConverter itemsConverter = (RecordIdToCaptionConverter) PathLookupField.this.getItemConverter();
-				return itemsConverter.getIcon((String) itemId, expanded);
+				return getDataProvider().getIcon((String) itemId, expanded);
 			}
 		};
 	}
@@ -97,7 +96,7 @@ public class PathLookupField extends LookupField<String> {
 	}
 
 	public static class PathInputDataProvider implements TextInputDataProvider<String> {
-		
+
 		private transient int lastStartIndex;
 		private transient String lastQuery;
 		private transient SPEQueryResponse response;

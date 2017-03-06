@@ -527,7 +527,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 					admin, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(rootCategories.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(rootCategories.size() + 2);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -535,7 +534,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, CLASSIFICATION_PLAN,
 					category42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childCategories.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(childCategories.size());
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -596,7 +594,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 					admin, zeCollection, ADMINISTRATIVE_UNITS, new TaxonomiesSearchOptions().setStartRow(2 + i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(rootAdministrativeUnits.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(rootAdministrativeUnits.size() + 2);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -604,7 +601,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, ADMINISTRATIVE_UNITS,
 					unit42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childAdministrativeUnits.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(childAdministrativeUnits.size());
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -846,7 +842,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 	private ConditionTemplate withoutFilters = null;
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
-		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, Integer.MAX_VALUE);
+		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, 10000);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user, int start,
@@ -855,7 +851,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				user, zeCollection, CLASSIFICATION_PLAN,
 				new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false));
 
-		if (rows == Integer.MAX_VALUE) {
+		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -867,7 +863,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				user, zeCollection, CLASSIFICATION_PLAN, options);
 
 		options.setHasChildrenFlagCalculated(false);
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -879,7 +875,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options);
 
 		options.setHasChildrenFlagCalculated(false);
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -887,7 +883,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
 			String category) {
-		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, Integer.MAX_VALUE);
+		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, 10000);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
@@ -898,7 +894,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
 				new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false));
 
-		if (rows == Integer.MAX_VALUE) {
+		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -911,7 +907,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		LinkableTaxonomySearchResponse response = service
 				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -924,7 +920,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		LinkableTaxonomySearchResponse response = service
 				.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);

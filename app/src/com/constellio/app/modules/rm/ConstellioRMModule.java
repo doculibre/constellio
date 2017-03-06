@@ -189,6 +189,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		RMNavigationConfiguration.configureNavigation(config);
 	}
 
+
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
 		setupModelLayerExtensions(collection, appLayerFactory);
@@ -292,6 +293,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
+
 		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
 			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
 			Iterator<Record> authsIterator = modelLayerFactory.newSearchServices().recordsIterator(new LogicalSearchQuery(

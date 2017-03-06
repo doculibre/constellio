@@ -111,7 +111,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final PasswordFileAuthenticationService passwordFileAuthenticationService;
 	private final EmailQueueManager emailQueueManager;
 	private final TrashQueueManager trashQueueManager;
-	private final RecordsCaches recordsCaches = new RecordsCaches();
+	private final RecordsCaches recordsCaches;
 	private final SecurityTokenManager securityTokenManager;
 	protected Key applicationEncryptionKey;
 	private final StoredBatchProcessProgressionServices storedBatchProcessProgressionServices;
@@ -129,6 +129,7 @@ public class ModelLayerFactory extends LayerFactory {
 
 		systemCollectionListeners = new ArrayList<>();
 
+		this.recordsCaches = new RecordsCaches(this);
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
@@ -259,7 +260,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public TaxonomiesSearchServices newTaxonomiesSearchService() {
-		return new TaxonomiesSearchServices(newSearchServices(), taxonomiesManager, schemasManager);
+		return new TaxonomiesSearchServices(this);
 	}
 
 	public RolesManager getRolesManager() {

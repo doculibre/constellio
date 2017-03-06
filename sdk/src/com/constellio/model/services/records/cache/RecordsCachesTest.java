@@ -3,16 +3,20 @@ package com.constellio.model.services.records.cache;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.mockito.Mock;
 
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class RecordsCachesTest extends ConstellioTest {
+
+	@Mock ModelLayerFactory modelLayerFactory;
 
 	@Test
 	public void whenGetRecordsCacheThenReturnSameInstance()
 			throws Exception {
 
-		RecordsCaches allCollectionsCaches = new RecordsCaches();
+		RecordsCaches allCollectionsCaches = new RecordsCaches(modelLayerFactory);
 
 		RecordsCache collection1Cache = allCollectionsCaches.getCache("collection1");
 		RecordsCache collection1CacheSecondCall = allCollectionsCaches.getCache("collection1");

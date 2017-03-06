@@ -1,7 +1,6 @@
 package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.SEARCH_FIELD;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -31,6 +30,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCacheImpl.RecordHolder;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.search.StatusFilter;
@@ -46,6 +46,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Mock User user;
 	@Mock SearchBoost searchBoost;
 	@Mock ResultsProjection resultsProjection;
+	@Mock ModelLayerFactory modelLayerFactory;
 
 	boolean givenDisabledRecordDuplications = false;
 	Metadata zeTypeCodeMetadata, anotherTypeCodeMetadata, anotherTypeLegacyIdMetadata;
@@ -59,7 +60,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		cache = new RecordsCacheImpl();
+		cache = new RecordsCacheImpl(zeCollection, modelLayerFactory);
 		zeTypeCodeMetadata = mockManualMetadata("zeType_default_code", MetadataValueType.STRING);
 		anotherTypeCodeMetadata = mockManualMetadata("anotherType_default_code", MetadataValueType.STRING);
 		anotherTypeLegacyIdMetadata = mockManualMetadata("anotherType_default_legacyId", MetadataValueType.STRING);
@@ -96,11 +97,11 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void whenConfigureCachedTypeThenConfigsSavedInCache()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 100, withoutIndexByMetadata));
 
 		assertThat(cache.getConfiguredCaches()).containsOnly(
-				CacheConfig.permanentCache(zeType, withoutIndexByMetadata),
+				CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata),
 				CacheConfig.volatileCache(anotherType, 100, withoutIndexByMetadata)
 		);
 
@@ -110,7 +111,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void whenConfigureCacheUsingAnInvalidTypeThenIllegalArgumentException()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache("zeType_default", withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially("zeType_default", withoutIndexByMetadata));
 
 	}
 
@@ -118,7 +119,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void whenConfigureCacheThatIsAlreadyConfiguredThenReconfigure()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(zeType, 100, withoutIndexByMetadata));
 
 		assertThat(cache.getCacheConfigOf(zeType).isVolatile()).isTrue();
@@ -134,10 +135,10 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInsertRecordsThenKeepAllOfThem()
+	public void givenpermanentCacheNotLoadedInitiallyWhenInsertRecordsThenKeepAllOfThem()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record record1 = cache.insert(newRecord(zeType, 1));
 		Record record2 = cache.insert(newRecord(zeType, 2));
@@ -160,7 +161,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void whenInsertRecordsOfNonCachedTpesThenNotKeptInCache()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record record1 = cache.insert(newRecord(zeType, 1));
 		Record record2 = cache.insert(newRecord(anotherType, 2));
@@ -269,9 +270,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInsertASameRecordMultipleTimesThenOnlyAddedOnce()
+	public void givenpermanentCacheNotLoadedInitiallyWhenInsertASameRecordMultipleTimesThenOnlyAddedOnce()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		cache.insert(newRecord(zeType, 1));
 		cache.insert(newRecord(zeType, 2));
@@ -331,11 +332,11 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWithRecordsWhenInvalidateAllThenAllRemovedAndCacheEmpty()
+	public void givenpermanentCacheNotLoadedInitiallyWithRecordsWhenInvalidateAllThenAllRemovedAndCacheEmpty()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 
 		cache.insert(newRecord(anotherType, 10));
 		cache.insert(newRecord(zeType, 1));
@@ -355,7 +356,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void whenInsertingMultipleRecordsThenRegistered()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
 
 		cache.insert(asList(
@@ -380,7 +381,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void givenVolatileCacheIsNotBigEnoughWhenInsertingThenInsertHasMuchRecordsHasPossible()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
 
 		cache.insert(asList(
@@ -493,7 +494,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void givenPermanenCacheWhenInsertingNullThenDoNothing()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		cache.insert(newRecord(zeType, 1));
 		cache.insert((Record) null);
@@ -505,7 +506,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void givenPermanenCacheWhenInsertingEmptyListThenDoNothing()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		cache.insert(newRecord(zeType, 1));
 		cache.insert(new ArrayList<Record>());
@@ -514,9 +515,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInsertingLogicallyDeletedRecordThenNotInserted()
+	public void givenpermanentCacheNotLoadedInitiallyWhenInsertingLogicallyDeletedRecordThenNotInserted()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record logicallyDeletedRecord = newRecord(zeType, 2);
 		when(logicallyDeletedRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
@@ -535,7 +536,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void givenPermanenCacheWhenInsertingDirtyRecordThenNotInserted()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record dirtyRecord = newRecord(zeType, 2);
 		when(dirtyRecord.isDirty()).thenReturn(true);
@@ -548,9 +549,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInsertingNotFullyLoadedRecordThenNotInserted()
+	public void givenpermanentCacheNotLoadedInitiallyWhenInsertingNotFullyLoadedRecordThenNotInserted()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record notFullyLoadedRecord = newRecord(zeType, 2);
 		when(notFullyLoadedRecord.isFullyLoaded()).thenReturn(false);
@@ -568,9 +569,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInsertingUnsavedRecordThenNotInserted()
+	public void givenpermanentCacheNotLoadedInitiallyWhenInsertingUnsavedRecordThenNotInserted()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record dirtyRecord = newRecord(zeType, 2);
 		when(dirtyRecord.isSaved()).thenReturn(false);
@@ -586,7 +587,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void wheInvalidatingAnUnfoundRecordThenNothingChange()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.insert(newRecord(zeType, 1));
 
 		cache.invalidate("2");
@@ -597,10 +598,10 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInvalidatingARecordThenDiminishCounter()
+	public void givenpermanentCacheNotLoadedInitiallyWhenInvalidatingARecordThenDiminishCounter()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.insert(newRecord(zeType, 1));
 		cache.insert(newRecord(zeType, 2));
 		cache.insert(newRecord(zeType, 3));
@@ -638,7 +639,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void whenInvalidatingMultipleRecordsThenAllInvalidated()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
 
 		cache.insert(asList(
@@ -660,7 +661,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void whenInvalidatingPassingNullThenDoesNothing()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
 
 		cache.insert(asList(
@@ -680,9 +681,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetCachedSearchResultForQueryThenOnlyGetCachedSearchResultsForSameQueryOfPermanentCache()
+	public void whenGetCachedSearchResultForQueryThenOnlyGetCachedSearchResultsForSameQueryOfpermanentCacheNotLoadedInitially()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
 		Record anotherTypeRecord1 = newRecord(anotherType, 1);
 		Record anotherTypeRecord2 = newRecord(anotherType, 2);
@@ -710,7 +711,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
-		assertThatQueryResults(from(zeType()).where(SEARCH_FIELD).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE.getAnalyzedField("fr")).isEqualTo("value1")).isNull();
 		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
 
 		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value2")), new ArrayList<Record>());
@@ -721,7 +722,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void whenGetCachedSearchResultForQueryThenOnlyCacheQueriesWithoutUnsupportedFiltersAndFeatures()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
 		Record anotherTypeRecord1 = newRecord(anotherType, 1);
 		Record anotherTypeRecord2 = newRecord(anotherType, 2);
@@ -795,8 +796,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void whenCacheQueryResultsThenBasedOnSort()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record zeTypeRecord4 = newRecord(zeType, 4);
 		Record zeTypeRecord5 = newRecord(zeType, 5);
 		Record zeTypeRecord6 = newRecord(zeType, 6);
@@ -830,8 +831,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void whenCacheQueryResultsThenBasedOnFreeTextSearch()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record zeTypeRecord4 = newRecord(zeType, 4);
 		Record zeTypeRecord5 = newRecord(zeType, 5);
 		Record zeTypeRecord6 = newRecord(zeType, 6);
@@ -865,8 +866,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void whenCacheQueryResultsThenBasedOnStatusFilter()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record zeTypeRecord4 = newRecord(zeType, 4);
 		Record zeTypeRecord5 = newRecord(zeType, 5);
 		Record zeTypeRecord6 = newRecord(zeType, 6);
@@ -897,8 +898,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	@Test
 	public void givenCachedSearchResultsOfAQueryWhenInsertARecordWithDifferentVersionThenAllQueriesInvalidated()
 			throws Exception {
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record anotherTypeRecord1 = newRecord(anotherType, 1);
 		Record anotherTypeRecord2 = newRecord(anotherType, 2);
 		Record anotherTypeRecord3 = newRecord(anotherType, 3);
@@ -951,8 +952,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void givenCachedSearchResultsOfAQueryWhenInvalidateARecordThenAllQueriesInvalidated()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record anotherTypeRecord1 = newRecord(anotherType, 1);
 		Record anotherTypeRecord2 = newRecord(anotherType, 2);
 		Record anotherTypeRecord3 = newRecord(anotherType, 3);
@@ -997,8 +998,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void givenCachedSearchResultsOfAQueryWhenInvalidateAllRecordsOfTypeThenAllQueriesInvalidated()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record anotherTypeRecord1 = newRecord(anotherType, 1);
 		Record anotherTypeRecord2 = newRecord(anotherType, 2);
 		Record anotherTypeRecord3 = newRecord(anotherType, 3);
@@ -1040,8 +1041,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void givenCachedSearchResultsOfAQueryWhenInvalidateAllThenAllQueriesInvalidated()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record anotherTypeRecord1 = newRecord(anotherType, 1);
 		Record anotherTypeRecord2 = newRecord(anotherType, 2);
 		Record anotherTypeRecord3 = newRecord(anotherType, 3);
@@ -1076,8 +1077,8 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	public void givenCachedSearchResultsOfAQueryWhenInsertANewRecordThenAllQueriesInvalidated()
 			throws Exception {
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 		Record anotherTypeRecord1 = newRecord(anotherType, 1);
 		Record anotherTypeRecord2 = newRecord(anotherType, 2);
 		Record anotherTypeRecord3 = newRecord(anotherType, 3);
@@ -1121,7 +1122,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 
 		givenDisabledRecordDuplications = true;
 
-		cache.configureCache(CacheConfig.permanentCache(zeType, asList(zeTypeCodeMetadata)));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, asList(zeTypeCodeMetadata)));
 		cache.configureCache(
 				CacheConfig.volatileCache(anotherType, 3, asList(anotherTypeCodeMetadata, anotherTypeLegacyIdMetadata)));
 

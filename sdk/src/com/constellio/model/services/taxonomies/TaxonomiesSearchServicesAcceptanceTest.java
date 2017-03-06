@@ -128,45 +128,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetRootRecordsThenReturnOnlyRecordsOfGivenTaxonomy()
-			throws Exception {
-		givenFoldersAndDocuments();
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
-		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
-				options);
-		List<Record> taxonomy2RootRecords = services.getRootConcept(records.taxo2_defaultSchemaItem1.getCollection(), "taxo2",
-				options);
-
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem1, records.taxo1_firstTypeItem2);
-		assertThat(taxonomy2RootRecords).containsOnly(records.taxo2_defaultSchemaItem1, records.taxo2_defaultSchemaItem2);
-
-	}
-
-	@Test
-	public void whenGetChildrenOfTaxonomyRecordsThenReturnOnlyChildrenRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
-				options);
-		List<Record> taxonomy1FirstTypeItem2SecondItem2RecordChildren = services.getChildConcept(
-				records.taxo1_firstTypeItem2_secondTypeItem2, options);
-		List<Record> taxonomy2RecordChildren = services.getChildConcept(records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
-				options);
-
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
-				records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1,
-				records.taxo1_firstTypeItem2_secondTypeItem2);
-		assertThat(taxonomy1FirstTypeItem2SecondItem2RecordChildren).containsOnly(
-				records.taxo1_firstTypeItem2_secondTypeItem2_secondTypeItem1,
-				records.taxo1_firstTypeItem2_secondTypeItem2_secondTypeItem2, folder);
-		assertThat(taxonomy2RecordChildren).containsOnly(
-				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1,
-				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2);
-
-	}
-
-	@Test
 	public void whenGetParentOfTaxonomyRecordThenObtainValidParentId()
 			throws Exception {
 
@@ -185,62 +146,30 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetChildrenOfNonTaxonomyRecordsThenReturnChildrenUsingChildOfMetadata()
-			throws Exception {
-		givenFoldersAndDocuments();
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
-		List<Record> subFolderRecordChildren = services.getChildConcept(subFolder, options);
-		List<Record> documentRecordChildren = services.getChildConcept(document, options);
-
-		assertThat(folderRecordChildren).containsOnly(subFolder, document);
-		assertThat(subFolderRecordChildren).isEmpty();
-		assertThat(documentRecordChildren).isEmpty();
-
-	}
-
-	@Test
 	public void whenCheckingIfHasNonTaxonomyRecordsThenWorkWithAllLevels()
 			throws Exception {
 		givenFoldersAndDocuments();
 		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem1, options)).isFalse();
 		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2, options)).isTrue();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_firstTypeItem1, options))
-				.isFalse();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_firstTypeItem2, options))
-				.isFalse();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_secondTypeItem1, options))
-				.isFalse();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_secondTypeItem2, options))
-				.isTrue();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_firstTypeItem1, options)).isFalse();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_firstTypeItem2, options)).isFalse();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_secondTypeItem1, options)).isFalse();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo1_firstTypeItem2_secondTypeItem2, options)).isTrue();
 
-		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem1, options))
-				.isFalse();
-		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2, options))
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem1, options)).isFalse();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2, options)).isTrue();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_customSchemaItem1, options))
 				.isTrue();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_customSchemaItem1,
-						options)).isTrue();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_customSchemaItem2,
-						options)).isTrue();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_defaultSchemaItem1,
-						options)).isFalse();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
-						options)).isTrue();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(
-						records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1, options))
-				.isFalse();
-		assertThat(
-				services.findNonTaxonomyRecordsInStructure(
-						records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2, options))
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_customSchemaItem2, options))
 				.isTrue();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_defaultSchemaItem1, options))
+				.isFalse();
+		assertThat(services.findNonTaxonomyRecordsInStructure(records.taxo2_defaultSchemaItem2_defaultSchemaItem2, options))
+				.isTrue();
+		assertThat(services.findNonTaxonomyRecordsInStructure(
+				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1, options)).isFalse();
+		assertThat(services.findNonTaxonomyRecordsInStructure(
+				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2, options)).isTrue();
 
 	}
 
@@ -454,196 +383,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		assertThat(taxonomy2RootRecords).hasSize(0);
 	}
 
-	//
-	@Test
-	public void givenDeletedRecordWhenGetRootRecordsWithDefaultSearchOptionsThenReturnOnlyNotDeletedRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem1;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
-				options);
-
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem2);
-	}
-
-	@Test
-	public void givenDeletedRecordWhenGetRootRecordsWithActivesSearchOptionsThenReturnOnlyNotDeletedRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem1;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options = new TaxonomiesSearchOptions(StatusFilter.ACTIVES);
-		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
-				options);
-
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2);
-
-	}
-
-	@Test
-	public void givenDeletedRecordWhenGetRootRecordsWithDeletedSearchOptionsThenReturnOnlyDeletedRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem1;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options = new TaxonomiesSearchOptions(StatusFilter.DELETED);
-		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
-				options);
-
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1);
-
-	}
-
-	@Test
-	public void givenDeletedRecordWhenGetRootRecordsWithAllSearchOptionsThenReturnTwoRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem1;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options = new TaxonomiesSearchOptions(StatusFilter.ALL);
-		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
-				options);
-
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1,
-				records.taxo1_firstTypeItem2);
-
-	}
-
-	@Test
-	public void givenDeletedRecordWhenGetRootRecordsWithStartRowAndAllSearchOptionsThenReturnOnlyOneRecord()
-			throws Exception {
-		givenFoldersAndDocuments();
-		options = new TaxonomiesSearchOptions(10, 1, StatusFilter.ALL);
-		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
-				options);
-
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2);
-
-	}
-
-	@Test
-	public void givenDeletedRecordWhenGetRootRecordsWithNumberOfRowsAndAllSearchOptionsThenReturnOnlyOneRecord()
-			throws Exception {
-		givenFoldersAndDocuments();
-		options = new TaxonomiesSearchOptions(1, 0, StatusFilter.ALL);
-		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
-				options);
-
-		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1);
-
-	}
-
-	@Test
-	public void givenDeletedRecordsWhenGetChildrenOfTaxonomyRecordsWithDefaultSearchOptionsThenReturnOnlyNotDeletedChildrenRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem1;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
-				options);
-
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
-				.containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
-						records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem2);
-	}
-
-	@Test
-	public void givenDeletedRecordsWhenGetChildrenOfTaxonomyRecordsWithAllSearchOptionsThenReturnAllChildrenRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem1;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options = new TaxonomiesSearchOptions(StatusFilter.ALL);
-		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
-				options);
-
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
-				.containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
-						recordToDelete, records.taxo1_firstTypeItem2_firstTypeItem2,
-						records.taxo1_firstTypeItem2_secondTypeItem2);
-	}
-
-	@Test
-	public void givenDeletedRecordsWhenGetChildrenOfTaxonomyRecordsWithDeletedSearchOptionsThenReturnOnlyDeletedChildrenRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem1;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options = new TaxonomiesSearchOptions(StatusFilter.DELETED);
-		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
-				options);
-
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
-				.usingElementComparatorOnFields("id").containsOnly(recordToDelete);
-	}
-
-	@Test
-	public void givenDeletedRecordsWhenGetChildrenOfTaxonomyRecordsWithStartRowAndAllSearchOptionsThenReturnThreeChildrenRecords()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options = new TaxonomiesSearchOptions(10, 0, StatusFilter.ALL);
-		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
-				options);
-
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).hasSize(4);
-		assertThat(taxonomy1FirstTypeItem2RecordChildren)
-				.usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2_firstTypeItem2,
-				records.taxo1_firstTypeItem2_firstTypeItem1,
-				records.taxo1_firstTypeItem2_secondTypeItem1, recordToDelete);
-	}
-
-	@Test
-	public void givenDeletedRecordsWhenGetChildrenOfTaxonomyRecordsWithNumberOfRowsAndAllSearchOptionsThenReturnTwo()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options = new TaxonomiesSearchOptions(2, 0, StatusFilter.ALL);
-		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
-				options);
-
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).hasSize(2);
-	}
-
 	@Test
 	public void givenDeletedRecordWhenCheckingIfHasNonTaxonomyRecordsWithDefaultRecordsSearchOptionsThenFalse()
 			throws Exception {
@@ -684,56 +423,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		options = new TaxonomiesSearchOptions(StatusFilter.ACTIVES);
 		assertThat(services.getVisibleChildConcept(chuck, TAXO1, records.taxo1_firstTypeItem2, options)).isEmpty();
-	}
-
-	@Test
-	public void givenDeletedSubFolderWhenGetChildrenOfNonTaxonomyRecordsWithDefaultSearchOptionsThenReturnOnlyDocument()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = subFolder;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
-
-		assertThat(folderRecordChildren).containsOnly(document);
-
-	}
-
-	@Test
-	public void givenDeletedSubFolderWhenGetChildrenOfNonTaxonomyRecordsWithAllSearchOptionsThenReturnSubFolderAndDocument()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = subFolder;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options.setIncludeStatus(StatusFilter.ALL);
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
-
-		assertThat(folderRecordChildren).containsOnly(subFolder, document);
-
-	}
-
-	@Test
-	public void givenDeletedSubFolderWhenGetChildrenOfNonTaxonomyRecordsWithDeletedSearchOptionsThenReturnOnlySubFolder()
-			throws Exception {
-		givenFoldersAndDocuments();
-
-		Record recordToDelete = subFolder;
-		givenAuthorizationsToChuck(recordToDelete);
-		recordServices.logicallyDelete(recordToDelete, chuck);
-		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
-
-		options.setIncludeStatus(StatusFilter.DELETED);
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
-
-		assertThat(folderRecordChildren).containsOnly(subFolder);
-
 	}
 
 	@Test

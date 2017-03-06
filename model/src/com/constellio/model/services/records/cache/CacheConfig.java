@@ -19,11 +19,15 @@ public class CacheConfig {
 
 	private List<Metadata> indexes;
 
-	private CacheConfig(String schemaType, boolean permanent, int volatileMaxSize, List<Metadata> indexes) {
+	private boolean loadedInitially;
+
+	private CacheConfig(String schemaType, boolean permanent, int volatileMaxSize, List<Metadata> indexes,
+			boolean loadedInitially) {
 		this.schemaType = schemaType;
 		this.permanent = permanent;
 		this.volatileMaxSize = volatileMaxSize;
 		this.indexes = Collections.unmodifiableList(indexes);
+		this.loadedInitially = loadedInitially;
 	}
 
 	public String getSchemaType() {
@@ -46,12 +50,20 @@ public class CacheConfig {
 		return indexes;
 	}
 
+	public boolean isLoadedInitially() {
+		return loadedInitially;
+	}
+
 	public static CacheConfig permanentCache(MetadataSchemaType schemaType) {
 		return permanentCache(schemaType.getCode(), schemaType.getDefaultSchema().getMetadatas().onlyUniques());
 	}
 
 	public static CacheConfig permanentCache(String schemaType, List<Metadata> indexes) {
-		return new CacheConfig(schemaType, true, 0, indexes);
+		return new CacheConfig(schemaType, true, 0, indexes, true);
+	}
+
+	public static CacheConfig permanentCacheNotLoadedInitially(String schemaType, List<Metadata> indexes) {
+		return new CacheConfig(schemaType, true, 0, indexes, false);
 	}
 
 	public static CacheConfig volatileCache(MetadataSchemaType schemaType, int maxSize) {
@@ -59,7 +71,7 @@ public class CacheConfig {
 	}
 
 	public static CacheConfig volatileCache(String schemaType, int maxSize, List<Metadata> indexes) {
-		return new CacheConfig(schemaType, false, maxSize, indexes);
+		return new CacheConfig(schemaType, false, maxSize, indexes, false);
 	}
 
 	@Override
@@ -71,4 +83,5 @@ public class CacheConfig {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
+
 }

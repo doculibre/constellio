@@ -27,9 +27,10 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 			LogicalSearchValueCondition valueCondition) {
 		super(filters);
 		if (dataStoreFields == null) {
-			throw new MetadatasRequired();
+			this.dataStoreFields = null;
+		} else {
+			this.dataStoreFields = Collections.unmodifiableList((List<DataStoreField>) dataStoreFields);
 		}
-		this.dataStoreFields = Collections.unmodifiableList((List<DataStoreField>) dataStoreFields);
 		this.metadataLogicalOperator = metadataLogicalOperator;
 		this.valueCondition = valueCondition;
 	}
