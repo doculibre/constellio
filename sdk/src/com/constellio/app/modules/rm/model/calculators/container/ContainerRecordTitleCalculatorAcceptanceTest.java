@@ -55,7 +55,7 @@ public class ContainerRecordTitleCalculatorAcceptanceTest extends ConstellioTest
     public void givenParametersThenCalculatorReturnsGoodValue()  {
         when(parameters.get(calculator.identifierParam)).thenReturn("1");
         when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");
-        assertThat(calculator.calculate(parameters)).isEqualTo("00001");
+        assertThat(calculator.calculate(parameters)).isEqualTo("1");
 
         when(parameters.get(calculator.identifierParam)).thenReturn("testId");
         when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");

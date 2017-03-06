@@ -1,32 +1,8 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
-import com.constellio.model.entities.Permissions;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -41,11 +17,13 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
@@ -54,10 +32,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -271,6 +251,11 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void givenUserToAlertWhenReturnDocumentThenEmailToSendIsCreated()
 			throws Exception {
 
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE)).where(rm.emailToSend.template()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		long numberOfPreExistingEmails = searchServices.getResultsCount(query);
 		givenTimeIs(now);
 		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
@@ -279,6 +264,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		connectAsBob();
 		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
+		List<String> usersToAlert = rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable();
 
 		presenter.forParams(rmRecords.document_A19);
 		Content content = rmRecords.getDocumentWithContent_A19().getContent().checkIn();
@@ -287,14 +273,11 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		recordServices.flush();
 
 		Document documentWithContentA19 = rmRecords.getDocumentWithContent_A19();
-		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE)).returnAll();
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
 		List<Record> emailToSendRecords = searchServices.search(query);
 
-		assertThat(emailToSendRecords).hasSize(1);
+		assertThat(emailToSendRecords).hasSize(1 + (int) numberOfPreExistingEmails);
 		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
-		assertThat(emailToSend.getTo()).hasSize(1);
+		assertThat(emailToSend.getTo()).hasSize(usersToAlert.size());
 		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
 		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
 		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est disponible: " + documentWithContentA19
