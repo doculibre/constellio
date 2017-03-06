@@ -14,7 +14,6 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class Document extends RMObject {
@@ -58,6 +57,8 @@ public class Document extends RMObject {
 	public static final String PUBLISHED = "published";
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
 	public static final String VERSION = "version";
+	public static final String ESSENTIAL = "essential";
+	public static final String CONFIDENTIAL = "confidential";
 
 	public Document(Record record,
 			MetadataSchemaTypes types) {
@@ -334,5 +335,12 @@ public class Document extends RMObject {
 		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
 
+	public boolean isConfidential() {
+		return BooleanUtils.isTrue((Boolean) get(CONFIDENTIAL));
+	}
+
+	public boolean isEssential() {
+		return BooleanUtils.isTrue((Boolean) get(ESSENTIAL));
+	}
 
 }

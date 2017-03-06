@@ -5,8 +5,11 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentConfidentialCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentEssentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderConfidentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderEssentialCalculator;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -50,6 +53,13 @@ public class RMMigrationTo7_0_11 implements MigrationScript {
 					FolderEssentialCalculator.class);
 			folderSchema.create(Folder.CONFIDENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
 					FolderConfidentialCalculator.class);
+
+			MetadataSchemaBuilder documentSchema = types().getSchema(Document.DEFAULT_SCHEMA);
+
+			documentSchema.create(Document.ESSENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
+					DocumentEssentialCalculator.class);
+			documentSchema.create(Document.CONFIDENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
+					DocumentConfidentialCalculator.class);
 		}
 
 	}

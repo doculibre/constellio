@@ -36,6 +36,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
@@ -2500,6 +2501,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		tx.add(records.getRule1().setConfidentialDocuments(true));
 		Folder folder1 = tx.add(newFolderWithIdAndDefaultValues("folder1").setRetentionRuleEntered(records.ruleId_1));
 		Folder folder2 = tx.add(newFolderWithIdAndDefaultValues("folder2").setRetentionRuleEntered(records.ruleId_2));
+		Document document1 = tx.add(rm.newDocument().setFolder(folder1).setTitle("Doc 1"));
+		Document document2 = tx.add(rm.newDocument().setFolder(folder2).setTitle("Doc 1"));
 		recordServices.execute(tx);
 
 		assertThat(folder1.isConfidential()).isTrue();
@@ -2507,6 +2510,12 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		assertThat(folder1.isEssential()).isFalse();
 		assertThat(folder2.isEssential()).isFalse();
+
+		assertThat(document1.isConfidential()).isTrue();
+		assertThat(document2.isConfidential()).isFalse();
+
+		assertThat(document1.isEssential()).isFalse();
+		assertThat(document2.isEssential()).isFalse();
 
 	}
 
@@ -2517,6 +2526,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		tx.add(records.getRule1().setEssentialDocuments(true));
 		Folder folder1 = tx.add(newFolderWithIdAndDefaultValues("folder1").setRetentionRuleEntered(records.ruleId_1));
 		Folder folder2 = tx.add(newFolderWithIdAndDefaultValues("folder2").setRetentionRuleEntered(records.ruleId_2));
+		Document document1 = tx.add(rm.newDocument().setFolder(folder1).setTitle("Doc 1"));
+		Document document2 = tx.add(rm.newDocument().setFolder(folder2).setTitle("Doc 1"));
 		recordServices.execute(tx);
 
 		assertThat(folder1.isConfidential()).isFalse();
@@ -2524,6 +2535,12 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		assertThat(folder1.isEssential()).isTrue();
 		assertThat(folder2.isEssential()).isFalse();
+
+		assertThat(document1.isConfidential()).isFalse();
+		assertThat(document2.isConfidential()).isFalse();
+
+		assertThat(document1.isEssential()).isTrue();
+		assertThat(document2.isEssential()).isFalse();
 	}
 
 	// -------------------------------------------------------------------------
