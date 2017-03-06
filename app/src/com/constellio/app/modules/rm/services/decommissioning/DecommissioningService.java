@@ -1,22 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.services.factories.AppLayerFactory;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -614,7 +597,7 @@ public class DecommissioningService {
 	}
 
 	public boolean hasFolderToDeposit(ContainerRecord container) {
-		List<Record> records = getFoldersInContainer(container, rm.folder.mainCopyRule(), rm.folder.container());
+		List<Record> records = getFoldersInContainer(container);
 		for (Record record : records) {
 			Folder folder = rm.wrapFolder(record);
 			if (DisposalType.DEPOSIT == folder.getMainCopyRule().getInactiveDisposalType()) {
@@ -692,6 +675,12 @@ public class DecommissioningService {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(rm.folderSchemaType()).where(rm.folder.container()).isEqualTo(container))
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
+		return searchServices.search(query);
+	}
+
+	private List<Record> getFoldersInContainer(ContainerRecord container) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(rm.folderSchemaType()).where(rm.folder.container()).isEqualTo(container));
 		return searchServices.search(query);
 	}
 
