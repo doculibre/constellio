@@ -1,51 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
-import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.ws.rs.client.WebTarget;
-
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.joda.time.Duration;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.carrotsearch.junitbenchmarks.BenchmarkOptionsSystemProperties;
 import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.entities.modules.InstallableModule;
@@ -100,6 +54,32 @@ import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.TestsSpeedStats;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.joda.time.Duration;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.Description;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.WebTarget;
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public abstract class AbstractConstellioTest implements FailureDetectionTestWatcherListener {
 
@@ -892,7 +872,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void givenConfig(SystemConfiguration config, Object value) {
 		ensureNotUnitTest();
-		getModelLayerFactory().getSystemConfigurationsManager().setValue(config, value);
+		if(getModelLayerFactory().getSystemConfigurationsManager().setValue(config, value)) {
+			getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
+		};
 	}
 
 	protected void waitUntilTrue(AtomicBoolean atomicBoolean) {
