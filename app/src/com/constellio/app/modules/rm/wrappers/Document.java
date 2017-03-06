@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -14,8 +8,12 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.apache.commons.lang3.BooleanUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
 
 public class Document extends RMObject {
 	public static final String SCHEMA_TYPE = "document";
@@ -58,6 +56,7 @@ public class Document extends RMObject {
 	public static final String PUBLISHED = "published";
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
 	public static final String VERSION = "version";
+	public static final String MIME_TYPE = "mimetype";
 
 	public Document(Record record,
 			MetadataSchemaTypes types) {
