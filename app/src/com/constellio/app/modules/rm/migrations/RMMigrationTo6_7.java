@@ -95,6 +95,12 @@ public class RMMigrationTo6_7 implements MigrationScript {
         private void migrateStorageSpaceMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getSchema(StorageSpace.DEFAULT_SCHEMA).defineValidators().add(StorageSpaceValidator.class);
 
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.TITLE)
+                    .setUniqueValue(true);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.CODE)
+                    .setUniqueValue(false);
+
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE_ENTERED)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
 
