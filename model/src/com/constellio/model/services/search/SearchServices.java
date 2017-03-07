@@ -1,5 +1,26 @@
 package com.constellio.model.services.search;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
+import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.StatsParams;
+
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -8,7 +29,6 @@ import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -28,12 +48,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery.Use
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.*;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 public class SearchServices {
 	RecordDao recordDao;
@@ -97,6 +111,10 @@ public class SearchServices {
 
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition) {
 		return recordsIterator(new LogicalSearchQuery(condition));
+	}
+
+	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition, int batchSize) {
+		return recordsIterator(new LogicalSearchQuery(condition), batchSize);
 	}
 
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query) {
