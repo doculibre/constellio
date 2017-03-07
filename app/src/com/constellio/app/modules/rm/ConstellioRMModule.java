@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -17,38 +8,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMDocumentExtension;
-import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
-import com.constellio.app.modules.rm.extensions.RMEmailDocumentRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMFolderExtension;
-import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
-import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
-import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
-import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
-import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
-import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
-import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
-import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
-import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
-import com.constellio.app.modules.rm.extensions.LabelSchemaRestrictionPageExtension;
-import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMCreateDecommissioningListExtension;
-import com.constellio.app.modules.rm.extensions.RMDocumentExtension;
-import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
-import com.constellio.app.modules.rm.extensions.RMEmailDocumentRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMFolderExtension;
-import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
-import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
-import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
-import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
-import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
-import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
-import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
-import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
-import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
-import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.*;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
@@ -60,39 +20,6 @@ import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtensio
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
-import com.constellio.app.modules.rm.migrations.*;
-import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4_1;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_5;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_6;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_7;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_3;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_4;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_6;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_3;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_4_1;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_5;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_7;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_9;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1_4;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_20;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_33;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
-import com.constellio.app.modules.rm.migrations.*;
-import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -114,6 +41,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "rm";
@@ -179,6 +115,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_5_54(),
 				new RMMigrationTo6_6(),
 				new RMMigrationTo6_7(),
+				new RMMigrationTo7_0_5(),
 				new RMMigrationTo7_1(),
 				new RMMigrationTo_7_1_francis()
 		);

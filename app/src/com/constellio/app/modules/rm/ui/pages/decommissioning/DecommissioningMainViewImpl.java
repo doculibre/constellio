@@ -1,9 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -16,17 +13,15 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningMainViewImpl extends BaseViewImpl implements DecommissioningMainView {
 	public static final String BUTTONS_PROPERTY_ID = "buttons";
@@ -88,6 +83,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 
 		Label foldersWithoutDateCaption = new Label($("DecommissioningMainView.create.foldersWithoutDate"));
 		foldersWithoutDateCaption.addStyleName(ValoTheme.LABEL_H2);
+		foldersWithoutDateCaption.setVisible(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
 
 		VerticalLayout foldersWithoutDate = new VerticalLayout(foldersWithoutDateCaption);
 		for (final SearchType type : presenter.getCriteriaForFoldersWithoutPlanifiedDate()) {
@@ -101,6 +97,8 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 				}
 			});
 			foldersWithoutDate.addComponent(button);
+			button.setEnabled(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+			button.setVisible(button.isEnabled());
 		}
 
 		Label foldersWithDateCaption = new Label($("DecommissioningMainView.create.foldersWithDate"));
@@ -118,6 +116,14 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 				}
 			});
 			foldersWithDate.addComponent(button);
+			if(SearchType.transfer.equals(type)) {
+				button.setEnabled(presenter.getUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally() ||
+						presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+				button.setVisible(button.isEnabled());
+			} else {
+				button.setEnabled(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+				button.setVisible(button.isEnabled());
+			}
 		}
 
 		layout.addComponents(foldersWithoutDate, foldersWithDate);
@@ -138,9 +144,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					}
 				});
 				documents.addComponent(button);
+				button.setEnabled(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+				button.setVisible(button.isEnabled());
 			}
 
 			layout.addComponent(documents);
+			documentsCaption.setVisible(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
 		}
 	}
 

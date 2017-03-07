@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import org.junit.Before;
@@ -17,7 +18,9 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -54,7 +57,6 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
         when(view.getSessionContext()).thenReturn(sessionContext);
         doNothing().when(view).reloadWithContainer(any(RecordVO.class));
 
-        recordServices.add(buildDefaultContainer());
         presenter = new AddEditContainerPresenter(view);
         lookupField = spy(new ContainerStorageSpaceLookupField(records.containerTypeId_boite22x22, presenter));
     }
@@ -62,17 +64,18 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
     @Test
     public void givenNoValidStorageSpaceThenSuggestionReturnNull()
             throws Exception {
+        recordServices.add(buildDefaultContainer());
         presenter.forParams("containerTest");
         lookupField.suggestedButtonClicked();
 
         verify(lookupField, never()).setFieldValue(any(Object.class));
-        recordServices.add(buildDefaultStorageSpace());
     }
 
     @Test
     public void givenValidStorageSpaceThenSuggestionReturnFirst()
             throws Exception {
         recordServices.add(buildDefaultStorageSpace());
+        recordServices.add(buildDefaultContainer());
         presenter.forParams("containerTest");
         lookupField.suggestedButtonClicked();
 
@@ -80,6 +83,34 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
         verify(lookupField).setFieldValue(lookupFieldCaptor.capture());
         verify(lookupField, times(1)).setFieldValue(any(Object.class));
         assertThat(lookupFieldCaptor.getValue()).isEqualTo("storageTest");
+    }
+
+    @Test
+    public void givenMultipleModeWithInsufficientStorageSpaceThenErrorIsThrownAndNoContainerCreated() throws RecordServicesException {
+        recordServices.add(buildDefaultStorageSpace());
+        presenter.forParams("/multiple");
+        try {
+            presenter.createMultipleContainer(buildDefaultContainer().setStorageSpace("storageTest").getWrappedRecord(), 10);
+            fail("No exception thrown");
+        } catch (Exception e) {
+
+        } finally {
+            long numberOfContainerCreated = getModelLayerFactory().newSearchServices().getResultsCount(from(rm.containerRecord.schemaType())
+                    .where(rm.containerRecord.storageSpace()).isEqualTo("storageTest"));
+
+            assertThat(numberOfContainerCreated).isEqualTo(0);
+        }
+    }
+
+    @Test
+    public void givenMultipleModeWithSufficientStorageSpaceThenMultipleContainersCreated() throws RecordServicesException {
+        recordServices.add(buildDefaultStorageSpace());
+        presenter.forParams("/multiple");
+        presenter.createMultipleContainer(buildDefaultContainer().setStorageSpace("storageTest").setCapacity(10).getWrappedRecord(), 10);
+        long numberOfContainerCreated = getModelLayerFactory().newSearchServices().getResultsCount(from(rm.containerRecord.schemaType())
+                .where(rm.containerRecord.storageSpace()).isEqualTo("storageTest"));
+
+        assertThat(numberOfContainerCreated).isEqualTo(10);
     }
 
     public ContainerRecord buildDefaultContainer() {

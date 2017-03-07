@@ -5,6 +5,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
@@ -21,12 +22,17 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class RMMigrationTo6_7 implements MigrationScript {
 
@@ -48,6 +54,7 @@ public class RMMigrationTo6_7 implements MigrationScript {
         new SchemaAlterationsFor6_7(collection, provider, factory).migrate();
         migrateDisplayConfigs(factory, collection);
         reloadEmailTemplates();
+        updatePermissions();
     }
 
     public static class SchemaAlterationsFor6_7 extends MetadataSchemasAlterationHelper {
@@ -87,6 +94,12 @@ public class RMMigrationTo6_7 implements MigrationScript {
 
         private void migrateStorageSpaceMetadatas(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getSchema(StorageSpace.DEFAULT_SCHEMA).defineValidators().add(StorageSpaceValidator.class);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.TITLE)
+                    .setUniqueValue(true);
+
+            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.CODE)
+                    .setUniqueValue(false);
 
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE_ENTERED)
                     .setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
@@ -155,6 +168,17 @@ public class RMMigrationTo6_7 implements MigrationScript {
             throw new RuntimeException(e);
         } finally {
             IOUtils.closeQuietly(templateInputStream);
+        }
+    }
+
+    private void updatePermissions() {
+        RolesManager roleManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+        List<Role> allRoles = roleManager.getAllRoles(collection);
+        for (Role role: allRoles) {
+            if(roleManager.hasPermission(collection, role.getCode(), RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)) {
+                roleManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST,
+                        RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST)));
+            }
         }
     }
 }

@@ -32,7 +32,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
  * Created by Charles Blanchette on 2017-02-20.
  */
 public class AvailableSpaceReportPresenter {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(AvailableSpaceReportPresenter.class);
 
     private String collection;
     private ModelLayerFactory modelLayerFactory;
@@ -67,7 +66,9 @@ public class AvailableSpaceReportPresenter {
             for (Record rootRecord : rootStorageSpaces) {
                 AvailableSpaceReportModelNode parent = new AvailableSpaceReportModelNode();
                 StorageSpace storageSpace = new StorageSpace(rootRecord, types);
-                parent.setCode(rootRecord.getSchemaCode()).setTitle(rootRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
+                parent.setCode(rootRecord.getSchemaCode()).setTitle(rootRecord.getTitle()).setImage("etagere")
+                        .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
+                        .setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
                 List<Record> childStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(rootRecord, searchOptions.setRows(10000));
                 if (childStorageSpaces != null) {
                     createChildRow(parent, childStorageSpaces);
@@ -82,7 +83,9 @@ public class AvailableSpaceReportPresenter {
         for (Record childRecord : childStorageSpaces) {
             AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
             StorageSpace storageSpace = new StorageSpace(childRecord, types);
-            child.setCode(childRecord.getSchemaCode()).setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
+            child.setCode(childRecord.getSchemaCode()).setImage("etagere")
+                    .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
+                    .setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
             List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, searchOptions.setRows(10000));
             if (subChildStorageSpaces != null) {
                 createChildRow(child, subChildStorageSpaces);
@@ -101,7 +104,9 @@ public class AvailableSpaceReportPresenter {
     private void createContainerRecordRow(AvailableSpaceReportModelNode parent, List<ContainerRecord> containerRecords) {
         for (ContainerRecord boite : containerRecords) {
             AvailableSpaceReportModelNode childBox = new AvailableSpaceReportModelNode();
-            childBox.setTitle(boite.getTitle()).setCode(boite.getId()).setAvailableSpace(boite.getAvailableSize() != null ? boite.getAvailableSize() : 0);
+            childBox.setTitle(boite.getTitle()).setCode(boite.getId()).setImage("boite")
+                    .setCapacity(boite.getCapacity() != null ? boite.getCapacity() : 0)
+                    .setAvailableSpace(boite.getAvailableSize() != null ? boite.getAvailableSize() : 0);
             parent.getChildrenNodes().add(childBox);
         }
     }
@@ -115,45 +120,6 @@ public class AvailableSpaceReportPresenter {
         conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
     }
 
-    private List<AvailableSpaceReportModelNode> getCategoriesForRecord(Record record) {
-        List<AvailableSpaceReportModelNode> modelCategories = new ArrayList<>();
-
-        List<TaxonomySearchRecord> children = taxonomiesSearchServices.getLinkableChildConcept(User.GOD, record,
-                RMTaxonomies.STORAGES, StorageSpace.SCHEMA_TYPE, searchOptions);
-
-        if (children != null) {
-            for (TaxonomySearchRecord child : children) {
-                if (child != null) {
-                    try {
-                        Record childRecord = child.getRecord();
-                        if (childRecord != null) {
-                            Category recordCategory = new Category(childRecord, types);
-
-                            if (recordCategory != null) {
-                                AvailableSpaceReportModelNode modelNode = new AvailableSpaceReportModelNode();
-
-                                String categoryCode = StringUtils.defaultString(recordCategory.getCode());
-                                modelNode.setCode(categoryCode);
-
-                                String categoryTitle = StringUtils.defaultString(recordCategory.getTitle());
-                                modelNode.setTitle(categoryTitle);
-
-                                Record childChildRecord = child.getRecord();
-
-                                modelNode.setChildrenNodes(getCategoriesForRecord(childChildRecord));
-
-                                modelCategories.add(modelNode);
-                            }
-                        }
-                    } catch (Exception e) {
-                        // throw new RuntimeException(e);
-                        LOGGER.info("This is not a space. It's a " + child.getRecord().getSchemaCode());
-                    }
-                }
-            }
-        }
-        return modelCategories;
-    }
 
     public FoldersLocator getFoldersLocator() {
         return modelLayerFactory.getFoldersLocator();

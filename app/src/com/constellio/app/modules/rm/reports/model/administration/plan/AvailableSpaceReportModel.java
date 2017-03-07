@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.itextpdf.text.Image;
 
 /**
  * Created by Charles Blanchette on 2017-02-20.
@@ -61,6 +62,10 @@ public class AvailableSpaceReportModel {
 
         private double availableSpace;
 
+        private double capacity;
+
+        private String image;
+
         private List<AvailableSpaceReportModelNode> childrenNodes = new ArrayList<>();
 
         public String getCode() {
@@ -98,6 +103,23 @@ public class AvailableSpaceReportModel {
             this.availableSpace = availableSpace;
             return this;
         }
-    }
 
+        public double getCapacity() {
+            return capacity;
+        }
+
+        public AvailableSpaceReportModelNode setCapacity(double capacity) {
+            this.capacity = capacity;
+            return this;
+        }
+
+        public String getImage() {
+            return image;
+        }
+
+        public AvailableSpaceReportModelNode setImage(String image) {
+            this.image = image;
+            return this;
+        }
+    }
 }
