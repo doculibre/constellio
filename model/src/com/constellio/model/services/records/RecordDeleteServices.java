@@ -647,7 +647,9 @@ public class RecordDeleteServices {
 				if (!paths.isEmpty()) {
 					condition = condition.andWhere(Schemas.PATH).isNot(startingWithText(paths.get(0)));
 				}
-				hasReferences |= searchServices.hasResults(new LogicalSearchQuery(condition));
+				boolean referencedByMetadatasOfType = searchServices.hasResults(new LogicalSearchQuery(condition));
+				System.out.println(referencedByMetadatasOfType);
+				hasReferences |= referencedByMetadatasOfType;
 			}
 		}
 		return hasReferences;
