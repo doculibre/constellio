@@ -204,8 +204,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         assertThat(meta1.getChild(ReportUtils.escapeForXmlTag(rm.containerRecord.storageSpace().getLabel(i18n.getLanguage()))).getValue()).isEqualTo(records.getContainerBac08().getStorageSpace());
 
         String conteneurWithMultipleIds = ru.convertContainerWithIdentifierToXML(Arrays.asList(records.containerId_bac05, records.containerId_bac07),
-                new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()),
-                new ReportField(rm.containerRecord.capacity().getType(), rm.containerRecord.capacity().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.capacity().getCode(), getAppLayerFactory()));
+                new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLocalCode(), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()),
+                new ReportField(rm.containerRecord.capacity().getType(), rm.containerRecord.capacity().getLocalCode(), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.capacity().getCode(), getAppLayerFactory()));
         ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
         Document docWithMultiple = builder.build(streamWithMultipleIds);
         List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
@@ -246,15 +246,13 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         assertThat(meta.getChildren()).isNullOrEmpty();
     }
 
-    @Test
-    @InDevelopmentTest
+
     public void UseCompiledJasperFileAndXmlToCreatePDF() throws Exception {
         String xml = ru.convertContainerToXML(null);
         ru.createPDFFromXmlAndJasperFile(xml, new File("C:\\Users\\Marco\\Desktop\\Avery_5159_Container.jasper"), "test");
     }
 
-    @Test
-    @InDevelopmentTest
+
     public void createNewXmlWithModifiedReference() throws Exception {
         String xml = ru.convertContainerWithIdentifierToXML(records.containerId_bac08, null);
         System.out.println(records.getCategory_X110().getCode());
