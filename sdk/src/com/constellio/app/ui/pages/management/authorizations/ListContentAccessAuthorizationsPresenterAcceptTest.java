@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -22,6 +12,15 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ListContentAccessAuthorizationsPresenterAcceptTest extends ConstellioTest {
 
@@ -43,6 +42,15 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 	ListContentRoleAuthorizationsPresenter rolePresenter;
 
 	RMSchemasRecordsServices rm;
+
+	@Test
+	public void givenDetachRequestedIsClickedThenDetachCorrectlyAndDoNotThrowException() {
+		accessPresenter.forRequestParams(records.folder_A01);
+		rolePresenter.forRequestParams(records.folder_A01);
+
+		accessPresenter.detachRequested();
+		rolePresenter.detachRequested();
+	}
 
 	@Test
 	public void givenFolderWithoutOwnAndInheritedAuthorizationsWhenGetAuthorizationsThenEmpty()
