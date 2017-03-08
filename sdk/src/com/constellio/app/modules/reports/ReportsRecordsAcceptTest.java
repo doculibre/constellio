@@ -17,6 +17,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.sdk.tests.AbstractConstellioTest;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.jdom.Document;
@@ -63,8 +64,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void createReportLabelAndAssignData() throws Exception {
         String title = "test REcords 1";
-        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
-        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
+        File file = getFile("Avery_5162_Vide.jasper");
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
         Printable r = rm.newPrintableLabel();
         r.setTitle(title);
@@ -82,8 +83,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void createRecordsLabelAndAssignData() throws Exception {
         String title = "Test records 2";
-        String file = "C:\\Users\\Marco\\JaspersoftWorkspace\\MyReports\\Avery_5162_Vide.jasper";
-        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
+        File file = getFile("Avery_5162_Vide.jasper");
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette");
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
         Printable r = rm.newPrintableLabel();
         PrintableLabel printableLabel = rm.newPrintableLabel();
@@ -203,8 +204,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         assertThat(meta1.getChild(ReportUtils.escapeForXmlTag(rm.containerRecord.storageSpace().getLabel(i18n.getLanguage()))).getValue()).isEqualTo(records.getContainerBac08().getStorageSpace());
 
         String conteneurWithMultipleIds = ru.convertContainerWithIdentifierToXML(Arrays.asList(records.containerId_bac05, records.containerId_bac07),
-                new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()),
-                new ReportField(rm.containerRecord.capacity().getType(), rm.containerRecord.capacity().getLabel(i18n.getLanguage()), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.capacity().getCode(), getAppLayerFactory()));
+                new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLocalCode(), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()),
+                new ReportField(rm.containerRecord.capacity().getType(), rm.containerRecord.capacity().getLocalCode(), ContainerRecord.SCHEMA_TYPE, rm.containerRecord.capacity().getCode(), getAppLayerFactory()));
         ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
         Document docWithMultiple = builder.build(streamWithMultipleIds);
         List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
@@ -245,19 +246,24 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         assertThat(meta.getChildren()).isNullOrEmpty();
     }
 
-    @Test
-    @InDevelopmentTest
+
     public void UseCompiledJasperFileAndXmlToCreatePDF() throws Exception {
         String xml = ru.convertContainerToXML(null);
         ru.createPDFFromXmlAndJasperFile(xml, new File("C:\\Users\\Marco\\Desktop\\Avery_5159_Container.jasper"), "test");
     }
 
-    @Test
-    @InDevelopmentTest
+
     public void createNewXmlWithModifiedReference() throws Exception {
         String xml = ru.convertContainerWithIdentifierToXML(records.containerId_bac08, null);
         System.out.println(records.getCategory_X110().getCode());
         System.out.println(records.getCategory_X110().getTitle());
         System.out.println(xml);
+    }
+
+    private static File getFile(String name) {
+        File resourcesDir = AbstractConstellioTest.getResourcesDir();
+        String pathInResourcesDir =
+                ReportsRecordsAcceptTest.class.getName().replace(".", File.separator) + File.separator + name;
+        return new File(resourcesDir, pathInResourcesDir);
     }
 }

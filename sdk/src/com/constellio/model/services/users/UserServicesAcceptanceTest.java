@@ -1205,7 +1205,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@InDevelopmentTest
 	public void TryingToRestoreDeletedGroup() throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
 		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
@@ -1221,12 +1220,14 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		globalGroupsManager.logicallyRemoveGroup(heroesGlobalGroup);
 
 		Transaction t = new Transaction();
-		t.add(heroes);
+		t.update(((SolrGlobalGroup) heroesGlobalGroup).getWrappedRecord());
 		recordServices.execute(t);
+
+		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroesGlobalGroup.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.INACTIVE);
 
 		userServices.restoreDeletedGroup(heroes.getCode(), zeCollection);
 
-		assertThat(userServices.getGroupIdInCollection(heroes.getCode(), zeCollection)).isNotNull();
+		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroes.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
 	}
 
 

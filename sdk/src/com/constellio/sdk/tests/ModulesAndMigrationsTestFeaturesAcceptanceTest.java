@@ -273,11 +273,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(metadataCodes.size()).isNotZero();
 		assertThat(metadataCodes.get(0)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.TYPE);
 		assertThat(metadataCodes.get(1)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CODE);
-		assertThat(metadataCodes.get(2)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode());
-		assertThat(metadataCodes.get(3)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DESCRIPTION);
-		assertThat(metadataCodes.get(4)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CAPACITY);
-		assertThat(metadataCodes.get(5)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DECOMMISSIONING_TYPE);
-		assertThat(metadataCodes.get(6)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.PARENT_STORAGE_SPACE);
+		assertThat(metadataCodes.get(2)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DESCRIPTION);
+		assertThat(metadataCodes.get(3)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CAPACITY);
+		assertThat(metadataCodes.get(4)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DECOMMISSIONING_TYPE);
+		assertThat(metadataCodes.get(5)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.PARENT_STORAGE_SPACE);
 	}
 
 	@Test
@@ -315,7 +314,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 				"workflowInstance", "ddvMediumType", "filingSpace", "workflow", "ddvFolderType", "collection",
 				"userTask", "uniformSubdivision", "authorizationDetails", "administrativeUnit", "ddvDocumentType",
 				"folder", "task", "ddvTaskStatus", "containerRecord", "report", "category", "facet", "retentionRule",
-				"user");
+				"user", "printable");
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy administrativeUnitsTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode("zeCollection",
 				RMTaxonomies.ADMINISTRATIVE_UNITS);

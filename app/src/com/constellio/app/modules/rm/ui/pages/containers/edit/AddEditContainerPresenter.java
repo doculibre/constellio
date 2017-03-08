@@ -196,4 +196,8 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	public ConstellioFactories getConstellioFactories() {
 		return view.getConstellioFactories();
 	}
+
+	public User getCurrentUser() {
+		return presenterService().getCurrentUser(getSessionContext());
+	}
 }

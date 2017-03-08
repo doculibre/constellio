@@ -171,13 +171,13 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
     public void addContainersLinkedToStorageSpace(String storageID)
             throws RecordServicesException {
 
-        recordServices.add(rm.newContainerRecord().setTitle("title").setLinearSizeEntered(new Double(2))
+        recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
                 .setStorageSpace(storageID).setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary1")
         );
-        recordServices.add(rm.newContainerRecord().setTitle("title").setLinearSizeEntered(new Double(2))
+        recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
                 .setStorageSpace(storageID).setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary2")
         );
-        recordServices.add(rm.newContainerRecord().setTitle("title").setLinearSizeEntered(new Double(2))
+        recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
                 .setStorageSpace(storageID).setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary3")
         );
     }

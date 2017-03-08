@@ -66,17 +66,19 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 	private void alertUsers(Record record) {
 		try {
 			DecommissioningList decommissioningList = rmSchemasRecordsServices.wrapDecommissioningList(record);
-			String displayURL;
-			switch (decommissioningList.getDecommissioningListType()) {
-				case FOLDERS_TO_TRANSFER:
-				case FOLDERS_TO_DESTROY:
-				case FOLDERS_TO_DEPOSIT:
-				case FOLDERS_TO_CLOSE:
-					displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
-					break;
-				default:
-					displayURL = RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY;
-					break;
+			String displayURL = "";
+			if(decommissioningList.getDecommissioningListType() != null) {
+				switch (decommissioningList.getDecommissioningListType()) {
+					case FOLDERS_TO_TRANSFER:
+					case FOLDERS_TO_DESTROY:
+					case FOLDERS_TO_DEPOSIT:
+					case FOLDERS_TO_CLOSE:
+						displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+						break;
+					default:
+						displayURL = RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY;
+						break;
+				}
 			}
 
 			Transaction transaction = new Transaction();

@@ -47,13 +47,17 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 				SystemConfiguration systemConfiguration = previousConfigs.get(i);
 				SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 				if (systemConfigurationVO.isUpdated()) {
-					isReindexationNeeded = isReindexationNeeded || systemConfigurationsManager.doesSetValueRequireReindexing(systemConfiguration, systemConfigurationVO.getValue());
-					systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue());
+					isReindexationNeeded = isReindexationNeeded || systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue());
 					systemConfigurationVO.afterSetValue();
 					systemConfigurationGroup.valueSave(i);
 				}
 			}
-			view.showMessage($("ConfigManagementView.saved"));
+			if(isReindexationNeeded) {
+				view.showMessage($("ConfigManagementView.reindexationNeeded"));
+				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+			} else {
+				view.showMessage($("ConfigManagementView.saved"));
+			}
 			view.navigate().to().adminModule();
 		}
 	}
