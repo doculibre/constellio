@@ -750,9 +750,23 @@ public class TestUtils {
 					objects[i] = ((RecordWrapper) actual).get(metadata);
 
 					if (refMetadata != null && objects[i] != null) {
-						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-								.getDocumentById((String) objects[i]);
-						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						if (objects[i] instanceof String) {
+							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+									.getDocumentById((String) objects[i]);
+							objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						} else if (objects[i] instanceof List) {
+							List<Object> values = new ArrayList<>();
+							for (Object ref : (List) objects[i]) {
+								Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory()
+										.newRecordServices()
+										.getDocumentById((String) ref);
+								values.add(getMetadataValue(referencedRecord, refMetadata));
+							}
+							objects[i] = values;
+
+						} else {
+							throw new RuntimeException("Invalid value : " + objects[i].getClass().getSimpleName());
+						}
 					}
 				}
 			} else {
