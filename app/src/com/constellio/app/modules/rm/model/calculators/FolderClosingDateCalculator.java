@@ -1,7 +1,11 @@
 package com.constellio.app.modules.rm.model.calculators;
 
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDate;
+
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.LocalDate;
 
@@ -31,6 +35,7 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 	ConfigDependency<Boolean> configAddYEarIfDateIsEndOfYearParam =
 			RMConfigs.ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR.dependency();
 	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
+	LocalDependency<String> mainCopyRuleIdEnteredParam = LocalDependency.toAString(Folder.MAIN_COPY_RULE_ID_ENTERED);
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
@@ -40,7 +45,7 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 		if (enteredClosingDate != null || !configCalculatedClosingDate || openingDate == null) {
 			return enteredClosingDate;
 		}
-
+		String mainCopyRuleIdEntered = parameters.get(mainCopyRuleIdEnteredParam);
 		List<CopyRetentionRule> copies = parameters.get(copiesParam);
 
 		String yearEnd = parameters.get(configYearEndParam);
@@ -48,12 +53,19 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 		int requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
 
 		LocalDate smallestClosingDate = null;
+		Set<String> copyIds = new HashSet<>();
 		for (CopyRetentionRule copy : copies) {
-			LocalDate copyClosingDate = calculateForCopy(copy, parameters);
-			LocalDate yearEndDate = CalculatorUtils.toNextEndOfYearDate(copyClosingDate, yearEnd, requiredDaysBeforeYearEnd,
-					addYEarIfDateIsEndOfYear);
-			if (smallestClosingDate == null || (yearEndDate != null && smallestClosingDate.isAfter(yearEndDate))) {
-				smallestClosingDate = yearEndDate;
+			copyIds.add(copy.getId());
+		}
+		for (CopyRetentionRule copy : copies) {
+			if (mainCopyRuleIdEntered == null || copy.getId().equals(mainCopyRuleIdEntered)
+					|| !copyIds.contains(mainCopyRuleIdEntered)) {
+				LocalDate copyClosingDate = calculateForCopy(copy, parameters);
+				LocalDate yearEndDate = toNextEndOfYearDate(copyClosingDate, yearEnd, requiredDaysBeforeYearEnd,
+						addYEarIfDateIsEndOfYear);
+				if (smallestClosingDate == null || (yearEndDate != null && smallestClosingDate.isAfter(yearEndDate))) {
+					smallestClosingDate = yearEndDate;
+				}
 			}
 		}
 		return smallestClosingDate;
@@ -115,7 +127,8 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 				configNumberOfYearWhenVariableDelayParam,
 				configRequiredDaysBeforeYearEndParam,
 				configYearEndParam,
-				configAddYEarIfDateIsEndOfYearParam);
+				configAddYEarIfDateIsEndOfYearParam,
+				mainCopyRuleIdEnteredParam);
 	}
 
 }

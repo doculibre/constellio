@@ -2543,6 +2543,27 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(document2.isEssential()).isFalse();
 	}
 
+	@Test
+	//Tested on IntelliGID 4!
+	public void givenRetentionRuleWithTwoCopyRulesAndFolderWithManuallyEnteredCopyRuleThenOnlyTakeThatCopyRule()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+
+		CopyRetentionRule principal22C = principal("2-2-C", PA);
+		CopyRetentionRule principal55D = principal("5-5-D", PA);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal22C, principal55D, secondary("1-0-D", MD, PA));
+
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMainCopyRuleEntered(principal55D.getId()));
+
+		assertThat(folder.getCloseDate()).isEqualTo(march31_2021);
+
+	}
+
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {
