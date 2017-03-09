@@ -524,7 +524,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
     }
 
     @Test
-    public void newTestToRename() throws Exception {
+    public void givenClassifyingConnectorFoldersUsingClassificationPlanOtherCasesThenOk() throws Exception {
         notAUnitItest = true;
 
         givenFetchedFoldersAndDocumentsForRobots();
@@ -595,7 +595,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
         docs = rm.searchDocuments(where(LEGACY_ID).isEqualTo(documentBienPlaceTaxoURL));
         for (Document document : docs) {
             assertThat(document).isNotNull();
-            assertThat(document.getFolder()).isEqualTo("00000000395");
+            assertThat(document.getFolder()).isEqualTo(rm.getFolderWithLegacyId(folderCTaxoURL).getId());
             assertThat(document.getRetentionRule()).isEqualTo(records.ruleId_1);
             assertThat(document.getTitle()).isEqualTo("test.txt");
             assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
@@ -2259,7 +2259,6 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
         recordServices.execute(transaction);
     }
 
-    //ICI
     @Test
     public void givenFetchedFoldersAndDocumentsForRobots() throws RecordServicesException {
         Transaction transaction = new Transaction();
@@ -2279,11 +2278,11 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
         transaction.add(es.newConnectorSmbDocumentWithId(documentMalPlace, connectorInstance))
                 .setTitle("test.txt").setParent(folderC).setUrl(documentMalPlaceTaxoURL)
-                .setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setModifiedOn(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
+                .setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
 
         transaction.add(es.newConnectorSmbDocumentWithId(documentBienPlaceTaxoURL, connectorInstance))
                 .setTitle("test.txt").setParent(folderC).setUrl(documentBienPlaceTaxoURL)
-                .setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setModifiedOn(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
+                .setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
 
         recordServices.execute(transaction);
     }
