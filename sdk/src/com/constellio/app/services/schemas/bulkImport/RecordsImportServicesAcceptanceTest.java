@@ -114,13 +114,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
     }
 
-    /**
-     * Ce test passe super bien lorsqu'il est lancé en solo.
-     * Il faudrait voir pour ce qui est du folderId,
-     * il ne faudrait pas qu'il soit le id mais plutôt le legacy id
-     * dans le xml.
-     * @throws Exception
-     */
     @Test
     public void whenImportingZipOfXMLFilesDecommissioningListThenImportedCorrectly() throws Exception {
 
@@ -136,13 +129,13 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(decomList.getDescription()).isNull();
         assertThat(decomList.getTitle()).isEqualTo("test");
         assertThat(decomListFolderDetails.get(0).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("660").getId());
-        assertThat(decomListFolderDetails.get(0).getContainerRecordId()).isEqualTo("412903");
+        assertThat(decomListFolderDetails.get(0).getContainerRecordId()).isEqualTo(rm.getContainerRecordWithLegacyId("412903").getId());
         assertThat(decomListFolderDetails.get(0).isFolderExcluded()).isTrue();
         assertThat(decomListFolderDetails.get(0).isReversedSort()).isTrue();
         assertThat(decomListFolderDetails.get(0).getFolderLinearSize()).isEqualTo(42.0);
 
         assertThat(decomListFolderDetails.get(1).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("670").getId());
-        assertThat(decomListFolderDetails.get(1).getContainerRecordId()).isEqualTo("412904");
+        assertThat(decomListFolderDetails.get(1).getContainerRecordId()).isEqualTo(rm.getContainerRecordWithLegacyId("412904").getId());
         assertThat(decomListFolderDetails.get(1).isFolderExcluded()).isFalse();
         assertThat(decomListFolderDetails.get(1).isReversedSort()).isFalse();
         assertThat(decomListFolderDetails.get(1).getFolderLinearSize()).isEqualTo(0.0);
@@ -154,7 +147,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(decomList.getTitle()).isEqualTo("test41");
         assertThat(decomListFolderDetails.size()).isEqualTo(0);
 
-        assertThat(decomListContainerDetails.get(0).getContainerRecordId()).isEqualTo("412903");
+        assertThat(decomListContainerDetails.get(0).getContainerRecordId()).isEqualTo(rm.getContainerRecordWithLegacyId("412903").getId());
         assertThat(decomListContainerDetails.get(0).isFull()).isTrue();
 
         decomList = rm.getDecommissioningListWithLegacyId("42");
