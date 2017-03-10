@@ -1,22 +1,14 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,13 +20,23 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class RMMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -74,7 +76,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				new RMMigrationTo6_5_34(),
 				new RMMigrationTo6_5_36(),
 				new RMMigrationTo6_5_37(),
-				new RMMigrationTo6_5_50()
+				new RMMigrationTo6_5_50(),
+				new RMMigrationTo6_5_54(),
+				new RMMigrationTo6_6(),
+				new RMMigrationTo6_7(),
+				new RMMigrationTo7_0_5(),
+				new RMMigrationTo7_1(),
+				new RMMigrationTo_7_1_francis()
 		);
 	}
 
@@ -106,6 +114,12 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
+
+		SystemConfigurationsManager configManager = modelLayerFactory.getSystemConfigurationsManager();
+		String defaultTaxonomy = modelLayerFactory.getSystemConfigs().getDefaultTaxonomy();
+		if (defaultTaxonomy == null) {
+			configManager.setValue(ConstellioEIMConfigs.DEFAULT_TAXONOMY, RMTaxonomies.ADMINISTRATIVE_UNITS);
+		}
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
@@ -127,6 +141,10 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		transaction.add(userDocument.withRemovedDisplayMetadatas("userDocument_default_folder")
 				.withRemovedFormMetadatas("userDocument_default_folder"));
 		//userDocument.withNew
+
+		SchemaDisplayConfig container = manager.getSchema(collection, ContainerRecord.DEFAULT_SCHEMA);
+		container = container.withNewFormMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FILL_RATIO_ENTRED);
+		transaction.add(container);
 
 		manager.execute(transaction.build());
 	}
@@ -231,6 +249,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID);
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "alertAvailableTemplate.html",
 				RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "alertWhenDecommissioningListCreatedTemplate.html",
+				RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
 	}
 
 	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,

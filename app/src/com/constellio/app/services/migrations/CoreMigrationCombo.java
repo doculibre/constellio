@@ -92,7 +92,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection,
-				new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", $("title"), 20.0));
+				new SearchBoost(SearchBoost.METADATA_TYPE, "title_s", $("title"), 20.0));
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
