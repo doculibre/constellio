@@ -79,7 +79,7 @@ public class StorageSpaceValidator implements RecordValidator {
 			} else if(currentStorage.getParentStorageSpace() == null) {
 				break;
 			}
-			currentStorage = new StorageSpace(recordProvider.getRecord(storageSpace.getParentStorageSpace()), types);
+			currentStorage = new StorageSpace(recordProvider.getRecord(currentStorage.getParentStorageSpace()), types);
 		}
 
 		return (containerRecordTypeList == null || containerRecordTypeList.isEmpty()) ? true : containerRecordTypeList.containsAll(checkedContainerRecordType);
