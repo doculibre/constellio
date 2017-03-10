@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -49,19 +50,25 @@ public class RMMigrationTo7_0_10_5 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
-
-			folderSchema.create(Folder.ESSENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
-					FolderEssentialCalculator.class);
-			folderSchema.create(Folder.CONFIDENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
-					FolderConfidentialCalculator.class);
-			folderSchema.get(Folder.CLOSING_DATE).defineDataEntry().asCalculated(FolderClosingDateCalculator2.class);
-
 			MetadataSchemaBuilder documentSchema = types().getSchema(Document.DEFAULT_SCHEMA);
+			MetadataBuilder folderEssential = getOrCreateBoolean(folderSchema, Folder.ESSENTIAL);
+			MetadataBuilder folderConfidential = getOrCreateBoolean(folderSchema, Folder.CONFIDENTIAL);
+			MetadataBuilder documentEssential = getOrCreateBoolean(documentSchema, Document.ESSENTIAL);
+			MetadataBuilder documentConfidential = getOrCreateBoolean(documentSchema, Document.CONFIDENTIAL);
+			folderEssential.defineDataEntry().asCalculated(FolderEssentialCalculator.class);
+			folderConfidential.defineDataEntry().asCalculated(FolderConfidentialCalculator.class);
+			documentEssential.defineDataEntry().asCalculated(DocumentEssentialCalculator.class);
+			documentConfidential.defineDataEntry().asCalculated(DocumentConfidentialCalculator.class);
 
-			documentSchema.create(Document.ESSENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
-					DocumentEssentialCalculator.class);
-			documentSchema.create(Document.CONFIDENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
-					DocumentConfidentialCalculator.class);
+			folderSchema.get(Folder.CLOSING_DATE).defineDataEntry().asCalculated(FolderClosingDateCalculator2.class);
+		}
+
+		private MetadataBuilder getOrCreateBoolean(MetadataSchemaBuilder schema, String localCode) {
+			if (schema.hasMetadata(localCode)) {
+				return schema.get(localCode);
+			} else {
+				return schema.create(localCode).setType(BOOLEAN);
+			}
 		}
 
 	}
