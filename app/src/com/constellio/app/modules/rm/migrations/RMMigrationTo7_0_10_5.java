@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.FolderClosingDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentConfidentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentEssentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderConfidentialCalculator;
@@ -17,18 +18,18 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo7_0_11 implements MigrationScript {
+public class RMMigrationTo7_0_10_5 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "7.0.11";
+		return "7.0.10.5";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
 			throws Exception {
 
-		new SchemaAlterationsFor7_0_11(collection, provider, appLayerFactory).migrate();
+		new SchemaAlterationsFor7_0_10_5(collection, provider, appLayerFactory).migrate();
 
 		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
@@ -39,9 +40,9 @@ public class RMMigrationTo7_0_11 implements MigrationScript {
 
 	}
 
-	public static class SchemaAlterationsFor7_0_11 extends MetadataSchemasAlterationHelper {
+	public static class SchemaAlterationsFor7_0_10_5 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor7_0_11(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor7_0_10_5(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
@@ -53,6 +54,7 @@ public class RMMigrationTo7_0_11 implements MigrationScript {
 					FolderEssentialCalculator.class);
 			folderSchema.create(Folder.CONFIDENTIAL).setType(BOOLEAN).defineDataEntry().asCalculated(
 					FolderConfidentialCalculator.class);
+			folderSchema.get(Folder.CLOSING_DATE).defineDataEntry().asCalculated(FolderClosingDateCalculator2.class);
 
 			MetadataSchemaBuilder documentSchema = types().getSchema(Document.DEFAULT_SCHEMA);
 

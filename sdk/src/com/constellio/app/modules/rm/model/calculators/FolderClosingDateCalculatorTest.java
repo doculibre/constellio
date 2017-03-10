@@ -32,7 +32,7 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 	Boolean configCalculatedClosingDate = true;
 
 	@Mock CalculatorParameters parameters;
-	FolderClosingDateCalculator calculator;
+	FolderClosingDateCalculator2 calculator;
 
 	int configRequiredDaysBeforeYearEnd = 0;
 	int configNumberOfYearWhenFixedDelay = 0;
@@ -46,7 +46,7 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		calculator = spy(new FolderClosingDateCalculator());
+		calculator = spy(new FolderClosingDateCalculator2());
 
 	}
 

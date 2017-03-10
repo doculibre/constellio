@@ -179,17 +179,25 @@ public class MetadataNetworkBuilder {
 
 				if (aDependency instanceof LocalDependency) {
 					LocalDependency dependency = (LocalDependency) aDependency;
-					metadatas.add(schema.getMetadata(dependency.getLocalMetadataCode()));
+					try {
+						metadatas.add(schema.getMetadata(dependency.getLocalMetadataCode()));
+					} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+						//Metadata may be created later
+					}
 
 				} else if (aDependency instanceof ReferenceDependency) {
-					ReferenceDependency dependency = (ReferenceDependency) aDependency;
-					Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
-					MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaType());
-					Metadata dependentMetadata = referencedType.getDefaultSchema()
-							.getMetadata(dependency.getDependentMetadataCode());
+					try {
+						ReferenceDependency dependency = (ReferenceDependency) aDependency;
+						Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
+						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaType());
+						Metadata dependentMetadata = referencedType.getDefaultSchema()
+								.getMetadata(dependency.getDependentMetadataCode());
 
-					metadatas.add(refMetadata);
-					metadatas.add(dependentMetadata);
+						metadatas.add(refMetadata);
+						metadatas.add(dependentMetadata);
+					} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+						//Metadata may be created later
+					}
 
 				}
 			}

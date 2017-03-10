@@ -1,11 +1,7 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDate;
-
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.joda.time.LocalDate;
 
@@ -35,71 +31,10 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 	ConfigDependency<Boolean> configAddYEarIfDateIsEndOfYearParam =
 			RMConfigs.ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR.dependency();
 	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
-	LocalDependency<String> mainCopyRuleIdEnteredParam = LocalDependency.toAString(Folder.MAIN_COPY_RULE_ID_ENTERED);
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
-		LocalDate enteredClosingDate = parameters.get(enteredClosingDateParam);
-		LocalDate openingDate = parameters.get(openingDateParam);
-		boolean configCalculatedClosingDate = parameters.get(configCalculatedClosingDateParam);
-		if (enteredClosingDate != null || !configCalculatedClosingDate || openingDate == null) {
-			return enteredClosingDate;
-		}
-		String mainCopyRuleIdEntered = parameters.get(mainCopyRuleIdEnteredParam);
-		List<CopyRetentionRule> copies = parameters.get(copiesParam);
-
-		String yearEnd = parameters.get(configYearEndParam);
-		boolean addYEarIfDateIsEndOfYear = parameters.get(configAddYEarIfDateIsEndOfYearParam);
-		int requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
-
-		LocalDate smallestClosingDate = null;
-		Set<String> copyIds = new HashSet<>();
-		for (CopyRetentionRule copy : copies) {
-			copyIds.add(copy.getId());
-		}
-		for (CopyRetentionRule copy : copies) {
-			if (mainCopyRuleIdEntered == null || copy.getId().equals(mainCopyRuleIdEntered)
-					|| !copyIds.contains(mainCopyRuleIdEntered)) {
-				LocalDate copyClosingDate = calculateForCopy(copy, parameters);
-				LocalDate yearEndDate = toNextEndOfYearDate(copyClosingDate, yearEnd, requiredDaysBeforeYearEnd,
-						addYEarIfDateIsEndOfYear);
-				if (smallestClosingDate == null || (yearEndDate != null && smallestClosingDate.isAfter(yearEndDate))) {
-					smallestClosingDate = yearEndDate;
-				}
-			}
-		}
-		return smallestClosingDate;
-	}
-
-	LocalDate calculateForCopy(CopyRetentionRule copy, CalculatorParameters parameters) {
-		LocalDate openingDate = parameters.get(openingDateParam);
-		int numberOfYearWhenVariableDelay = parameters.get(configNumberOfYearWhenVariableDelayParam);
-		int numberOfYearWhenFixedDelay = parameters.get(configNumberOfYearWhenFixedDelayParam);
-
-		if (copy.getActiveRetentionPeriod().isVariablePeriod()) {
-			return calculateWithVariableDelay(openingDate, numberOfYearWhenVariableDelay);
-		} else {
-			return calculateWithFixedDelay(copy, openingDate, numberOfYearWhenFixedDelay);
-		}
-
-	}
-
-	LocalDate calculateWithVariableDelay(LocalDate openingDate,
-			int numberOfYearWhenVariableDelay) {
-		if (numberOfYearWhenVariableDelay == -1) {
-			return null;
-		} else {
-			return openingDate.plusYears(numberOfYearWhenVariableDelay);
-		}
-	}
-
-	LocalDate calculateWithFixedDelay(CopyRetentionRule copy, LocalDate openingDate,
-			int numberOfYearWhenFixedDelay) {
-		if (numberOfYearWhenFixedDelay == -1) {
-			return openingDate.plusYears(copy.getActiveRetentionPeriod().getFixedPeriod());
-		} else {
-			return openingDate.plusYears(numberOfYearWhenFixedDelay);
-		}
+		return null;
 	}
 
 	@Override
@@ -127,8 +62,7 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 				configNumberOfYearWhenVariableDelayParam,
 				configRequiredDaysBeforeYearEndParam,
 				configYearEndParam,
-				configAddYEarIfDateIsEndOfYearParam,
-				mainCopyRuleIdEnteredParam);
+				configAddYEarIfDateIsEndOfYearParam);
 	}
 
 }

@@ -181,7 +181,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		boolean isRequired = false;
 		Metadata metadata = schema.getMetadata(variable.get(0));
 		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
-				metadata.getType());
+				metadata.getType(), false);
 	}
 
 	private LocalDependency toLocalDependency(List<Metadata> metadatas, List<String> variable) {
@@ -200,7 +200,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		}
 
 		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
-				metadata.getType());
+				metadata.getType(), false);
 	}
 
 	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema, List<String> variable) {
@@ -214,7 +214,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		boolean isGroupedByReferences = false;
 		return new ReferenceDependency<>(variable.get(0), variable.get(1), isRequired,
 				isMultivalue,
-				copiedMetadata.getType(), isGroupedByReferences);
+				copiedMetadata.getType(), isGroupedByReferences, false);
 	}
 
 }
