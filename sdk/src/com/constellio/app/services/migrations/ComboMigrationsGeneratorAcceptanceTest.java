@@ -124,6 +124,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(java.util.Arrays.class, "asList")
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
+
 		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(
 				getFoldersLocator().getAppProject()
@@ -177,10 +178,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
+		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(
 				getFoldersLocator().getAppProject()
 						+ "/src/com/constellio/app/services/migrations/GeneratedSystemMigrationCombo.java");
-		FileUtils.writeStringToFile(dest, file.toString());
+		FileUtils.writeStringToFile(dest, fileWithoutProblems);
 	}
 
 	@Test

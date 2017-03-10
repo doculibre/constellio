@@ -37,10 +37,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +124,6 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
-		createDefaultLabel(collection, appLayerFactory, migrationResourcesProvider);
 
 		SystemConfigurationsManager configManager = modelLayerFactory.getSystemConfigurationsManager();
 		String defaultTaxonomy = modelLayerFactory.getSystemConfigs().getDefaultTaxonomy();
@@ -204,13 +200,16 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.documentType"))
 				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 
-
+		try {
+			transaction = createDefaultLabel(collection, appLayerFactory, migrationResourcesProvider, transaction);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 
 		return transaction;
 	}
 
-	public void createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider)
-			throws Exception {
+	public Transaction createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider, Transaction trans) throws FileNotFoundException {
 		Map<String, Integer> map = new HashMap<>();
 		map.put("5159", 7);
 		map.put("5161", 10);
@@ -224,7 +223,6 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		MetadataSchema typeBuilder = metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL);
 		ContentManager contentManager = model.getContentManager();
 		UserServices userServices = model.newUserServices();
-		Transaction trans = new Transaction();
 		File f = provider.getFile("defaultJasperFiles");
 		List<File> files = getFolders(f, provider);
 		for (File fi : files) {
@@ -253,7 +251,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			record.set(typeBuilder.getMetadata(Printable.JASPERFILE), contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
 			trans.add(record);
 		}
-		rs.execute(trans);
+		return trans;
 	}
 
 	public List<File> getFolders(File file, MigrationResourcesProvider provider) {
