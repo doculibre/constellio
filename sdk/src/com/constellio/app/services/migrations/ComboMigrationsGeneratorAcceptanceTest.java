@@ -14,6 +14,8 @@ import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypeDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
@@ -52,6 +54,7 @@ import com.squareup.javapoet.MethodSpec.Builder;
 import com.squareup.javapoet.TypeSpec;
 import com.steadystate.css.util.LangUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
@@ -69,6 +72,13 @@ import static java.util.Arrays.asList;
 public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	String collection = zeCollection;
+	public Class[] problems = new Class[]{
+			ArrayList.class,
+			RolesManager.class,
+			MetadataValueType.class,
+			SchemaTypesDisplayConfig.class,
+			SchemaTypesDisplayTransactionBuilder.class
+	};
 
 	@Test
 	public void generateCoreMigrations()
@@ -114,11 +124,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(java.util.Arrays.class, "asList")
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
-
+		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(
 				getFoldersLocator().getAppProject()
 						+ "/src/com/constellio/app/services/migrations/GeneratedCoreMigrationCombo.java");
-		FileUtils.writeStringToFile(dest, file.toString());
+		FileUtils.writeStringToFile(dest, fileWithoutProblems);
 	}
 
 	@Test
@@ -231,10 +241,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(MetadataTransiency.class, MetadataTransiency.PERSISTED.name().toUpperCase(),
 						MetadataTransiency.TRANSIENT_EAGER.name().toUpperCase(), MetadataTransiency.TRANSIENT_LAZY.name().toUpperCase())
 				.build();
-
+		String newFile = resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
-		FileUtils.writeStringToFile(dest, file.toString());
+		FileUtils.writeStringToFile(dest, newFile);
 	}
 
 	@Test
@@ -1186,6 +1196,14 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.isEnabled()) {
 			method.addStatement("$L.setEnabled($L)", variable, String.valueOf(metadata.isEnabled()));
 		}
+	}
+
+	private String resolveProblems(JavaFile file) {
+		List<String> lines = new ArrayList<>(Arrays.asList(file.toString().split("\n")));
+		for (Class clazz : problems) {
+			lines.add(2, "import " + clazz.getName() + ";");
+		}
+		return StringUtils.join(lines, "\n");
 	}
 
 }
