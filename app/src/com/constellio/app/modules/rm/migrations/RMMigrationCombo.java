@@ -5,22 +5,27 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -29,11 +34,19 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -114,6 +127,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
+		createDefaultLabel(collection, appLayerFactory, migrationResourcesProvider);
 
 		SystemConfigurationsManager configManager = modelLayerFactory.getSystemConfigurationsManager();
 		String defaultTaxonomy = modelLayerFactory.getSystemConfigs().getDefaultTaxonomy();
@@ -190,7 +204,70 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.documentType"))
 				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 
+
+
 		return transaction;
+	}
+
+	public void createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider)
+			throws Exception {
+		Map<String, Integer> map = new HashMap<>();
+		map.put("5159", 7);
+		map.put("5161", 10);
+		map.put("5162", 7);
+		map.put("5163", 5);
+		ModelLayerFactory model = factory.getModelLayerFactory();
+		RecordServices rs = model.newRecordServices();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, factory);
+		MetadataSchemaType metaBuilder = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(Printable.SCHEMA_TYPE);
+		MetadataSchema typeBuilder = metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL);
+		ContentManager contentManager = model.getContentManager();
+		UserServices userServices = model.newUserServices();
+		Transaction trans = new Transaction();
+		File f = provider.getFile("defaultJasperFiles");
+		List<File> files = getFolders(f, provider);
+		for (File fi : files) {
+			Record record = rs.newRecordWithSchema(metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL));
+			String type = fi.getName().matches("(.)+_(Container.jasper)") ? ContainerRecord.SCHEMA_TYPE : Folder.SCHEMA_TYPE;
+			String titre = "Code de plan justifié ";
+			Matcher m = Pattern.compile("(.)+_(\\d{4})_(.)+").matcher(fi.getName());
+			m.find();
+			String format = m.group(2);
+			record.set(typeBuilder.getMetadata(PrintableLabel.TYPE_LABEL), type);
+			record.set(typeBuilder.getMetadata(PrintableLabel.LIGNE), map.get(format));
+
+			if (type.equals(Folder.SCHEMA_TYPE)) {
+				titre += provider.getDefaultLanguageString("Migration.typeSchemaDossier") + " " + (fi.getName().contains("_D_") ?
+						provider.getDefaultLanguageString("Migration.typeAveryDroite") : provider.getDefaultLanguageString("Migration.typeAveryGauche"));
+			} else {
+				titre += provider.getDefaultLanguageString("Migration.typeSchemaConteneur");
+			}
+			String etiquetteName = provider.getDefaultLanguageString("Migration.etiquetteName");
+			String extension = provider.getDefaultLanguageString("Migration.fileExtension");
+			titre += " (" + etiquetteName + " " + format + ")";
+			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
+			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), false);
+			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), etiquetteName + " " + format + " " + type);
+			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
+			record.set(typeBuilder.getMetadata(Printable.JASPERFILE), contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
+			trans.add(record);
+		}
+		rs.execute(trans);
+	}
+
+	public List<File> getFolders(File file, MigrationResourcesProvider provider) {
+		List<File> temp = new ArrayList<>();
+		ArrayList<File> files = new ArrayList<>(asList(file.listFiles()));
+		String extension = provider.getDefaultLanguageString("Migration.fileExtension");
+		for (File f : files) {
+			if (f.isDirectory()) {
+				temp.addAll(getFolders(f, provider));
+			} else if (f.getName().endsWith(extension)) {
+				temp.add(f);
+			}
+		}
+		return temp;
 	}
 
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {

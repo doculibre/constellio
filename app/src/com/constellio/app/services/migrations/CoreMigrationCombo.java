@@ -152,7 +152,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		transaction.add(rm.newFacetQuery().setOrder(1)
 				.setTitle(migrationResourcesProvider.get("init.facet.createModification"))
-				.setActive(true)
+				.setActive(false)
 				.setOpenByDefault(true)
 				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
 				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")

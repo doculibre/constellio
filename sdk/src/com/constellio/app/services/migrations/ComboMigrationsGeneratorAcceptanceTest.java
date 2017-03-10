@@ -14,7 +14,6 @@ import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypeDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.conf.IdGeneratorType;
@@ -76,6 +75,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			ArrayList.class,
 			RolesManager.class,
 			MetadataValueType.class,
+			MetadataTransiency.class,
 			SchemaTypesDisplayConfig.class,
 			SchemaTypesDisplayTransactionBuilder.class
 	};
@@ -238,8 +238,6 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		JavaFile file = JavaFile.builder("com.constellio.app.modules.rm.migrations", generatedClassSpec)
 				.addStaticImport(java.util.Arrays.class, "asList")
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-				.addStaticImport(MetadataTransiency.class, MetadataTransiency.PERSISTED.name().toUpperCase(),
-						MetadataTransiency.TRANSIENT_EAGER.name().toUpperCase(), MetadataTransiency.TRANSIENT_LAZY.name().toUpperCase())
 				.build();
 		String newFile = resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
@@ -1053,7 +1051,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	protected void configureMetadata(Builder method, String variable, Metadata metadata) {
 
 		if(MetadataTransiency.TRANSIENT_EAGER.equals(metadata.getTransiency()) || MetadataTransiency.TRANSIENT_LAZY.equals(metadata.getTransiency())) {
-			method.addStatement("$L.setTransiency($N)", variable, metadata.getTransiency().name().toUpperCase());
+			method.addStatement("$L.setTransiency(MetadataTransiency.$N)", variable, metadata.getTransiency().name().toUpperCase());
 		}
 
 		if (metadata.isMultivalue()) {
