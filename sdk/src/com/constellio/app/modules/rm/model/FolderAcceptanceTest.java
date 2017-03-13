@@ -36,6 +36,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
@@ -2535,6 +2536,77 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getExpectedDestructionDate()).isNotNull();
 	}
 
+	@Test
+	public void givenFolderHasAConfidentialRuleThenIsConfidential()
+			throws Exception {
+
+		Transaction tx = new Transaction();
+		tx.add(records.getRule1().setConfidentialDocuments(true));
+		Folder folder1 = tx.add(newFolderWithIdAndDefaultValues("folder1").setRetentionRuleEntered(records.ruleId_1));
+		Folder folder2 = tx.add(newFolderWithIdAndDefaultValues("folder2").setRetentionRuleEntered(records.ruleId_2));
+		Document document1 = tx.add(rm.newDocument().setFolder(folder1).setTitle("Doc 1"));
+		Document document2 = tx.add(rm.newDocument().setFolder(folder2).setTitle("Doc 1"));
+		recordServices.execute(tx);
+
+		assertThat(folder1.isConfidential()).isTrue();
+		assertThat(folder2.isConfidential()).isFalse();
+
+		assertThat(folder1.isEssential()).isFalse();
+		assertThat(folder2.isEssential()).isFalse();
+
+		assertThat(document1.isConfidential()).isTrue();
+		assertThat(document2.isConfidential()).isFalse();
+
+		assertThat(document1.isEssential()).isFalse();
+		assertThat(document2.isEssential()).isFalse();
+
+	}
+
+	@Test
+	public void givenFolderHasAnEssentialRuleThenIsEssential()
+			throws Exception {
+		Transaction tx = new Transaction();
+		tx.add(records.getRule1().setEssentialDocuments(true));
+		Folder folder1 = tx.add(newFolderWithIdAndDefaultValues("folder1").setRetentionRuleEntered(records.ruleId_1));
+		Folder folder2 = tx.add(newFolderWithIdAndDefaultValues("folder2").setRetentionRuleEntered(records.ruleId_2));
+		Document document1 = tx.add(rm.newDocument().setFolder(folder1).setTitle("Doc 1"));
+		Document document2 = tx.add(rm.newDocument().setFolder(folder2).setTitle("Doc 1"));
+		recordServices.execute(tx);
+
+		assertThat(folder1.isConfidential()).isFalse();
+		assertThat(folder2.isConfidential()).isFalse();
+
+		assertThat(folder1.isEssential()).isTrue();
+		assertThat(folder2.isEssential()).isFalse();
+
+		assertThat(document1.isConfidential()).isFalse();
+		assertThat(document2.isConfidential()).isFalse();
+
+		assertThat(document1.isEssential()).isTrue();
+		assertThat(document2.isEssential()).isFalse();
+	}
+
+	@Test
+	//Tested on IntelliGID 4!
+	public void givenRetentionRuleWithTwoCopyRulesAndFolderWithManuallyEnteredCopyRuleThenOnlyTakeThatCopyRule()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+
+		CopyRetentionRule principal22C = principal("2-2-C", PA);
+		CopyRetentionRule principal55D = principal("5-5-D", PA);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal22C, principal55D, secondary("1-0-D", MD, PA));
+
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMainCopyRuleEntered(principal55D.getId()));
+
+		assertThat(folder.getCloseDate()).isEqualTo(march31_2021);
+
+	}
+
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {
@@ -2657,6 +2729,17 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	private CopyRetentionRule secondary(String status, String... mediumTypes) {
 		return copyBuilder.newSecondary(asList(mediumTypes), status);
+	}
+
+	private Folder newFolderWithIdAndDefaultValues(String id) {
+		Folder folder = rm.newFolderWithId(id);
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setTitle("Folder " + id);
+		folder.setOpenDate(new LocalDate());
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		return folder;
 	}
 
 	private LocalDate march31(int year) {

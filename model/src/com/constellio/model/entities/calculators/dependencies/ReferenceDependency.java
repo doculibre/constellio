@@ -23,6 +23,8 @@ public class ReferenceDependency<T> implements Dependency {
 
 	final boolean groupedByReference;
 
+	final boolean metadataCreatedLater;
+
 	private ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, MetadataValueType returnType) {
 		super();
 		this.referenceMetadataCode = referenceMetadataCode;
@@ -31,10 +33,11 @@ public class ReferenceDependency<T> implements Dependency {
 		this.multivalue = false;
 		this.returnType = returnType;
 		this.groupedByReference = false;
+		this.metadataCreatedLater = false;
 	}
 
 	public ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, boolean required, boolean multivalue,
-			MetadataValueType returnType, boolean groupedByReference) {
+			MetadataValueType returnType, boolean groupedByReference, boolean metadataCreatedLater) {
 		super();
 		this.referenceMetadataCode = referenceMetadataCode;
 		this.dependentMetadataCode = dependentMetadataCode;
@@ -42,62 +45,74 @@ public class ReferenceDependency<T> implements Dependency {
 		this.multivalue = multivalue;
 		this.returnType = returnType;
 		this.groupedByReference = groupedByReference;
+		this.metadataCreatedLater = metadataCreatedLater;
 	}
 
 	public boolean isGroupedByReference() {
 		return groupedByReference;
 	}
 
+	public boolean isMetadataCreatedLater() {
+		return metadataCreatedLater;
+	}
+
+	public <Z> ReferenceDependency<Z> whichIsCreatedLater() {
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, multivalue, returnType,
+				groupedByReference, true);
+	}
+
 	public <Z> ReferenceDependency<Z> whichIsRequired() {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, true, multivalue, returnType,
-				groupedByReference);
+				groupedByReference, metadataCreatedLater);
 	}
 
 	public <Z> ReferenceDependency<SortedMap<String, List<Z>>> whichAreReferencedMultiValueGroupedByReference() {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType, true);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType, true,
+				metadataCreatedLater);
 	}
 
 	public <Z> ReferenceDependency<SortedMap<String, Z>> whichAreReferencedSingleValueGroupedByReference() {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType, true);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType, true,
+				metadataCreatedLater);
 	}
 
 	public <Z> ReferenceDependency<List<Z>> whichIsMultivalue() {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType,
-				groupedByReference);
+				groupedByReference, metadataCreatedLater);
 	}
 
 	//@formatter:off
 
 		public static <Z> ReferenceDependency<Z> toAnEnum(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.ENUM, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.ENUM, false, false);
 	}
 
 	public static ReferenceDependency<String> toAString(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRING, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRING, false, false);
 	}
 
 	public static ReferenceDependency<String> toAReference(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.REFERENCE, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.REFERENCE, false, false);
 	}
 
 	public static ReferenceDependency<Boolean> toABoolean(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.BOOLEAN, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.BOOLEAN, false, false);
 	}
 
 	public static ReferenceDependency<Double> toANumber(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.NUMBER, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.NUMBER, false, false);
 	}
 
 	public static ReferenceDependency<LocalDate> toADate(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE, false, false);
 	}
 
 	public static ReferenceDependency<LocalDateTime> toADateTime(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE_TIME, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE_TIME, false, false);
 	}
 
 	public static <T> ReferenceDependency<T> toAStructure(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRUCTURE, false);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRUCTURE, false, false);
 	}
 
 

@@ -123,6 +123,14 @@ public class MetadataSchemaTypesBuilderRuntimeException extends RuntimeException
 		}
 	}
 
+	public static class CalculatorHasInvalidMetadataDependency extends MetadataSchemaTypesBuilderRuntimeException {
+		public CalculatorHasInvalidMetadataDependency(Class<?> calculatorClass, String calculatedMetadata,
+				String dependencyMetadata, Exception e) {
+			super("Calculator '" + calculatorClass.getSimpleName() + "' of '" + calculatedMetadata
+					+ "' has an dependency to an inexistent metadata '" + dependencyMetadata + "'", e);
+		}
+	}
+
 	public static class NoAllowedReferences extends MetadataSchemaTypesBuilderRuntimeException {
 		public NoAllowedReferences(String metadata) {
 			super("No allowed references for metadata with code : " + metadata);

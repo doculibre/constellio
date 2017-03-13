@@ -16,65 +16,72 @@ public class LocalDependency<T> implements Dependency {
 	final boolean multivalue;
 	final boolean required;
 	final MetadataValueType returnType;
+	final boolean metadataCreatedLater;
 
-	public LocalDependency(String metadataCode, boolean required, boolean multivalue, MetadataValueType returnType) {
+	public LocalDependency(String metadataCode, boolean required, boolean multivalue, MetadataValueType returnType,
+			boolean metadataCreatedLater) {
 		super();
 		this.metadataCode = metadataCode;
 		this.required = required;
 		this.multivalue = multivalue;
 		this.returnType = returnType;
+		this.metadataCreatedLater = metadataCreatedLater;
 	}
 
 	public <Z> LocalDependency<Z> whichIsRequired() {
-		return new LocalDependency<>(metadataCode, true, multivalue, returnType);
+		return new LocalDependency<>(metadataCode, true, multivalue, returnType, metadataCreatedLater);
+	}
+
+	public <Z> LocalDependency<Z> whichIsCreatedLater() {
+		return new LocalDependency<>(metadataCode, required, multivalue, returnType, true);
 	}
 
 	public <Z> LocalDependency<List<Z>> whichIsMultivalue() {
-		return new LocalDependency<>(metadataCode, required, true, returnType);
+		return new LocalDependency<>(metadataCode, required, true, returnType, metadataCreatedLater);
 	}
 
 	public static LocalDependency<String> toAString(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.STRING);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.STRING, false);
 	}
 
 	public static <T> LocalDependency<T> toAnEnum(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.ENUM);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.ENUM, false);
 	}
 
 	public static LocalDependency<List<String>> toAStringList(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.STRING);
+		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.STRING, false);
 	}
 
 	public static LocalDependency<List<String>> toARequiredStringList(String metadataCode) {
-		return new LocalDependency<>(metadataCode, true, true, MetadataValueType.STRING);
+		return new LocalDependency<>(metadataCode, true, true, MetadataValueType.STRING, false);
 	}
 
 	public static LocalDependency<String> toAReference(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.REFERENCE);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.REFERENCE, false);
 	}
 
 	public static LocalDependency<Boolean> toABoolean(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.BOOLEAN);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.BOOLEAN, false);
 	}
 
 	public static LocalDependency<Double> toANumber(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.NUMBER);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.NUMBER, false);
 	}
 
 	public static LocalDependency<LocalDate> toADate(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.DATE);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.DATE, false);
 	}
 
 	public static LocalDependency<LocalDateTime> toADateTime(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.DATE_TIME);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.DATE_TIME, false);
 	}
 
 	public static <T> LocalDependency<T> toAStructure(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.STRUCTURE);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.STRUCTURE, false);
 	}
 
 	public static LocalDependency<Content> toAContent(String metadataCode) {
-		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.CONTENT);
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.CONTENT, false);
 	}
 
 	@Override
@@ -97,6 +104,10 @@ public class LocalDependency<T> implements Dependency {
 		return multivalue;
 	}
 
+	public boolean isMetadataCreatedLater() {
+		return metadataCreatedLater;
+	}
+
 	@Override
 	public int hashCode() {
 		return metadataCode.hashCode();
@@ -113,4 +124,5 @@ public class LocalDependency<T> implements Dependency {
 				"metadataCode='" + metadataCode + '\'' +
 				'}';
 	}
+
 }

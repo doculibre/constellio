@@ -1,5 +1,8 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -43,11 +46,16 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 //				if (event.isDoubleClick()) {
 					Object itemId = event.getItemId();
 					RecordVO recordVO = container.getRecordVO((int) itemId);
-					
+
 					Window recordWindow = new BaseWindow();
 					recordWindow.setWidth("90%");
 					recordWindow.setHeight("90%");
-					recordWindow.setContent(new RecordDisplay(recordVO));
+					String typeCode = recordVO.getSchema().getTypeCode();
+					if(typeCode.equals(Document.SCHEMA_TYPE) || typeCode.equals(Folder.SCHEMA_TYPE)) {
+						recordWindow.setContent(new RecordDisplay(recordVO, new RMMetadataDisplayFactory()));
+					} else {
+						recordWindow.setContent(new RecordDisplay(recordVO));
+					}
 					UI.getCurrent().addWindow(recordWindow);
 //				}
 			}
