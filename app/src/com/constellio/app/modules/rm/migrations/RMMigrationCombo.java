@@ -30,6 +30,7 @@ import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -46,6 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.Language.French;
 import static java.util.Arrays.asList;
 
 public class RMMigrationCombo implements ComboMigrationScript {
@@ -91,8 +93,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				new RMMigrationTo6_6(),
 				new RMMigrationTo6_7(),
 				new RMMigrationTo7_0_5(),
-				new RMMigrationTo7_1(),
-				new RMMigrationTo_7_1_francis()
+				new RMMigrationTo7_1()
 		);
 	}
 
@@ -130,6 +131,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		if (defaultTaxonomy == null) {
 			configManager.setValue(ConstellioEIMConfigs.DEFAULT_TAXONOMY, RMTaxonomies.ADMINISTRATIVE_UNITS);
 		}
+
+		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.MAIN_COPY_RULE).addLabel(French, "Exemplaire");
+			}
+		});
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {

@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -174,8 +161,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			builder.create(PrintableLabel.COLONNE).setType(MetadataValueType.NUMBER).setUndeletable(true).setEssential(true)
 					.defineDataEntry().asManual();
 
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.COPY_STATUS).addLabel(French, "Exemplaire");
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.COPY_STATUS_ENTERED).addLabel(French, "Exemplaire");
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.MAIN_COPY_RULE).addLabel(French, "Exemplaire");
 
 			migrateContainerRecord(typesBuilder);
 
