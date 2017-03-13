@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -836,6 +837,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, -1);
 		waitForBatchProcess();
+		reindexIfRequired();
 		recordServices.refresh(folder);
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
