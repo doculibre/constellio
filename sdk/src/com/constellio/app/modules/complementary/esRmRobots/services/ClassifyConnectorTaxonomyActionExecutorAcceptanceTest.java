@@ -53,6 +53,7 @@ import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -113,6 +114,14 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	private String folderAAB = "folderAAB";
 	private String folderABA = "folderABA";
 	private String folderAB = "folderAB";
+
+	//Folders ajoutés par Charles
+	private String folderC = "folderC";
+	private String folderCC = "folderCC";
+	private String folderD = "folderD";
+	private String folderDD = "folderDD";
+	private String folderE = "folderE";
+
 	private String documentA1 = "documentA1";
 	private String documentA2 = "documentA2";
 	private String documentB3 = "documentB3";
@@ -124,7 +133,11 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	private String documentAB8 = "documentAB8";
 	private String documentABA9 = "documentABA9";
 
+	private String documentMalPlace = "documentC1";
+	private String documentBienPlace = "documentC2";
+
 	private String documentA1TaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/1.txt";
+
 	private String documentA2TaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/2.txt";
 	private String documentB3TaxoURL = "smb://AU2 Admin Unit2/AU21 Admin Unit21/B/3.txt";
 	private String documentAA4TaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/AA/4.txt";
@@ -137,13 +150,23 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	//TODO Support major/minor
 	//TODO Fix problem when running a test directly
 
-	@Spy ConnectorSmb connectorSmb;
+	@Spy
+	ConnectorSmb connectorSmb;
 	private String folderATaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/";
+
 	private String folderAATaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/AA/";
 	private String folderABTaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/AB/";
 	private String folderAAATaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/AA/AAA/";
 	private String folderAABTaxoURL = "smb://AU1 Admin Unit1/AU11 Admin Unit11/A/AA/AAB/";
 	private String folderBTaxoURL = "smb://AU2 Admin Unit2/AU21 Admin Unit21/B/";
+
+	private String folderCTaxoURL = "smb://X/X13/C/";
+	private String folderCCTaxoURL = "smb://X/X13/C/CC/";
+	private String folderDTaxoURL = "smb://X/X13/D/";
+	private String folderETaxoURL = "smb://TEST/ALLO/OUI";
+	private String folderDDTaxoURL = "smb://X13/X/C/";
+	private String documentMalPlaceTaxoURL = "smb://X/X13/test.txt";
+	private String documentBienPlaceTaxoURL = "smb://X/X13/C/test.txt";
 
 	private String folderANoTaxoURL = "smb://host.ext/section/A/";
 	private String folderAANoTaxoURL = "smb://host.ext/section/A/AA/";
@@ -162,6 +185,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 	LocalDate squatreNovembre2010 = new LocalDate(2010, 11, 4), squatreNovembre = new LocalDate(2010, 11, 4);
 	LocalDate squatreNovembre2015 = new LocalDate(2015, 11, 4);
+
+	LocalDateTime timeOfMyLife = new LocalDateTime(2017, 3, 9, 10, 18, 30);
 
 	@Before
 	public void setUp()
@@ -440,6 +465,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
+		//folderATaxoURL = "smb://X/X13/A/";
 		Folder folderA = getFolderByLegacyId(folderATaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
 		assertThat(folderA.getTitle()).isEqualTo("A");
@@ -493,6 +519,88 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderB.getCategory()).isEqualTo(records.categoryId_Z111);
 		assertThat(folderB.getAdministrativeUnit()).isEqualTo(adminUnit11);
 		assertThat(folderB.getCreatedByRobot()).isEqualTo(robotId);
+
+		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
+	}
+
+	@Test
+	public void givenClassifyingConnectorFoldersUsingClassificationPlanOtherCasesThenOk() throws Exception {
+		notAUnitItest = true;
+
+		givenFetchedFoldersAndDocumentsForRobots();
+
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setInTaxonomy(CLASSIFICATION_PLAN).setActionAfterClassification(DO_NOTHING)
+				.setDelimiter(" ").setDefaultCategory(records.categoryId_Z111).setDefaultRetentionRule(records.ruleId_1)
+				.setDefaultCopyStatus(CopyType.PRINCIPAL).setDefaultAdminUnit(adminUnit11).setDefaultOpenDate(new LocalDate()));
+
+		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
+						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		// Séparateurs nom
+		Folder folderCarotte = getFolderByLegacyId(folderCTaxoURL);
+		assertThat(folderCarotte.getParentFolder()).isNull();
+		assertThat(folderCarotte.getTitle()).isEqualTo("C - Carotte");
+		assertThat(folderCarotte.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderCarotte.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderCarotte.getCategory()).isEqualTo(records.categoryId_X13);
+		assertThat(folderCarotte.getAdministrativeUnit()).isEqualTo(adminUnit11);
+		assertThat(folderCarotte.getCreatedByRobot()).isEqualTo(robotId);
+
+		// Sous-dossier
+		Folder folderCC = getFolderByLegacyId(folderCCTaxoURL);
+		assertThat(folderCC.getParentFolder()).isEqualTo(folderCarotte.getId());
+		assertThat(folderCC.getTitle()).isEqualTo("C - Sous-dossier");
+		assertThat(folderCC.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderCC.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderCC.getCategory()).isEqualTo(records.categoryId_X13);
+		assertThat(folderCC.getCreatedByRobot()).isEqualTo(robotId);
+
+		Folder folderD = getFolderByLegacyId(folderDTaxoURL);
+		assertThat(folderD.getParentFolder()).isNull();
+		assertThat(folderD.getTitle()).isEqualTo("D                                           Test");
+
+		// Code mal placé
+		Folder folderDD = getFolderByLegacyId(folderDDTaxoURL);
+		assertThat(folderDD.getParentFolder()).isNull();
+		assertThat(folderDD.getTitle()).isEqualTo("DossierAvecCodeAlenvers");
+		assertThat(folderDD.getCategory()).isEqualTo(records.categoryId_Z111);
+		assertThat(folderDD.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderDD.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderDD.getCreatedByRobot()).isEqualTo(robotId);
+
+		// Code inexistant
+		Folder folderE = getFolderByLegacyId(folderETaxoURL);
+		assertThat(folderE.getParentFolder()).isNull();
+		assertThat(folderE.getTitle()).isEqualTo("DossierAvecFauxCodeClassification");
+		assertThat(folderE.getCategory()).isEqualTo(records.categoryId_Z111);
+		assertThat(folderE.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderE.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderE.getCreatedByRobot()).isEqualTo(robotId);
+
+		// Document placé ailleurs
+		List<Document> docs = rm.searchDocuments(where(LEGACY_ID).isEqualTo(documentMalPlaceTaxoURL));
+		for (Document document : docs) {
+			assertThat(document).isNull();
+		}
+
+		// Document bien placé dans le plan
+		docs = rm.searchDocuments(where(LEGACY_ID).isEqualTo(documentBienPlaceTaxoURL));
+		for (Document document : docs) {
+			assertThat(document).isNotNull();
+			assertThat(document.getFolder()).isEqualTo(rm.getFolderWithLegacyId(folderCTaxoURL).getId());
+			assertThat(document.getRetentionRule()).isEqualTo(records.ruleId_1);
+			assertThat(document.getTitle()).isEqualTo("test.txt");
+			assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
+			assertThat(document.getFolderCategory()).isEqualTo(records.categoryId_X13);
+		}
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -676,12 +784,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
-				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version", Document.FORM_MODIFIED_ON)
 				.containsOnly(
-						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
-						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0", timeOfMyLife),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0", timeOfMyLife),
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0", timeOfMyLife),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0", timeOfMyLife)
 				);
 
 		//2- Start the robot again, nothing happens
@@ -697,12 +805,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
-				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version", Document.FORM_MODIFIED_ON)
 				.containsOnly(
-						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
-						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0", timeOfMyLife),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0", timeOfMyLife),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0", timeOfMyLife),
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0", timeOfMyLife)
 				);
 
 		//2- Start the robot again, with a modified connector document
@@ -740,12 +848,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
-				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version", Document.FORM_MODIFIED_ON)
 				.containsOnly(
-						tuple("1.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "2.0"),
-						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
-						tuple("3.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "2.0"),
-						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
+						tuple("1.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "2.0", timeOfMyLife),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0", timeOfMyLife),
+						tuple("3.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "2.0", timeOfMyLife),
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0", timeOfMyLife)
 				);
 	}
 
@@ -785,12 +893,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
-				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version", Document.FORM_MODIFIED_ON)
 				.containsOnly(
-						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
-						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0", timeOfMyLife),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0", timeOfMyLife),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0", timeOfMyLife),
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0", timeOfMyLife)
 				);
 
 		//2- Logically delete two folders and one document
@@ -803,9 +911,9 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				tuple(folderABNoTaxoURL, "AB")
 		);
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
-				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version", Document.FORM_MODIFIED_ON)
 				.containsOnly(
-						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0")
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0", timeOfMyLife)
 				);
 
 		//3- Start the robot again, folders and documents are back alive
@@ -822,12 +930,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
-				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version", Document.FORM_MODIFIED_ON)
 				.containsOnly(
-						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
-						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0", timeOfMyLife),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0", timeOfMyLife),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0", timeOfMyLife),
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0", timeOfMyLife)
 				);
 	}
 
@@ -979,12 +1087,14 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Document document = getDocumentByLegacyId(folderATaxoURL + "1.txt");
 		assertThat(document.getTitle()).isEqualTo("1.txt");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		document = getDocumentByLegacyId(folderBTaxoURL + "3.txt");
 		assertThat(document.getTitle()).isEqualTo("3.txt");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		recordServices.add(es.newConnectorSmbDocumentWithId("documentA8", connectorInstance)
-				.setTitle("8.txt").setUrl(folderATaxoURL + "8.txt").setParsedContent("Document A8 content").setParent(folderA)
+				.setTitle("8.txt").setUrl(folderATaxoURL + "8.txt").setParsedContent("Document A8 content").setParent(folderA).setLastModified(timeOfMyLife)
 				.setManualTokens(PUBLIC_TOKEN));
 		recordServices.update(es.getConnectorSmbDocument(documentA1).setTitle("9.txt"));
 
@@ -999,13 +1109,16 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(strContentOf(document)).isEqualTo("Document 9");
 		assertThat(document.getTitle()).isEqualTo("Le document 1");
 		assertThat(document.getAuthor()).isEqualTo("Rob Robinson");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		document = getDocumentByLegacyId(folderBTaxoURL + "3.txt");
 		assertThat(document.getTitle()).isEqualTo("Le document 3");
 		assertThat(document.getAuthor()).isEqualTo("Dan Danielson");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		document = getDocumentByLegacyId(folderATaxoURL + "8.txt");
 		assertThat(document.getTitle()).isEqualTo("8.txt");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1744,11 +1857,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(document.getSchemaCode()).isEqualTo("document_customDocument");
 		assertThat(document.get("customMeta")).isEqualTo("valeur 1");
 		assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		document = getDocumentByLegacyId(folderBTaxoURL + "3.txt");
 		assertThat(document.getTitle()).isEqualTo("Le document 3");
 		assertThat(document.getAuthor()).isEqualTo("Dan Danielson");
 		assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1781,10 +1896,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		Document document = getDocumentByLegacyId(folderATaxoURL + "1.txt");
 		assertThat(document.getTitle()).isEqualTo("Le document 1");
 		assertThat(document.getAuthor()).isEqualTo("Rob Robinson");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		document = getDocumentByLegacyId(folderBTaxoURL + "3.txt");
 		assertThat(document.getTitle()).isEqualTo("Le document 3");
 		assertThat(document.getAuthor()).isEqualTo("Dan Danielson");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -2051,30 +2168,31 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		Transaction transaction = new Transaction();
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
 				.setTitle("1.txt").setUrl(folderATaxoURL + "1.txt").setParsedContent("Document A1 content").setParent(
-				folderA).setManualTokens(PUBLIC_TOKEN);
+				folderA).setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				.setTitle("2.txt").setUrl(folderATaxoURL + "2.txt").setParsedContent("Document A2 content").setParent(folderA)
+				.setTitle("2.txt").setUrl(folderATaxoURL + "2.txt").setParsedContent("Document A2 content").setParent(folderA).setLastModified(timeOfMyLife)
 				.setManualTokens(PUBLIC_TOKEN);
 
-		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				.setTitle("3.txt").setUrl(folderBTaxoURL + "3.txt").setParsedContent("Document B3 content").setParent(folderB)
+		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance).setModifiedOn(timeOfMyLife))
+				.setTitle("3.txt").setUrl(folderBTaxoURL + "3.txt").setParsedContent("Document B3 content").setParent(folderB).setLastModified(timeOfMyLife)
 				.setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB7JustDeleted, connectorInstance))
-				.setTitle("7.txt").setUrl(folderBTaxoURL + "7.txt").setParsedContent("Document B7")
-				.setParent(folderB)
+				.setTitle("7.txt").setUrl(folderBTaxoURL + "7.txt").setParsedContent("Document B7").setParent(folderB).setLastModified(timeOfMyLife)
 				.setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
-				.setTitle("4.txt").setUrl(folderAATaxoURL + "4.txt").setParsedContent("Document AA4 content").setParent(folderAA)
+				.setTitle("4.txt").setUrl(folderAATaxoURL + "4.txt").setParsedContent("Document AA4 content").setParent(folderAA).setLastModified(timeOfMyLife)
 				.setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance))
-				.setTitle("5.txt").setUrl(folderAATaxoURL + "5.txt").setParent(folderAA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("5.txt").setUrl(folderAATaxoURL + "5.txt").setParent(folderAA).setLastModified(timeOfMyLife)
+				.setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAAA6, connectorInstance))
-				.setTitle("6.txt").setUrl(folderAAATaxoURL + "6.txt").setParent(folderAAA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("6.txt").setUrl(folderAAATaxoURL + "6.txt").setParent(folderAAA).setLastModified(timeOfMyLife)
+				.setManualTokens(PUBLIC_TOKEN);
 		recordServices.execute(transaction);
 	}
 
@@ -2121,21 +2239,50 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance)).setTitle("AAB").setUrl(folderAABNoTaxoURL)
 				.setParent(folderAA);
 		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance)).setTitle("B").setUrl(folderBNoTaxoURL);
+
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
 				.setTitle("1.txt").setUrl(documentA1NoTaxoURL).setParsedContent("Document A1 content").setParent(
-				folderA).setManualTokens(PUBLIC_TOKEN);
+				folderA).setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				.setTitle("2.txt").setUrl(documentA2NoTaxoURL).setParsedContent("Document A2 content").setParent(folderA)
+				.setTitle("2.txt").setUrl(documentA2NoTaxoURL).setParsedContent("Document A2 content").setParent(folderA).setLastModified(timeOfMyLife)
 				.setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				.setTitle("3.txt").setUrl(documentB3NoTaxoURL).setParsedContent("Document B3 content").setParent(folderB)
+				.setTitle("3.txt").setUrl(documentB3NoTaxoURL).setParsedContent("Document B3 content").setParent(folderB).setLastModified(timeOfMyLife)
 				.setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
-				.setTitle("4.txt").setUrl(documentAA4NoTaxoURL).setParsedContent("Document AA4 content").setParent(folderAA)
+				.setTitle("4.txt").setUrl(documentAA4NoTaxoURL).setParsedContent("Document AA4 content").setParent(folderAA).setLastModified(timeOfMyLife)
 				.setManualTokens(PUBLIC_TOKEN);
+
+		recordServices.execute(transaction);
+	}
+
+	@Test
+	public void givenFetchedFoldersAndDocumentsForRobots() throws RecordServicesException {
+		Transaction transaction = new Transaction();
+
+		transaction.add(rm.newAdministrativeUnitWithId(adminUnit1)).setCode("AU1").setTitle(adminUnit1);
+		transaction.add(rm.newAdministrativeUnitWithId(adminUnit11)).setCode("AU11").setTitle(adminUnit11).setParent(adminUnit1);
+
+		transaction.add(es.newConnectorSmbFolderWithId(folderC, connectorInstance)).setTitle("C - Carotte").setUrl(folderCTaxoURL);
+
+		transaction.add(es.newConnectorSmbFolderWithId(folderD, connectorInstance)).setTitle("D                                           Test").setUrl(folderDTaxoURL);
+
+		transaction.add(es.newConnectorSmbFolderWithId(folderCC, connectorInstance)).setTitle("C - Sous-dossier").setUrl(folderCCTaxoURL).setParent(folderC);
+
+		transaction.add(es.newConnectorSmbFolderWithId(folderE, connectorInstance)).setTitle("DossierAvecFauxCodeClassification").setUrl(folderETaxoURL);
+
+		transaction.add(es.newConnectorSmbFolderWithId(folderDD, connectorInstance)).setTitle("DossierAvecCodeAlenvers").setUrl(folderDDTaxoURL);
+
+		transaction.add(es.newConnectorSmbDocumentWithId(documentMalPlace, connectorInstance))
+				.setTitle("test.txt").setParent(folderC).setUrl(documentMalPlaceTaxoURL)
+				.setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
+
+		transaction.add(es.newConnectorSmbDocumentWithId(documentBienPlaceTaxoURL, connectorInstance))
+				.setTitle("test.txt").setParent(folderC).setUrl(documentBienPlaceTaxoURL)
+				.setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
 
 		recordServices.execute(transaction);
 	}

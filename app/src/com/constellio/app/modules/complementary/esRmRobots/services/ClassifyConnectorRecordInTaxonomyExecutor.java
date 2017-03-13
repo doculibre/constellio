@@ -80,7 +80,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	List<Record> processedRecords;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
+													 AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -178,7 +178,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy,
-			Metadata codeMetadata) {
+								 Metadata codeMetadata) {
 
 		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(recordServices).extractInfoFromPath(
 				fullConnectorDocPath, params.getPathPrefix(), params.getDelimiter(), codeMetadata);
@@ -189,7 +189,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy,
-			Metadata codeMetadata, ClassifiedRecordPathInfo recordUrlInfo) {
+							   Metadata codeMetadata, ClassifiedRecordPathInfo recordUrlInfo) {
 		LOGGER.info("processFolder(" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode() + ", "
 				+ recordUrlInfo + ")");
 		String folderName = recordUrlInfo.getLastPathSegment();
@@ -320,7 +320,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-			MetadataSchema folderSchema, Record parentConcept) {
+										   MetadataSchema folderSchema, Record parentConcept) {
 		Folder newRmFolder = rm.newFolder();
 		newRmFolder.setCreatedByRobot(robotId);
 		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy))
@@ -517,31 +517,31 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private void setMetadataInRmRecord(RecordWrapper rmRecord, MetadataSchema schema, String metadataCode, String value) {
 		Metadata metadata = schema.getMetadata(metadataCode);
 		switch (metadata.getType()) {
-		case STRING:
-			if (metadata.isMultivalue()) {
-				rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
-			} else {
-				rmRecord.set(metadataCode, value);
-			}
-			break;
-		case REFERENCE:
-			String collection = rmRecord.getCollection();
-			MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
-			MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
-			MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
-			Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
-			Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
-			rmRecord.set(metadataCode, referencedRecord.getId());
-			break;
-		case ENUM:
-			rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
-			break;
-		case DATE:
-			rmRecord.set(metadataCode, parseDate(value));
-			break;
-		case DATE_TIME:
-			rmRecord.set(metadataCode, parseDateTime(value));
-			break;
+			case STRING:
+				if (metadata.isMultivalue()) {
+					rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
+				} else {
+					rmRecord.set(metadataCode, value);
+				}
+				break;
+			case REFERENCE:
+				String collection = rmRecord.getCollection();
+				MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
+				MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
+				MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
+				Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
+				Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
+				rmRecord.set(metadataCode, referencedRecord.getId());
+				break;
+			case ENUM:
+				rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
+				break;
+			case DATE:
+				rmRecord.set(metadataCode, parseDate(value));
+				break;
+			case DATE_TIME:
+				rmRecord.set(metadataCode, parseDateTime(value));
+				break;
 		}
 	}
 
@@ -556,7 +556,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	public Map<String, ClassifiedDocument> classifyDocuments(String inRmFolder, List<ConnectorDocument<?>> documentsRecords,
-			Boolean majorVersions) {
+															 Boolean majorVersions) {
 		Map<String, ClassifiedDocument> createdRecordsByUrls = new HashMap<>();
 		for (ConnectorDocument document : documentsRecords) {
 			try {
@@ -584,6 +584,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			document.setTitle(connectorDocument.getTitle());
 			document.setFolder(inRmFolder);
+			document.setFormModifiedOn(connectorDocument.getLastModified());
 
 			RecordUtils.copyMetadatas(connectorDocument, document);
 			try {
@@ -612,19 +613,19 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 			return new ClassifiedDocument(connectorDocument, document);
 		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument|IcapException e) {
-            Exception exception = e;
+			Exception exception = e;
 
-            if (e instanceof IcapException) {
-                if (e instanceof IcapException.ThreatFoundException) {
-                    exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
-                } else {
-                    if (e.getCause() == null) {
-                        exception = new IcapException($(e, ((IcapException) e).getFileName()));
-                    } else {
-                        exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
-                    }
-                }
-            }
+			if (e instanceof IcapException) {
+				if (e instanceof IcapException.ThreatFoundException) {
+					exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+				} else {
+					if (e.getCause() == null) {
+						exception = new IcapException($(e, ((IcapException) e).getFileName()));
+					} else {
+						exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
+					}
+				}
+			}
 
 			if (newVersionDataSummary != null) {
 				contentManager.markForDeletionIfNotReferenced(newVersionDataSummary.getHash());
@@ -635,7 +636,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
-			ContentVersionDataSummary newVersionDataSummary, Document document) {
+									  ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
 				document.getContent().updateContentWithVersionAndName(
@@ -680,4 +681,3 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 }
-
