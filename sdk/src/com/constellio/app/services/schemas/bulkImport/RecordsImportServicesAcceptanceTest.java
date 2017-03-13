@@ -5,7 +5,10 @@ import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,7 +16,6 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.*;
@@ -39,7 +41,6 @@ import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProv
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -361,9 +362,38 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(folder8.getMainCopyRule().getId()).isEqualTo(copy789Id);
     }
 
-    @Test
-    public void whenImportingAnExcelFileThenImportedCorrectly()
-            throws Exception {
+	@Test
+	public void whenImportingActiveFoldersWithManualDepositOrDestructionDateBeforeExpectedTransferDateThenInactiveDatesNotSetted()
+			throws Exception {
+
+		File excelFile = getTestResourceFile("dataWithInvalidManuallyEnteredDates.xls");
+
+		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+
+		assertThatRecords(rm.searchFolders(ALL))
+				.extractingMetadatas(LEGACY_ID.getLocalCode(), Folder.EXPECTED_TRANSFER_DATE, Folder.MANUAL_EXPECTED_DEPOSIT_DATE,
+						Folder.MANUAL_EXPECTED_DESTRUCTION_DATE).containsOnly(
+				tuple("1", date(2017, 12, 31), date(2012, 5, 29), date(2012, 5, 29)),
+				tuple("2", date(2017, 12, 31), date(2012, 5, 29), date(2012, 5, 29)),
+				tuple("3", null, date(2012, 5, 29), date(2012, 5, 29)),
+				tuple("4", null, date(2012, 5, 29), date(2012, 5, 29)),
+
+				tuple("5", date(2017, 12, 31), null, null),
+				tuple("6", date(2017, 12, 31), null, null),
+				tuple("7", null, null, null),
+				tuple("8", null, null, null),
+
+				tuple("9", date(2017, 12, 31), date(2010, 5, 29), date(2010, 5, 29)),
+				tuple("10", date(2017, 12, 31), date(2010, 5, 29), date(2010, 5, 29)),
+				tuple("11", null, date(2010, 5, 29), date(2010, 5, 29)),
+				tuple("12", null, date(2010, 5, 29), date(2010, 5, 29))
+		);
+
+	}
+
+	@Test
+	public void whenImportingAnExcelFileThenImportedCorrectly()
+			throws Exception {
 
         File excelFile = getTestResourceFile("datas.xls");
         File excelFileModified = getTestResourceFile("datasModified.xls");
@@ -712,10 +742,10 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         return record;
     }
 
-    private Record recordWithLegacyId(String legacyId) {
-        return getModelLayerFactory().newSearchServices().searchSingleResult(
-                fromAllSchemasIn(zeCollection).where(Schemas.LEGACY_ID).isEqualTo(legacyId));
-    }
+	private Record recordWithLegacyId(String legacyId) {
+		return getModelLayerFactory().newSearchServices().searchSingleResult(
+				fromAllSchemasIn(zeCollection).where(LEGACY_ID).isEqualTo(legacyId));
+	}
 
     private List<String> retentionRulesFromCategory(String code) {
         return rm.getCategoryWithCode(code).getRententionRules();

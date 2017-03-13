@@ -1,5 +1,18 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -49,16 +62,10 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 	public static final String MANAGE_LABELS_PERMISSION = "manageLabels";
 
-	private RecordServices rs;
-	private Map<String, Integer> map = new HashMap<>();
-	private AppLayerFactory factory;
-	private String collection;
-	private UserServices userServices;
-
-    @Override
-    public String getVersion() {
-        return "7.1";
-    }
+	@Override
+	public String getVersion() {
+		return "7.1";
+	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory factory)
@@ -69,36 +76,38 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
 
-        transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
-                .withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
-                .withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-                .withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-        );
-        displayManager.execute(transaction.build());
-        createDefaultLabel(collection, factory, provider);
-    }
+		transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
+				.withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
+				.withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+				.withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+		);
+		displayManager.execute(transaction.build());
+		createDefaultLabel(collection, factory, provider);
+		givenNewPermissionsToRGDandADMRoles(collection, factory.getModelLayerFactory());
+	}
 
-    private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
-        Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
-        List<String> newRgdPermissions = new ArrayList<>();
-        newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
-        modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
-    }
+	private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
+		Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+		List<String> newRgdPermissions = new ArrayList<>();
+		newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
+		modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
+	}
 
 	public void createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider)
 			throws Exception {
+		Map<String, Integer> map = new HashMap<>();
 		map.put("5159", 7);
 		map.put("5161", 10);
 		map.put("5162", 7);
 		map.put("5163", 5);
 		ModelLayerFactory model = factory.getModelLayerFactory();
-		rs = model.newRecordServices();
+		RecordServices rs = model.newRecordServices();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, factory);
 		MetadataSchemaType metaBuilder = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
 				.getSchemaType(Printable.SCHEMA_TYPE);
 		MetadataSchema typeBuilder = metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL);
 		ContentManager contentManager = model.getContentManager();
-		userServices = model.newUserServices();
+		UserServices userServices = model.newUserServices();
 		Transaction trans = new Transaction();
 		File f = provider.getFile("defaultJasperFiles");
 		List<File> files = getFolders(f, provider);
@@ -112,45 +121,47 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			record.set(typeBuilder.getMetadata(PrintableLabel.TYPE_LABEL), type);
 			record.set(typeBuilder.getMetadata(PrintableLabel.LIGNE), map.get(format));
 
-            if (type.equals(Folder.SCHEMA_TYPE)) {
-                titre += provider.getDefaultLanguageString("Migration.typeSchemaDossier") + " " + (fi.getName().contains("_D_") ?
-                        provider.getDefaultLanguageString("Migration.typeAveryDroite") : provider.getDefaultLanguageString("Migration.typeAveryGauche"));
-            } else {
-                titre += provider.getDefaultLanguageString("Migration.typeSchemaConteneur");
-            }
-            String etiquetteName = provider.getDefaultLanguageString("Migration.etiquetteName");
-            String extension = provider.getDefaultLanguageString("Migration.fileExtension");
-            titre += " (" + etiquetteName + " " + format + ")";
-            record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
-            record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), false);
-            ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), etiquetteName + " " + format + " " + type);
-            record.set(typeBuilder.getMetadata(Report.TITLE), titre);
-            record.set(typeBuilder.getMetadata(Printable.JASPERFILE), contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
-            trans.add(record);
-        }
-        rs.execute(trans);
-    }
+			if (type.equals(Folder.SCHEMA_TYPE)) {
+				titre += provider.getDefaultLanguageString("Migration.typeSchemaDossier") + " " + (fi.getName().contains("_D_") ?
+						provider.getDefaultLanguageString("Migration.typeAveryDroite") :
+						provider.getDefaultLanguageString("Migration.typeAveryGauche"));
+			} else {
+				titre += provider.getDefaultLanguageString("Migration.typeSchemaConteneur");
+			}
+			String etiquetteName = provider.getDefaultLanguageString("Migration.etiquetteName");
+			String extension = provider.getDefaultLanguageString("Migration.fileExtension");
+			titre += " (" + etiquetteName + " " + format + ")";
+			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
+			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), false);
+			ContentVersionDataSummary upload = contentManager
+					.upload(new FileInputStream(fi), etiquetteName + " " + format + " " + type);
+			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
+			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
+					contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
+			trans.add(record);
+		}
+		rs.execute(trans);
+	}
 
-    public List<File> getFolders(File file, MigrationResourcesProvider provider) {
-        List<File> temp = new ArrayList<>();
-        ArrayList<File> files = new ArrayList<>(asList(file.listFiles()));
-        String extension = provider.getDefaultLanguageString("Migration.fileExtension");
-        for (File f : files) {
-            if (f.isDirectory()) {
-                temp.addAll(getFolders(f, provider));
-            } else if (f.getName().endsWith(extension)) {
-                temp.add(f);
-            }
-        }
-        return temp;
-    }
+	public List<File> getFolders(File file, MigrationResourcesProvider provider) {
+		List<File> temp = new ArrayList<>();
+		ArrayList<File> files = new ArrayList<>(asList(file.listFiles()));
+		String extension = provider.getDefaultLanguageString("Migration.fileExtension");
+		for (File f : files) {
+			if (f.isDirectory()) {
+				temp.addAll(getFolders(f, provider));
+			} else if (f.getName().endsWith(extension)) {
+				temp.add(f);
+			}
+		}
+		return temp;
+	}
 
+	public static class SchemaAlterationsFor6_7 extends MetadataSchemasAlterationHelper {
 
-    public static class SchemaAlterationsFor6_7 extends MetadataSchemasAlterationHelper {
-
-        protected SchemaAlterationsFor6_7(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
-            super(collection, provider, factory);
-        }
+		protected SchemaAlterationsFor6_7(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+			super(collection, provider, factory);
+		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {

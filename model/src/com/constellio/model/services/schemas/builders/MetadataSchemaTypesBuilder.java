@@ -362,7 +362,13 @@ public class MetadataSchemaTypesBuilder {
 					throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
 							metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 				}
-				validateDependenciesTypes(metadataBuilder, dependencies);
+
+				try {
+					validateDependenciesTypes(metadataBuilder, dependencies);
+				} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
+					throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorHasInvalidMetadataDependency(
+							calculatedDataEntry.getCalculator().getClass(), metadataBuilder.getCode(), e.getMetadataCode(), e);
+				}
 			}
 		}
 	}
@@ -391,11 +397,15 @@ public class MetadataSchemaTypesBuilder {
 	private void validateLocalDependency(MetadataBuilder calculatedMetadataBuilder, Dependency dependency) {
 		LocalDependency localDependency = (LocalDependency) dependency;
 		String schemaCompleteCode = new SchemaUtils().getSchemaCode(calculatedMetadataBuilder);
-		MetadataBuilder dependencyMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
-		if (dependencyMetadataBuilder.getType() != localDependency.getReturnType()) {
-			throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
-					calculatedMetadataBuilder.getCode(), dependencyMetadataBuilder.getCode(), dependencyMetadataBuilder.getType(),
-					localDependency.getReturnType());
+
+		if (!((LocalDependency) dependency).isMetadataCreatedLater()) {
+			MetadataBuilder dependencyMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+			if (dependencyMetadataBuilder.getType() != localDependency.getReturnType()) {
+				throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
+						calculatedMetadataBuilder.getCode(), dependencyMetadataBuilder.getCode(),
+						dependencyMetadataBuilder.getType(),
+						localDependency.getReturnType());
+			}
 		}
 	}
 
@@ -404,30 +414,33 @@ public class MetadataSchemaTypesBuilder {
 
 		ReferenceDependency referenceDependency = (ReferenceDependency) dependency;
 		String schemaCompleteCode = new SchemaUtils().getSchemaCode(calculatedMetadataBuilder);
-		MetadataBuilder dependencyRefMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
-		if (dependencyRefMetadataBuilder.getAllowedReferencesBuider() != null) {
-			String dependencyMetaCompleteCode = dependencyRefMetadataBuilder.getAllowedReferencesBuider()
-					.getMetadataCompleteCode(referenceDependency.getDependentMetadataCode());
-			MetadataBuilder dependencyMetadata;
-			try {
-				dependencyMetadata = getMetadata(dependencyMetaCompleteCode);
-			} catch (MetadataSchemaBuilderRuntimeException e) {
-				throw new MetadataSchemaTypesBuilderRuntimeException.InvalidDependencyMetadata(dependencyMetaCompleteCode, e);
-			}
-			if (dependencyMetadata.getType() != referenceDependency.getReturnType()
-					|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
-				throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
-						calculatedMetadataBuilder.getCode(), dependencyMetadata.getCode(), dependencyMetadata.getType(),
-						referenceDependency.getReturnType());
-			} else if (!dependencyMetadata.getCode().contains(DEFAULT)) {
-				throw new MetadataSchemaTypesBuilderRuntimeException.CannotUseACustomMetadataForCalculation(
-						dependencyMetadata.getCode());
-			}
-		} else {
-			throw new MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences(
-					dependencyRefMetadataBuilder.getCode());
-		}
 
+		if (!((ReferenceDependency) dependency).isMetadataCreatedLater()) {
+			MetadataBuilder dependencyRefMetadataBuilder = getMetadata(
+					schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+			if (dependencyRefMetadataBuilder.getAllowedReferencesBuider() != null) {
+				String dependencyMetaCompleteCode = dependencyRefMetadataBuilder.getAllowedReferencesBuider()
+						.getMetadataCompleteCode(referenceDependency.getDependentMetadataCode());
+				MetadataBuilder dependencyMetadata;
+				try {
+					dependencyMetadata = getMetadata(dependencyMetaCompleteCode);
+				} catch (MetadataSchemaBuilderRuntimeException e) {
+					throw new MetadataSchemaTypesBuilderRuntimeException.InvalidDependencyMetadata(dependencyMetaCompleteCode, e);
+				}
+				if (dependencyMetadata.getType() != referenceDependency.getReturnType()
+						|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
+					throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
+							calculatedMetadataBuilder.getCode(), dependencyMetadata.getCode(), dependencyMetadata.getType(),
+							referenceDependency.getReturnType());
+				} else if (!dependencyMetadata.getCode().contains(DEFAULT)) {
+					throw new MetadataSchemaTypesBuilderRuntimeException.CannotUseACustomMetadataForCalculation(
+							dependencyMetadata.getCode());
+				}
+			} else {
+				throw new MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences(
+						dependencyRefMetadataBuilder.getCode());
+			}
+		}
 	}
 
 	private void validateCopiedMetadataType(MetadataBuilder metadataBuilder, MetadataBuilder copiedMetadata) {

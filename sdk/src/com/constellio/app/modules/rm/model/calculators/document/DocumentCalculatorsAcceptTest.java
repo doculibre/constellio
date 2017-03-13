@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.model.calculators.document;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,6 +21,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
@@ -286,6 +288,10 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThat(principalFolder.getExpectedDepositDate()).isEqualTo(date(2018, 10, 31));
 		assertThat(principalFolder.getExpectedDestructionDate()).isNull();
 
+		assertThat(principalDocumentWithoutType.getFolderExpectedTransferDate()).isEqualTo(date(2017, 10, 31));
+		//		assertThat(principalDocumentWithoutType.getExpectedDepositDate()).isEqualTo(date(2017, 10, 31));
+		//		assertThat(principalDocumentWithoutType.getExpectedDestructionDate()).isEqualTo(date(2017, 10, 31));
+
 		assertThat(principalDocumentWithoutType.isSemiActiveSameFateAsFolder()).isTrue();
 		assertThat(principalDocumentWithoutType.isInactiveSameFateAsFolder()).isTrue();
 
@@ -300,6 +306,132 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 
 		assertThat(secondaryDocumentWithType1.isSemiActiveSameFateAsFolder()).isTrue();
 		assertThat(secondaryDocumentWithType1.isInactiveSameFateAsFolder()).isTrue();
+	}
+
+	@Test
+	public void givenFolderWithRetentionRuleBasedOnMetadataWhichIsNotInDocumentF()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 1);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 1);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 1);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("zeDate").setType(DATE);
+			}
+		});
+
+		CopyRetentionRule principal1_1_C = copyBuilder.newPrincipal(asList(records.PA), "1-1-C").setActiveDateMetadata("zeDate");
+		CopyRetentionRule secondary2_2_C = copyBuilder.newSecondary(asList(records.PA), "2-2-C");
+		CopyRetentionRule principal3_3_C = copyBuilder.newPrincipal(asList(records.PA), "3-3-C").setTypeId(type1);
+
+		Transaction transaction = new Transaction();
+		RetentionRule rule = transaction.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("zeRule"));
+		rule.setScope(RetentionRuleScope.DOCUMENTS_AND_FOLDER);
+		rule.setResponsibleAdministrativeUnits(true);
+		rule.setCopyRetentionRules(principal1_1_C, secondary2_2_C);
+		rule.setDocumentCopyRetentionRules(principal3_3_C);
+
+		Folder principalFolder = transaction.add(newPrincipalFolderWithRule("principalFolder", rule));
+		principalFolder.set("zeDate", date(2015, 1, 1));
+		Document principalDocumentWithoutType = transaction.add(newDocumentInFolderWithType(principalFolder, null));
+		Category category = transaction.add(rm.getCategory(zeCategory).setRetentionRules(asList(rule)));
+
+		recordServices.execute(transaction);
+
+		assertThat(principalDocumentWithoutType.isSemiActiveSameFateAsFolder()).isTrue();
+		assertThat(principalDocumentWithoutType.isInactiveSameFateAsFolder()).isTrue();
+
+	}
+
+	@Test
+	public void givenSemiActiveFolderWithRetentionRuleBasedOnMetadataWhichIsNotInDocumentF()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 1);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 1);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 1);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("zeDate").setType(DATE);
+			}
+		});
+
+		CopyRetentionRule principal1_1_C = copyBuilder.newPrincipal(asList(records.PA), "1-1-C").setActiveDateMetadata("zeDate");
+		CopyRetentionRule secondary2_2_C = copyBuilder.newSecondary(asList(records.PA), "2-2-C");
+		CopyRetentionRule principal3_3_C = copyBuilder.newPrincipal(asList(records.PA), "3-3-C").setTypeId(type1);
+
+		Transaction transaction = new Transaction();
+		RetentionRule rule = transaction.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("zeRule"));
+		rule.setScope(RetentionRuleScope.DOCUMENTS_AND_FOLDER);
+		rule.setResponsibleAdministrativeUnits(true);
+		rule.setCopyRetentionRules(principal1_1_C, secondary2_2_C);
+		rule.setDocumentCopyRetentionRules(principal3_3_C);
+
+		Folder principalFolder = transaction
+				.add(newPrincipalFolderWithRule("principalFolder", rule).setActualTransferDate(date(2015, 1, 1)));
+		principalFolder.set("zeDate", date(2015, 1, 1));
+		Document principalDocumentWithoutType = transaction.add(newDocumentInFolderWithType(principalFolder, null));
+		Category category = transaction.add(rm.getCategory(zeCategory).setRetentionRules(asList(rule)));
+
+		recordServices.execute(transaction);
+
+		assertThat(principalDocumentWithoutType.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+		assertThat(principalDocumentWithoutType.isInactiveSameFateAsFolder()).isTrue();
+
+	}
+
+	@Test
+	public void givenManuallyEnteredSemiActiveFolderWithRetentionRuleBasedOnMetadataWhichIsNotInDocumentF()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 1);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 1);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 1);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("zeDate").setType(DATE);
+			}
+		});
+
+		CopyRetentionRule principal1_1_C = copyBuilder.newPrincipal(asList(records.PA), "1-1-C").setActiveDateMetadata("zeDate");
+		CopyRetentionRule secondary2_2_C = copyBuilder.newSecondary(asList(records.PA), "2-2-C");
+		CopyRetentionRule principal3_3_C = copyBuilder.newPrincipal(asList(records.PA), "3-3-C").setTypeId(type1);
+
+		Transaction transaction = new Transaction();
+		RetentionRule rule = transaction.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("zeRule"));
+		rule.setScope(RetentionRuleScope.DOCUMENTS_AND_FOLDER);
+		rule.setResponsibleAdministrativeUnits(true);
+		rule.setCopyRetentionRules(principal1_1_C, secondary2_2_C);
+		rule.setDocumentCopyRetentionRules(principal3_3_C);
+
+		Folder principalFolder = transaction
+				.add(newPrincipalFolderWithRule("principalFolder", rule).setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE));
+		principalFolder.set("zeDate", date(2015, 1, 1));
+		Document principalDocumentWithoutType = transaction.add(newDocumentInFolderWithType(principalFolder, null));
+		Category category = transaction.add(rm.getCategory(zeCategory).setRetentionRules(asList(rule)));
+
+		recordServices.execute(transaction);
+
+		assertThat(principalDocumentWithoutType.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+		assertThat(principalDocumentWithoutType.isInactiveSameFateAsFolder()).isTrue();
+
 	}
 
 	//Scenario #3
@@ -1205,8 +1337,6 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 				.withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2035, 3, 31));
 	}
 
-
-
 	@Test
 	public void givedRulesWithCopyRulesUsingDateValidationFoNumbersFieldsThenValidCalculatedDates()
 			throws Exception {
@@ -1807,13 +1937,13 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 				MetadataSchemaBuilder custom1 = documentSchemaType.createCustomSchema("custom1");
 				MetadataSchemaBuilder custom2 = documentSchemaType.createCustomSchema("custom2");
 
-				document.create("dateA").setType(MetadataValueType.DATE);
-				document.create("dateB").setType(MetadataValueType.DATE);
+				document.create("dateA").setType(DATE);
+				document.create("dateB").setType(DATE);
 				document.create("dateTimeC").setType(MetadataValueType.DATE_TIME);
 				document.create("dateTimeF").setType(MetadataValueType.DATE_TIME);
 
-				custom1.create("dateD").setType(MetadataValueType.DATE);
-				custom2.create("dateE").setType(MetadataValueType.DATE);
+				custom1.create("dateD").setType(DATE);
+				custom2.create("dateE").setType(DATE);
 
 				document.create("numberA").setType(MetadataValueType.NUMBER);
 				document.create("numberB").setType(MetadataValueType.NUMBER);

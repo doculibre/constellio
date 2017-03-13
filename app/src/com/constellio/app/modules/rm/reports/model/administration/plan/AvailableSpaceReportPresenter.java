@@ -66,7 +66,7 @@ public class AvailableSpaceReportPresenter {
             for (Record rootRecord : rootStorageSpaces) {
                 AvailableSpaceReportModelNode parent = new AvailableSpaceReportModelNode();
                 StorageSpace storageSpace = new StorageSpace(rootRecord, types);
-                parent.setCode(rootRecord.getSchemaCode()).setTitle(rootRecord.getTitle()).setImage("etagere")
+                parent.setCode(storageSpace.getCode()).setTitle(rootRecord.getTitle()).setImage("etagere")
                         .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
                         .setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
                 List<Record> childStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(rootRecord, searchOptions.setRows(10000));
@@ -83,7 +83,7 @@ public class AvailableSpaceReportPresenter {
         for (Record childRecord : childStorageSpaces) {
             AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
             StorageSpace storageSpace = new StorageSpace(childRecord, types);
-            child.setCode(childRecord.getSchemaCode()).setImage("etagere")
+            child.setCode(storageSpace.getCode()).setImage("etagere")
                     .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
                     .setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
             List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, searchOptions.setRows(10000));
