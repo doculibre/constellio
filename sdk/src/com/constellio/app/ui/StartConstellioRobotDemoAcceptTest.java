@@ -33,6 +33,9 @@ public class StartConstellioRobotDemoAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
+		givenTransactionLogIsEnabled();
+
 		givenCollection(zeCollection).withMockedAvailableModules(false).withConstellioRMModule().withConstellioESModule()
 				.withRobotsModule().withAllTestUsers();
 		records = new RMTestRecords(zeCollection).setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
