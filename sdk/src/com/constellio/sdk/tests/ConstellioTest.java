@@ -119,4 +119,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 	public static void disableCleanStartup() {
 		IS_FIRST_EXECUTED_TEST = false;
 	}
+
+	public void startABrowserAndWaitUntilICloseIt() {
+
+	}
 }
