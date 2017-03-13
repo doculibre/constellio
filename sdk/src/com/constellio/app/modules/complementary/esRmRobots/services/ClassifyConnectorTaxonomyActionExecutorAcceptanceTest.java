@@ -546,6 +546,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		// Séparateurs nom
 		Folder folderCarotte = getFolderByLegacyId(folderCTaxoURL);
+        assertThat(folderCarotte.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderCarotte.getParentFolder()).isNull();
 		assertThat(folderCarotte.getTitle()).isEqualTo("C - Carotte");
 		assertThat(folderCarotte.getRetentionRule()).isEqualTo(records.ruleId_1);
@@ -557,6 +558,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		// Sous-dossier
 		Folder folderCC = getFolderByLegacyId(folderCCTaxoURL);
 		assertThat(folderCC.getParentFolder()).isEqualTo(folderCarotte.getId());
+		assertThat(folderCC.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderCC.getTitle()).isEqualTo("C - Sous-dossier");
 		assertThat(folderCC.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderCC.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -566,10 +568,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		Folder folderD = getFolderByLegacyId(folderDTaxoURL);
 		assertThat(folderD.getParentFolder()).isNull();
 		assertThat(folderD.getTitle()).isEqualTo("D                                           Test");
+		assertThat(folderD.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		// Code mal placé
 		Folder folderDD = getFolderByLegacyId(folderDDTaxoURL);
 		assertThat(folderDD.getParentFolder()).isNull();
+		assertThat(folderDD.getFormModifiedOn()).isNull();
 		assertThat(folderDD.getTitle()).isEqualTo("DossierAvecCodeAlenvers");
 		assertThat(folderDD.getCategory()).isEqualTo(records.categoryId_Z111);
 		assertThat(folderDD.getRetentionRule()).isEqualTo(records.ruleId_1);
@@ -579,6 +583,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		// Code inexistant
 		Folder folderE = getFolderByLegacyId(folderETaxoURL);
 		assertThat(folderE.getParentFolder()).isNull();
+		assertThat(folderE.getFormModifiedOn()).isNull();
 		assertThat(folderE.getTitle()).isEqualTo("DossierAvecFauxCodeClassification");
 		assertThat(folderE.getCategory()).isEqualTo(records.categoryId_Z111);
 		assertThat(folderE.getRetentionRule()).isEqualTo(records.ruleId_1);
@@ -630,6 +635,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -637,6 +643,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -644,6 +651,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAB = getFolderByLegacyId(folderABNoTaxoURL);
 		assertThat(folderAB.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAB.getTitle()).isEqualTo("AB");
 		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -651,6 +659,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAA = getFolderByLegacyId(folderAAANoTaxoURL);
 		assertThat(folderAAA.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAA.getTitle()).isEqualTo("AAA");
 		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -658,6 +667,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAB = getFolderByLegacyId(folderAABNoTaxoURL);
 		assertThat(folderAAB.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
 		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -665,6 +675,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderB = getFolderByLegacyId(folderBNoTaxoURL);
 		assertThat(folderB.getParentFolder()).isNull();
+		assertThat(folderB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderB.getTitle()).isEqualTo("B");
 		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -698,6 +709,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -708,6 +720,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -726,6 +739,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		folderA = getFolderByLegacyId(folderANoTaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_4);
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
@@ -738,6 +752,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		folderAA = getFolderByLegacyId(folderAANoTaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_4);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
@@ -774,13 +789,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		//1- First execution
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
-		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title", Folder.UNIFORM_SUBDIVISION).containsOnly(
-				tuple(folderANoTaxoURL, "A", records.subdivId_1),
-				tuple(folderAANoTaxoURL, "AA", records.subdivId_1),
-				tuple(folderABNoTaxoURL, "AB", records.subdivId_1),
-				tuple(folderAAANoTaxoURL, "AAA", records.subdivId_1),
-				tuple(folderAABNoTaxoURL, "AAB", records.subdivId_1),
-				tuple(folderBNoTaxoURL, "B", records.subdivId_1)
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title", Folder.UNIFORM_SUBDIVISION, Folder.FORM_MODIFIED_ON).containsOnly(
+				tuple(folderANoTaxoURL, "A", records.subdivId_1, timeOfMyLife),
+				tuple(folderAANoTaxoURL, "AA", records.subdivId_1, timeOfMyLife),
+				tuple(folderABNoTaxoURL, "AB", records.subdivId_1, timeOfMyLife),
+				tuple(folderAAANoTaxoURL, "AAA", records.subdivId_1, timeOfMyLife),
+				tuple(folderAABNoTaxoURL, "AAB", records.subdivId_1, timeOfMyLife),
+				tuple(folderBNoTaxoURL, "B", records.subdivId_1, timeOfMyLife)
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
@@ -795,13 +810,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		//2- Start the robot again, nothing happens
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
-		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title").containsOnly(
-				tuple(folderANoTaxoURL, "A"),
-				tuple(folderAANoTaxoURL, "AA"),
-				tuple(folderABNoTaxoURL, "AB"),
-				tuple(folderAAANoTaxoURL, "AAA"),
-				tuple(folderAABNoTaxoURL, "AAB"),
-				tuple(folderBNoTaxoURL, "B")
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title", Folder.FORM_MODIFIED_ON).containsOnly(
+				tuple(folderANoTaxoURL, "A", timeOfMyLife),
+				tuple(folderAANoTaxoURL, "AA", timeOfMyLife),
+				tuple(folderABNoTaxoURL, "AB", timeOfMyLife),
+				tuple(folderAAANoTaxoURL, "AAA", timeOfMyLife),
+				tuple(folderAABNoTaxoURL, "AAB", timeOfMyLife),
+				tuple(folderBNoTaxoURL, "B", timeOfMyLife)
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
@@ -838,13 +853,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		}).when(connectorSmb).getInputStream(any(ConnectorSmbDocument.class), anyString());
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
-		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title").containsOnly(
-				tuple(folderANoTaxoURL, "A"),
-				tuple(folderAANoTaxoURL, "AA"),
-				tuple(folderABNoTaxoURL, "AB"),
-				tuple(folderAAANoTaxoURL, "AAA"),
-				tuple(folderAABNoTaxoURL, "AAB"),
-				tuple(folderBNoTaxoURL, "B")
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title", Folder.FORM_MODIFIED_ON).containsOnly(
+				tuple(folderANoTaxoURL, "A", timeOfMyLife),
+				tuple(folderAANoTaxoURL, "AA", timeOfMyLife),
+				tuple(folderABNoTaxoURL, "AB", timeOfMyLife),
+				tuple(folderAAANoTaxoURL, "AAA", timeOfMyLife),
+				tuple(folderAABNoTaxoURL, "AAB", timeOfMyLife),
+				tuple(folderBNoTaxoURL, "B", timeOfMyLife)
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
@@ -883,13 +898,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
-				.extracting("legacyId", "title").containsOnly(
-				tuple(folderANoTaxoURL, "A"),
-				tuple(folderAANoTaxoURL, "AA"),
-				tuple(folderABNoTaxoURL, "AB"),
-				tuple(folderAAANoTaxoURL, "AAA"),
-				tuple(folderAABNoTaxoURL, "AAB"),
-				tuple(folderBNoTaxoURL, "B")
+				.extracting("legacyId", "title", Folder.FORM_MODIFIED_ON).containsOnly(
+				tuple(folderANoTaxoURL, "A", timeOfMyLife),
+				tuple(folderAANoTaxoURL, "AA", timeOfMyLife),
+				tuple(folderABNoTaxoURL, "AB", timeOfMyLife),
+				tuple(folderAAANoTaxoURL, "AAA", timeOfMyLife),
+				tuple(folderAABNoTaxoURL, "AAB", timeOfMyLife),
+				tuple(folderBNoTaxoURL, "B", timeOfMyLife)
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
@@ -920,13 +935,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
-				.extracting("legacyId", "title").containsOnly(
-				tuple(folderANoTaxoURL, "A"),
-				tuple(folderAANoTaxoURL, "AA"),
-				tuple(folderABNoTaxoURL, "AB"),
-				tuple(folderAAANoTaxoURL, "AAA"),
-				tuple(folderAABNoTaxoURL, "AAB"),
-				tuple(folderBNoTaxoURL, "B")
+				.extracting("legacyId", "title", Folder.FORM_MODIFIED_ON).containsOnly(
+				tuple(folderANoTaxoURL, "A", timeOfMyLife),
+				tuple(folderAANoTaxoURL, "AA", timeOfMyLife),
+				tuple(folderABNoTaxoURL, "AB", timeOfMyLife),
+				tuple(folderAAANoTaxoURL, "AAA", timeOfMyLife),
+				tuple(folderAABNoTaxoURL, "AAB", timeOfMyLife),
+				tuple(folderBNoTaxoURL, "B", timeOfMyLife)
 		);
 
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
@@ -960,10 +975,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
 		assertThat(folderA.getParentFolder()).isEqualTo(records.folder_A07);
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 
 		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -971,6 +988,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAB = getFolderByLegacyId(folderABNoTaxoURL);
 		assertThat(folderAB.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAB.getTitle()).isEqualTo("AB");
 		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -978,6 +996,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAA = getFolderByLegacyId(folderAAANoTaxoURL);
 		assertThat(folderAAA.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAA.getTitle()).isEqualTo("AAA");
 		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -985,6 +1004,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAB = getFolderByLegacyId(folderAABNoTaxoURL);
 		assertThat(folderAAB.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
 		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -992,6 +1012,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderB = getFolderByLegacyId(folderBNoTaxoURL);
 		assertThat(folderB.getParentFolder()).isEqualTo(records.folder_A07);
+		assertThat(folderB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderB.getTitle()).isEqualTo("B");
 		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1021,11 +1042,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
 		assertThat(folderA.getParentFolder()).isEqualTo(records.folder_A07);
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 		assertThat(folderA.getCreatedByRobot()).isEqualTo(robotId);
 
 		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1040,12 +1063,14 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		folderA = getFolderByLegacyId(folderANoTaxoURL);
 		assertThat(folderA.getParentFolder()).isEqualTo(records.folder_A08);
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 		assertThat(folderA.getCreatedByRobot()).isEqualTo(robotId);
 		assertThat(folderA.getOpenDate()).isEqualTo(squatreNovembre2015);
 
 		folderAA = getFolderByLegacyId(folderAANoTaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1145,12 +1170,17 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		assertThat(getFolderByLegacyId(folderATaxoURL).getTitle()).isEqualTo("Le dossier A");
+		assertThat(getFolderByLegacyId(folderATaxoURL).getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(getFolderByLegacyId(folderAATaxoURL).get(Folder.ADMINISTRATIVE_UNIT)).isEqualTo(adminUnit11);
+		assertThat(getFolderByLegacyId(folderAATaxoURL).getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(rm.getFolder(getFolderByLegacyId(folderABTaxoURL).getParentFolder()).get(LEGACY_ID.getLocalCode()))
 				.isEqualTo(folderATaxoURL);
+		assertThat(getFolderByLegacyId(folderABTaxoURL).getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(rm.getFolder(getFolderByLegacyId(folderAAATaxoURL).getParentFolder()).get(LEGACY_ID.getLocalCode()))
 				.isEqualTo(folderAATaxoURL);
+		assertThat(getFolderByLegacyId(folderAAATaxoURL).getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(getFolderByLegacyId(folderBTaxoURL).getTitle()).isEqualTo("Le dossier B");
+		assertThat(getFolderByLegacyId(folderBTaxoURL).getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(getFolderByLegacyId(folderBTaxoURL).get(Folder.ADMINISTRATIVE_UNIT)).isEqualTo(adminUnit21);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
@@ -1189,10 +1219,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		Folder folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_1);
 
 		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1200,6 +1232,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
 		assertThat(folderAAA.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAA.getTitle()).isEqualTo("Le dossier AAA");
 		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1207,6 +1240,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
 		assertThat(folderAAB.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
 		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1249,6 +1283,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderATaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1259,6 +1294,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		folderA = getFolderByLegacyId(folderATaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("Le dossier A");
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1266,6 +1302,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("Le dossier AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1273,6 +1310,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
 		assertThat(folderAB.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAB.getTitle()).isEqualTo("Le dossier AB");
 		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1671,6 +1709,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderATaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("Le dossier A");
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1681,6 +1720,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("Le dossier AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1691,6 +1731,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
 		assertThat(folderAB.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAB.getTitle()).isEqualTo("Le dossier AB");
 		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1701,6 +1742,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
 		assertThat(folderAAA.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAA.getTitle()).isEqualTo("Le dossier AAA");
 		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1711,6 +1753,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
 		assertThat(folderAAB.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAB.getTitle()).isEqualTo("Le dossier AAB");
 		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1721,6 +1764,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderB = getFolderByLegacyId(folderBTaxoURL);
 		assertThat(folderB.getParentFolder()).isNull();
+		assertThat(folderB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderB.getTitle()).isEqualTo("Le dossier B");
 		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_2);
 		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1805,6 +1849,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderATaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("Le dossier A");
 		assertThat(folderA.get("USRmeta1")).isEqualTo(asList(42.666, 666.42));
 		assertThat(folderA.get("USRmeta2")).isEqualTo("value");
@@ -1812,6 +1857,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Document document = getDocumentByLegacyId(documentA1TaxoURL);
 		assertThat(document.getTitle()).isEqualTo("Le document 1");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(document.get("meta1")).isEqualTo("value3");
 		assertThat(document.get("meta2")).isNull();
 	}
@@ -1853,6 +1899,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Document document = getDocumentByLegacyId(folderATaxoURL + "1.txt");
 		assertThat(document.getTitle()).isEqualTo("Le document 1");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(document.getAuthor()).isEqualTo("Rob Robinson");
 		assertThat(document.getSchemaCode()).isEqualTo("document_customDocument");
 		assertThat(document.get("customMeta")).isEqualTo("valeur 1");
@@ -1860,6 +1907,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		document = getDocumentByLegacyId(folderBTaxoURL + "3.txt");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(document.getTitle()).isEqualTo("Le document 3");
 		assertThat(document.getAuthor()).isEqualTo("Dan Danielson");
 		assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
@@ -1894,11 +1942,13 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		Document document = getDocumentByLegacyId(folderATaxoURL + "1.txt");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(document.getTitle()).isEqualTo("Le document 1");
 		assertThat(document.getAuthor()).isEqualTo("Rob Robinson");
 		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 
 		document = getDocumentByLegacyId(folderBTaxoURL + "3.txt");
+		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(document.getTitle()).isEqualTo("Le document 3");
 		assertThat(document.getAuthor()).isEqualTo("Dan Danielson");
 		assertThat(document.getFormModifiedOn()).isEqualTo(timeOfMyLife);
@@ -1939,6 +1989,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderA = getFolderByLegacyId(folderATaxoURL);
 		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderA.getTitle()).isEqualTo("A");
 		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1947,6 +1998,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
 		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1955,6 +2007,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
 		assertThat(folderAB.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAB.getTitle()).isEqualTo("AB");
 		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1963,6 +2016,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
 		assertThat(folderAAA.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAA.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAA.getTitle()).isEqualTo("AAA");
 		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1971,6 +2025,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
 		assertThat(folderAAB.getParentFolder()).isEqualTo(folderAA.getId());
+		assertThat(folderAAB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
 		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -1979,6 +2034,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Folder folderB = getFolderByLegacyId(folderBTaxoURL);
 		assertThat(folderB.getParentFolder()).isNull();
+		assertThat(folderB.getFormModifiedOn()).isEqualTo(timeOfMyLife);
 		assertThat(folderB.getTitle()).isEqualTo("B");
 		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -2210,16 +2266,16 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		transaction.add(rm.newAdministrativeUnitWithId(adminUnit21)).setCode("AU21").setTitle(adminUnit21).setParent(adminUnit2);
 		transaction.add(rm.newAdministrativeUnitWithId(adminUnit22)).setCode("AU22").setTitle(adminUnit22).setParent(adminUnit2);
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance)).setTitle("A").setUrl(folderATaxoURL);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance)).setTitle("AA").setUrl(folderAATaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance)).setTitle("A").setUrl(folderATaxoURL).setLastModified(timeOfMyLife);
+		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance)).setTitle("AA").setUrl(folderAATaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance)).setTitle("AB").setUrl(folderABTaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance)).setTitle("AB").setUrl(folderABTaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance)).setTitle("AAA").setUrl(folderAAATaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance)).setTitle("AAA").setUrl(folderAAATaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderAA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance)).setTitle("AAB").setUrl(folderAABTaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance)).setTitle("AAB").setUrl(folderAABTaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderAA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance)).setTitle("B").setUrl(folderBTaxoURL);
+		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance)).setTitle("B").setUrl(folderBTaxoURL).setLastModified(timeOfMyLife);
 
 		recordServices.execute(transaction);
 
@@ -2229,16 +2285,16 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 			throws RecordServicesException {
 		Transaction transaction = new Transaction();
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance)).setTitle("A").setUrl(folderANoTaxoURL);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance)).setTitle("AA").setUrl(folderAANoTaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance)).setTitle("A").setUrl(folderANoTaxoURL).setLastModified(timeOfMyLife);
+		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance)).setTitle("AA").setUrl(folderAANoTaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance)).setTitle("AB").setUrl(folderABNoTaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance)).setTitle("AB").setUrl(folderABNoTaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance)).setTitle("AAA").setUrl(folderAAANoTaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance)).setTitle("AAA").setUrl(folderAAANoTaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderAA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance)).setTitle("AAB").setUrl(folderAABNoTaxoURL)
+		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance)).setTitle("AAB").setUrl(folderAABNoTaxoURL).setLastModified(timeOfMyLife)
 				.setParent(folderAA);
-		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance)).setTitle("B").setUrl(folderBNoTaxoURL);
+		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance)).setTitle("B").setUrl(folderBNoTaxoURL).setLastModified(timeOfMyLife);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
 				.setTitle("1.txt").setUrl(documentA1NoTaxoURL).setParsedContent("Document A1 content").setParent(
@@ -2266,15 +2322,20 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		transaction.add(rm.newAdministrativeUnitWithId(adminUnit1)).setCode("AU1").setTitle(adminUnit1);
 		transaction.add(rm.newAdministrativeUnitWithId(adminUnit11)).setCode("AU11").setTitle(adminUnit11).setParent(adminUnit1);
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderC, connectorInstance)).setTitle("C - Carotte").setUrl(folderCTaxoURL);
+		transaction.add(es.newConnectorSmbFolderWithId(folderC, connectorInstance)).setTitle("C - Carotte").setUrl(folderCTaxoURL)
+                .setLastModified(timeOfMyLife);
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderD, connectorInstance)).setTitle("D                                           Test").setUrl(folderDTaxoURL);
+		transaction.add(es.newConnectorSmbFolderWithId(folderD, connectorInstance)).setTitle("D                                           Test").setUrl(folderDTaxoURL)
+                .setLastModified(timeOfMyLife);
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderCC, connectorInstance)).setTitle("C - Sous-dossier").setUrl(folderCCTaxoURL).setParent(folderC);
+		transaction.add(es.newConnectorSmbFolderWithId(folderCC, connectorInstance)).setTitle("C - Sous-dossier").setUrl(folderCCTaxoURL).setParent(folderC)
+                .setLastModified(timeOfMyLife);
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderE, connectorInstance)).setTitle("DossierAvecFauxCodeClassification").setUrl(folderETaxoURL);
+		transaction.add(es.newConnectorSmbFolderWithId(folderE, connectorInstance)).setTitle("DossierAvecFauxCodeClassification").setUrl(folderETaxoURL)
+                .setLastModified(timeOfMyLife);
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderDD, connectorInstance)).setTitle("DossierAvecCodeAlenvers").setUrl(folderDDTaxoURL);
+		transaction.add(es.newConnectorSmbFolderWithId(folderDD, connectorInstance)).setTitle("DossierAvecCodeAlenvers").setUrl(folderDDTaxoURL)
+                .setLastModified(timeOfMyLife);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentMalPlace, connectorInstance))
 				.setTitle("test.txt").setParent(folderC).setUrl(documentMalPlaceTaxoURL)

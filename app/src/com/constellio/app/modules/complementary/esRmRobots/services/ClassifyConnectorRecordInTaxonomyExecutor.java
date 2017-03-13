@@ -250,6 +250,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			rmFolder.setParentFolder(params.getDefaultParentFolder());
 		}
 		recordServices.recalculate(rmFolder);
+		rmFolder.setFormModifiedOn(connectorFolder.getLastModified());
 		classifyDocumentsFromFolder(rmFolder);
 
 	}
@@ -312,6 +313,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Folder newRmFolder = rm.newFolder();
 		newRmFolder.setCreatedByRobot(robotId);
 		if (parentFolder != null) {
+			newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
 			newRmFolder.setOpenDate(parentFolder.getOpenDate());
 			newRmFolder.setCloseDateEntered(parentFolder.getCloseDateEntered());
 		}
@@ -330,6 +332,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 
 		newRmFolder.set(taxoMetadata.getLocalCode(), parentConcept.getId()).setTitle(pathPart);
+		newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
 		newRmFolder.setLegacyId(fullConnectorDocPath);
 		return newRmFolder;
 	}
