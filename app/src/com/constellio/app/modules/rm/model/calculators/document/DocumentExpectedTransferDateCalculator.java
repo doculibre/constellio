@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.OPEN_DATE;
+import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
 import static com.constellio.data.utils.LangUtils.max;
 import static java.util.Arrays.asList;
 
@@ -12,6 +14,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.calculators.CalculatorUtils;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -57,12 +60,16 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 
 	DocumentDecomDatesDynamicLocalDependency datesAndDateTimesParam = new DocumentDecomDatesDynamicLocalDependency();
 
+	ReferenceDependency<RetentionRuleScope> retentionRuleScopeParam = ReferenceDependency
+			.toAnEnum(Document.FOLDER_RETENTION_RULE, SCOPE);
+	LocalDependency<String> documentTypeParam = LocalDependency.toAReference(Document.TYPE);
+
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
 
 		CalculatorInput input = new CalculatorInput(parameters);
 
-		if (!input.documentRetentionRulesEnabled) {
+		if (!input.documentRetentionRulesEnabled || (input.retentionRuleScope != DOCUMENTS && input.documentType == null)) {
 			return input.folderExpectedTransferDate;
 		} else if (input.actualTransferDate != null || input.copy == null) {
 			return null;
@@ -105,7 +112,8 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 		return asList(expectedTransferDateParam, folderOpenDateParam, folderCloseDateParam, actualTransferDateParam, copyParam,
 				decommissioningDateBasedOnParam, numberOfYearWhenSemiActiveVariableDelayParam, yearEndParam,
 				requiredDaysBeforeYearEndParam, documentRetentionRulesEnabledParam, folderExpectedTransferDateParam,
-				datesAndDateTimesParam, calculatedMetadatasBasedOnFirstTimerangePartParam);
+				datesAndDateTimesParam, calculatedMetadatasBasedOnFirstTimerangePartParam, retentionRuleScopeParam,
+				documentTypeParam);
 	}
 
 	private class CalculatorInput {
@@ -123,6 +131,8 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 		LocalDate folderExpectedTransferDate;
 		DynamicDependencyValues datesAndDateTimes;
 		boolean calculatedMetadatasBasedOnFirstTimerangePart;
+		RetentionRuleScope retentionRuleScope;
+		String documentType;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			this.expectedTransferDate = parameters.get(expectedTransferDateParam);
@@ -138,6 +148,8 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 			this.folderExpectedTransferDate = parameters.get(folderExpectedTransferDateParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
 			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
+			this.retentionRuleScope = parameters.get(retentionRuleScopeParam);
+			this.documentType = parameters.get(documentTypeParam);
 		}
 
 		LocalDate calculateSemiActiveBasedOn(LocalDate baseDate) {

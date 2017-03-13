@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
+import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
 import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DEPOSIT_DATE;
 import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DESTRUCTION_DATE;
 import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_TRANSFER_DATE;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
 import static java.util.Arrays.asList;
 
 import java.util.List;
@@ -11,6 +13,7 @@ import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -32,12 +35,19 @@ public class DocumentArchivisticStatusCalculator implements MetadataValueCalcula
 	ReferenceDependency<FolderStatus> folderStatusParam = ReferenceDependency
 			.toAnEnum(Document.FOLDER, Folder.ARCHIVISTIC_STATUS);
 
+	LocalDependency<String> documentTypeParam = LocalDependency.toAReference(Document.TYPE);
+	ReferenceDependency<RetentionRuleScope> retentionRuleScopeParam = ReferenceDependency
+			.toAnEnum(Document.FOLDER_RETENTION_RULE, SCOPE);
+
 	@Override
 	public FolderStatus calculate(CalculatorParameters parameters) {
 
 		CalculatorInput input = new CalculatorInput(parameters);
 
-		if (input.documentRetentionRulesEnabled) {
+		//if (!input.documentRetentionRulesEnabled) {
+		if (!input.documentRetentionRulesEnabled || (input.retentionRuleScope != DOCUMENTS && input.documentType == null)) {
+			return input.folderStatus;
+		} else {
 			if (input.folderActualDepositDate != null) {
 				return FolderStatus.INACTIVE_DEPOSITED;
 
@@ -50,8 +60,6 @@ public class DocumentArchivisticStatusCalculator implements MetadataValueCalcula
 			} else {
 				return FolderStatus.ACTIVE;
 			}
-		} else {
-			return input.folderStatus;
 		}
 
 	}
@@ -74,7 +82,7 @@ public class DocumentArchivisticStatusCalculator implements MetadataValueCalcula
 	@Override
 	public List<? extends Dependency> getDependencies() {
 		return asList(folderStatusParam, folderActualTransferDateParam, folderActualDepositDateParam,
-				folderActualDestructionDateParam, documentRetentionRulesEnabledParam);
+				folderActualDestructionDateParam, documentRetentionRulesEnabledParam, documentTypeParam, retentionRuleScopeParam);
 	}
 
 	class CalculatorInput {
@@ -85,12 +93,17 @@ public class DocumentArchivisticStatusCalculator implements MetadataValueCalcula
 
 		FolderStatus folderStatus;
 
+		RetentionRuleScope retentionRuleScope;
+		String documentType;
+
 		CalculatorInput(CalculatorParameters parameters) {
 			this.documentRetentionRulesEnabled = parameters.get(documentRetentionRulesEnabledParam);
 			this.folderActualTransferDate = parameters.get(folderActualTransferDateParam);
 			this.folderActualDepositDate = parameters.get(folderActualDepositDateParam);
 			this.folderActualDestructionDate = parameters.get(folderActualDestructionDateParam);
 			this.folderStatus = parameters.get(folderStatusParam);
+			this.retentionRuleScope = parameters.get(retentionRuleScopeParam);
+			this.documentType = parameters.get(documentTypeParam);
 		}
 
 	}

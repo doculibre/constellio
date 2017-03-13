@@ -26,4 +26,9 @@ public class FolderExpectedTransferDateCalculator2
 	protected LocalDependency<LocalDate> getManualDateDependency() {
 		return manualExpectedTransferDate;
 	}
+
+	@Override
+	protected LocalDependency<LocalDate> getOtherModeManualDateDependency() {
+		return null;
+	}
 }
