@@ -232,12 +232,15 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 			boolean reindex = totalRecordsToReindex > 10000 || (config.isRequireReIndexing() && totalRecordsToReindex > 0);
 
-			if (!reindex) {
+			if (reindex) {
+				for (BatchProcess batchProcess : batchProcesses) {
+					batchProcessesManager.cancelStandByBatchProcess(batchProcess);
+				}
+			} else {
 				for (BatchProcess batchProcess : batchProcesses) {
 					batchProcessesManager.markAsPending(batchProcess);
 				}
 			}
-
 
 			return reindex;
 		} catch (RuntimeException e) {
@@ -251,7 +254,6 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 				}
 			}
 			for (BatchProcess batchProcess : batchProcesses) {
-
 				batchProcessesManager.cancelStandByBatchProcess(batchProcess);
 			}
 
