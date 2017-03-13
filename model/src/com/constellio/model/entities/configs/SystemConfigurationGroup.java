@@ -16,37 +16,37 @@ public class SystemConfigurationGroup {
 
 	public SystemConfiguration createString(String code) {
 		return new SystemConfiguration(SystemConfigurationType.STRING, module, groupCode, code, null, null, null, false, false,
-				false);
+				false, false);
 	}
 
 	public SystemConfiguration createString(String code, String defaultValue) {
 		return new SystemConfiguration(SystemConfigurationType.STRING, module, groupCode, code, defaultValue, null, null, false,
-				false, false);
+				false, false, false);
 	}
 
 	public SystemConfiguration createEnum(String code, Class<? extends Enum<?>> enumClass) {
 		return new SystemConfiguration(SystemConfigurationType.ENUM, module, groupCode, code, null, enumClass, null, false, false,
-				false);
+				false, false);
 	}
 
 	public SystemConfiguration createInteger(String code) {
 		return new SystemConfiguration(SystemConfigurationType.INTEGER, module, groupCode, code, null, null, null, false, false,
-				false);
+				false, false);
 	}
 
 	public SystemConfiguration createBinary(String code) {
 		return new SystemConfiguration(SystemConfigurationType.BINARY, module, groupCode, code, null, null, null, false, false,
-				false);
+				false, false);
 	}
 
 	public SystemConfiguration createBooleanTrueByDefault(String code) {
 		return new SystemConfiguration(SystemConfigurationType.BOOLEAN, module, groupCode, code, true, null, null, false, false,
-				false);
+				false, false);
 	}
 
 	public SystemConfiguration createBooleanFalseByDefault(String code) {
 		return new SystemConfiguration(SystemConfigurationType.BOOLEAN, module, groupCode, code, false, null, null, false, false,
-				false);
+				false, false);
 	}
 
 	@Override

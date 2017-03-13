@@ -58,7 +58,7 @@ public class RMConfigs {
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
 			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
 			DEFAULT_TAB_IN_FOLDER_DISPLAY,
-			UNIFORM_SUBDIVISION_ENABLED;
+			UNIFORM_SUBDIVISION_ENABLED
 	;
 
 	// Category configs
@@ -81,14 +81,14 @@ public class RMConfigs {
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
 		// Allow to enter retention rules for documents
-		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules"));
+		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules").withReIndexionRequired());
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
 				.createBooleanTrueByDefault("enforceCategoryAndRuleRelationshipInFolder"));
 
 		// Is the closing date calculated or manual?
-		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate"));
+		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate").withReIndexionRequired());
 
 		// Years before closing for a fixed delay (if -1, then the same as the active delay)
 		add(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE = decommissioning

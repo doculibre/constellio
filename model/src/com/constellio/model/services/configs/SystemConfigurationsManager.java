@@ -230,11 +230,16 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 			configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
 
-			for (BatchProcess batchProcess : batchProcesses) {
-				batchProcessesManager.markAsPending(batchProcess);
+			boolean reindex = totalRecordsToReindex > 10000 || (config.isRequireReIndexing() && totalRecordsToReindex > 0);
+
+			if (!reindex) {
+				for (BatchProcess batchProcess : batchProcesses) {
+					batchProcessesManager.markAsPending(batchProcess);
+				}
 			}
 
-			return totalRecordsToReindex > 10000;
+
+			return reindex;
 		} catch (RuntimeException e) {
 			if (listener != null) {
 				listener.onValueChanged(newValue, oldValue, modelLayerFactory);
