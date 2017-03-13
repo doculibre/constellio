@@ -584,6 +584,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			document.setTitle(connectorDocument.getTitle());
 			document.setFolder(inRmFolder);
+			document.setFormModifiedOn(connectorDocument.getLastModified());
 
 			RecordUtils.copyMetadatas(connectorDocument, document);
 			try {
