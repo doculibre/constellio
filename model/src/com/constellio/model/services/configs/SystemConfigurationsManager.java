@@ -252,7 +252,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 			throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
 		}
-		return totalRecordsToReindex > 10000;
+
 	}
 
 	private PropertiesAlteration updateConfigValueAlteration(final SystemConfiguration config, final Object newValue) {
