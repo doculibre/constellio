@@ -93,6 +93,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				new RMMigrationTo6_6(),
 				new RMMigrationTo6_7(),
 				new RMMigrationTo7_0_5(),
+				new RMMigrationTo7_0_10_5(),
 				new RMMigrationTo7_1()
 		);
 	}

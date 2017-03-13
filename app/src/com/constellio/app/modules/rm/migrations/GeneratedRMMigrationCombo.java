@@ -20,7 +20,7 @@ import com.constellio.app.modules.rm.model.calculators.ContainerTitleCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderActiveRetentionTypeCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderApplicableCopyRuleCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderArchivisticStatusCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderClosingDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderClosingDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
@@ -53,6 +53,8 @@ import com.constellio.app.modules.rm.model.calculators.document.DocumentActualDe
 import com.constellio.app.modules.rm.model.calculators.document.DocumentActualTransferDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentApplicableCopyRulesCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentArchivisticStatusCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentConfidentialCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentEssentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDestructionDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedTransferDateCalculator;
@@ -67,6 +69,8 @@ import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedAdmin
 import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedFilingSpaceCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedRetentionRuleCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedUniformSubdivisionCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderConfidentialCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderEssentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCalculator2;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderMediaTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderRetentionPeriodCodeCalculator;
@@ -2362,6 +2366,7 @@ public final class GeneratedRMMigrationCombo {
     document_company.setEssential(true);
     document_company.setDuplicable(true);
     document_company.getPopulateConfigsBuilder().setProperties(asList("company"));
+    MetadataBuilder document_confidential = documentSchema.create("confidential").setType(MetadataValueType.BOOLEAN);
     MetadataBuilder document_content = documentSchema.create("content").setType(MetadataValueType.CONTENT);
     document_content.setUndeletable(true);
     document_content.setEssential(true);
@@ -2405,6 +2410,7 @@ public final class GeneratedRMMigrationCombo {
     MetadataBuilder document_errorOnPhysicalDeletion = documentSchema.get("errorOnPhysicalDeletion");
     document_errorOnPhysicalDeletion.setSystemReserved(true);
     document_errorOnPhysicalDeletion.setUndeletable(true);
+    MetadataBuilder document_essential = documentSchema.create("essential").setType(MetadataValueType.BOOLEAN);
     MetadataBuilder document_expectedDepositDate = documentSchema.create("expectedDepositDate").setType(MetadataValueType.DATE);
     document_expectedDepositDate.setUndeletable(true);
     document_expectedDepositDate.setEssential(true);
@@ -2904,6 +2910,7 @@ public final class GeneratedRMMigrationCombo {
     folder_comments.setUndeletable(true);
     folder_comments.setDuplicable(true);
     folder_comments.defineStructureFactory(CommentFactory.class);
+    MetadataBuilder folder_confidential = folderSchema.create("confidential").setType(MetadataValueType.BOOLEAN);
     MetadataBuilder folder_container = folderSchema.create("container").setType(MetadataValueType.REFERENCE);
     folder_container.setUndeletable(true);
     folder_container.setEssential(true);
@@ -2973,6 +2980,7 @@ public final class GeneratedRMMigrationCombo {
     MetadataBuilder folder_errorOnPhysicalDeletion = folderSchema.get("errorOnPhysicalDeletion");
     folder_errorOnPhysicalDeletion.setSystemReserved(true);
     folder_errorOnPhysicalDeletion.setUndeletable(true);
+    MetadataBuilder folder_essential = folderSchema.create("essential").setType(MetadataValueType.BOOLEAN);
     MetadataBuilder folder_expectedDepositDate = folderSchema.create("expectedDepositDate").setType(MetadataValueType.DATE);
     folder_expectedDepositDate.setUndeletable(true);
     folder_expectedDepositDate.setEssential(true);
@@ -3901,6 +3909,7 @@ public final class GeneratedRMMigrationCombo {
     MetadataBuilder document_email_closingDate = document_emailSchema.get("closingDate");
     MetadataBuilder document_email_comments = document_emailSchema.get("comments");
     MetadataBuilder document_email_company = document_emailSchema.get("company");
+    MetadataBuilder document_email_confidential = document_emailSchema.get("confidential");
     MetadataBuilder document_email_content = document_emailSchema.get("content");
     MetadataBuilder document_email_copyStatus = document_emailSchema.get("copyStatus");
     MetadataBuilder document_email_createdBy = document_emailSchema.get("createdBy");
@@ -3911,6 +3920,7 @@ public final class GeneratedRMMigrationCombo {
     MetadataBuilder document_email_detachedauthorizations = document_emailSchema.get("detachedauthorizations");
     MetadataBuilder document_email_documentType = document_emailSchema.get("documentType");
     MetadataBuilder document_email_errorOnPhysicalDeletion = document_emailSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder document_email_essential = document_emailSchema.get("essential");
     MetadataBuilder document_email_expectedDepositDate = document_emailSchema.get("expectedDepositDate");
     MetadataBuilder document_email_expectedDestructionDate = document_emailSchema.get("expectedDestructionDate");
     MetadataBuilder document_email_expectedTransferDate = document_emailSchema.get("expectedTransferDate");
@@ -4261,8 +4271,10 @@ public final class GeneratedRMMigrationCombo {
     document_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
     document_category.defineDataEntry().asCopied(document_folder, folder_category);
     document_closingDate.defineDataEntry().asCopied(document_folder, folder_closingDate);
+    document_confidential.defineDataEntry().asCalculated(DocumentConfidentialCalculator.class);
     document_copyStatus.defineDataEntry().asCopied(document_folder, folder_copyStatus);
     document_documentType.defineDataEntry().asCopied(document_type, ddvDocumentType_title);
+    document_essential.defineDataEntry().asCalculated(DocumentEssentialCalculator.class);
     document_expectedDepositDate.defineDataEntry().asCalculated(DocumentExpectedDepositDateCalculator.class);
     document_expectedDestructionDate.defineDataEntry().asCalculated(DocumentExpectedDestructionDateCalculator.class);
     document_expectedTransferDate.defineDataEntry().asCalculated(DocumentExpectedTransferDateCalculator.class);
@@ -4305,12 +4317,14 @@ public final class GeneratedRMMigrationCombo {
     folder_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
     folder_category.defineDataEntry().asCalculated(FolderApplicableCategoryCalculator.class);
     folder_categoryCode.defineDataEntry().asCopied(folder_category, category_code);
-    folder_closingDate.defineDataEntry().asCalculated(FolderClosingDateCalculator.class);
+    folder_closingDate.defineDataEntry().asCalculated(FolderClosingDateCalculator2.class);
+    folder_confidential.defineDataEntry().asCalculated(FolderConfidentialCalculator.class);
     folder_copyRulesExpectedDepositDates.defineDataEntry().asCalculated(FolderCopyRulesExpectedDepositDatesCalculator.class);
     folder_copyRulesExpectedDestructionDates.defineDataEntry().asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator.class);
     folder_copyRulesExpectedTransferDates.defineDataEntry().asCalculated(FolderCopyRulesExpectedTransferDatesCalculator.class);
     folder_copyStatus.defineDataEntry().asCalculated(FolderCopyStatusCalculator3.class);
     folder_decommissioningDate.defineDataEntry().asCalculated(FolderDecommissioningDateCalculator.class);
+    folder_essential.defineDataEntry().asCalculated(FolderEssentialCalculator.class);
     folder_expectedDepositDate.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator2.class);
     folder_expectedDestructionDate.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator2.class);
     folder_expectedTransferDate.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator2.class);
@@ -4488,7 +4502,7 @@ public final class GeneratedRMMigrationCombo {
     transaction.add(manager.getSchema(collection, "filingSpace_default").withFormMetadataCodes(asList("filingSpace_default_code", "filingSpace_default_title", "filingSpace_default_administrators", "filingSpace_default_users", "filingSpace_default_description")).withDisplayMetadataCodes(asList("filingSpace_default_code", "filingSpace_default_title", "filingSpace_default_description", "filingSpace_default_users", "filingSpace_default_administrators")).withSearchResultsMetadataCodes(asList("filingSpace_default_title", "filingSpace_default_modifiedOn")).withTableMetadataCodes(asList("filingSpace_default_title", "filingSpace_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "filingSpace_default_description").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getType(collection, "folder").withSimpleSearchStatus(true).withAdvancedSearchStatus(true).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel", "classifiedInGroupLabel"))));
-    transaction.add(manager.getSchema(collection, "folder_default").withFormMetadataCodes(asList("folder_default_type", "folder_default_title", "folder_default_parentFolder", "folder_default_categoryEntered", "folder_default_uniformSubdivisionEntered", "folder_default_retentionRuleEntered", "folder_default_copyStatusEntered", "folder_default_mainCopyRuleIdEntered", "folder_default_openingDate", "folder_default_enteredClosingDate", "folder_default_administrativeUnitEntered", "folder_default_mediumTypes", "folder_default_keywords", "folder_default_description", "folder_default_container", "folder_default_actualTransferDate", "folder_default_actualDepositDate", "folder_default_actualDestructionDate", "folder_default_borrowPreviewReturnDate", "folder_default_linearSize")).withDisplayMetadataCodes(asList("folder_default_parentFolder", "folder_default_title", "folder_default_description", "folder_default_filingSpace", "folder_default_administrativeUnit", "folder_default_mediumTypes", "folder_default_copyStatus", "folder_default_archivisticStatus", "folder_default_container", "folder_default_category", "folder_default_uniformSubdivision", "folder_default_retentionRule", "folder_default_mainCopyRule", "folder_default_keywords", "folder_default_openingDate", "folder_default_closingDate", "folder_default_actualTransferDate", "folder_default_expectedTransferDate", "folder_default_actualDepositDate", "folder_default_expectedDepositDate", "folder_default_actualDestructionDate", "folder_default_expectedDestructionDate", "folder_default_followers", "folder_default_borrowed", "folder_default_borrowDate", "folder_default_borrowUserEntered", "folder_default_borrowPreviewReturnDate", "folder_default_borrowingType", "folder_default_linearSize", "folder_default_formCreatedBy", "folder_default_formCreatedOn", "folder_default_formModifiedBy", "folder_default_formModifiedOn", "folder_default_comments")).withSearchResultsMetadataCodes(asList("folder_default_title", "folder_default_modifiedOn")).withTableMetadataCodes(asList("folder_default_title", "folder_default_modifiedOn")));
+    transaction.add(manager.getSchema(collection, "folder_default").withFormMetadataCodes(asList("folder_default_type", "folder_default_title", "folder_default_parentFolder", "folder_default_categoryEntered", "folder_default_uniformSubdivisionEntered", "folder_default_retentionRuleEntered", "folder_default_copyStatusEntered", "folder_default_mainCopyRuleIdEntered", "folder_default_openingDate", "folder_default_enteredClosingDate", "folder_default_administrativeUnitEntered", "folder_default_mediumTypes", "folder_default_keywords", "folder_default_description", "folder_default_container", "folder_default_actualTransferDate", "folder_default_actualDepositDate", "folder_default_actualDestructionDate", "folder_default_borrowPreviewReturnDate", "folder_default_linearSize")).withDisplayMetadataCodes(asList("folder_default_parentFolder", "folder_default_title", "folder_default_description", "folder_default_filingSpace", "folder_default_administrativeUnit", "folder_default_mediumTypes", "folder_default_copyStatus", "folder_default_archivisticStatus", "folder_default_container", "folder_default_category", "folder_default_uniformSubdivision", "folder_default_retentionRule", "folder_default_confidential", "folder_default_essential", "folder_default_mainCopyRule", "folder_default_keywords", "folder_default_openingDate", "folder_default_closingDate", "folder_default_actualTransferDate", "folder_default_expectedTransferDate", "folder_default_actualDepositDate", "folder_default_expectedDepositDate", "folder_default_actualDestructionDate", "folder_default_expectedDestructionDate", "folder_default_followers", "folder_default_borrowed", "folder_default_borrowDate", "folder_default_borrowUserEntered", "folder_default_borrowPreviewReturnDate", "folder_default_borrowingType", "folder_default_linearSize", "folder_default_formCreatedBy", "folder_default_formCreatedOn", "folder_default_formModifiedBy", "folder_default_formModifiedOn", "folder_default_comments")).withSearchResultsMetadataCodes(asList("folder_default_title", "folder_default_modifiedOn")).withTableMetadataCodes(asList("folder_default_title", "folder_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "folder_default_activeRetentionType").withMetadataGroup("").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "folder_default_actualDepositDate").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "folder_default_actualDestructionDate").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
