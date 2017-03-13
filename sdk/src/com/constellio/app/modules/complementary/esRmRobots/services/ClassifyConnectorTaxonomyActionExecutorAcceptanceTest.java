@@ -114,8 +114,6 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
     private String folderAAB = "folderAAB";
     private String folderABA = "folderABA";
     private String folderAB = "folderAB";
-
-    //Folders ajoutés par Charles
     private String folderC = "folderC";
     private String folderCC = "folderCC";
     private String folderD = "folderD";
