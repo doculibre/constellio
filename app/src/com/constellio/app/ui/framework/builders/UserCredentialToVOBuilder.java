@@ -22,6 +22,10 @@ public class UserCredentialToVOBuilder implements Serializable {
 		String firstName = userCredential.getFirstName();
 		String lastName = userCredential.getLastName();
 		String email = userCredential.getEmail();
+		String jobTitle = userCredential.getJobTitle();
+		String phone = userCredential.getPhone();
+		String fax = userCredential.getFax();
+		String address = userCredential.getAddress();
 		Map<String, LocalDateTime> tokens = userCredential.getAccessTokens();
 		String serviceKey = userCredential.getServiceKey();
 		boolean systemAdmin = userCredential.isSystemAdmin();
@@ -35,7 +39,7 @@ public class UserCredentialToVOBuilder implements Serializable {
 			personalEmailsPresentation = Joiner.on("\n").join(userCredential.getPersonalEmails());
 		}
 
-		return new UserCredentialVO(username, firstName, lastName, email, personalEmailsPresentation, serviceKey, systemAdmin, globalGroups, collections,
+		return new UserCredentialVO(username, firstName, lastName, email, jobTitle, phone, fax, address, personalEmailsPresentation, serviceKey, systemAdmin, globalGroups, collections,
 				tokens, null, null, status);
 
 	}
