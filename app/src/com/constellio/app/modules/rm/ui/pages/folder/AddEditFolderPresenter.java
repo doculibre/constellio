@@ -759,7 +759,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
         visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
         LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
         visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
-        if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
+        if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) == 1) {
         	Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
         	folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
         }
