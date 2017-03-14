@@ -113,7 +113,7 @@ public class RMConfigs {
 		// Delays are computed from the opening date (if true), or the closing date (if false)
 		add(DECOMMISSIONING_DATE_BASED_ON = decommissioning
 				.createEnum("decommissioningDateBasedOn", DecommissioningDateBasedOn.class)
-				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE));
+				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexionRequired());
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
 		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31"));

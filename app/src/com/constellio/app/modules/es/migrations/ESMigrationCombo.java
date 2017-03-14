@@ -1,14 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -33,6 +24,14 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
 
 public class ESMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -88,6 +87,46 @@ public class ESMigrationCombo implements ComboMigrationScript {
 
 		//		transaction.add(manager.getSchema(collection, ConnectorLDAPInstance.SCHEMA_CODE).withNewFormAndDisplayMetadatas(
 		//				"connectorInstance_ldap_includePatterns", "connectorInstance_ldap_excludePatterns"));
+
+		try {
+			transaction.add(manager.getSchema(collection, "containerRecord_default").withRemovedFormMetadatas("containerRecord_default_fillRatioEntered")) ;
+			transaction.add(manager.getSchema(collection, "printable_default")
+					.withRemovedDisplayMetadatas("printable_default_isdeletable")
+					.withRemovedFormMetadatas("printable_default_isdeletable")
+			);
+
+
+			transaction.add(manager.getSchema(collection, "printable_label")
+					.withDisplayMetadataCodes(asList(
+							"printable_label_title",
+							"printable_label_createdBy",
+							"printable_label_createdOn",
+							"printable_label_modifiedBy",
+							"printable_label_modifiedOn",
+							"printable_label_jasperfile",
+							"printable_label_colonne",
+							"printable_label_ligne",
+							"printable_label_typelabel"
+					))
+					.withFormMetadataCodes(asList(
+							"printable_label_title",
+							"printable_label_jasperfile",
+							"printable_label_colonne",
+							"printable_label_ligne",
+							"printable_label_typelabel"
+					))
+					.withSearchResultsMetadataCodes(asList(
+							"printable_label_title",
+							"printable_label_modifiedOn"
+					))
+					.withRemovedTableMetadatas(
+							"printable_label_title",
+							"printable_label_modifiedOn"
+					)
+			);
+		} catch (Exception e) {
+
+		}
 
 		manager.execute(transaction.build());
 	}
