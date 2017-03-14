@@ -9,13 +9,13 @@ import org.joda.time.LocalDateTime;
  * Created by Charles Blanchette on 2017-03-10.
  */
 public class Borrowing extends Event {
-    public static final String SCHEMA_TYPE = "borrowing";
-    public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+    public static final String SCHEMA_BORROWING = "borrowing";
     public static final String REQUEST_DATE = "requestDate";
     public static final String BORROWING_DATE = "borrowingDate";
     public static final String RETURN_DATE = "returnDate";
     public static final String RETURN_USERNAME = "returnUsername";
     public static final String RETURN_USER_ID = "returnUser";
+    public static final String SCHEMA_NAME = Event.SCHEMA_TYPE + "_" + SCHEMA_BORROWING;
 
     public Borrowing(Record record, MetadataSchemaTypes types) {
         super(record, types);

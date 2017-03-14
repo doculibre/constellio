@@ -38,7 +38,7 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder builder = typesBuilder.getSchemaType(Event.SCHEMA_TYPE)
-                    .createCustomSchema(Borrowing.SCHEMA_TYPE);
+                    .createCustomSchema(Borrowing.SCHEMA_BORROWING);
 
             builder.create(Borrowing.REQUEST_DATE).setType(DATE_TIME).setEssential(true).defineDataEntry().asManual();
 

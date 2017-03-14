@@ -13,28 +13,25 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.apache.commons.compress.archivers.dump.DumpArchiveEntry;
+import org.apache.cxf.ws.addressing.MetadataType;
 
 public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
@@ -140,12 +137,56 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French))
 				.isEqualTo("Date de l'événement");
 
+		assertThat(metadataSchemaTypes.getMetadata("event_borrowing_borrowingDate").getLabel(Language.French))
+				.isEqualTo("Date d'emprunt");
+
 		MetadataSchema filingSpaceSchema = metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA);
 		MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
 		MetadataSchema decommissioningListSchema = metadataSchemaTypes.getSchema(DecommissioningList.DEFAULT_SCHEMA);
 		MetadataSchema retentionRuleSchema = metadataSchemaTypes.getSchema(RetentionRule.DEFAULT_SCHEMA);
+		MetadataSchema borrowingSchema = metadataSchemaTypes.getSchema(Borrowing.SCHEMA_NAME);
 
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
+
+		Metadata borrowingDate = borrowingSchema.getMetadata(Borrowing.BORROWING_DATE);
+
+		assertThat(borrowingDate.getLabel(Language.French)).isEqualTo("Date d'emprunt");
+		assertThat(borrowingDate.getCollection()).isEqualTo(zeCollection);
+		assertThat(borrowingDate.getType()).isEqualTo(MetadataValueType.DATE_TIME);
+		assertThat(borrowingDate.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
+		assertThat(borrowingDate.isEssential()).isTrue();
+
+		Metadata borrowingRequestDate = borrowingSchema.getMetadata(Borrowing.REQUEST_DATE);
+
+		assertThat(borrowingRequestDate.getLabel(Language.French)).isEqualTo("Date de demande d'emprunt");
+		assertThat(borrowingRequestDate.getCollection()).isEqualTo(zeCollection);
+		assertThat(borrowingRequestDate.getType()).isEqualTo(MetadataValueType.DATE_TIME);
+		assertThat(borrowingRequestDate.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
+		assertThat(borrowingRequestDate.isEssential()).isTrue();
+
+		Metadata borrowingReturnDate = borrowingSchema.getMetadata(Borrowing.RETURN_DATE);
+
+		assertThat(borrowingReturnDate.getLabel(Language.French)).isEqualTo("Date de retour de l'emprunt");
+		assertThat(borrowingReturnDate.getCollection()).isEqualTo(zeCollection);
+		assertThat(borrowingReturnDate.getType()).isEqualTo(MetadataValueType.DATE_TIME);
+		assertThat(borrowingReturnDate.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
+		assertThat(borrowingReturnDate.isEssential()).isTrue();
+
+		Metadata borrowingReturnUsername = borrowingSchema.getMetadata(Borrowing.RETURN_USERNAME);
+
+		assertThat(borrowingReturnUsername.getLabel(Language.French)).isEqualTo("Utilisateur qui retourne l'emprunt");
+		assertThat(borrowingReturnUsername.getCollection()).isEqualTo(zeCollection);
+		assertThat(borrowingReturnUsername.getType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(borrowingReturnUsername.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
+		assertThat(borrowingReturnUsername.isEssential()).isTrue();
+
+		Metadata borrowingReturnUserId = borrowingSchema.getMetadata(Borrowing.RETURN_USER_ID);
+
+		assertThat(borrowingReturnUserId.getLabel(Language.French)).isEqualTo("Utilisateur qui retourne l'emprunt");
+		assertThat(borrowingReturnUserId.getCollection()).isEqualTo(zeCollection);
+		assertThat(borrowingReturnUserId.getType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(borrowingReturnUserId.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
+		assertThat(borrowingReturnUserId.isEssential()).isTrue();
 
 	}
 
