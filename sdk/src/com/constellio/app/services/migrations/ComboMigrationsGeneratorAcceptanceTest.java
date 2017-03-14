@@ -422,9 +422,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
+		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/es/migrations/GeneratedESMigrationCombo.java");
-		FileUtils.writeStringToFile(dest, file.toString());
+		FileUtils.writeStringToFile(dest, fileWithoutProblems);
 	}
 
 	@Test
@@ -492,9 +493,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
+		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedESRMRobotsMigrationCombo.java");
-		FileUtils.writeStringToFile(dest, file.toString());
+		FileUtils.writeStringToFile(dest, fileWithoutProblems);
 	}
 
 	protected MethodSpec generateConstructor() {
