@@ -595,7 +595,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
             assertThat(document).isNotNull();
             assertThat(document.getFolder()).isEqualTo(rm.getFolderWithLegacyId(folderCTaxoURL).getId());
             assertThat(document.getRetentionRule()).isEqualTo(records.ruleId_1);
-            assertThat(document.getTitle()).isEqualTo("test.txt");
+            assertThat(document.getTitle()).isEqualTo("1.txt");
             assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
             assertThat(document.getFolderCategory()).isEqualTo(records.categoryId_X13);
         }
@@ -2275,11 +2275,11 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
         transaction.add(es.newConnectorSmbFolderWithId(folderDD, connectorInstance)).setTitle("DossierAvecCodeAlenvers").setUrl(folderDDTaxoURL);
 
         transaction.add(es.newConnectorSmbDocumentWithId(documentMalPlace, connectorInstance))
-                .setTitle("test.txt").setParent(folderC).setUrl(documentMalPlaceTaxoURL)
+                .setTitle("1.txt").setParent(folderC).setUrl(documentMalPlaceTaxoURL)
                 .setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
 
         transaction.add(es.newConnectorSmbDocumentWithId(documentBienPlaceTaxoURL, connectorInstance))
-                .setTitle("test.txt").setParent(folderC).setUrl(documentBienPlaceTaxoURL)
+                .setTitle("1.txt").setParent(folderC).setUrl(documentBienPlaceTaxoURL)
                 .setParsedContent("Document A2 content").setLastModified(timeOfMyLife).setManualTokens(PUBLIC_TOKEN);
 
         recordServices.execute(transaction);

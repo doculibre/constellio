@@ -11,336 +11,424 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
 
 public class XmlUserCredential implements UserCredential {
-	private final String username;
-	private final String firstName;
-	private final String lastName;
-	private final String email;
-	private final List<String> personalEmails;
-	private final String serviceKey;
-	private final Map<String, LocalDateTime> tokensMap;
-	private final boolean systemAdmin;
-	private final List<String> globalGroups;
-	private final List<String> collections;
-	private final String title;
-	private final UserCredentialStatus status;
-	private final String domain;
-	private final List<String> msExchDelegateListBL;
-	private final String dn;
+    private final String username;
+    private final String firstName;
+    private final String lastName;
+    private final String email;
+    private final List<String> personalEmails;
+    private final String serviceKey;
+    private final Map<String, LocalDateTime> tokensMap;
+    private final boolean systemAdmin;
+    private final List<String> globalGroups;
+    private final List<String> collections;
+    private final String title;
+    private final UserCredentialStatus status;
+    private final String domain;
+    private final List<String> msExchDelegateListBL;
+    private final String dn;
+    private final String phone;
+    private final String address;
+    private final String fax;
+    private final String jobTitle;
 
-	public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> globalGroups,
-			List<String> collections, UserCredentialStatus status) {
-		this(username, firstName, lastName, email, globalGroups, collections, status, "", null, null);
-	}
+    public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> globalGroups,
+                             List<String> collections, UserCredentialStatus status) {
+        this(username, firstName, lastName, email, globalGroups, collections, status, "", null, null);
+    }
 
-	public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> globalGroups,
-			List<String> collections, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
-		this.username = username;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.title = firstName + " " + lastName;
-		this.email = email;
-		this.personalEmails = null;
-		this.serviceKey = null;
-		this.tokensMap = new HashMap<>();
-		this.systemAdmin = false;
-		this.globalGroups = Collections.unmodifiableList(globalGroups);
-		this.collections = Collections.unmodifiableList(collections);
-		this.status = status;
-		this.domain = domain;
-		this.msExchDelegateListBL = msExchDelegateListBL;
-		this.dn = dn;
-	}
+    public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> globalGroups,
+                             List<String> collections, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.title = firstName + " " + lastName;
+        this.email = email;
+        this.personalEmails = null;
+        this.serviceKey = null;
+        this.tokensMap = new HashMap<>();
+        this.systemAdmin = false;
+        this.globalGroups = Collections.unmodifiableList(globalGroups);
+        this.collections = Collections.unmodifiableList(collections);
+        this.status = status;
+        this.domain = domain;
+        this.msExchDelegateListBL = msExchDelegateListBL;
+        this.dn = dn;
+        this.phone = null;
+        this.address = null;
+        this.fax = null;
+        this.jobTitle = null;
+    }
 
-	public XmlUserCredential(String username, String firstName, String lastName, String email, String serviceKey,
-			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-			UserCredentialStatus status) {
-		this(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status, "", null,
-				null);
-	}
+    public XmlUserCredential(String username, String firstName, String lastName, String email, String serviceKey,
+                             boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+                             UserCredentialStatus status) {
+        this(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status, "", null,
+                null);
+    }
 
-	public XmlUserCredential(String username, String firstName, String lastName, String email, String serviceKey,
-			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
-		this.username = username;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.title = firstName + " " + lastName;
-		this.email = email;
-		this.personalEmails = null;
-		this.serviceKey = serviceKey;
-		this.systemAdmin = systemAdmin;
-		this.globalGroups = Collections.unmodifiableList(globalGroups);
-		this.collections = Collections.unmodifiableList(collections);
-		this.tokensMap = tokens;
-		this.status = status;
-		this.domain = domain;
-		this.msExchDelegateListBL = msExchDelegateListBL;
-		this.dn = dn;
-	}
+    public XmlUserCredential(String username, String firstName, String lastName, String email, String serviceKey,
+                             boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+                             UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.title = firstName + " " + lastName;
+        this.email = email;
+        this.personalEmails = null;
+        this.serviceKey = serviceKey;
+        this.systemAdmin = systemAdmin;
+        this.globalGroups = Collections.unmodifiableList(globalGroups);
+        this.collections = Collections.unmodifiableList(collections);
+        this.tokensMap = tokens;
+        this.status = status;
+        this.domain = domain;
+        this.msExchDelegateListBL = msExchDelegateListBL;
+        this.dn = dn;
+        this.phone = null;
+        this.address = null;
+        this.fax = null;
+        this.jobTitle = null;
+    }
 
-	public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
-							 boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-							 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
-		this.username = username;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.title = firstName + " " + lastName;
-		this.email = email;
-		this.personalEmails = personalEmails;
-		this.serviceKey = serviceKey;
-		this.systemAdmin = systemAdmin;
-		this.globalGroups = Collections.unmodifiableList(globalGroups);
-		this.collections = Collections.unmodifiableList(collections);
-		this.tokensMap = tokens;
-		this.status = status;
-		this.domain = domain;
-		this.msExchDelegateListBL = msExchDelegateListBL;
-		this.dn = dn;
-	}
+    public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
+                             boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+                             UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.title = firstName + " " + lastName;
+        this.email = email;
+        this.personalEmails = personalEmails;
+        this.serviceKey = serviceKey;
+        this.systemAdmin = systemAdmin;
+        this.globalGroups = Collections.unmodifiableList(globalGroups);
+        this.collections = Collections.unmodifiableList(collections);
+        this.tokensMap = tokens;
+        this.status = status;
+        this.domain = domain;
+        this.msExchDelegateListBL = msExchDelegateListBL;
+        this.dn = dn;
+        this.phone = null;
+        this.address = null;
+        this.fax = null;
+        this.jobTitle = null;
+    }
 
-	@Override
-	public String getUsername() {
-		return username;
-	}
+    public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
+                             boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+                             UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn, String address, String phone, String fax, String jobTitle) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.title = firstName + " " + lastName;
+        this.email = email;
+        this.personalEmails = personalEmails;
+        this.serviceKey = serviceKey;
+        this.systemAdmin = systemAdmin;
+        this.globalGroups = Collections.unmodifiableList(globalGroups);
+        this.collections = Collections.unmodifiableList(collections);
+        this.tokensMap = tokens;
+        this.status = status;
+        this.domain = domain;
+        this.msExchDelegateListBL = msExchDelegateListBL;
+        this.dn = dn;
+        this.jobTitle = jobTitle;
+        this.address = address;
+        this.fax = fax;
+        this.phone = phone;
+    }
 
-	@Override
-	public String getFirstName() {
-		return firstName;
-	}
+    @Override
+    public String getUsername() {
+        return username;
+    }
 
-	@Override
-	public String getLastName() {
-		return lastName;
-	}
+    @Override
+    public String getFirstName() {
+        return firstName;
+    }
 
-	@Override
-	public String getEmail() {
-		return email;
-	}
+    @Override
+    public String getLastName() {
+        return lastName;
+    }
 
-	@Override
-	public List<String> getPersonalEmails() {
-		return personalEmails;
-	}
+    @Override
+    public String getEmail() {
+        return email;
+    }
 
-	@Override
-	public String getServiceKey() {
-		return serviceKey;
-	}
+    @Override
+    public String getPhone() {
+        return phone;
+    }
 
-	@Override
-	public Map<String, LocalDateTime> getAccessTokens() {
-		return tokensMap;
-	}
+    @Override
+    public String getAddress() {
+        return address;
+    }
 
-	@Override
-	public String getTitle() {
-		return title;
-	}
+    @Override
+    public String getFax() {
+        return fax;
+    }
 
-	@Override
-	public List<String> getTokenKeys() {
-		List<String> tokens = new ArrayList<>();
-		for (Map.Entry<String, LocalDateTime> token : tokensMap.entrySet()) {
-			tokens.add(token.getKey());
-		}
-		return tokens;
-	}
+    @Override
+    public String getJobTitle() {
+        return jobTitle;
+    }
 
-	@Override
-	public boolean isSystemAdmin() {
-		return systemAdmin;
-	}
+    @Override
+    public List<String> getPersonalEmails() {
+        return personalEmails;
+    }
 
-	@Override
-	public List<String> getCollections() {
-		return collections;
-	}
+    @Override
+    public String getServiceKey() {
+        return serviceKey;
+    }
 
-	@Override
-	public List<String> getGlobalGroups() {
-		return globalGroups;
-	}
+    @Override
+    public Map<String, LocalDateTime> getAccessTokens() {
+        return tokensMap;
+    }
 
-	@Override
-	public UserCredentialStatus getStatus() {
-		return status;
-	}
+    @Override
+    public String getTitle() {
+        return title;
+    }
 
-	@Override
-	public String getDomain() {
-		return domain;
-	}
+    @Override
+    public List<String> getTokenKeys() {
+        List<String> tokens = new ArrayList<>();
+        for (Map.Entry<String, LocalDateTime> token : tokensMap.entrySet()) {
+            tokens.add(token.getKey());
+        }
+        return tokens;
+    }
 
-	@Override
-	public List<String> getMsExchDelegateListBL() {
-		return msExchDelegateListBL;
-	}
+    @Override
+    public boolean isSystemAdmin() {
+        return systemAdmin;
+    }
 
-	@Override
-	public UserCredential withCollections(List<String> collections) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public List<String> getCollections() {
+        return collections;
+    }
 
-	@Override
-	public UserCredential withRemovedCollection(String collection) {
-		List<String> newCollections = new ArrayList<>(collections);
-		collections.remove(collection);
-		return withCollections(newCollections);
-	}
+    @Override
+    public List<String> getGlobalGroups() {
+        return globalGroups;
+    }
 
-	@Override
-	public UserCredential withNewGlobalGroup(String newGroup) {
+    @Override
+    public UserCredentialStatus getStatus() {
+        return status;
+    }
 
-		List<String> groups = new ArrayList<>(this.globalGroups);
-		groups.add(newGroup);
+    @Override
+    public String getDomain() {
+        return domain;
+    }
 
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, groups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public List<String> getMsExchDelegateListBL() {
+        return msExchDelegateListBL;
+    }
 
-	@Override
-	public UserCredential withRemovedGlobalGroup(String removedGroup) {
+    @Override
+    public UserCredential withCollections(List<String> collections) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-		List<String> groups = new ArrayList<>(this.globalGroups);
-		groups.remove(removedGroup);
+    @Override
+    public UserCredential withRemovedCollection(String collection) {
+        List<String> newCollections = new ArrayList<>(collections);
+        collections.remove(collection);
+        return withCollections(newCollections);
+    }
 
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, groups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public UserCredential withNewGlobalGroup(String newGroup) {
 
-	@Override
-	public UserCredential withGlobalGroups(List<String> globalGroups) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+        List<String> groups = new ArrayList<>(this.globalGroups);
+        groups.add(newGroup);
 
-	@Override
-	public UserCredential withFirstName(String firstName) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, groups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-	@Override
-	public UserCredential withLastName(String lastName) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public UserCredential withRemovedGlobalGroup(String removedGroup) {
 
-	@Override
-	public UserCredential withEmail(String email) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+        List<String> groups = new ArrayList<>(this.globalGroups);
+        groups.remove(removedGroup);
 
-	@Override
-	public UserCredential withPersonalEmails(List<String> personalEmails) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, groups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-	@Override
-	public UserCredential withStatus(UserCredentialStatus status) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public UserCredential withGlobalGroups(List<String> globalGroups) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-	@Override
-	public UserCredential withAccessToken(String token, LocalDateTime dateTime) {
-		Map<String, LocalDateTime> tokens = new HashMap<>();
-		tokens.put(token, dateTime);
-		return withAccessTokens(tokens);
-	}
+    @Override
+    public UserCredential withFirstName(String firstName) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-	@Override
-	public UserCredential withRemovedToken(String key) {
-		Map<String, LocalDateTime> allTokens = new HashMap<>();
-		allTokens.putAll(this.getAccessTokens());
-		allTokens.remove(key);
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				allTokens, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public UserCredential withLastName(String lastName) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-	@Override
-	public UserCredential withAccessTokens(Map<String, LocalDateTime> tokens) {
-		Map<String, LocalDateTime> allTokens = new HashMap<>();
-		allTokens.putAll(this.getAccessTokens());
-		while (allTokens.size() >= 50) {
+    @Override
+    public UserCredential withEmail(String email) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-			String olderToken = null;
-			LocalDateTime dateTime = null;
-			for (Map.Entry<String, LocalDateTime> token : allTokens.entrySet()) {
-				if (dateTime == null || dateTime.isAfter(token.getValue())) {
-					olderToken = token.getKey();
-					dateTime = token.getValue();
-				}
-			}
-			allTokens.remove(olderToken);
+    @Override
+    public UserCredential withPersonalEmails(List<String> personalEmails) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-		}
-		for (Map.Entry<String, LocalDateTime> token : tokens.entrySet()) {
-			allTokens.put(token.getKey(), token.getValue());
-		}
+    @Override
+    public UserCredential withStatus(UserCredentialStatus status) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
 
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				allTokens, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public UserCredential withAccessToken(String token, LocalDateTime dateTime) {
+        Map<String, LocalDateTime> tokens = new HashMap<>();
+        tokens.put(token, dateTime);
+        return withAccessTokens(tokens);
+    }
 
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
+    @Override
+    public UserCredential withRemovedToken(String key) {
+        Map<String, LocalDateTime> allTokens = new HashMap<>();
+        allTokens.putAll(this.getAccessTokens());
+        allTokens.remove(key);
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                allTokens, status, domain, msExchDelegateListBL, dn);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
+    @Override
+    public UserCredential withAccessTokens(Map<String, LocalDateTime> tokens) {
+        Map<String, LocalDateTime> allTokens = new HashMap<>();
+        allTokens.putAll(this.getAccessTokens());
+        while (allTokens.size() >= 50) {
 
-	@Override
-	public String toString() {
-		return username;
-	}
+            String olderToken = null;
+            LocalDateTime dateTime = null;
+            for (Map.Entry<String, LocalDateTime> token : allTokens.entrySet()) {
+                if (dateTime == null || dateTime.isAfter(token.getValue())) {
+                    olderToken = token.getKey();
+                    dateTime = token.getValue();
+                }
+            }
+            allTokens.remove(olderToken);
 
-	@Override
-	public UserCredential withNewCollection(String collection) {
-		List<String> collections = new ArrayList<>();
-		collections.addAll(this.collections);
-		if (!collections.contains(collection)) {
-			collections.add(collection);
-			return withCollections(collections);
-		} else {
-			return this;
-		}
-	}
+        }
+        for (Map.Entry<String, LocalDateTime> token : tokens.entrySet()) {
+            allTokens.put(token.getKey(), token.getValue());
+        }
 
-	@Override
-	public UserCredential withSystemAdminPermission() {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, true, globalGroups, collections, tokensMap,
-				status, domain, msExchDelegateListBL, dn);
-	}
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                allTokens, status, domain, msExchDelegateListBL, dn);
+    }
 
-	@Override
-	public UserCredential withServiceKey(String serviceKey) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
-	@Override
-	public UserCredential withMsExchDelegateListBL(List<String> msExchDelegateListBL) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL, dn);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
+    }
 
-	@Override
-	public UserCredential withDN(String dn) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain, msExchDelegateListBL,
-				dn);
-	}
+    @Override
+    public String toString() {
+        return username;
+    }
 
-	@Override
-	public String getDn() {
-		return dn;
-	}
+    @Override
+    public UserCredential withNewCollection(String collection) {
+        List<String> collections = new ArrayList<>();
+        collections.addAll(this.collections);
+        if (!collections.contains(collection)) {
+            collections.add(collection);
+            return withCollections(collections);
+        } else {
+            return this;
+        }
+    }
+
+    @Override
+    public UserCredential withSystemAdminPermission() {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, true, globalGroups, collections, tokensMap,
+                status, domain, msExchDelegateListBL, dn);
+    }
+
+    @Override
+    public UserCredential withServiceKey(String serviceKey) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
+
+    @Override
+    public UserCredential withMsExchDelegateListBL(List<String> msExchDelegateListBL) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL, dn);
+    }
+
+    @Override
+    public UserCredential withDN(String dn) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL,
+                dn);
+    }
+
+    @Override
+    public UserCredential withPhone(String phone) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL,
+                dn, address, phone, fax, jobTitle);
+    }
+
+    @Override
+    public UserCredential withAddress(String address) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL,
+                dn, address, phone, fax, jobTitle);
+    }
+
+    @Override
+    public UserCredential withFax(String fax) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL,
+                dn, address, phone, fax, jobTitle);
+    }
+
+    @Override
+    public UserCredential withJobTitle(String jobTitle) {
+        return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+                tokensMap, status, domain, msExchDelegateListBL,
+                dn, address, phone, fax, jobTitle);
+    }
+
+    @Override
+    public String getDn() {
+        return dn;
+    }
 }

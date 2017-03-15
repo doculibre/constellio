@@ -369,6 +369,7 @@ public final class GeneratedCoreMigrationCombo {
     MetadataBuilder group_visibleInTrees = groupSchema.get("visibleInTrees");
     group_visibleInTrees.setSystemReserved(true);
     group_visibleInTrees.setUndeletable(true);
+    MetadataBuilder user_address = userSchema.create("address").setType(MetadataValueType.STRING);
     MetadataBuilder user_allReferences = userSchema.get("allReferences");
     user_allReferences.setMultivalue(true);
     user_allReferences.setSystemReserved(true);
@@ -428,6 +429,7 @@ public final class GeneratedCoreMigrationCombo {
     MetadataBuilder user_errorOnPhysicalDeletion = userSchema.get("errorOnPhysicalDeletion");
     user_errorOnPhysicalDeletion.setSystemReserved(true);
     user_errorOnPhysicalDeletion.setUndeletable(true);
+    MetadataBuilder user_fax = userSchema.create("fax").setType(MetadataValueType.STRING);
     MetadataBuilder user_firstname = userSchema.create("firstname").setType(MetadataValueType.STRING);
     user_firstname.setUndeletable(true);
     MetadataBuilder user_followers = userSchema.get("followers");
@@ -2224,7 +2226,7 @@ public final class GeneratedCoreMigrationCombo {
     SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
     SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
     transaction.add(manager.getMetadata(collection, "event_default_recordVersion").withMetadataGroup("default").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(true));
-    transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("init.facetConfiguration.query", "default:init.facetConfiguration.configuration", "init.facetConfiguration.values"))));
+    transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("init.facetConfiguration.values", "default:init.facetConfiguration.configuration", "init.facetConfiguration.query"))));
     transaction.add(manager.getMetadata(collection, "facet_field_fieldValuesLabel").withMetadataGroup("init.facetConfiguration.values").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "facet_query_listQueries").withMetadataGroup("init.facetConfiguration.query").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "facet_default_active").withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));

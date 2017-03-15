@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model;
 
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
@@ -22,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.model.services.records.reindexing.ReindexationMode;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -60,29 +60,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.*;
-import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
-import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.TestUtils.*;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
 
 public class FolderAcceptanceTest extends ConstellioTest {
 
@@ -799,7 +776,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	@Test
 	//Tested on IntelliGID 4!
-	public void givenActiveSecondaryFoldersWithOpenPeriodsAndDecommissioningDelaysThenValidCalculatedDates()
+	public void givenActiveSecondaryFoldersWithPeriodsAndDecommissioningDelaysThenValidCalculatedDates()
 			throws Exception {
 
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
@@ -841,6 +818,51 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		recordServices.refresh(folder);
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isNull();
+
+	}
+
+	@Test
+	//Tested on IntelliGID 4!
+	public void givenActiveSecondaryFoldersWithOpenPeriodsAndDecommissioningDelaysThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 30);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 20);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 10);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("3-3-T", PA), principal("888-888-D", MD),
+				secondary("999-888-D", PA));
+
+		Folder folder = saveAndLoad(secondaryFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMediumTypes(MD, PA));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
+		assertThat(folder.getCloseDate()).isEqualTo(march31_2035);
+		assertThat(folder.getActualTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getApplicableCopyRules()).containsExactly(secondary("999-888-D", PA));
+		assertThat(folder.getMainCopyRule()).isEqualTo(secondary("999-888-D", PA));
+		assertThat(folder.getActiveRetentionCode()).isEqualTo("999");
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2065);
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(date(2105, 3, 31));
+		assertThat(folder.getExpectedDepositDate()).isNull();
+
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, -1);
+		waitForBatchProcess();
+		reindexIfRequired();
+		recordServices.refresh(folder);
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2065);
 		assertThat(folder.getExpectedDestructionDate()).isNull();
 		assertThat(folder.getExpectedDepositDate()).isNull();
 

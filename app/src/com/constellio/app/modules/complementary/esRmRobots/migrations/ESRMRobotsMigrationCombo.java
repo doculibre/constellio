@@ -1,18 +1,10 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -22,6 +14,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -36,6 +33,7 @@ public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 		migrations.add(new ESRMRobotsMigrationTo6_0());
 		migrations.add(new ESRMRobotsMigrationTo6_1());
 		migrations.add(new ESRMRobotsMigrationTo6_2_2_1());
+		migrations.add(new ESRMRobotsMigrationTo7_0_1());
 
 		return migrations;
 	}
@@ -78,6 +76,40 @@ public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 
 		//transaction.add(manager.getType(collection, ConnectorHttpDocument.SCHEMA_TYPE).withMetadataGroup(groups));
 		transaction.add(manager.getSchema(collection, "robotLog_default").withNewTableMetadatas("robotLog_default_count"));
+		transaction.add(manager.getSchema(collection, "containerRecord_default").withRemovedFormMetadatas("containerRecord_default_fillRatioEntered"));
+		transaction.add(manager.getSchema(collection, "printable_default").withRemovedFormMetadatas("printable_default_isdeletable")
+				.withRemovedDisplayMetadatas("printable_default_isdeletable"));
+
+
+
+		transaction.add(manager.getSchema(collection, "printable_label")
+			.withDisplayMetadataCodes(asList(
+					"printable_label_title",
+					"printable_label_createdBy",
+					"printable_label_createdOn",
+					"printable_label_modifiedBy",
+					"printable_label_modifiedOn",
+					"printable_label_jasperfile",
+					"printable_label_colonne",
+					"printable_label_ligne",
+					"printable_label_typelabel"
+			))
+			.withFormMetadataCodes(asList(
+					"printable_label_title",
+					"printable_label_jasperfile",
+					"printable_label_colonne",
+					"printable_label_ligne",
+					"printable_label_typelabel"
+			))
+			.withSearchResultsMetadataCodes(asList(
+					"printable_label_title",
+					"printable_label_modifiedOn"
+			))
+			.withRemovedTableMetadatas(
+					"printable_label_title",
+					"printable_label_modifiedOn"
+			)
+		);
 
 		manager.execute(transaction.build());
 	}

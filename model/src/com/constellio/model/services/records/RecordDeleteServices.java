@@ -5,11 +5,8 @@ import static com.constellio.model.services.records.RecordLogicalDeleteOptions.L
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.model.services.records.RecordUtils.parentPaths;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.lang.Boolean.TRUE;
 
@@ -418,19 +415,6 @@ public class RecordDeleteServices {
 			return getAllRecordsInHierarchy(record);
 		}
 	}
-	//
-	//	private Comparator<? super Record> sortByLevelFromLeafToRoot() {
-	//		return new Comparator<Record>() {
-	//			@Override
-	//			public int compare(Record o1, Record o2) {
-	//				 String path1 = o1.get(Schemas.PRINCIPAL_PATH);
-	//
-	//
-	//				String path2 = o1.get(Schemas.PRINCIPAL_PATH);
-	//				return 0;
-	//			}
-	//		};
-	//	}
 
 	void deleteContents(List<Record> records) {
 		String collection = records.get(0).getCollection();
@@ -657,16 +641,19 @@ public class RecordDeleteServices {
 		boolean hasReferences = false;
 		List<String> paths = record.getList(Schemas.PARENT_PATH);
 
+		//		hasReferences = searchServices.hasResults(fromAllSchemasIn(record.getCollection())
+		//				.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId())
+		//				.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId()));
+
 		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 			List<Metadata> typeReferencesMetadata = type.getAllNonParentReferences();
 			if (!typeReferencesMetadata.isEmpty()) {
 				LogicalSearchCondition condition = from(type).whereAny(typeReferencesMetadata).isIn(references);
 
-				if (!paths.isEmpty()) {
-					condition = condition.andWhere(Schemas.PATH).isNot(startingWithText(paths.get(0)));
-				}
+				//if (!paths.isEmpty()) {
+				condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId());
+				//}
 				boolean referencedByMetadatasOfType = searchServices.hasResults(new LogicalSearchQuery(condition));
-				System.out.println(referencedByMetadatasOfType);
 				hasReferences |= referencedByMetadatasOfType;
 			}
 		}

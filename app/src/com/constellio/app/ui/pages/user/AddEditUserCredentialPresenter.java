@@ -178,7 +178,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		}
 		return userServices.createUserCredential(userCredentialVO.getUsername(), userCredentialVO.getFirstName(),
 				userCredentialVO.getLastName(), userCredentialVO.getEmail(), personalEmails, userCredentialVO.getServiceKey(),
-				userCredentialVO.isSystemAdmin(), globalGroups, collections, tokens, status, domain, Arrays.asList(""), null);
+				userCredentialVO.isSystemAdmin(), globalGroups, collections, tokens, status, domain, Arrays.asList(""), null, userCredentialVO.getJobTitle(), userCredentialVO.getPhone(), userCredentialVO.getFax(), userCredentialVO.getAddress());
 	}
 
 	public void cancelButtonClicked() {

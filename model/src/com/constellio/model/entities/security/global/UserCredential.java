@@ -14,6 +14,14 @@ public interface UserCredential {
 
 	String getEmail();
 
+	String getPhone();
+
+	String getAddress();
+
+	String getFax();
+
+	String getJobTitle();
+
 	List<String> getPersonalEmails();
 
 	String getServiceKey();
@@ -71,6 +79,14 @@ public interface UserCredential {
 	UserCredential withMsExchDelegateListBL(List<String> msExchDelegateListBL);
 
 	UserCredential withDN(String dn);
+
+	UserCredential withPhone(String phone);
+
+	UserCredential withAddress(String address);
+
+	UserCredential withFax(String fax);
+
+	UserCredential withJobTitle(String jobTitle);
 
 	String getDn();
 }
