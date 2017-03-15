@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -164,6 +165,8 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.MAIN_COPY_RULE).addLabel(French, "Exemplaire");
 
 			migrateContainerRecord(typesBuilder);
+
+			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.MIME_TYPE).setEssentialInSummary(true);
 
 
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
