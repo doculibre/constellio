@@ -36,7 +36,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 public class SchemaDisplayUtils {
 
 	public static MetadataList getRequiredMetadatasInSchemaForm(MetadataSchema schema) {
-		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle().onlyManuals();
+		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle().onlyManuals()
+				.onlyNonSystemReserved();
 	}
 
 	public static MetadataList getAvailableMetadatasInSchemaForm(MetadataSchema schema) {
@@ -57,12 +58,11 @@ public class SchemaDisplayUtils {
 			}
 
 			private boolean notSystemReserved(Metadata metadata) {
-				return !metadata.isSystemReserved();
+				return !metadata.isSystemReserved() || metadata.hasSameCode(Schemas.LEGACY_ID);
 			}
 		};
 
-		return schema.getMetadatas().onlyManuals().onlyNonSystemReserved().onlyEnabled().only(filter)
-				.sortedUsing(new FormMetadatasComparator());
+		return schema.getMetadatas().onlyManuals().onlyEnabled().only(filter).sortedUsing(new FormMetadatasComparator());
 	}
 
 	private static class FormMetadatasComparator implements Comparator<Metadata> {
@@ -272,6 +272,7 @@ public class SchemaDisplayUtils {
 		List<String> formMetadataCodes = schemaUtils
 				.toMetadataCodes(SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema));
 
+		formMetadataCodes.remove(schemaCode + "_" + Schemas.LEGACY_ID);
 		String title = schema.getCode() + "_" + Schemas.TITLE.getLocalCode();
 		String lastModificationDate = schema.getCode() + "_" + Schemas.MODIFIED_ON.getLocalCode();
 
