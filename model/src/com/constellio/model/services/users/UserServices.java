@@ -1,6 +1,7 @@
 package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static com.constellio.model.entities.schemas.Schemas.add;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -127,6 +128,17 @@ public class UserServices {
                 username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
                 status, domain,
                 msExchDelegateListBL, dn);
+    }
+
+    public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+                                               List<String> personalEmails,
+                                               String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+                                               Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+                                               String dn, String jobTitle, String phone, String fax, String address) {
+        return userCredentialsManager.create(
+                username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
+                status, domain,
+                msExchDelegateListBL, dn, jobTitle, phone, fax, address);
     }
 
     public void addUpdateUserCredential(UserCredential userCredential) {
@@ -485,6 +497,10 @@ public class UserServices {
         userInCollection.setLastName(user.getLastName());
         userInCollection.setUsername(user.getUsername());
         userInCollection.setSystemAdmin(user.isSystemAdmin());
+        userInCollection.setPhone(user.getPhone());
+        userInCollection.setJobTitle(user.getJobTitle());
+        userInCollection.setAddress(user.getAddress());
+        userInCollection.setFax(user.getFax());
         setRoles(userInCollection);
         changeUserStatus(userInCollection, user);
         List<String> groupIds = getGroupIds(user.getGlobalGroups(), collection);

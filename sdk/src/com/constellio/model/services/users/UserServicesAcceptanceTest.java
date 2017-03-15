@@ -1230,6 +1230,47 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroes.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
 	}
 
+	@Test
+	@InDevelopmentTest
+	public void TryingToSetAndGetNewMetadata() throws Exception {
+		RMTestRecords records = new RMTestRecords(zeCollection);
+		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		userServices = getModelLayerFactory().newUserServices();
+		Users users = new Users();
+		users.setUp(userServices);
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		recordServices = getModelLayerFactory().newRecordServices();
+
+		String phone = "450 444 1919";
+
+		UserCredential chuckCredential = users.chuckNorris();
+		chuckCredential.withPhone(phone);
+		userServices.addUpdateUserCredential(chuckCredential);
+
+		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getPhone()).isEqualTo(phone);
+
+		String fax = "450 448 4448";
+		chuckCredential = users.chuckNorris();
+		chuckCredential.withFax(fax);
+		userServices.addUpdateUserCredential(chuckCredential);
+
+		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getFax()).isEqualTo(fax);
+
+		String address = "647 addresse";
+		chuckCredential = users.chuckNorris();
+		chuckCredential.withAddress(address);
+		userServices.addUpdateUserCredential(chuckCredential);
+
+		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getAddress()).isEqualTo(address);
+
+		String jobTitle = "Programmeur";
+		chuckCredential = users.chuckNorris();
+		chuckCredential.withJobTitle(jobTitle);
+		userServices.addUpdateUserCredential(chuckCredential);
+
+		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getJobTitle()).isEqualTo(jobTitle);
+	}
+
 
 
 	// ----- Utils methods
