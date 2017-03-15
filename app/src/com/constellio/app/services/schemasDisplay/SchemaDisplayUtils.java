@@ -272,6 +272,7 @@ public class SchemaDisplayUtils {
 		List<String> formMetadataCodes = schemaUtils
 				.toMetadataCodes(SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema));
 
+		formMetadataCodes.remove(schemaCode + "_" + Schemas.LEGACY_ID);
 		String title = schema.getCode() + "_" + Schemas.TITLE.getLocalCode();
 		String lastModificationDate = schema.getCode() + "_" + Schemas.MODIFIED_ON.getLocalCode();
 
