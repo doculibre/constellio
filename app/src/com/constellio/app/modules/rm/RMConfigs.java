@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
@@ -13,6 +8,11 @@ import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -58,7 +58,8 @@ public class RMConfigs {
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
 			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
 			DEFAULT_TAB_IN_FOLDER_DISPLAY,
-			UNIFORM_SUBDIVISION_ENABLED;
+			UNIFORM_SUBDIVISION_ENABLED,
+			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -233,6 +234,8 @@ public class RMConfigs {
 
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
 				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
+
+		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -417,4 +420,7 @@ public class RMConfigs {
 		return manager.getValue(DEFAULT_TAB_IN_FOLDER_DISPLAY);
 	}
 
+	public boolean areDocumentCheckedOutAfterCreation() {
+		return manager.getValue(CHECK_OUT_DOCUMENT_AFTER_CREATION);
+	}
 }
