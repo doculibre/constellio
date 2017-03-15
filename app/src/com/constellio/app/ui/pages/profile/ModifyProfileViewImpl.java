@@ -218,7 +218,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		jobTitleField.setEnabled(presenter.canModify());
 
 		addressField = new TextField();
-		addressField.setCaption($("ModifyProfileView.phone"));
+		addressField.setCaption($("ModifyProfileView.address"));
 		addressField.setRequired(false);
 		addressField.setNullRepresentation("");
 		addressField.setId("phone");
