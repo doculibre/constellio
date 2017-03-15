@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -31,20 +45,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript {
 
@@ -171,12 +171,6 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
 
-			//Used in search conditions:
-			//folderSchema.getMetadata(Folder.ACTIVE_RETENTION_TYPE).setTransiency(TRANSIENT_EAGER);
-			//folderSchema.getMetadata(Folder.INACTIVE_DISPOSAL_TYPE).setTransiency(TRANSIENT_EAGER);
-
-			//TODO : Tester si ces métadonnées peuvent être rendu transients
-			folderSchema.getMetadata(Folder.APPLICABLE_COPY_RULES).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.ACTIVE_RETENTION_CODE).setTransiency(TRANSIENT_EAGER);
 
 			folderSchema.getMetadata(Folder.SEMIACTIVE_RETENTION_CODE).setTransiency(TRANSIENT_EAGER);
@@ -202,7 +196,6 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			manager.updateRole(
 					manager.getRole(collection, RMRoles.MANAGER).withNewPermissions(asList(MANAGE_LABELS_PERMISSION)));
 		}
-
 
 	}
 
