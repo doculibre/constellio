@@ -782,22 +782,22 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	@Override
 	protected Record newRecord() {
 		Record record = super.newRecord();
-		Folder folder = rmSchemas().wrapFolder(record);
-		folder.setOpenDate(new LocalDate());
-
-		// If the current user is only attached to one administrative unit, set it as the field value.
-		User currentUser = getCurrentUser();
-		SearchServices searchServices = searchServices();
-		MetadataSchemaTypes types = types();
-		MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
-		LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
-		visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
-		LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
-		visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
-		if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
-			Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
-			folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
-		}
+        Folder folder = rmSchemas().wrapFolder(record);
+        folder.setOpenDate(new LocalDate());
+        
+        // If the current user is only attached to one administrative unit, set it as the field value.
+        User currentUser = getCurrentUser();
+        SearchServices searchServices = searchServices();
+        MetadataSchemaTypes types = types();
+        MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
+        LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
+        visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
+        LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
+        visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
+        if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) == 1) {
+        	Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
+        	folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+        }
 		return record;
 	}
 }

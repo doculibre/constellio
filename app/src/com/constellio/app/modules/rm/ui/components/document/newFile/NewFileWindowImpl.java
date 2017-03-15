@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -14,15 +9,13 @@ import com.constellio.model.entities.records.Content;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
@@ -63,9 +56,11 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 		extensionField = new ComboBox();
 		extensionField.setCaption($("NewFileWindow.extension"));
+		extensionField.setWidth("75%");
 
 		templateField = new ComboBox();
 		templateField.setCaption($("NewFileWindow.templates"));
+		templateField.setWidth("75%");
 
 		extensionField.addValueChangeListener(new ValueChangeListener() {
 			@Override
@@ -92,11 +87,13 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		labelAndTemplateLayout.setComponentAlignment(label, Alignment.BOTTOM_CENTER);
 
 		HorizontalLayout extensionAndTemplateLayout = new HorizontalLayout(extensionField, labelAndTemplateLayout);
+		extensionAndTemplateLayout.setWidth("100%");
 		extensionAndTemplateLayout.setSpacing(true);
 
 		fileNameField = new BaseTextField();
 		fileNameField.setCaption($("NewFileWindow.fileName"));
 		fileNameField.setRequired(true);
+		fileNameField.setWidth("75%");
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 			@Override
@@ -116,10 +113,11 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 		HorizontalLayout buttonLayout = new HorizontalLayout();
 		buttonLayout.addComponent(createFileButton);
-		buttonLayout.setSpacing(true);
+		buttonLayout.setSpacing(false);
+		buttonLayout.setComponentAlignment(createFileButton, Alignment.BOTTOM_CENTER);
 
 		setContent(mainLayout);
-		mainLayout.addComponents(errorLabel, extensionAndTemplateLayout, fileNameField, createFileButton);
+		mainLayout.addComponents(errorLabel, extensionAndTemplateLayout, fileNameField, buttonLayout);
 
 		presenter = new NewFilePresenter(this);
 	}
