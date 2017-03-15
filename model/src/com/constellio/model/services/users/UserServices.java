@@ -497,10 +497,10 @@ public class UserServices {
         userInCollection.setLastName(user.getLastName());
         userInCollection.setUsername(user.getUsername());
         userInCollection.setSystemAdmin(user.isSystemAdmin());
-        userInCollection.setPhone(user.getPhone());
-        userInCollection.setJobTitle(user.getJobTitle());
-        userInCollection.setAddress(user.getAddress());
-        userInCollection.setFax(user.getFax());
+        userInCollection.setPhone(userInCollection.getPhone());
+        userInCollection.setJobTitle(userInCollection.getJobTitle());
+        userInCollection.setAddress(userInCollection.getAddress());
+        userInCollection.setFax(userInCollection.getFax());
         setRoles(userInCollection);
         changeUserStatus(userInCollection, user);
         List<String> groupIds = getGroupIds(user.getGlobalGroups(), collection);

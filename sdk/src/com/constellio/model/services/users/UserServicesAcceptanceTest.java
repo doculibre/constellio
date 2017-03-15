@@ -1231,7 +1231,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@InDevelopmentTest
 	public void TryingToSetAndGetNewMetadata() throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
 		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
