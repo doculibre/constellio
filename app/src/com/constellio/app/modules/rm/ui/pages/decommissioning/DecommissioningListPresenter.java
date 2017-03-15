@@ -363,7 +363,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void setValidationStatus(FolderDetailVO folder, Boolean valid) {
-		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderExcluded(!valid);
+		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderExcluded(Boolean.FALSE.equals(valid));
 		addOrUpdate(decommissioningList().getWrappedRecord());
 		// TODO: Do not hard-refresh the whole page
 		refreshView();
