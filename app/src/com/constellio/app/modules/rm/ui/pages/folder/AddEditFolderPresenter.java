@@ -1,5 +1,30 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -11,7 +36,21 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.folder.fields.*;
+import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTransferDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -25,40 +64,32 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.wrappers.Folder.*;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
-    private static final String ID = "id";
-    private static final String PARENT_ID = "parentId";
-    private static final String DUPLICATE = "duplicate";
-    private static final String STRUCTURE = "structure";
+	private static final String ID = "id";
+	private static final String PARENT_ID = "parentId";
+	private static final String DUPLICATE = "duplicate";
+	private static final String STRUCTURE = "structure";
 
-    private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
+	private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 	private boolean addView;
 	private boolean folderHadAParent;
-    private String currentSchemaCode;
+	private String currentSchemaCode;
 	private FolderVO folderVO;
 	private Map<CustomFolderField<?>, Object> customContainerDependencyFields = new HashMap<>();
-    boolean isDuplicateAction;
-    boolean isDuplicateStructureAction;
+	boolean isDuplicateAction;
+	boolean isDuplicateStructureAction;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
@@ -89,7 +120,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		String id = paramsMap.get(ID);
 		String parentId = paramsMap.get(PARENT_ID);
 
-        Record record;
+		Record record;
 		if (StringUtils.isNotBlank(id)) {
 			record = getRecord(id);
 			addView = false;
@@ -102,17 +133,17 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			addView = true;
 		}
 
-        isDuplicateAction = paramsMap.containsKey(DUPLICATE);
-        isDuplicateStructureAction = isDuplicateAction && paramsMap.containsKey(STRUCTURE);
-        if (isDuplicateStructureAction) {
-            Folder folder = rmSchemas().wrapFolder(record);
-            record = decommissioningService().duplicateStructure(folder, getCurrentUser(), false).getWrappedRecord();
-        } else if (isDuplicateAction) {
-            Folder folder = rmSchemas().wrapFolder(record);
-            record = decommissioningService().duplicate(folder, getCurrentUser(), false).getWrappedRecord();
-        }
+		isDuplicateAction = paramsMap.containsKey(DUPLICATE);
+		isDuplicateStructureAction = isDuplicateAction && paramsMap.containsKey(STRUCTURE);
+		if (isDuplicateStructureAction) {
+			Folder folder = rmSchemas().wrapFolder(record);
+			record = decommissioningService().duplicateStructure(folder, getCurrentUser(), false).getWrappedRecord();
+		} else if (isDuplicateAction) {
+			Folder folder = rmSchemas().wrapFolder(record);
+			record = decommissioningService().duplicate(folder, getCurrentUser(), false).getWrappedRecord();
+		}
 
-        folderVO = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
+		folderVO = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
 		folderHadAParent = folderVO.getParentFolder() != null;
 		currentSchemaCode = folderVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
@@ -165,21 +196,21 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		String parentId = paramsMap.get(PARENT_ID);
 		List<String> ids = new ArrayList<>();
 		if (addView) {
-            if (parentId != null) {
-                ids.add(parentId);
-            }
+			if (parentId != null) {
+				ids.add(parentId);
+			}
 		} else if (isDuplicateAction) {
 			ids.add(paramsMap.get(ID));
 		} else {
-            ids.add(folderVO.getId());
-        }
+			ids.add(folderVO.getId());
+		}
 		return ids;
 	}
 
 	public void viewAssembled() {
 		adjustCustomFields(null, true);
 	}
-	
+
 	public boolean isSubfolder() {
 		return folderHadAParent;
 	}
@@ -214,7 +245,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			BorrowingType borrowingType = folder.getBorrowType();
 			LocalDateTime returnDateTime = folder.getBorrowReturnDate();
 			LocalDate returnDate = returnDateTime != null ? returnDateTime.toLocalDate() : null;
-			String borrowingErrorMessage = borrowingServices.validateBorrowingInfos(borrowingUserId, borrowingDate, previewReturnDate, borrowingType, returnDate);
+			String borrowingErrorMessage = borrowingServices
+					.validateBorrowingInfos(borrowingUserId, borrowingDate, previewReturnDate, borrowingType, returnDate);
 			if (borrowingErrorMessage != null) {
 				view.showErrorMessage($(borrowingErrorMessage));
 				return;
@@ -225,7 +257,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			folder.setFormCreatedBy(getCurrentUser()).setFormCreatedOn(time);
 		}
 		folder.setFormModifiedBy(getCurrentUser()).setFormModifiedOn(time);
-		addOrUpdate(folder.getWrappedRecord(), RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
+		addOrUpdate(folder.getWrappedRecord(),
+				RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
 		view.navigate().to(RMViews.class).displayFolder(folder.getId());
 	}
 
@@ -238,7 +271,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		String currentSchemaCode = getSchemaCode();
 		String folderTypeRecordId = getTypeFieldValue();
 		if (StringUtils.isNotBlank(folderTypeRecordId)) {
-			String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
+			String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices
+					.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
 			if (schemaCodeForFolderTypeRecordId != null) {
 				reload = !currentSchemaCode.equals(schemaCodeForFolderTypeRecordId);
 			} else
@@ -275,7 +309,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
-				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
+				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()
+						|| matchingMetadata.hasSameCode(Schemas.LEGACY_ID)) {
 					Object voMetadataValue = folderVO.get(metadataVO);
 					Object defaultValue = matchingMetadata.getDefaultValue();
 					Object voDefaultValue = metadataVO.getDefaultValue();
@@ -312,7 +347,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	String getTypeFieldValue() {
 		return (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
 	}
-	
+
 	private Metadata getNotEnteredMetadata(String metadataCode) {
 		String adjustedMetadataCode;
 		switch (metadataCode) {
@@ -337,7 +372,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		default:
 			adjustedMetadataCode = metadataCode;
 		}
-		
+
 		MetadataSchema folderSchema;
 		String folderTypeRecordId = getTypeFieldValue();
 		if (StringUtils.isNotBlank(folderTypeRecordId)) {
@@ -747,22 +782,22 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	@Override
 	protected Record newRecord() {
 		Record record = super.newRecord();
-        Folder folder = rmSchemas().wrapFolder(record);
-        folder.setOpenDate(new LocalDate());
-        
-        // If the current user is only attached to one administrative unit, set it as the field value.
-        User currentUser = getCurrentUser();
-        SearchServices searchServices = searchServices();
-        MetadataSchemaTypes types = types();
-        MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
-        LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
-        visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
-        LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
-        visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
-        if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
-        	Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
-        	folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
-        }
+		Folder folder = rmSchemas().wrapFolder(record);
+		folder.setOpenDate(new LocalDate());
+
+		// If the current user is only attached to one administrative unit, set it as the field value.
+		User currentUser = getCurrentUser();
+		SearchServices searchServices = searchServices();
+		MetadataSchemaTypes types = types();
+		MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
+		LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
+		visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
+		LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
+		visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
+		if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
+			Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
+			folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+		}
 		return record;
 	}
 }

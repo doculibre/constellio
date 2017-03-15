@@ -1,5 +1,17 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
@@ -20,7 +32,13 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -30,12 +48,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeExce
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.*;
-import java.util.Map.Entry;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
 	private Map<String, String> parameters;
@@ -309,7 +321,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public boolean isMetadataRequiredStatusModifiable() {
-		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential();
+		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential() || getMetadata(metadataCode).hasSameCode(Schemas.LEGACY_ID);
 	}
 
 	public void inputTypeValueChanged(FormMetadataVO formMetadataVO) {
