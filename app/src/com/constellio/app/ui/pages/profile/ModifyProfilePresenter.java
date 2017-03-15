@@ -55,6 +55,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public void saveButtonClicked(ProfileVO entity) {
 		User user = userServices.getUserInCollection(entity.getUsername(), view.getCollection());
 		user.setPhone(entity.getPhone());
+		user.setJobTitle(entity.getJobTitle());
+		user.setAddress(entity.getAddress());
+		user.setFax(entity.getFax());
 		if (entity.getStartTab() == null) {
 			user.setStartTab(getDefaultStartTab());
 		} else {
@@ -94,7 +97,11 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         userCredential = userCredential.
                 withFirstName(entity.getFirstName())
                 .withLastName(entity.getLastName())
-                .withEmail(entity.getEmail());
+				.withEmail(entity.getEmail())
+				.withJobTitle(entity.getJobTitle())
+				.withPhone(entity.getPhone())
+				.withAddress(entity.getAddress())
+				.withFax(entity.getFax());
 
         if (entity.getPersonalEmails() != null) {
             userCredential = userCredential.withPersonalEmails(Arrays.asList(entity.getPersonalEmails().split("\n")));
@@ -122,6 +129,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 		User user = userServices.getUserInCollection(username, view.getCollection());
 		String phone = user.getPhone();
+		String fax = user.getFax();
+		String jobTitle = user.getJobTitle();
+		String address = user.getAddress();
 		String loginLanguage = user.getLoginLanguageCode();
 		if(loginLanguage == null || loginLanguage.isEmpty()) {
 			loginLanguage = view.getSessionContext().getCurrentLocale().getLanguage();
@@ -160,20 +170,20 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();
 		}
 
-		ProfileVO profileVO = newProfileVO(username, firstName, lastName, email, personalEmails, phone, startTab, defaultTabInFolderDisplay,
+		ProfileVO profileVO = newProfileVO(username, firstName, lastName, email, personalEmails, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
 				defaultTaxonomy);
 		profileVO.setLoginLanguageCode(loginLanguage);
 		return profileVO;
 	}
 
 	ProfileVO newProfileVO(String username, String firstName, String lastName, String email, List<String> personalEmails, String phone,
-			String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy) {
-        String personalEmailsPresentation = null;
+						   String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy) {
+		String personalEmailsPresentation = null;
         if (!CollectionUtils.isEmpty(personalEmails)) {
             personalEmailsPresentation = Joiner.on("\n").join(personalEmails);
         }
 
-		return new ProfileVO(username, firstName, lastName, email, personalEmailsPresentation, phone, startTab, defaultTabInFolderDisplay,
+		return new ProfileVO(username, firstName, lastName, email, personalEmailsPresentation, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
 				defaultTaxonomy, null, null, null);
 	}
 

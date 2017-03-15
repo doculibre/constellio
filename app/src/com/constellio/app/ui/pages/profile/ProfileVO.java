@@ -21,6 +21,9 @@ public class ProfileVO implements Serializable {
 	DefaultTabInFolderDisplay defaultTabInFolderDisplay;
 	String defaultTaxonomy;
 	String loginLanguageCode;
+	String jobTitle;
+	String fax;
+	String address;
 
 	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email, String personalEmails,
 			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
@@ -49,6 +52,26 @@ public class ProfileVO implements Serializable {
 		this.email = email;
         this.personalEmails = personalEmails;
 		this.phone = phone;
+		this.startTab = startTab;
+		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
+		this.defaultTaxonomy = defaultTaxonomy;
+		this.password = password;
+		this.confirmPassword = confirmPassword;
+		this.oldPassword = oldPassword;
+	}
+
+	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String fax, String jobTitle, String address, String startTab,
+					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
+					 String oldPassword) {
+		this.username = username;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+		this.personalEmails = personalEmails;
+		this.phone = phone;
+		this.fax = fax;
+		this.jobTitle = jobTitle;
+		this.address = address;
 		this.startTab = startTab;
 		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
 		this.defaultTaxonomy = defaultTaxonomy;
@@ -167,5 +190,29 @@ public class ProfileVO implements Serializable {
 
 	public void setLoginLanguageCode(String loginLanguageCode) {
 		this.loginLanguageCode = loginLanguageCode;
+	}
+
+	public String getJobTitle() {
+		return jobTitle;
+	}
+
+	public void setJobTitle(String jobTitle) {
+		this.jobTitle = jobTitle;
+	}
+
+	public String getFax() {
+		return fax;
+	}
+
+	public void setFax(String fax) {
+		this.fax = fax;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
 	}
 }
