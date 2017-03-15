@@ -55,6 +55,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public void saveButtonClicked(ProfileVO entity) {
 		User user = userServices.getUserInCollection(entity.getUsername(), view.getCollection());
 		user.setPhone(entity.getPhone());
+		user.setJobTitle(entity.getJobTitle());
 		if (entity.getStartTab() == null) {
 			user.setStartTab(getDefaultStartTab());
 		} else {
