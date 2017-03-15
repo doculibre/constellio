@@ -10,6 +10,15 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
@@ -18,6 +27,8 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
+
+	private boolean opened;
 
 	private List<NewFileCreatedListener> newFileCreatedListeners = new ArrayList<>();
 
@@ -40,7 +51,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 	public NewFileWindowImpl() {
 		setModal(true);
 		setWidth("70%");
-		setHeight("300px");
+		setHeight("250px");
 		setZIndex(null);
 
 		mainLayout = new VerticalLayout();
@@ -56,11 +67,9 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 		extensionField = new ComboBox();
 		extensionField.setCaption($("NewFileWindow.extension"));
-		extensionField.setWidth("75%");
 
 		templateField = new ComboBox();
 		templateField.setCaption($("NewFileWindow.templates"));
-		templateField.setWidth("75%");
 
 		extensionField.addValueChangeListener(new ValueChangeListener() {
 			@Override
@@ -83,17 +92,17 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		Label label = new Label($("or"));
 
 		labelAndTemplateLayout = new HorizontalLayout(label, templateField);
+		labelAndTemplateLayout.setWidth("98%");
 		labelAndTemplateLayout.setSpacing(true);
 		labelAndTemplateLayout.setComponentAlignment(label, Alignment.BOTTOM_CENTER);
 
 		HorizontalLayout extensionAndTemplateLayout = new HorizontalLayout(extensionField, labelAndTemplateLayout);
-		extensionAndTemplateLayout.setWidth("100%");
 		extensionAndTemplateLayout.setSpacing(true);
 
 		fileNameField = new BaseTextField();
 		fileNameField.setCaption($("NewFileWindow.fileName"));
 		fileNameField.setRequired(true);
-		fileNameField.setWidth("75%");
+		fileNameField.setWidth("98%");
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 			@Override
@@ -112,9 +121,10 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		createFileButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.setWidth("98%");
 		buttonLayout.addComponent(createFileButton);
-		buttonLayout.setSpacing(false);
-		buttonLayout.setComponentAlignment(createFileButton, Alignment.BOTTOM_CENTER);
+		buttonLayout.setSpacing(true);
+		buttonLayout.setComponentAlignment(createFileButton, Alignment.MIDDLE_CENTER);
 
 		setContent(mainLayout);
 		mainLayout.addComponents(errorLabel, extensionAndTemplateLayout, fileNameField, buttonLayout);
@@ -188,11 +198,19 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 	@Override
 	public void open() {
+		opened = true;
 		extensionField.setValue(null);
 		templateField.setValue(null);
 		fileNameField.setValue(null);
 		errorLabel.setVisible(false);
 		extensionField.focus();
+
+		// Bugfix for windows opened twice because of ClassBasedViewProvider
+		for (Window window : new ArrayList<>(UI.getCurrent().getWindows())) {
+			if (window instanceof NewFileWindowImpl) {
+				window.close();
+			}
+		}
 		UI.getCurrent().addWindow(this);
 	}
 
@@ -203,5 +221,16 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 	public String getDocumentTypeId() {
 		return presenter.getDocumentTypeId();
+	}
+
+	@Override
+	public boolean isOpened() {
+		return opened;
+	}
+
+	@Override
+	public void close() {
+		opened = false;
+		super.close();
 	}
 }
