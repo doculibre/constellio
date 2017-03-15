@@ -6,8 +6,11 @@ import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +61,18 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
             MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(Printable.SCHEMA_TYPE).getDefaultSchema();
             builder.create(Printable.JASPERFILE).setType(MetadataValueType.CONTENT).setUndeletable(true).setEssential(true).defineDataEntry().asManual();
             builder.create(Printable.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setUndeletable(true).setDefaultValue(true).defineDataEntry().asManual();
+
+            MetadataSchemaBuilder UserBuilder = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
+            UserBuilder.create(User.FAX).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+            UserBuilder.create(User.ADDRESS).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+
+            if (typesBuilder.getCollection().equals(Collection.SYSTEM_COLLECTION)) {
+                MetadataSchemaBuilder UserCredentialBuilder = typesBuilder.getSchemaType(SolrUserCredential.SCHEMA_TYPE).getDefaultSchema();
+                UserCredentialBuilder.create(SolrUserCredential.ADDRESS).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+                UserCredentialBuilder.create(SolrUserCredential.FAX).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+                UserCredentialBuilder.create(SolrUserCredential.JOB_TITLE).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+                UserCredentialBuilder.create(SolrUserCredential.PHONE).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+            }
         }
     }
 }
