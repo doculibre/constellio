@@ -30,7 +30,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 
 public class LookupRecordField extends LookupField<String> {
-	
+
 	private TaxonomyCodeToCaptionConverter captionConverter = new TaxonomyCodeToCaptionConverter();
 
 	public LookupRecordField(String schemaTypeCode) {
@@ -68,7 +68,8 @@ public class LookupRecordField extends LookupField<String> {
 		setItemConverter(new RecordIdToCaptionConverter());
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode, boolean writeAccess) {
+	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
+			boolean writeAccess) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -82,7 +83,8 @@ public class LookupRecordField extends LookupField<String> {
 		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
 		List<Taxonomy> taxonomies;
 		if (schemaTypeCode != null) {
-			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
+			taxonomies = taxonomiesManager
+					.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
 		} else {
 			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSchema(schemaCode, currentUser, metadataSchemasManager);
 		}
@@ -93,6 +95,7 @@ public class LookupRecordField extends LookupField<String> {
 				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess));
 			}
 		}
+
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
 	}
 
