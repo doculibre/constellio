@@ -1,11 +1,15 @@
 package com.constellio.app.modules.rm.migrations;
 
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRuleFactory;
@@ -97,10 +101,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetailFa
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidationFactory;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentTypeFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -119,7 +120,7 @@ import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
-import com.constellio.model.services.security.roles.RolesManager;
+import java.lang.String;
 
 public final class GeneratedRMMigrationCombo {
   String collection;
