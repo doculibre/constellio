@@ -111,13 +111,13 @@ allprojects {
     }
 
     jar {
-        version = '7.0.9.43'
+        version = '7.0.9.44'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "7.0.9.43"
+    version = "7.0.9.44"
 
     webInf {
 
