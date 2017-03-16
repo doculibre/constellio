@@ -168,7 +168,6 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.MIME_TYPE).setEssentialInSummary(true);
 
-
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
 
 			folderSchema.getMetadata(Folder.ACTIVE_RETENTION_CODE).setTransiency(TRANSIENT_EAGER);
@@ -181,6 +180,9 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.MAIN_COPY_RULE).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.DECOMMISSIONING_DATE).setTransiency(TRANSIENT_EAGER);
+
+			folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
+			folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).setTaxonomyRelationship(true);
 
 		}
 
