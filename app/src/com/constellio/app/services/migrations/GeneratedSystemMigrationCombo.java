@@ -5,9 +5,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.security.roles.RolesManager;
-
 import java.util.ArrayList;
-
 import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
 import static java.util.Arrays.asList;
 
@@ -49,7 +47,6 @@ import com.constellio.model.services.schemas.calculators.UserTokensCalculator2;
 import com.constellio.model.services.schemas.validators.DecisionValidator;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
-
 import java.lang.String;
 
 public final class GeneratedSystemMigrationCombo {
@@ -2596,7 +2593,7 @@ public final class GeneratedSystemMigrationCombo {
     SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
     SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
     transaction.add(manager.getMetadata(collection, "event_default_recordVersion").withMetadataGroup("default").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(true));
-    transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("init.facetConfiguration.values", "default:init.facetConfiguration.configuration", "init.facetConfiguration.query"))));
+    transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("init.facetConfiguration.query", "default:init.facetConfiguration.configuration", "init.facetConfiguration.values"))));
     transaction.add(manager.getMetadata(collection, "facet_field_fieldValuesLabel").withMetadataGroup("init.facetConfiguration.values").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "facet_query_listQueries").withMetadataGroup("init.facetConfiguration.query").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "facet_default_active").withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
