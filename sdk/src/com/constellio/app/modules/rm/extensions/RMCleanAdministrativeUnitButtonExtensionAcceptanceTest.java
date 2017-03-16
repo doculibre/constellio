@@ -1,9 +1,15 @@
-package com.constellio.app.modules.rm.services;
+package com.constellio.app.modules.rm.extensions;
 
+import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.services.RMRecordDeletionServices;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -11,26 +17,38 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
- * Created by Constelio on 2016-11-01.
+ * Created by Constellio on 2017-03-16.
  */
 @SlowTest
-public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest{
+public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends ConstellioTest {
     RMTestRecords records = new RMTestRecords(zeCollection);
     SearchServices searchServices;
     RecordServices recordServices;
     RMSchemasRecordsServices rm;
+    RMCleanAdministrativeUnitButtonExtension extension;
+    @Mock TaxonomyManagementViewImpl view;
+    @Mock RecordVO recordVO;
+    SessionContext sessionContext;
+    MockedNavigation navigator;
+    Users users = new Users();
 
     @Before
     public void setup() {
@@ -39,10 +57,21 @@ public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest{
                         .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
         );
         inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+        users.setUp(getModelLayerFactory().newUserServices());
 
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         searchServices = getModelLayerFactory().newSearchServices();
         recordServices = getModelLayerFactory().newRecordServices();
+        extension = new RMCleanAdministrativeUnitButtonExtension(zeCollection, getAppLayerFactory());
+
+        sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+        sessionContext.setCurrentLocale(Locale.FRENCH);
+
+        when(view.getSessionContext()).thenReturn(sessionContext);
+        when(view.getCollection()).thenReturn(zeCollection);
+        when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
+        when(view.navigate()).thenReturn(navigator);
+        when(recordVO.getId()).thenReturn(records.unitId_30c);
     }
 
     @Test
@@ -61,7 +90,8 @@ public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest{
         assertThat(oldNumFolderInAdminUnit).isNotEqualTo(0);
         assertThat(oldNumDocumentInAdminUnit).isNotEqualTo(0);
 
-        RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+        extension.decorateMainComponentBeforeViewAssembledOnViewEntered(new DecorateMainComponentAfterInitExtensionParams(view));
+        extension.cleanAdministrativeUnitButtonClicked(recordVO, users.adminIn(zeCollection));
 
         long newTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schema()).returnAll());
         long newTotalNumDocument = searchServices.getResultsCount(from(rm.document.schema()).returnAll());
