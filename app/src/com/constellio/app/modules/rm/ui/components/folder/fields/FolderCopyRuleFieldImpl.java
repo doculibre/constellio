@@ -14,6 +14,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 
 public class FolderCopyRuleFieldImpl extends CustomField<String> implements FolderCopyRuleField {
+	
 	private Table table;
 	private List<CopyRetentionRule> rules;
 

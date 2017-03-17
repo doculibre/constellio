@@ -1,6 +1,12 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
@@ -13,14 +19,13 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
@@ -170,7 +175,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		case SORT:
 			return buildSort(detail);
 		case RETENTION_RULE:
-			return new ReferenceDisplay(detail.getRetentionRuleId());
+			return new RetentionRuleReferenceDisplay(detail.getRetentionRuleId());
 		case CATEGORY_CODE:
 			return new Label(detail.getCategoryCode());
 		case MEDIUM:
