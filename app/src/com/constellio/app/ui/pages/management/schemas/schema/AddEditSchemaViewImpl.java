@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -16,6 +12,10 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchemaView {
 	
@@ -61,7 +61,7 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 		localCodeField.setEnabled(presenter.isCodeEditable());
 		localCodeField.setRequired(true);
 
-		labelsField = new MultilingualTextField();
+		labelsField = new MultilingualTextField(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 		labelsField.setRequired(true);

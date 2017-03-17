@@ -247,7 +247,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		localcodeField.setRequired(true);
 
 		//$("AddEditMetadataView.title")
-		labelsField = new MultilingualTextField();
+		labelsField = new MultilingualTextField(true);
 		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
