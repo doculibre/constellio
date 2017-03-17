@@ -89,6 +89,29 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn, String jobTitle, String phone, String fax, String address) {
+		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+				.setUsername(cleanUsername(username))
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setPersonalEmails(personalEmails)
+				.setServiceKey(serviceKey)
+				.setSystemAdmin(systemAdmin)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setAccessTokens(tokens)
+				.setStatus(status)
+				.setDomain(domain)
+				.setMsExchDelegateListBL(msExchDelegateListBL)
+				.setDn(dn)
+				.withJobTitle(jobTitle)
+				.withAddress(address)
+				.withPhone(phone)
+				.withFax(fax);
+	}
+
+	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
 			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 			UserCredentialStatus status) {

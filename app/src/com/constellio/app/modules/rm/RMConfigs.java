@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
@@ -13,6 +8,11 @@ import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -58,8 +58,8 @@ public class RMConfigs {
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
 			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
 			DEFAULT_TAB_IN_FOLDER_DISPLAY,
-			UNIFORM_SUBDIVISION_ENABLED;
-	;
+			UNIFORM_SUBDIVISION_ENABLED,
+			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -81,14 +81,15 @@ public class RMConfigs {
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
 		// Allow to enter retention rules for documents
-		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules"));
+		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
+				.withReIndexionRequired());
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
 				.createBooleanTrueByDefault("enforceCategoryAndRuleRelationshipInFolder"));
 
 		// Is the closing date calculated or manual?
-		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate"));
+		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate").withReIndexionRequired());
 
 		// Years before closing for a fixed delay (if -1, then the same as the active delay)
 		add(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE = decommissioning
@@ -108,12 +109,12 @@ public class RMConfigs {
 		// Years before final disposition for a semi-active open delay (if -1, then not automatically calculated)
 		add(CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD = decommissioning
 				.createInteger("calculatedInactiveDateNumberOfYearWhenOpenRule")
-				.withDefaultValue(1));
+				.withDefaultValue(1).withReIndexionRequired());
 
 		// Delays are computed from the opening date (if true), or the closing date (if false)
 		add(DECOMMISSIONING_DATE_BASED_ON = decommissioning
 				.createEnum("decommissioningDateBasedOn", DecommissioningDateBasedOn.class)
-				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE));
+				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexionRequired());
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
 		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31"));
@@ -233,6 +234,8 @@ public class RMConfigs {
 
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
 				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
+
+		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -417,4 +420,7 @@ public class RMConfigs {
 		return manager.getValue(DEFAULT_TAB_IN_FOLDER_DISPLAY);
 	}
 
+	public boolean areDocumentCheckedOutAfterCreation() {
+		return manager.getValue(CHECK_OUT_DOCUMENT_AFTER_CREATION);
+	}
 }

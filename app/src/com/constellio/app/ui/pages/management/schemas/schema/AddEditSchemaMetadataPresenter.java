@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
 import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
 import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
 
@@ -55,35 +56,41 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 	public Map<String, MetadataVODataProvider> getDataProviders() {
 		Map<String, MetadataVODataProvider> dataProviders = new LinkedHashMap<>();
 		String schemaCode = getSchemaCode();
-		
-		MetadataVODataProvider custom = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
+
+		MetadataVODataProvider custom = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection,
+				schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+				return metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved()
+						|| metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
 						CREATED_ON, MODIFIED_ON));
 			}
 		};
-		
-		MetadataVODataProvider system = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
+
+		MetadataVODataProvider system = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection,
+				schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return !metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON));
+				return !metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved()
+						|| metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON, LEGACY_ID));
 			}
 		};
-		
-		MetadataVODataProvider disabled = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
+
+		MetadataVODataProvider disabled = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection,
+				schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return !metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON));
+				return !metadata.isEnabled() && (!metadata.isSystemReserved() || metadata
+						.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+								CREATED_ON, MODIFIED_ON));
 			}
 		};
-		
+
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.custom", custom.size()), custom);
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.system", system.size()), system);
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.disabled", disabled.size()), disabled);
-		
+
 		return dataProviders;
 	}
 

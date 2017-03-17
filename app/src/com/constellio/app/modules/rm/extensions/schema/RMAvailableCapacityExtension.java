@@ -73,12 +73,12 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 	private void validateContainerRecord(ValidationErrors errors, StorageSpace storageSpace,
 			List<ContainerRecord> containerRecords) {
 
-		List<ContainerRecord> containerRecordsAtSameLevel = rm.searchContainerRecords(from(rm.containerRecord.schemaType())
-				.where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())
-				.andWhere(rm.containerRecord.capacity()).isNotNull());
-
 		if (storageSpace.getCapacity() != null && storageSpace.getLinearSizeEntered() == null) {
 			long totalCapacity = 0;
+
+			List<ContainerRecord> containerRecordsAtSameLevel = rm.searchContainerRecords(from(rm.containerRecord.schemaType())
+					.where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())
+					.andWhere(rm.containerRecord.capacity()).isNotNull());
 
 			Set<String> ids = new HashSet<>();
 			for (ContainerRecord containerRecord : containerRecords) {

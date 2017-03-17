@@ -14,7 +14,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -335,8 +334,10 @@ public class RecordsCacheImpl implements RecordsCache {
 			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
-			for (Iterator<Record> it = searchServices.recordsIterator(from(schemaType).returnAll()); it.hasNext(); ) {
-				insert(it.next());
+			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000) {
+				for (Iterator<Record> it = searchServices.recordsIterator(from(schemaType).returnAll(), 1000); it.hasNext(); ) {
+					insert(it.next());
+				}
 			}
 		}
 

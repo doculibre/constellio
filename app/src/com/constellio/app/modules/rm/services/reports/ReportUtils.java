@@ -302,7 +302,6 @@ public class ReportUtils {
                 for (DataField dataField : this.otherDataForContainer) {
                     Element e = new Element(dataField.getKey());
                     String value = dataField.calculate(new Object[]{con}) + "";
-                    System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
                     e.setText(value);
                     metadatas.addContent(e);
                 }
@@ -394,7 +393,6 @@ public class ReportUtils {
                 for (DataField dataField : this.otherDataForContainer) {
                     Element e = new Element(dataField.getKey());
                     String value = dataField.calculate(new Object[]{con}) + "";
-                    System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
                     e.setText(value);
                     metadatas.addContent(e);
                 }

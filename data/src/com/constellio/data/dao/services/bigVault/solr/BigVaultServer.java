@@ -379,7 +379,11 @@ public class BigVaultServer implements Cloneable {
 				solrInputDocument.setField("sys_s", newAtomicSet(""));
 				optimisticLockingValidationDocuments.add(solrInputDocument);
 
-				if (updatedDocument.getFieldValue("type_s") == null) {
+				boolean onlyMarkingForReindexing =
+						updatedDocument.getFieldValue("markedForReindexing_s") != null &&
+								updatedDocument.getFieldNames().size() == 3;
+
+				if (updatedDocument.getFieldValue("type_s") == null && !onlyMarkingForReindexing) {
 					String lockId = "lock__" + updatedDocument.getFieldValue("id");
 					SolrInputDocument lockDocument = new SolrInputDocument();
 					lockDocument.setField("id", lockId);

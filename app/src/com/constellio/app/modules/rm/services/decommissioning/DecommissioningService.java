@@ -36,6 +36,7 @@ import com.constellio.model.services.taxonomies.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.*;
 
@@ -665,8 +666,11 @@ public class DecommissioningService {
 			newFolder.setTitle(folder.getTitle() + " (Copie)");
 		}
 
+		LocalDateTime localDateTime = TimeProvider.getLocalDateTime();
 		newFolder.setFormCreatedBy(currentUser);
-		newFolder.setFormCreatedOn(TimeProvider.getLocalDateTime());
+		newFolder.setFormCreatedOn(localDateTime);
+		newFolder.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
+		newFolder.setCreatedOn(localDateTime).setModifiedOn(localDateTime);
 
 		return newFolder;
 	}

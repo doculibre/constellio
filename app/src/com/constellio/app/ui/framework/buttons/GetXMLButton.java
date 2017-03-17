@@ -101,17 +101,17 @@ public class GetXMLButton extends WindowButton {
                     }
 
                     String xml = currentSchema.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, null) : ru.convertContainerWithIdentifierToXML(ids, null);
-                    Embedded viewer = new Embedded();
+                    //Embedded viewer = new Embedded();
                     StreamResource source = createResource(xml, filename);
-                    viewer.setSource(source);
-                    viewer.setType(Embedded.TYPE_BROWSER);
-
-                    viewer.setWidth("100%");
-                    viewer.setHeight("1024px");
+//                    viewer.setSource(source);
+//                    viewer.setType(Embedded.TYPE_BROWSER);
+//
+//                    viewer.setWidth("100%");
+//                    viewer.setHeight("1024px");
 
                     Link download = new Link($("ReportViewer.download", filename),
                             new DownloadStreamResource(source.getStreamSource(), filename));
-                    newMain.addComponents(download, viewer);
+                    newMain.addComponents(download);
                     newMain.setWidth("100%");
                     getWindow().setContent(newMain);
                 } catch (Exception e) {

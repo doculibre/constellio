@@ -1,13 +1,12 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.data.io.streamFactories.StreamFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.itextpdf.text.Image;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * Created by Charles Blanchette on 2017-02-20.

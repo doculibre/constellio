@@ -56,6 +56,8 @@ public class Document extends RMObject {
 	public static final String PUBLISHED = "published";
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
 	public static final String VERSION = "version";
+	public static final String ESSENTIAL = "essential";
+	public static final String CONFIDENTIAL = "confidential";
 	public static final String MIME_TYPE = "mimetype";
 
 	public Document(Record record,
@@ -333,5 +335,16 @@ public class Document extends RMObject {
 		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
 
+	public boolean isConfidential() {
+		return BooleanUtils.isTrue((Boolean) get(CONFIDENTIAL));
+	}
+
+	public boolean isEssential() {
+		return BooleanUtils.isTrue((Boolean) get(ESSENTIAL));
+	}
+
+	public String getMimeType() {
+		return get(MIME_TYPE);
+	}
 
 }

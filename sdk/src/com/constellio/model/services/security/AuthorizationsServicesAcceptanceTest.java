@@ -1846,4 +1846,62 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
+	@Test
+	public void whenRecordIsDetachedThenOnlyInheritedAuthsAreDetached()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).givingReadAccess());
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_FOND1).givingReadAccess());
+
+		assertThatAuthorizationsOn(FOLDER4).containsOnly(
+				authOnRecord(TAXO1_FOND1).givingRead().forPrincipals(bob),
+				authOnRecord(TAXO1_FOND1).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(TAXO1_FOND1).givingRead().forPrincipals(bob),
+				authOnRecord(TAXO1_FOND1).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		assertThatAuthorizationsOn(FOLDER4_1_DOC1).containsOnly(
+				authOnRecord(TAXO1_FOND1).givingRead().forPrincipals(bob),
+				authOnRecord(TAXO1_FOND1).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		detach(FOLDER4);
+
+		assertThatAuthorizationsOn(FOLDER4).containsOnly(
+				authOnRecord(FOLDER4).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(FOLDER4).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		assertThatAuthorizationsOn(FOLDER4_1_DOC1).containsOnly(
+				authOnRecord(FOLDER4).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		detach(FOLDER4_1);
+
+		assertThatAuthorizationsOn(FOLDER4).containsOnly(
+				authOnRecord(FOLDER4).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(FOLDER4_1).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+		assertThatAuthorizationsOn(FOLDER4_1_DOC1).containsOnly(
+				authOnRecord(FOLDER4_1).givingRead().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingRead().forPrincipals(heroes)
+		).hasSize(2);
+
+	}
+
 }

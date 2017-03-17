@@ -1,7 +1,9 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
@@ -79,14 +81,21 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 
         if (mapDecomListFolderDetail.containsKey(FOLDER_ID) && StringUtils
                 .isNotEmpty(mapDecomListFolderDetail.get(FOLDER_ID))) {
-            decomListFolderDetail = new DecomListFolderDetail(mapDecomListFolderDetail.get(FOLDER_ID));
+            Folder folder = rm.getFolderWithLegacyId(mapDecomListFolderDetail.get(FOLDER_ID));
+            decomListFolderDetail = new DecomListFolderDetail(folder.getId());
         } else {
             decomListFolderDetail = new DecomListFolderDetail();
         }
 
         decomListFolderDetail.setFolderExcluded(Boolean.parseBoolean(mapDecomListFolderDetail.get(FOLDER_EXCLUDED)));
         decomListFolderDetail.setReversedSort(Boolean.parseBoolean(mapDecomListFolderDetail.get(REVERSED_SORT)));
-        decomListFolderDetail.setContainerRecordId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
+
+        if (mapDecomListFolderDetail.containsKey(CONTAINER_RECORD_ID) && StringUtils
+                .isNotEmpty(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID))) {
+            ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
+            decomListFolderDetail.setContainerRecordId(containerRecord.getId());
+        }
+
         if (mapDecomListFolderDetail.get(FOLDER_LINEAR_SIZE) == null) {
             decomListFolderDetail.setFolderLinearSize(0.0);
         } else {
@@ -102,7 +111,8 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 
         if (mapDecomListContainerDetail.containsKey(CONTAINER_RECORD_ID) && StringUtils
                 .isNotEmpty(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID))) {
-            decomListContainerDetail = new DecomListContainerDetail(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+            ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+            decomListContainerDetail = new DecomListContainerDetail(containerRecord.getId());
         } else {
             decomListContainerDetail = new DecomListContainerDetail();
         }

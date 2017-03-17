@@ -220,6 +220,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions(appLayerFactory));
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new RMCleanAdministrativeUnitButtonExtension(collection, appLayerFactory));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -276,7 +277,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
 		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
+		cache.configureCache(CacheConfig.volatileCache(
+				rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+						.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
 
 	}
 
