@@ -21,6 +21,7 @@ public class Toggle {
 	public static AvailableToggle EXTERNAL_TOKENS_DISABLED = newToggle();
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
+	public static AvailableToggle ALERT_USERS_EMAIL = newToggle(true);
 
 	// ------------------------------------------------
 

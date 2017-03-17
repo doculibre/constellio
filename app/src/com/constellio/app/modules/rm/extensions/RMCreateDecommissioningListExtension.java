@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
@@ -20,6 +21,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -64,54 +66,57 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 	}
 
 	private void alertUsers(Record record) {
-		try {
-			DecommissioningList decommissioningList = rmSchemasRecordsServices.wrapDecommissioningList(record);
-			String displayURL = "";
-			if(decommissioningList.getDecommissioningListType() != null) {
-				switch (decommissioningList.getDecommissioningListType()) {
-					case FOLDERS_TO_TRANSFER:
-					case FOLDERS_TO_DESTROY:
-					case FOLDERS_TO_DEPOSIT:
-					case FOLDERS_TO_CLOSE:
-						displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
-						break;
-					default:
-						displayURL = RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY;
-						break;
+		if(Toggle.ALERT_USERS_EMAIL.isEnabled()){
+			try {
+				DecommissioningList decommissioningList = rmSchemasRecordsServices.wrapDecommissioningList(record);
+				String displayURL = "";
+				if(decommissioningList.getDecommissioningListType() != null) {
+					switch (decommissioningList.getDecommissioningListType()) {
+						case FOLDERS_TO_TRANSFER:
+						case FOLDERS_TO_DESTROY:
+						case FOLDERS_TO_DEPOSIT:
+						case FOLDERS_TO_CLOSE:
+							displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+							break;
+						default:
+							displayURL = RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY;
+							break;
+					}
 				}
-			}
 
-			Transaction transaction = new Transaction();
-			UserServices userServices = modelLayerFactory.newUserServices();
-			List<User> userList = userServices.getAllUsersInCollection(collection);
-			EmailToSend emailToSend = newEmailToSend();
-			List<EmailAddress> emailAddresses = new ArrayList<>();
+				Transaction transaction = new Transaction();
 
-			for (User user : userList) {
-				if(user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(record)) {
+				EmailToSend emailToSend = newEmailToSend();
+				List<EmailAddress> emailAddresses = new ArrayList<>();
+
+				AuthorizationsServices authServices = modelLayerFactory.newAuthorizationsServices();
+
+				for (User user : authServices.getUsersWithPermissionOnRecord(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, record)) {
+
 					emailAddresses.add(new EmailAddress(user.getTitle(), user.getEmail()));
-				}
-			}
-			LocalDateTime creationDate = TimeProvider.getLocalDateTime();
-			emailToSend.setTo(emailAddresses);
-			emailToSend.setSendOn(creationDate);
-			final String subject = $("RMObject.alertWhenAvailableSubject", record.getTitle());
-			emailToSend.setSubject(subject);
-			emailToSend.setTemplate(RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
-			List<String> parameters = new ArrayList<>();
-			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
-			parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
-			String rmObjectTitle = decommissioningList.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
-			String constellioUrl = eimConfigs.getConstellioUrl();
-			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
-			emailToSend.setParameters(parameters);
-			transaction.add(emailToSend);
 
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			LOGGER.error("Cannot alert users", e);
+				}
+				LocalDateTime creationDate = TimeProvider.getLocalDateTime();
+				emailToSend.setTo(emailAddresses);
+				emailToSend.setSendOn(creationDate);
+				final String subject = $("RMObject.alertWhenAvailableSubject", record.getTitle());
+				emailToSend.setSubject(subject);
+				emailToSend.setTemplate(RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
+				List<String> parameters = new ArrayList<>();
+				parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
+				String rmObjectTitle = decommissioningList.getTitle();
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+				String constellioUrl = eimConfigs.getConstellioUrl();
+				parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+				parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
+				emailToSend.setParameters(parameters);
+				transaction.add(emailToSend);
+
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				LOGGER.error("Cannot alert users", e);
+			}
 		}
 	}
 

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
@@ -10,6 +11,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.Borrowing;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -40,11 +42,11 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
             MetadataSchemaBuilder builder = typesBuilder.getSchemaType(Event.SCHEMA_TYPE)
                     .createCustomSchema(Borrowing.SCHEMA_BORROWING);
 
-            builder.create(Borrowing.REQUEST_DATE).setType(DATE_TIME).setEssential(true).defineDataEntry().asManual();
+            builder.create(Borrowing.REQUEST_DATE).setType(DATE).setEssential(true).defineDataEntry().asManual();
 
-            builder.create(Borrowing.BORROWING_DATE).setType(DATE_TIME).setEssential(true).defineDataEntry().asManual();
+            builder.create(Borrowing.BORROWING_DATE).setType(DATE).setEssential(true).defineDataEntry().asManual();
 
-            builder.create(Borrowing.RETURN_DATE).setType(DATE_TIME).setEssential(true).defineDataEntry().asManual();
+            builder.create(Borrowing.RETURN_DATE).setType(DATE).setEssential(true).defineDataEntry().asManual();
 
             builder.create(Borrowing.RETURN_USERNAME).setType(STRING).setEssential(true).defineDataEntry().asManual();
 

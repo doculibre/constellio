@@ -59,6 +59,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory factory)
 			throws Exception {
 		SchemaAlterationsFor6_7 s = new SchemaAlterationsFor6_7(collection, provider, factory);
+		givenNewPermissionsToRGDandADMRoles(collection, factory.getModelLayerFactory());
 		s.migrate();
 		s.setupRoles(collection, factory.getModelLayerFactory().getRolesManager(), provider);
 		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
