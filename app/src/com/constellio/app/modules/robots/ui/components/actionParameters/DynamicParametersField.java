@@ -1,11 +1,16 @@
 package com.constellio.app.modules.robots.ui.components.actionParameters;
 
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION;
 import static com.constellio.app.ui.i18n.i18n.$;
+
+import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -16,19 +21,20 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DynamicParametersField extends CustomField<String> {
-	
+
 	public static final String RECORD_FIELD_FACTORY_KEY = DynamicParametersField.class.getName();
-	
+
 	private final DynamicParametersPresenter presenter;
 	private VerticalLayout layout;
 	private Button button;
 
 	private RecordVO record;
-	
+
 	public DynamicParametersField(DynamicParametersPresenter presenter) {
 		this.presenter = presenter;
 	}
@@ -76,9 +82,8 @@ public class DynamicParametersField extends CustomField<String> {
 	}
 
 	private WindowButton buildEditButton() {
-		WindowButton button = new WindowButton(
-				$("DynamicParametersField.editParametersButton"), $("DynamicRecordParametersField.editParametersWindow"),
-				WindowConfiguration.modalDialog("75%", "75%")) {
+		WindowButton button = new WindowButton($("DynamicParametersField.editParametersButton"),
+				$("DynamicRecordParametersField.editParametersWindow"), WindowConfiguration.modalDialog("75%", "75%")) {
 			@Override
 			protected Component buildWindowContent() {
 				RecordVO effectiveRecord;
@@ -91,15 +96,48 @@ public class DynamicParametersField extends CustomField<String> {
 				String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 				AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
 				AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
-				RecordFieldFactory recordFieldFactory = extensions.newRecordFieldFactory(new RecordFieldFactoryExtensionParams(RECORD_FIELD_FACTORY_KEY, null));
+				RecordFieldFactory recordFieldFactory = extensions
+						.newRecordFieldFactory(new RecordFieldFactoryExtensionParams(RECORD_FIELD_FACTORY_KEY, null));
 				if (recordFieldFactory == null) {
 					recordFieldFactory = new RecordFieldFactory();
 				}
-				
+
 				return new RecordForm(effectiveRecord, recordFieldFactory) {
 					@Override
-					protected void saveButtonClick(RecordVO viewObject)
+					protected void saveButtonClick(final RecordVO viewObject)
 							throws ValidationException {
+						MetadataVO metadata = viewObject.getSchema().getMetadata(ACTION_AFTER_CLASSIFICATION);
+						ActionAfterClassification aac = viewObject.get(metadata);
+						if (aac == ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM) {
+							confirmBeforeSave(viewObject);
+						} else {
+							completeSaveAction(viewObject);
+						}
+					}
+
+					private void confirmBeforeSave(final RecordVO viewObject) {
+						ConfirmDialog confirmDialog = createConfirmDialog();
+
+						confirmDialog.getOkButton().addClickListener(new ClickListener() {
+							@Override
+							public void buttonClick(ClickEvent event) {
+								completeSaveAction(viewObject);
+							}
+						});
+
+						confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
+							@Override
+							public void onClose(ConfirmDialog dialog) {
+							}
+						}, true);
+					}
+
+					private ConfirmDialog createConfirmDialog() {
+						return ConfirmDialog.getFactory().create($("ActionAfterClassification.d.confirmation.dialog.title"),
+								$("ActionAfterClassification.d.confirmation"), $("OK"), $("cancel"), null);
+					}
+
+					private void completeSaveAction(final RecordVO viewObject) {
 						if (presenter.saveParametersRecord(viewObject)) {
 							getWindow().close();
 						}
