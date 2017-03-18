@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.robots.model.RegisteredAction;
 import com.constellio.app.modules.robots.model.services.RobotsService;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
@@ -37,6 +38,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -47,6 +49,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		implements FieldOverridePresenter, SearchCriteriaPresenter, DynamicParametersPresenter {
+	private static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
 	public static final String ADD = "add";
 	public static final String EDIT = "edit";
 
@@ -241,6 +244,16 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		RegisteredAction action = manager().getActionFor(actionCode);
 		String schemaCode = action.getParametersSchemaLocalCode();
 		ActionParameters actionParameters = robotSchemas().newActionParameters(schemaCode);
+
+		try {
+			Metadata metadata = actionParameters.getSchema().get(DEFAULT_COPY_STATUS);
+			if (metadata != null && actionParameters.get(metadata) == null) {
+				actionParameters.set(metadata, CopyType.PRINCIPAL);
+			}
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			// Just ignore it : 
+		}
+		
 		return recordToVOBuilder.build(actionParameters.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 	}
 
@@ -255,10 +268,10 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	private Record toParametersRecord(RecordVO recordVO) {
 		String schema = ActionParameters.SCHEMA_TYPE + "_" + getParametersSchemaLocalCode();
-		return new SchemaPresenterUtils(schema, view.getConstellioFactories(), view.getSessionContext())
-				.toRecord(recordVO);
+		return new SchemaPresenterUtils(schema, view.getConstellioFactories(), view.getSessionContext()).toRecord(recordVO);
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public boolean saveParametersRecord(RecordVO record) {
 		try {
@@ -297,8 +310,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	public SearchResultVODataProvider getSearchResults(final List<Criterion> searchCriteria) {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
-				view.getSessionContext()) {
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return getSearchQuery(searchCriteria);
@@ -307,13 +319,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	protected LogicalSearchQuery getSearchQuery(List<Criterion> searchCriteria) {
-		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition(searchCriteria))
-				.filteredWithUser(getCurrentUser())
-				.filteredByStatus(StatusFilter.ACTIVES)
-				.setPreferAnalyzedFields(true);
+		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition(searchCriteria)).filteredWithUser(getCurrentUser())
+				.filteredByStatus(StatusFilter.ACTIVES).setPreferAnalyzedFields(true);
 
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
-				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+		query.setReturnedMetadatas(
+				ReturnedMetadatasFilter.onlyFields(schemasDisplayManager.getReturnedFieldsForSearch(collection)));
 
 		return query;
 	}

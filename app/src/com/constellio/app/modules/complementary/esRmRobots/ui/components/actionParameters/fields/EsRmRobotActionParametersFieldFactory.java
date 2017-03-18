@@ -6,6 +6,7 @@ import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionP
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.category.ActionParametersCategoryFieldImpl;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleField;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleFieldImpl;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -13,6 +14,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.schemas.Metadata;
 import com.vaadin.ui.Field;
 
 import java.util.Arrays;
@@ -21,6 +23,8 @@ import static com.constellio.app.modules.complementary.esRmRobots.model.Classify
 
 public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory implements EsRmRobotActionParametersFields {
 	
+	private static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
+
 	private ActionParametersCategoryFieldImpl categoryField;
 
 	private ActionParametersRetentionRuleFieldImpl retentionRuleField;
@@ -44,6 +48,10 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
 		Field<?> field;
 		if(DEFAULT_UNIFORM_SUBDIVISION.equals(metadataVO.getLocalCode()) && !presenter.areUniformSubdivisionsEnabled()) {
+			return null;
+		}
+		
+		if(DEFAULT_COPY_STATUS.equals(metadataVO.getLocalCode())) {
 			return null;
 		}
 
