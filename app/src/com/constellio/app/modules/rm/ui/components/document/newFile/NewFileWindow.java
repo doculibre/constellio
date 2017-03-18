@@ -20,6 +20,8 @@ public interface NewFileWindow extends Serializable {
 	void open();
 
 	void close();
+	
+	boolean isOpened();
 
 	SessionContext getSessionContext();
 

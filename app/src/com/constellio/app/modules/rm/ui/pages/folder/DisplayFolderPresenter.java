@@ -415,7 +415,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getMoveInFolderButtonState(User user, Folder folder) {
-		return getEditButtonState(user, folder);
+//		return getEditButtonState(user, folder);
+		return ComponentState.INVISIBLE;
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
@@ -873,4 +874,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public boolean hasPermissionToStartWorkflow() {
 		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
 	}
+
+	public boolean isSelected(RecordVO recordVO) {
+		String recordId = recordVO.getId();
+		SessionContext sessionContext = view.getSessionContext();
+		return sessionContext.getSelectedRecordIds().contains(recordId);
+	}
+
+	public void recordSelectionChanged(RecordVO recordVO, Boolean selected) {
+		String recordId = recordVO.getId();
+		SessionContext sessionContext = view.getSessionContext();
+		if (selected) {
+			sessionContext.addSelectedRecordId(recordId, recordVO.getSchema().getTypeCode());
+		} else {
+			sessionContext.removeSelectedRecordId(recordId, recordVO.getSchema().getTypeCode());
+		}
+	}
+
 }

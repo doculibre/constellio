@@ -48,12 +48,12 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		boolean showContextMenu;
 		Record record = presenterUtils.getRecord(recordId);
 		String recordSchemaCode = record.getSchemaCode();
-		String recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
+		String recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
 
 		if (Event.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
 			Event event = new Event(record, presenterUtils.types());
 			recordSchemaCode = event.getType().split("_")[1];
-			recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
+			recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
 			String linkedRecordId = event.getRecordId();
 			record = presenterUtils.getRecord(linkedRecordId);
 		}

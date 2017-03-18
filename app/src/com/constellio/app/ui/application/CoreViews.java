@@ -360,6 +360,13 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void declareUserFolder(String userDocumentId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("userFolderId", userDocumentId);
+		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_FOLDER, params);
+		navigator.navigateTo(viewPath);
+	}
+
 	public void manageCollections() {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_MANAGEMENT);
 	}

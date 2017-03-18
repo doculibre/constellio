@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.containers;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.vaadin.data.Container;
@@ -18,7 +19,7 @@ import com.vaadin.data.util.AbstractContainer;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
 
 @SuppressWarnings("serial")
-public abstract class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
+public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
 		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier {
 
 	protected T adapted;
@@ -330,9 +331,21 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 		}
 	}
 
-	protected abstract Collection<?> getOwnContainerPropertyIds();
+	protected Collection<?> getOwnContainerPropertyIds() {
+		return Collections.emptyList();
+	}
 
-	protected abstract Class<?> getOwnType(Object propertyId);
+	protected Class<?> getOwnType(Object propertyId) {
+		return null;
+	}
 
-	protected abstract Property<?> getOwnContainerProperty(Object itemId, Object propertyId);
+	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
+		return null;
+	}
+
+	@Override
+	public void fireItemSetChange() {
+		super.fireItemSetChange();
+	}
+	
 }

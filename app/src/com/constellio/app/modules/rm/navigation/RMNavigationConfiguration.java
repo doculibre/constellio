@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.navigation;
 
-import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -29,13 +19,7 @@ import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrat
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissioningListViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.*;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
@@ -77,8 +61,19 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class RMNavigationConfiguration implements Serializable {
+
+	public static final String NEW_DOCUMENT = "newDocument";
 	public static final String ADD_FOLDER = "addFolder";
 	public static final String ADD_DOCUMENT = "addDocument";
 
@@ -187,6 +182,17 @@ public class RMNavigationConfiguration implements Serializable {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
 			}
 		}, 0);
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(NEW_DOCUMENT) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).newDocument();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
+			}
+		}, 1);
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -197,37 +203,16 @@ public class RMNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
-		}, 1);
+		}, 2);
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
-		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
-			@Override
-			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE,
-						"view_folder").getItems();
-			}
-		});
-		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS) {
-			@Override
-			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE,
-						"view_document")
-						.getItems();
-			}
-		});
-		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
-			@Override
-			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
-				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
-			}
-		});
 		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
 			private int defaultTab;
 
 			@Override
 			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-					SessionContext sessionContext) {
+																	 SessionContext sessionContext) {
 				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 				defaultTab = tabSheet.getDefaultTab();
 				return tabSheet.getDataProviders();
@@ -251,11 +236,34 @@ public class RMNavigationConfiguration implements Serializable {
 				return menu;
 			}
 		};
+
 		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
 			config.add(HomeView.TABS, taxonomyTree);
 		} else {
 			config.replace(HomeView.TABS, taxonomyTree);
 		}
+
+		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
+			@Override
+			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE,
+						"view_folder").getItems();
+			}
+		});
+		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS) {
+			@Override
+			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE,
+						"view_document")
+						.getItems();
+			}
+		});
+		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
+			@Override
+			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
+			}
+		});
 	}
 
 	private static void configureCollectionAdmin(NavigationConfig config) {

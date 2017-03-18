@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -554,7 +553,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private void initUploadWindow() {
 		if (uploadWindow == null) {
 			if (documentVO != null) {
-				uploadWindow = new UpdateContentVersionWindowImpl(documentVO, documentVO.getMetadata(Document.CONTENT)) {
+				Map<RecordVO, MetadataVO> record = new HashMap<>();
+				record.put(documentVO, documentVO.getMetadata(Document.CONTENT));
+				uploadWindow = new UpdateContentVersionWindowImpl(record) {
 					@Override
 					public void close() {
 						super.close();

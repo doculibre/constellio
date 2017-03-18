@@ -37,7 +37,7 @@ public class WorkflowTable extends RecordVOTable {
 		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -48,7 +48,7 @@ public class WorkflowTable extends RecordVOTable {
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new IconButton(CANCEL_ICON, $("WorkflowTable.cancel")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {

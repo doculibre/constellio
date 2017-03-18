@@ -90,7 +90,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Unre
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
-import com.constellio.model.services.records.populators.AutocompleteFieldPopulator;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
 import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
@@ -603,7 +602,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 				recordsToInsert.add(record);
 			}
 		}
-
 		recordsCaches.insert(collection, recordsToInsert);
 
 	}

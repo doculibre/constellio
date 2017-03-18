@@ -36,6 +36,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String FAX = "fax";
 	public static final String JOB_TITLE = "jobTitle";
 	public static final String ADDRESS = "address";
+	public static final String AGENT_STATUS = "agentStatus";
 
 	public SolrUserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -349,4 +350,13 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 		set(ADDRESS, address);
 		return this;
 	}
+
+	public AgentStatus getAgentStatus() {
+		return getEnumWithDefaultValue(AGENT_STATUS, AgentStatus.DISABLED);
+	}
+
+	public SolrUserCredential setAgentStatus() {
+		return get(AGENT_STATUS);
+	}
+
 }

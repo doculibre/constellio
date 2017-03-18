@@ -34,7 +34,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseViewImpl implements SearchView, RecordSelector {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, RecordSelector {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -49,6 +49,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	private VerticalLayout facetsArea;
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
+	private Button addToSelectionButton;
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -142,7 +143,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 
 	protected Component buildSummary(SearchResultTable results) {
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -420,6 +421,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return selectDeselectAllButton;
+	}
+
+	protected Button buildAddToSelectionButton() {
+		addToSelectionButton = new BaseButton($("SearchView.addToSelection")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addToSelectionButtonClicked();
+			}
+		};
+		addToSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return addToSelectionButton;
 	}
 
 	protected Button buildSavedSearchButton() {

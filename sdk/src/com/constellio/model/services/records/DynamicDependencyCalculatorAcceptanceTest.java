@@ -211,7 +211,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		recordServices.add(record);
 		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo(
-						"anotherStringMetadata,booleanMetadata,dateMetadata,dateTimeMetadata,referenceMetadata,stringMetadata");
+						"anotherStringMetadata,autocomplete,booleanMetadata,dateMetadata,dateTimeMetadata,referenceMetadata,stringMetadata");
 
 	}
 

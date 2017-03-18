@@ -48,7 +48,7 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 		ButtonsContainer buttonsContainer = new ButtonsContainer(adaptedContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -78,7 +78,7 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 		ButtonsContainer buttonsContainer = new ButtonsContainer(recordVOLazyContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
