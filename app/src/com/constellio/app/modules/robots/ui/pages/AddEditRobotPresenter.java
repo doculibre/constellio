@@ -251,7 +251,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 				actionParameters.set(metadata, CopyType.PRINCIPAL);
 			}
 		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
-			// Just ignore it : 
+			// Just ignore it : The metadata defaultCopyStatus doesn't appart to this scheme
 		}
 		
 		return recordToVOBuilder.build(actionParameters.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
