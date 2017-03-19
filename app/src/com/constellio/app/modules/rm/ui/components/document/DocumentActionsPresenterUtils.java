@@ -318,7 +318,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-	public synchronized void createPDFAButtonClicked() {
+	public synchronized void createPDFA() {
 		DocumentVO documentVO = getDocumentVO();
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		Document document = new Document(record, presenterUtils.types());

@@ -3,23 +3,19 @@ package com.constellio.app.ui.application;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.modules.reports.wrapper.ReportNavigationConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
+import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptPresenter;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.JavaScript;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class CoreViews {
 	protected Navigator navigator;
@@ -42,7 +38,24 @@ public class CoreViews {
 	}
 
 	public void home(String tab) {
-		navigator.navigateTo(NavigatorConfigurationService.HOME + "/" + tab);
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", tab);
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
+	}
+	
+	public void home(String taxonomyCode, String expandedRecordId, String taxonomyMetadata) {
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", CoreNavigationConfiguration.TAXONOMIES);
+		params.put("taxonomyCode", taxonomyCode);
+		if (taxonomyMetadata != null) {
+			params.put("taxonomyMetadata", taxonomyMetadata);
+		}
+		if (expandedRecordId != null) {
+			params.put("expandedRecordId", expandedRecordId);
+		}
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
 	}
 
 	public void recordsManagement() {
@@ -78,7 +91,7 @@ public class CoreViews {
 	}
 
 	public void editTaxonomy(String taxonomyCode) {
-		Map<String, String> params = new java.util.HashMap<>();
+		Map<String, String> params = new HashMap<>();
 		params.put("taxonomyCode", taxonomyCode);
 		String fragment = ParamUtils.addParams(NavigatorConfigurationService.TAXONOMY_ADD_EDIT, params);
 		navigator.navigateTo(fragment);

@@ -52,7 +52,9 @@ public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implemen
 
 	@Override
 	protected void itemClick(BreadcrumbItem item) {
-		presenter.itemClicked(item);
+		if (!presenter.itemClicked(item)) {
+			super.itemClick(item);
+		}
 	}
 
 	@Override

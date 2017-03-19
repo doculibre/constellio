@@ -179,17 +179,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 			@Override
 			public void nodeExpand(ExpandEvent event) {
 				T itemId = (T) event.getItemId();
-				Object loaderId = getLoaderId(itemId);
-				if (loaderId != null) {
-					// Since the loader is present, it means that the children have not been removed
-					ObjectsResponse<T> childrenResponse = dataProvider.getChildren(itemId, 0, bufferSize);
-					replaceLoaderWithChildren(loaderId, itemId, childrenResponse.getObjects());
-					if (childrenResponse.getCount() > childrenResponse.getObjects().size()) {
-						addLoaderItem(itemId, childrenResponse.getObjects().size());
-					}
-				}
-				Resource icon = getItemIcon(itemId);
-				setItemIcon(itemId, icon, "");
+				adjustLoaderAfterExpand(itemId);
 			}
 		});
 
@@ -198,12 +188,30 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 			@Override
 			public void nodeCollapse(CollapseEvent event) {
 				T itemId = (T) event.getItemId();
-				Resource icon = getItemIcon(itemId);
-				setItemIcon(itemId, icon, "");
+				adjustLoaderAfterCollapse(itemId);
 			}
 		});
 
 		return adaptee;
+	}
+	
+	private void adjustLoaderAfterExpand(T itemId) {
+		Object loaderId = getLoaderId(itemId);
+		if (loaderId != null) {
+			// Since the loader is present, it means that the children have not been removed
+			ObjectsResponse<T> childrenResponse = dataProvider.getChildren(itemId, 0, bufferSize);
+			replaceLoaderWithChildren(loaderId, itemId, childrenResponse.getObjects());
+			if (childrenResponse.getCount() > childrenResponse.getObjects().size()) {
+				addLoaderItem(itemId, childrenResponse.getObjects().size());
+			}
+		}
+		Resource icon = getItemIcon(itemId);
+		setItemIcon(itemId, icon, "");
+	}
+	
+	private void adjustLoaderAfterCollapse(T itemId) {
+		Resource icon = getItemIcon(itemId);
+		setItemIcon(itemId, icon, "");
 	}
 
 	public final LazyTreeDataProvider<T> getDataProvider() {
@@ -211,12 +219,18 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	}
 
 	private void addItem(T child, T parent) {
+		addItem(child, parent, true);
+	}
+
+	private void addItem(T child, T parent, boolean addLoaderItemIfPossible) {
 		adaptee.addItem(child);
 		if (parent != null) {
 			adaptee.setParent(child, parent);
 		}
 		if (!dataProvider.isLeaf(child) && dataProvider.hasChildren(child)) {
-			addLoaderItem(child, 0);
+			if (addLoaderItemIfPossible) {
+				addLoaderItem(child, 0);
+			}
 		} else {
 			adaptee.setChildrenAllowed(child, false);
 		}
@@ -449,29 +463,113 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		return adaptee.isExpanded(itemId);
 	}
 	
-	public void loadUntil(T itemId, T parentId) {
-		Item existingItem = adaptee.getItem(itemId);
-		if (existingItem == null) {
-			loop1: while (existingItem == null) {
+	/**
+	 * Will load the nodes corresponding to the item ids passed. Each item id corresponds to a parent 
+	 * except for the last one, which is the last node, which can be a leaf.
+	 * 
+	 * The item ids are ordered from the root level to the leaf level. Omitting any level will prevent 
+	 * the tree from loading the desired node.
+	 * 
+	 * Note: The lazy loading of a level will stop after 10 attempts. This is necessary to prevent 
+	 * performance issues.
+	 * 
+	 * @param itemIds The item ids to load, from the root level to the leaf level.
+	 * @return
+	 */
+	public boolean loadAndExpand(List<T> itemIds) {
+		boolean match = true;
+		T currentParentId = null;
+		for (T itemId : itemIds) {
+			Item itemFound = loadUntil(itemId, currentParentId);
+			if (itemFound == null) {
+				match = false;
+				break;
+			} 
+			currentParentId = itemId;
+		}
+		return match;
+	}
+	
+	public Item loadUntil(T itemId, T parentId) {
+		// Ensures that initContent() has been called
+		getContent();
+		
+		Item match = adaptee.getItem(itemId);
+		if (match == null) {
+			loop1 : for (int i = 0; match == null && i < 10; i++) {
 				int start;
 				ObjectsResponse<T> extraObjectsResponse;
+				Object lastLoaderItemId = null;
 				if (parentId == null) {
-					start = adaptee.rootItemIds().size();
-					// TODO Make sure that the last item is not a loader
+					Collection<?> rootItemIds = adaptee.rootItemIds();
+					start = rootItemIds.size();
+					if (start > 0) {
+						List<?> rootItemIdsList = new ArrayList<Object>(rootItemIds);
+						Object lastItemId = rootItemIdsList.get(start - 1);
+						if (isLoader(lastItemId)) {
+							lastLoaderItemId = lastItemId;
+							start--;
+						}
+					}
 					extraObjectsResponse = dataProvider.getRootObjects(start, bufferSize);
 				} else {
-					start = adaptee.getChildren(parentId).size();
-					// TODO Make sure that the last item is not a loader
-					extraObjectsResponse = dataProvider.getChildren(parentId, start, bufferSize);
-				}
-				for (T rootObject : extraObjectsResponse.getObjects()) {
-					addItem(rootObject, parentId);
-					if (itemId.equals(rootObject)) {
+					Item existingParentItem = adaptee.getItem(parentId);
+					if (existingParentItem != null) {
+						Collection<?> children = adaptee.getChildren(parentId);
+						if (children != null) {
+							start = children.size();
+							if (start == 1) {
+								Object firstItemId = children.iterator().next();
+								if (isLoader(firstItemId)) {
+									adaptee.removeItem(firstItemId);
+								}
+							}
+							if (start > 0) {
+								List<?> childrenList = new ArrayList<Object>(children);
+								Object lastItemId = childrenList.get(start - 1);
+								if (isLoader(lastItemId)) {
+									lastLoaderItemId = lastItemId;
+									start--;
+								}
+							}
+						} else {
+							start = 0;
+						}	
+						extraObjectsResponse = dataProvider.getChildren(parentId, start, bufferSize);
+					} else {
 						break loop1;
 					}
 				}
+				int extraObjectsCount = extraObjectsResponse.getCount();
+				List<T> extraObjects = extraObjectsResponse.getObjects();
+				boolean isMoreItems = (start + extraObjects.size()) < extraObjectsCount;
+				if (!extraObjects.isEmpty()) {
+					if (lastLoaderItemId != null) {
+						adaptee.removeItem(lastLoaderItemId);
+					}
+					for (T extraObject : extraObjects) {
+						boolean matchingItemId = itemId.equals(extraObject);
+						addItem(extraObject, parentId);
+						if (matchingItemId) {
+							match = adaptee.getItem(extraObject);
+						}
+					}
+					if (!isMoreItems) {
+						break loop1;
+					} else {
+						int nextLoadedIndex = start + extraObjects.size();
+						addLoaderItem(parentId, nextLoadedIndex);
+					}
+				} else {
+					break loop1;
+				}
 			}
 		}
+		if (match != null) {
+			adaptee.expandItem(itemId);
+			adjustLoaderAfterExpand(itemId);
+		}
+		return match;
 	}
 
 }

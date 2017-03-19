@@ -16,8 +16,8 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
-import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -25,6 +25,7 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
 
 public class CoreNavigationConfiguration implements Serializable {
+	
 	public static final String CONFIG = "config";
 	public static final String CONFIG_ICON = "images/icons/config/configuration.png";
 	public static final String LDAP_CONFIG = "ldapConfig";
@@ -464,7 +465,7 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(TRASH, FontAwesome.TRASH, TrashViewImpl.class) {
+				new NavigationItem.Active(TRASH, FontAwesome.TRASH, TrashViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						navigate.to().trash();

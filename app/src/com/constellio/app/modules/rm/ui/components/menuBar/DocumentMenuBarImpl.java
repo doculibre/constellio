@@ -150,7 +150,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 			createPDFAItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					presenter.createPDFAButtonClicked();
+					presenter.createPDFA();
 				}
 			});
 		}

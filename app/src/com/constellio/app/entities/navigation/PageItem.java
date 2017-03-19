@@ -1,6 +1,7 @@
 package com.constellio.app.entities.navigation;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
@@ -83,16 +84,36 @@ public abstract class PageItem implements CodedItem, Serializable {
 	}
 
 	public static abstract class RecordTree extends PageItem {
+		
+		private int defaultDataProvider = -1;
+		
+		private List<String> expandedRecordIds = Collections.emptyList();
+		
 		public RecordTree(String code) {
 			super(code, Type.RECORD_TREE);
+		}
+		
+		public int getDefaultDataProvider() {
+			return defaultDataProvider;
+		}
+		
+		public void setDefaultDataProvider(int defaultDataProvider) {
+			this.defaultDataProvider = defaultDataProvider;
+		}
+		
+		public List<String> getExpandedRecordIds() {
+			return expandedRecordIds;
+		}
+
+		public void setExpandedRecordIds(List<String> expandedRecordIds) {
+			this.expandedRecordIds = expandedRecordIds;
 		}
 
 		public abstract List<RecordLazyTreeDataProvider> getDataProviders(
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);
-		
-		public abstract int getDefaultDataProvider();
 
 		public abstract BaseContextMenu getContextMenu();
+		
 	}
 
 	public static abstract class CustomItem extends PageItem {

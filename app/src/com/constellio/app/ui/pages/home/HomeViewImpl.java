@@ -253,6 +253,9 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				HomeViewImpl.this.showErrorMessage(errorMessage);
 			}
 		});
+
+		tree.loadAndExpand(recordTree.getExpandedRecordIds());
+		
 		return tree;
 	}
 

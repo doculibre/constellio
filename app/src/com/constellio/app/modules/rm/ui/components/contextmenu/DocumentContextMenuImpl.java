@@ -162,7 +162,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			createPDFAItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.createPDFAButtonClicked();
+					presenter.createPDFA();
 				}
 			});
 		}

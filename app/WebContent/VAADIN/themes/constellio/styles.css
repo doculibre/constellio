@@ -12708,6 +12708,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .xbreadcrumbs .xbreadcrumbbutton {
 	height: auto;
 	white-space: normal;
+	opacity: 0.5;
 }
 
 .constellio .v-window .popupContent {

@@ -139,14 +139,28 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		}
 	}
 
-	public void itemClicked(BreadcrumbItem item) {
+	public boolean itemClicked(BreadcrumbItem item) {
+		boolean handled;
 		if (item instanceof FolderBreadcrumbItem) {
+			handled = true;
 			String folderId = ((FolderBreadcrumbItem) item).getFolderId();
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
-		} else {
+		} else if (item instanceof DocumentBreadcrumbItem) {
+			handled = true;
 			String documentId = ((DocumentBreadcrumbItem) item).getDocumentId();
 			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
+		} else if (item instanceof TaxonomyElementBreadcrumbItem) {
+			handled = true;
+			TaxonomyElementBreadcrumbItem taxonomyElementBreadcrumbItem = (TaxonomyElementBreadcrumbItem) item;
+			String expandedRecordId = taxonomyElementBreadcrumbItem.getTaxonomyElementId();
+			breadcrumbTrail.navigate().to().home(taxonomyCode, expandedRecordId, null);
+		} else if (item instanceof TaxonomyBreadcrumbItem) {
+			handled = true;
+			breadcrumbTrail.navigate().to().home(taxonomyCode, null, null);
+		} else {
+			handled = false;
 		}
+		return handled;
 	}
 
 	class TaxonomyBreadcrumbItem implements BreadcrumbItem {
@@ -171,7 +185,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public boolean isEnabled() {
-			return false;
+			return true;
 		}
 
 	}
@@ -195,7 +209,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public boolean isEnabled() {
-			return false;
+			return true;
 		}
 
 	}

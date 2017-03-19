@@ -103,7 +103,10 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 		LOGGER.info("getChildren(" + parent + ", " + start + ", " + maxSize + ") => " + recordIds);
 
 		RecordDataTreeNode parentTreeNode = nodesCache.get(parent);
-		parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
+		// FIXME Francis
+		if (parentTreeNode != null) {
+			parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
+		}
 
 		int end = start + maxSize;
 		FastContinueInfos responseFastContinueInfos = response.getFastContinueInfos();

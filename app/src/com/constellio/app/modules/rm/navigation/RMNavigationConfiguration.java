@@ -208,19 +208,15 @@ public class RMNavigationConfiguration implements Serializable {
 
 	private static void configureHomeFragments(NavigationConfig config) {
 		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
-			private int defaultTab;
-
 			@Override
 			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
 																	 SessionContext sessionContext) {
 				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
-				defaultTab = tabSheet.getDefaultTab();
+				if (getDefaultDataProvider() == -1) {
+					int defaultTab = tabSheet.getDefaultTab();
+					setDefaultDataProvider(defaultTab);
+				}	
 				return tabSheet.getDataProviders();
-			}
-
-			@Override
-			public int getDefaultDataProvider() {
-				return defaultTab;
 			}
 
 			@Override
