@@ -30,12 +30,17 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ReferenceDisplay extends Button {
+	
 	public static final String STYLE_NAME = "reference-display";
 	private RecordVO recordVO;
 	private String recordId;
 	private RecordContextMenu contextMenu;
 
 	public ReferenceDisplay(RecordVO recordVO) {
+		this(recordVO, true);
+	}
+
+	public ReferenceDisplay(RecordVO recordVO, boolean link) {
 		this.recordVO = recordVO;
 		String caption = new RecordVOToCaptionConverter().convertToPresentation(recordVO, String.class, getLocale());
 		Resource icon = FileIconUtils.getIcon(recordVO);
@@ -43,10 +48,14 @@ public class ReferenceDisplay extends Button {
 			setIcon(icon);
 		}
 		setCaption(caption);
-		init(recordVO);
+		init(recordVO, link);
 	}
 
 	public ReferenceDisplay(String recordId) {
+		this(recordId, true);
+	}
+
+	public ReferenceDisplay(String recordId, boolean link) {
 		this.recordId = recordId;
 		String caption = new RecordIdToCaptionConverter().convertToPresentation(recordId, String.class, getLocale());
 		if (recordId != null) {
@@ -56,15 +65,17 @@ public class ReferenceDisplay extends Button {
 			}
 		}
 		setCaption(caption);
-		init(recordId);
+		init(recordId, link);
 	}
 
-	private void init(RecordVO recordVO) {
+	private void init(RecordVO recordVO, boolean link) {
 		setSizeFull();
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 		setEnabled(false);
-		prepareLink();
+		if (link) {
+			prepareLink();
+		}
 
 		String niceTitle = recordVO.getNiceTitle();
 		if (niceTitle != null) {
@@ -72,12 +83,14 @@ public class ReferenceDisplay extends Button {
 		}
 	}
 
-	private void init(String recordId) {
+	private void init(String recordId, boolean link) {
 		setSizeFull();
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 		setEnabled(false);
-		prepareLink();
+		if (link) {
+			prepareLink();
+		}
 		//		addContextMenu();
 
 		if (recordId != null) {

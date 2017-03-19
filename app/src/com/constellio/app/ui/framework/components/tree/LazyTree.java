@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.ObjectsResponse;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
@@ -38,7 +40,13 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	private List<ItemClickListener> itemClickListeners = new ArrayList<ItemClickListener>();
 
 	public LazyTree(LazyTreeDataProvider<T> treeDataProvider) {
-		this(treeDataProvider, 20);
+		this(treeDataProvider, getBufferSizeFromConfig());
+	}
+	
+	private static int getBufferSizeFromConfig() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		return modelLayerFactory.getSystemConfigs().getLazyTreeBufferSize();
 	}
 
 	public LazyTree(LazyTreeDataProvider<T> treeDataProvider, int bufferSize) {

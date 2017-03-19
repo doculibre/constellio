@@ -93,10 +93,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 
+		final int autoCompleteBuffer = 100;
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				return suggestInputDataProvider.getData(text, 0, 10);
+				return suggestInputDataProvider.getData(text, 0, autoCompleteBuffer);
+			}
+
+			@Override
+			public int getBufferSize() {
+				return autoCompleteBuffer;
 			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);

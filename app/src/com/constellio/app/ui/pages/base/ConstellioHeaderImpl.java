@@ -437,7 +437,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 		List<String> selectedRecordIds = getSessionContext().getSelectedRecordIds();
 		for (String selectedRecordId : selectedRecordIds) {
-			ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordId);
+			ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordId, false);
 			Item item = selectionTable.addItem(selectedRecordId);
 			item.getItemProperty("recordId").setValue(referenceDisplay);
 		}

@@ -56,6 +56,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
 		autocompleteContainer = new AutocompleteContainer(prefixSize);
 		setContainerDataSource(autocompleteContainer);
+		setPageLength(suggestionsProvider.getBufferSize());
 
 		addValueChangeListener(new ValueChangeListener() {
 			@SuppressWarnings("unchecked")
@@ -126,6 +127,8 @@ public class BaseAutocompleteField<T> extends ComboBox {
 
 		List<T> suggest(String text);
 
+		int getBufferSize();
+
 	}
 
 	private class AutocompleteContainer extends IndexedContainer {
@@ -193,12 +196,12 @@ public class BaseAutocompleteField<T> extends ComboBox {
 			List<T> dataList = suggestionsProvider.suggest(text);
 
 			// add the results to the container
-			int i = 0;
+//			int i = 0;
 			Iterator<T> iterDataList = dataList.iterator();
 			while (iterDataList.hasNext()) {
 				T suggestion = iterDataList.next();
 				addSuggestion(suggestion);
-				i++;
+//				i++;
 			}// end while iter has next
 
 		}// end queryDataBase method
