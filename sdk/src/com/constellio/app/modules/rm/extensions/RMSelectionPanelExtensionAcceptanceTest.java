@@ -126,7 +126,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         List<String> existingIds = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).
                 where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0))
         ));
-        extension.classifyButtonClicked(records.folder_A20, param);
+        extension.classifyButtonClicked(records.folder_A20, "", true, param);
 
         List<Record> recordList = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
                 .whereAllConditions(

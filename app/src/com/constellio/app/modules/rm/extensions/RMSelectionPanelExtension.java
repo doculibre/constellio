@@ -5,6 +5,7 @@ import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
@@ -20,6 +21,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -33,6 +35,7 @@ import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -167,20 +170,41 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addClassifyButton(final AvailableActionsParam param) {
         WindowButton classifyButton = new WindowButton($("ConstellioHeader.selection.actions.classify"), $("ConstellioHeader.selection.actions.classify")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+                , WindowButton.WindowConfiguration.modalDialog("50%", "30%")) {
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField();
-                field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-                verticalLayout.addComponent(field);
+                final LookupFolderField folderField = new LookupFolderField();
+                folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
+                folderField.setVisible(false);
+                final FolderCategoryFieldImpl categoryField = new FolderCategoryFieldImpl();
+                categoryField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
+                categoryField.setVisible(true);
+                final ListOptionGroup classificationOption = new ListOptionGroup($("ConstellioHeader.selection.actions.classificationChoice"), asList(true, false));
+                classificationOption.addStyleName("horizontal");
+                classificationOption.setNullSelectionAllowed(false);
+                classificationOption.setItemCaption(true, $("ConstellioHeader.selection.actions.classifyInClassificationPlan"));
+                classificationOption.setItemCaption(false, $("ConstellioHeader.selection.actions.classifyInFolder"));
+                classificationOption.setValue(true);
+                classificationOption.addValueChangeListener(new Property.ValueChangeListener() {
+                    @Override
+                    public void valueChange(Property.ValueChangeEvent event) {
+                        folderField.setVisible(!Boolean.TRUE.equals(event.getProperty().getValue()));
+                        categoryField.setVisible(Boolean.TRUE.equals(event.getProperty().getValue()));
+                    }
+                });
+
+
+                verticalLayout.addComponents(classificationOption, folderField, categoryField);
                 BaseButton saveButton = new BaseButton($("save")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
-                        String parentId = field.getValue();
+                        String parentId = folderField.getValue();
+                        String categoryId = categoryField.getId();
+                        boolean isClassifiedInFolder = !Boolean.TRUE.equals(classificationOption.getValue());
                         try {
-                            classifyButtonClicked(parentId, param);
+                            classifyButtonClicked(parentId, categoryId, isClassifiedInFolder, param);
                         } catch (Throwable e) {
 //                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
 //                            showErrorMessage("DisplayFolderView.parentFolderException");
@@ -372,7 +396,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         }
     }
 
-    public void classifyButtonClicked(String parentId, AvailableActionsParam param)
+    public void classifyButtonClicked(String parentId, String categoryId, boolean isClassifiedInFolder, AvailableActionsParam param)
             throws RecordServicesException {
 
         List<String> recordIds = param.getIds();
@@ -386,11 +410,17 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     switch (record.getTypeCode()) {
                         case UserFolder.SCHEMA_TYPE:
                             Folder newFolder = rmSchemas.newFolder();
-                            decommissioningService(param).populateFolderFromUserFolder(newFolder, rmSchemas.wrapUserFolder(record), param.getUser());
-                            newFolder.setParentFolder(parentId);
+                            RMUserFolder userFolder = rmSchemas.wrapUserFolder(record);
+                            if(!isClassifiedInFolder) {
+                                userFolder.setCategory(categoryId);
+                            }
+                            decommissioningService(param).populateFolderFromUserFolder(newFolder, userFolder, param.getUser());
+                            if(isClassifiedInFolder) {
+                                newFolder.setParentFolder(parentId);
+                            }
                             recordServices.add(newFolder);
-                            decommissioningService(param).duplicateSubStructureAndSave(newFolder, rmSchemas.wrapUserFolder(record), param.getUser());
-                            deleteUserFolder(param, rmSchemas.wrapUserFolder(record), param.getUser());
+                            decommissioningService(param).duplicateSubStructureAndSave(newFolder, userFolder, param.getUser());
+                            deleteUserFolder(param, userFolder, param.getUser());
                             break;
                         case UserDocument.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
