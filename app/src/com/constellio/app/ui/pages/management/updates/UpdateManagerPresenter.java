@@ -9,6 +9,15 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.services.records.RecordServicesException;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +112,19 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public void restart() {
 		try {
 			appLayerFactory.newApplicationService().restart();
-		} catch (AppManagementServiceException ase) {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			Record event = rm.newEvent()
+					.setType(EventType.RESTARTING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("new Restarting Event")
+					.getWrappedRecord();
+			Transaction t = new Transaction();
+			t.add(event);
+			appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
+		} catch (AppManagementServiceException | RecordServicesException ase) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
 	}
