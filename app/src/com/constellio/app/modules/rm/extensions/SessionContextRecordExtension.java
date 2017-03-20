@@ -11,12 +11,20 @@ public class SessionContextRecordExtension extends RecordExtension {
 	@Override
 	public void recordLogicallyDeleted(RecordLogicalDeletionEvent event) {
 		Record record = event.getRecord();
-		ConstellioUI.getCurrentSessionContext().removeSelectedRecordId(record.getId(), record.getTypeCode());
+		try {
+			ConstellioUI.getCurrentSessionContext().removeSelectedRecordId(record.getId(), record.getTypeCode());
+		} catch (Throwable t) {
+			// Ignore
+		}
 	}
 
 	@Override
 	public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
 		Record record = event.getRecord();
-		ConstellioUI.getCurrentSessionContext().removeSelectedRecordId(record.getId(), record.getTypeCode());
+		try {
+			ConstellioUI.getCurrentSessionContext().removeSelectedRecordId(record.getId(), record.getTypeCode());
+		} catch (Throwable t) {
+			// Ignore
+		}
 	}
 }
