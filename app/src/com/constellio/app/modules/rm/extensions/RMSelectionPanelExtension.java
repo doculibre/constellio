@@ -82,10 +82,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addMoveButton(final AvailableActionsParam param) {
         WindowButton moveInFolderButton = new WindowButton($("ConstellioHeader.selection.actions.moveInFolder"), $("ConstellioHeader.selection.actions.moveInFolder")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+                , WindowButton.WindowConfiguration.modalDialog("50%", "220px")) {
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
+                verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
                 final LookupFolderField field = new LookupFolderField();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
@@ -116,6 +117,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 };
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
                 HorizontalLayout hLayout = new HorizontalLayout();
+                hLayout.setSpacing(true);
                 hLayout.setSizeFull();
                 hLayout.addComponent(saveButton);
                 hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
@@ -162,7 +164,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 HorizontalLayout hLayout = new HorizontalLayout();
                 hLayout.setSizeFull();
                 hLayout.addComponent(saveButton);
-                hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+                hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_CENTER);
                 verticalLayout.addComponent(hLayout);
                 return verticalLayout;
             }
@@ -175,10 +177,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addClassifyButton(final AvailableActionsParam param) {
         WindowButton classifyButton = new WindowButton($("ConstellioHeader.selection.actions.classify"), $("ConstellioHeader.selection.actions.classify")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "30%")) {
+                , WindowButton.WindowConfiguration.modalDialog("50%", "220px")) {
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
+                verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
                 final LookupFolderField folderField = new LookupFolderField();
                 folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
@@ -221,9 +224,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 };
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
                 HorizontalLayout hLayout = new HorizontalLayout();
+                hLayout.setSpacing(true);
                 hLayout.setSizeFull();
                 hLayout.addComponent(saveButton);
-                hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+                hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_CENTER);
                 verticalLayout.addComponent(hLayout);
                 return verticalLayout;
             }
