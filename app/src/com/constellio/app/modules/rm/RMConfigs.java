@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm;
 
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -59,6 +60,7 @@ public class RMConfigs {
 			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
 			DEFAULT_TAB_IN_FOLDER_DISPLAY,
 			UNIFORM_SUBDIVISION_ENABLED,
+			STORAGE_SPACE_TITLE_CALCULATOR_ENABLED,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
@@ -231,6 +233,10 @@ public class RMConfigs {
 
 		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
 				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
+
+		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = decommissioning
+				.createBooleanFalseByDefault("enableStorageSpaceTitleCalculator")
+				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
 
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
 				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));

@@ -78,7 +78,6 @@ import com.constellio.app.modules.rm.model.calculators.rule.RuleDocumentTypesCal
 import com.constellio.app.modules.rm.model.calculators.rule.RuleFolderTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceLinearSizeCalculator;
-import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceTitleCalculator;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
@@ -3521,6 +3520,7 @@ public final class GeneratedRMMigrationCombo {
     storageSpace_code.setEssential(true);
     storageSpace_code.setSchemaAutocomplete(true);
     storageSpace_code.setSearchable(true);
+    storageSpace_code.setUniqueValue(true);
     MetadataBuilder storageSpace_comments = storageSpaceSchema.create("comments").setType(MetadataValueType.STRUCTURE);
     storageSpace_comments.setMultivalue(true);
     storageSpace_comments.setUndeletable(true);
@@ -3680,7 +3680,6 @@ public final class GeneratedRMMigrationCombo {
     storageSpace_title.setEssential(true);
     storageSpace_title.setSchemaAutocomplete(true);
     storageSpace_title.setSearchable(true);
-    storageSpace_title.setUniqueValue(true);
     MetadataBuilder storageSpace_tokens = storageSpaceSchema.get("tokens");
     storageSpace_tokens.setMultivalue(true);
     storageSpace_tokens.setSystemReserved(true);
@@ -4372,7 +4371,6 @@ public final class GeneratedRMMigrationCombo {
     storageSpace_path.defineDataEntry().asCalculated(PathCalculator.class);
     storageSpace_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
     storageSpace_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    storageSpace_title.defineDataEntry().asCalculated(StorageSpaceTitleCalculator.class);
     storageSpace_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
     uniformSubdivision_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
     uniformSubdivision_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
@@ -4551,7 +4549,7 @@ public final class GeneratedRMMigrationCombo {
     transaction.add(manager.getType(collection, "retentionRule").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
     transaction.add(manager.getSchema(collection, "retentionRule_default").withFormMetadataCodes(asList("retentionRule_default_scope", "retentionRule_default_code", "retentionRule_default_approved", "retentionRule_default_approvalDate", "retentionRule_default_title", "retentionRule_default_corpus", "retentionRule_default_corpusRuleNumber", "retentionRule_default_administrativeUnits", "retentionRule_default_responsibleAdministrativeUnits", "retentionRule_default_description", "retentionRule_default_juridicReference", "retentionRule_default_generalComment", "retentionRule_default_keywords", "retentionRule_default_history", "retentionRule_default_essentialDocuments", "retentionRule_default_confidentialDocuments", "retentionRule_default_copyRetentionRules", "retentionRule_default_principalDefaultDocumentCopyRetentionRule", "retentionRule_default_secondaryDefaultDocumentCopyRetentionRule", "retentionRule_default_documentCopyRetentionRules", "retentionRule_default_documentTypesDetails", "retentionRule_default_copyRulesComment")).withDisplayMetadataCodes(asList("retentionRule_default_code", "retentionRule_default_approved", "retentionRule_default_approvalDate", "retentionRule_default_title", "retentionRule_default_corpus", "retentionRule_default_corpusRuleNumber", "retentionRule_default_administrativeUnits", "retentionRule_default_responsibleAdministrativeUnits", "retentionRule_default_description", "retentionRule_default_juridicReference", "retentionRule_default_generalComment", "retentionRule_default_keywords", "retentionRule_default_history", "retentionRule_default_essentialDocuments", "retentionRule_default_confidentialDocuments", "retentionRule_default_copyRetentionRules", "retentionRule_default_documentTypesDetails", "retentionRule_default_copyRulesComment", "retentionRule_default_scope", "retentionRule_default_principalDefaultDocumentCopyRetentionRule", "retentionRule_default_secondaryDefaultDocumentCopyRetentionRule", "retentionRule_default_documentCopyRetentionRules")).withSearchResultsMetadataCodes(asList("retentionRule_default_code", "retentionRule_default_title", "retentionRule_default_modifiedOn")).withTableMetadataCodes(asList("retentionRule_default_code", "retentionRule_default_title", "retentionRule_default_modifiedOn")));
     transaction.add(manager.getType(collection, "storageSpace").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
-    transaction.add(manager.getSchema(collection, "storageSpace_default").withFormMetadataCodes(asList("storageSpace_default_type", "storageSpace_default_code", "storageSpace_default_description", "storageSpace_default_capacity", "storageSpace_default_decommissioningType", "storageSpace_default_parentStorageSpace", "storageSpace_default_containerType")).withDisplayMetadataCodes(asList("storageSpace_default_type", "storageSpace_default_code", "storageSpace_default_title", "storageSpace_default_createdBy", "storageSpace_default_createdOn", "storageSpace_default_modifiedOn", "storageSpace_default_capacity", "storageSpace_default_decommissioningType", "storageSpace_default_parentStorageSpace", "storageSpace_default_description", "storageSpace_default_containerType")).withSearchResultsMetadataCodes(asList("storageSpace_default_title", "storageSpace_default_modifiedOn")).withTableMetadataCodes(asList("storageSpace_default_title", "storageSpace_default_modifiedOn")));
+    transaction.add(manager.getSchema(collection, "storageSpace_default").withFormMetadataCodes(asList("storageSpace_default_type", "storageSpace_default_code", "storageSpace_default_title", "storageSpace_default_description", "storageSpace_default_capacity", "storageSpace_default_decommissioningType", "storageSpace_default_parentStorageSpace", "storageSpace_default_containerType")).withDisplayMetadataCodes(asList("storageSpace_default_type", "storageSpace_default_code", "storageSpace_default_title", "storageSpace_default_createdBy", "storageSpace_default_createdOn", "storageSpace_default_modifiedOn", "storageSpace_default_capacity", "storageSpace_default_decommissioningType", "storageSpace_default_parentStorageSpace", "storageSpace_default_description", "storageSpace_default_containerType")).withSearchResultsMetadataCodes(asList("storageSpace_default_title", "storageSpace_default_modifiedOn")).withTableMetadataCodes(asList("storageSpace_default_title", "storageSpace_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "storageSpace_default_availableSize").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "storageSpace_default_containerType").withMetadataGroup("").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getType(collection, "task").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
