@@ -28,6 +28,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String BY_USER_EVENTS_LINK_BUTTON = "byUserEventsLinkButton";
 	public static final String DECOMMISSIONING_EVENTS_LINK_BUTTON = "decommissioningEventsLinkButton";
 	public static final String AGENT_EVENTS_LINK_BUTTON = "agentEventsLinkButton";
+	public static final String REINDEX_AND_RESTART_BUTTON = "reindexAndRestartButton";
 
 	private boolean agentEventsVisible;
 
@@ -89,6 +90,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		Button decommissioningEventsLink = newDecommissioningEventsLink();
 		decommissioningEventsLink.addStyleName(DECOMMISSIONING_EVENTS_LINK_BUTTON);
 		layout.addComponent(decommissioningEventsLink);
+
+		Button reindexAndRestartEventLink = newReIndexAndRestartLink();
+		reindexAndRestartEventLink.addStyleName(REINDEX_AND_RESTART_BUTTON);
+		layout.addComponents(reindexAndRestartEventLink);
 
 		if (agentEventsVisible) {
 			Button agentEventsLink = newAgentEventsLink();
@@ -188,6 +193,11 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	private Button newRecordsCreationLink() {
 		return createLink($("ListEventsView.foldersAndDocumentsCreation"), EventCategory.FOLDERS_AND_DOCUMENTS_CREATION,
 				"folder_document_new");
+	}
+
+	private Button newReIndexAndRestartLink() {
+		return createLink($("ListEventsView.reIndexAndRestart"), EventCategory.REINDEX_AND_RESTART,
+				"TODO");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {
