@@ -251,6 +251,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 		recordServices.recalculate(rmFolder);
 		rmFolder.setFormModifiedOn(connectorFolder.getLastModified());
+		rmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
 		classifyDocumentsFromFolder(rmFolder);
 
 	}
@@ -314,6 +315,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		newRmFolder.setCreatedByRobot(robotId);
 		if (parentFolder != null) {
 			newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
+			newRmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
 			newRmFolder.setOpenDate(parentFolder.getOpenDate());
 			newRmFolder.setCloseDateEntered(parentFolder.getCloseDateEntered());
 		}
@@ -333,6 +335,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		newRmFolder.set(taxoMetadata.getLocalCode(), parentConcept.getId()).setTitle(pathPart);
 		newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
+		newRmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
 		newRmFolder.setLegacyId(fullConnectorDocPath);
 		return newRmFolder;
 	}
@@ -588,6 +591,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			document.setTitle(connectorDocument.getTitle());
 			document.setFolder(inRmFolder);
 			document.setFormModifiedOn(connectorDocument.getLastModified());
+			document.setFormCreatedOn(connectorDocument.getCreatedOn());
 
 			RecordUtils.copyMetadatas(connectorDocument, document);
 			try {

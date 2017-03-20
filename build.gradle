@@ -131,7 +131,6 @@ war {
     version = "7.1"
 
     webInf {
-i
         from("resources_i18n/") {
             into("resources_i18n")
         }
