@@ -128,8 +128,7 @@ public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends Cons
 
 		validator.validate(parameters, schema, configProvider, errors);
 
-		assertThat(errors).has(size(1)).has(error(
-				ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_ALL_DEFAULT_VALUES_WHEN_NO_MAPPING_AND_NO_PARENT_FOLDER));
+		assertThat(errors).has(size(0));
 	}
 
 	@Test
@@ -158,8 +157,7 @@ public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends Cons
 
 		validator.validate(parameters, schema, configProvider, errors);
 
-		assertThat(errors).has(size(1)).has(error(
-				ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_ALL_DEFAULT_VALUES_WHEN_NO_MAPPING_AND_NO_PARENT_FOLDER));
+		assertThat(errors).has(size(0));
 	}
 
 	private Condition<? super ValidationErrors> size(final int size) {

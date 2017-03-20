@@ -22,8 +22,12 @@ import java.util.Arrays;
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION;
 
 public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory implements EsRmRobotActionParametersFields {
-	
+	private static final String DEFAULT_RETENTION_RULE = "defaultRetentionRule";
+	private static final String DEFAULT_CATEGORY = "defaultCategory";
+	private static final String DEFAULT_PARENT_FOLDER = "defaultParentFolder";
+	private static final String IN_TAXONOMY = "inTaxonomy";
 	private static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
+	private static final String PATH_PREFIX = "pathPrefix";
 
 	private ActionParametersCategoryFieldImpl categoryField;
 
@@ -52,6 +56,26 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 		}
 		
 		if(DEFAULT_COPY_STATUS.equals(metadataVO.getLocalCode())) {
+			return null;
+		}
+		
+		if(IN_TAXONOMY.equals(metadataVO.getLocalCode())) {
+			return null;
+		}
+		
+		if(DEFAULT_PARENT_FOLDER.equals(metadataVO.getLocalCode())) {
+			return null;
+		}
+		
+		if(DEFAULT_CATEGORY.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+			return null;
+		}
+
+		if(DEFAULT_RETENTION_RULE.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+			return null;
+		}
+
+		if(PATH_PREFIX.equals(metadataVO.getLocalCode())) {
 			return null;
 		}
 

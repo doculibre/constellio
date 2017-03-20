@@ -49,6 +49,10 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		implements FieldOverridePresenter, SearchCriteriaPresenter, DynamicParametersPresenter {
+	private static final String RUN_EXTRACTORS_ACTION = "runExtractorsAction";
+	private static final String PATH_PREFIX = "pathPrefix";
+	private static final String IN_TAXONOMY = "inTaxonomy";
+	private static final String PLAN = "plan";
 	private static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
 	public static final String ADD = "add";
 	public static final String EDIT = "edit";
@@ -228,7 +232,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		List<Choice> choices = new ArrayList<>();
 		if (schemaFilter != null) {
 			for (RegisteredAction action : manager().getRegisteredActionsFor(schemaFilter)) {
-				choices.add(new Choice(action.getCode(), $("robot.action." + action.getCode())));
+				if (!RUN_EXTRACTORS_ACTION.equals(action.getCode())) {
+					choices.add(new Choice(action.getCode(), $("robot.action." + action.getCode())));
+				}
 			}
 		}
 		return choices;
@@ -245,16 +251,28 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		String schemaCode = action.getParametersSchemaLocalCode();
 		ActionParameters actionParameters = robotSchemas().newActionParameters(schemaCode);
 
+		initMetadataValue(actionParameters, DEFAULT_COPY_STATUS, CopyType.PRINCIPAL, false);
+		initMetadataValue(actionParameters, IN_TAXONOMY, PLAN, true);
+
 		try {
-			Metadata metadata = actionParameters.getSchema().get(DEFAULT_COPY_STATUS);
-			if (metadata != null && actionParameters.get(metadata) == null) {
-				actionParameters.set(metadata, CopyType.PRINCIPAL);
+			Metadata m = actionParameters.getSchema().get(PATH_PREFIX);
+			initMetadataValue(actionParameters, PATH_PREFIX, m.getDefaultValue(), true);
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			// Just ignore it : The metadata defaultCopyStatus doesn't appart to this scheme
+		}
+
+		return recordToVOBuilder.build(actionParameters.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+	}
+
+	private <T> void initMetadataValue(ActionParameters actionParameters, String metadataCode, T value, boolean forcer) {
+		try {
+			Metadata metadata = actionParameters.getSchema().get(metadataCode);
+			if (metadata != null && (forcer || actionParameters.get(metadata) == null)) {
+				actionParameters.set(metadata, value);
 			}
 		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 			// Just ignore it : The metadata defaultCopyStatus doesn't appart to this scheme
 		}
-		
-		return recordToVOBuilder.build(actionParameters.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 	}
 
 	private RecordVO loadActionParametersRecord() {
