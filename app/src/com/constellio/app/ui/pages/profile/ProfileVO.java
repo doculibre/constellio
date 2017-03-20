@@ -64,7 +64,7 @@ public class ProfileVO implements Serializable {
 
 	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String fax, String jobTitle, String address, String startTab,
 					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
-					 String oldPassword) {
+					 String oldPassword, boolean agentManuallyDisabled) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -80,6 +80,7 @@ public class ProfileVO implements Serializable {
 		this.password = password;
 		this.confirmPassword = confirmPassword;
 		this.oldPassword = oldPassword;
+		this.agentManuallyDisabled = agentManuallyDisabled;
 	}
 
 	public String getUsername() {
