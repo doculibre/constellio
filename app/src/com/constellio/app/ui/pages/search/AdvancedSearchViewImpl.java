@@ -283,4 +283,9 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		return presenter.computeStatistics();
 	}
 
+	@Override
+	protected String getTitle() {
+		return $("searchResults");
+	}
+
 }

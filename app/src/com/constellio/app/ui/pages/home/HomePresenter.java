@@ -14,12 +14,13 @@ import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -154,14 +155,18 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	public void recordClicked(String id, String taxonomyCode) {
 		if (id != null && !id.startsWith("dummy")) {
 			try {
+				// Recent folders or documents
+				if (taxonomyCode == null) {
+					taxonomyCode = RMTaxonomies.CLASSIFICATION_PLAN;
+				}
 				Record record = getRecord(id);
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.getUIContext().setAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
 					view.navigate().to(RMViews.class).displayFolder(id);
 				} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.getUIContext().setAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
 					view.navigate().to(RMViews.class).displayDocument(id);
 				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.navigate().to(RMViews.class).displayContainer(id);

@@ -17,10 +17,12 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.SearchSortType;
@@ -489,10 +491,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return true;
 	}
 
-	protected abstract void saveTemporarySearch(boolean refreshPage);
+	protected abstract SavedSearch saveTemporarySearch(boolean refreshPage);
 
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search;
+	}
+	
+	protected void updateUIContext(SavedSearch savedSearch) {
+		String searchId = savedSearch.getId();
+		boolean advancedSearch = StringUtils.isNotBlank(savedSearch.getSchemaFilter());
+		UIContext uiContext = view.getUIContext();
+		uiContext.setAttribute(BaseBreadcrumbTrail.SEARCH_ID, searchId);
+		uiContext.setAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH, advancedSearch);
+		uiContext.clearAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
 	}
 
 	protected SearchBoostManager searchBoostManager() {
