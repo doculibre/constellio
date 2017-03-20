@@ -8,6 +8,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
+import com.vaadin.data.Item;
 import com.vaadin.ui.Table;
 
 public abstract class RecordVOSelectionTableAdapter extends SelectionTableAdapter implements SelectedRecordIdsChangeListener {
@@ -48,12 +49,15 @@ public abstract class RecordVOSelectionTableAdapter extends SelectionTableAdapte
 		Object itemId = recordIdsToItemIdsMap.get(recordId);
 		if (itemId == null) {
 			for (Object tableItemId : getLoadedItemIds()) {
-				RecordVOItem item = (RecordVOItem) table.getItem(tableItemId);
-				String tableRecordId = item.getRecord().getId();
-				if (tableRecordId.equals(recordId)) {
-					itemId = tableItemId;
-					recordIdsToItemIdsMap.put(recordId, itemId);
-					break;
+				Item item = table.getItem(tableItemId);
+				if (item instanceof RecordVOItem) {
+					RecordVOItem recordVOItem = (RecordVOItem) table.getItem(tableItemId);
+					String tableRecordId = recordVOItem.getRecord().getId();
+					if (tableRecordId.equals(recordId)) {
+						itemId = tableItemId;
+						recordIdsToItemIdsMap.put(recordId, itemId);
+						break;
+					}
 				}
 			}
 		}
