@@ -234,7 +234,7 @@ public class RMConfigs {
 		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
 				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
 
-		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = decommissioning
+		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = others
 				.createBooleanFalseByDefault("enableStorageSpaceTitleCalculator")
 				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
 
