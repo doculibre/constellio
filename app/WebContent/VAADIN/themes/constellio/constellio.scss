@@ -427,7 +427,7 @@ $popup-view-z-index: 3;
 	    .display-value, .v-caption-display-value {
 	    	text-align: left;
 	    	font-size: inherit;
-	    	word-break: break-all;
+	    	word-break: break-word;
 	    	padding-left: 10px;
 	    }
 
@@ -855,6 +855,30 @@ $popup-view-z-index: 3;
 	    color: red;
 	}
 	
+	.confirm-dialog-info {
+		background-image: url('images/icons/dialog/info.png');
+		background-repeat: no-repeat;
+		background-position: 2px 10px;
+	}
+	
+	.confirm-dialog-warn {
+		background-image: url('images/icons/dialog/warn.png');
+		background-repeat: no-repeat;
+		background-position: 2px 10px;
+	}
+	
+	.confirm-dialog-error {
+		background-image: url('images/icons/dialog/error.png');
+		background-repeat: no-repeat;
+		background-position: 2px 10px;
+	}
+	
+	.confirm-dialog-stop {
+		background-image: url('images/icons/dialog/stop.png');
+		background-repeat: no-repeat;
+		background-position: 2px 10px;
+	}
+	
     .constellio-layout {
 
 	    .sidebar {
@@ -982,6 +1006,10 @@ $popup-view-z-index: 3;
 						    	
 						    	.v-slot-list-add-remove-table {
 						    		width: 100%;
+								
+									.reference-display {
+										padding-right: 0px;
+									}
 						    	}
 							}
 								
@@ -1123,7 +1151,7 @@ $popup-view-z-index: 3;
 
 					    	.v-checkbox > label {
 					    		max-width: 260px;
-					    		word-break: break-all;
+					    		word-break: break-word;
 					    		white-space: normal;
 					    		display: inline-block;
 					    		color: #197de1;

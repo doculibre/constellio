@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
@@ -13,7 +10,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.model.entities.records.Content;
+import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
@@ -21,6 +18,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class RMRecordAppExtension extends RecordAppExtension {
 	
@@ -96,9 +95,13 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
 			Document document = new Document(record, types());
-			Content content = document.getContent();
-			if (content != null && content.getCurrentVersion() != null) {
-				fileName = content.getCurrentVersion().getFilename();
+			String mimeType = document.getMimeType();
+			if (mimeType != null && !mimeType.isEmpty()) {
+				try {
+					fileName = FileIconUtils.getIconPathForMimeType(mimeType);
+				} catch (Exception e) {
+					fileName = "document";
+				}
 			} else {
 				fileName = "document";
 			}

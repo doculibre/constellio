@@ -82,6 +82,9 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 				.thenReturn(userCredentialWithPersonalEmails);
 		when(userServices.getUserInCollection("bob.gratton", zeCollection)).thenReturn(bob);
 		when(bob.getPhone()).thenReturn("3333333");
+		when(bob.getFax()).thenReturn("5148854566");
+		when(bob.getJobTitle()).thenReturn("programmer");
+		when(bob.getAddress()).thenReturn("647 address");
 		when(bob.getStartTab()).thenReturn(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
 		when(bob.getDefaultTaxonomy()).thenReturn("taxo1");
 		when(bob.getWrappedRecord()).thenReturn(bobRecord);
@@ -104,6 +107,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		verify(presenter)
 				.newProfileVO("bob.gratton", "bob", "Gratton", "bob@constellio.com",
 						Arrays.asList("bob@doculibre.com", "bob@gmail.com"), "3333333",
+						"5148854566", "programmer", "647 address",
 						RMNavigationConfiguration.LAST_VIEWED_FOLDERS, null, "taxo1", false);
 	}
 

@@ -343,4 +343,8 @@ public class Document extends RMObject {
 		return BooleanUtils.isTrue((Boolean) get(ESSENTIAL));
 	}
 
+	public String getMimeType() {
+		return get(MIME_TYPE);
+	}
+
 }

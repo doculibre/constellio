@@ -26,7 +26,7 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 	private int estimatedRootNodesCount = -1;
 	private Map<String, String> parentCache = new HashMap<>();
 	private Map<String, RecordDataTreeNode> nodesCache = new HashMap<>();
-	private RecordTreeNodesDataProvider nodesDataProvider;
+	RecordTreeNodesDataProvider nodesDataProvider;
 	private Map<String, FastContinueInfos> fastContinueInfosMap = new HashMap<>();
 
 	public BaseRecordTreeDataProvider(RecordTreeNodesDataProvider recordTreeNodesDataProvider) {

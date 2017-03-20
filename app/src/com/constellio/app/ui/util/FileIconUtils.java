@@ -1,12 +1,5 @@
 package com.constellio.app.ui.util;
 
-import java.io.Serializable;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -18,6 +11,15 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
 
 public class FileIconUtils implements Serializable {
 
@@ -141,5 +143,11 @@ public class FileIconUtils implements Serializable {
 			LOGGER.warn("Error while retrieving icon for record id " + record.getId(), t);
 			return null;
 		}
+	}
+
+	public static String getIconPathForMimeType(String mimeType) throws MimeTypeException {
+		MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+		MimeType currentMimeType = allTypes.forName(mimeType);
+		return currentMimeType.getExtension();
 	}
 }

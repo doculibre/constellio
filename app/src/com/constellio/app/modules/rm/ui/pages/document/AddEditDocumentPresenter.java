@@ -25,13 +25,9 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
+import com.constellio.app.modules.rm.ui.components.document.fields.*;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.NewFileClickListener;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentCopyRuleField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -47,6 +43,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -59,7 +56,22 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -303,7 +315,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (addViewWithCopy) {
 			setRecordContent(record, documentVO);
 		}
-		if (newFile) {
+		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
 			document.getContent().checkOut(getCurrentUser());
 		}
 		LocalDateTime time = TimeProvider.getLocalDateTime();

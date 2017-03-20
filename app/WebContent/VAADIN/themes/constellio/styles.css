@@ -12609,7 +12609,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .base-display .display-value, .constellio .base-display .v-caption-display-value {
 	text-align: left;
 	font-size: inherit;
-	word-break: break-all;
+	word-break: break-word;
 	padding-left: 10px;
 }
 
@@ -12975,6 +12975,30 @@ div.v-layout.v-horizontal.v-widget {
 	color: red;
 }
 
+.constellio .confirm-dialog-info {
+	background-image: url('images/icons/dialog/info.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .confirm-dialog-warn {
+	background-image: url('images/icons/dialog/warn.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .confirm-dialog-error {
+	background-image: url('images/icons/dialog/error.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .confirm-dialog-stop {
+	background-image: url('images/icons/dialog/stop.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
 .constellio .constellio-layout .sidebar {
 	overflow-y: hidden;
 }
@@ -13095,6 +13119,10 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .list-add-remove .v-slot-list-add-remove-table .reference-display {
+	padding-right: 0px;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .record-comments-layout {
 	width: 100%;
 }
@@ -13213,7 +13241,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .v-checkbox > label {
 	max-width: 260px;
-	word-break: break-all;
+	word-break: break-word;
 	white-space: normal;
 	display: inline-block;
 	color: #197de1;

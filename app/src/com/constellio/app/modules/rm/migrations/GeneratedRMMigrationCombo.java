@@ -2505,6 +2505,7 @@ public final class GeneratedRMMigrationCombo {
     document_markedForReindexing.setUndeletable(true);
     document_markedForReindexing.setEssential(true);
     MetadataBuilder document_mimetype = documentSchema.create("mimetype").setType(MetadataValueType.STRING);
+    document_mimetype.setEssentialInSummary(true);
     MetadataBuilder document_modifiedBy = documentSchema.get("modifiedBy");
     document_modifiedBy.setSystemReserved(true);
     document_modifiedBy.setUndeletable(true);
@@ -2811,7 +2812,7 @@ public final class GeneratedRMMigrationCombo {
     folder_administrativeUnit.setDefaultRequirement(true);
     folder_administrativeUnit.setUndeletable(true);
     folder_administrativeUnit.setEssential(true);
-    folder_administrativeUnit.defineTaxonomyRelationshipToType(administrativeUnitSchemaType);
+    folder_administrativeUnit.defineReferencesTo(administrativeUnitSchemaType);
     MetadataBuilder folder_administrativeUnitAncestors = folderSchema.create("administrativeUnitAncestors").setType(MetadataValueType.REFERENCE);
     folder_administrativeUnitAncestors.setMultivalue(true);
     folder_administrativeUnitAncestors.setUndeletable(true);
@@ -2823,7 +2824,7 @@ public final class GeneratedRMMigrationCombo {
     folder_administrativeUnitEntered.setUndeletable(true);
     folder_administrativeUnitEntered.setEssential(true);
     folder_administrativeUnitEntered.setDuplicable(true);
-    folder_administrativeUnitEntered.defineReferencesTo(administrativeUnitSchemaType);
+    folder_administrativeUnitEntered.defineTaxonomyRelationshipToType(administrativeUnitSchemaType);
     MetadataBuilder folder_alertUsersWhenAvailable = folderSchema.create("alertUsersWhenAvailable").setType(MetadataValueType.REFERENCE);
     folder_alertUsersWhenAvailable.setMultivalue(true);
     folder_alertUsersWhenAvailable.setUndeletable(true);
@@ -2845,7 +2846,6 @@ public final class GeneratedRMMigrationCombo {
     folder_allauthorizations.setUndeletable(true);
     folder_allauthorizations.setEssential(true);
     MetadataBuilder folder_applicableCopyRule = folderSchema.create("applicableCopyRule").setType(MetadataValueType.STRUCTURE);
-    folder_applicableCopyRule.setTransiency(MetadataTransiency.TRANSIENT_EAGER);
     folder_applicableCopyRule.setMultivalue(true);
     folder_applicableCopyRule.setUndeletable(true);
     folder_applicableCopyRule.setEssential(true);
