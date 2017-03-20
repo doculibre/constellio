@@ -122,7 +122,7 @@ public class ConstellioEIMConfigs {
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
-		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(20).scriptedBy(LazyTreeBufferSizeValidationScript.class));
+		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50).scriptedBy(LazyTreeBufferSizeValidationScript.class));
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -251,7 +251,7 @@ public class ConstellioEIMConfigs {
 
 		private Map<String, Object> max(int max) {
 			Map<String, Object> parameters = new HashMap<>();
-			parameters.put("max", max);
+			parameters.put("maxValue", max);
 			return parameters;
 		}
 		

@@ -355,8 +355,8 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 		return getEnumWithDefaultValue(AGENT_STATUS, AgentStatus.DISABLED);
 	}
 
-	public SolrUserCredential setAgentStatus() {
-		return get(AGENT_STATUS);
+	public SolrUserCredential setAgentStatus(AgentStatus agentStatus) {
+		return set(AGENT_STATUS, agentStatus);
 	}
 
 }

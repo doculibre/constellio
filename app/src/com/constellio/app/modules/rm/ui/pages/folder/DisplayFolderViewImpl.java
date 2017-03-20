@@ -24,6 +24,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -104,7 +105,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, startWorkflowButton;
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
@@ -340,6 +341,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		};
 
 		addToCartButton = buildAddToCartButton();
+		
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO);
 
 		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
@@ -384,9 +387,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(linkToFolderButton);
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(shareFolderButton);
-		if(presenter.hasCurrentUserPermissionToUseCart()) {
+		if (presenter.hasCurrentUserPermissionToUseCart()) {
 			actionMenuButtons.add(addToCartButton);
 		}
+		actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 		actionMenuButtons.add(printLabelButton);
 		actionMenuButtons.add(borrowButton);
 		actionMenuButtons.add(returnFolderButton);

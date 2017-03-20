@@ -40,8 +40,6 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	
 	private BaseForm<RecordVO> uploadForm;
 	
-	private Label titleLabel;
-	
 	private Label errorLabel;
 	
 	private ContentVersionUploadField uploadField;
@@ -53,7 +51,6 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records) {
 		setModal(true);
 		setWidth("70%");
-		setHeight("450px");
 		setZIndex(null);
 		
 		mainLayout = new VerticalLayout();
@@ -62,8 +59,6 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		
 		String title = $("UpdateContentVersionWindow.newVersionTitle"); 
 		setCaption(title);
-		titleLabel = new Label(title);
-		titleLabel.addStyleName(ValoTheme.LABEL_H1);
 		
 		errorLabel = new Label();
 		errorLabel.addStyleName("error-label");
@@ -97,7 +92,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(uploadField, "contentVersion"));
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(majorVersionField, "majorVersion"));
 
-		if(records.keySet().iterator().hasNext()) {
+		if (records.keySet().iterator().hasNext()) {
 			uploadForm = new BaseForm<RecordVO>(records.keySet().iterator().next(), fieldsAndPropertyIds) {
 				@Override
 				protected Item newItem(RecordVO viewObject) {
@@ -159,7 +154,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 		uploadForm.setSizeFull();
 		
-		mainLayout.addComponents(titleLabel, errorLabel, uploadForm);
+		mainLayout.addComponents(errorLabel, uploadForm);
 
 		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
@@ -227,8 +222,8 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 	private void initMajorVersionFieldOptions() {
 		majorVersionField.removeAllItems();
-		majorVersionField.addItem(true);
 		majorVersionField.addItem(false);
+		majorVersionField.addItem(true);
 	}
 
 	@Override
@@ -251,12 +246,13 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		this.checkingIn = checkingIn;
 		String updatedTitle;
 		if (checkingIn) {
+			setHeight("200px");
 			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
 		} else {
+			setHeight("300px");
 			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle"); 
 		}
 		setCaption(updatedTitle);
-		titleLabel.setValue(updatedTitle);
 		UI.getCurrent().addWindow(this);
 	}
 

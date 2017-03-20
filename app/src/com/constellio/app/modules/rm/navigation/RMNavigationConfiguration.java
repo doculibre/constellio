@@ -1,10 +1,20 @@
 package com.constellio.app.modules.rm.navigation;
 
+import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
+
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -19,7 +29,13 @@ import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrat
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.*;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
@@ -35,10 +51,10 @@ import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRules
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.Navigation;
@@ -59,17 +75,12 @@ import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
 import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.AgentStatus;
+import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -416,17 +427,20 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				List<String> permissions = new ArrayList<>();
-				permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
-				permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
-				permissions.add(TasksPermissionsTo.MANAGE_WORKFLOWS);
-
-				boolean canManageCollection = user.hasAny(permissions).globally();
-
-				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				boolean canManageSystem = userServices.has(user.getUsername())
-						.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
-				return canManageCollection || canManageSystem ? ComponentState.INVISIBLE : ComponentState.ENABLED;
+				ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+				UserServices userServices = modelLayerFactory.newUserServices();
+				SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+				
+				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
+				
+				String username = user.getUsername();
+				SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
+				AgentStatus agentStatus = userCredentials.getAgentStatus();
+				if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
+					agentStatus = AgentStatus.ENABLED;
+				}
+				
+				return visibleIf(rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported() && agentStatus == AgentStatus.DISABLED);
 			}
 		});
 	}

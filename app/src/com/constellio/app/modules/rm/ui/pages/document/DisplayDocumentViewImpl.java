@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -89,11 +90,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private DeleteButton deleteDocumentButton;
 	private Button copyContentButton;
 	private WindowButton renameContentButton;
-	private WindowButton sign;
+	private WindowButton signButton;
 	private WindowButton startWorkflowButton;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
-			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, publishButton, unpublishButton,
+			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
 			publicLinkButton;
 	
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
@@ -306,6 +307,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 
 		addToCartButton = buildAddToCartButton();
+		
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO);
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
@@ -394,7 +397,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				}
 			};
 
-			sign = new WindowButton($("DocumentContextMenu.sign"), $("DocumentContextMenu.sign"),
+			signButton = new WindowButton($("DocumentContextMenu.sign"), $("DocumentContextMenu.sign"),
 					WindowConfiguration.modalDialog("40%", "300px")) {
 				@Override
 				protected Component buildWindowContent() {
@@ -483,9 +486,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(createPDFAButton);
 		actionMenuButtons.add(shareDocumentButton);
-		if(presenter.hasCurrentUserPermissionToUseCart()) {
+		if (presenter.hasCurrentUserPermissionToUseCart()) {
 			actionMenuButtons.add(addToCartButton);
 		}
+		actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 		actionMenuButtons.add(uploadButton);
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);

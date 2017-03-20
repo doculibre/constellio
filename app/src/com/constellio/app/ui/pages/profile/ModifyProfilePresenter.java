@@ -1,8 +1,19 @@
 package com.constellio.app.ui.pages.profile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -11,6 +22,8 @@ import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.AgentStatus;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
@@ -20,11 +33,6 @@ import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
 import com.google.common.base.Joiner;
-import org.apache.commons.collections.CollectionUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
 
 public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
@@ -52,32 +60,32 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		return result;
 	}
 
-	public void saveButtonClicked(ProfileVO entity) {
-		User user = userServices.getUserInCollection(entity.getUsername(), view.getCollection());
-		user.setPhone(entity.getPhone());
-		if (entity.getStartTab() == null) {
+	public void saveButtonClicked(ProfileVO profileVO) {
+		User user = userServices.getUserInCollection(profileVO.getUsername(), view.getCollection());
+		user.setPhone(profileVO.getPhone());
+		if (profileVO.getStartTab() == null) {
 			user.setStartTab(getDefaultStartTab());
 		} else {
-			user.setStartTab(entity.getStartTab());
+			user.setStartTab(profileVO.getStartTab());
 		}
-		if (entity.getDefaultTabInFolderDisplay() == null) {
+		if (profileVO.getDefaultTabInFolderDisplay() == null) {
 			user.setDefaultTabInFolderDisplay(DefaultTabInFolderDisplay.METADATA.getCode());
 		} else {
-			user.setDefaultTabInFolderDisplay(entity.getDefaultTabInFolderDisplay().getCode());
+			user.setDefaultTabInFolderDisplay(profileVO.getDefaultTabInFolderDisplay().getCode());
 		}
-		user.setDefaultTaxonomy(entity.getDefaultTaxonomy());
-		user.setLoginLanguageCode(entity.getLoginLanguageCode());
+		user.setDefaultTaxonomy(profileVO.getDefaultTaxonomy());
+		user.setLoginLanguageCode(profileVO.getLoginLanguageCode());
 
 		try {
-			if (entity.getPassword() != null && entity.getPassword().equals(entity.getConfirmPassword())) {
-				authenticationService.changePassword(entity.getUsername(), entity.getOldPassword(), entity.getPassword());
+			if (profileVO.getPassword() != null && profileVO.getPassword().equals(profileVO.getConfirmPassword())) {
+				authenticationService.changePassword(profileVO.getUsername(), profileVO.getOldPassword(), profileVO.getPassword());
 			}
 
 			recordServices.update(user.getWrappedRecord());
 
-			changePhoto(entity.getImage());
+			changePhoto(profileVO.getImage());
 
-            updateUserCredential(entity);
+            updateUserCredential(profileVO);
 
 			view.updateUI();
 		} catch (RecordServicesException e) {
@@ -88,17 +96,26 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 	}
 
-    private void updateUserCredential(final ProfileVO entity) {
-        UserCredential userCredential = userServices.getUserCredential(entity.getUsername());
+    private void updateUserCredential(final ProfileVO profileVO) {
+    	String username = profileVO.getUsername();
+        SolrUserCredential userCredential = (SolrUserCredential) userServices.getUserCredential(username);
 
-        userCredential = userCredential.
-                withFirstName(entity.getFirstName())
-                .withLastName(entity.getLastName())
-                .withEmail(entity.getEmail());
+        userCredential = (SolrUserCredential) userCredential.
+                withFirstName(profileVO.getFirstName())
+                .withLastName(profileVO.getLastName())
+                .withEmail(profileVO.getEmail());
 
-        if (entity.getPersonalEmails() != null) {
-            userCredential = userCredential.withPersonalEmails(Arrays.asList(entity.getPersonalEmails().split("\n")));
+        if (profileVO.getPersonalEmails() != null) {
+            userCredential = (SolrUserCredential) userCredential.withPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
         }
+
+    	boolean agentManuallyDisabled = profileVO.isAgentManuallyDisabled();
+    	AgentStatus previousAgentStatus = userCredential.getAgentStatus();
+    	if (previousAgentStatus == AgentStatus.MANUALLY_DISABLED && !agentManuallyDisabled) {
+    		userCredential.setAgentStatus(AgentStatus.ENABLED);
+    	} else if (previousAgentStatus != AgentStatus.MANUALLY_DISABLED && agentManuallyDisabled) {
+    		userCredential.setAgentStatus(AgentStatus.MANUALLY_DISABLED);
+    	}
 
         userServices.addUpdateUserCredential(userCredential);
     }
@@ -123,7 +140,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		User user = userServices.getUserInCollection(username, view.getCollection());
 		String phone = user.getPhone();
 		String loginLanguage = user.getLoginLanguageCode();
-		if(loginLanguage == null || loginLanguage.isEmpty()) {
+		if (loginLanguage == null || loginLanguage.isEmpty()) {
 			loginLanguage = view.getSessionContext().getCurrentLocale().getLanguage();
 		}
 		String startTab = user.getStartTab();
@@ -159,22 +176,26 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		if (defaultTaxonomy == null) {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();
 		}
+		
+		SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
+		AgentStatus agentStatus = userCredentials.getAgentStatus();
+		boolean agentManuallyDisabled = agentStatus == AgentStatus.MANUALLY_DISABLED;
 
 		ProfileVO profileVO = newProfileVO(username, firstName, lastName, email, personalEmails, phone, startTab, defaultTabInFolderDisplay,
-				defaultTaxonomy);
+				defaultTaxonomy, agentManuallyDisabled);
 		profileVO.setLoginLanguageCode(loginLanguage);
 		return profileVO;
 	}
 
 	ProfileVO newProfileVO(String username, String firstName, String lastName, String email, List<String> personalEmails, String phone,
-			String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy) {
+			String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled) {
         String personalEmailsPresentation = null;
         if (!CollectionUtils.isEmpty(personalEmails)) {
             personalEmailsPresentation = Joiner.on("\n").join(personalEmails);
         }
 
 		return new ProfileVO(username, firstName, lastName, email, personalEmailsPresentation, phone, startTab, defaultTabInFolderDisplay,
-				defaultTaxonomy, null, null, null);
+				defaultTaxonomy, null, null, null, agentManuallyDisabled);
 	}
 
 	public void cancelButtonClicked() {
@@ -256,6 +277,24 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		authenticationService = modelLayerFactory.newAuthenticationService();
 		recordServices = modelLayerFactory.newRecordServices();
 		userPhotosServices = modelLayerFactory.newUserPhotosServices();
+		
+		view.setAgentManuallyDisabledVisible(isAgentManuallyDisabledVisible());
+	}
+	
+	private boolean isAgentManuallyDisabledVisible() {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		
+		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
+
+		String username = view.getSessionContext().getCurrentUser().getUsername();
+		SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
+		AgentStatus agentStatus = userCredentials.getAgentStatus();
+		if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
+			agentStatus = AgentStatus.ENABLED;
+		}
+		
+		return rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported() && agentStatus != AgentStatus.DISABLED;
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
