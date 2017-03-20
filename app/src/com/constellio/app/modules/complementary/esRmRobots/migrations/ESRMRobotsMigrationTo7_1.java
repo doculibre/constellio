@@ -47,45 +47,16 @@ public class ESRMRobotsMigrationTo7_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-//			setupClassifyConnectorFolderInParentFolderActionParametersSchema();
 			modifyClassifyConnectorFolderDirectlyInThePlanActionParametersSchema();
-//			modifyClassifyConnectorFolderInTaxonomyActionParametersSchema();
+			modifyClassifyConnectorFolderInTaxonomyActionParametersSchema();
 		}
 
-//		private void modifyClassifyConnectorFolderInTaxonomyActionParametersSchema() {
-//			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-//					.getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
-//
-//			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(true);
-//			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(true);
-//			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.DELIMITER).setDefaultRequirement(true);
-//		}
-//
-//		private void setupClassifyConnectorFolderInParentFolderActionParametersSchema() {
-//
-//			MetadataSchemaTypeBuilder folderSchemaType = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE);
-//
-//			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-//					.createCustomSchema(ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA_LOCAL_CODE);
-//			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.ACTION_AFTER_CLASSIFICATION)
-//					.setDefaultRequirement(true)
-//					.defineAsEnum(ActionAfterClassification.class)
-//					.setDefaultValue(ActionAfterClassification.DO_NOTHING);
-//
-//			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.FOLDER_MAPPING).setDefaultRequirement(false)
-//					.setType(
-//							MetadataValueType.CONTENT);
-//			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.DOCUMENT_MAPPING).setDefaultRequirement(false)
-//					.setType(
-//							MetadataValueType.CONTENT);
-//
-//			schema.createUndeletable(ClassifyConnectorFolderInParentFolderActionParameters.DEFAULT_PARENT_FOLDER)
-//					.setDefaultRequirement(false)
-//					.defineReferencesTo(folderSchemaType);
-//
-//			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.DEFAULT_OPEN_DATE).setDefaultRequirement(false)
-//					.setType(MetadataValueType.DATE);
-//		}
+		private void modifyClassifyConnectorFolderInTaxonomyActionParametersSchema() {
+			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
+					.getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+
+			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.DELIMITER).setDefaultRequirement(false);
+		}
 
 		private void modifyClassifyConnectorFolderDirectlyInThePlanActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)

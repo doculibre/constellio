@@ -169,7 +169,7 @@ public class MetadataDisplayFactory implements Serializable {
 					displayComponent = link;
 				} else {
 					String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
-					displayComponent = new Label($(stringValue), ContentMode.HTML);
+					displayComponent = new Label(stringValue, ContentMode.HTML);
 				}
 				break;
 			case TEXT:

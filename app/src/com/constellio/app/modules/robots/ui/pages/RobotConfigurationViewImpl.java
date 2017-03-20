@@ -8,11 +8,13 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.robots.ui.components.breadcrumb.RobotBreadcrumbTrail;
 import com.constellio.app.modules.robots.ui.data.RobotTreeNodesDataProvider;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -59,11 +61,11 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 		TabSheet sheet = new TabSheet();
 		sheet.setWidth("100%");
 
-		RecordDisplay display = new RecordDisplay(robot);
+		RecordDisplay display = new RecordDisplay(robot, new LocalMetadataDisplayFactory());
 		sheet.addTab(display, $("RobotConfigurationView.metadata"));
 
-		//		LegacyRobotLazyTreeDataProvider provider = new LegacyRobotLazyTreeDataProvider(
-		//				getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId());
+		// LegacyRobotLazyTreeDataProvider provider = new LegacyRobotLazyTreeDataProvider(
+		// getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId());
 		RecordLazyTreeDataProvider provider = new RecordLazyTreeDataProvider(new RobotTreeNodesDataProvider(
 				getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId()));
 		RecordLazyTree tree = new RecordLazyTree(provider);
@@ -79,6 +81,20 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 		sheet.addTab(tree, $("RobotConfigurationView.tree"));
 
 		return sheet;
+	}
+
+	private class LocalMetadataDisplayFactory extends MetadataDisplayFactory {
+		private static final String ROBOT_DEFAULT_ACTION = "robot_default_action";
+		private static final String ROBOT_DEFAULT_SCHEMA_FILTER = "robot_default_schemaFilter";
+
+		@Override
+		public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
+			if (ROBOT_DEFAULT_SCHEMA_FILTER.equals(metadata.getCode()) || ROBOT_DEFAULT_ACTION.equals(metadata.getCode())) {
+				displayValue = $(displayValue.toString());
+			}
+
+			return super.buildSingleValue(recordVO, metadata, displayValue);
+		}
 	}
 
 	@Override
