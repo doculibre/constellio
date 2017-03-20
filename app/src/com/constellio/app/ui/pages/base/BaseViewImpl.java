@@ -131,6 +131,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			backButton.setVisible(true);
 			backButton.addStyleName(BACK_BUTTON_CODE);
 			backButton.addClickListener(backButtonClickListener);
+			backButton.setVisible(false);
 		} else {
 			backButton.setVisible(false);
 		}

@@ -343,6 +343,11 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	public static ConstellioUI getCurrent() {
 		return (ConstellioUI) UI.getCurrent();
 	}
+	
+	@Override
+	public void clearAttribute(String key) {
+		uiContext.remove(key);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
