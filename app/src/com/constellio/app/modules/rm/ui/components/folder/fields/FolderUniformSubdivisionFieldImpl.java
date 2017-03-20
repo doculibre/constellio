@@ -1,15 +1,12 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
-import com.vaadin.ui.ComboBox;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 
-public class FolderUniformSubdivisionFieldImpl extends ComboBox implements FolderUniformSubdivisionField {
+public class FolderUniformSubdivisionFieldImpl extends LookupRecordField implements FolderUniformSubdivisionField {
 
-	private RecordIdToCaptionConverter captionConverter = new RecordIdToCaptionConverter();
-
-	@Override
-	public String getItemCaption(Object itemId) {
-		return captionConverter.convertToPresentation((String) itemId, String.class, getLocale());
+	public FolderUniformSubdivisionFieldImpl() {
+		super(UniformSubdivision.SCHEMA_TYPE, true);
 	}
 
 	@Override
@@ -19,7 +16,7 @@ public class FolderUniformSubdivisionFieldImpl extends ComboBox implements Folde
 
 	@Override
 	public void setFieldValue(Object value) {
-		setInternalValue(value);
+		setInternalValue((String) value);
 	}
 
 }
