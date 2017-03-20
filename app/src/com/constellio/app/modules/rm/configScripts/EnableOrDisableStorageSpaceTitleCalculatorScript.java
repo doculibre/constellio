@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.configScripts;
 
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceTitleCalculator;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -60,5 +61,6 @@ public class EnableOrDisableStorageSpaceTitleCalculatorScript extends
                 types.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.CODE).setUniqueValue(false);
             }
         });
+        ConstellioFactories.getInstance().getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
     }
 }
