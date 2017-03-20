@@ -214,6 +214,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         boolean isClassifiedInFolder = !Boolean.TRUE.equals(classificationOption.getValue());
                         try {
                             classifyButtonClicked(parentId, categoryId, isClassifiedInFolder, param);
+                            ConstellioUI.getCurrent().updateContent();
                         } catch (Throwable e) {
 //                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
 //                            showErrorMessage("DisplayFolderView.parentFolderException");
