@@ -1,23 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.model.services.contents.icap.IcapException;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordImpl;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -85,6 +67,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private boolean newFile;
+	private boolean newFileAtStart;
 	ConstellioEIMConfigs eimConfigs;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
@@ -120,7 +103,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String idCopy = paramsMap.get("idCopy");
 		String parentId = paramsMap.get("parentId");
 		userDocumentId = paramsMap.get("userDocumentId");
-		newFile = "true".equals(paramsMap.get("newFile"));
+		newFile = false;
+		newFileAtStart = "true".equals(paramsMap.get("newFile"));
 
 		Document document;
 		if (StringUtils.isNotBlank(id)) {
@@ -568,7 +552,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public void viewAssembled() {
 		addContentFieldListeners();
 		DocumentContentField contentField = getContentField();
-		if (addView && newFile && !contentField.getNewFileWindow().isOpened()) {
+		if (addView && newFileAtStart && !contentField.getNewFileWindow().isOpened()) {
 			contentField.getNewFileWindow().open();
 		}
 	}
@@ -586,7 +570,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				contentVersionVO.setMajorVersion(false);
 				contentVersionVO.setHash(null);
 				documentVO.setContent(contentVersionVO);
-				documentVO.setTitle(contentVersionVO.getFileName());
+				String filename = contentVersionVO.getFileName();
+				if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+					filename = FilenameUtils.removeExtension(filename);
+				}
+				documentVO.setTitle(filename);
 				newFile = true;
 				view.getForm().reload();
 				// Will have been lost after reloading the form
