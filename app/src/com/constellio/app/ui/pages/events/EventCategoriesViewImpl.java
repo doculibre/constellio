@@ -28,6 +28,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String BY_USER_EVENTS_LINK_BUTTON = "byUserEventsLinkButton";
 	public static final String DECOMMISSIONING_EVENTS_LINK_BUTTON = "decommissioningEventsLinkButton";
 	public static final String AGENT_EVENTS_LINK_BUTTON = "agentEventsLinkButton";
+	public static final String SYSTEM_OPERATION = "systemOperation";
 
 	private boolean agentEventsVisible;
 
