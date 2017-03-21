@@ -1620,6 +1620,41 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 	}
 
+	@Test
+	public void whenSelectingACategoryNoMatterItsLinkableStatusThenReturnGoodResults()
+			throws Exception {
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, true);
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, true);
+		waitForBatchProcess();
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+
+		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z, options)
+				.has(numFoundAndListSize(4))
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200,
+						records.categoryId_Z999, records.categoryId_ZE42))
+				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(linkable(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100, options)
+				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z110))
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_Z110));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z112, options)
+				.is(empty());
+
+	}
+
 	// -------
 
 	private Condition<? super LinkableTaxonomySearchResponse> empty() {
