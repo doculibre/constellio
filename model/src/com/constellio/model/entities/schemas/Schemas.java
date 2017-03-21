@@ -6,7 +6,6 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class Schemas {
 
@@ -82,6 +80,7 @@ public class Schemas {
 	public static final Metadata ALL_REFERENCES = add(new Metadata("allReferences_ss", STRING, true));
 	public static final Metadata MARKED_FOR_REINDEXING = add(new Metadata("markedForReindexing_s", BOOLEAN, false));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
+	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
@@ -91,8 +90,6 @@ public class Schemas {
 		allGlobalMetadatas.add(metadata);
 		return metadata;
 	}
-
-	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = new Metadata("autocomplete_ss", STRING, false);
 
 	public static Metadata getGlobalMetadata(String code) {
 		//folder_default_createdOn_dt
