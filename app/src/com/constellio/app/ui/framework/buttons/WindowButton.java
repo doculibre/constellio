@@ -1,6 +1,9 @@
 package com.constellio.app.ui.framework.buttons;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -9,6 +12,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class WindowButton extends BaseButton implements Button.ClickListener {
@@ -21,6 +25,8 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	private final WindowConfiguration configuration;
 	private BaseWindow window;
 	private Integer zIndex;
+	
+	private List<CloseListener> closeListeners = new ArrayList<>();
 
 	public WindowButton(String caption, String windowCaption, WindowConfiguration configuration) {
 		super(caption);
@@ -83,6 +89,11 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 				if (zIndex != null) {
 					window.setZIndex(zIndex);
 				}
+				
+				for (CloseListener listener : closeListeners) {
+					window.addCloseListener(listener);
+				}
+				
 				UI.getCurrent().addWindow(window);
 			}
 		}
@@ -110,6 +121,18 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 
 	public void setWindowCaption(String caption) {
 		windowCaption = caption;
+	}
+	
+	public List<CloseListener> getCloseListeners() {
+		return Collections.unmodifiableList(closeListeners);
+	}
+	
+	public void addCloseListener(CloseListener listener) {
+		this.closeListeners.add(listener);
+	}
+	
+	public void removeCloseListener(CloseListener listener) {
+		this.closeListeners.remove(listener);
 	}
 
 	protected abstract Component buildWindowContent();

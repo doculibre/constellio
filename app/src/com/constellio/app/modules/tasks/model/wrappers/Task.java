@@ -52,6 +52,8 @@ public class Task extends RecordWrapper {
 	public static final String NEXT_TASKS = "nextTasks";
 	public static final String DECISION = "decision";
 	public static final String NEXT_TASK_CREATED = "nextTaskCreated";
+	public static final String LINKED_FOLDERS = "linkedFolders";
+	public static final String LINKED_DOCUMENTS = "linkedDocuments";
 
 	public static final String DEFAULT_NEXT_TASK = "default";
 
@@ -407,6 +409,24 @@ public class Task extends RecordWrapper {
 
 	public Task setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+	
+	public List<String> getLinkedFolders() {
+		return get(LINKED_FOLDERS);
+	}
+	
+	public Task setLinkedFolders(List<String> linkedFolders) {
+		set(LINKED_FOLDERS, linkedFolders);
+		return this;
+	}
+	
+	public List<String> getLinkedDocuments() {
+		return get(LINKED_DOCUMENTS);
+	}
+	
+	public Task setLinkedDocuments(List<String> linkedDocuments) {
+		set(LINKED_DOCUMENTS, linkedDocuments);
 		return this;
 	}
 

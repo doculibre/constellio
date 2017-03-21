@@ -35,6 +35,22 @@ public class TaskViews extends CoreViews {
 		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
 	}
 
+	public void addTaskToFolder(String folderId) {
+		Map<String, String> params = new HashMap<>();
+		if (folderId != null) {
+			params.put("folderId", folderId);
+		}
+		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
+	}
+
+	public void addTaskToDocument(String documentId) {
+		Map<String, String> params = new HashMap<>();
+		if (documentId != null) {
+			params.put("documentId", documentId);
+		}
+		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
+	}
+
     public void listTasksLogs() {
         navigator.navigateTo(TasksNavigationConfiguration.LIST_TASKS_LOGS);
     }
