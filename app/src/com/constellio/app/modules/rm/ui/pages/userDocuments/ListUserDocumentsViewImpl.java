@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.MultiFileUpload;
-
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -33,11 +25,14 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.easyuploads.MultiFileUpload;
+
+import java.io.File;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
 	
@@ -75,7 +70,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			classifyButtonFactory = new Builder<ContainerButton>() {
 				@Override
 				public ContainerButton build() {
-					return new DeclareUserContentContainerButton();
+					return new DeclareUserContentContainerButton(ListUserDocumentsViewImpl.this);
 				}
 			};
 		}
@@ -218,5 +213,4 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			dataProvider.fireDataRefreshEvent();
 		}
 	}
-	
 }

@@ -117,6 +117,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		} else if (!selected) {
 			sessionContext.removeSelectedRecordId(recordId, schemaTypeCode);
 		}
+		view.refresh();
 	}
 
 	void handleFile(final File file, String fileName, String mimeType, long length) {
