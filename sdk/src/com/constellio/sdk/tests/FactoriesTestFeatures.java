@@ -92,6 +92,12 @@ public class FactoriesTestFeatures {
 
 	public void clear() {
 		factoriesInstance = getConstellioFactories();
+
+		File licenseFile = factoriesInstance.getFoldersLocator().getLicenseFile();
+		if (licenseFile.exists()) {
+			licenseFile.delete();
+		}
+
 		DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
 		for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
 			deleteServerRecords(server);
