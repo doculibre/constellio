@@ -12,11 +12,23 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.conf.FoldersLocator;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.DownloadStream;
+import com.vaadin.server.FileDownloader;
+import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOExceptionWithCause;
+import org.apache.tools.ant.taskdefs.Input;
+import org.omg.CORBA.portable.*;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +42,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
     private Component folderDisplay, containerDisplay;
     private VerticalLayout mainLayout;
     private ReportUtils ru;
-    private Button addLabelButton;
+    private Button addLabelButton, downloadTemplateButton;
     private String currentSchema;
     final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this);
     public static final String TYPE_TABLE = "types";
@@ -208,9 +220,16 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
             }
         };
 
+        downloadTemplateButton = new Button($("DisplayLabelViewImpl.menu.getTemplate"));
+        StreamResource zip = createResource();
+        FileDownloader fileDownloader = new FileDownloader(zip);
+        fileDownloader.extend(downloadTemplateButton);
+
+
 
         actionMenuButtons.add(addLabelButton);
         actionMenuButtons.add(getXMLButton);
+        actionMenuButtons.add(downloadTemplateButton);
         return actionMenuButtons;
     }
 
@@ -232,5 +251,21 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
     @Override
     protected String getTitle() {
         return $("LabelViewImpl.title");
+    }
+
+    private StreamResource createResource() {
+        return new StreamResource(new StreamResource.StreamSource() {
+            @Override
+            public InputStream getStream() {
+                InputStream stream = null;
+                try {
+                    File file = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "Template_Etiquette.zip");
+                    stream = new ByteArrayInputStream(FileUtils.readFileToByteArray(file));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return stream;
+            }
+        }, "templates.zip");
     }
 }

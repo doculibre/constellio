@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.components.content;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -22,12 +15,15 @@ import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UpdateContentVersionWindowImpl extends BaseWindow implements UpdateContentVersionWindow, DropHandler {
 
@@ -238,16 +234,16 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
     public void addMajorMinorSameOptions() {
         initMajorVersionFieldOptions();
         majorVersionField.addItem(nullValue);
-        majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.newMinorVersion"));
-        majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.newMajorVersion"));
+        majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.newMinorVersion"));
+        majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.newMajorVersion"));
         majorVersionField.setItemCaption(nullValue, $("UpdateContentVersionWindow.options.sameVersion"));
     }
 
     @Override
     public void addMajorMinorOptions() {
         initMajorVersionFieldOptions();
-        majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.minorVersion"));
-        majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.majorVersion"));
+        majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.minorVersion"));
+        majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.majorVersion"));
     }
 
     public void open(boolean checkingIn) {

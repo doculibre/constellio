@@ -1,13 +1,25 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.PresenterService;
@@ -29,9 +41,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
 	RecordWithCopyRetentionRuleParametersFields fields;
@@ -115,28 +125,141 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 	}
 
 	List<CopyRetentionRule> getOptions(BatchProcessRequest request) {
+		String typeId = fields.getType();
 
-		if(request.getQuery() != null) {
-			return getOptionsWithQuery(request);
+		List<CopyRetentionRule> options;
+		if (typeId != null) {
+			options = new ArrayList<>();
+			if (Folder.SCHEMA_TYPE.equals(request.getSchemaType().getCode())) {
+				RetentionRule uniformRule = getUniformFolderRetentionRuleOrNull(request);
+				CopyType uniformCopyType = getUniformCopyType(request);
+
+				if (uniformRule != null) {
+
+					Set<String> ids = new HashSet<>();
+					for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
+						if (typeId.equals(copyRetentionRule.getTypeId())
+								&& copyRetentionRule.getCopyType() == uniformCopyType
+								&& !ids.contains(copyRetentionRule.getId())) {
+							ids.add(copyRetentionRule.getId());
+							options.add(copyRetentionRule);
+						}
+					}
+
+					if (options.isEmpty()) {
+						for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
+							if (copyRetentionRule.getTypeId() == null
+									&& copyRetentionRule.getCopyType() == uniformCopyType
+									&& !ids.contains(copyRetentionRule.getId())) {
+								ids.add(copyRetentionRule.getId());
+								options.add(copyRetentionRule);
+							}
+						}
+					}
+
+				}
+
+			}
+
+		} else {
+
+			if (request.getQuery() != null) {
+				options = getOptionsWithQuery(request);
+			} else {
+				options = getOptionsWithIds(request);
+			}
 		}
-		else {
-			return getOptionsWithIds(request);
+
+		return options;
+	}
+
+	private CopyType getUniformCopyType(BatchProcessRequest request) {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
+
+		if (request.getQuery() != null) {
+			SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();
+
+			SPEQueryResponse response = searchServices
+					.query(request.getQuery().setNumberOfRows(0).addFieldFacet(rm.folder.copyStatus().getDataStoreCode()));
+			List<FacetValue> values = response.getFieldFacetValues().get(rm.folder.copyStatus().getDataStoreCode());
+
+			if (values.size() == 1) {
+				return (CopyType) EnumWithSmallCodeUtils.toEnumWithSmallCode(CopyType.class, values.get(0).getValue());
+			} else {
+				return null;
+			}
+
+		} else {
+
+			CopyType copyType = null;
+
+			for (String aFolderId : request.getIds()) {
+				Folder folder = rm.getFolder(aFolderId);
+				if (copyType == null) {
+					copyType = folder.getCopyStatus();
+				} else if (!copyType.equals(folder.getCopyStatus())) {
+					return null;
+				}
+			}
+
+			return copyType;
+
 		}
+
+	}
+
+	private RetentionRule getUniformFolderRetentionRuleOrNull(BatchProcessRequest request) {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
+
+		if (request.getQuery() != null) {
+			SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();
+
+			SPEQueryResponse response = searchServices
+					.query(request.getQuery().setNumberOfRows(0).addFieldFacet(rm.folder.retentionRule().getDataStoreCode()));
+			List<FacetValue> values = response.getFieldFacetValues().get(rm.folder.retentionRule().getDataStoreCode());
+
+			if (values.size() == 1) {
+				return rm.getRetentionRule(values.get(0).getValue());
+			} else {
+				return null;
+			}
+
+		} else {
+
+			String retentionRuleId = null;
+
+			for (String aFolderId : request.getIds()) {
+				Folder folder = rm.getFolder(aFolderId);
+				if (retentionRuleId == null) {
+					retentionRuleId = folder.getRetentionRule();
+				} else if (!retentionRuleId.equals(folder.getRetentionRule())) {
+					return null;
+				}
+			}
+
+			return retentionRuleId == null ? null : rm.getRetentionRule(retentionRuleId);
+
+		}
+
 	}
 
 	private List<CopyRetentionRule> getOptionsWithQuery(BatchProcessRequest request) {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
 		List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
 		CopyRetentionRuleFactory copyRetentionRuleFactory = new CopyRetentionRuleFactory();
 		SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();
 
-		SPEQueryResponse response = searchServices.query(request.getQuery().setNumberOfRows(0).addFieldFacet("applicableCopyRule_ss"));
+		SPEQueryResponse response = searchServices
+				.query(request.getQuery().setNumberOfRows(0).addFieldFacet(rm.folder.applicableCopyRule().getDataStoreCode()));
 		Map<String, List<FacetValue>> applicableCopyRuleList = response.getFieldFacetValues();
-		for(FacetValue facetValue: applicableCopyRuleList.get("applicableCopyRule_ss")) {
-			if(facetValue.getQuantity() == response.getNumFound()) {
+		for (FacetValue facetValue : applicableCopyRuleList.get(rm.folder.applicableCopyRule().getDataStoreCode())) {
+			if (facetValue.getQuantity() == response.getNumFound()) {
 				copyRetentionRules.add((CopyRetentionRule) copyRetentionRuleFactory.build(facetValue.getValue()));
 			}
 		}
-
 
 		return copyRetentionRules;
 	}
