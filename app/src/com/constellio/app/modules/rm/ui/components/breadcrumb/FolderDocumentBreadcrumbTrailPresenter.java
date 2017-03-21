@@ -12,7 +12,9 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -89,9 +91,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		}
 
+		UIContext uiContext = breadcrumbTrail.getUIContext();
+		String searchId = uiContext.getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
+		Boolean advancedSearch = uiContext.getAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
 		if (taxonomyCode == null) {
-			UIContext uiContext = breadcrumbTrail.getUIContext();
-			taxonomyCode = uiContext.getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+			taxonomyCode = uiContext.getAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
 		}
 
 		if (taxonomyCode != null) {
@@ -132,6 +136,8 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			if (selectedTaxonomy != null) {
 				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle()));
 			}
+		} else if (searchId != null) {
+			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));
 		}
 		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
@@ -157,6 +163,16 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (item instanceof TaxonomyBreadcrumbItem) {
 			handled = true;
 			breadcrumbTrail.navigate().to().home(taxonomyCode, null, null);
+		} else if (item instanceof SearchResultsBreadcrumbItem) {
+			handled = true;
+			SearchResultsBreadcrumbItem searchResultsBreadcrumbItem = (SearchResultsBreadcrumbItem) item;
+			String searchId = searchResultsBreadcrumbItem.getSearchId();
+			boolean advancedSearch = searchResultsBreadcrumbItem.isAdvancedSearch();
+			if (advancedSearch) {
+				breadcrumbTrail.navigate().to().advancedSearchReplay(searchId);
+			} else {
+				breadcrumbTrail.navigate().to().simpleSearchReplay(searchId);
+			}
 		} else {
 			handled = false;
 		}

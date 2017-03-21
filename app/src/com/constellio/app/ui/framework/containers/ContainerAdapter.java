@@ -23,6 +23,8 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier {
 
 	protected T adapted;
+	
+	private List<Container.ItemSetChangeListener> itemSetChangeListeners = new ArrayList<>();
 
 	public ContainerAdapter(T adapted) {
 		this.adapted = adapted;
@@ -270,6 +272,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).addListener(listener);
 		}
+		itemSetChangeListeners.add(listener);
     }
 
     @Override
@@ -278,6 +281,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).addItemSetChangeListener(listener);
 		}
+		itemSetChangeListeners.add(listener);
     }
 
     @Override
@@ -286,6 +290,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).removeItemSetChangeListener(listener);
 		}
+		itemSetChangeListeners.remove(listener);
     }
 
     /**
@@ -298,6 +303,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).removeListener(listener);
 		}
+		itemSetChangeListeners.remove(listener);
     }
 
 	@Override
@@ -343,9 +349,23 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void fireItemSetChange() {
 		super.fireItemSetChange();
+		if (adapted instanceof ContainerAdapter) {
+			((ContainerAdapter<T>) adapted).fireItemSetChange();
+		} else if (adapted instanceof RefreshableContainer) {
+			((RefreshableContainer) adapted).refresh();
+		}
+	}
+
+	@Override
+	protected void fireItemSetChange(ItemSetChangeEvent event) {
+		super.fireItemSetChange(event);
+		for (ItemSetChangeListener listener : itemSetChangeListeners) {
+			listener.containerItemSetChange(event);
+		}
 	}
 	
 }

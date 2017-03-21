@@ -4,7 +4,6 @@ import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfigu
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -20,7 +19,6 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderFie
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -32,7 +30,6 @@ import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
-import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
@@ -89,6 +86,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
+	
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 	public static final String STYLE_NAME = "display-folder";
 	public static final String USER_LOOKUP = "user-lookup";
@@ -123,6 +121,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
 		presenter.viewAssembled();
+	}
+
+	@Override
+	public RecordVO getRecord() {
+		return recordVO;
 	}
 
 	@Override

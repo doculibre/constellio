@@ -118,7 +118,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void givenClassifyButtonClickedThenClassifedCorrectly() throws RecordServicesException {
+    public void givenClassifyButtonClickedInFolderThenClassifedCorrectly() throws RecordServicesException {
         buildUserDocumentsAndUserFolders();
         AvailableActionsParam param = buildParamWithUserDocumentsAndUserFolders();
         extension.addAvailableActions(param);
@@ -137,6 +137,29 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 
         assertThat(recordList.size()).isEqualTo(7);
         assertThatRecords(recordList).extractingMetadatas("title").containsOnly(tuple("UDoc1"), tuple("UDoc2"), tuple("UFol1"),
+                tuple("UFol2"), tuple("USubFol1"), tuple("USubDoc1"), tuple("USubDoc2"));
+    }
+
+    @Test
+    public void givenClassifyButtonClickedInCategoryThenClassifedCorrectly() throws RecordServicesException {
+        buildUserDocumentsAndUserFolders();
+        AvailableActionsParam param = buildParamWithUserFolders();
+        extension.addAvailableActions(param);
+
+        List<String> existingIds = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).
+                where(Schemas.PATH).isStartingWithText(records.getCategory_X().getPaths().get(0))
+        ));
+        extension.classifyButtonClicked("", records.categoryId_X, false, param);
+
+        List<Record> recordList = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
+                .whereAllConditions(
+                        where(Schemas.PATH).isStartingWithText(records.getCategory_X().getPaths().get(0)),
+                        where(Schemas.IDENTIFIER).isNotIn(existingIds)
+                )
+        ));
+
+        assertThat(recordList.size()).isEqualTo(5);
+        assertThatRecords(recordList).extractingMetadatas("title").containsOnly(tuple("UFol1"),
                 tuple("UFol2"), tuple("USubFol1"), tuple("USubDoc1"), tuple("USubDoc2"));
     }
 
@@ -161,5 +184,10 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
     public AvailableActionsParam buildParamWithUserDocumentsAndUserFolders() {
         return new AvailableActionsParam(asList("UDoc1", "UDoc2", "UFol1", "UFol2"),
                 asList(UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE), records.getAdmin(), layout);
+    }
+
+    public AvailableActionsParam buildParamWithUserFolders() {
+        return new AvailableActionsParam(asList("UFol1", "UFol2"),
+                asList(UserFolder.SCHEMA_TYPE), records.getAdmin(), layout);
     }
 }

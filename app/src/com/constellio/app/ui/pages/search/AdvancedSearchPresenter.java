@@ -13,17 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
-import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
-import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.model.services.records.RecordImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,21 +64,11 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -403,7 +382,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return null;
 	}
 
-	protected void saveTemporarySearch(boolean refreshPage) {
+	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord;
 		if (searchID == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -430,13 +409,14 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
 			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord());
 			//recordServices().update(search);
+			updateUIContext(search);
 			if (refreshPage) {
 				view.navigate().to().advancedSearchReplay(search.getId());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		return search;
 	}
 
 	@Override

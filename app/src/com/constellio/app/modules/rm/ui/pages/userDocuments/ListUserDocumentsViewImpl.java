@@ -211,5 +211,12 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	public void setUserContent(List<RecordVODataProvider> dataProviders) {
 		this.dataProviders = dataProviders;
 	}
+
+	@Override
+	public void refresh() {
+		for (RecordVODataProvider dataProvider : dataProviders) {
+			dataProvider.fireDataRefreshEvent();
+		}
+	}
 	
 }

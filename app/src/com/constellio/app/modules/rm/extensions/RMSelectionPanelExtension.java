@@ -1,5 +1,27 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -7,11 +29,15 @@ import com.constellio.app.modules.rm.services.cart.CartEmlServiceRuntimeExceptio
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
+import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsView;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -22,38 +48,42 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailServices;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.data.Property;
+import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.IOUtils;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -180,16 +210,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 verticalLayout.setSpacing(true);
                 final LookupFolderField folderField = new LookupFolderField();
                 folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-                folderField.setVisible(false);
+                folderField.setVisible(true);
                 final FolderCategoryFieldImpl categoryField = new FolderCategoryFieldImpl();
                 categoryField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-                categoryField.setVisible(true);
+                categoryField.setVisible(false);
                 final ListOptionGroup classificationOption = new ListOptionGroup($("ConstellioHeader.selection.actions.classificationChoice"), asList(true, false));
                 classificationOption.addStyleName("horizontal");
                 classificationOption.setNullSelectionAllowed(false);
                 classificationOption.setItemCaption(true, $("ConstellioHeader.selection.actions.classifyInClassificationPlan"));
                 classificationOption.setItemCaption(false, $("ConstellioHeader.selection.actions.classifyInFolder"));
-                classificationOption.setValue(true);
+                classificationOption.setValue(false);
                 classificationOption.addValueChangeListener(new Property.ValueChangeListener() {
                     @Override
                     public void valueChange(Property.ValueChangeEvent event) {
@@ -197,6 +227,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         categoryField.setVisible(Boolean.TRUE.equals(event.getProperty().getValue()));
                     }
                 });
+                classificationOption.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(UserFolder.SCHEMA_TYPE)));
 
 
                 verticalLayout.addComponents(classificationOption, folderField, categoryField);
@@ -204,10 +235,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         String parentId = folderField.getValue();
-                        String categoryId = categoryField.getId();
+                        String categoryId = categoryField.getValue();
                         boolean isClassifiedInFolder = !Boolean.TRUE.equals(classificationOption.getValue());
                         try {
                             classifyButtonClicked(parentId, categoryId, isClassifiedInFolder, param);
+                            ConstellioUI.getCurrent().updateContent();
                         } catch (Throwable e) {
 //                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
 //                            showErrorMessage("DisplayFolderView.parentFolderException");
@@ -405,18 +437,19 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
         List<String> recordIds = param.getIds();
         List<String> couldNotMove = new ArrayList<>();
-        if (isNotBlank(parentId)) {
+        if ((isClassifiedInFolder && isNotBlank(parentId)) || (!isClassifiedInFolder && isNotBlank(categoryId))) {
             RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
             RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-            for(String id: recordIds) {
-                Record record = recordServices.getDocumentById(id);
+            for (String id: recordIds) {
+            	Record record = null;
                 try {
+                    record = recordServices.getDocumentById(id);
                     switch (record.getTypeCode()) {
                         case UserFolder.SCHEMA_TYPE:
                             Folder newFolder = rmSchemas.newFolder();
                             RMUserFolder userFolder = rmSchemas.wrapUserFolder(record);
                             if(!isClassifiedInFolder) {
-                                userFolder.setCategory(categoryId);
+                                classifyUserFolderInCategory(param, categoryId, userFolder);
                             }
                             decommissioningService(param).populateFolderFromUserFolder(newFolder, userFolder, param.getUser());
                             if(isClassifiedInFolder) {
@@ -428,7 +461,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             break;
                         case UserDocument.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
-                            decommissioningService(param).populateDocumentFromUserDocument(newDocument, rmSchemas.wrapUserDocument(record), param.getUser());
+                            UserDocument userDocument = rmSchemas.wrapUserDocument(record);
+                            decommissioningService(param).populateDocumentFromUserDocument(newDocument, userDocument, param.getUser());
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
                             deleteUserDocument(param, rmSchemas.wrapUserDocument(record), param.getUser());
@@ -437,9 +471,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             couldNotMove.add(record.getTitle());
                     }
                 } catch (RecordServicesException e) {
-                    couldNotMove.add(record.getTitle());
+                	if (record != null) {
+                        couldNotMove.add(record.getTitle());
+                	}
+                    e.printStackTrace();
                 } catch (IOException e) {
-                    couldNotMove.add(record.getTitle());
+                	if (record != null) {
+                        couldNotMove.add(record.getTitle());
+                	}
+                    e.printStackTrace();
                 }
             }
         }
@@ -453,10 +493,31 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     protected void deleteUserFolder(AvailableActionsParam param, RMUserFolder rmUserFolder, User user) {
         decommissioningService(param).deleteUserFolder(rmUserFolder, user);
+        refreshSelectionTables(param, rmUserFolder);
     }
 
     protected void deleteUserDocument(AvailableActionsParam param, UserDocument userDocument, User user) {
         decommissioningService(param).deleteUserDocument(userDocument, user);
+        refreshSelectionTables(param, userDocument);
+    }
+    
+    private void refreshSelectionTables(AvailableActionsParam param, RecordWrapper recordWrapper) {
+    	String recordId = recordWrapper.getId();
+        Collection<Window> windows = UI.getCurrent().getWindows();
+        for (Window window : windows) {
+            SelectionTableAdapter selectionTableAdapter = ComponentTreeUtils.getFirstChild(window, SelectionTableAdapter.class);
+            if (selectionTableAdapter != null) {
+            	try {
+                    selectionTableAdapter.getTable().removeItem(recordId);
+            	} catch (Throwable t) {
+                	selectionTableAdapter.refresh();
+            	}
+            }
+		}
+        View currentView = ConstellioUI.getCurrent().getCurrentView();
+        if (currentView instanceof ListUserDocumentsView) {
+        	((ListUserDocumentsView) currentView).refresh();
+        }
     }
 
     private void emailPreparationRequested(AvailableActionsParam param) {
@@ -599,5 +660,42 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
         }
         return true && list.size() > 0;
+    }
+
+    public void classifyUserFolderInCategory(AvailableActionsParam param, String categoryId, RMUserFolder userFolder) {
+        User currentUser = param.getUser();
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+        Category category = rm.getCategory(categoryId);
+        userFolder.setCategory(category);
+        List<String> retentionRules = category.getRententionRules();
+        if (!retentionRules.isEmpty()) {
+            userFolder.setRetentionRule(retentionRules.get(0));
+        }
+        AdministrativeUnit administrativeUnit = getDefaultAdministrativeUnit(currentUser);
+        userFolder.setAdministrativeUnit(administrativeUnit);
+    }
+
+    private AdministrativeUnit getDefaultAdministrativeUnit(User user) {
+        String collection = user.getCollection();
+        AdministrativeUnit defaultAdministrativeUnit;
+        ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+        AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+        ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+        SearchServices searchServices = modelLayerFactory.newSearchServices();
+        MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+        MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
+        LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
+        visibleAdministrativeUnitsQuery.filteredWithUserWrite(user);
+        LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
+        visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
+        if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
+            Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
+            defaultAdministrativeUnit = rm.wrapAdministrativeUnit(defaultAdministrativeUnitRecord);
+        } else {
+            defaultAdministrativeUnit = null;
+        }
+        return defaultAdministrativeUnit;
     }
 }

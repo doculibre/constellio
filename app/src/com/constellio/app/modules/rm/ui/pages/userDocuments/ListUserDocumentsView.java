@@ -13,4 +13,7 @@ public interface ListUserDocumentsView extends BaseView, UserDocumentsViewGroup 
 	void setUserContent(List<RecordVODataProvider> dataProviders);
 
 	void setClassifyButtonFactory(Builder<ContainerButton> classifyButtonFactory);
+	
+	void refresh();
+	
 }

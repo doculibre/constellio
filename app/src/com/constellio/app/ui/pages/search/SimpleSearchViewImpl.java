@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -20,4 +22,10 @@ public class SimpleSearchViewImpl extends SearchViewImpl<SimpleSearchPresenter> 
 	public Boolean computeStatistics() {
 		return false;
 	}
+
+	@Override
+	protected String getTitle() {
+		return $("searchResults");
+	}
+	
 }

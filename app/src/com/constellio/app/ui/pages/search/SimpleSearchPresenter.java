@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.model.services.records.RecordImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,7 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
@@ -47,6 +46,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				searchID = null;
 				searchExpression = parts[1];
 				resultsViewMode = SearchResultsViewMode.DETAILED;
+				saveTemporarySearch(false);
 			}
 		} else {
 			searchExpression = "";
@@ -181,7 +181,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		return null;
 	}
 
-	protected void saveTemporarySearch(boolean refreshPage) {
+	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord;
 		if (searchID == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -204,8 +204,10 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord());
 //			recordServices().update(search);
-			if (refreshPage) {
-				view.navigate().to().simpleSearchReplay(search.getId());
-			}
+		updateUIContext(search);
+		if (refreshPage) {
+			view.navigate().to().simpleSearchReplay(search.getId());
+		}
+		return search;
 	}
 }

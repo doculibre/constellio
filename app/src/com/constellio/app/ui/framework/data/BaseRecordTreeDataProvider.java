@@ -19,7 +19,7 @@ import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.vaadin.server.Resource;
 
-public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> {
+public class BaseRecordTreeDataProvider extends AbstractDataProvider implements LazyTreeDataProvider<String> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BaseRecordTreeDataProvider.class);
 

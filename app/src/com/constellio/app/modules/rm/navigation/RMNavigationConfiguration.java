@@ -40,6 +40,7 @@ import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
@@ -57,6 +58,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -80,6 +82,7 @@ import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 
 public class RMNavigationConfiguration implements Serializable {
@@ -185,7 +188,14 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_FOLDER) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).addFolder();
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if (currentView instanceof DisplayFolderView) {
+					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					String parentFolderId = displayFolderView.getRecord().getId();
+					navigate.to(RMViews.class).addFolder(parentFolderId);
+				} else {
+					navigate.to(RMViews.class).addFolder();
+				}
 			}
 
 			@Override
@@ -196,7 +206,14 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(NEW_DOCUMENT) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).newDocument();
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if (currentView instanceof DisplayFolderView) {
+					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					String folderId = displayFolderView.getRecord().getId();
+					navigate.to(RMViews.class).newDocument(folderId);
+				} else {
+					navigate.to(RMViews.class).newDocument();
+				}
 			}
 
 			@Override
@@ -207,7 +224,14 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).addDocument();
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if (currentView instanceof DisplayFolderView) {
+					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					String folderId = displayFolderView.getRecord().getId();
+					navigate.to(RMViews.class).addDocument(folderId);
+				} else {
+					navigate.to(RMViews.class).addDocument();
+				}
 			}
 
 			@Override
