@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +12,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -33,6 +36,8 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 			throws Exception {
 		new SchemaAlterationFor7_1_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		alterRole(collection, appLayerFactory.getModelLayerFactory());
+
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	private void alterRole(String collection, ModelLayerFactory modelLayerFactory) {
@@ -51,6 +56,19 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+
+			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
+
+			MetadataSchemaBuilder folderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
+			folderSchema.getMetadata(Folder.ACTIVE_RETENTION_CODE).setTransiency(PERSISTED);
+			folderSchema.getMetadata(Folder.SEMIACTIVE_RETENTION_CODE).setTransiency(PERSISTED);
+			folderSchema.getMetadata(Folder.SEMIACTIVE_RETENTION_TYPE).setTransiency(PERSISTED);
+			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).setTransiency(PERSISTED);
+			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).setTransiency(PERSISTED);
+			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).setTransiency(PERSISTED);
+			folderSchema.getMetadata(Folder.MAIN_COPY_RULE).setTransiency(PERSISTED);
+			folderSchema.getMetadata(Folder.DECOMMISSIONING_DATE).setTransiency(PERSISTED);
+
 			MetadataSchemaBuilder defaultSchema = typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
 			defaultSchema.create(RMUserFolder.ADMINISTRATIVE_UNIT).setType(MetadataValueType.REFERENCE).setEssential(false)
 					.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE));
