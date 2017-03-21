@@ -57,8 +57,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
@@ -218,15 +216,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		presenter.backgroundViewMonitor();
 	}
 
-	@Override
-	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
-	}
+//	@Override
+//	protected ClickListener getBackButtonClickListener() {
+//		return new ClickListener() {
+//			@Override
+//			public void buttonClick(ClickEvent event) {
+//				presenter.backButtonClicked();
+//			}
+//		};
+//	}
 
 	@Override
 	public void setTasks(RecordVODataProvider dataProvider) {
