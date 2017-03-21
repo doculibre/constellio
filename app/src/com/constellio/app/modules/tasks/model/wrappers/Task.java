@@ -411,24 +411,6 @@ public class Task extends RecordWrapper {
 		super.setTitle(title);
 		return this;
 	}
-	
-	public List<String> getLinkedFolders() {
-		return get(LINKED_FOLDERS);
-	}
-	
-	public Task setLinkedFolders(List<String> linkedFolders) {
-		set(LINKED_FOLDERS, linkedFolders);
-		return this;
-	}
-	
-	public List<String> getLinkedDocuments() {
-		return get(LINKED_DOCUMENTS);
-	}
-	
-	public Task setLinkedDocuments(List<String> linkedDocuments) {
-		set(LINKED_DOCUMENTS, linkedDocuments);
-		return this;
-	}
 
 	public boolean hasNextTask() {
 		return !getNextTasks().isEmpty();
