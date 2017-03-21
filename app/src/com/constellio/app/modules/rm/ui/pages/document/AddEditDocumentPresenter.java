@@ -67,6 +67,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private boolean newFile;
+	private boolean newFileAtStart;
 	ConstellioEIMConfigs eimConfigs;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
@@ -102,7 +103,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String idCopy = paramsMap.get("idCopy");
 		String parentId = paramsMap.get("parentId");
 		userDocumentId = paramsMap.get("userDocumentId");
-		newFile = "true".equals(paramsMap.get("newFile"));
+		newFile = false;
+		newFileAtStart = "true".equals(paramsMap.get("newFile"));
 
 		Document document;
 		if (StringUtils.isNotBlank(id)) {
@@ -550,7 +552,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public void viewAssembled() {
 		addContentFieldListeners();
 		DocumentContentField contentField = getContentField();
-		if (addView && newFile && !contentField.getNewFileWindow().isOpened()) {
+		if (addView && newFileAtStart && !contentField.getNewFileWindow().isOpened()) {
 			contentField.getNewFileWindow().open();
 		}
 	}
