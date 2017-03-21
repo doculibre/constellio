@@ -75,6 +75,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	public final RequestHandler requestHandler = new ConstellioResourceHandler();
 
 	private SSOServices ssoServices;
+	
+	private View currentView;
 
 	@Override
 	protected void init(VaadinRequest request) {
@@ -235,7 +237,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 						}
 
 						View newView = event.getNewView();
-						ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+						ConstellioUI.this.currentView = newView;
+						
+						ConstellioFactories constellioFactories = getConstellioFactories();
 						AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 						List<EnterViewListener> enterViewListeners = appLayerFactory.getEnterViewListeners();
 						for (EnterViewListener enterViewListener : enterViewListeners) {
@@ -358,6 +362,10 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	@Override
 	public <T> void setAttribute(String key, T value) {
 		uiContext.put(key, value);
+	}
+
+	public View getCurrentView() {
+		return currentView;
 	}
 
 }

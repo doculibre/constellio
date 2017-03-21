@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
@@ -17,7 +18,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public abstract class DefaultEventsDataProvider implements EventsCategoryDataProvider {
+public abstract class DefaultEventsDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
 
 	transient List<EventStatistics> events;
 

@@ -20,7 +20,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.vaadin.data.Item;
 
 @SuppressWarnings("serial")
-public class RecordVOLazyContainer extends LazyQueryContainer {
+public class RecordVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
 
 	private List<RecordVODataProvider> dataProviders;
 

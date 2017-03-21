@@ -28,7 +28,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 
-public class RecordTextInputDataProvider implements TextInputDataProvider<String> {
+public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 	private transient int lastStartIndex;
 	private transient String lastQuery;

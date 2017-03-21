@@ -147,6 +147,10 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			setComponentAlignment(toggleButton, Alignment.TOP_LEFT);
 		}
 	}
+	
+	public void refresh() {
+		dataSourceAdapter.fireItemSetChange();
+	}
 
 	public SelectDeselectAllButton getToggleButton() {
 		return toggleButton;

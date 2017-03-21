@@ -12,7 +12,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.wrappers.Collection;
 
-public class CollectionVODataProvider implements DataProvider {
+public class CollectionVODataProvider extends AbstractDataProvider {
+	
 	protected transient CollectionsManager collectionManager;
 
 	transient List<CollectionVO> collections;

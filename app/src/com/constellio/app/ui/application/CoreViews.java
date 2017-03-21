@@ -464,8 +464,6 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_BOOST_BY_QUERYS);
 	}
 
-
-
 	public void connectorIndexationReport(String connectorId) {
 		Map<String, String> params = new HashMap<>();
 		if (connectorId != null) {
@@ -534,6 +532,10 @@ public class CoreViews {
 
 	public void systemCheck() {
 		navigator.navigateTo(NavigatorConfigurationService.SYSTEM_CHECK);
+	}
+	
+	public void batchProcesses() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_BATCH_PROCESSES);
 	}
 	
 }
