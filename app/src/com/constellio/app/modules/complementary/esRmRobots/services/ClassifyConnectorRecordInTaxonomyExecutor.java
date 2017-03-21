@@ -489,11 +489,18 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (!RMTaxonomies.CLASSIFICATION_PLAN.equals(taxonomy) || rmFolder.getCategoryEntered() == null) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
-
-		rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
-		rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
-		rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
-		rmFolder.setOpenDate(params.getDefaultOpenDate());
+		if (rmFolder.getUniformSubdivisionEntered() == null) {
+			rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
+		}
+		if (rmFolder.getRetentionRuleEntered() == null) {
+			rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
+		}
+		if (rmFolder.getCopyStatusEntered() == null) {
+			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
+		}
+		if (rmFolder.getOpenDate() == null) {
+			rmFolder.setOpenDate(params.getDefaultOpenDate());
+		}
 	}
 
 	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder) {

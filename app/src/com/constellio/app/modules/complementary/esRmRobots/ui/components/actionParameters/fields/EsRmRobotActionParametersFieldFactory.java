@@ -63,10 +63,6 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 			return null;
 		}
 		
-		if(DEFAULT_PARENT_FOLDER.equals(metadataVO.getLocalCode())) {
-			return null;
-		}
-		
 		if(DEFAULT_CATEGORY.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
 			return null;
 		}

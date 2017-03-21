@@ -1,5 +1,6 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_PARENT_FOLDER;
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_MAPPING;
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_MAPPING;
 
@@ -91,6 +92,10 @@ public class ESRMRobotsMigrationTo7_1 implements MigrationScript {
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_MAPPING)
 				.withMetadataGroup(mappingsTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, FOLDER_MAPPING)
+				.withMetadataGroup(mappingsTab));
+
+		//Also hide this option
+		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DEFAULT_PARENT_FOLDER)
 				.withMetadataGroup(mappingsTab));
 		
 		schemasDisplayManager.execute(transaction.build());
