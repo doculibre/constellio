@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,8 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentAutocompleteFieldCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderAutocompleteFieldCalculator;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -68,6 +71,10 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).setTransiency(PERSISTED);
 			folderSchema.getMetadata(Folder.MAIN_COPY_RULE).setTransiency(PERSISTED);
 			folderSchema.getMetadata(Folder.DECOMMISSIONING_DATE).setTransiency(PERSISTED);
+			folderSchema.getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
+					.defineDataEntry().asCalculated(FolderAutocompleteFieldCalculator.class);
+			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
+					.defineDataEntry().asCalculated(DocumentAutocompleteFieldCalculator.class);
 
 			MetadataSchemaBuilder defaultSchema = typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
 			defaultSchema.create(RMUserFolder.ADMINISTRATIVE_UNIT).setType(MetadataValueType.REFERENCE).setEssential(false)
