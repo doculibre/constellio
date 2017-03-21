@@ -87,6 +87,8 @@ public class ConstellioEIMConfigs {
 	
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
+	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
@@ -148,6 +150,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
 
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(10));
+		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
 		//
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -288,5 +291,7 @@ public class ConstellioEIMConfigs {
 	public int getLazyTreeBufferSize() {
 		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
 	}
+
+	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
 }
