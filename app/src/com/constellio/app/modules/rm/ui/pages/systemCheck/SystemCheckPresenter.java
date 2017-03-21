@@ -5,10 +5,12 @@ import com.constellio.app.services.records.SystemCheckManager;
 import com.constellio.app.services.records.SystemCheckReportBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.users.UserServices;
 
 public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
-	
+
 	private boolean buttonsDisabled = false;
 
 	public SystemCheckPresenter(SystemCheckView view) {
@@ -19,16 +21,20 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			SessionContext sessionContext) {
 		super(view, constellioFactories, sessionContext);
 	}
-	
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return userServices().getUser(user.getUsername()).isSystemAdmin();
+		UserServices userServices = userServices();
+		return userServices.getUser(user.getUsername()).isSystemAdmin()
+				|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+				CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY,
+				CorePermissions.MANAGE_SYSTEM_SERVERS);
 	}
-	
+
 	SystemCheckManager getSystemCheckManager() {
 		return appLayerFactory.getSystemCheckManager();
 	}
-	
+
 	void viewAssembled() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		buttonsDisabled = systemCheckManager.isSystemCheckResultsRunning();
@@ -38,21 +44,21 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			view.setReportContent(reportContent);
 		}
 	}
-	
+
 	void startSystemCheckButtonClicked() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(false);
 		view.setSystemCheckRunning(true);
 		buttonsDisabled = true;
 	}
-	
+
 	void startSystemCheckAndRepairButtonClicked() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(true);
 		view.setSystemCheckRunning(true);
 		buttonsDisabled = true;
 	}
-	
+
 	void viewRefreshed() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		boolean systemCheckRunning = systemCheckManager.isSystemCheckResultsRunning();
@@ -63,7 +69,7 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			buttonsDisabled = false;
 		}
 	}
-	
+
 	void backButtonClicked() {
 		view.navigate().to().adminModule();
 	}

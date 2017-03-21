@@ -369,8 +369,9 @@ public class SearchServices {
 			fieldsWithBoosts.add(boost.getKey());
 		}
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
-			if (!fieldsWithBoosts.contains(metadata.getDataStoreCode())) {
-				sb.append(metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode() + " ");
+			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+			if (!fieldsWithBoosts.contains(analyzedField)) {
+				sb.append(analyzedField + " ");
 			}
 		}
 
