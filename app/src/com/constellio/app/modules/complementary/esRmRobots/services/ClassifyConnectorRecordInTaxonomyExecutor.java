@@ -13,6 +13,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -494,6 +495,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 		if (rmFolder.getRetentionRuleEntered() == null) {
 			rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
+
+			if (rmFolder.getRetentionRuleEntered() == null && rmFolder.getCategoryEntered() != null) {
+				Category defaultCategory = rm.getCategory(rmFolder.getCategoryEntered());
+				List<String> retentionRules = defaultCategory.getRententionRules();
+				if (!retentionRules.isEmpty()) {
+					rmFolder.setRetentionRuleEntered(retentionRules.get(0));
+				}
+			}
 		}
 		if (rmFolder.getCopyStatusEntered() == null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());

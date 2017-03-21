@@ -264,10 +264,10 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		return recordToVOBuilder.build(actionParameters.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 	}
 
-	private <T> void initMetadataValue(ActionParameters actionParameters, String metadataCode, T value, boolean forcer) {
+	private <T> void initMetadataValue(ActionParameters actionParameters, String metadataCode, T value, boolean force) {
 		try {
 			Metadata metadata = actionParameters.getSchema().get(metadataCode);
-			if (metadata != null && (forcer || actionParameters.get(metadata) == null)) {
+			if (metadata != null && (force || actionParameters.get(metadata) == null)) {
 				actionParameters.set(metadata, value);
 			}
 		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
