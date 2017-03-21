@@ -40,19 +40,18 @@ public class BaseRichTextArea extends CKEditorTextField {
 		setValue(value);
 		init();
 	}
-	
+
 	private void init() {
 		setWidth("100%");
 	}
-	
+
 	private static CKEditorConfig newConfig() {
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		String toolbarConfig = modelLayerFactory.getSystemConfigs().getCKEditorToolbarConfig();
 		CKEditorConfig config = new CKEditorConfig();
 		config.addCustomToolbarLine(toolbarConfig);
-        config.setWidth("100%");
-        return config;
+		config.setWidth("100%");
+		return config;
 	}
-
 }

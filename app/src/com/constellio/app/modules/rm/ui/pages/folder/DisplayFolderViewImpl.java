@@ -69,8 +69,6 @@ import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -204,15 +202,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
 	}
 
-	@Override
-	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
-	}
+//	@Override
+//	protected ClickListener getBackButtonClickListener() {
+//		return new ClickListener() {
+//			@Override
+//			public void buttonClick(ClickEvent event) {
+//				presenter.backButtonClicked();
+//			}
+//		};
+//	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
