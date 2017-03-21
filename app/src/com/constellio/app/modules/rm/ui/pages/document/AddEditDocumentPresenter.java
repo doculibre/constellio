@@ -1,23 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.model.services.contents.icap.IcapException;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordImpl;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -586,7 +568,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				contentVersionVO.setMajorVersion(false);
 				contentVersionVO.setHash(null);
 				documentVO.setContent(contentVersionVO);
-				documentVO.setTitle(contentVersionVO.getFileName());
+				String filename = contentVersionVO.getFileName();
+				if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+					filename = FilenameUtils.removeExtension(filename);
+				}
+				documentVO.setTitle(filename);
 				newFile = true;
 				view.getForm().reload();
 				// Will have been lost after reloading the form
