@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -149,6 +150,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			task.setDueDate(TimeProvider.getLocalDate());
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
+			
+			String folderId = paramsMap.get("folderId");
+			if (folderId != null) {
+				task.setLinkedFolders(Arrays.asList(folderId));
+			}
+			String documentId = paramsMap.get("documentId");
+			if (documentId != null) {
+				task.setLinkedDocuments(Arrays.asList(documentId));
+			}
 		}
 		completeMode = "true".equals(paramsMap.get("completeTask"));
 		if (completeMode) {

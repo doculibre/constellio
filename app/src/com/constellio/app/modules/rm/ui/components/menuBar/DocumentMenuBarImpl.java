@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -18,8 +20,11 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
@@ -39,6 +44,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	private ContentVersionVO contentVersionVO;
 	private UpdateContentVersionWindowImpl updateWindow;
 	private String borrowedMessage;
+	private boolean openDocumentButtonVisible;
 	private boolean downloadDocumentButtonVisible;
 	private boolean editDocumentButtonVisible;
 	private boolean deleteDocumentButtonVisible;
@@ -96,6 +102,32 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 				presenter.displayDocumentButtonClicked();
 			}
 		});
+
+		if (openDocumentButtonVisible) {
+			String fileName = contentVersionVO.getFileName();
+			Resource icon = FileIconUtils.getIcon(fileName);
+			MenuItem openDocumentItem = rootItem.addItem($("DocumentContextMenu.openDocument"), icon, null);
+			openDocumentItem.setCommand(new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
+					openAgentURL(agentURL);
+				}
+			});
+		}
+
+		if (downloadDocumentButtonVisible) {
+			MenuItem downloadDocumentItem = rootItem.addItem($("DocumentContextMenu.downloadDocument"), null);
+			downloadDocumentItem.setCommand(new Command() {
+				@SuppressWarnings("deprecation")
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
+					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
+					Page.getCurrent().open(downloadedResource, null, false);
+				}
+			});
+		}
 
 		if (downloadDocumentButtonVisible) {
 			String fileName = contentVersionVO.getFileName();
@@ -360,13 +392,18 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	}
 
 	@Override
+	public void setOpenDocumentButtonVisible(boolean visible) {
+		this.openDocumentButtonVisible = visible;
+	}
+
+	@Override
 	public void setDownloadDocumentButtonVisible(boolean visible) {
 		this.downloadDocumentButtonVisible = visible;
 	}
 
 	@Override
 	public void openAgentURL(String agentURL) {
-		Page.getCurrent().open(agentURL, null);
+		Page.getCurrent().open(agentURL, "_top");
 	}
 
 }

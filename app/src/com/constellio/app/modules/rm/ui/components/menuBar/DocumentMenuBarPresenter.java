@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.components.menuBar;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -34,8 +35,11 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 			ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
 			menuBar.setContentVersionVO(contentVersionVO);
 			menuBar.setDownloadDocumentButtonVisible(true);
+			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+			menuBar.setOpenDocumentButtonVisible(agentURL != null);
 		} else {
 			menuBar.setDownloadDocumentButtonVisible(false);
+			menuBar.setOpenDocumentButtonVisible(false);
 		}
 		menuBar.buildMenuItems();
 	}

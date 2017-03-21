@@ -379,8 +379,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		startWorkflowButton = new StartWorkflowButton();
 		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
-		actionMenuButtons.add(addDocumentButton);
-		actionMenuButtons.add(addSubFolderButton);
+//		actionMenuButtons.add(addDocumentButton);
+//		actionMenuButtons.add(addSubFolderButton);
 		actionMenuButtons.add(editFolderButton);
 		actionMenuButtons.add(moveInFolderButton);
 		actionMenuButtons.add(deleteFolderButton);

@@ -18,7 +18,9 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
@@ -39,6 +41,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private ContentVersionVO contentVersionVO;
 	private UpdateContentVersionWindowImpl updateWindow;
 	private String borrowedMessage;
+	private boolean openDocumentButtonVisible;
 	private boolean downloadDocumentButtonVisible;
 	private boolean editDocumentButtonVisible;
 	private boolean deleteDocumentButtonVisible;
@@ -108,16 +111,28 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			}
 		});
 
-		if (downloadDocumentButtonVisible) {
+		if (openDocumentButtonVisible) {
 			String fileName = contentVersionVO.getFileName();
 			Resource icon = FileIconUtils.getIcon(fileName);
 			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.openDocument"), icon);
 			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
+					openAgentURL(agentURL);
+				}
+			});
+		}
+
+		if (downloadDocumentButtonVisible) {
+			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.downloadDocument"));
+			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@SuppressWarnings("deprecation")
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-						String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
-						Page.getCurrent().open(agentURL, "_top");
+					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
+					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
+					Page.getCurrent().open(downloadedResource, null, false);
 				}
 			});
 		}
@@ -384,12 +399,17 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void setOpenDocumentButtonVisible(boolean visible) {
+		this.openDocumentButtonVisible = visible;
+	}
+
+	@Override
 	public void setDownloadDocumentButtonVisible(boolean visible) {
 		this.downloadDocumentButtonVisible = visible;
 	}
 
 	@Override
 	public void openAgentURL(String agentURL) {
-		Page.getCurrent().open(agentURL, null);
+		Page.getCurrent().open(agentURL, "_top");
 	}
 }

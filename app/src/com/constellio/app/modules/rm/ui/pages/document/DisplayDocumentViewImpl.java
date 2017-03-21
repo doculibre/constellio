@@ -719,6 +719,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		this.tabSheetDecorators.remove(decorator);
 	}
 	
+	@Override
 	public DocumentVO getDocumentVO() {
 		return documentVO;
 	}
