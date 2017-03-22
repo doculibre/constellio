@@ -29,6 +29,8 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
+	public static final String RANK = "rank";
+	
 	public static final String TITLE = "title";
 
 	private static final String STATUS = "status";
@@ -56,11 +58,16 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	public BatchProcessContainer(BatchProcessDataProvider dataProvider, boolean systemBatchProcesses) {
 		super(dataProvider);
 		this.systemBatchProcesses = systemBatchProcesses;
+		populateFromData(dataProvider);
 	}
 
 	@Override
 	protected void populateFromData(BatchProcessDataProvider dataProvider) {
+		int currentRank = 1;
 		for (BatchProcessVO batchProcessVO : dataProvider.getBatchProcessVOs()) {
+			if (batchProcessVO.getStatus() != BatchProcessStatus.FINISHED) {
+				batchProcessVO.setRank(currentRank++);
+			}
 			addItem(batchProcessVO);
 		}
 	}
@@ -68,6 +75,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	@Override
 	protected Collection<?> getOwnContainerPropertyIds() {
 		List<String> containerPropertyIds = new ArrayList<>();
+		containerPropertyIds.add(RANK);
 		containerPropertyIds.add(TITLE);
 		containerPropertyIds.add(STATUS);
 		containerPropertyIds.add(REQUEST_DATE_TIME);
@@ -98,7 +106,9 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	@Override
 	protected Class<?> getOwnType(Object propertyId) {
 		Class<?> type;
-		if (TITLE.equals(propertyId)) {
+		if (RANK.equals(propertyId)) {
+			type = Integer.class;
+		} else if (TITLE.equals(propertyId)) {
 			type = String.class;
 		} else if (STATUS.equals(propertyId)) {	
 			type = String.class;
@@ -125,11 +135,10 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
 		BatchProcessVO batchProcessVO = (BatchProcessVO) itemId;
 		Object value;
-		if (TITLE.equals(propertyId)) {
-			value = batchProcessVO.getTitle();
-			if (StringUtils.isBlank((String) value)) {
-				value = batchProcessVO.getId();
-			}
+		if (RANK.equals(propertyId)) {
+			value = batchProcessVO.getRank();
+		} else if (TITLE.equals(propertyId)) {
+			value = getTitle(batchProcessVO);
 		} else if (STATUS.equals(propertyId)) {	
 			BatchProcessStatus status = batchProcessVO.getStatus();
 			value = $("BatchProcess.status." + status.toString());
@@ -150,6 +159,21 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		}
 		Class<?> type = getType(propertyId);
 		return new ObjectProperty(value, type);
+	}
+	
+	private String getTitle(BatchProcessVO batchProcessVO) {
+		String title;
+		String titleCode = batchProcessVO.getTitle();
+		if (StringUtils.isBlank(titleCode)) {
+			title = batchProcessVO.getId();
+		} else if (titleCode.indexOf(" ") != -1) {
+			String titleKey = StringUtils.substringBefore(titleCode, " ");
+			String titleValue = StringUtils.substringAfter(titleCode, " ");
+			title = $("BatchProcess.title." + titleKey + ".with", titleValue);
+		} else {
+			title = $("BatchProcess.title." + titleCode);
+		}
+		return title;
 	}
 	
 	private String format(LocalDateTime localDateTime) {

@@ -35,6 +35,7 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.addStyleName("batch-processes");
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 		
@@ -67,6 +68,7 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 		}
 		batchProcessTable.setContainerDataSource(container);
 
+		batchProcessTable.setColumnHeader("rank", $("ListBatchProcessesView.rank"));
 		batchProcessTable.setColumnHeader("title", $("ListBatchProcessesView.title"));
 		batchProcessTable.setColumnHeader("status", $("ListBatchProcessesView.status"));
 		batchProcessTable.setColumnHeader("requestDateTime", $("ListBatchProcessesView.requestDateTime"));
@@ -77,7 +79,6 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 		batchProcessTable.setColumnHeader("collection", $("ListBatchProcessesView.collection"));
 		
 		batchProcessTable.setWidth("98%");
-		batchProcessTable.setPageLength(10);
 		
 		return batchProcessTable;
 	}

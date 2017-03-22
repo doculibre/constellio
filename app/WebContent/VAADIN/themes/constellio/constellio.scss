@@ -1315,6 +1315,14 @@ $popup-view-z-index: 3;
 	    		overflow-x: hidden;
 	    	}
     	}
+
+		.batch-processes {
+	    	.v-table {
+		    	.v-scrollable {
+		    		overflow-x: auto;
+		    	}
+	    	}
+    	}
     	
         .action-menu-wrapper {
             padding-right: 260px;
