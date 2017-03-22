@@ -48,20 +48,27 @@ public class RMMigrationTo7_1_3 implements MigrationScript {
 
         List<MediumType> mediumTypes = rm.wrapMediumTypes(searchServices.search(query));
         List<MediumType> mediumTypesAnalogiques = new ArrayList<>();
-
-        boolean done = false;
+        List<MediumType> mediumTypesNonAnalogiques = new ArrayList<>();
 
         if (rm.getMediumTypeByCode(driveCode) == null) {
-            while (!done) {
-                for (MediumType mediumType : mediumTypes) {
-                    if (!mediumType.isAnalogical()) {
-                        transaction.add(mediumType.setCode(driveCode)
-                                .setTitle(driveTitle));
-                        done = true;
-                    }
+
+            for (MediumType mediumType : mediumTypes) {
+                if (mediumType.isAnalogical()) {
+                    mediumTypesAnalogiques.add(mediumType);
+                } else {
+                    mediumTypesNonAnalogiques.add(mediumType);
                 }
             }
+
+            if (mediumTypesNonAnalogiques.size() == 0) {
+                transaction.add(rm.newMediumType().setCode(driveCode)
+                        .setTitle("test")
+                        .setAnalogical(false));
+            }
         }
+
+//        transaction.add(mediumType.setCode(driveCode)
+//                            .setTitle(driveTitle));
 
 //        transaction.add(rm.newMediumType().setCode(driveCode)
 //                .setTitle("test")
