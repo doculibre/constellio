@@ -74,6 +74,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 	public RecordVO getRecordVO(int index) {
 		RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, index);
 		int recordIndexForDataProvider = dataProviderAndRecordIndex.recordIndex;
+
 		return dataProviderAndRecordIndex.dataProvider.getRecordVO(recordIndexForDataProvider);
 	}
 	

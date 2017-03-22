@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -54,6 +55,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 					recordWindow.setWidth("90%");
 					recordWindow.setHeight("90%");
 					String typeCode = recordVO.getSchema().getTypeCode();
+				//TODO add event
 					if(typeCode.equals(Document.SCHEMA_TYPE) || typeCode.equals(Folder.SCHEMA_TYPE)) {
 						recordWindow.setContent(new RecordDisplay(recordVO, new RMMetadataDisplayFactory()));
 					} else {
