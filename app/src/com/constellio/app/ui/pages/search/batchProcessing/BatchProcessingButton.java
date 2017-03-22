@@ -116,7 +116,7 @@ public class BatchProcessingButton extends WindowButton {
 					}
 				}
 			});
-			processButton = new Button($("process"));
+			processButton = new Button($("BatchProcessingButton.process", presenter.getNumberOfRecords()));
 			processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 			processButton.addClickListener(new ClickListener() {
 				@Override

@@ -347,6 +347,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return hasWriteAccessOnAllRecords(getRecordsIds(batchProcessSchemaType));
 	}
 
+	@Override
+	public long getNumberOfRecords() {
+		return (long) getRecordsIds(batchProcessSchemaType).size();
+	}
+
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
 		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
 	}
