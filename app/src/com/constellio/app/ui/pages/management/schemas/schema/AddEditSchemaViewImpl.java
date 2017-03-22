@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CheckBox;
@@ -72,6 +73,12 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 			@Override
 			protected void saveButtonClick(FormMetadataSchemaVO schemaVO)
 					throws ValidationException {
+				try {
+					labelsField.validateFields();
+				} catch (Validator.InvalidValueException e) {
+					showErrorMessage(e.getMessage());
+					return;
+				}
 				presenter.saveButtonClicked();
 			}
 
