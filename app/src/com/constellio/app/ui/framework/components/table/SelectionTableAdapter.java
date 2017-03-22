@@ -169,6 +169,19 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		if (checkBox != null) {
 			checkBox.setInternalValue(checked);
 		}
+		adjustSelectAllButton(checked);
+	}
+
+	public void adjustSelectAllButton(boolean checked) {
+		if(checked && toggleButton.isSelectAllMode() && isAllItemsSelected()) {
+			toggleSelectAllButton();
+		} else if(!checked && !toggleButton.isSelectAllMode() && isAllItemsUnselected()) {
+			toggleSelectAllButton();
+		}
+	}
+
+	private void toggleSelectAllButton() {
+		toggleButton.setSelectAllMode(!toggleButton.isSelectAllMode());
 	}
 	
 	protected boolean isAllItemsSelected() {
@@ -186,6 +199,23 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			allItemsSelected = false;
 		}
 		return allItemsSelected;
+	}
+
+	protected boolean isAllItemsUnselected() {
+		boolean allItemsUnselected;
+		if (table != null) {
+			Collection<?> itemIds = table.getItemIds();
+			allItemsUnselected = !itemIds.isEmpty();
+			for (Object itemId : itemIds) {
+				if (isSelected(itemId)) {
+					allItemsUnselected = false;
+					break;
+				}
+			}
+		} else {
+			allItemsUnselected = false;
+		}
+		return allItemsUnselected;
 	}
 	
 	public void selectAll() {

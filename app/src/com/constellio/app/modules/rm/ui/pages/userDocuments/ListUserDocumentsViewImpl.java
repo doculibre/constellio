@@ -149,6 +149,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
 				RecordVO recordVO = item.getRecord();
 				presenter.selectionChanged(recordVO, selected);
+				adjustSelectAllButton(selected);
 			}
 		};
 
