@@ -29,4 +29,6 @@ public interface BatchProcessingPresenter {
 	RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType);
 
 	boolean hasWriteAccessOnAllRecords();
+
+	long getNumberOfRecords();
 }

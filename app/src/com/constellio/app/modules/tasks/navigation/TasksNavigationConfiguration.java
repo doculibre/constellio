@@ -85,7 +85,7 @@ public class TasksNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
-		}, 3);
+		}, 0);
 	}
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
