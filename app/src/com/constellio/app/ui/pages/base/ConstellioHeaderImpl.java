@@ -489,12 +489,12 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		};
 
 		buttonsLayout.addComponents(closeButton);
-		buttonsLayout.setDefaultComponentAlignment(Alignment.BOTTOM_RIGHT);
+		buttonsLayout.setDefaultComponentAlignment(Alignment.TOP_CENTER);
 		buttonsLayout.setSpacing(true);
 
 		selectionPanel.addComponent(selectionLayout);
 		selectionPanel.addComponent(buttonsLayout);
-		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_RIGHT);
+		selectionPanel.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
 
 		selectionLayout.addComponent(selectionTableAdapter);
 		selectionLayout.addComponent(selectionActionMenu);

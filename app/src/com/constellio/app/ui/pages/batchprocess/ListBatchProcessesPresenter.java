@@ -1,6 +1,10 @@
 package com.constellio.app.ui.pages.batchprocess;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.joda.time.Hours;
+import org.joda.time.LocalDateTime;
 
 import com.constellio.app.ui.entities.BatchProcessVO;
 import com.constellio.app.ui.framework.builders.BatchProcessToVOBuilder;
@@ -12,6 +16,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 
 public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcessesView> {
+	
+	private int secondsSinceLastRefresh = 0;
+
+	private BatchProcessToVOBuilder voBuilder = new BatchProcessToVOBuilder();
+
+	private BatchProcessDataProvider userBatchProcessDataProvider = new BatchProcessDataProvider();
+	private BatchProcessDataProvider systemBatchProcessDataProvider = new BatchProcessDataProvider();
 
 	public ListBatchProcessesPresenter(ListBatchProcessesView view) {
 		super(view);
@@ -19,29 +30,47 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 	}
 	
 	private void init() {
-		BatchProcessToVOBuilder voBuilder = new BatchProcessToVOBuilder();
-		BatchProcessDataProvider userBatchProcessDataProvider = new BatchProcessDataProvider();
-		BatchProcessDataProvider systemBatchProcessDataProvider = new BatchProcessDataProvider();
+		refreshDataProviders();
+		view.setUserBatchProcesses(userBatchProcessDataProvider);
+
+		User currentUser = getCurrentUser();
+		if (areSystemBatchProcessesVisible(currentUser)) {
+			view.setSystemBatchProcesses(systemBatchProcessDataProvider);
+		}
+	}
+	
+	private void refreshDataProviders() {
+		userBatchProcessDataProvider.clear();
+		systemBatchProcessDataProvider.clear();
 		
 		User currentUser = getCurrentUser();
 		String currentUsername = currentUser.getUsername();
 		
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		List<BatchProcess> displayedBatchProcesses = new ArrayList<>();
+		
+		LocalDateTime oldestAgeDisplayed = new LocalDateTime().minus(Hours.FIVE);
+		List<BatchProcess> finishedBatchProcesses = batchProcessesManager.getFinishedBatchProcesses();
+		for (BatchProcess batchProcess : finishedBatchProcesses) {
+			if (oldestAgeDisplayed.isBefore(batchProcess.getStartDateTime())) {
+				displayedBatchProcesses.add(batchProcess);
+			}
+		}
+		
 		List<BatchProcess> nonFinishedBatchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
-		for (int i = 0; i < nonFinishedBatchProcesses.size(); i++) {
-			BatchProcess batchProcess = nonFinishedBatchProcesses.get(i);
+		displayedBatchProcesses.addAll(nonFinishedBatchProcesses);
+		
+		for (int i = 0; i < displayedBatchProcesses.size(); i++) {
+			BatchProcess batchProcess = displayedBatchProcesses.get(i);
 			BatchProcessVO batchProcessVO = voBuilder.build(batchProcess);
 			String batchProcessUsername = batchProcessVO.getUsername();
-			if (batchProcessUsername.equals(currentUsername)) {
+			if (currentUsername.equals(batchProcessUsername)) {
 				userBatchProcessDataProvider.addBatchProcess(batchProcessVO);
 			}
 			systemBatchProcessDataProvider.addBatchProcess(batchProcessVO);
 		}
-		
-		view.setUserBatchProcesses(userBatchProcessDataProvider);
-		if (areSystemBatchProcessesVisible(currentUser)) {
-			view.setSystemBatchProcesses(systemBatchProcessDataProvider);
-		}
+		userBatchProcessDataProvider.fireDataRefreshEvent();
+		systemBatchProcessDataProvider.fireDataRefreshEvent();
 	}
 
 	@Override
@@ -51,6 +80,13 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 	
 	private boolean areSystemBatchProcessesVisible(User user) {
 		return user.has(CorePermissions.VIEW_SYSTEM_BATCH_PROCESSES).globally();
+	}
+
+	public void backgroundViewMonitor() {
+		secondsSinceLastRefresh++;
+		if (secondsSinceLastRefresh >= 30) {
+			refreshDataProviders();
+		}
 	}
 
 }

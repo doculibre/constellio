@@ -39,17 +39,18 @@ public class BatchProcessDataProvider extends AbstractDataProvider {
 
 	public void setBatchProcessVOs(List<BatchProcessVO> batchProcessVOs) {
 		this.batchProcessVOs = batchProcessVOs;
-		fireDataRefreshEvent();
 	}
 	
 	public void addBatchProcess(BatchProcessVO batchProcessVO) {
 		batchProcessVOs.add(batchProcessVO);
-		fireDataRefreshEvent();
 	}
 	
 	public void removeBatchProcess(BatchProcessVO batchProcessVO) {
 		batchProcessVOs.remove(batchProcessVO);
-		fireDataRefreshEvent();
+	}
+	
+	public void clear() {
+		batchProcessVOs.clear();
 	}
 
 }
