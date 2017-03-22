@@ -129,19 +129,6 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 			});
 		}
 
-		if (downloadDocumentButtonVisible) {
-			String fileName = contentVersionVO.getFileName();
-			Resource icon = FileIconUtils.getIcon(fileName);
-			MenuItem downloadDocumentItem = rootItem.addItem($("DocumentContextMenu.openDocument"), icon, null);
-			downloadDocumentItem.setCommand(new Command() {
-				@Override
-				public void menuSelected(MenuItem selectedItem) {
-					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
-					Page.getCurrent().open(agentURL, "_top");
-				}
-			});
-		}
-
 		if (editDocumentButtonVisible) {
 			MenuItem editDocumentItem = rootItem.addItem($("DocumentContextMenu.editDocument"), null);
 			editDocumentItem.setCommand(new Command() {
