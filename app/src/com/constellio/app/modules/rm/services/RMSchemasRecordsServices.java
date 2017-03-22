@@ -804,9 +804,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		email.setEmailBCCTo(bccTo);
 		email.setEmailContent(content);
 		email.setEmailAttachmentsList(attachmentFileNames);
-		if (StringUtils.isBlank(subject)) {
-			email.setTitle(fileName);
-		}
 
 		return email;
 	}
