@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -22,12 +17,12 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMetadataView {
 	final AddEditMetadataPresenter presenter;
@@ -131,6 +126,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				inputType.addItem(type);
 				inputType.setItemCaption(type, $(MetadataInputType.getCaptionFor(type)));
 			}
+			inputType.setValue(null);
 
 			displayType.setEnabled(false);
 			displayType.removeAllItems();
@@ -251,8 +247,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		localcodeField.setRequired(true);
 
 		//$("AddEditMetadataView.title")
-		labelsField = new MultilingualTextField();
-		labelsField.setRequired(true);
+		labelsField = new MultilingualTextField(true);
+//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 
@@ -445,6 +441,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			public void commit() {
+				labelsField.commit();
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {
 						field.commit();
@@ -455,6 +452,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			protected void saveButtonClick(FormMetadataVO viewObject) {
+				try {
+					labelsField.validateFields();
+				} catch (InvalidValueException e) {
+					showErrorMessage(e.getMessage());
+					return;
+				}
 				presenter.saveButtonClicked(formMetadataVO, editMode);
 			}
 

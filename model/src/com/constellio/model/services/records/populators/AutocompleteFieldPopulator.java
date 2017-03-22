@@ -13,6 +13,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.FieldsPopulator;
 
 public class AutocompleteFieldPopulator implements FieldsPopulator {
+
+
+
 	@Override
 	public Map<String, Object> populateCopyfields(MetadataSchema schema, Record record) {
 

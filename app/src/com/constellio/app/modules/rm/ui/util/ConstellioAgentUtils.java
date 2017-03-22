@@ -31,11 +31,14 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.AgentStatus;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
@@ -133,7 +136,14 @@ public class ConstellioAgentUtils {
 			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 			SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 			RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-			if (rmConfigs.isAgentEnabled() && (!(recordVO instanceof UserDocumentVO) || rmConfigs.isAgentEditUserDocuments())) {
+			UserVO userVO = sessionContext.getCurrentUser();
+			UserServices userServices = modelLayerFactory.newUserServices();
+			SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(userVO.getUsername());
+			AgentStatus agentStatus = userCredentials.getAgentStatus();
+			if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
+				agentStatus = AgentStatus.ENABLED;
+			}
+			if (rmConfigs.isAgentEnabled() && agentStatus == AgentStatus.ENABLED && (!(recordVO instanceof UserDocumentVO) || rmConfigs.isAgentEditUserDocuments())) {
 				String resourcePath = getResourcePath(recordVO, contentVersionVO, sessionContext);
 				if (resourcePath != null) {
 					String agentBaseURL = getAgentBaseURL(request);

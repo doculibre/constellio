@@ -61,7 +61,7 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 		ButtonsContainer buttonsContainer = new ButtonsContainer(typeContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -75,7 +75,7 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new ListMetadataGroupButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -89,7 +89,7 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new ReportDisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {

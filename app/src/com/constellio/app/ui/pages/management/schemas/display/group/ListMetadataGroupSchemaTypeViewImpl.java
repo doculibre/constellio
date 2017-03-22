@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.group;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -16,15 +8,17 @@ import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements ListMetadataGroupSchemaTypeView, ClickListener {
 
@@ -150,7 +144,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 				groupCode.setNullRepresentation("");
 				groupCode.addStyleName(GROUP_NAME);
 
-				final MultilingualTextField multilingualTextField = new MultilingualTextField();
+				final MultilingualTextField multilingualTextField = new MultilingualTextField(true);
 				multilingualTextField.setRequired(true);
 				multilingualTextField.addStyleName(GROUP_NAME);
 

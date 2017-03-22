@@ -15,7 +15,8 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
-public class SystemConfigurationGroupdataProvider implements DataProvider {
+public class SystemConfigurationGroupdataProvider extends AbstractDataProvider {
+	
 	transient private SortedMap<String, SystemConfigurationGroupVO > systemConfigurationGroupVOSortedMap;
 
 	private void readObject(ObjectInputStream stream)

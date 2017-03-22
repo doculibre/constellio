@@ -39,7 +39,7 @@ public class TrashRecordsTable extends RecordVOTable {
 		ButtonsContainer withButtons = (ButtonsContainer) getContainerDataSource();
 		withButtons.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -52,7 +52,7 @@ public class TrashRecordsTable extends RecordVOTable {
 		});
 		withButtons.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				final Integer index = (Integer) itemId;
 				WindowButton relatedRecordsWindow = new WindowButton(RELATED_RESOURCE, $("TrashRecordsTable.relatedRecords"), true,
 						WindowConfiguration.modalDialog("50%", "50%")) {

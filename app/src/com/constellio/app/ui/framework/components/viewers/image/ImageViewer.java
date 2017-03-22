@@ -28,7 +28,7 @@ import com.vaadin.ui.Label;
 @StyleSheet("theme://iviewer/jquery.iviewer.css")
 public class ImageViewer extends CustomComponent {
 	
-	public static String[] SUPPORTED_EXTENSIONS = { "jpg", "png", "gif" };
+	public static String[] SUPPORTED_EXTENSIONS = { "jpg", "jpeg", "png", "gif" };
 	
 	private static final int DEFAULT_WIDTH = 800;
 	

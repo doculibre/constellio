@@ -8,13 +8,18 @@ import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
+import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
@@ -23,6 +28,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
@@ -133,23 +139,43 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildRecentItemTable(RecentItemTable recentItems) {
 		String tableId = "HomeView." + recentItems.getCode();
-		RecentTable table = new RecentTable(tableId,
+		final RecentTable recentTable = new RecentTable(tableId,
 				recentItems.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
-		table.setSizeFull();
-		table.addStyleName("record-table");
-		return table;
+		recentTable.setSizeFull();
+		recentTable.addStyleName("record-table");
+		return new RecordVOSelectionTableAdapter(recentTable) {
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVO recordVO = recentTable.getRecordVO(itemId);
+				String recordId = recordVO.getId();
+				presenter.selectionChanged(recordId, selected);
+				adjustSelectAllButton(selected);
+			}
+			
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVO recordVO = recentTable.getRecordVO(itemId);
+				String recordId = recordVO.getId();
+				return presenter.isSelected(recordId);
+			}
+		};
 	}
 
-	private Table buildRecordTable(final RecordTable recordTable) {
+	private Component buildRecordTable(final RecordTable recordTable) {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		RecordVOTable table = new RecordVOTable(dataProvider);
-		((DocumentContextMenuImpl)table.getContextMenu()).setParentView(this);
+		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
+		final RecordVOTable table = new RecordVOTable(container);
+		if ((DocumentContextMenuImpl) table.getContextMenu() != null) {
+			((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
+		}
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
-			MetadataVO property = (MetadataVO) item;
-			if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
-				table.setColumnWidth(property, 180);
+			if (item instanceof MetadataVO) {
+				MetadataVO property = (MetadataVO) item;
+				if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
+					table.setColumnWidth(property, 180);
+				}
 			}
 		}
 		table.addItemClickListener(new ItemClickListener() {
@@ -162,7 +188,22 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			}
 		});
-		return table;
+		return new RecordVOSelectionTableAdapter(table) {
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				String recordId = item.getRecord().getId();
+				return presenter.isSelected(recordId);
+			}
+
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				String recordId = item.getRecord().getId();
+				presenter.selectionChanged(recordId, selected);
+				adjustSelectAllButton(selected);
+			}
+		};
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
@@ -183,9 +224,15 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		subTabSheet.setSelectedTab(recordTree.getDefaultDataProvider());
 		return subTabSheet;
 	}
+	
+	private static int getBufferSizeFromConfig() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		return modelLayerFactory.getSystemConfigs().getLazyTreeBufferSize();
+	}
 
 	private RecordLazyTree buildRecordTree(RecordTree recordTree, final RecordLazyTreeDataProvider provider) {
-		RecordLazyTree tree = new RecordLazyTree(provider, 20);
+		RecordLazyTree tree = new RecordLazyTree(provider, getBufferSizeFromConfig());
 		tree.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
@@ -210,6 +257,9 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				HomeViewImpl.this.showErrorMessage(errorMessage);
 			}
 		});
+
+		tree.loadAndExpand(recordTree.getExpandedRecordIds());
+		
 		return tree;
 	}
 
@@ -243,9 +293,14 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private class RecentTable extends BaseTable {
 		
+		private static final String MENUBAR_PROPERTY_ID = "menuBar";
+		
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public RecentTable(String tableId, List<RecentItem> recentItems) {
 			super(tableId);
-			setContainerDataSource(new BeanItemContainer<>(RecentItem.class, recentItems));
+			
+			BeanItemContainer container = new BeanItemContainer<>(RecentItem.class, recentItems);
+			setContainerDataSource(container);
 
 			addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 
@@ -258,7 +313,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				@Override
 				public void itemClick(ItemClickEvent event) {
 					if (event.getButton() == MouseButton.LEFT) {
-						@SuppressWarnings("unchecked")
 						BeanItem<RecentItem> item = (BeanItem<RecentItem>) event.getItem();
 						presenter.recordClicked(item.getBean().getId(), null);
 					}
@@ -269,9 +323,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				@Override
 				public String getStyle(Table source, Object itemId, Object propertyId) {
 					if (RecentItem.CAPTION.equals(propertyId)) {
-						@SuppressWarnings("unchecked")
-						BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
-						RecordVO recordVO = recordVOItem.getBean().getRecord();
+						RecordVO recordVO = getRecordVO(itemId);
 						try {
 							String extension = FileIconUtils.getExtension(recordVO);
 							if (extension != null) {
@@ -284,6 +336,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					return null;
 				}
 			});
+			
+			addMenuBarColumn(recentItems);
 		}
 
 		@Override
@@ -295,6 +349,49 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return new ObjectProperty<>(value);
 			}
 			return super.getContainerProperty(itemId, propertyId);
+		}
+		
+		@SuppressWarnings("unchecked")
+		private RecordVO getRecordVO(Object itemId) {
+			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
+			RecordVO recordVO = recordVOItem.getBean().getRecord();
+			return recordVO;
+		}
+		
+		protected void addMenuBarColumn(List<RecentItem> recentItems) {
+			boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null; 
+			if (!menuBarColumnGenerated) {
+				boolean menuBarRequired = false;
+				for (RecentItem recentItem : recentItems) {
+					String schemaCode = recentItem.getRecord().getSchema().getCode();
+					List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+					for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+						if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
+							menuBarRequired = true;
+							break;
+						}
+					}
+				}
+				if (menuBarRequired) {
+					addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
+						@Override
+						public Object generateCell(Table source, Object itemId, Object columnId) {
+							RecordVO recordVO = getRecordVO(itemId);
+
+							MenuBar menuBar = null;
+							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+								menuBar = recordMenuBarHandler.get(recordVO);
+								if (menuBar != null) {
+									break;
+								}
+							}
+							return menuBar != null ? menuBar : new Label("");
+						}
+					});
+					setColumnHeader(MENUBAR_PROPERTY_ID, "");
+				}
+			}
 		}
 	}
 

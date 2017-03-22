@@ -5,6 +5,9 @@ import java.io.Serializable;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.ui.pages.TaskManagementViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TasksLogsViewImpl;
@@ -16,6 +19,7 @@ import com.constellio.app.modules.tasks.ui.pages.workflow.DisplayWorkflowViewImp
 import com.constellio.app.modules.tasks.ui.pages.workflow.ListWorkflowsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.workflowInstance.DisplayWorkflowInstanceViewImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -23,6 +27,7 @@ import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.records.wrappers.User;
+import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 
 public class TasksNavigationConfiguration implements Serializable {
@@ -62,14 +67,25 @@ public class TasksNavigationConfiguration implements Serializable {
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_TASK) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(TaskViews.class).addTask();
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if (currentView instanceof DisplayFolderView) {
+					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					String folderId = displayFolderView.getRecord().getId();
+					navigate.to(TaskViews.class).addTaskToFolder(folderId);
+				} else if (currentView instanceof DisplayDocumentView) {	
+					DisplayDocumentView displayFolderView = (DisplayDocumentView) currentView;
+					String documentId = displayFolderView.getDocumentVO().getId();
+					navigate.to(TaskViews.class).addTaskToDocument(documentId);
+				} else {
+					navigate.to(TaskViews.class).addTask();
+				}
 			}
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
-		});
+		}, 3);
 	}
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {

@@ -257,7 +257,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
 		when(batchProcessListReader.read(aBatchProcessId)).thenReturn(aBatchProcess);
 		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(42L);
-		BatchProcess returnedBatchProcess = manager.addBatchProcessInStandby(condition, action);
+		BatchProcess returnedBatchProcess = manager.addBatchProcessInStandby(condition, action, null);
 
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);
 		InOrder inOrder = Mockito.inOrder(manager, configManager, batchProcessListReader);

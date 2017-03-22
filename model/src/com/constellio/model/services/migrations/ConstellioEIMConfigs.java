@@ -3,7 +3,9 @@ package com.constellio.model.services.migrations;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -14,6 +16,7 @@ import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
@@ -81,6 +84,10 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration DEFAULT_START_TAB;
 
 	public static final SystemConfiguration DEFAULT_TAXONOMY;
+	
+	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
+
+	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -117,6 +124,7 @@ public class ConstellioEIMConfigs {
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
+		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50).scriptedBy(LazyTreeBufferSizeValidationScript.class));
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -142,6 +150,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
 
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(10));
+		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
 		//
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -232,6 +241,24 @@ public class ConstellioEIMConfigs {
 		}
 
 	}
+	
+	public static class LazyTreeBufferSizeValidationScript extends AbstractSystemConfigurationScript<Integer> {
+
+		@Override
+		public void validate(Integer newValue, ValidationErrors errors) {
+			int max = 100;
+			if (newValue < 0 || newValue > 100) {
+				errors.add(LazyTreeBufferSizeValidationScript.class, "invalidLazyTreeBufferSize", max(max));
+			}
+		}
+
+		private Map<String, Object> max(int max) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("maxValue", max);
+			return parameters;
+		}
+		
+	}
 
 	public boolean getIcapScanActivated() {
 		return manager.getValue(ICAP_SCAN_ACTIVATED);
@@ -260,5 +287,11 @@ public class ConstellioEIMConfigs {
 	public int getTransactionDelay() {
 		return manager.getValue(TRANSACTION_DELAY);
 	}
+	
+	public int getLazyTreeBufferSize() {
+		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
+	}
+
+	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
 }

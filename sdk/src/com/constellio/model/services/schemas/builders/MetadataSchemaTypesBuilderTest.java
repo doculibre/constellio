@@ -644,8 +644,9 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
 
 		assertThat(metadatas).extracting("localCode")
-				.isEqualTo(asList("allReferences", "allRemovedAuths", "attachedAncestors", "inheritedauthorizations", "m2",
-						"parentpath", "path", "tokens", "allauthorizations", "m1", "pathParts", "principalpath"));
+				.isEqualTo(
+						asList("allReferences", "allRemovedAuths", "attachedAncestors", "autocomplete", "inheritedauthorizations",
+								"m2", "parentpath", "path", "tokens", "allauthorizations", "m1", "pathParts", "principalpath"));
 
 	}
 

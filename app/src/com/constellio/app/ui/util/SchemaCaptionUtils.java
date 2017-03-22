@@ -36,7 +36,7 @@ public class SchemaCaptionUtils implements Serializable {
 			try {
 				Record record = recordServices.getDocumentById(recordId);
 				String schemaCode = record.getSchemaCode();
-				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode);
 
 				String captionFormatKey = "caption." + schemaTypeCode + ".record";

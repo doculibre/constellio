@@ -117,7 +117,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		final ButtonsContainer<RecordVOLazyContainer> rules = new ButtonsContainer<>(new RecordVOLazyContainer(dataProvider));
 		rules.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -129,7 +129,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		});
 		rules.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -141,7 +141,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		});
 		rules.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
