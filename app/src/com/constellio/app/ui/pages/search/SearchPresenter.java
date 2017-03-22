@@ -1,10 +1,31 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
 import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -47,19 +68,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.vaadin.server.StreamResource.StreamSource;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.Map.Entry;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
@@ -262,7 +270,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private List<MetadataSchemaVO> getSchemas() {
 		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
-		return Arrays.asList(
+		return asList(
 				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
 				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
 				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()));
@@ -496,7 +504,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search;
 	}
-	
+
 	protected void updateUIContext(SavedSearch savedSearch) {
 		String searchId = savedSearch.getId();
 		boolean advancedSearch = StringUtils.isNotBlank(savedSearch.getSchemaFilter());
@@ -513,20 +521,31 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	@Override
 	public Object getReportParameters(String report) {
 		switch (report) {
-			case "Reports.fakeReport":
-				return new ExampleReportParameters(view.getSelectedRecordIds());
-			case "Reports.FolderLinearMeasureStats":
-				return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
+		case "Reports.fakeReport":
+			return new ExampleReportParameters(view.getSelectedRecordIds());
+		case "Reports.FolderLinearMeasureStats":
+			return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
-	
+
 	protected void addToSelectionButtonClicked() {
 		SessionContext sessionContext = view.getSessionContext();
 		List<String> selectedSearchResultRecordIds = view.getSelectedRecordIds();
+		boolean someElementsNotAdded = false;
 		for (String selectedRecordId : selectedSearchResultRecordIds) {
 			Record record = modelLayerFactory.newRecordServices().getDocumentById(selectedRecordId);
-			sessionContext.addSelectedRecordId(selectedRecordId, record == null? null:record.getTypeCode());
+
+			if (asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE).contains(record.getTypeCode())) {
+				sessionContext.addSelectedRecordId(selectedRecordId, record == null ? null : record.getTypeCode());
+			} else {
+				someElementsNotAdded = true;
+			}
+
+		}
+
+		if (someElementsNotAdded) {
+			view.showErrorMessage($("ConstellioHeader.selection.cannotAddRecords"));
 		}
 	}
 }
