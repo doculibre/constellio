@@ -1,6 +1,8 @@
 package com.constellio.app.ui.framework.containers;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -11,7 +13,9 @@ import org.joda.time.LocalDateTime;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.BatchProcessVO;
+import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.data.BatchProcessDataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -22,6 +26,8 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 
 public class BatchProcessContainer extends DataContainer<BatchProcessDataProvider> {
+	
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	public static final String TITLE = "title";
 
@@ -38,6 +44,8 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	private static final String USERNAME = "username";
 
 	private static final String COLLECTION = "collection";
+	
+	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 	
 	private boolean systemBatchProcesses;
 	
@@ -95,9 +103,9 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		} else if (STATUS.equals(propertyId)) {	
 			type = String.class;
 		} else if (REQUEST_DATE_TIME.equals(propertyId)) {	
-			type = LocalDateTime.class;
+			type = String.class;
 		} else if (START_DATE_TIME.equals(propertyId)) {	
-			type = LocalDateTime.class;
+			type = String.class;
 		} else if (HANDLED_RECORDS_COUNT.equals(propertyId)) {	
 			type = Integer.class;
 		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {	
@@ -126,9 +134,9 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 			BatchProcessStatus status = batchProcessVO.getStatus();
 			value = $("BatchProcess.status." + status.toString());
 		} else if (REQUEST_DATE_TIME.equals(propertyId)) {	
-			value = batchProcessVO.getRequestDateTime();
+			value = format(batchProcessVO.getRequestDateTime());
 		} else if (START_DATE_TIME.equals(propertyId)) {	
-			value = batchProcessVO.getStartDateTime();
+			value = format(batchProcessVO.getStartDateTime());
 		} else if (HANDLED_RECORDS_COUNT.equals(propertyId)) {	
 			value = batchProcessVO.getHandledRecordsCount();
 		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {	
@@ -136,12 +144,22 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		} else if (USERNAME.equals(propertyId)) {	
 			value = batchProcessVO.getUsername();
 		} else if (COLLECTION.equals(propertyId)) {	
-			value = batchProcessVO.getCollection();
+			value = collectionCodeToLabelConverter.convertToPresentation(batchProcessVO.getCollection(), String.class, i18n.getLocale());
 		} else {
 			throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
 		}
 		Class<?> type = getType(propertyId);
 		return new ObjectProperty(value, type);
+	}
+	
+	private String format(LocalDateTime localDateTime) {
+		String result;
+		if (localDateTime != null) {
+			result = sdf.format(localDateTime.toDate());
+		} else {
+			result = "";
+		}
+		return result;
 	}
 
 }
