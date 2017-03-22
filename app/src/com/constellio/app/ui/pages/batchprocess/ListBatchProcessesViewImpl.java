@@ -75,6 +75,7 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 		batchProcessTable.setColumnHeader("startDateTime", $("ListBatchProcessesView.startDateTime"));
 		batchProcessTable.setColumnHeader("handledRecordsCount", $("ListBatchProcessesView.handledRecordsCount"));
 		batchProcessTable.setColumnHeader("totalRecordsCount", $("ListBatchProcessesView.totalRecordsCount"));
+		batchProcessTable.setColumnHeader("progress", $("ListBatchProcessesView.progress"));
 		batchProcessTable.setColumnHeader("username", $("ListBatchProcessesView.username"));
 		batchProcessTable.setColumnHeader("collection", $("ListBatchProcessesView.collection"));
 		

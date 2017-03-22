@@ -43,6 +43,8 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 
 	private static final String TOTAL_RECORDS_COUNT = "totalRecordsCount";
 
+	private static final String PROGRESS = "progress";
+
 	private static final String USERNAME = "username";
 
 	private static final String COLLECTION = "collection";
@@ -82,6 +84,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		containerPropertyIds.add(START_DATE_TIME);
 		containerPropertyIds.add(HANDLED_RECORDS_COUNT);
 		containerPropertyIds.add(TOTAL_RECORDS_COUNT);
+		containerPropertyIds.add(PROGRESS);
 		
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
@@ -120,6 +123,8 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 			type = Integer.class;
 		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {	
 			type = Integer.class;
+		} else if (PROGRESS.equals(propertyId)) {	
+			type = String.class;
 		} else if (USERNAME.equals(propertyId)) {	
 			type = String.class;
 		} else if (COLLECTION.equals(propertyId)) {	
@@ -150,6 +155,8 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 			value = batchProcessVO.getHandledRecordsCount();
 		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {	
 			value = batchProcessVO.getTotalRecordsCount();
+		} else if (PROGRESS.equals(propertyId)) {	
+			value = getProgress(batchProcessVO);
 		} else if (USERNAME.equals(propertyId)) {	
 			value = batchProcessVO.getUsername();
 		} else if (COLLECTION.equals(propertyId)) {	
@@ -165,7 +172,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		String title;
 		String titleCode = batchProcessVO.getTitle();
 		if (StringUtils.isBlank(titleCode)) {
-			title = batchProcessVO.getId();
+			title = $("BatchProcess.title.systemBatchProcess");
 		} else if (titleCode.indexOf(" ") != -1) {
 			String titleKey = StringUtils.substringBefore(titleCode, " ");
 			String titleValue = StringUtils.substringAfter(titleCode, " ");
@@ -174,6 +181,22 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 			title = $("BatchProcess.title." + titleCode);
 		}
 		return title;
+	}
+	
+	private String getProgress(BatchProcessVO batchProcessVO) {
+		String progress;
+		int handledRecordsCount = batchProcessVO.getHandledRecordsCount();
+		int totalRecordsCount = batchProcessVO.getTotalRecordsCount();
+		if (totalRecordsCount > 0) {
+			if (handledRecordsCount > 0) {
+				progress = (int) ((handledRecordsCount * 100.f) / totalRecordsCount) + "%"; 
+			} else {
+				progress = "0%";
+			}
+		} else {
+			progress = "";
+		}
+		return progress;
 	}
 	
 	private String format(LocalDateTime localDateTime) {
