@@ -62,7 +62,11 @@ public class RMMigrationTo7_1_3 implements MigrationScript {
 
             if (mediumTypesNonAnalogiques.size() == 0) {
                 transaction.add(rm.newMediumType().setCode(driveCode)
-                        .setTitle("test")
+                        .setTitle(driveTitle)
+                        .setAnalogical(false));
+            } else {
+                MediumType mediumType = mediumTypesNonAnalogiques.get(0);
+                transaction.add(mediumType.setCode(driveCode)
                         .setAnalogical(false));
             }
         }
