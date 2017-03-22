@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
+import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -29,14 +30,16 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	private RecordVOLazyContainer container;
 	private boolean selectAll;
 	private int maxSelectableResults;
+	AdvancedSearchPresenter presenter;
 
-	public SearchResultSimpleTable(RecordVOLazyContainer container, int maxSelectableResults) {
-		this(container, true);
+	public SearchResultSimpleTable(RecordVOLazyContainer container, int maxSelectableResults, AdvancedSearchPresenter presenter) {
+		this(container, true, presenter);
 		this.maxSelectableResults = maxSelectableResults;
 	}
 
-	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes) {
+	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes, final AdvancedSearchPresenter presenter) {
 		super("",container);
+		this.presenter = presenter;
 		
 		setColumnCollapsingAllowed(true);
 		setColumnReorderingAllowed(true);
@@ -56,6 +59,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 					} else {
 						recordWindow.setContent(new RecordDisplay(recordVO));
 					}
+					presenter.logRecordView(recordVO);
 					UI.getCurrent().addWindow(recordWindow);
 //				}
 			}
