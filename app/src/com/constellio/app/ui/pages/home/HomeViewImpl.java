@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.home;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.peter.contextmenu.ContextMenu;
-
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -47,14 +38,17 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
+import org.vaadin.peter.contextmenu.ContextMenu;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	
@@ -155,6 +149,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				RecordVO recordVO = recentTable.getRecordVO(itemId);
 				String recordId = recordVO.getId();
 				presenter.selectionChanged(recordId, selected);
+				adjustSelectAllButton(selected);
 			}
 			
 			@Override
@@ -206,6 +201,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
 				String recordId = item.getRecord().getId();
 				presenter.selectionChanged(recordId, selected);
+				adjustSelectAllButton(selected);
 			}
 		};
 	}

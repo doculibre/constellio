@@ -1,27 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -30,12 +8,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsView;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -75,15 +48,19 @@ import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.IOUtils;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import java.io.*;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -387,9 +364,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         }
 
         if(couldNotMove.isEmpty()) {
-            showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted"));
+            showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
         } else {
-            showErrorMessage($("ConstellioHeader.selection.actions.couldNotMove"));
+            showErrorMessage($("ConstellioHeader.selection.actions.couldNotMove", couldNotMove.size(), recordIds.size()));
         }
     }
 
@@ -426,9 +403,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         }
 
         if(couldNotDuplicate.isEmpty()) {
-            showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted"));
+            showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
         } else {
-            showErrorMessage($("ConstellioHeader.selection.actions.couldNotDuplicate"));
+            showErrorMessage($("ConstellioHeader.selection.actions.couldNotDuplicate", couldNotDuplicate.size(), recordIds.size()));
         }
     }
 
@@ -485,9 +462,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         }
 
         if(couldNotMove.isEmpty()) {
-            showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted"));
+            showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
         } else {
-            showErrorMessage($("ConstellioHeader.selection.actions.couldNotClassify"));
+            showErrorMessage($("ConstellioHeader.selection.actions.couldNotClassify", couldNotMove.size(), recordIds.size()));
         }
     }
 

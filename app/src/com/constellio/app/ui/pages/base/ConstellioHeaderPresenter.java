@@ -426,6 +426,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		try {
 			modelLayerFactory.newRecordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			showMessage($("ConstellioHeader.selection.actions.actionCompleted", selectedRecords.size()));
 //			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -478,7 +479,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 		try {
 			modelLayerFactory.newRecordServices().add(cart);
-			showMessage($("ConstellioHeader.selection.actions.actionCompleted"));
+			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 		} catch (RecordServicesException e) {
 			showMessage($(e));
 		}
