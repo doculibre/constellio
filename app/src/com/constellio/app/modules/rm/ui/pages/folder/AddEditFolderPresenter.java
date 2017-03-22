@@ -691,9 +691,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 		if (currentField.equals(changedCustomField) && clearContainerField) {
-			reloadFormAfterFieldChanged();
-		} else if (currentField.equals(changedCustomField) && currentField.getFieldValue() != null && !containerField
-				.isVisible()) {
+//			reloadFormAfterFieldChanged();
+		} else if (currentField.equals(changedCustomField) && currentField.getFieldValue() != null && !containerField.isVisible()) {
 			commitForm();
 		}
 	}
