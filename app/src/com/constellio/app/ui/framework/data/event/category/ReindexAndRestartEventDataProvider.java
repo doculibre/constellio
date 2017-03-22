@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.data.event.category;
 
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -97,5 +98,25 @@ public class ReindexAndRestartEventDataProvider implements EventsCategoryDataPro
     @Override
     public int size() {
         return 2;
+    }
+
+    @Override
+    public void addDataRefreshListener(DataRefreshListener dataRefreshListener) {
+
+    }
+
+    @Override
+    public List<DataRefreshListener> getDataRefreshListeners() {
+        return null;
+    }
+
+    @Override
+    public void removeDataRefreshListener(DataRefreshListener dataRefreshListener) {
+
+    }
+
+    @Override
+    public void fireDataRefreshEvent() {
+
     }
 }
