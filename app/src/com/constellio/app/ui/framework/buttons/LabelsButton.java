@@ -3,15 +3,18 @@ package com.constellio.app.ui.framework.buttons;
 import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -161,10 +164,12 @@ public class LabelsButton extends WindowButton {
                     }
                 } else if (ob instanceof LabelTemplate) {
                     LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
-                    LabelsReportFactory factory = new LabelsReportFactory(
+                    LabelsReportFactory factory = new LabelsReportFactory(ConstellioFactories.getInstance().getAppLayerFactory());
+                    LabelsReportParameters params = new LabelsReportParameters(
                             ids, labelTemplate,
                             parameters.getStartPosition(), parameters.getNumberOfCopies());
-                    getWindow().setContent(new ReportViewer(factory));
+                    ReportWriter writer = factory.getReportBuilder(params);
+                    getWindow().setContent(new ReportViewer(writer, factory.getFilename(params)));
                 } else throw new UnsupportedOperationException();
 
 
