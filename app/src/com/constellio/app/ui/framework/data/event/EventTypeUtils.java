@@ -93,6 +93,10 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.modifyTask");
 		} else if (eventType.equals(EventType.DELETE_TASK)) {
 			return $("ListEventsView.deleteTask");
+		} else if (eventType.equals(EventType.REINDEXING)) {
+			return $("ListEventView.reindexing");
+		} else if (eventType.equals(EventType.RESTARTING)) {
+			return $("ListEventView.restarting");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}

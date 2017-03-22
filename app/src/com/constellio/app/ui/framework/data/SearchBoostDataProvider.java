@@ -14,7 +14,7 @@ import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.entities.SearchBoost;
 
 @SuppressWarnings("serial")
-public class SearchBoostDataProvider implements DataProvider {
+public class SearchBoostDataProvider extends AbstractDataProvider {
 
 	private transient SearchBoostManager manager;
 	private static final String METADATA_TYPE = "metadata";

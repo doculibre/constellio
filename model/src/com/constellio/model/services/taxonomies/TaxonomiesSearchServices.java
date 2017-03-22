@@ -483,8 +483,14 @@ public class TaxonomiesSearchServices {
 			if (context.isSelectingAConcept()) {
 				LogicalSearchCondition condition = fromAllSchemasIn(context.taxonomy.getCollection())
 						.where(PATH_PARTS).isEqualTo(context.record.getId())
-						.andWhere(Schemas.LINKABLE).isTrueOrNull()
 						.andWhere(schemaTypeIsIn(context.taxonomy.getSchemaTypes()));
+
+				boolean selectingAConceptNoMatterTheLinkableStatus =
+						context.isSelectingAConcept() && context.options.isAlwaysReturnTaxonomyConceptsWithReadAccess();
+
+				if (!selectingAConceptNoMatterTheLinkableStatus) {
+					condition = condition.andWhere(Schemas.LINKABLE).isTrueOrNull();
+				}
 
 				condition = context.applyLinkableConceptsCondition(condition);
 

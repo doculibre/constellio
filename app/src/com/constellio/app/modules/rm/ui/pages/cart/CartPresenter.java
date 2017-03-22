@@ -339,6 +339,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			throws RecordServicesException {
 		batchProcessingPresenterService()
 				.execute(selectedType, records, viewObject, getCurrentUser());
+		view.navigate().to().batchProcesses();
 	}
 
 	@Override

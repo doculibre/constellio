@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -36,6 +35,10 @@ public abstract class DynamicLocalDependency implements Dependency {
 	@Override
 	public String getLocalMetadataCode() {
 		return null;
+	}
+
+	public boolean isIncludingGlobalMetadatas() {
+		return false;
 	}
 
 	public abstract boolean isDependentOf(Metadata metadata);

@@ -635,6 +635,10 @@ public class Folder extends RMObject {
 		set(FORM_CREATED_BY, user);
 		return this;
 	}
+	
+	public LocalDateTime getFormCreatedOn() {
+		return get(FORM_CREATED_ON);
+	}
 
 	public Folder setFormCreatedOn(LocalDateTime dateTime) {
 		set(FORM_CREATED_ON, dateTime);

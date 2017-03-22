@@ -260,7 +260,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		return rmConfigs;
 	}
 
-	protected void saveTemporarySearch(boolean refreshPage) {
+	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -282,6 +282,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		if (refreshPage) {
 			view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
 		}
+		return search;
 	}
 
 	@Override

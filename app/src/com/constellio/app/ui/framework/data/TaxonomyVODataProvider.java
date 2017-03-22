@@ -16,7 +16,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 
 @SuppressWarnings("serial")
-public class TaxonomyVODataProvider implements DataProvider {
+public class TaxonomyVODataProvider extends AbstractDataProvider {
 
 	private transient TaxonomiesManager taxonomiesManager;
 	private transient List<TaxonomyVO> taxonomyVOs;

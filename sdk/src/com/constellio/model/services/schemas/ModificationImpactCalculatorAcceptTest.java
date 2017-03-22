@@ -127,7 +127,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isNotIn(asList(record.getId()));
 		assertThat(anotherSchemaImpact).isEqualTo(
 				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
-						anotherSchemaCondition, 1));
+						anotherSchemaCondition, 1, null));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record))
@@ -136,7 +136,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 
 		assertThat(thirdSchemaImpact).isEqualTo(
 				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
-						thirdSchemaCondition, 1));
+						thirdSchemaCondition, 1, null));
 
 	}
 
@@ -172,14 +172,14 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isIn(asList(record));
 		assertThat(anotherSchemaImpact).isEqualTo(
 				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
-						anotherSchemaCondition, 1));
+						anotherSchemaCondition, 1, null));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
 				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
-						thirdSchemaCondition, 1));
+						thirdSchemaCondition, 1, null));
 
 	}
 

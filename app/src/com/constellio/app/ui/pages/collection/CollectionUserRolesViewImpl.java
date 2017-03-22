@@ -110,7 +110,7 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 		ButtonsContainer<BeanItemContainer> buttonsContainer = new ButtonsContainer<BeanItemContainer>(container, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

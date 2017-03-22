@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -76,13 +77,13 @@ public class AddToBatchProcessImpactHandlerRealTest extends ConstellioTest {
 			throws Exception {
 
 		when(searchServices.hasResults(condition)).thenReturn(true);
-		when(batchProcessManager.addBatchProcessInStandby(eq(condition), any(BatchProcessAction.class)))
+		when(batchProcessManager.addBatchProcessInStandby(eq(condition), any(BatchProcessAction.class), anyString()))
 				.thenReturn(theBatchProcess);
 
 		handler.prepareToHandle(modificationImpact);
 		List<BatchProcess> theBatchProcesses = handler.getAllCreatedBatchProcesses();
 
-		verify(batchProcessManager).addBatchProcessInStandby(condition, action);
+		verify(batchProcessManager).addBatchProcessInStandby(condition, action, "reindex.transaction");
 		assertThat(theBatchProcesses).containsOnly(theBatchProcess);
 
 		verify(batchProcessManager, never()).markAsPending(theBatchProcess);
@@ -95,13 +96,13 @@ public class AddToBatchProcessImpactHandlerRealTest extends ConstellioTest {
 			throws Exception {
 
 		when(searchServices.hasResults(condition)).thenReturn(false);
-		when(batchProcessManager.addBatchProcessInStandby(eq(condition), any(BatchProcessAction.class)))
+		when(batchProcessManager.addBatchProcessInStandby(eq(condition), any(BatchProcessAction.class), anyString()))
 				.thenReturn(theBatchProcess);
 
 		handler.prepareToHandle(modificationImpact);
 
 		verify(batchProcessManager, never()).addBatchProcessInStandby(any(LogicalSearchCondition.class),
-				any(BatchProcessAction.class));
+				any(BatchProcessAction.class), anyString());
 
 	}
 
@@ -110,13 +111,13 @@ public class AddToBatchProcessImpactHandlerRealTest extends ConstellioTest {
 			throws Exception {
 
 		when(searchServices.hasResults(condition)).thenReturn(true);
-		when(batchProcessManager.addBatchProcessInStandby(eq(condition), any(BatchProcessAction.class)))
+		when(batchProcessManager.addBatchProcessInStandby(eq(condition), any(BatchProcessAction.class), anyString()))
 				.thenReturn(theBatchProcess);
 
 		handler.prepareToHandle(modificationImpact);
 		List<BatchProcess> theBatchProcesses = handler.getAllCreatedBatchProcesses();
 
-		verify(batchProcessManager).addBatchProcessInStandby(condition, action);
+		verify(batchProcessManager).addBatchProcessInStandby(condition, action, "reindex.transaction");
 		assertThat(theBatchProcesses).containsOnly(theBatchProcess);
 
 		verify(batchProcessManager, never()).cancelStandByBatchProcess(theBatchProcess);

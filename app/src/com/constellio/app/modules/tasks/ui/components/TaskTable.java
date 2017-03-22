@@ -11,16 +11,18 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
-import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.vaadin.data.Container;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
 
 public class TaskTable extends RecordVOTable {
@@ -46,101 +48,71 @@ public class TaskTable extends RecordVOTable {
 	}
 
 	private Container addButtons(final RecordVOLazyContainer records) {
-		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(records);
-		// Display
-		container.addButton(new ContainerButton() {
+		String columnId = "menuBar";
+		addGeneratedColumn(columnId, new ColumnGenerator() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new DisplayButton() {
+			public Object generateCell(Table source, final Object itemId, Object columnId) {
+				final RecordVO recordVO = records.getRecordVO((int) itemId);
+				MenuBar menuBar = new MenuBar();
+				MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+				
+				rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
 					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.displayButtonClicked(records.getRecordVO((int) itemId));
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.displayButtonClicked(recordVO);
 					}
-				};
+				});
+				
+				if (presenter.isEditButtonEnabled(recordVO)) {
+					rootItem.addItem($("edit"), EditButton.ICON_RESOURCE, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.editButtonClicked(recordVO);
+						}
+					});
+				}
+				
+				if (presenter.isCompleteButtonEnabled(recordVO)) {
+					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.completeButtonClicked(recordVO);
+						}
+					});
+				}
+				
+				if (presenter.isCloseButtonEnabled(recordVO)) {
+					rootItem.addItem($("TaskTable.close"), CLOSE_ICON, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.closeButtonClicked(recordVO);
+						}
+					});
+				}
+				
+				if (presenter.isDeleteButtonVisible(recordVO)) {
+					rootItem.addItem($("delete"), DeleteButton.ICON_RESOURCE, new ConfirmDialogMenuBarItemCommand() {
+						@Override
+						protected String getConfirmDialogMessage() {
+							return $("ConfirmDialog.confirmDelete");
+						}
+
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							presenter.deleteButtonClicked(recordVO);
+						}
+					}).setEnabled(presenter.isDeleteButtonEnabled(recordVO));
+				}
+				
+				return menuBar;
 			}
 		});
-		// Edit
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new EditButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.editButtonClicked(records.getRecordVO((int) itemId));
-					}
-
-					@Override
-					public boolean isEnabled() {
-						return presenter.isEditButtonEnabled(records.getRecordVO((int) itemId));
-					}
-				};
-			}
-		});
-		// Complete
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new IconButton(COMPLETE_ICON, $("TaskTable.complete")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.completeButtonClicked(records.getRecordVO((int) itemId));
-					}
-
-					@Override
-					public boolean isEnabled() {
-						return presenter.isCompleteButtonEnabled(records.getRecordVO((int) itemId));
-					}
-				};
-			}
-		});
-		// Close
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new IconButton(CLOSE_ICON, $("TaskTable.close")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.closeButtonClicked(records.getRecordVO((int) itemId));
-					}
-
-					@Override
-					public boolean isEnabled() {
-						return presenter.isCloseButtonEnabled(records.getRecordVO((int) itemId));
-					}
-
-					@Override
-					public boolean isVisible() {
-						return isEnabled();
-					}
-				};
-			}
-		});
-		// Delete
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new DeleteButton() {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteButtonClicked(records.getRecordVO((int) itemId));
-					}
-
-					@Override
-					public boolean isEnabled() {
-						return presenter.isDeleteButtonEnabled(records.getRecordVO((int) itemId));
-					}
-
-					@Override
-					public boolean isVisible() {
-						return presenter.isDeleteButtonVisible(records.getRecordVO((int) itemId));
-					}
-				};
-			}
-		});
-		return container;
+		setColumnHeader(columnId, "");
+		return records;
 	}
 
 	public interface TaskPresenter {
+		
 		void displayButtonClicked(RecordVO record);
 
 		void editButtonClicked(RecordVO record);

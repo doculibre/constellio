@@ -34,6 +34,7 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
@@ -3040,5 +3041,43 @@ public class RMTestRecords {
 
 	public TaskType taskTypeOther() {
 		return tasks.getTaskTypeByCode("other");
+	}
+
+	public Folder newFolderWithValues() {
+		return newFolderWithValuesAndId(null);
+	}
+
+	public Folder newFolderWithValuesAndId(String id) {
+		Folder folder = rm.newFolderWithId(id);
+		folder.setAdministrativeUnitEntered(unitId_11b);
+		folder.setCategoryEntered(categoryId_X);
+		folder.setRetentionRuleEntered(ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle(id == null ? "A folder" : ("Folder " + id));
+		folder.setOpenDate(LocalDate.now());
+		return folder;
+	}
+
+	public Folder newChildFolderIn(Folder parent) {
+		return newChildFolderWithIdIn(null, parent);
+	}
+
+	public Folder newChildFolderWithIdIn(String id, Folder parent) {
+		Folder folder = rm.newFolderWithId(id);
+		folder.setParentFolder(parent);
+		folder.setTitle(id == null ? "A child folder" : ("child folder " + id));
+		folder.setOpenDate(LocalDate.now());
+		return folder;
+	}
+
+	public Document newDocumentIn(Folder parent) {
+		return newDocumentWithIdIn(null, parent);
+	}
+
+	public Document newDocumentWithIdIn(String id, Folder parent) {
+		Document document = rm.newDocumentWithId(id);
+		document.setFolder(parent);
+		document.setTitle(id == null ? "A document" : ("document " + id));
+		return document;
 	}
 }

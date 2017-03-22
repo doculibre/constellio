@@ -248,7 +248,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		//$("AddEditMetadataView.title")
 		labelsField = new MultilingualTextField(true);
-		labelsField.setRequired(true);
+//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 
@@ -441,6 +441,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			public void commit() {
+				labelsField.commit();
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {
 						field.commit();
@@ -451,6 +452,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			protected void saveButtonClick(FormMetadataVO viewObject) {
+				try {
+					labelsField.validateFields();
+				} catch (InvalidValueException e) {
+					showErrorMessage(e.getMessage());
+					return;
+				}
 				presenter.saveButtonClicked(formMetadataVO, editMode);
 			}
 
