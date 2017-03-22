@@ -3,11 +3,13 @@ package com.constellio.app.ui.framework.components.fields;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.VerticalLayout;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -73,6 +75,7 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 				}
 			});
 			field.setRequired(areFieldsSetToRequired);
+			field.setRequiredError($("MultilingualTextField.requiredError", $("Language."+language).toLowerCase()));
 			layout.addComponent(field);
 		}
 	}
@@ -81,5 +84,14 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		return ConstellioFactories.getInstance().getModelLayerFactory().getCollectionsListManager()
 				.getCollectionLanguages(collection);
+	}
+
+	public void validateFields() throws Validator.InvalidValueException {
+		if(areFieldsSetToRequired) {
+			Iterator<Component> componentIterator = layout.iterator();
+			while(componentIterator.hasNext()) {
+				((BaseTextField) componentIterator.next()).validate();
+			}
+		}
 	}
 }
