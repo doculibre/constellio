@@ -504,7 +504,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
-		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()));
+		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser());
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
