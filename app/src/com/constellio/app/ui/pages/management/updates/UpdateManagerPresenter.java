@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.management.updates;
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -133,11 +134,35 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
 			//Application is started from a test, it cannot be restarted
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			LOGGER.info("Reindexing started");
 			ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
 			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 			LOGGER.info("Reindexing finished");
+			Record eventRestarting = rm.newEvent()
+					.setType(EventType.RESTARTING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("new Restarting Event")
+					.getWrappedRecord();
+			Record eventReindexing = rm.newEvent()
+					.setType(EventType.REINDEXING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("new Reindexing Event")
+					.getWrappedRecord();
+			Transaction t = new Transaction();
+			t.addAll(asList(eventReindexing, eventRestarting));
+			try {
 
+				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
+			} catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			}
 		} else {
 			appLayerFactory.newApplicationService().markForReindexing();
 			try {

@@ -1,40 +1,47 @@
 package com.constellio.app.ui.framework.data.event.category;
 
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 /**
  * Created by Marco on 2017-03-20.
  */
-public class ReindexAndRestartEventDataProvider extends DefaultEventsDataProvider implements EventsCategoryDataProvider {
+public class ReindexAndRestartEventDataProvider implements EventsCategoryDataProvider {
+    private List<EventStatistics> events;
+
+    private String currentUserName;
+
+    private LocalDateTime startDate;
+
+    private LocalDateTime endDate;
+
+    private String collection;
+
     public ReindexAndRestartEventDataProvider(ModelLayerFactory modelLayerFactory, String collection, String currentUserName, LocalDateTime startDate, LocalDateTime endDate) {
-        super(modelLayerFactory, collection, currentUserName, startDate, endDate, null);
-    }
-
-    @Override
-    protected int specificSize() {
-        return size();
-    }
-
-    @Override
-    protected LogicalSearchQuery createSpecificQuery(ModelLayerFactory modelLayerFactory, User currentUser, String eventType, LocalDateTime startDate, LocalDateTime endDate, String id) {
-        RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
-        return rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+        this.currentUserName = currentUserName;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.collection = collection;
+        init(modelLayerFactory);
     }
 
     @Override
     public String getDataTitle() {
-        return $("ListEventsView.reIndexAndRestar");
+        return $("ListEventsView.reIndexAndRestart");
     }
 
     @Override
@@ -52,5 +59,43 @@ public class ReindexAndRestartEventDataProvider extends DefaultEventsDataProvide
             default:
                 throw new RuntimeException("Unsupported");
         }
+    }
+
+    public void init(ModelLayerFactory modelLayerFactory) {
+        SearchServices searchServices = modelLayerFactory.newSearchServices();
+        RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
+        User currentUser = modelLayerFactory.newUserServices().getUserInCollection(this.currentUserName, this.collection);
+        events = new ArrayList<>();
+
+        EventStatistics restart = new EventStatistics();
+        restart.setLabel($("ListEventsView.restarting"));
+        LogicalSearchQuery query = rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.RESTARTING, this.startDate, this.endDate);
+        restart.setValue((float) searchServices.getResultsCount(query));
+
+        EventStatistics reindex = new EventStatistics();
+        reindex.setLabel($("ListEventsView.reindexing"));
+        query = rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.REINDEXING, this.startDate, this.endDate);
+        reindex.setValue((float) searchServices.getResultsCount(query));
+
+        events.addAll(asList(restart, reindex));
+    }
+
+    @Override
+    public List<EventStatistics> getEvents() {
+        if (events == null) {
+            ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+            init(constellioFactories.getModelLayerFactory());
+        }
+        return events;
+    }
+
+    @Override
+    public EventStatistics getEventStatistics(Integer index) {
+        return getEvents().get(index);
+    }
+
+    @Override
+    public int size() {
+        return 2;
     }
 }
