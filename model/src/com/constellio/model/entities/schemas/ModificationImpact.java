@@ -13,13 +13,15 @@ public class ModificationImpact {
 	final List<Metadata> metadataToReindex;
 	final LogicalSearchCondition logicalSearchCondition;
 	final int potentialImpactsCount;
+	final String transactionTitle;
 
 	public ModificationImpact(MetadataSchemaType impactedSchemaType, List<Metadata> metadataToReindex,
-			LogicalSearchCondition logicalSearchCondition, int potentialImpactsCount) {
+			LogicalSearchCondition logicalSearchCondition, int potentialImpactsCount, String transactionTitle) {
 		this.impactedSchemaType = impactedSchemaType;
 		this.metadataToReindex = metadataToReindex;
 		this.logicalSearchCondition = logicalSearchCondition;
 		this.potentialImpactsCount = potentialImpactsCount;
+		this.transactionTitle = transactionTitle;
 
 		if (logicalSearchCondition == null) {
 			throw new RuntimeException("logicalSearchCondition required");
@@ -50,6 +52,10 @@ public class ModificationImpact {
 
 	public int getPotentialImpactsCount() {
 		return potentialImpactsCount;
+	}
+
+	public String getTransactionTitle() {
+		return transactionTitle;
 	}
 
 	@Override

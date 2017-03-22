@@ -150,7 +150,8 @@ public class RobotsManager implements StatefulService {
 	private void createBatchProcess(String robotId, LogicalSearchQuery query, String action, String actionParametersId) {
 		if (searchServices.hasResults(query)) {
 			RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robotId, action, actionParametersId);
-			BatchProcess batchProcess = batchProcessesManager.addBatchProcessInStandby(query, batchProcessAction);
+			BatchProcess batchProcess = batchProcessesManager
+					.addBatchProcessInStandby(query, batchProcessAction, "robot " + robotId);
 			batchProcessesManager.markAsPending(batchProcess);
 		}
 	}

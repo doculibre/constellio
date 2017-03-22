@@ -33,6 +33,8 @@ public class Transaction {
 
 	Set<String> idsToReindex = new HashSet<>();
 
+	String title;
+
 	private User user;
 	private String collection;
 	private Map<String, ParsedContent> parsedContentCache = new HashMap<>();
@@ -68,6 +70,7 @@ public class Transaction {
 			addUpdate(record);
 		}
 		this.user = transaction.user;
+		this.title = transaction.title;
 		this.recordUpdateOptions = transaction.recordUpdateOptions;
 		this.idsToReindex.addAll(transaction.getIdsToReindex());
 		this.recordUpdateOptions = new RecordUpdateOptions(transaction.recordUpdateOptions);
@@ -363,6 +366,15 @@ public class Transaction {
 			}
 		}
 		return null;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public Transaction setTitle(String title) {
+		this.title = title;
+		return this;
 	}
 
 	public Set<String> getIdsToReindex() {
