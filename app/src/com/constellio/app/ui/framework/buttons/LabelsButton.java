@@ -1,8 +1,11 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.reports.wrapper.Printable;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
@@ -14,7 +17,9 @@ import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -164,12 +169,11 @@ public class LabelsButton extends WindowButton {
                     }
                 } else if (ob instanceof LabelTemplate) {
                     LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
-                    LabelsReportFactory factory = new LabelsReportFactory(ConstellioFactories.getInstance().getAppLayerFactory());
                     LabelsReportParameters params = new LabelsReportParameters(
                             ids, labelTemplate,
                             parameters.getStartPosition(), parameters.getNumberOfCopies());
-                    ReportWriter writer = factory.getReportBuilder(params);
-                    getWindow().setContent(new ReportViewer(writer, factory.getFilename(params)));
+                    ReportWriter writer = getLabelsReportFactory().getReportBuilder(params);
+                    getWindow().setContent(new ReportViewer(writer, getLabelsReportFactory().getFilename(params)));
                 } else throw new UnsupportedOperationException();
 
 
@@ -202,6 +206,12 @@ public class LabelsButton extends WindowButton {
 
     public List<LabelTemplate> getTemplates() {
         return this.factory.getLabelTemplateManager().listTemplates(Folder.SCHEMA_TYPE);
+    }
+
+    public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
+        final AppLayerCollectionExtensions extensions = factory.getExtensions().forCollection(collection);
+        final RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
+        return rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue();
     }
 
 }
