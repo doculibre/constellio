@@ -47,6 +47,7 @@ tools/gradle/
 /sdk/generatedReports
 /constellio.log*
 /conf/constellio.properties
+/conf/license.xml
 /sdk/src/main/webapp/VAADIN
 /app/src/main/webapp/VAADIN
 /data/src/com/constellio/data/test/ZeStamp.java
