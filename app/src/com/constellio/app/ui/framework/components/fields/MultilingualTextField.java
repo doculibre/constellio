@@ -75,7 +75,7 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 				}
 			});
 			field.setRequired(areFieldsSetToRequired);
-			field.setRequiredError($("MultilingualTextField.requiredError", $("Language."+language).toLowerCase()));
+			field.setId(language);
 			layout.addComponent(field);
 		}
 	}
@@ -90,7 +90,9 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 		if(areFieldsSetToRequired) {
 			Iterator<Component> componentIterator = layout.iterator();
 			while(componentIterator.hasNext()) {
-				((BaseTextField) componentIterator.next()).validate();
+				BaseTextField field = (BaseTextField) componentIterator.next();
+				field.setRequiredError($("MultilingualTextField.requiredError", $("Language."+field.getId()).toLowerCase()));
+				field.validate();
 			}
 		}
 	}
