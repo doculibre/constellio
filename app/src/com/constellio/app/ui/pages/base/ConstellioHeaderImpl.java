@@ -4,6 +4,9 @@ import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -56,6 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends HorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
@@ -563,7 +567,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 			@Override
 			public boolean isVisible() {
-				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && param.getIds().size() > 0;
+				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(), asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE));
 			}
 
 			@Override
@@ -572,8 +576,8 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		};
 		SelectionPanelExtension.setStyles(windowButton);
-		windowButton.setEnabled(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && param.getIds().size() > 0);
-		windowButton.setVisible(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && param.getIds().size() > 0);
+		windowButton.setEnabled(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(), asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
+		windowButton.setVisible(isEnabled());
 		return windowButton;
 	}
 
@@ -777,7 +781,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				return false;
 			}
 		}
-		return true;
+		return true && list.size() > 0;
 	}
 
 	public void refreshButtons() {
