@@ -791,6 +791,7 @@ public class BatchProcessingPresenterService {
 			fieldsModifications.put(typeMetadata.getCode(), selectedType);
 		}
 
+		query.setPreferAnalyzedFields(true);
 		return new BatchProcessRequest(null, query, user, type, fieldsModifications);
 	}
 

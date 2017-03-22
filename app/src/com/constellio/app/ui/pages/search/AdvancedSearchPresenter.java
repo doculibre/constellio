@@ -518,13 +518,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
 		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser());
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
 		return new LogicalSearchQuery()
 				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser());
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
 	}
 
 	public void logRecordView(RecordVO recordVO) {
