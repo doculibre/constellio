@@ -110,4 +110,9 @@ public class EventType {
 
 	//workflows
 	public static final String WORKFLOW_STARTED = "start_workflow";
+
+	//Reindexing And Restarting
+	public static final String REINDEXING = "reindexing";
+
+	public static final String RESTARTING = "restarting";
 }
