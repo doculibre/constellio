@@ -173,16 +173,16 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 	}
 
 	public void adjustSelectAllButton(boolean checked) {
-		if(checked && toggleButton.isSelectAllMode() && isAllItemsSelected()) {
-			toggleSelectAllButton();
-		} else if(!checked && !toggleButton.isSelectAllMode() && isAllItemsUnselected()) {
-			toggleSelectAllButton();
-		}
+//		if(checked && toggleButton.isSelectAllMode() && isAllItemsSelected()) {
+//			toggleSelectAllButton();
+//		} else if(!checked && !toggleButton.isSelectAllMode() && isAllItemsUnselected()) {
+//			toggleSelectAllButton();
+//		}
 	}
 
-	private void toggleSelectAllButton() {
-		toggleButton.setSelectAllMode(!toggleButton.isSelectAllMode());
-	}
+//	private void toggleSelectAllButton() {
+//		toggleButton.setSelectAllMode(!toggleButton.isSelectAllMode());
+//	}
 	
 	protected boolean isAllItemsSelected() {
 		boolean allItemsSelected;
