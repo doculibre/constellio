@@ -62,12 +62,30 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
+	public void newDocument() {
+		Map<String, String> params = new HashMap<>();
+		params.put("newFile", "true");
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
+	public void newDocument(String folderId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("newFile", "true");
+		params.put("parentId", folderId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
 	public void addDocument() {
-		addDocument(null, null);
+		Map<String, String> params = new HashMap<>();
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
 	public void addDocument(String folderId) {
-		addDocument(folderId, null);
+		Map<String, String> params = new HashMap<>();
+		if (folderId != null) {
+			params.put("parentId", folderId);
+		}
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
 	public void addDocument(String folderId, String typeId) {

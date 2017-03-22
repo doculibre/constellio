@@ -82,7 +82,7 @@ public class ButtonsContainer<T extends Container & Indexed & Sortable> extends 
 		horizontalLayout.addStyleName("buttons-container");
 
 		for (ContainerButton containerButton : containerButtons) {
-			Button button = containerButton.newButton(itemId);
+			Button button = containerButton.newButton(itemId, this);
 			button.addClickListener(new ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {
@@ -100,12 +100,12 @@ public class ButtonsContainer<T extends Container & Indexed & Sortable> extends 
 	public static abstract class ContainerButton implements Serializable {
 
 		// TODO Merge with newButtonInstance
-		public final Button newButton(final Object itemId) {
-			Button button = newButtonInstance(itemId);
+		public final Button newButton(final Object itemId, ButtonsContainer<?> container) {
+			Button button = newButtonInstance(itemId, container);
 			return button;
 		}
 
-		protected abstract Button newButtonInstance(Object itemId);
+		protected abstract Button newButtonInstance(Object itemId, ButtonsContainer<?> container);
 
 	}
 	

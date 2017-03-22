@@ -283,14 +283,15 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 				MetadataSchemaType type = types.getSchemaType(typeCode);
 				List<Metadata> metadatasToReindex = findMetadatasToReindex(type, config);
 				if (!metadatasToReindex.isEmpty()) {
-					batchProcesses.addAll(startBatchProcessesToReindex(metadatasToReindex, type));
+					batchProcesses.addAll(startBatchProcessesToReindex(metadatasToReindex, type, config));
 				}
 			}
 		}
 		return batchProcesses;
 	}
 
-	List<BatchProcess> startBatchProcessesToReindex(List<Metadata> metadatasToReindex, MetadataSchemaType type) {
+	List<BatchProcess> startBatchProcessesToReindex(List<Metadata> metadatasToReindex, MetadataSchemaType type,
+			SystemConfiguration config) {
 
 		List<BatchProcess> batchProcesses = new ArrayList<>();
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -299,7 +300,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		LogicalSearchCondition condition = from(type).returnAll();
 		if (searchServices.hasResults(condition)) {
 			BatchProcessAction action = new ReindexMetadatasBatchProcessAction(schemaCodes);
-			batchProcesses.add(batchProcessesManager.addBatchProcessInStandby(condition, action));
+			batchProcesses.add(batchProcessesManager
+					.addBatchProcessInStandby(condition, action, "reindex.config " + config.getCode()));
 		}
 		return batchProcesses;
 	}

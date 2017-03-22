@@ -12,7 +12,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
@@ -62,9 +61,16 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, constellioFactories.getAppLayerFactory());
 	}
 
-	public void itemClicked(BreadcrumbItem item) {
-		String taskId = ((TaskBreadcrumbItem) item).getTaskId();
-		breadcrumbTrail.navigate().to(TaskViews.class).displayTask(taskId);
+	public boolean itemClicked(BreadcrumbItem item) {
+		boolean handled;
+		if (item instanceof TaskBreadcrumbItem) {
+			handled = true;
+			String taskId = ((TaskBreadcrumbItem) item).getTaskId();
+			breadcrumbTrail.navigate().to(TaskViews.class).displayTask(taskId);
+		} else {
+			handled = false;
+		}
+		return handled;
 	}
 
 	class TaskBreadcrumbItem implements BreadcrumbItem {

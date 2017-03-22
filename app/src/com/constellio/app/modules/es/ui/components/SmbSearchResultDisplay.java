@@ -1,6 +1,5 @@
 package com.constellio.app.modules.es.ui.components;
 
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
@@ -30,7 +29,7 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
 		boolean agentRegistered = getAppLayerFactory ().getPluginManager().isRegistered("agent");;
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-		if (agentRegistered && rmConfigs.isAgentEnabled() && new SchemaUtils().getSchemaTypeCode(schemaCode).equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
+		if (agentRegistered && rmConfigs.isAgentEnabled() && SchemaUtils.getSchemaTypeCode(schemaCode).equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
 			String smbPath = recordVO.get(ConnectorSmbDocument.URL);
 			String agentURL = ConstellioAgentUtils.getAgentSmbURL(smbPath);
 			if (agentURL != null) {

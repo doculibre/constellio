@@ -51,7 +51,7 @@ public abstract class AbstractRecordContextMenuHandler implements RecordContextM
 	}
 	
 	protected String getSchemaTypeCodeForSchemaCode(String schemaCode) {
-		return new SchemaUtils().getSchemaTypeCode(schemaCode);
+		return SchemaUtils.getSchemaTypeCode(schemaCode);
 	}
 
 	@Override

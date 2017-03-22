@@ -3,8 +3,9 @@ package com.constellio.app.ui.framework.components.content;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Iterator;
+import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class UpdateContentVersionPresenter implements Serializable {
@@ -32,38 +34,39 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 	private UpdateContentVersionWindow window;
 
-	private RecordVO recordVO;
-
-	private MetadataVO metadataVO;
-
-	private SchemaPresenterUtils presenterUtils;
+	private Map<RecordVO, MetadataVO> records;
 
 	private transient ModelLayerFactory modelLayerFactory;
 
 	private transient ContentManager contentManager;
 
-	public UpdateContentVersionPresenter(UpdateContentVersionWindow window, RecordVO recordVO, MetadataVO metadataVO) {
+	ConstellioFactories constellioFactories;
+
+	SessionContext sessionContext;
+
+	public UpdateContentVersionPresenter(UpdateContentVersionWindow window, Map<RecordVO, MetadataVO> records) {
 		this.window = window;
-		this.recordVO = recordVO;
-		this.metadataVO = metadataVO;
+		this.records = records;
 
 		initTransientObjects();
 
-		String schemaCode = recordVO.getSchema().getCode();
-		ConstellioFactories constellioFactories = window.getConstellioFactories();
-		SessionContext sessionContext = window.getSessionContext();
-		this.presenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
+		constellioFactories = window.getConstellioFactories();
+		sessionContext = window.getSessionContext();
 	}
 
 	public void windowAttached(boolean checkingIn) {
-		if (validateSavePossible()) {
-			if (!checkingIn && isCurrentUserBorrower()) {
-				window.addMajorMinorSameOptions();
-			} else {
-				window.addMajorMinorOptions();
+		Iterator<RecordVO> iterator = records.keySet().iterator();
+		while (iterator.hasNext()) {
+			RecordVO recordVO = iterator.next();
+			if (validateSavePossible(recordVO)) {
+				if (!checkingIn && isCurrentUserBorrower(recordVO)) {
+					window.addMajorMinorSameOptions();
+				} else {
+					window.addMajorMinorOptions();
+				}
+				boolean uploadFieldVisible = !checkingIn;
+				window.setUploadFieldVisible(uploadFieldVisible);
 			}
-			boolean uploadFieldVisible = !checkingIn;
-			window.setUploadFieldVisible(uploadFieldVisible);
 		}
 	}
 
@@ -78,31 +81,31 @@ public class UpdateContentVersionPresenter implements Serializable {
 		contentManager = modelLayerFactory.getContentManager();
 	}
 
-	private Content getContent() {
-		Record record = presenterUtils.getRecord(recordVO.getId());
-		Metadata contentMetadata = presenterUtils.getMetadata(metadataVO.getCode());
+	private Content getContent(RecordVO recordVO) {
+		Record record = getPresenterUtils(recordVO).getRecord(recordVO.getId());
+		Metadata contentMetadata = getPresenterUtils(recordVO).getMetadata(records.get(recordVO).getCode());
 		return record.get(contentMetadata);
 	}
 
-	private boolean isCurrentUserBorrower() {
-		User currentUser = presenterUtils.getCurrentUser();
-		Content content = getContent();
+	private boolean isCurrentUserBorrower(RecordVO recordVO) {
+		User currentUser = getPresenterUtils(recordVO).getCurrentUser();
+		Content content = getContent(recordVO);
 		return content != null && currentUser.getId().equals(content.getCheckoutUserId());
 	}
 
-	private boolean isContentCheckedOut() {
-		Content content = getContent();
+	private boolean isContentCheckedOut(RecordVO recordVO) {
+		Content content = getContent(recordVO);
 		return content != null && content.getCheckoutUserId() != null;
 	}
 
-	private boolean validateSavePossible() {
+	private boolean validateSavePossible(RecordVO recordVO) {
 		boolean uploadPossible;
-		if (isContentCheckedOut() && !isCurrentUserBorrower()) {
+		if (isContentCheckedOut(recordVO) && !isCurrentUserBorrower(recordVO)) {
 			uploadPossible = false;
 			window.setFormVisible(false);
 
-			Record record = presenterUtils.getRecord(recordVO.getId());
-			Metadata contentMetadata = presenterUtils.getMetadata(metadataVO.getCode());
+			Record record = getPresenterUtils(recordVO).getRecord(recordVO.getId());
+			Metadata contentMetadata = getPresenterUtils(recordVO).getMetadata(records.get(recordVO).getCode());
 			Content content = record.get(contentMetadata);
 			String checkoutUserId = content.getCheckoutUserId();
 			String userCaption = SchemaCaptionUtils.getCaptionForRecordId(checkoutUserId);
@@ -114,98 +117,106 @@ public class UpdateContentVersionPresenter implements Serializable {
 	}
 
 	public void contentVersionSaved(ContentVersionVO newVersionVO, Boolean majorVersion) {
-		if (validateSavePossible()) {
-			InputStream inputStream;
-			if (newVersionVO != null) {
-				inputStream = newVersionVO.getInputStreamProvider().getInputStream(STREAM_NAME);
-			} else {
-				inputStream = null;
-			}
-			boolean contentUploaded = newVersionVO != null && inputStream != null;
-
-			Record record = presenterUtils.getRecord(recordVO.getId());
-			Metadata contentMetadata = presenterUtils.getMetadata(metadataVO.getCode());
-			User currentUser = presenterUtils.getCurrentUser();
-			Content content = record.get(contentMetadata);
-			InputStreamProvider inputStreamProvider;
-
-			boolean sameVersion = isContentCheckedOut() && majorVersion == null;
-			boolean newMajorVersion = Boolean.TRUE.equals(majorVersion);
-			boolean newMinorVersion = Boolean.FALSE.equals(majorVersion);
-			boolean checkingIn = isCurrentUserBorrower() && newMajorVersion || newMinorVersion;
-
-			if (contentUploaded) {
-				String fileName = newVersionVO.getFileName();
-
-				inputStreamProvider = newVersionVO.getInputStreamProvider();
-
-				if (!sameVersion) {
-					newVersionVO.setMajorVersion(majorVersion);
-				}
-				recordVO.set(metadataVO, newVersionVO);
-
-                try {
-                    boolean newContent;
-                    if (content == null) {
-                        newContent = true;
-                        record = presenterUtils.toRecord(recordVO);
-                        content = record.get(contentMetadata);
-                    } else {
-                        newContent = false;
-                    }
-                    newVersionVO.setContentId(content.getId());
-
-                    ContentVersionDataSummary newVersionDataSummary = presenterUtils.uploadContent(inputStream, true, true, fileName);
-                    if (newMajorVersion) {
-                        contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
-                    } else if (newMinorVersion) {
-                        contentManager.createMinor(currentUser, fileName, newVersionDataSummary);
-                    }
-
-                    if (isContentCheckedOut()) {
-                        if (checkingIn) {
-                            content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
-                        } else {
-                            content.updateCheckedOutContentWithName(newVersionDataSummary, fileName);
-                        }
-                        modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
-                    } else if (!newContent) {
-                        content.updateContentWithName(currentUser, newVersionDataSummary, newMajorVersion, fileName);
-                    }
-                } catch(final IcapException e) {
-                    window.showErrorMessage(e.getMessage());
-
-                    return;
-                }
-			} else {
-				inputStreamProvider = null;
-				if (newMajorVersion) {
-					content.checkIn();
-					content.finalizeVersion();
-				} else if (newMinorVersion) {
-					content.checkIn();
-					modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
-				} else {
-					// TODO Throw appropriate exception
-					throw new RuntimeException("A new version must be specified if no new content is uploaded");
-				}
-			}
-
-			try {
-				presenterUtils.addOrUpdate(record);
+		Iterator<RecordVO> iterator = records.keySet().iterator();
+		while (iterator.hasNext()) {
+			RecordVO recordVO = iterator.next();
+			if (validateSavePossible(recordVO)) {
+				InputStream inputStream;
 				if (newVersionVO != null) {
-					newVersionVO.setVersion(content.getCurrentVersion().getVersion());
-					newVersionVO.setHash(content.getCurrentVersion().getHash());
+					inputStream = newVersionVO.getInputStreamProvider().getInputStream(STREAM_NAME);
+				} else {
+					inputStream = null;
 				}
-				if (inputStreamProvider != null) {
-					inputStreamProvider.deleteTemp();
+				boolean contentUploaded = newVersionVO != null && inputStream != null;
+
+				Record record = getPresenterUtils(recordVO).getRecord(recordVO.getId());
+				Metadata contentMetadata = getPresenterUtils(recordVO).getMetadata(records.get(recordVO).getCode());
+				User currentUser = getPresenterUtils(recordVO).getCurrentUser();
+				Content content = record.get(contentMetadata);
+				InputStreamProvider inputStreamProvider;
+
+				boolean sameVersion = isContentCheckedOut(recordVO) && majorVersion == null;
+				boolean newMajorVersion = Boolean.TRUE.equals(majorVersion);
+				boolean newMinorVersion = Boolean.FALSE.equals(majorVersion);
+				boolean checkingIn = isCurrentUserBorrower(recordVO) && newMajorVersion || newMinorVersion;
+
+				if (contentUploaded) {
+					String fileName = newVersionVO.getFileName();
+
+					inputStreamProvider = newVersionVO.getInputStreamProvider();
+
+					if (!sameVersion) {
+						newVersionVO.setMajorVersion(majorVersion);
+					}
+					recordVO.set(records.get(recordVO), newVersionVO);
+
+					try {
+						boolean newContent;
+						if (content == null) {
+							newContent = true;
+							record = getPresenterUtils(recordVO).toRecord(recordVO);
+							content = record.get(contentMetadata);
+						} else {
+							newContent = false;
+						}
+						newVersionVO.setContentId(content.getId());
+
+						ContentVersionDataSummary newVersionDataSummary = getPresenterUtils(recordVO)
+								.uploadContent(inputStream, true, true, fileName);
+						if (newMajorVersion) {
+							contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
+						} else if (newMinorVersion) {
+							contentManager.createMinor(currentUser, fileName, newVersionDataSummary);
+						}
+
+						if (isContentCheckedOut(recordVO)) {
+							if (checkingIn) {
+								content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
+							} else {
+								content.updateCheckedOutContentWithName(newVersionDataSummary, fileName);
+							}
+							modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
+						} else if (!newContent) {
+							content.updateContentWithName(currentUser, newVersionDataSummary, newMajorVersion, fileName);
+						}
+					} catch (final IcapException e) {
+						window.showErrorMessage(e.getMessage());
+
+						return;
+					}
+				} else {
+					inputStreamProvider = null;
+					if (newMajorVersion) {
+						content.finalizeVersion();
+					} else if (newMinorVersion) {
+						content.checkIn();
+						modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
+					} else {
+						// TODO Throw appropriate exception
+						throw new RuntimeException("A new version must be specified if no new content is uploaded");
+					}
 				}
-				window.close();
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				window.showErrorMessage("UpdateContentVersionWindow.errorWhileUploading");
+
+				try {
+					getPresenterUtils(recordVO).addOrUpdate(record);
+					if (newVersionVO != null) {
+						newVersionVO.setVersion(content.getCurrentVersion().getVersion());
+						newVersionVO.setHash(content.getCurrentVersion().getHash());
+					}
+					if (inputStreamProvider != null) {
+						inputStreamProvider.deleteTemp();
+					}
+				} catch (Exception e) {
+					LOGGER.error(e.getMessage(), e);
+					window.showErrorMessage("UpdateContentVersionWindow.errorWhileUploading");
+				}
 			}
 		}
+	}
+
+	public SchemaPresenterUtils getPresenterUtils(RecordVO recordVO) {
+		String schemaCode = recordVO.getSchema().getCode();
+		return new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
 	}
 
 }

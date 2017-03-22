@@ -90,7 +90,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Unre
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
-import com.constellio.model.services.records.populators.AutocompleteFieldPopulator;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
 import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
@@ -103,7 +102,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 
 public class RecordServicesImpl extends BaseRecordServices {
@@ -603,7 +601,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 				recordsToInsert.add(record);
 			}
 		}
-
 		recordsCaches.insert(collection, recordsToInsert);
 
 	}
@@ -730,7 +727,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				transaction.getParsedContentCache());
 		fieldsPopulators.add(new SearchFieldsPopulator(
 				types, transaction.getRecordUpdateOptions().isFullRewrite(), parsedContentProvider, collectionLanguages));
-		fieldsPopulators.add(new AutocompleteFieldPopulator());
+		//fieldsPopulators.add(new AutocompleteFieldPopulator());
 		fieldsPopulators.add(new SortFieldsPopulator(types, transaction.getRecordUpdateOptions().isFullRewrite()));
 
 		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {

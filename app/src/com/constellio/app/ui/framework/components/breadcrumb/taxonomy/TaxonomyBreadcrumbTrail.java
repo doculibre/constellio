@@ -15,6 +15,8 @@ public class TaxonomyBreadcrumbTrail extends TitleBreadcrumbTrail {
 
 	@Override
 	protected void itemClick(BreadcrumbItem item) {
-		presenter.itemClicked(item);
+		if (!presenter.itemClicked(item)) {
+			super.itemClick(item);
+		}
 	}
 }

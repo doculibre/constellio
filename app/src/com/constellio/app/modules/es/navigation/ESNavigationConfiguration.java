@@ -16,6 +16,7 @@ import com.constellio.app.modules.es.ui.pages.WizardConnectorInstanceViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.AddEditMappingViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.DisplayConnectorMappingsViewImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -34,7 +35,6 @@ public class ESNavigationConfiguration implements Serializable {
 	public static final String SEARCH_ENGINE = "searchEngine";
 	public static final String SEARCH_ENGINE_ICON = "images/icons/config/configuration-search.png";
 
-	public static final String TAXONOMIES = "taxonomies";
 	public static final String CONNECTOR_REPORT = "connectorReport";
 	public static final String DISPLAY_CONNECTOR_INSTANCE = "displayConnectorInstance";
 	public static final String ADD_CONNECTOR_MAPPING = "addConnectorMapping";
@@ -76,21 +76,17 @@ public class ESNavigationConfiguration implements Serializable {
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
-		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
-			config.add(HomeView.TABS, new RecordTree(TAXONOMIES) {
-				private int defaultTab;
-
+		if (!config.hasNavigationItem(HomeView.TABS, CoreNavigationConfiguration.TAXONOMIES)) {
+			config.add(HomeView.TABS, new RecordTree(CoreNavigationConfiguration.TAXONOMIES) {
 				@Override
 				public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
 						SessionContext sessionContext) {
 					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
-					defaultTab = tabSheet.getDefaultTab();
+					if (getDefaultDataProvider() == -1) {
+						int defaultTab = tabSheet.getDefaultTab();
+						setDefaultDataProvider(defaultTab);
+					}	
 					return tabSheet.getDataProviders();
-				}
-
-				@Override
-				public int getDefaultDataProvider() {
-					return defaultTab;
 				}
 
 				@Override

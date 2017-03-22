@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -16,8 +17,6 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 
 public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
-	
-	public static final String TAXONOMY_CODE = "taxonomyCode";
 	
 	private FolderDocumentBreadcrumbTrailPresenter presenter;
 
@@ -40,6 +39,8 @@ public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implemen
 			recordId = null;
 		} else if (item instanceof CollectionBreadcrumbItem) {
 			recordId = null;
+		} else if (item instanceof SearchResultsBreadcrumbItem) {
+			recordId = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());
 		}
@@ -52,7 +53,9 @@ public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implemen
 
 	@Override
 	protected void itemClick(BreadcrumbItem item) {
-		presenter.itemClicked(item);
+		if (!presenter.itemClicked(item)) {
+			super.itemClick(item);
+		}
 	}
 
 	@Override

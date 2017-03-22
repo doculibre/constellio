@@ -65,7 +65,7 @@ public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extend
 	}
 
 	@Test
-	public void whenReindexingThenRefreshCopiedAndCalculatedMetadatas_1()
+	public void te()
 			throws Exception {
 
 		givenTimeIs(shishOClock);

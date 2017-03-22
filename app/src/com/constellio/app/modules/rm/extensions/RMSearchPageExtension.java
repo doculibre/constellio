@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.modules.rm.ui.components.DocumentSearchResultDisplay;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -21,5 +22,9 @@ public class RMSearchPageExtension extends SearchPageExtension {
 			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory);
 		}
 		return super.getCustomResultDisplayFor(param);
+	}
+
+	@Override
+	public void notifyNewUserSearch(UserSearchEvent event) {
 	}
 }

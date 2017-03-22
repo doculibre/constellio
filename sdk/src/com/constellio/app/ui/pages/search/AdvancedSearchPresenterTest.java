@@ -2,13 +2,11 @@ package com.constellio.app.ui.pages.search;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.constellio.model.entities.enums.SearchSortType;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -18,12 +16,14 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.CoreViews;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.MockedNavigation;
 
 public class AdvancedSearchPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "zeField_s";
@@ -63,7 +63,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 
 		presenter = spy(new AdvancedSearchPresenter(view));
 
-		doNothing().when(presenter).saveTemporarySearch(true);
+		doReturn(null).when(presenter).saveTemporarySearch(true);
 	}
 
 	@Test
