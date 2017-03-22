@@ -1,11 +1,7 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -77,23 +73,25 @@ public class ModificationImpactCalculator {
 		List<String> transactionRecordIds = executedAfterTransaction ? null : transaction.getRecordIds();
 
 		for (RecordsModification recordsModification : recordsModifications) {
-			recordsModificationImpacts.addAll(findImpactOfARecordsModification(recordsModification, transactionRecordIds));
+			recordsModificationImpacts
+					.addAll(findImpactOfARecordsModification(recordsModification, transactionRecordIds, transaction.getTitle()));
 		}
 		return recordsModificationImpacts;
 	}
 
 	List<ModificationImpact> findImpactOfARecordsModification(RecordsModification recordsModification,
-			List<String> transactionRecordIds) {
+			List<String> transactionRecordIds, String transactionTitle) {
 		List<ModificationImpact> impacts = new ArrayList<>();
 
 		for (MetadataSchemaType type : metadataSchemaTypes.getSchemaTypes()) {
-			impacts.addAll(findImpactsOfARecordsModificationInSchemaType(type, recordsModification, transactionRecordIds));
+			impacts.addAll(findImpactsOfARecordsModificationInSchemaType(type, recordsModification, transactionRecordIds,
+					transactionTitle));
 		}
 		return impacts;
 	}
 
 	List<ModificationImpact> findImpactsOfARecordsModificationInSchemaType(MetadataSchemaType schemaType,
-			RecordsModification recordsModification, List<String> transactionRecordIds) {
+			RecordsModification recordsModification, List<String> transactionRecordIds, String transactionTitle) {
 
 		List<ModificationImpact> recordsModificationImpactsInType = new ArrayList<>();
 
@@ -103,7 +101,7 @@ public class ModificationImpactCalculator {
 				references, reindexedMetadatas);
 
 		return findRealImpactsOfPotentialMetadataToReindex(schemaType, recordsModification, transactionRecordIds,
-				recordsModificationImpactsInType, references, reindexedMetadatas);
+				recordsModificationImpactsInType, references, reindexedMetadatas, transactionTitle);
 	}
 
 	//	private List<ModificationImpact> findRealImpactsOfPotentialMetadataToReindex(MetadataSchemaType schemaType,
@@ -165,7 +163,7 @@ public class ModificationImpactCalculator {
 	private List<ModificationImpact> findRealImpactsOfPotentialMetadataToReindex(MetadataSchemaType schemaType,
 			RecordsModification recordsModification, List<String> transactionRecordIds,
 			List<ModificationImpact> recordsModificationImpactsInType, List<Metadata> references,
-			List<Metadata> reindexedMetadatas) {
+			List<Metadata> reindexedMetadatas, String transactionTitle) {
 		if (!references.isEmpty()) {
 			Iterator<List<Record>> batchIterator = splitModifiedRecordsInBatchOf1000(recordsModification);
 			while (batchIterator.hasNext()) {
@@ -175,7 +173,7 @@ public class ModificationImpactCalculator {
 				int recordsCount = (int) searchServices.getResultsCount(condition);
 				if (recordsCount > 0) {
 					recordsModificationImpactsInType.add(new ModificationImpact(
-							schemaType, reindexedMetadatas, condition, recordsCount));
+							schemaType, reindexedMetadatas, condition, recordsCount, transactionTitle));
 				}
 			}
 		}

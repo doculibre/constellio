@@ -29,9 +29,15 @@ public class AddToBatchProcessImpactHandler implements RecordModificationImpactH
 	public void prepareToHandle(ModificationImpact modificationImpact) {
 		LogicalSearchCondition condition = modificationImpact.getLogicalSearchCondition();
 		if (searchServices.hasResults(condition)) {
+
+			String title = "reindex.transaction";
+			if (modificationImpact.getTransactionTitle() != null) {
+				title += " " + modificationImpact.getTransactionTitle();
+			}
+
 			BatchProcessAction action = newBatchProcessAction(modificationImpact.getMetadataToReindex());
 			String collection = modificationImpact.getMetadataToReindex().get(0).getCollection();
-			BatchProcess batchProcess = this.manager.addBatchProcessInStandby(condition, action);
+			BatchProcess batchProcess = this.manager.addBatchProcessInStandby(condition, action, title);
 			createdBatchProcesses.add(batchProcess);
 
 		}
