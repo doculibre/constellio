@@ -1,5 +1,14 @@
 package com.constellio.app.ui.framework.components.content;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -16,14 +25,6 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.Map;
 
 public class UpdateContentVersionPresenter implements Serializable {
 
@@ -55,7 +56,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 	public void windowAttached(boolean checkingIn) {
 		Iterator<RecordVO> iterator = records.keySet().iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			RecordVO recordVO = iterator.next();
 			if (validateSavePossible(recordVO)) {
 				if (!checkingIn && isCurrentUserBorrower(recordVO)) {
@@ -117,7 +118,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 	public void contentVersionSaved(ContentVersionVO newVersionVO, Boolean majorVersion) {
 		Iterator<RecordVO> iterator = records.keySet().iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			RecordVO recordVO = iterator.next();
 			if (validateSavePossible(recordVO)) {
 				InputStream inputStream;
@@ -160,7 +161,8 @@ public class UpdateContentVersionPresenter implements Serializable {
 						}
 						newVersionVO.setContentId(content.getId());
 
-						ContentVersionDataSummary newVersionDataSummary = getPresenterUtils(recordVO).uploadContent(inputStream, true, true, fileName);
+						ContentVersionDataSummary newVersionDataSummary = getPresenterUtils(recordVO)
+								.uploadContent(inputStream, true, true, fileName);
 						if (newMajorVersion) {
 							contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
 						} else if (newMinorVersion) {
@@ -185,7 +187,6 @@ public class UpdateContentVersionPresenter implements Serializable {
 				} else {
 					inputStreamProvider = null;
 					if (newMajorVersion) {
-						content.checkIn();
 						content.finalizeVersion();
 					} else if (newMinorVersion) {
 						content.checkIn();
