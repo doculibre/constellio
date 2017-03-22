@@ -127,7 +127,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 		long recordsCount = searchServices.getResultsCount(logicalQuery);
 		updateBatchProcesses(
-				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action));
+				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action, null,
+						title));
 
 		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
