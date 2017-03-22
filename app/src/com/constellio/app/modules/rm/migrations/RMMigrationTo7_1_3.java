@@ -3,10 +3,12 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.validators.MediumTypeValidator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -42,27 +44,22 @@ public class RMMigrationTo7_1_3 implements MigrationScript {
         SearchServices searchServices = modelLayerFactory.newSearchServices();
 
         String driveCode = migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode");
-        String driveTitle = migrationResourcesProvider.getDefaultLanguageString("MediumType.driveTitle");
+        String driveNewTitle = migrationResourcesProvider.getDefaultLanguageString("MediumType.newDriveTitle");
 
         LogicalSearchQuery query = new LogicalSearchQuery(from(rm.mediumTypeSchemaType()).where(ALL));
 
         List<MediumType> mediumTypes = rm.wrapMediumTypes(searchServices.search(query));
-        List<MediumType> mediumTypesAnalogiques = new ArrayList<>();
         List<MediumType> mediumTypesNonAnalogiques = new ArrayList<>();
 
         if (rm.getMediumTypeByCode(driveCode) == null) {
-
             for (MediumType mediumType : mediumTypes) {
-                if (mediumType.isAnalogical()) {
-                    mediumTypesAnalogiques.add(mediumType);
-                } else {
+                if (!mediumType.isAnalogical()) {
                     mediumTypesNonAnalogiques.add(mediumType);
                 }
             }
-
             if (mediumTypesNonAnalogiques.size() == 0) {
                 transaction.add(rm.newMediumType().setCode(driveCode)
-                        .setTitle(driveTitle)
+                        .setTitle(driveNewTitle)
                         .setAnalogical(false));
             } else {
                 MediumType mediumType = mediumTypesNonAnalogiques.get(0);
@@ -70,14 +67,6 @@ public class RMMigrationTo7_1_3 implements MigrationScript {
                         .setAnalogical(false));
             }
         }
-
-//        transaction.add(mediumType.setCode(driveCode)
-//                            .setTitle(driveTitle));
-
-//        transaction.add(rm.newMediumType().setCode(driveCode)
-//                .setTitle("test")
-//                .setAnalogical(false));
-
         try {
             modelLayerFactory.newRecordServices().execute(transaction);
         } catch (RecordServicesException e) {
@@ -99,7 +88,11 @@ public class RMMigrationTo7_1_3 implements MigrationScript {
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+            migrateMediumType(typesBuilder);
+        }
 
+        private void migrateMediumType(MetadataSchemaTypesBuilder typesBuilder) {
+            typesBuilder.getSchema(MediumType.DEFAULT_SCHEMA).defineValidators().add(MediumTypeValidator.class);
         }
     }
 }
