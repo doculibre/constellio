@@ -1,7 +1,9 @@
 package com.constellio.app.ui.pages.batchprocess;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import org.joda.time.Hours;
 import org.joda.time.LocalDateTime;
@@ -12,6 +14,8 @@ import com.constellio.app.ui.framework.data.BatchProcessDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 
@@ -57,8 +61,36 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 			}
 		}
 		
-		List<BatchProcess> nonFinishedBatchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
-		displayedBatchProcesses.addAll(nonFinishedBatchProcesses);
+		BatchProcess currentBatchProcess = batchProcessesManager.getCurrentBatchProcess();
+		if (currentBatchProcess != null) {
+			displayedBatchProcesses.add(currentBatchProcess);
+		}
+		List<BatchProcess> pendingBatchProcesses = batchProcessesManager.getPendingBatchProcesses();
+		displayedBatchProcesses.addAll(pendingBatchProcesses);
+		
+		String[] titles = {
+			"userBatchProcess",	
+			"reindex.schemasAlteration",
+			"reindex.config ZeConfigCode",
+			"reindex.transaction",
+			"reindex.transaction ZeTransactionTitle",
+			"robot ZeRobotId"
+		};
+		for (String title : titles) {
+			String id = UUID.randomUUID().toString();
+			BatchProcessStatus status = BatchProcessStatus.PENDING;
+			LocalDateTime requestDateTime = new LocalDateTime();
+			LocalDateTime startDateTime = null;
+			int handledRecordsCount = 42;
+			int totalRecordsCount = 4242;
+			BatchProcessAction action = null;
+			int errors = 0;
+			String query = "zeQuery";
+			List<String> records = Collections.emptyList();
+			String username = null;
+			BatchProcess batchProcess = new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount, totalRecordsCount, errors, action, collection, query, records, username, title);
+			displayedBatchProcesses.add(batchProcess);
+		}
 		
 		for (int i = 0; i < displayedBatchProcesses.size(); i++) {
 			BatchProcess batchProcess = displayedBatchProcesses.get(i);
@@ -84,8 +116,9 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 
 	public void backgroundViewMonitor() {
 		secondsSinceLastRefresh++;
-		if (secondsSinceLastRefresh >= 30) {
+		if (secondsSinceLastRefresh >= 10) {
 			refreshDataProviders();
+			secondsSinceLastRefresh = 0;
 		}
 	}
 

@@ -13487,6 +13487,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: hidden;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .batch-processes .v-table .v-scrollable {
+	overflow-x: auto;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper {
 	padding-right: 260px;
 }

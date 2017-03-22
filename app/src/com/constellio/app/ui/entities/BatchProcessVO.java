@@ -32,6 +32,8 @@ public class BatchProcessVO implements Serializable {
 	private final String query;
 
 	private final List<String> records;
+	
+	private Integer rank;
 
 	public BatchProcessVO(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
 						int handledRecordsCount, int totalRecordsCount, int errors, String collection,
@@ -97,6 +99,14 @@ public class BatchProcessVO implements Serializable {
 
 	public List<String> getRecords() {
 		return records;
+	}
+
+	public Integer getRank() {
+		return rank;
+	}
+
+	public void setRank(Integer rank) {
+		this.rank = rank;
 	}
 
 	@Override
