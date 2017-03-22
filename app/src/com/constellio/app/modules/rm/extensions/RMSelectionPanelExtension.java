@@ -529,12 +529,17 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             if(attachments == null || attachments.isEmpty()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.noApplicableRecords"));
                 return null;
+            } else if(attachments.size() != param.getIds().size()) {
+                showErrorMessage($("ConstellioHeader.selection.actions.couldNotSendEmail", attachments.size(), param.getIds().size()));
             }
             Message message = new EmailServices().createMessage(from, subject, signature, attachments);
             message.addHeader("X-Unsent", "1");
             message.writeTo(outputStream);
             IOUtils.closeQuietly(outputStream);
             closeAllInputStreams(attachments);
+            if(attachments.size() == param.getIds().size()) {
+                showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", attachments.size()));
+            }
             return new FileInputStream(emlFile);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
