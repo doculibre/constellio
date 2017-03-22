@@ -172,7 +172,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		String title;
 		String titleCode = batchProcessVO.getTitle();
 		if (StringUtils.isBlank(titleCode)) {
-			title = batchProcessVO.getId();
+			title = $("BatchProcess.title.systemBatchProcess");
 		} else if (titleCode.indexOf(" ") != -1) {
 			String titleKey = StringUtils.substringBefore(titleCode, " ");
 			String titleValue = StringUtils.substringAfter(titleCode, " ");
