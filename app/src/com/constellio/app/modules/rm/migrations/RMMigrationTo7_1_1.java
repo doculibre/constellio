@@ -22,9 +22,13 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -59,8 +63,9 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-
-			MetadataSchemaBuilder documentSchema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			folderSchema.getMetadata(Folder.ACTIVE_RETENTION_CODE).setTransiency(PERSISTED);
@@ -76,16 +81,32 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
 					.defineDataEntry().asCalculated(DocumentAutocompleteFieldCalculator.class);
 
-			MetadataSchemaBuilder defaultSchema = typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
-			defaultSchema.create(RMUserFolder.ADMINISTRATIVE_UNIT).setType(MetadataValueType.REFERENCE).setEssential(false)
-					.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE));
-			defaultSchema.create(RMUserFolder.CATEGORY).setType(MetadataValueType.REFERENCE).setEssential(false)
-					.defineReferencesTo(typesBuilder.getSchemaType(Category.SCHEMA_TYPE));
-			defaultSchema.create(RMUserFolder.RETENTION_RULE).setType(MetadataValueType.REFERENCE).setEssential(false)
-					.defineReferencesTo(typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE));
-			defaultSchema.create(RMUserFolder.PARENT_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false)
-					.defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
-
+			MetadataSchema defaultUserFolderSchema = types.getSchema(UserFolder.DEFAULT_SCHEMA);
+			MetadataSchemaBuilder defaultUserFolderSchemaBuilder = typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
+			try {
+				defaultUserFolderSchema.get(RMUserFolder.ADMINISTRATIVE_UNIT);
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				defaultUserFolderSchemaBuilder.create(RMUserFolder.ADMINISTRATIVE_UNIT).setType(MetadataValueType.REFERENCE).setEssential(false)
+				.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE));
+			}
+			try {
+				defaultUserFolderSchema.get(RMUserFolder.CATEGORY);
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				defaultUserFolderSchemaBuilder.create(RMUserFolder.CATEGORY).setType(MetadataValueType.REFERENCE).setEssential(false)
+				.defineReferencesTo(typesBuilder.getSchemaType(Category.SCHEMA_TYPE));
+			}
+			try {
+				defaultUserFolderSchema.get(RMUserFolder.RETENTION_RULE);
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				defaultUserFolderSchemaBuilder.create(RMUserFolder.RETENTION_RULE).setType(MetadataValueType.REFERENCE).setEssential(false)
+				.defineReferencesTo(typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE));
+			}
+			try {
+				defaultUserFolderSchema.get(RMUserFolder.PARENT_FOLDER);
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				defaultUserFolderSchemaBuilder.create(RMUserFolder.PARENT_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false)
+				.defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
+			}
 		}
 	}
 }
