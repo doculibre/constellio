@@ -13,10 +13,12 @@ import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConn
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
+import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -33,12 +35,12 @@ public abstract class ClassifyConnectorFolderBaseActionExecutor implements Actio
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records, List<Record> processedRecords) {
+			List<Record> records, List<Record> processedRecords, boolean dryRun) {
+		Transaction transaction = new Transaction();
 		String collection = actionParameters.getCollection();
-		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		RobotSchemaRecordServices robots = new RobotSchemaRecordServices(collection, appLayerFactory);
 
-		logguerMessage(robotId, recordServices, robots, "Démarrage du robot dans la collection " + collection);
+		transaction.add(logguerMessage(robotId, robots, "Démarrage du robot dans la collection " + collection));
 
 		ClassifyConnectorFolderActionParameters params = wrap(actionParameters);
 
@@ -47,28 +49,21 @@ public abstract class ClassifyConnectorFolderBaseActionExecutor implements Actio
 		for (Record record : records) {
 
 			try {
-				new ClassifyConnectorRecordInTaxonomyExecutor(record, params, appLayerFactory, user, robotId, processedRecords)
+				new ClassifyConnectorRecordInTaxonomyExecutor(record, params, appLayerFactory, user, robotId, processedRecords, dryRun)
 						.execute();
 				processedRecords.add(record);
 			} catch (Throwable e) {
 				LOGGER.warn("Cannot classify record", e);
 				
-				logguerMessage(robotId, recordServices, robots, ExceptionUtils.getStackTrace(e));
+				transaction.add(logguerMessage(robotId, robots, ExceptionUtils.getStackTrace(e)));
 			}
 		}
 
-		return new Transaction();
+		return transaction;
 	}
 
-	private void logguerMessage(String robotId, RecordServices recordServices, RobotSchemaRecordServices robots,
-			String message) {
-		try {
-			
-			recordServices
-					.add(robots.newRobotLog().setTitle(message).setRobot(robotId));
-		} catch (RecordServicesException e1) {
-			throw new RuntimeException("Failed to create the robot error log");
-		}
+	private RecordWrapper logguerMessage(String robotId, RobotSchemaRecordServices robots, String message) {
+		return robots.newRobotLog().setTitle(message).setRobot(robotId);
 	}
 
 	protected abstract ClassifyConnectorFolderActionParameters wrap(ActionParameters actionParameters);

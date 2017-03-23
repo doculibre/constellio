@@ -452,7 +452,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 		return new ActionExecutor() {
 			@Override
 			public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-					List<Record> records, List<Record> processedRecords) {
+					List<Record> records, List<Record> processedRecords, boolean dryRun) {
 				Transaction transaction = new Transaction();
 				for (Record record : records) {
 					transaction.add(record.set(metadata, actionParameters.get("value")));

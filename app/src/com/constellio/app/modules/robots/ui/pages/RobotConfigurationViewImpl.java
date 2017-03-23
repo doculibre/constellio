@@ -36,6 +36,7 @@ import com.vaadin.ui.TabSheet;
 public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotConfigurationView {
 	private final RobotConfigurationPresenter presenter;
 	private RecordVO robot;
+	private Resource resource;
 
 	public RobotConfigurationViewImpl() {
 		this.presenter = new RobotConfigurationPresenter(this);
@@ -158,10 +159,13 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 	}
 
 	private Button buildDownloadButton() {
-		final Resource resource = new DownloadStreamResource(presenter.getResource(), presenter.getReportTitle());
 		return new LinkButton($("RobotConfigurationView.download")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				if (resource == null) {
+					resource = new DownloadStreamResource(presenter.getResource(), presenter.getReportTitle());
+				}
+				
 				Page.getCurrent().open(resource, null, false);
 			}
 		};

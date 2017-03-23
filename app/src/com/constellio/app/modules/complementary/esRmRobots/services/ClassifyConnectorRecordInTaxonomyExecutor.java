@@ -79,9 +79,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	User currentUser;
 	String robotId;
 	List<Record> processedRecords;
+	boolean dryRun;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
+			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords, boolean dryRun) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -95,6 +96,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.robotId = robotId;
 		this.processedRecords = processedRecords;
+		this.dryRun = dryRun;
 	}
 
 	public void execute() {
@@ -106,37 +108,42 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		connectorFolder = es.wrapConnectorDocument(record);
 		classifyConnectorFolderInTaxonomy();
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new ClassifyServicesRuntimeException(e);
-		}
 
-		if (!newExclusions.isEmpty()) {
-			addNewExclusionToConnector(0);
-		}
+		if (!dryRun) {
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new ClassifyServicesRuntimeException(e);
+			}
 
-		if (params.getActionAfterClassification() == ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM) {
-			for (Record documentInTransaction : transaction.getRecords()) {
-				// FIXME sharepoint
-				if (documentInTransaction.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE
-						+ "_") /*|| documentInTransaction.getSchemaCode().startsWith(ConnectorSharepointDocument.SCHEMA_TYPE + "_")*/) {
-					ConnectorDocument<?> connectorDocument = es.wrapConnectorDocument(documentInTransaction);
-					connectorServices(connectorDocument).deleteDocumentOnRemoteComponent(connectorDocument);
-					logguerMessage(String.format("Document '%s' supprimé suite à sa classification dans Constellio",
-							connectorDocument.getURL()));
+			if (!newExclusions.isEmpty()) {
+				addNewExclusionToConnector(0);
+			}
+
+			if (params.getActionAfterClassification() == ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM) {
+				for (Record documentInTransaction : transaction.getRecords()) {
+					// FIXME sharepoint
+					if (documentInTransaction.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE
+							+ "_") /*|| documentInTransaction.getSchemaCode().startsWith(ConnectorSharepointDocument.SCHEMA_TYPE + "_")*/) {
+						ConnectorDocument<?> connectorDocument = es.wrapConnectorDocument(documentInTransaction);
+						connectorServices(connectorDocument).deleteDocumentOnRemoteComponent(connectorDocument);
+						logguerMessage(String.format("Document '%s' supprimé suite à sa classification dans Constellio",
+								connectorDocument.getURL()));
+					}
 				}
 			}
 		}
 	}
 
 	private void logguerMessage(String message) {
-		try {
-			LOGGER.info(message);
-			recordServices.add(robots.newRobotLog().setTitle(message).setRobot(robotId));
-		} catch (RecordServicesException e1) {
-			LOGGER.error("Failed to create the robot error log", e1);
-			throw new RuntimeException("Failed to create the robot error log", e1);
+		if (!dryRun) {
+			try {
+				LOGGER.info(message);
+				recordServices.add(robots.newRobotLog().setTitle(message).setRobot(robotId));
+			} catch (RecordServicesException e1) {
+				LOGGER.error("Failed to create the robot error log", e1);
+				throw new RuntimeException("Failed to create the robot error log", e1);
+			}
 		}
 	}
 
@@ -510,7 +517,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (rmFolder.getOpenDate() == null) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
-		
+
 		addMediumTypeToFolder(rmFolder);
 	}
 
@@ -518,17 +525,17 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Metadata metadata = folder.getSchema().get(Folder.MEDIUM_TYPES);
 		String referencedTypeCode = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 		Metadata codeMetadata = robots.getTypes().getDefaultSchema(referencedTypeCode).getMetadata("code");
-		
+
 		Record mediumType = recordServices.getRecordByMetadata(codeMetadata, "MD");
-		if(mediumType == null) {
+		if (mediumType == null) {
 			mediumType = recordServices.getRecordByMetadata(codeMetadata, "DM");
-		} 
-		
-		if(mediumType != null) {
+		}
+
+		if (mediumType != null) {
 			folder.setMediumTypes(recordServices.getRecordsById(robots.getCollection(), Arrays.asList(mediumType.getId())));
 		}
 	}
-	
+
 	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder) {
 		if (folderEntry.get(Folder.PARENT_FOLDER) == null && rmFolder.getParentFolder() == null
 				&& params.getDefaultParentFolder() != null) {
