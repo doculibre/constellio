@@ -5,6 +5,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -40,10 +42,21 @@ public class RobotBatchProcessAction implements BatchProcessAction {
 		}
 
 		List<Record> processedRecords = new ArrayList<>();
-		Transaction transaction = actionExecutor != null ?
-				actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch, processedRecords) : new Transaction();
-		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle($("RobotBatchProcessAction.completed"))
-				.setProcessRecordsCount(processedRecords.size()));
+		Transaction transaction = actionExecutor != null
+				? actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch, processedRecords) : new Transaction();
+
+		int documents = 0;
+		int folders = 0;
+		for (Record record : processedRecords) {
+			if (StringUtils.containsIgnoreCase(record.getSchemaCode(), "document")) {
+				documents++;
+			} else if (StringUtils.containsIgnoreCase(record.getSchemaCode(), "folder")) {
+				folders++;
+			}
+		}
+
+		String message = $("RobotBatchProcessAction.completed", documents, folders);
+		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle(message).setProcessRecordsCount(processedRecords.size()));
 		return transaction;
 	}
 

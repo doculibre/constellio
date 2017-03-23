@@ -510,8 +510,25 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (rmFolder.getOpenDate() == null) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
+		
+		addMediumTypeToFolder(rmFolder);
 	}
 
+	private void addMediumTypeToFolder(Folder folder) {
+		Metadata metadata = folder.getSchema().get(Folder.MEDIUM_TYPES);
+		String referencedTypeCode = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+		Metadata codeMetadata = robots.getTypes().getDefaultSchema(referencedTypeCode).getMetadata("code");
+		
+		Record mediumType = recordServices.getRecordByMetadata(codeMetadata, "MD");
+		if(mediumType == null) {
+			mediumType = recordServices.getRecordByMetadata(codeMetadata, "DM");
+		} 
+		
+		if(mediumType != null) {
+			folder.setMediumTypes(recordServices.getRecordsById(robots.getCollection(), Arrays.asList(mediumType.getId())));
+		}
+	}
+	
 	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder) {
 		if (folderEntry.get(Folder.PARENT_FOLDER) == null && rmFolder.getParentFolder() == null
 				&& params.getDefaultParentFolder() != null) {
