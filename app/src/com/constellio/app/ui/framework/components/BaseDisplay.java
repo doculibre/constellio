@@ -49,12 +49,20 @@ public class BaseDisplay extends CustomComponent {
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
 		if (displayComponent.isVisible()) {
 			HorizontalLayout captionAndComponentLayout = new HorizontalLayout();
-			captionAndComponentLayout.setSizeFull();
+			if (isCaptionAndDisplayComponentWidthUndefined()) {
+				captionAndComponentLayout.setWidthUndefined();
+			} else {
+				captionAndComponentLayout.setSizeFull();
+			}
 			
 			mainLayout.addComponent(captionAndComponentLayout);
 			captionAndComponentLayout.addComponent(captionLabel);
 			captionAndComponentLayout.addComponent(displayComponent);
 		}
+	}
+	
+	protected boolean isCaptionAndDisplayComponentWidthUndefined() {
+		return false;
 	}
 	
 	public static class CaptionAndComponent implements Serializable {
