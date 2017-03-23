@@ -15,9 +15,16 @@ public class EnumWithSmallCodeComboBox<E extends EnumWithSmallCode> extends Comb
 	
 	private EnumWithSmallCodeFieldPresenter presenter;
 	
+	private boolean codeAsCaption;
+	
 	public EnumWithSmallCodeComboBox(Class<E> enumWithSmallCodeClass) {
+		this(enumWithSmallCodeClass, false);
+	}
+	
+	public EnumWithSmallCodeComboBox(Class<E> enumWithSmallCodeClass, boolean codeAsCaption) {
 		super();
 		this.enumWithSmallCodeClass = enumWithSmallCodeClass;
+		this.codeAsCaption = codeAsCaption;
 		this.presenter = new EnumWithSmallCodeFieldPresenter(this);
 		this.presenter.forEnumClass(enumWithSmallCodeClass);
 	}
@@ -28,8 +35,13 @@ public class EnumWithSmallCodeComboBox<E extends EnumWithSmallCode> extends Comb
 			String enumCode = enumWithSmallCode.getCode();
 			if (!isIgnored(enumCode)) {
 				addItem(enumWithSmallCode);
-				// TODO Use EnumWithSmallCodeToCaptionConverter
-				String caption = $(enumWithSmallCodeClass.getSimpleName() + "." + enumCode);
+				String caption;
+				if (codeAsCaption) {
+					caption = enumCode;
+				} else {
+					// TODO Use EnumWithSmallCodeToCaptionConverter
+					caption = $(enumWithSmallCodeClass.getSimpleName() + "." + enumCode);
+				}
 				setItemCaption(enumWithSmallCode, caption);
 			}
 		}	
