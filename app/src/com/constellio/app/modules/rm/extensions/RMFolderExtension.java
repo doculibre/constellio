@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice.ENABLED;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +46,7 @@ public class RMFolderExtension extends RecordExtension {
 	final TaxonomiesSearchServices taxonomiesSearchServices;
 	final TaxonomiesManager taxonomyManager;
 	final RMSchemasRecordsServices rm;
+	final RMConfigs configs;
 
 	public RMFolderExtension(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
@@ -54,6 +57,7 @@ public class RMFolderExtension extends RecordExtension {
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		taxonomyManager = modelLayerFactory.getTaxonomiesManager();
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		this.configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -89,6 +93,13 @@ public class RMFolderExtension extends RecordExtension {
 		if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
 			Folder folder = rmSchema.wrapFolder(event.getRecord());
 			deleteRootFolderMetadatasIfSubFolder(folder);
+		}
+	}
+
+	private void completeMissingActualDates() {
+		if (configs.getAllowModificationOfArchivisticStatusAndExpectedDates().isAlwaysEnabledOrDuringImportOnly()
+				&& configs.getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() == ENABLED) {
+
 		}
 	}
 

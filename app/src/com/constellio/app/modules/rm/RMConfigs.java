@@ -1,19 +1,20 @@
 package com.constellio.app.modules.rm;
 
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -61,6 +62,7 @@ public class RMConfigs {
 			DEFAULT_TAB_IN_FOLDER_DISPLAY,
 			UNIFORM_SUBDIVISION_ENABLED,
 			STORAGE_SPACE_TITLE_CALCULATOR_ENABLED,
+			COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
@@ -244,6 +246,11 @@ public class RMConfigs {
 				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
 
 		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
+
+		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
+				others.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
+						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
+						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -434,5 +441,13 @@ public class RMConfigs {
 
 	public boolean areDocumentCheckedOutAfterCreation() {
 		return manager.getValue(CHECK_OUT_DOCUMENT_AFTER_CREATION);
+	}
+
+	public CompleteDatesWhenAddingFolderWithManualStatusChoice getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() {
+		return manager.getValue(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS);
+	}
+
+	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
+		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
 	}
 }
