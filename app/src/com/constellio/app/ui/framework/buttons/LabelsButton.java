@@ -175,11 +175,7 @@ public class LabelsButton extends WindowButton {
                     ReportWriter writer = getLabelsReportFactory().getReportBuilder(params);
                     getWindow().setContent(new ReportViewer(writer, getLabelsReportFactory().getFilename(params)));
                 } else throw new UnsupportedOperationException();
-
-
-
             }
-
             @Override
             protected void cancelButtonClick(LabelParametersVO parameters) {
                 getWindow().close();
