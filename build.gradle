@@ -122,13 +122,13 @@ allprojects {
     }
 
     jar {
-        version = '7.1.1.2'
+        version = '7.1.1.4'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "7.1.1.2"
+    version = "7.1.1.4"
 
     webInf {
         from("resources_i18n/") {
@@ -144,7 +144,7 @@ war {
                              ":plugins:plugin005", ":plugins:plugin006", ":plugins:plugin007", ":plugins:plugin008",
                              ":plugins:plugin009", ":plugins:plugin010", ":plugins:plugin012", ":plugins:plugin015",
                              ":plugins:plugin016", ":plugins:plugin017", ":plugins:plugin018", ":plugins:plugin019",
-                             ":plugins:plugin020"]
+                        s     ":plugins:plugin020"]
         def installPlugins = [":plugins:plugin023"]
 
         from(files(updatePlugins.collect { project(it).jar.outputs.files })) {
