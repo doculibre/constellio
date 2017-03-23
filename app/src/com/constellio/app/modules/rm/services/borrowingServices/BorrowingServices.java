@@ -1,20 +1,10 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
-import java.util.ArrayList;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_CannotBorrowActiveFolder;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsNotBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_InvalidBorrowingDate;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.*;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,21 +12,54 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
 
 public class BorrowingServices {
 	public static final String RGD = "RGD";
 	private final RecordServices recordServices;
+	private final UserServices userServices;
 	private final LoggingServices loggingServices;
 	private final RMSchemasRecordsServices rm;
 
 	public BorrowingServices(String collection, ModelLayerFactory modelLayerFactory) {
 		this.recordServices = modelLayerFactory.newRecordServices();
+		this.userServices = modelLayerFactory.newUserServices();
 		this.loggingServices = modelLayerFactory.newLoggingServices();
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
+	public void borrowRecordsFromTask(String taskId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
+									  User borrowerEntered, BorrowingType borrowingType)
+			throws RecordServicesException {
+
+		Record taskRecord = recordServices.getDocumentById(taskId);
+		RMTask task = rm.wrapRMTask(taskRecord);
+		if(task.getLinkedFolders() != null) {
+			for(String folderId: task.getLinkedFolders()) {
+				borrowFolder(folderId, borrowingDate, previewReturnDate, currentUser, borrowerEntered, borrowingType, false);
+			}
+		}
+	}
+
+	public void returnRecordsFromTask(String taskId, User currentUser, LocalDate returnDate)
+			throws RecordServicesException {
+
+		Record taskRecord = recordServices.getDocumentById(taskId);
+		RMTask task = rm.wrapRMTask(taskRecord);
+		if(task.getLinkedFolders() != null) {
+			for(String folderId: task.getLinkedFolders()) {
+				returnFolder(folderId, currentUser, returnDate, false);
+			}
+		}
+	}
+
 	public void borrowFolder(String folderId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
-			User borrowerEntered, BorrowingType borrowingType)
+			User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
 			throws RecordServicesException {
 
 		Record folderRecord = recordServices.getDocumentById(folderId);
@@ -53,10 +76,9 @@ public class BorrowingServices {
 			loggingServices
 					.consultingRecord(folderRecord, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
 		}
-
 	}
 
-	public void returnFolder(String folderId, User currentUser, LocalDate returnDate)
+	public void returnFolder(String folderId, User currentUser, LocalDate returnDate, boolean isCreateEvent)
 			throws RecordServicesException {
 
 		Record folderRecord = recordServices.getDocumentById(folderId);
