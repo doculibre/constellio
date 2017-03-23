@@ -248,7 +248,7 @@ public class RMConfigs {
 		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
 
 		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
-				others.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
+				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 	}

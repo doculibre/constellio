@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -96,9 +97,31 @@ public class RMFolderExtension extends RecordExtension {
 		}
 	}
 
-	private void completeMissingActualDates() {
+	private void completeMissingActualDates(Folder folder) {
 		if (configs.getAllowModificationOfArchivisticStatusAndExpectedDates().isAlwaysEnabledOrDuringImportOnly()
 				&& configs.getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() == ENABLED) {
+
+			FolderStatus status = folder.getManualArchivisticStatus();
+			if (status == FolderStatus.SEMI_ACTIVE && folder.getActualTransferDate() == null) {
+				folder.setManualArchivisticStatus(null);
+				recordServices.recalculate(folder);
+				folder.setActualTransferDate(folder.getExpectedTransferDate());
+				folder.setManualArchivisticStatus(status);
+
+			} else if (status == FolderStatus.INACTIVE_DEPOSITED && folder.getActualDepositDate() == null) {
+				folder.setManualArchivisticStatus(null);
+				recordServices.recalculate(folder);
+				folder.setActualTransferDate(folder.getExpectedTransferDate());
+				folder.setActualDepositDate(folder.getExpectedDepositDate());
+				folder.setManualArchivisticStatus(status);
+
+			} else if (status == FolderStatus.INACTIVE_DESTROYED && folder.getActualDestructionDate() == null) {
+				folder.setManualArchivisticStatus(null);
+				recordServices.recalculate(folder);
+				folder.setActualTransferDate(folder.getExpectedTransferDate());
+				folder.setActualDestructionDate(folder.getExpectedDestructionDate());
+				folder.setManualArchivisticStatus(status);
+			}
 
 		}
 	}
@@ -127,6 +150,7 @@ public class RMFolderExtension extends RecordExtension {
 				updateStatusCopyIfRequired(folder, user);
 			}
 		}
+		completeMissingActualDates(folder);
 	}
 
 	private void updateStatusCopyIfRequired(Folder folder, User user) {
