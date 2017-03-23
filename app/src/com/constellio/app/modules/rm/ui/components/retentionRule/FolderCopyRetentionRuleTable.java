@@ -35,6 +35,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -146,6 +147,20 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		table.setColumnHeader(DELETE_BUTTON, "");
 
 		if (formMode) {
+			table.setColumnWidth(CODE, 50);
+			table.setColumnWidth(DETAILS, 70);
+			table.setColumnWidth(COPY_TYPE, 250);
+			table.setColumnWidth(MEDIUM_TYPES, 200);
+			table.setColumnWidth(CONTENT_TYPES_COMMENT, 50);
+			table.setColumnWidth(ACTIVE_RETENTION_PERIOD, 158);
+			table.setColumnWidth(ACTIVE_RETENTION_COMMENT, 50);
+			table.setColumnWidth(SEMI_ACTIVE_RETENTION_PERIOD, 158);
+			table.setColumnWidth(SEMI_ACTIVE_RETENTION_COMMENT, 50);
+			table.setColumnWidth(INACTIVE_DISPOSAL_TYPE, 158);
+			table.setColumnWidth(INACTIVE_DISPOSAL_COMMENT, 50);
+			table.setColumnWidth(ESSENTIAL, 50);
+			table.setColumnExpandRatio(TITLE, 1);
+			
 			table.addContainerProperty(CODE, BaseTextField.class, null);
 			table.addContainerProperty(TITLE, BaseTextField.class, null);
 			table.addContainerProperty(DETAILS, DetailsFieldGroup.class, null);
@@ -161,6 +176,19 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.addContainerProperty(ESSENTIAL, CheckBox.class, null);
 			table.addContainerProperty(DELETE_BUTTON, Button.class, null);
 		} else {
+			table.setColumnWidth(CODE, 50);
+			table.setColumnWidth(COPY_TYPE, 100);
+			table.setColumnWidth(MEDIUM_TYPES, 100);
+			table.setColumnWidth(CONTENT_TYPES_COMMENT, 50);
+			table.setColumnWidth(ACTIVE_RETENTION_PERIOD, 120);
+			table.setColumnWidth(ACTIVE_RETENTION_COMMENT, 50);
+			table.setColumnWidth(SEMI_ACTIVE_RETENTION_PERIOD, 120);
+			table.setColumnWidth(SEMI_ACTIVE_RETENTION_COMMENT, 50);
+			table.setColumnWidth(INACTIVE_DISPOSAL_TYPE, 50);
+			table.setColumnWidth(INACTIVE_DISPOSAL_COMMENT, 50);
+			table.setColumnWidth(ESSENTIAL, 50);
+			table.setColumnExpandRatio(TITLE, 1);
+			
 			table.addContainerProperty(CODE, Label.class, null);
 			table.addContainerProperty(TITLE, Label.class, null);
 			table.addContainerProperty(COPY_TYPE, CopyTypeFolderTypePanel.class, null);
@@ -414,6 +442,13 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		protected boolean isEditPossible() {
 			return false;
 		}
+
+		@Override
+		protected RecordComboBox newAddEditField() {
+			RecordComboBox field = super.newAddEditField();
+			field.setWidth("80px");
+			return field;
+		}
 	}
 
 	private class CopyTypeFolderTypePanel extends VerticalLayout {
@@ -443,6 +478,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule, final boolean activeRetentionPeriod) {
 			setSpacing(true);
+			setWidth("150px");
 
 			final RetentionPeriod retentionPeriod = (activeRetentionPeriod) ?
 					copyRetentionRule.getActiveRetentionPeriod() :
@@ -642,6 +678,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		public InactiveDisposalTypeField(final CopyRetentionRule copyRetentionRule) {
 			super(DisposalType.class);
 			setPropertyDataSource(new NestedMethodProperty<>(copyRetentionRule, INACTIVE_DISPOSAL_TYPE));
+			setWidth("150px");
 
 			addValueChangeListener(new ValueChangeListener() {
 				@Override
