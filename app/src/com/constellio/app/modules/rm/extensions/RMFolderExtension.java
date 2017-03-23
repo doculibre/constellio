@@ -111,14 +111,18 @@ public class RMFolderExtension extends RecordExtension {
 			} else if (status == FolderStatus.INACTIVE_DEPOSITED && folder.getActualDepositDate() == null) {
 				folder.setManualArchivisticStatus(null);
 				recordServices.recalculate(folder);
-				folder.setActualTransferDate(folder.getExpectedTransferDate());
+				if (folder.getActualTransferDate() == null) {
+					folder.setActualTransferDate(folder.getExpectedTransferDate());
+				}
 				folder.setActualDepositDate(folder.getExpectedDepositDate());
 				folder.setManualArchivisticStatus(status);
 
 			} else if (status == FolderStatus.INACTIVE_DESTROYED && folder.getActualDestructionDate() == null) {
 				folder.setManualArchivisticStatus(null);
 				recordServices.recalculate(folder);
-				folder.setActualTransferDate(folder.getExpectedTransferDate());
+				if (folder.getActualTransferDate() == null) {
+					folder.setActualTransferDate(folder.getExpectedTransferDate());
+				}
 				folder.setActualDestructionDate(folder.getExpectedDestructionDate());
 				folder.setManualArchivisticStatus(status);
 			}

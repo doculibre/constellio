@@ -2550,6 +2550,93 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getExpectedDepositDate()).isNull();
 		assertThat(folder.getActualDestructionDate()).isEqualTo(date(2061, 3, 31));
 		assertThat(folder.getExpectedDestructionDate()).isNull();
+
+		folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
+				.setActualTransferDate(date(2055, 3, 31)));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+		assertThat(folder.getActualTransferDate()).isEqualTo(date(2055, 3, 31));
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(date(2060, 3, 31));
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(date(2060, 3, 31));
+
+		folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DEPOSITED));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
+		assertThat(folder.getActualTransferDate()).isEqualTo(date(2056, 3, 31));
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isEqualTo(date(2061, 3, 31));
+		assertThat(folder.getExpectedDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+
+		folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMediumTypes(MD, PA).setActualTransferDate(date(2055, 3, 31))
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DEPOSITED));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
+		assertThat(folder.getActualTransferDate()).isEqualTo(date(2055, 3, 31));
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isEqualTo(date(2060, 3, 31));
+		assertThat(folder.getExpectedDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+
+		folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMediumTypes(MD, PA).setActualTransferDate(date(2055, 3, 31))
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DEPOSITED)
+				.setActualDepositDate(date(2061, 3, 31)));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
+		assertThat(folder.getActualTransferDate()).isEqualTo(date(2055, 3, 31));
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isEqualTo(date(2061, 3, 31));
+		assertThat(folder.getExpectedDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+
+		folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DESTROYED));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DESTROYED);
+		assertThat(folder.getActualTransferDate()).isEqualTo(date(2056, 3, 31));
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isEqualTo(date(2061, 3, 31));
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+
+		folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DESTROYED)
+				.setActualTransferDate(date(2055, 3, 31)));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DESTROYED);
+		assertThat(folder.getActualTransferDate()).isEqualTo(date(2055, 3, 31));
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isEqualTo(date(2060, 3, 31));
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+
+		folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015).setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DESTROYED)
+				.setActualTransferDate(date(2055, 3, 31))
+				.setActualDestructionDate(date(2061, 3, 31)));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DESTROYED);
+		assertThat(folder.getActualTransferDate()).isEqualTo(date(2055, 3, 31));
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isEqualTo(date(2061, 3, 31));
+		assertThat(folder.getExpectedDestructionDate()).isNull();
 	}
 
 	@Test
