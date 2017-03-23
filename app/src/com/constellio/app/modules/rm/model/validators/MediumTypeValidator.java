@@ -2,21 +2,22 @@ package com.constellio.app.modules.rm.model.validators;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.records.RecordImplRuntimeException;
 import com.constellio.model.services.records.RecordValidatorParams;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by constellios on 2017-03-22.
+ * Created by Charles Blanchette on 2017-03-22.
  */
 public class MediumTypeValidator implements RecordValidator {
 
-    public static final String TITLE_MUST_NOT_BE_MODIFIED = "titleMustNotBeModified";
-    public static final String TITLE = "title";
-
-//    RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+    public static final String DM_CODE_MUST_NOT_BE_MODIFIED = "DMcodeMustNotBeModified";
+    public static final String CODE = "code";
 
     @Override
     public void validate(RecordValidatorParams params) {
@@ -26,13 +27,17 @@ public class MediumTypeValidator implements RecordValidator {
 
     private void validate(MediumType mediumType, RecordValidatorParams params) {
 
-       //TODO wrap le medium type avec rm
 
-        if (!mediumType.getWrappedRecord().getCopyOfOriginalRecord().getSchemaCode().equals(mediumType.getCode())) {
-//            Map<String, Object> parameters = new HashMap<>();
-//            parameters.put(TITLE, mediumType.getTitle());
-//
-//            params.getValidationErrors().add(MediumTypeValidator.class, TITLE_MUST_NOT_BE_MODIFIED, parameters);
+        try {
+            String oldCode = mediumType.getWrappedRecord().getCopyOfOriginalRecord().get(Schemas.CODE);
+
+            if (oldCode.equals("DM") && !oldCode.equals(mediumType.getCode())) {
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put(CODE, mediumType.getCode());
+
+                params.getValidationErrors().add(MediumTypeValidator.class, DM_CODE_MUST_NOT_BE_MODIFIED, parameters);
+            }
+        } catch (RecordImplRuntimeException.RecordImplException_UnsupportedOperationOnUnsavedRecord e) {
         }
     }
 }
