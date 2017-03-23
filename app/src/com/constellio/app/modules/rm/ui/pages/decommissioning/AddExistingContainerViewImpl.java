@@ -107,7 +107,7 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 			}
 		});
 
-		return results.createSummary(buildSelectAllButton(), addContainers);
+		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), addContainers);
 	}
 
 	@Override

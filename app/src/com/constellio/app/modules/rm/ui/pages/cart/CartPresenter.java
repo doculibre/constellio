@@ -339,11 +339,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			throws RecordServicesException {
 		batchProcessingPresenterService()
 				.execute(selectedType, records, viewObject, getCurrentUser());
+		view.navigate().to().batchProcesses();
 	}
 
 	@Override
 	public boolean hasWriteAccessOnAllRecords() {
 		return hasWriteAccessOnAllRecords(getRecordsIds(batchProcessSchemaType));
+	}
+
+	@Override
+	public long getNumberOfRecords() {
+		return (long) getRecordsIds(batchProcessSchemaType).size();
 	}
 
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {

@@ -1,5 +1,14 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -7,16 +16,20 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
+import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultSimpleTable extends RecordVOTable implements SearchResultTable {
 	
@@ -29,14 +42,16 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	private RecordVOLazyContainer container;
 	private boolean selectAll;
 	private int maxSelectableResults;
+	AdvancedSearchPresenter presenter;
 
-	public SearchResultSimpleTable(RecordVOLazyContainer container, int maxSelectableResults) {
-		this(container, true);
+	public SearchResultSimpleTable(RecordVOLazyContainer container, int maxSelectableResults, AdvancedSearchPresenter presenter) {
+		this(container, true, presenter);
 		this.maxSelectableResults = maxSelectableResults;
 	}
 
-	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes) {
+	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes, final AdvancedSearchPresenter presenter) {
 		super("",container);
+		this.presenter = presenter;
 		
 		setColumnCollapsingAllowed(true);
 		setColumnReorderingAllowed(true);
@@ -51,11 +66,13 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 					recordWindow.setWidth("90%");
 					recordWindow.setHeight("90%");
 					String typeCode = recordVO.getSchema().getTypeCode();
+				//TODO add event
 					if(typeCode.equals(Document.SCHEMA_TYPE) || typeCode.equals(Folder.SCHEMA_TYPE)) {
 						recordWindow.setContent(new RecordDisplay(recordVO, new RMMetadataDisplayFactory()));
 					} else {
 						recordWindow.setContent(new RecordDisplay(recordVO));
 					}
+					presenter.logRecordView(recordVO);
 					UI.getCurrent().addWindow(recordWindow);
 //				}
 			}

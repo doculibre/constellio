@@ -62,6 +62,43 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.auto-scroll {
+		overflow: auto;
+	}
+
+	.no-scroll {
+		overflow: hidden;
+	}
+
+	.no-scroll-horizontal {
+		overflow-x: hidden;
+	}
+
+	.no-scroll-vertical {
+		overflow-y: hidden;
+	}
+
+	.button-badge {
+		position:relative;
+	}
+	
+	.button-badge[data-badge]:after {
+		content:attr(data-badge);
+		position:absolute;
+		top:-10px;
+		right:-20px;
+		font-size:.7em;
+		background:#197de1;
+		color:white;
+		width:24px; 
+		height:18px;
+		text-align:center;
+		line-height:18px;
+		border-radius:0%;
+		box-shadow:0 0 1px #333;
+		z-index: 1;
+	}
+
 	.v-tabsheet-tabitemcell {
 		.v-caption {
 			font-size: $v-font-size;
@@ -349,6 +386,13 @@ $popup-view-z-index: 3;
 	    opacity: 0.4;
 	    filter: alpha(opacity=40); /* msie */
 	}
+	
+	.v-contextmenu {
+		.popupContent {
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+	}
 
     body, div, p, h2, h3, pre {
 		-webkit-user-select: text;
@@ -494,6 +538,7 @@ $popup-view-z-index: 3;
 		.xbreadcrumbbutton {
 		    height: auto;
 		    white-space: normal;
+		    opacity: 0.5;
 		}
 	}
 
@@ -525,7 +570,6 @@ $popup-view-z-index: 3;
 			overflow: hidden;
 
 			.window-button-window-content {
-				overflow: auto;
 				padding-left: 10px;
 				margin-top: 5px;
 			}
@@ -593,10 +637,10 @@ $popup-view-z-index: 3;
 		content: " \f00c ";
 	}
 
-	.v-popupview-popup-header-advanced-search-form {
+	.v-popupview-popup-header-popup {
 		width: 100%;
 
-		.header-advanced-search-form-content-wrapper {
+		.header-popup-content-wrapper {
 			position: absolute;
 			margin: 0 auto;
 			top: 52px;
@@ -608,31 +652,73 @@ $popup-view-z-index: 3;
 			border-right: none;
 			border-radius: inherit;
 
-			.header-advanced-search-form-content {
+			.header-popup-content {
 				width: 97%;
 				padding-top: 10px;
 				padding-bottom: 10px;
 
-				.header-advanced-search-form-content-label {
+				.header-popup-content-label {
 					height: 400px;
 				}
 
-				.header-advanced-search-form-clear-and-search-buttons {
+				.header-popup-clear-and-search-buttons {
 					width: 100%;
 
 					.v-slot-advanced-search-button {
 					}
 				}
 			}
-
 		}
+	}
+				
+	.header-selection-panel {
+				
+		.header-selection-panel-layout {
+			width: 100%;
+			
+		    .header-selection-panel-actions {
+			    width: 225px;
+			    border: 1px solid #3a434d;
+			    border-radius: 4px;
+	
+				.v-button {
+			    	color: white;
+			    	font-weight: normal;
+					text-decoration: none;
+					font-size: 14px;
+					width: 100%;
+					border-radius: 0;
+					text-align: left;
+					border: none;
+	
+				    background-color: #414B56;
+					//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
+					background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
+				}
+	
+			    .v-button:hover {
+			    	color: #197de1;
+				    background-color: #3a434d;
+			    }
+	
+			    .v-button:after {
+					box-shadow: none;
+					border: none;
+			    }
+	
+			    .v-disabled:hover {
+			    	color: white;
+				    background-color: #414B56;
+			    }
+		    }
+	    }
 	}
 
 	.v-listbuilder-buttons .v-button-wrap {
 		position: absolute;
 	}
 
-	.header-advanced-search-form-content[width-range~="1101px-"] {
+	.header-popup-content[width-range~="1101px-"] {
 
 		.v-scrollable {
 //			overflow: hidden;
@@ -640,7 +726,7 @@ $popup-view-z-index: 3;
 
     }
 
-	.header-advanced-search-form-content[width-range~="801px-1100px"] {
+	.header-popup-content[width-range~="801px-1100px"] {
 
 		.v-scrollable {
 //			overflow: hidden;
@@ -648,7 +734,7 @@ $popup-view-z-index: 3;
 
     }
 
-	.header-advanced-search-form-content[width-range~="0-800px"] {
+	.header-popup-content[width-range~="0-800px"] {
     }
 
 	.back-button {
@@ -878,7 +964,13 @@ $popup-view-z-index: 3;
 				border: none;
 			}
 
-			.header-advanced-search-form {
+			.header-popup {
+			}
+			
+			.header-selection-button {
+				position: fixed;
+				right: 150px;
+				margin-top: 15px;
 			}
 			
 			.header-collection-menu {
@@ -1230,6 +1322,14 @@ $popup-view-z-index: 3;
 	    		overflow-x: hidden;
 	    	}
     	}
+
+		.batch-processes {
+	    	.v-table {
+		    	.v-scrollable {
+		    		overflow-x: auto;
+		    	}
+	    	}
+    	}
     	
         .action-menu-wrapper {
             padding-right: 260px;
@@ -1259,6 +1359,17 @@ $popup-view-z-index: 3;
 
 				.v-slot-list-add-remove-comment {
 					width: 100%;
+				}
+			}
+	
+			.retention-rule-display {
+				
+				.v-slot-display-value {
+				
+					.display-value-retentionRule_default_copyRetentionRules, .display-value-retentionRule_default_documentCopyRetentionRules {
+						padding-right: 0px;
+					}
+					
 				}
 			}
         }

@@ -63,7 +63,7 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new WindowButton(EditButton.ICON_RESOURCE, "", true,
 						WindowConfiguration.modalDialog("45%", "45%")) {
 
@@ -90,7 +90,7 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -121,7 +121,7 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 		ButtonsContainer buttonsContainer = new ButtonsContainer(recordVOLazyContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {

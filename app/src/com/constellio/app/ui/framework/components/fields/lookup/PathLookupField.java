@@ -95,7 +95,7 @@ public class PathLookupField extends LookupField<String> {
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new PathLookupTreeDataProvider[dataProviders.size()]) : null;
 	}
 
-	public static class PathInputDataProvider implements TextInputDataProvider<String> {
+	public static class PathInputDataProvider extends TextInputDataProvider<String> {
 
 		private transient int lastStartIndex;
 		private transient String lastQuery;

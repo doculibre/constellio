@@ -49,6 +49,7 @@ import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -63,6 +64,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -150,13 +152,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public ContainerRecordType newContainerRecordTypeWithId(String id) {
 		return new ContainerRecordType(create(containerRecordTypeSchema(), id), getTypes());
 	}
-
-	//
-	public UserDocument getUserDocument(String id) {
-		return new UserDocument(get(id), getTypes());
-	}
-
-	//
 
 	//Document
 
@@ -561,6 +556,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//User document
 
+	public UserDocument getUserDocument(String id) {
+		return new UserDocument(get(id), getTypes());
+	}
+
 	public MetadataSchemaType userDocumentSchemaType() {
 		return getTypes().getSchemaType(UserDocument.SCHEMA_TYPE);
 	}
@@ -591,6 +590,40 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public UserDocument newUserDocumentWithId(String id) {
 		return new UserDocument(create(userDocumentSchema(), id), getTypes());
+	}
+
+	//User Folder
+
+	public RMUserFolder getUserFolder(String id) {
+		return new RMUserFolder(get(id), getTypes());
+	}
+	
+	public MetadataSchemaType userFolderSchemaType() {
+		return getTypes().getSchemaType(UserFolder.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema userFolderSchema() {
+		return getTypes().getSchema(UserFolder.DEFAULT_SCHEMA);
+	}
+
+	public RMUserFolder wrapUserFolder(Record record) {
+		return record == null ? null : new RMUserFolder(record, getTypes());
+	}
+
+	public List<RMUserFolder> wrapUserFolders(List<Record> records) {
+		List<RMUserFolder> userFolders = new ArrayList<>();
+		for (Record record : records) {
+			userFolders.add(wrapUserFolder(record));
+		}
+		return userFolders;
+	}
+
+	public RMUserFolder newUserFolder() {
+		return new RMUserFolder(create(userFolderSchema()), getTypes());
+	}
+
+	public RMUserFolder newUserFolderWithId(String id) {
+		return new RMUserFolder(create(userFolderSchema(), id), getTypes());
 	}
 
 	//

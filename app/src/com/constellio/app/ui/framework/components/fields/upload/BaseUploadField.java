@@ -138,7 +138,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		fileUploadsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
 		fileUploadsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DeleteButton deleteButton = new DeleteButton() {
 					@SuppressWarnings("unchecked")
 					@Override

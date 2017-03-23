@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
+import com.constellio.app.modules.rm.ui.components.converters.MediumTypeIdListToCodesConverter;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
@@ -45,6 +46,7 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 
 public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
+	
 	private static final String CODE = "code";
 	private static final String DETAILS = "details";
 	private static final String DOCUMENT_TYPE = "typeId";
@@ -58,12 +60,13 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 	private static final String INACTIVE_DISPOSAL_TYPE = "inactiveDisposalType";
 	private static final String INACTIVE_DISPOSAL_COMMENT = "inactiveDisposalComment";
 	private static final String DELETE_BUTTON = "deleteButton";
+	
 	private final List<VariableRetentionPeriodVO> variableRetentionPeriodVOList;
 
 	private RecordIdToCaptionConverter documentTypeConverter = new RecordIdToCaptionConverter();
-	private RecordIdListToStringConverter recordIdListToStringConverter = new RecordIdListToStringConverter();
-	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
-			DisposalType.class);
+	private MediumTypeIdListToCodesConverter mediumTypeIdListToCodesConverter = new MediumTypeIdListToCodesConverter();
+//	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
+//			DisposalType.class);
 	private MetadataCodeToStringConverter metadataCodeToStringConverter = new MetadataCodeToStringConverter();
 	private RetentionRuleVO retentionRuleVO;
 	private VerticalLayout mainLayout;
@@ -282,8 +285,8 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			Label inactiveDisposalCommentLabel = new Label();
 
 			documentTypeLabel.setConverter(documentTypeConverter);
-			mediumTypesLabel.setConverter(recordIdListToStringConverter);
-			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
+			mediumTypesLabel.setConverter(mediumTypeIdListToCodesConverter);
+//			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
 
 			codeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
 			documentTypeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, DOCUMENT_TYPE));

@@ -203,7 +203,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			addButton.addStyleName("add-taxo-element");
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					return new DisplayButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -217,7 +217,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					return new EditButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -231,7 +231,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					DeleteButton deleteButton = new DeleteButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {

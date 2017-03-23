@@ -346,11 +346,11 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 		private Container newAllRecordsContainer(MetadataSchema schema, final DummyViewPresenter tablePresenter,
 				String buttonsLabel) {
 			Container recordsContainer = new RecordVOLazyContainer(getAllRecordsDataProvider(schema));
-			ButtonsContainer buttonsContainer = new ButtonsContainer(recordsContainer, buttonsLabel);
+			final ButtonsContainer<?> buttonsContainer = new ButtonsContainer(recordsContainer, buttonsLabel);
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> buttonsContainer) {
 					return new DisplayButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -362,7 +362,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> buttonsContainer) {
 					return new EditButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -374,7 +374,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> buttonsContainer) {
 					return new DeleteButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -386,7 +386,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> buttonsContainer) {
 					return new DisableButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -398,7 +398,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> buttonsContainer) {
 					return new EnableButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -410,7 +410,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> buttonsContainer) {
 					Button customIconButton = new IconButton(new ThemeResource("images/commun/permission.gif"), "Test") {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -424,7 +424,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> buttonsContainer) {
 					Button customConfirmButton = new ConfirmDialogButton(new ThemeResource("images/commun/infobulle.gif"),
 							"Test") {
 						@Override

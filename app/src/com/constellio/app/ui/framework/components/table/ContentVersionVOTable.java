@@ -69,7 +69,7 @@ public class ContentVersionVOTable extends Table {
 			buttonsContainer = new ButtonsContainer(getContainerDataSource());
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(Object itemId) {
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 					int indexOfItemId = buttonsContainer.indexOfId(itemId);
 					final ContentVersionVO contentVersionVO = contentVersionVOs.get(indexOfItemId);
 					DeleteButton deleteButton = new DeleteButton() {
