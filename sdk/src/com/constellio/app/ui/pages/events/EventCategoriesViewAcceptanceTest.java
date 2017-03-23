@@ -1,19 +1,5 @@
 package com.constellio.app.ui.pages.events;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
@@ -28,9 +14,6 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -40,6 +23,16 @@ import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 @InDevelopmentTest
@@ -235,7 +228,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
-						records.getEdouard_managerInB_userInC(), BorrowingType.BORROW);
+						records.getEdouard_managerInB_userInC(), BorrowingType.BORROW, true);
 		recordServices.flush();
 		navigateToEventsList();
 
@@ -264,7 +257,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
-						records.getEdouard_managerInB_userInC(), BorrowingType.BORROW);
+						records.getEdouard_managerInB_userInC(), BorrowingType.BORROW, true);
 		recordServices.flush();
 		navigateToEventsList();
 
