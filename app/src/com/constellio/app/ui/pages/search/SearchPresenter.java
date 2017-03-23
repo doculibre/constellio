@@ -394,8 +394,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(true);
 
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
-				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
+//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();
