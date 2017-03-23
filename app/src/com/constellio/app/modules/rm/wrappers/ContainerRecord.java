@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -11,6 +7,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+
+import java.util.List;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
@@ -18,8 +17,6 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String LOCALIZATION = "localization";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String ADMINISTRATIVE_UNITS = "administrativeUnits";
-	public static final String BORROW_DATE = "borrowDate";
-	public static final String BORROWER = "borrower";
 	public static final String COMPLETION_DATE = "completionDate";
 	public static final String DECOMMISSIONING_TYPE = "decommissioningType";
 	public static final String DESCRIPTION = "description";
@@ -36,6 +33,9 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String POSITION = "position";
 	public static final String COMMENTS = "comments";
 	public static final String BORROWED = "borrowed";
+	public static final String BORROW_DATE = "borrowDate";
+	public static final String BORROWER = "borrower";
+	public static final String BORROW_RETURN_DATE = "borrowReturnDate";
 	public static final String CAPACITY = "capacity";
 	public static final String FILL_RATIO_ENTRED = "fillRatioEntered";
 	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";

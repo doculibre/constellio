@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public class RMTask extends Task {
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
@@ -42,6 +42,7 @@ public class RMTask extends Task {
 		return getList(LINKED_FOLDERS);
 	}
 
+	@Override
 	public RMTask setLinkedFolders(List<?> linkedFolders) {
 		set(LINKED_FOLDERS, linkedFolders);
 		return this;
@@ -51,6 +52,7 @@ public class RMTask extends Task {
 		return getList(LINKED_DOCUMENTS);
 	}
 
+	@Override
 	public RMTask setLinkedDocuments(List<?> linkedDocuments) {
 		set(LINKED_DOCUMENTS, linkedDocuments);
 		return this;

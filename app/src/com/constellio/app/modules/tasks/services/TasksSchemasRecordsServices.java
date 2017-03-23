@@ -1,14 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
@@ -27,6 +18,19 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
@@ -93,7 +97,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			= new SchemaTypeShortcuts_ddvTaskStatus_default("ddvTaskStatus_default");
 
 	public TaskType getTaskTypeByCode(String code) {
-		return wrapTaskType(getByCode(taskSchemaType(), code));
+		return wrapTaskType(getByCode(taskTypeSchemaType(), code));
 	}
 
 	public TaskType wrapTaskType(Record record) {
@@ -497,5 +501,60 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	public void setType(Task task, TaskType taskType) {
 		setType(task.getWrappedRecord(), taskType == null ? null : taskType.getWrappedRecord());
+	}
+
+	//KEEP
+	public Task newBorrowContainerRequestTask(String assignerId, String containerId) {
+		Map<String, String> stringStringMap = new HashMap<>();
+		stringStringMap.put($("yes"), "NO_VALUE");
+		stringStringMap.put($("no"), "NO_VALUE");
+		return newTaskWithType(getTaskTypeByCode("borrowRequest"))
+				.setTitle($("borrowRequest")).setAssignee(assignerId).setAssigner(assignerId)
+				.setAssignedOn(LocalDate.now()).setLinkedFolders(asList(containerId))
+				.setNextTasksDecisions(stringStringMap);
+	}
+
+	//KEEP
+	public Task newBorrowFolderRequestTask(String assignerId, String folderId){
+		Map<String, String> stringStringMap = new HashMap<>();
+		stringStringMap.put($("yes"), "NO_VALUE");
+		stringStringMap.put($("no"), "NO_VALUE");
+		return newTaskWithType(getTaskTypeByCode("borrowRequest"))
+					.setTitle($("borrowRequest")).setAssignee(assignerId).setAssigner(assignerId)
+					.setAssignedOn(LocalDate.now()).setLinkedFolders(asList(folderId))
+					.setNextTasksDecisions(stringStringMap);
+	}
+
+	//KEEP
+	public Task newReturnFolderRequestTask(String assignerId, String folderId){
+		Map<String, String> stringStringMap = new HashMap<>();
+		stringStringMap.put($("yes"), "NO_VALUE");
+		stringStringMap.put($("no"), "NO_VALUE");
+		return newTaskWithType(getTaskTypeByCode("returnRequest"))
+					.setTitle($("returnRequest")).setAssignee(assignerId).setAssigner(assignerId)
+					.setAssignedOn(LocalDate.now()).setLinkedFolders(asList(folderId))
+					.setNextTasksDecisions(stringStringMap);
+	}
+
+	//KEEP
+	public Task newReactivateFolderRequestTask(String assignerId, String folderId){
+		Map<String, String> stringStringMap = new HashMap<>();
+		stringStringMap.put($("yes"), "NO_VALUE");
+		stringStringMap.put($("no"), "NO_VALUE");
+		return newTaskWithType(getTaskTypeByCode("reactivationRequest"))
+					.setTitle($("reactivationRequest")).setAssignee(assignerId).setAssigner(assignerId)
+					.setAssignedOn(LocalDate.now()).setLinkedFolders(asList(folderId))
+					.setNextTasksDecisions(stringStringMap);
+	}
+
+	//KEEP
+	public Task newBorrowFolderExtensionRequestTask(String assignerId, String folderId){
+		Map<String, String> stringStringMap = new HashMap<>();
+		stringStringMap.put($("yes"), "NO_VALUE");
+		stringStringMap.put($("no"), "NO_VALUE");
+		return newTaskWithType(getTaskTypeByCode("borrowExtensionRequest"))
+					.setTitle($("borrowExtensionRequest")).setAssignee(assignerId).setAssigner(assignerId)
+					.setAssignedOn(LocalDate.now()).setLinkedFolders(asList(folderId))
+					.setNextTasksDecisions(stringStringMap);
 	}
 }
