@@ -49,9 +49,15 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
     private void reloadEmailTemplates() {
         if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
-            reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+            reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED);
+            reloadEmailTemplate("alertReturnedTemplate_en.html", RMEmailTemplateConstants.ALERT_RETURNED);
+            reloadEmailTemplate("alertReactivatedTemplate_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED);
+            reloadEmailTemplate("alertBorrowingExtendedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED);
         } else {
-            reloadEmailTemplate("alertBorrowedTemplate.html", RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+            reloadEmailTemplate("alertBorrowedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWED);
+            reloadEmailTemplate("alertReturnedTemplate.html", RMEmailTemplateConstants.ALERT_RETURNED);
+            reloadEmailTemplate("alertReactivatedTemplate.html", RMEmailTemplateConstants.ALERT_REACTIVATED);
+            reloadEmailTemplate("alertBorrowingExtendedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED);
         }
     }
 

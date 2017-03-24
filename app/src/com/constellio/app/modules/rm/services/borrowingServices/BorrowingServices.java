@@ -76,6 +76,25 @@ public class BorrowingServices {
         alertUsersWhenBorrowing(schemaType, taskRecord, borrowingDate, previewReturnDate, currentUser, borrowerEntered, borrowingType);
     }
 
+    public void returnRecordsFromTask(String taskId, User currentUser, LocalDate returnDate)
+            throws RecordServicesException {
+
+        Record taskRecord = recordServices.getDocumentById(taskId);
+        RMTask task = rm.wrapRMTask(taskRecord);
+        String schemaType = "";
+        if (task.getLinkedFolders() != null) {
+            schemaType = Folder.SCHEMA_TYPE;
+            for (String folderId : task.getLinkedFolders()) {
+                returnFolder(folderId, currentUser, returnDate, false);
+            }
+        }
+        if (task.getLinkedDocuments() != null) {
+            schemaType = Document.SCHEMA_TYPE;
+        }
+        //TODO gérer schéma ContainerRecord
+        alertUsersWhenReturning(schemaType, taskRecord, currentUser, returnDate);
+    }
+
     public void borrowFolder(String folderId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
                              User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
             throws RecordServicesException {
@@ -204,9 +223,7 @@ public class BorrowingServices {
     private void alertUsersWhenBorrowing(String schemaType, Record record, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
                                          User borrowerEntered, BorrowingType borrowingType) {
         try {
-            String displayURL;
-
-            displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
+            String displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
 
             Transaction transaction = new Transaction();
 
@@ -216,7 +233,9 @@ public class BorrowingServices {
             LocalDateTime sendDate = TimeProvider.getLocalDateTime();
             emailToSend.setTo(toAddress);
             emailToSend.setSendOn(sendDate);
-            final String subject = $("Borrowing.alertWhenBorrowedSubject") + " : " + record.getTitle();
+            final String subject = schemaType.equals("folder") ?
+                    $("BorrowingServices.alertWhenFolderBorrowedSubject") + " : " + record.getTitle() :
+                    $("BorrowingServices.alertWhenDocumentBorrowedSubject") + " : " + record.getTitle();
 
             emailToSend.setSubject(subject);
             emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_BORROWED);
@@ -232,22 +251,20 @@ public class BorrowingServices {
             String constellioUrl = eimConfigs.getConstellioUrl();
             parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
             parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
-            parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("Borrowing.classifiedObject." + schemaType).toLowerCase());
+            parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("BorrowingServices.classifiedObject." + schemaType).toLowerCase());
             emailToSend.setParameters(parameters);
             transaction.add(emailToSend);
 
             recordServices.execute(transaction);
 
         } catch (RecordServicesException e) {
-            LOGGER.error("Cannot alert users", e);
+            LOGGER.error("Cannot alert user", e);
         }
     }
 
     private void alertUsersWhenReturning(String schemaType, Record record, User currentUser, LocalDate returnDate) {
         try {
-            String displayURL;
-
-            displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
+            String displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
 
             Transaction transaction = new Transaction();
 
@@ -257,10 +274,12 @@ public class BorrowingServices {
             LocalDateTime sendDate = TimeProvider.getLocalDateTime();
             emailToSend.setTo(toAddress);
             emailToSend.setSendOn(sendDate);
-            final String subject = $("Borrowing.alertWhenBorrowedSubject") + " : " + record.getTitle();
+            final String subject = schemaType.equals("folder") ?
+                    $("BorrowingServices.alertWhenFolderBorrowedSubject") + " : " + record.getTitle() :
+                    $("BorrowingServices.alertWhenDocumentBorrowedSubject") + " : " + record.getTitle();
 
             emailToSend.setSubject(subject);
-            emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_BORROWED);
+            emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_RETURNED);
             List<String> parameters = new ArrayList<>();
             parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
             parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
@@ -270,33 +289,53 @@ public class BorrowingServices {
             String constellioUrl = eimConfigs.getConstellioUrl();
             parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
             parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
-            parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("Borrowing.classifiedObject." + schemaType).toLowerCase());
+            parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("BorrowingServices.classifiedObject." + schemaType).toLowerCase());
             emailToSend.setParameters(parameters);
             transaction.add(emailToSend);
 
             recordServices.execute(transaction);
 
         } catch (RecordServicesException e) {
-            LOGGER.error("Cannot alert users", e);
+            LOGGER.error("Cannot alert user", e);
         }
     }
 
-    public void returnRecordsFromTask(String taskId, User currentUser, LocalDate returnDate)
-            throws RecordServicesException {
+    private void alertUsersWhenReactivating(String schemaType, Record record, User currentUser, LocalDate returnDate) {
+        try {
+            String displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
 
-        Record taskRecord = recordServices.getDocumentById(taskId);
-        RMTask task = rm.wrapRMTask(taskRecord);
-        String schemaType = "";
-        if (task.getLinkedFolders() != null) {
-            schemaType = Folder.SCHEMA_TYPE;
-            for (String folderId : task.getLinkedFolders()) {
-                returnFolder(folderId, currentUser, returnDate, false);
-            }
+            Transaction transaction = new Transaction();
+
+            EmailToSend emailToSend = newEmailToSend();
+            EmailAddress toAddress = new EmailAddress(currentUser.getTitle(), currentUser.getEmail());
+
+            LocalDateTime sendDate = TimeProvider.getLocalDateTime();
+            emailToSend.setTo(toAddress);
+            emailToSend.setSendOn(sendDate);
+            final String subject = schemaType.equals("folder") ?
+                    $("BorrowingServices.alertWhenFolderBorrowedSubject") + " : " + record.getTitle() :
+                    $("BorrowingServices.alertWhenDocumentBorrowedSubject") + " : " + record.getTitle();
+
+            emailToSend.setSubject(subject);
+            emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_RETURNED);
+            List<String> parameters = new ArrayList<>();
+            parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+            parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
+            parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
+            String recordTitle = record.getTitle();
+            parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
+            String constellioUrl = eimConfigs.getConstellioUrl();
+            parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+            parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
+            parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("BorrowingServices.classifiedObject." + schemaType).toLowerCase());
+            emailToSend.setParameters(parameters);
+            transaction.add(emailToSend);
+
+            recordServices.execute(transaction);
+
+        } catch (RecordServicesException e) {
+            LOGGER.error("Cannot alert user", e);
         }
-        if (task.getLinkedDocuments() != null) {
-            schemaType = Document.SCHEMA_TYPE;
-        }
-        alertUsersWhenReturning(schemaType, taskRecord, currentUser, returnDate);
     }
 
     private String formatDateToParameter(LocalDate date) {
