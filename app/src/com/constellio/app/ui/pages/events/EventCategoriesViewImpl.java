@@ -207,7 +207,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	}
 
 	private Button newDocumentRequestLink() {
-		return createLink($("ListEventsView.documentRequest"), EventCategory.DOCUMENT_REQUEST, "TODO");
+		return createLink($("ListEventsView.documentRequest"), EventCategory.DOCUMENT_REQUEST, "borrowing-audit");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {
