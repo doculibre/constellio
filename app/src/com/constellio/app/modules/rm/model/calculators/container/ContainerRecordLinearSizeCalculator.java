@@ -17,10 +17,19 @@ public class ContainerRecordLinearSizeCalculator implements MetadataValueCalcula
 
     LocalDependency<Double> linearSizeSumParam = LocalDependency.toANumber(ContainerRecord.LINEAR_SIZE_SUM);
 
+    LocalDependency<Double> capacityParam = LocalDependency.toANumber(ContainerRecord.CAPACITY);
+
+    LocalDependency<Boolean> isFullParam = LocalDependency.toABoolean(ContainerRecord.FULL);
+
     @Override
     public Double calculate(CalculatorParameters parameters) {
         Double enteredLinearSizeParam = parameters.get(this.enteredLinearSizeParam);
         Double enteredLinearSizeSumParam = parameters.get(this.linearSizeSumParam);
+        Double capacityParam = parameters.get(this.capacityParam);
+        Boolean isFull = parameters.get(this.isFullParam);
+        if(Boolean.TRUE.equals(isFull)) {
+            return capacityParam;
+        }
 
         return enteredLinearSizeParam != null ? enteredLinearSizeParam : enteredLinearSizeSumParam;
     }
@@ -42,6 +51,6 @@ public class ContainerRecordLinearSizeCalculator implements MetadataValueCalcula
 
     @Override
     public List<? extends Dependency> getDependencies() {
-        return asList(enteredLinearSizeParam, linearSizeSumParam);
+        return asList(enteredLinearSizeParam, linearSizeSumParam, capacityParam, isFullParam);
     }
 }
