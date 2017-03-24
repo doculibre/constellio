@@ -52,6 +52,11 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenRecordsBorrowedFromTaskThenValidEmailToSendCreate() {
+
+	}
+
+	@Test
 	public void givenSemiActiveFolderWhenBorrowItThenOk()
 			throws Exception {
 

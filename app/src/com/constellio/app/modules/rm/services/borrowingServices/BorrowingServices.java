@@ -72,19 +72,8 @@ public class BorrowingServices {
         if (task.getLinkedDocuments() != null) {
             schemaType = Document.SCHEMA_TYPE;
         }
-        alertUsers(schemaType, taskRecord, borrowingDate, previewReturnDate, currentUser, borrowerEntered, borrowingType);
-    }
-
-    public void returnRecordsFromTask(String taskId, User currentUser, LocalDate returnDate)
-            throws RecordServicesException {
-
-        Record taskRecord = recordServices.getDocumentById(taskId);
-        RMTask task = rm.wrapRMTask(taskRecord);
-        if (task.getLinkedFolders() != null) {
-            for (String folderId : task.getLinkedFolders()) {
-                returnFolder(folderId, currentUser, returnDate, false);
-            }
-        }
+        //TODO gérer schéma ContainerRecord
+        alertUsersWhenBorrowing(schemaType, taskRecord, borrowingDate, previewReturnDate, currentUser, borrowerEntered, borrowingType);
     }
 
     public void borrowFolder(String folderId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
@@ -212,10 +201,9 @@ public class BorrowingServices {
         return errorMessage;
     }
 
-    private void alertUsers(String schemaType, Record record, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
-                            User borrowerEntered, BorrowingType borrowingType) {
+    private void alertUsersWhenBorrowing(String schemaType, Record record, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
+                                         User borrowerEntered, BorrowingType borrowingType) {
         try {
-
             String displayURL;
 
             displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
@@ -253,6 +241,62 @@ public class BorrowingServices {
         } catch (RecordServicesException e) {
             LOGGER.error("Cannot alert users", e);
         }
+    }
+
+    private void alertUsersWhenReturning(String schemaType, Record record, User currentUser, LocalDate returnDate) {
+        try {
+            String displayURL;
+
+            displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
+
+            Transaction transaction = new Transaction();
+
+            EmailToSend emailToSend = newEmailToSend();
+            EmailAddress toAddress = new EmailAddress(currentUser.getTitle(), currentUser.getEmail());
+
+            LocalDateTime sendDate = TimeProvider.getLocalDateTime();
+            emailToSend.setTo(toAddress);
+            emailToSend.setSendOn(sendDate);
+            final String subject = $("Borrowing.alertWhenBorrowedSubject") + " : " + record.getTitle();
+
+            emailToSend.setSubject(subject);
+            emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_BORROWED);
+            List<String> parameters = new ArrayList<>();
+            parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+            parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
+            parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
+            String recordTitle = record.getTitle();
+            parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
+            String constellioUrl = eimConfigs.getConstellioUrl();
+            parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+            parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
+            parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("Borrowing.classifiedObject." + schemaType).toLowerCase());
+            emailToSend.setParameters(parameters);
+            transaction.add(emailToSend);
+
+            recordServices.execute(transaction);
+
+        } catch (RecordServicesException e) {
+            LOGGER.error("Cannot alert users", e);
+        }
+    }
+
+    public void returnRecordsFromTask(String taskId, User currentUser, LocalDate returnDate)
+            throws RecordServicesException {
+
+        Record taskRecord = recordServices.getDocumentById(taskId);
+        RMTask task = rm.wrapRMTask(taskRecord);
+        String schemaType = "";
+        if (task.getLinkedFolders() != null) {
+            schemaType = Folder.SCHEMA_TYPE;
+            for (String folderId : task.getLinkedFolders()) {
+                returnFolder(folderId, currentUser, returnDate, false);
+            }
+        }
+        if (task.getLinkedDocuments() != null) {
+            schemaType = Document.SCHEMA_TYPE;
+        }
+        alertUsersWhenReturning(schemaType, taskRecord, currentUser, returnDate);
     }
 
     private String formatDateToParameter(LocalDate date) {
