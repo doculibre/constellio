@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -10,6 +12,8 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.UserServices;
+import org.joda.time.LocalDate;
 
 import java.util.List;
 
@@ -22,6 +26,8 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
     AppLayerFactory appLayerFactory;
     TasksSchemasRecordsServices tasksSchemas;
     RMSchemasRecordsServices rmSchemas;
+    BorrowingServices borrowingServices;
+    UserServices userServices;
 
     public RMBorrowTaskApprovedExtension(String collection, AppLayerFactory appLayerFactory) {
 
@@ -29,6 +35,8 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
         this.appLayerFactory = appLayerFactory;
         this.tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
         this.rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+        this.borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
+        this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
     }
 
     @Override
@@ -52,18 +60,10 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
     }
 
     private void completeBorrowRequest(RMTask task) {
-        List<String> linkedFolders = task.getLinkedFolders();
-        Transaction transaction = new Transaction();
-        if(linkedFolders != null) {
-            List<Folder> folders = rmSchemas.getFolders(linkedFolders);
-            for(Folder folder: folders) {
-                folder.setBorrowed(true);
-                transaction.add(folder);
-            }
-        }
-
         try {
-            appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
+            borrowingServices.borrowRecordsFromTask(task.getId(), LocalDate.now(), LocalDate.now(),
+                    userServices.getUserInCollection(task.getAssigner(), collection), userServices.getUserInCollection(task.getAssigner(), collection),
+                    BorrowingType.BORROW);
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }

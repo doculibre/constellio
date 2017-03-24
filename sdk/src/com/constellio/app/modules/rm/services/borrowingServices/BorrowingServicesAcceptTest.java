@@ -1,21 +1,9 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_CannotBorrowActiveFolder;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsNotBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_InvalidBorrowingDate;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.*;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
@@ -27,6 +15,13 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BorrowingServicesAcceptTest extends ConstellioTest {
 
@@ -87,7 +82,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 					.borrowFolder(folderC30.getId(), nowDate.plusDays(1), previewReturnDate,
 							records.getAdmin(),
 							records.getAdmin(),
-							BorrowingType.BORROW);
+							BorrowingType.BORROW, true);
 		} finally {
 			folderC30 = records.getFolder_C30();
 			assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
@@ -113,7 +108,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(folderA94.getId(), nowDate, previewReturnDate, records.getAdmin(),
 						records.getAlice(),
-						BorrowingType.CONSULTATION);
+						BorrowingType.CONSULTATION, true);
 		folderA94 = records.getFolder_A94();
 
 		assertThat(folderA94.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
@@ -138,7 +133,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		try {
 			borrowingServices.borrowFolder(folderA16.getId(), nowDate, previewReturnDate, records.getAdmin(),
 					records.getAdmin(),
-					BorrowingType.BORROW);
+					BorrowingType.BORROW, true);
 		} finally {
 			folderA16 = records.getFolder_A16();
 			assertThat(folderA16.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
@@ -163,12 +158,12 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(folderC30.getId(), nowDate, previewReturnDate, records.getAdmin(),
 						records.getAdmin(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 
 		try {
 			borrowingServices.borrowFolder(folderC30.getId(), nowDate, previewReturnDate, records.getAdmin(),
 					records.getAdmin(),
-					BorrowingType.BORROW);
+					BorrowingType.BORROW, true);
 		} finally {
 			folderC30 = records.getFolder_C30();
 			assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
@@ -194,7 +189,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), borrowDate, previewReturnDate, records.getAdmin(),
 						records.getAdmin(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 
 		Folder folderC30 = records.getFolder_C30();
 		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
@@ -220,7 +215,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 
 		nowDate = nowDate.plusDays(1);
 		givenTimeIs(nowDate);
-		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate);
+		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate, true);
 		folderC30 = records.getFolder_C30();
 
 		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
@@ -252,12 +247,12 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDate, previewReturnDate, records.getAdmin(),
 						records.getBob_userInAC(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 		Folder folderC30 = records.getFolder_C30();
 
 		nowDate = nowDate.plusDays(1);
 		givenTimeIs(nowDate);
-		borrowingServices.returnFolder(folderC30.getId(), records.getBob_userInAC(), nowDate);
+		borrowingServices.returnFolder(folderC30.getId(), records.getBob_userInAC(), nowDate, true);
 		folderC30 = records.getFolder_C30();
 
 		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
@@ -289,12 +284,12 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDate, previewReturnDate, records.getAdmin(),
 						records.getBob_userInAC(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 		Folder folderC30 = records.getFolder_C30();
 
 		nowDate = nowDate.plusDays(1);
 		givenTimeIs(nowDate);
-		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate);
+		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate, true);
 		folderC30 = records.getFolder_C30();
 
 		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
@@ -327,7 +322,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 
 		nowDate = nowDate.plusDays(1);
 		givenTimeIs(nowDate);
-		borrowingServices.returnFolder(folderC30.getId(), records.getBob_userInAC(), nowDate);
+		borrowingServices.returnFolder(folderC30.getId(), records.getBob_userInAC(), nowDate, true);
 		assertThat(
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
 				.isEqualTo(0);
@@ -344,7 +339,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 
 		Folder folderC30 = records.getFolder_C30();
 
-		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate);
+		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate, true);
 
 		assertThat(
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
@@ -364,7 +359,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 
 		recordServices.update(folderC30.setBorrowed(false));
 
-		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate);
+		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate, true);
 
 		assertThat(
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
@@ -382,7 +377,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDate, previewReturnDate, records.getAdmin(),
 						records.getAdmin(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 	}
 
 	private MetadataSchemaTypes getSchemaTypes() {

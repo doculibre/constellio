@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.services.events;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
@@ -28,6 +19,14 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
@@ -257,7 +256,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
 						records.getAlice(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 
 		LogicalSearchQuery query = services
 				.newFindCurrentlyBorrowedFoldersByUser(records.getAdmin(), records.getAlice().getId());
@@ -275,7 +274,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
 						records.getAlice(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 
 		LogicalSearchQuery query = services
 				.newFindCurrentlyBorrowedFoldersByUser(records.getAdmin(),
@@ -293,7 +292,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
 						records.getAlice(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 
 		nowDateTime = nowDateTime.plusDays(2);
 		givenTimeIs(nowDateTime);
@@ -314,7 +313,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
 						records.getAlice(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 
 		nowDateTime = nowDateTime.plusDays(2);
 		givenTimeIs(nowDateTime);
@@ -334,7 +333,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		LocalDate borrowingDate = nowDateTime.minusDays(10).toLocalDate();
 		LocalDate previewReturnDate = borrowingDate.plusDays(2);
 		borrowingServices.borrowFolder(records.folder_C30, borrowingDate, previewReturnDate,
-				records.getChuckNorris(), records.getChuckNorris(), BorrowingType.BORROW);
+				records.getChuckNorris(), records.getChuckNorris(), BorrowingType.BORROW, true);
 
 		recordServices.flush();
 		LogicalSearchQuery query = services
@@ -358,9 +357,9 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), borrowingDate, previewReturnDate, records.getChuckNorris(),
 						records.getChuckNorris(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 		borrowingServices
-				.returnFolder(records.getFolder_C30().getId(), records.getChuckNorris(), returnDate);
+				.returnFolder(records.getFolder_C30().getId(), records.getChuckNorris(), returnDate, true);
 
 		recordServices.flush();
 		LogicalSearchQuery query = services
