@@ -72,24 +72,26 @@ public class ModifiableImportRecord {
 		return addField(metadataName, value);
 	}
 
-		public ModifiableImportRecord addField(String metadataName, Object value) {
-			if (metadataName == null) {
-				throw new RuntimeException("Metadata name is required");
-			}
+	public ModifiableImportRecord addField(String metadataName, Object value) {
+		if (metadataName == null) {
+			throw new RuntimeException("Metadata name is required");
+		}
 
 		if (value instanceof EnumWithSmallCode) {
 			this.fields.put(metadataName, ((EnumWithSmallCode) value).getCode());
-		}
-		else if (Boolean.TRUE.equals(value))  {
-			this.fields.put(metadataName,"true");
-		} else if (Boolean.FALSE.equals(value))  {
+
+		} else if (Boolean.TRUE.equals(value)) {
+			this.fields.put(metadataName, "true");
+
+		} else if (Boolean.FALSE.equals(value)) {
 			this.fields.put(metadataName, "false");
+
+		} else if (value instanceof Number) {
+			this.fields.put(metadataName, "" + value);
+
 		} else {
 			this.fields.put(metadataName, value == null ? "" : value);
 		}
-
-
-
 
 		return this;
 	}

@@ -36,14 +36,14 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 
 	@Override
 	public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
-		if (event.isOnlySchemaType(ContainerRecord.SCHEMA_TYPE)) {
+		if (event.isOnlySchemaType(ContainerRecord.SCHEMA_TYPE) && !event.isNewRecordImport()) {
 			validateContainerRecord(event.getValidationErrors(), rm.wrapContainerRecords(event.getTransaction().getRecords()));
 		}
 	}
 
 	@Override
 	public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
-		if (event.isSingleRecordTransaction() && event.isSchemaType(StorageSpace.SCHEMA_TYPE)) {
+		if (event.isSingleRecordTransaction() && event.isSchemaType(StorageSpace.SCHEMA_TYPE) && !event.isNewRecordImport()) {
 			validateStorageSpace(event.getValidationErrors(), rm.wrapStorageSpace(event.getRecord()));
 		}
 	}
