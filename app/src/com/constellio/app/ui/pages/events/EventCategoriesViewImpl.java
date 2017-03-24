@@ -30,6 +30,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String AGENT_EVENTS_LINK_BUTTON = "agentEventsLinkButton";
 	public static final String SYSTEM_OPERATION = "systemOperation";
 	public static final String REINDEX_AND_RESTART_BUTTON = "reindexAndRestartButton";
+	public static final String RECORDS_REQUEST_LINK_BUTTON = "recordRequestLinkButton";
 
 	private boolean agentEventsVisible;
 
@@ -67,6 +68,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		Button recordsDeletionLink = newRecordsDeletionLink();
 		recordsDeletionLink.addStyleName(RECORDS_DELETION_LINK_BUTTON);
 		layout.addComponent(recordsDeletionLink);
+
+		Button recordRequestLink = newDocumentRequestLink();
+		recordRequestLink.addStyleName(RECORDS_REQUEST_LINK_BUTTON);
+		layout.addComponents(recordRequestLink);
 
 		Button currentlyBorrowedDocumentsLink = newCurrentlyBorrowedDocumentsLink();
 		currentlyBorrowedDocumentsLink.addStyleName(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);
@@ -198,7 +203,11 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 
 	private Button newReIndexAndRestartLink() {
 		return createLink($("ListEventsView.reIndexAndRestart"), EventCategory.REINDEX_AND_RESTART,
-				"TODO");
+				"system-reboot-reindex");
+	}
+
+	private Button newDocumentRequestLink() {
+		return createLink($("ListEventsView.documentRequest"), EventCategory.DOCUMENT_REQUEST, "TODO");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {

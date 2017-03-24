@@ -94,9 +94,17 @@ public class EventTypeUtils implements Serializable {
 		} else if (eventType.equals(EventType.DELETE_TASK)) {
 			return $("ListEventsView.deleteTask");
 		} else if (eventType.equals(EventType.REINDEXING)) {
-			return $("ListEventView.reindexing");
+			return $("ListEventsView.reindexing");
 		} else if (eventType.equals(EventType.RESTARTING)) {
-			return $("ListEventView.restarting");
+			return $("ListEventsView.restarting");
+		} else if (eventType.equals(EventType.REACTIVATING_FOLDER)) {
+			return $("ListEventsView.reactivatingFolder");
+		} else if (eventType.equals(EventType.ACCEPT_BORROWING_DOCUMENT)) {
+			return $("ListEventsView.AcceptedBorrowingRequest");
+		} else if (eventType.equals(EventType.REFUSE_BORROWING_DOCUMENT)) {
+			return $("ListEventsView.RefusedBorrowingRequest");
+		} else if (eventType.equals(EventType.BORROWING_TIME_EXTENSIONS)) {
+			return $("ListEventsView.TimeExtentionsRequest");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
