@@ -88,13 +88,14 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
     public void givenRecordsReturnedFromTaskThenValidateEmailToSendCreate() throws Exception {
         zeTask = tasksSchemas.newTask();
         LocalDate zeDate = new LocalDate(2017, 03, 24);
-        LocalDateTime zeTime = new LocalDateTime(2017, 03, 24, 0, 0, 0);
+        LocalDateTime zeDateTime = new LocalDateTime(2017, 03, 24, 0, 0, 0);
         EmailAddress zeAdresse = new EmailAddress("Charles-François Xavier", "charles@doculibre.com");
         recordServices.add(zeTask.setTitle("taskTitle"));
         borrowingServices.returnRecordsFromTask(zeTask.getId(), users.charlesIn(zeCollection), zeDate);
         EmailToSend emailToSend = getEmailToSend(ALERT_RETURNED);
         assertThat(emailToSend).isNotNull();
         assertThat(emailToSend.getTo()).isEqualTo(asList(zeAdresse));
+        assertThat(emailToSend.getSendOn()).isEqualTo(zeDateTime);
         assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est emprunté : taskTitle");
         assertThat(emailToSend.getParameters()).hasSize(7);
     }

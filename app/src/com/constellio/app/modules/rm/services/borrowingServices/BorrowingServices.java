@@ -300,44 +300,6 @@ public class BorrowingServices {
         }
     }
 
-    private void alertUsersWhenReactivating(String schemaType, Record record, User currentUser, LocalDate returnDate) {
-        try {
-            String displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
-
-            Transaction transaction = new Transaction();
-
-            EmailToSend emailToSend = newEmailToSend();
-            EmailAddress toAddress = new EmailAddress(currentUser.getTitle(), currentUser.getEmail());
-
-            LocalDateTime sendDate = TimeProvider.getLocalDateTime();
-            emailToSend.setTo(toAddress);
-            emailToSend.setSendOn(sendDate);
-            final String subject = schemaType.equals("folder") ?
-                    $("BorrowingServices.alertWhenFolderBorrowedSubject") + " : " + record.getTitle() :
-                    $("BorrowingServices.alertWhenDocumentBorrowedSubject") + " : " + record.getTitle();
-
-            emailToSend.setSubject(subject);
-            emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_RETURNED);
-            List<String> parameters = new ArrayList<>();
-            parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
-            parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
-            parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
-            String recordTitle = record.getTitle();
-            parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
-            String constellioUrl = eimConfigs.getConstellioUrl();
-            parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-            parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
-            parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("BorrowingServices.classifiedObject." + schemaType).toLowerCase());
-            emailToSend.setParameters(parameters);
-            transaction.add(emailToSend);
-
-            recordServices.execute(transaction);
-
-        } catch (RecordServicesException e) {
-            LOGGER.error("Cannot alert user", e);
-        }
-    }
-
     private String formatDateToParameter(LocalDate date) {
         if (date == null) {
             return "";
