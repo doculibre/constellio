@@ -1,32 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -38,23 +11,10 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTransferDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.*;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -67,18 +27,28 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.wrappers.Folder.*;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -252,8 +222,12 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
+	public FolderVO getFolderVO() {
+		return folderVO;
+	}
+
 	public void saveButtonClicked() {
-		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		Folder folder = rmSchemas().wrapFolder(toRecord(getFolderVO()));
 		if (!canSaveFolder(folder, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
 			return;
@@ -271,6 +245,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				view.showErrorMessage($(borrowingErrorMessage));
 				return;
 			}
+		}
+		if(!canContainerContainFolder(folder)) {
+			view.showErrorMessage($("AddEditFolderViewImpl.notEnoughSpaceInContainer"));
+			return;
 		}
 		User currentUser = getCurrentUser();
 		LocalDateTime time = TimeProvider.getLocalDateTime();
@@ -818,6 +796,41 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+
+	private boolean canContainerContainFolder(Folder folder) {
+		if(addView) {
+			return canContainerContainNewFolder(folder);
+		} else {
+			return canContainerContainEditedFolder(folder);
+		}
+	}
+
+	private boolean canContainerContainNewFolder(Folder folder) {
+		if(folder.getContainer() != null && folder.getLinearSize() != null)  {
+			ContainerRecord containerRecord = rmSchemas().wrapContainerRecord(presenterService().getRecord(folder.getContainer()));
+			if(containerRecord.getAvailableSize() < folder.getLinearSize()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean canContainerContainEditedFolder(Folder folder) {
+		Record wrappedRecord = folder.getWrappedRecord();
+		if(wrappedRecord.isModified(rmSchemas().folder.container())) {
+			return canContainerContainNewFolder(folder);
+		} else {
+			if(folder.getContainer() != null && folder.getLinearSize() != null && wrappedRecord.isModified(rmSchemas().folder.linearSize()))  {
+				ContainerRecord containerRecord = rmSchemas().wrapContainerRecord(presenterService().getRecord(folder.getContainer()));
+				Double originalSize = wrappedRecord.getCopyOfOriginalRecord().get(rmSchemas().folder.linearSize());
+				double filterOriginalSize = originalSize == null ? 0.0:originalSize;
+				if(containerRecord.getAvailableSize() < folder.getLinearSize() - filterOriginalSize) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 
 	@Override
