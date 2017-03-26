@@ -200,6 +200,13 @@
     </servlet>
 
     <servlet>
+        <servlet-name>PingSystemManagementWebService</servlet-name>
+        <servlet-class>
+            com.constellio.app.api.systemManagement.services.PingSystemManagementWebService
+        </servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>Benchmark Service</servlet-name>
         <servlet-class>com.constellio.app.api.benchmarks.BenchmarkWebService</servlet-class>
         <init-param>
@@ -386,6 +393,11 @@
     <servlet-mapping>
         <servlet-name>download</servlet-name>
         <url-pattern>/dl/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>PingSystemManagementWebService</servlet-name>
+        <url-pattern>/systemManagement/ping</url-pattern>
     </servlet-mapping>
 
     <!--<servlet-mapping>-->
