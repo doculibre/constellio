@@ -44,6 +44,14 @@ public class EventType {
 
 	public static final String BORROW_DOCUMENT = "borrow_document";
 
+	public static final String ACCEPT_BORROWING_DOCUMENT = "accept_borrowing_document";
+
+	public static final String REFUSE_BORROWING_DOCUMENT = "refuse_borrowing_document";
+
+	public static final String BORROWING_TIME_EXTENSIONS = "borrowing_time_extensions";
+
+	public static final String REACTIVATING_FOLDER = "reactivating_folder";
+
 	public static final String CURRENT_BORROW_DOCUMENT = "current_borrow_document";
 
 	public static final String CURRENTLY_BORROWED_FOLDERS = "currently_borrowed_folders";

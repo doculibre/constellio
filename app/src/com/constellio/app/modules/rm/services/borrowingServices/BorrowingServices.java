@@ -7,12 +7,15 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import net.sf.ehcache.transaction.TransactionTimeoutException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -40,9 +43,19 @@ public class BorrowingServices {
 		Record taskRecord = recordServices.getDocumentById(taskId);
 		RMTask task = rm.wrapRMTask(taskRecord);
 		if(task.getLinkedFolders() != null) {
+			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
 				borrowFolder(folderId, borrowingDate, previewReturnDate, currentUser, borrowerEntered, borrowingType, false);
+				Record event = rm.newEvent()
+						.setUsername(currentUser.getUsername())
+						.setTask(taskId)
+						.setType(EventType.BORROW_FOLDER)
+						.setIp(currentUser.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
+				t.add(event);
 			}
+			recordServices.execute(t);
 		}
 	}
 
@@ -52,9 +65,19 @@ public class BorrowingServices {
 		Record taskRecord = recordServices.getDocumentById(taskId);
 		RMTask task = rm.wrapRMTask(taskRecord);
 		if(task.getLinkedFolders() != null) {
+			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
 				returnFolder(folderId, currentUser, returnDate, false);
+				Record event = rm.newEvent()
+						.setUsername(currentUser.getUsername())
+						.setTask(taskId)
+						.setType(EventType.RETURN_FOLDER)
+						.setIp(currentUser.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
+				t.add(event);
 			}
+			recordServices.execute(t);
 		}
 	}
 
