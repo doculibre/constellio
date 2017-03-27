@@ -137,6 +137,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new ContainerRecordType(getByLegacyId(ContainerRecordType.SCHEMA_TYPE, id), getTypes());
 	}
 
+	public ContainerRecordType getContainerRecordTypeWithCode(String id) {
+		return new ContainerRecordType(getByCode(containerRecordTypeSchemaType(), id), getTypes());
+	}
+
 	public ContainerRecordType getContainerRecordType(String id) {
 		try {
 			return new ContainerRecordType(get(id), getTypes());
@@ -597,7 +601,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public RMUserFolder getUserFolder(String id) {
 		return new RMUserFolder(get(id), getTypes());
 	}
-	
+
 	public MetadataSchemaType userFolderSchemaType() {
 		return getTypes().getSchemaType(UserFolder.SCHEMA_TYPE);
 	}
