@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.constants;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.Permissions;
 
 import java.util.List;
@@ -49,6 +50,9 @@ public class RMPermissionsTo {
 			"modifyInactiveBorrowedFolder");
 	public static final String MODIFY_OPENING_DATE_FOLDER = permission(FOLDER_GROUP,
 			"modifyOpeningDateFolder");
+	public static final String BORROWING_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "borrowinRequestOnFolder");
+
+	public static final String MANAGE_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "manageRequestOnFolder");
 
 	// Documents
 	private static final String DOCUMENT_GROUP = "documents";
@@ -78,6 +82,10 @@ public class RMPermissionsTo {
 	public static final String RETURN_OTHER_USERS_DOCUMENTS = permission(DOCUMENT_GROUP, "returnOtherUsersDocuments");
 
 	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
+
+	public static final String BORROWING_REQUEST_ON_DOCUMENT = permission(DOCUMENT_GROUP, "borrowinRequestOnDocument");
+
+	public static final String MANAGE_REQUEST_ON_DOCUMENT = permission(DOCUMENT_GROUP, "manageRequestOnDocument");
 
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
