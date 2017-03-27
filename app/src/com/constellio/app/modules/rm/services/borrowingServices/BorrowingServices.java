@@ -71,7 +71,7 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				borrowFolder(folderId, borrowingDate, previewReturnDate, currentUser, borrowerEntered, borrowingType, false);
+				borrowFolder(folderId, borrowingDate, returnDate, currentUser, borrowerEntered, borrowingType, false);
 				Record event = rm.newEvent()
 						.setUsername(currentUser.getUsername())
 						.setTask(taskId)

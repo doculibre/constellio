@@ -67,7 +67,7 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
 
     private void completeReturnRequest(RMTask task) {
         try {
-            borrowingServices.returnRecordsFromTask(task.getId(), userServices.getUserInCollection(task.getAssigner(), collection), LocalDate.now());
+            borrowingServices.returnRecordsFromTask(task.getId(), LocalDate.now(), userServices.getUserInCollection(task.getAssigner(), collection));
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }
