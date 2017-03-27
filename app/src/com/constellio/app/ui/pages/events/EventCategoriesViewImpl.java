@@ -198,7 +198,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 
 	private Button newReIndexAndRestartLink() {
 		return createLink($("ListEventsView.reIndexAndRestart"), EventCategory.REINDEX_AND_RESTART,
-				"TODO");
+				"system-reboot-reindex");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {
