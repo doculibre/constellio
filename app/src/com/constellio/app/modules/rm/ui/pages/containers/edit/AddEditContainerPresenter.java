@@ -209,4 +209,9 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	public User getCurrentUser() {
 		return presenterService().getCurrentUser(getSessionContext());
 	}
+
+	public void setStorageSpaceTo(String storageSpaceId) {
+		getContainerRecord().set(ContainerRecord.STORAGE_SPACE, storageSpaceId);
+		view.reloadWithContainer(getContainerRecord());
+	}
 }

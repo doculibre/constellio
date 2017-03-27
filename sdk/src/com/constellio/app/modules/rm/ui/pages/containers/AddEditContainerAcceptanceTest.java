@@ -58,7 +58,7 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
         doNothing().when(view).reloadWithContainer(any(RecordVO.class));
 
         presenter = new AddEditContainerPresenter(view);
-        lookupField = spy(new ContainerStorageSpaceLookupField(records.containerTypeId_boite22x22, presenter));
+        lookupField = spy(new ContainerStorageSpaceLookupField(records.containerTypeId_boite22x22, null, presenter));
     }
 
     @Test
