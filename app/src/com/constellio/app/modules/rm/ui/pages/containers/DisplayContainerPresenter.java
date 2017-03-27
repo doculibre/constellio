@@ -168,7 +168,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		MetadataVO linearSizeMetadata = container.getMetadata(ContainerRecord.LINEAR_SIZE);
 		Double linearSize = container.get(linearSizeMetadata) == null ? 0.0:(Double) container.get(linearSizeMetadata);
 
-		return 100*linearSize/capacity;
+		return (Double) Math.rint(100.0*linearSize/capacity);
 	}
 
 	private LogicalSearchQuery getFoldersQuery() {

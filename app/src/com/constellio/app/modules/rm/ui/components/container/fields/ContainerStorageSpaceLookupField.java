@@ -40,6 +40,7 @@ import static java.util.Arrays.asList;
 public class ContainerStorageSpaceLookupField extends LookupRecordField implements CustomFolderField<String> {
 
     private String containerRecordType;
+    private Double containerCapacity;
 
     private AddEditContainerPresenter presenter;
 
@@ -91,12 +92,14 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
     private LogicalSearchQuery buildQuery(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
         MetadataSchemaType storageSpaceType = modelLayerFactory.getMetadataSchemasManager()
                 .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
+        Double containerCapacity = this.containerCapacity == null? 0.0:this.containerCapacity;
         return new LogicalSearchQuery().setCondition(from(storageSpaceType).whereAllConditions(
                 where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
                 where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(0),
                 anyConditions(
                         where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isContaining(asList(containerRecordType)),
-                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull(),
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(containerCapacity)
                 )
         ));
     }
