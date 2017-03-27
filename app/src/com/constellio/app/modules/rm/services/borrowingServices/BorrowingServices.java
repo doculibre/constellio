@@ -12,7 +12,6 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -25,7 +24,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
-import net.sf.ehcache.transaction.TransactionTimeoutException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -71,7 +69,7 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				borrowFolder(folderId, borrowingDate, previewReturnDate, currentUser, borrowerEntered, borrowingType, false);
+				borrowFolder(folderId, borrowingDate, returnDate, currentUser, borrowerEntered, borrowingType, false);
 				Record event = rm.newEvent()
 						.setUsername(currentUser.getUsername())
 						.setTask(taskId)
