@@ -1,39 +1,36 @@
 plugins {
-    id "org.sonarqube" version "1.2"
+    id "fi.jasoft.plugin.vaadin" version '1.1.6' apply false
+    id "org.sonarqube" version "2.2" apply false
 }
 
 apply plugin: 'war'
 apply plugin: 'application'
+apply plugin: 'java'
+apply plugin: 'jacoco'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
 
 defaultTasks 'clean', 'compileJava'
 
-allprojects {
+subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
     apply plugin: 'eclipse'
     apply plugin: 'idea'
 
-    applicationDefaultJvmArgs = ["-XX:MaxPermSize=256m"]
-
     sourceCompatibility = 1.7
+    targetCompatibility = 1.7
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
         options.fork = true
-        options.forkOptions.setMemoryMaximumSize("2g")
-        options.forkOptions.setJvmArgs(["-XX:MaxPermSize=256m"])
+        options.incremental = true
     }
 
     tasks.withType(Javadoc) {
         task ->
             enabled = false;
             options.encoding = 'UTF-8'
-    }
-
-    repositories {
-        flatDir {
-            dirs "${rootDir}/libs", "libs/"
-        }
     }
 
     ext {
@@ -47,42 +44,17 @@ allprojects {
         }
     }
 
-
-    test {
-        minHeapSize = "128m"
-        maxHeapSize = "3g"
-        jvmArgs '-XX:MaxPermSize=256m'
-    }
-
-    repositories {
-        mavenCentral()
-        maven {
-            url "http://maven.restlet.org"
-        }
-        maven {
-            name "vaadin-addons"
-            url "http://maven.vaadin.com/vaadin-addons"
-        }
-        maven {
-            name "sonatype vaadin"
-            url "https://oss.sonatype.org/content/repositories/vaadin/"
-        }
-        flatDir {
-            dirs 'libs/'
-        }
-    }
-
     dependencies {
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
-        testCompile 'org.jacoco:org.jacoco.agent:0.7.1.201405082137'
-        testCompile 'org.jacoco:org.jacoco.ant:0.7.1.201405082137'
+        testCompile 'org.jacoco:org.jacoco.agent:0.7.5+'
+        testCompile 'org.jacoco:org.jacoco.ant:0.7.5+'
 
         compile "com.cybozu.labs:langdetect:1.1-20120112"
         compile "com.eaio.uuid:uuid:3.2"
         compile "org.jdom:jdom:2.0.2"
         compile "org.apache.poi:poi-ooxml:3.12"
         compile "org.apache.poi:poi:3.12"
-        compile "org.eclipse.jetty.aggregate:jetty-all-server:8.1.10.v20130312"
+        compile "org.eclipse.jetty.aggregate:jetty-all-server:8.2.0.v20160908"
         compile "org.slf4j:slf4j-log4j12:1.7.7"
         compile "org.slf4j:slf4j-api:1.7.7"
         compile "jspf:jspf.core:1.0.0"
@@ -106,15 +78,16 @@ allprojects {
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
 
+/*
         compile files("${rootDir}/libs/commons-beanutils-1.8.2.jar")
         compile files("${rootDir}/libs/commons-collections-3.2.1.jar")
         compile files("${rootDir}/libs/commons-dbcp-1.2.2.jar")
         compile files("${rootDir}/libs/commons-digester-2.1.jar")
         compile files("${rootDir}/libs/groovy-all-2.0.1.jar")
-        compile files("${rootDir}/libs/iText-2.1.7.jar")
         compile files("${rootDir}/libs/jasperreports-6.3.0.jar")
         compile files("${rootDir}/libs/com.lowagie.text-2.1.7.jar")
         compile files("${rootDir}/libs/barbecue-1.5-beta1.jar")
+        */
     }
 
     configurations {
@@ -162,21 +135,9 @@ war {
 }
 
 dependencies {
-    compile project(":data")
-    compile project(":model")
-    compile project(":app")
-}
-
-task compileData() {
-    dependsOn project(":data").compileJava
-}
-
-task compileModel() {
-    dependsOn project(":model").compileJava
-}
-
-task compileApp() {
-    dependsOn project(":app").compileJava
+    compile project(":constellio:data")
+    compile project(":constellio:model")
+    compile project(":constellio:app")
 }
 
 task compilePlugin() {
@@ -186,44 +147,14 @@ task compilePlugin() {
     }
 }
 
-task unWar(type: Copy) {
-    def outputDir = buildDir.getAbsolutePath() + "/tmp/war_tmp/"
-
-    from zipTree(war.archivePath)
-    into outputDir
-}
-
-task installer(type: Zip, dependsOn: [build, unWar]) {
-    from(buildDir.getAbsolutePath() + "/tmp/war_tmp/") {
-        exclude "WEB-INF/lib/tika-app*.jar"
-        exclude "WEB-INF/lib/apache-mime4j-0.6.jar"
-        into("webapp")
-    }
-
-    from "dist/install/"
-    into "intelligid"
-}
-
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.0'
+    gradleVersion = '3.4'
 }
 
 eclipse {
     project {
         name = 'Constellio'
         buildCommand 'compileJava'
-    }
-}
-
-sonarqube {
-    properties {
-        property "sonar.host.url", "http://167.114.79.165:81"
-        property "sonar.jdbc.url", "jdbc:mysql://167.114.79.165/sonar"
-        property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
-        property "sonar.jdbc.username", "sonar"
-        property "sonar.jdbc.password", "6BKWMnLtrSNH"
-        property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.skipPackageDesign", "true"
     }
 }
 
@@ -243,4 +174,3 @@ test {
 }
 
 mainClassName = 'com.constellio.app.start.MainConstellio'
-
