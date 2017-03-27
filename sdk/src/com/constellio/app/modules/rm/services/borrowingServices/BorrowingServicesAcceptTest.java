@@ -72,32 +72,52 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
     public void givenRecordsBorrowedFromTaskThenValidEmailToSendCreate() throws Exception {
         zeTask = tasksSchemas.newTask();
         LocalDate zeDate = new LocalDate(2017, 03, 24);
-        LocalDateTime zeDateTime = new LocalDateTime(2017, 03, 24, 0, 0, 0);
-        EmailAddress zeAdresse = new EmailAddress("Gandalf Leblanc", "gandalf@doculibre.com");
+        LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
+        EmailAddress adresseReceiver = new EmailAddress("Gandalf Leblanc", "gandalf@doculibre.com");
         recordServices.add(zeTask.setTitle("taskTitle"));
         borrowingServices.borrowRecordsFromTask(zeTask.getId(), zeDate, zeDate, users.charlesIn(zeCollection), users.gandalfIn(zeCollection), BorrowingType.BORROW);
         EmailToSend emailToSend = getEmailToSend(ALERT_BORROWED);
         assertThat(emailToSend).isNotNull();
-        assertThat(emailToSend.getTo()).isEqualTo(asList(zeAdresse));
+        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_BORROWED);
+        assertThat(emailToSend.getTo()).isEqualTo(asList(adresseReceiver));
+        assertThat(emailToSend.getFrom()).isNull();
         assertThat(emailToSend.getSendOn()).isEqualTo(zeDateTime);
         assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est emprunté : taskTitle");
         assertThat(emailToSend.getParameters()).hasSize(10);
+        assertThat(emailToSend.getParameters()).containsOnly(
+                "subject:Alerte lorsque le document est emprunté : taskTitle",
+                "borrowingDate:" + zeDate, "returnDate:" + zeDate,
+                "currentUser:charles", "borrowingType:" + BorrowingType.BORROW,
+                "borrowerEntered:gandalf", "title:" + zeTask.getTitle(),
+                "constellioURL:http://localhost:8080/constellio/",
+                "recordURL:http://localhost:8080/constellio/#!displayDocument/" + zeTask.getId(),
+                "recordType:document"
+        );
     }
 
     @Test
     public void givenRecordsReturnedFromTaskThenValidateEmailToSendCreate() throws Exception {
         zeTask = tasksSchemas.newTask();
         LocalDate zeDate = new LocalDate(2017, 03, 24);
-        LocalDateTime zeDateTime = new LocalDateTime(2017, 03, 24, 0, 0, 0);
-        EmailAddress zeAdresse = new EmailAddress("Charles-François Xavier", "charles@doculibre.com");
+        LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
+        EmailAddress adresseReceiver = new EmailAddress("Charles-François Xavier", "charles@doculibre.com");
         recordServices.add(zeTask.setTitle("taskTitle"));
         borrowingServices.returnRecordsFromTask(zeTask.getId(), users.charlesIn(zeCollection), zeDate);
         EmailToSend emailToSend = getEmailToSend(ALERT_RETURNED);
         assertThat(emailToSend).isNotNull();
-        assertThat(emailToSend.getTo()).isEqualTo(asList(zeAdresse));
+        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_RETURNED);
+        assertThat(emailToSend.getTo()).isEqualTo(asList(adresseReceiver));
+        assertThat(emailToSend.getFrom()).isNull();
         assertThat(emailToSend.getSendOn()).isEqualTo(zeDateTime);
-        assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est emprunté : taskTitle");
+        assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est retourné : taskTitle");
         assertThat(emailToSend.getParameters()).hasSize(7);
+        assertThat(emailToSend.getParameters()).containsOnly(
+                "subject:Alerte lorsque le document est retourné : taskTitle",
+                "currentUser:charles", "returnDate:" + zeDate,
+                "title:" + zeTask.getTitle(), "constellioURL:http://localhost:8080/constellio/",
+                "recordURL:http://localhost:8080/constellio/#!displayDocument/" + zeTask.getId(),
+                "recordType:document"
+        );
     }
 
     private EmailToSend getEmailToSend(String template) {

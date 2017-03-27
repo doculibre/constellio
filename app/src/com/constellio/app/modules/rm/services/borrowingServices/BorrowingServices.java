@@ -223,7 +223,7 @@ public class BorrowingServices {
     private void alertUsersWhenBorrowing(String schemaType, Record record, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
                                          User borrowerEntered, BorrowingType borrowingType) {
         try {
-            String displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
+            String displayURL = schemaType.equals("folder") ? RMNavigationConfiguration.DISPLAY_FOLDER : RMNavigationConfiguration.DISPLAY_DOCUMENT;
 
             Transaction transaction = new Transaction();
 
@@ -264,7 +264,7 @@ public class BorrowingServices {
 
     private void alertUsersWhenReturning(String schemaType, Record record, User currentUser, LocalDate returnDate) {
         try {
-            String displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
+            String displayURL = schemaType.equals("folder") ? RMNavigationConfiguration.DISPLAY_FOLDER : RMNavigationConfiguration.DISPLAY_DOCUMENT;
 
             Transaction transaction = new Transaction();
 
@@ -275,8 +275,8 @@ public class BorrowingServices {
             emailToSend.setTo(toAddress);
             emailToSend.setSendOn(sendDate);
             final String subject = schemaType.equals("folder") ?
-                    $("BorrowingServices.alertWhenFolderBorrowedSubject") + " : " + record.getTitle() :
-                    $("BorrowingServices.alertWhenDocumentBorrowedSubject") + " : " + record.getTitle();
+                    $("BorrowingServices.alertWhenFolderReturnedSubject") + " : " + record.getTitle() :
+                    $("BorrowingServices.alertWhenDocumentReturnedSubject") + " : " + record.getTitle();
 
             emailToSend.setSubject(subject);
             emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_RETURNED);
