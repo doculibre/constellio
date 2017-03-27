@@ -38,6 +38,7 @@ public class BorrowingServices {
 
     private static Logger LOGGER = LoggerFactory.getLogger(BorrowingServices.class);
     public static final String RGD = "RGD";
+    public static final String SEPARATOR = " : ";
     private final RecordServices recordServices;
     private final UserServices userServices;
     private final LoggingServices loggingServices;
@@ -262,8 +263,8 @@ public class BorrowingServices {
             if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
                 toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
                 subject = schemaType.equals("folder") ?
-                        $("BorrowingServices.alertWhenFolderBorrowedSubject") + " : " + record.getTitle() :
-                        $("BorrowingServices.alertWhenDocumentBorrowedSubject") + " : " + record.getTitle();
+                        $("BorrowingServices.alertWhenFolderBorrowedSubject") + SEPARATOR + record.getTitle() :
+                        $("BorrowingServices.alertWhenDocumentBorrowedSubject") + SEPARATOR + record.getTitle();
                 parameters.add("borrowingType" + EmailToSend.PARAMETER_SEPARATOR + borrowingType);
                 parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered);
                 parameters.add("borrowingDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
@@ -272,22 +273,22 @@ public class BorrowingServices {
             if (template.equals(RMEmailTemplateConstants.ALERT_REACTIVATED)) {
                 toAddress = new EmailAddress(currentUser.getTitle(), currentUser.getEmail());
                 subject = schemaType.equals("folder") ?
-                        $("BorrowingServices.alertWhenFolderReactivatedSubject") + " : " + record.getTitle() :
-                        $("BorrowingServices.alertWhenDocumentReactivatedSubject") + " : " + record.getTitle();
+                        $("BorrowingServices.alertWhenFolderReactivatedSubject") + SEPARATOR + record.getTitle() :
+                        $("BorrowingServices.alertWhenDocumentReactivatedSubject") + SEPARATOR + record.getTitle();
                 parameters.add("reactivationDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(reactivationDate));
             }
             if (template.equals(RMEmailTemplateConstants.ALERT_RETURNED)) {
                 toAddress = new EmailAddress(currentUser.getTitle(), currentUser.getEmail());
                 subject = schemaType.equals("folder") ?
-                        $("BorrowingServices.alertWhenFolderReturnedSubject") + " : " + record.getTitle() :
-                        $("BorrowingServices.alertWhenDocumentReturnedSubject") + " : " + record.getTitle();
+                        $("BorrowingServices.alertWhenFolderReturnedSubject") + SEPARATOR + record.getTitle() :
+                        $("BorrowingServices.alertWhenDocumentReturnedSubject") + SEPARATOR + record.getTitle();
                 parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
             }
             if (template.equals(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED)) {
                 toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
                 subject = schemaType.equals("folder") ?
-                        $("BorrowingServices.alertWhenFolderBorrowingExtendedSubject") + " : " + record.getTitle() :
-                        $("BorrowingServices.alertWhenDocumentBorrowingExtendedSubject") + " : " + record.getTitle();
+                        $("BorrowingServices.alertWhenFolderBorrowingExtendedSubject") + SEPARATOR + record.getTitle() :
+                        $("BorrowingServices.alertWhenDocumentBorrowingExtendedSubject") + SEPARATOR + record.getTitle();
                 parameters.add("extensionDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
                 parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
             }
