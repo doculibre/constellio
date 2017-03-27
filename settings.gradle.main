@@ -1,0 +1,74 @@
+include "constellio",
+        "constellio:data",
+        "constellio:model",
+        "constellio:app",
+        "constellio:sdk"
+
+if (new File(rootDir, "./constellio-plugins").exists()) {
+    // Add new plugins below with the right name
+    
+    include "constellio-plugins",
+            "constellio-plugins:sdk",
+            "constellio-plugins:importation",
+            "constellio-plugins:plugin001",
+            "constellio-plugins:plugin002",
+            "constellio-plugins:plugin003",
+            "constellio-plugins:plugin004",
+            "constellio-plugins:plugin005",
+            "constellio-plugins:plugin006",
+            "constellio-plugins:plugin007",
+            "constellio-plugins:plugin008",
+            "constellio-plugins:plugin009",
+            "constellio-plugins:plugin010",
+            "constellio-plugins:plugin011",
+            "constellio-plugins:plugin012",
+            "constellio-plugins:plugin013",
+            "constellio-plugins:plugin014",
+            "constellio-plugins:plugin015",
+            "constellio-plugins:plugin016",
+            "constellio-plugins:plugin017",
+            "constellio-plugins:plugin018",
+            "constellio-plugins:plugin019",
+            "constellio-plugins:plugin020",
+            "constellio-plugins:plugin021",
+            "constellio-plugins:plugin023",
+            "constellio-plugins:plugin024",
+            "constellio-plugins:plugin666"
+            
+}
+
+//project(":constellio:data").projectDir = file("./constellio/data")
+//project(":constellio:model").projectDir = file("./constellio/model")
+//project(":constellio:app").projectDir = file("./constellio/app")
+//project(":constellio:sdk").projectDir = file("./constellio/sdk")
+
+//if (new File(rootDir, "./constellio-plugins").exists()) {
+    // Add new plugins below with the right folder
+//project("constellio-plugins").projectDir = file("./constellio-plugins")
+//project("constellio-plugins:sdk").projectDir = file("./constellio-plugins/sdk")
+//project("constellio-plugins:importation").projectDir = file("./constellio-plugins/importation")
+//project("constellio-plugins:plugin001").projectDir = file("./constellio-plugins/plugin001")
+//project("constellio-plugins:plugin002").projectDir = file("./constellio-plugins/plugin002")
+//project("constellio-plugins:plugin003").projectDir = file("./constellio-plugins/plugin003")
+//project("constellio-plugins:plugin004").projectDir = file("./constellio-plugins/plugin004")
+//project("constellio-plugins:plugin005").projectDir = file("./constellio-plugins/plugin005")
+//project("constellio-plugins:plugin006").projectDir = file("./constellio-plugins/plugin006")
+//project("constellio-plugins:plugin007").projectDir = file("./constellio-plugins/plugin007")
+//project("constellio-plugins:plugin008").projectDir = file("./constellio-plugins/plugin008")
+//project("constellio-plugins:plugin009").projectDir = file("./constellio-plugins/plugin009")
+//project("constellio-plugins:plugin010").projectDir = file("./constellio-plugins/plugin010")
+//project("constellio-plugins:plugin011").projectDir = file("./constellio-plugins/plugin011")
+//project("constellio-plugins:plugin012").projectDir = file("./constellio-plugins/plugin012")
+//project("constellio-plugins:plugin013").projectDir = file("./constellio-plugins/plugin013")
+//project("constellio-plugins:plugin014").projectDir = file("./constellio-plugins/plugin014")
+//project("constellio-plugins:plugin015").projectDir = file("./constellio-plugins/plugin015")
+//project("constellio-plugins:plugin016").projectDir = file("./constellio-plugins/plugin016")
+//project("constellio-plugins:plugin017").projectDir = file("./constellio-plugins/plugin017")
+//project("constellio-plugins:plugin018").projectDir = file("./constellio-plugins/plugin018")
+//project("constellio-plugins:plugin019").projectDir = file("./constellio-plugins/plugin019")
+//project("constellio-plugins:plugin020").projectDir = file("./constellio-plugins/plugin020")
+//project("constellio-plugins:plugin021").projectDir = file("./constellio-plugins/plugin021")
+//project("constellio-plugins:plugin023").projectDir = file("./constellio-plugins/plugin023")
+//project("constellio-plugins:plugin024").projectDir = file("./constellio-plugins/plugin024")
+//project("constellio-plugins:plugin666").projectDir = file("./constellio-plugins/plugin666")
+//}

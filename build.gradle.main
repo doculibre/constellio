@@ -1,0 +1,23 @@
+allprojects {
+    repositories {
+        mavenCentral()
+        maven {
+            url "http://maven.restlet.org"
+        }
+        maven {
+            name "vaadin-addons"
+            url "http://maven.vaadin.com/vaadin-addons"
+        }
+        maven {
+            name "sonatype vaadin"
+            url "https://oss.sonatype.org/content/repositories/vaadin/"
+        }
+        maven {
+            url 'http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts/'
+        }
+        maven {
+            url 'http://jasperreports.sourceforge.net/maven2'
+        }
+        flatDir(dirs: file(project(":constellio").projectDir.getAbsolutePath() + '/libs/'))
+    }
+}
