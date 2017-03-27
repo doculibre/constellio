@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class DecomListFolderDetail implements ModifiableStructure {
 	String folderId;
@@ -13,11 +13,14 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	Double folderLinearSize;
 	boolean dirty;
 
+	@Deprecated
 	public DecomListFolderDetail() {
 	}
 
-	public DecomListFolderDetail(String folderId) {
-		this.folderId = folderId;
+	public DecomListFolderDetail(Folder folder) {
+		this.folderId = folder.getId();
+		this.containerRecordId = folder.getContainer();
+		this.folderLinearSize = folder.getLinearSize();
 	}
 
 	public String getFolderId() {

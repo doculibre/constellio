@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -104,7 +105,7 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
     private DecommissioningList buildDefaultFolderDecommissioningList() {
         return rm.newDecommissioningListWithId("decomTest").setTitle("decomTest").setOriginArchivisticStatus(OriginStatus.ACTIVE)
                 .setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setAdministrativeUnit(records.unitId_10)
-                .addFolderDetailsFor(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04);
+                .addFolderDetailsFor(rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
     }
 
     private DecommissioningList buildDefaultDocumentDecommissioningList() {

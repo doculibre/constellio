@@ -638,7 +638,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustLinearSizeField() {
 		FolderLinearSizeField linearSizeField = (FolderLinearSizeField) view.getForm().getCustomField(Folder.LINEAR_SIZE);
 		if (linearSizeField != null) {
-			linearSizeField.setVisible(folderVO.getContainer() != null);
+			linearSizeField.setVisible(true);//folderVO.getContainer() != null);
 		}
 	}
 

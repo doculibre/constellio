@@ -146,7 +146,7 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
     private DecommissioningList buildDefaultDecommissioningList() {
         return rm.newDecommissioningListWithId("decomTest").setAdministrativeUnit(records.unitId_10).setTitle("decomTest").setOriginArchivisticStatus(OriginStatus.ACTIVE)
                 .setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER)
-                .addFolderDetailsFor(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04);
+                .addFolderDetailsFor(rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
     }
 
     private void buildAutoFillContainers() throws RecordServicesException {

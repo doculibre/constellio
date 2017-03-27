@@ -280,29 +280,29 @@ public class DecommissioningList extends RecordWrapper {
 		return null;
 	}
 
-	public DecommissioningList setFolderDetailsFor(String... folders) {
-		return setFolderDetailsFor(asList(folders));
-	}
-
-	public DecommissioningList addFolderDetailsFor(String... folders) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		details.addAll(getFolderDetails());
-		List<String> existingDetails = getFolders();
-		for (String folder : folders) {
-			if(!existingDetails.contains(folder)) {
-				details.add(new DecomListFolderDetail(folder));
-			}
-		}
-		return setFolderDetails(details);
-	}
-
-	public DecommissioningList setFolderDetailsFor(List<String> folders) {
-		List<DecomListFolderDetail> details = new ArrayList<>();
-		for (String folder : folders) {
-			details.add(new DecomListFolderDetail(folder));
-		}
-		return setFolderDetails(details);
-	}
+//	public DecommissioningList setFolderDetailsFor(String... folders) {
+//		return setFolderDetailsFor(asList(folders));
+//	}
+//
+//	public DecommissioningList addFolderDetailsFor(String... folders) {
+//		List<DecomListFolderDetail> details = new ArrayList<>();
+//		details.addAll(getFolderDetails());
+//		List<String> existingDetails = getFolders();
+//		for (String folder : folders) {
+//			if(!existingDetails.contains(folder)) {
+//				details.add(new DecomListFolderDetail(folder));
+//			}
+//		}
+//		return setFolderDetails(details);
+//	}
+//
+//	public DecommissioningList setFolderDetailsFor(List<String> folders) {
+//		List<DecomListFolderDetail> details = new ArrayList<>();
+//		for (String folder : folders) {
+//			details.add(new DecomListFolderDetail(folder));
+//		}
+//		return setFolderDetails(details);
+//	}
 
 	public DecommissioningList removeFolderDetail(String folderId) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
@@ -314,10 +314,40 @@ public class DecommissioningList extends RecordWrapper {
 		return setFolderDetails(details);
 	}
 
-	public DecommissioningList setFolderDetailsFrom(List<Folder> folders) {
+	public DecommissioningList addFolderDetailsFor(Folder... folders) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		details.addAll(getFolderDetails());
+		List<String> existingDetails = getFolders();
+		for (Folder folder : folders) {
+			if(!existingDetails.contains(folder)) {
+				details.add(new DecomListFolderDetail(folder));
+			}
+		}
+		return setFolderDetails(details);
+	}
+
+	public DecommissioningList setFolderDetailsFor(List<Folder> folders) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		for (Folder folder : folders) {
-			details.add(new DecomListFolderDetail(folder.getId()).setContainerRecordId(folder.getContainer()));
+			details.add(new DecomListFolderDetail(folder));
+		}
+		setFolderDetails(details);
+		return this;
+	}
+
+	public DecommissioningList setFolderDetailsForIds(List<String> folders) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (String folder : folders) {
+			details.add(new DecomListFolderDetail().setFolderId(folder));
+		}
+		setFolderDetails(details);
+		return this;
+	}
+
+	public DecommissioningList setFolderDetailsForIds(String... folders) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (String folder : folders) {
+			details.add(new DecomListFolderDetail().setFolderId(folder));
 		}
 		setFolderDetails(details);
 		return this;
