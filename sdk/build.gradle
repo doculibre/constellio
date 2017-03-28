@@ -89,7 +89,7 @@ project.tasks["sonarqube"].dependsOn "build"
 
 sonarqube {
     properties {
-        property "sonar.jacoco.reportPath", "$projectDir/build/jacoco/test.exec"
+        property "sonar.jacoco.reportPath", "$projectDir/build/jacoco/jacocoTest.exec"
         property "sonar.junit.reportsPath", "$projectDir/build/reports/"
         property "sonar.projectName", "constellio"
         property "sonar.projectKey", "constellio"
