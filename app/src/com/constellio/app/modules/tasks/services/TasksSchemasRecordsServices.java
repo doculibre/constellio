@@ -6,6 +6,7 @@ import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -18,12 +19,10 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
@@ -548,13 +547,14 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newBorrowFolderExtensionRequestTask(String assignerId, String folderId){
+	public Task newBorrowFolderExtensionRequestTask(String assignerId, String folderId, LocalDate value) {
 		Map<String, String> stringStringMap = new HashMap<>();
 		stringStringMap.put($("yes"), "NO_VALUE");
 		stringStringMap.put($("no"), "NO_VALUE");
-		return newTaskWithType(getTaskTypeByCode("borrowExtensionRequest"))
+		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
 					.setTitle($("borrowExtensionRequest")).setAssignee(assignerId).setAssigner(assignerId)
 					.setAssignedOn(LocalDate.now()).setLinkedFolders(asList(folderId))
-					.setNextTasksDecisions(stringStringMap);
+				.setNextTasksDecisions(stringStringMap)
+				.set(ExtensionRequest.EXTENSION_VALUE, value);
 	}
 }
