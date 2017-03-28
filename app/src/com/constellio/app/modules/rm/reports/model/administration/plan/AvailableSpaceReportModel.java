@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.itextpdf.text.Image;
 
 /**
  * Created by Charles Blanchette on 2017-02-20.
