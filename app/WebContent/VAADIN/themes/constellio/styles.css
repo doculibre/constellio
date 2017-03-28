@@ -12732,10 +12732,6 @@ div.v-layout.v-horizontal.v-widget {
 	height: initial;
 }
 
-.constellio .v-window .popupContent .v-has-caption {
-	padding-left: 10px;
-}
-
 .constellio .window-button-window .v-scrollable {
 	overflow: hidden;
 }
