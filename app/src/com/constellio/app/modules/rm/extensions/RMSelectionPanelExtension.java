@@ -255,7 +255,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         Button checkInButton = new Button($("ConstellioHeader.selection.actions.checkIn")) {
             @Override
             public boolean isVisible() {
-                return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE));
+                return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)) && areAllCheckedOut(param.getIds());
             }
 
             @Override
@@ -304,9 +304,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         });
 
         setStyles(checkInButton);
-        checkInButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
-        checkInButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
+        checkInButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)) && areAllCheckedOut(param.getIds()));
+        checkInButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)) && areAllCheckedOut(param.getIds()));
         ((VerticalLayout) param.getComponent()).addComponent(checkInButton);
+    }
+
+    private boolean areAllCheckedOut(List<String> ids) {
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+        List<Document> documents = rm.getDocuments(ids);
+        for(Document document: documents) {
+            if(document.getContent() == null || document.getContent().getCheckoutUserId() == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void addSendEmailButton(final AvailableActionsParam param) {
