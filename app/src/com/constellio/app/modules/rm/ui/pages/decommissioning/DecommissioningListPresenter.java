@@ -379,7 +379,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		refreshView();
 	}
 
-	public boolean validationRequested(List<String> users, String comments) {
+	public boolean validationRequested(List<String> users, String comments, boolean saveComment) {
 		if (users.contains(getCurrentUser().getId())) {
 			view.showErrorMessage($("DecommissioningListView.cannotSendValidationToItself"));
 			return false;
@@ -391,7 +391,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		//					join(getUsersNames(existingValidators), ", "));
 		//			return false;
 		//		}
-		decommissioningService().sendValidationRequest(decommissioningList(), getCurrentUser(), users, comments);
+		decommissioningService().sendValidationRequest(decommissioningList(), getCurrentUser(), users, comments, saveComment);
 		view.showMessage($("DecommissioningListView.validationMessageSent"));
 		refreshView();
 		return true;

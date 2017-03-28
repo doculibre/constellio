@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
@@ -270,14 +271,26 @@ public class DecommissioningService {
 		}
 	}
 
-	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments) {
+	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments, boolean saveComment) {
 		List<String> parameters = new ArrayList<>();
+		List<Comment> commentaires = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
 
 		sendEmailForList(list, null, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
 		for (String user : users) {
 			list.addValidationRequest(user, TimeProvider.getLocalDate());
+		}
+		for (Comment comment : list.getComments()) {
+			commentaires.add(comment);
+		}
+		if (saveComment) {
+			Comment comment = new Comment();
+			comment.setMessage(comments);
+			comment.setUser(sender);
+			comment.setDateTime(LocalDateTime.now());
+			commentaires.add(comment);
+			list.setComments(commentaires);
 		}
 		try {
 			recordServices.update(list, sender);
