@@ -305,7 +305,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
         setStyles(checkInButton);
         checkInButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)) && areAllCheckedOut(param.getIds()));
-        checkInButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)) && areAllCheckedOut(param.getIds()));
+        checkInButton.setVisible(checkInButton.isEnabled());
         ((VerticalLayout) param.getComponent()).addComponent(checkInButton);
     }
 
