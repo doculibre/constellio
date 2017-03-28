@@ -5,34 +5,10 @@ plugins {
 
 apply plugin: 'war'
 apply plugin: 'application'
-apply plugin: 'java'
-apply plugin: 'jacoco'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
 
 defaultTasks 'clean', 'compileJava'
 
 subprojects {
-    apply plugin: 'java'
-    apply plugin: 'jacoco'
-    apply plugin: 'eclipse'
-    apply plugin: 'idea'
-
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
-
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-        options.fork = true
-        options.incremental = true
-    }
-
-    tasks.withType(Javadoc) {
-        task ->
-            enabled = false;
-            options.encoding = 'UTF-8'
-    }
-
     ext {
         version_mime = "0.7.2"
     }
@@ -94,10 +70,6 @@ subprojects {
         compile.exclude module: "asm-debug-all"
         compile.exclude module: "org.objectweb.asm"
     }
-
-    jar {
-        version = '7.0.9.2'
-    }
 }
 
 war {
@@ -105,7 +77,6 @@ war {
     version = "7.0.9.2"
 
     webInf {
-
         from("resources_i18n/") {
             into("resources_i18n")
         }
@@ -140,36 +111,10 @@ dependencies {
     compile project(":constellio:app")
 }
 
-task compilePlugin() {
-    if (new File("./jarProject").exists()) {
-        String projectName = new File("./jarProject").text.trim()
-        dependsOn project(projectName).build
-    }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.4'
-}
-
 eclipse {
     project {
         name = 'Constellio'
         buildCommand 'compileJava'
-    }
-}
-
-jacocoTestReport {
-    group = "reporting"
-    reports {
-        xml.enabled false
-        html.enabled true
-        csv.enabled false
-    }
-}
-
-test {
-    jacoco {
-        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
     }
 }
 

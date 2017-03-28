@@ -1,4 +1,9 @@
 allprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+    apply plugin: 'jacoco'
+
     repositories {
         mavenCentral()
         maven {
@@ -19,5 +24,43 @@ allprojects {
             url 'http://jasperreports.sourceforge.net/maven2'
         }
         flatDir(dirs: file(project(":constellio").projectDir.getAbsolutePath() + '/libs/'))
+    }
+
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.fork = true
+        options.incremental = true
+    }
+
+    tasks.withType(Javadoc) {
+        task ->
+            enabled = false;
+            options.encoding = 'UTF-8'
+    }
+
+    jacocoTestReport {
+        group = "reporting"
+        reports {
+            xml.enabled false
+            html.enabled true
+            csv.enabled false
+        }
+    }
+
+    test {
+        jacoco {
+            destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+        }
+    }
+
+    task wrapper(type: Wrapper) {
+        gradleVersion = '3.4'
+    }
+
+    jar {
+        version = '7.0.9.2'
     }
 }
