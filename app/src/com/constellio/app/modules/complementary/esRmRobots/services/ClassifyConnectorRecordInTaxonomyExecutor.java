@@ -256,10 +256,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 
 		rmFolder.setCreatedByRobot(robotId);
-		rmFolder.setParentFolder(parentFolder);
 		mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
-		if (params.getDefaultParentFolder() != null && parentFolder == null) {
-			rmFolder.setParentFolder(params.getDefaultParentFolder());
+		if (rmFolder.getParentFolder() == null) {
+			rmFolder.setParentFolder(parentFolder);
+			if (params.getDefaultParentFolder() != null && parentFolder == null) {
+				rmFolder.setParentFolder(params.getDefaultParentFolder());
+			}
 		}
 		recordServices.recalculate(rmFolder);
 		rmFolder.setFormModifiedOn(connectorFolder.getLastModified());
@@ -390,6 +392,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 		}
 
+
 		try {
 			transaction.add(rmDocument);
 			recordServices.validateRecordInTransaction(rmDocument.getWrappedRecord(), transaction);
@@ -490,11 +493,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		// rmFolder.setParentFolder(params.getDefaultParentFolder());
 		String taxonomy = params.getInTaxonomy();
-		if (!RMTaxonomies.ADMINISTRATIVE_UNITS.equals(taxonomy)) {
+		if (rmFolder.getAdministrativeUnitEntered() == null) {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
 
-		if (!RMTaxonomies.CLASSIFICATION_PLAN.equals(taxonomy) || rmFolder.getCategoryEntered() == null) {
+		if (rmFolder.getCategoryEntered() == null) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
 		if (rmFolder.getUniformSubdivisionEntered() == null) {
