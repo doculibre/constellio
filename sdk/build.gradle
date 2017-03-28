@@ -89,8 +89,8 @@ project.tasks["sonarqube"].dependsOn "build"
 
 sonarqube {
     properties {
-        property "sonar.jacoco.reportPath", "$projectDir/sdk/build/jacoco/test.exec"
-        property "sonar.junit.reportsPath", "$projectDir/sdk/build/reports/"
+        property "sonar.jacoco.reportPath", "$projectDir/build/jacoco/test.exec"
+        property "sonar.junit.reportsPath", "$projectDir/build/reports/"
         property "sonar.projectName", "constellio"
         property "sonar.projectKey", "constellio"
         properties["sonar.sources"] = sourceSets.sonar.allJava
