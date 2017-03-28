@@ -66,6 +66,9 @@ public class SkipTestsRule implements TestRule {
 		//		System.out.println(bootClasspath);
 		//		System.out.println(classpath);
 		//		System.out.println(libraryPath);
+		this.whiteList = new ArrayList<>();
+		this.blackList = new ArrayList<>();
+
 		this.isUnitMode = isUnitMode;
 		if (!isUnitMode) {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
