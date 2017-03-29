@@ -2,6 +2,8 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
@@ -142,6 +144,11 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
             protected void confirmButtonClick(ConfirmDialog dialog) {
                 returnFolderRequested(view);
             }
+
+            @Override
+            public boolean isVisible() {
+                return isRecordReactivable(view);
+            }
         };
     }
 
@@ -180,6 +187,11 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
 
             public InlineDateField getDatefield() {
                 return this.datefield;
+            }
+
+            @Override
+            public boolean isVisible() {
+                return isRecordBorrowed((DisplayFolderViewImpl) view);
             }
         };
     }
@@ -237,7 +249,13 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private boolean isRecordBorrowed(DisplayFolderViewImpl view) {
-        return Boolean.TRUE.equals(new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getFolder(view.getRecord().getId()).getBorrowed());
+        Folder f = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getFolder(view.getRecord().getId());
+        return Boolean.TRUE.equals(f.getBorrowed()) && f.getBorrowUser().equals(getCurrentUser(view).getId());
+    }
+
+    private boolean isRecordReactivable(BaseView view) {
+        Folder f = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getFolder(((DisplayFolderViewImpl) view).getRecord().getId());
+        return f.getArchivisticStatus().isActiveOrSemiActive() && f.getMediaType().equals(FolderMediaType.ANALOG);
     }
 
     public class Request {

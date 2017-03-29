@@ -55,6 +55,10 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 					.setType(MetadataValueType.DATE_TIME);
 
 			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.EXTENSION_VALUE).defineDataEntry().asManual().setType(MetadataValueType.DATE);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME).create(BorrowRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME).create(ReactivationRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME).create(ReturnRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
 		}
 	}
 }
