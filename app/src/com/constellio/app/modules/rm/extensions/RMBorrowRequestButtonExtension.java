@@ -111,7 +111,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestReturnButton(final BaseViewImpl view) {
-        return new ConfirmDialogButton($("Return")) {
+        return new ConfirmDialogButton($("DocumentActionsComponent.checkIn")) {
 
             @Override
             protected String getConfirmDialogMessage() {
@@ -131,7 +131,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestReactivationButton(final BaseViewImpl view) {
-        return new ConfirmDialogButton($("Reactivation")) {
+        return new ConfirmDialogButton($("DisplayFolderView.reactivation")) {
 
             @Override
             protected String getConfirmDialogMessage() {
@@ -146,7 +146,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestBorrowExtensionButton(final BaseViewImpl view) {
-        return new WindowButton($("Extension"), $("Extension")) {
+        return new WindowButton($("DisplayFolderView.extension"), $("Extension")) {
             @PropertyId("value")
             private InlineDateField datefield;
 
