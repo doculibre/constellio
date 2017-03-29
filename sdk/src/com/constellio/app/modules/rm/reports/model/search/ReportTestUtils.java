@@ -370,15 +370,17 @@ public class ReportTestUtils {
 
 	public void validateUserReportWithDisabledMetadata(SearchResultReportModel model) {
 		List<String> titles = model.getColumnsTitles();
-		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French));
+		assertThat(titles).containsOnly(types.getMetadata(folderDescriptionMetadataCode).getLabel(Language.French), types.getMetadata(folderTitleMetadataCode).getLabel(Language.French));
 		List<List<Object>> content = model.getResults();
 		assertThat(content.size()).isEqualTo(2);
 		List<Object> result1 = content.get(0);
-		assertThat(result1.size()).isEqualTo(1);
-		assertThat(result1.get(0)).isEqualTo(expectedFolderTitle_A01);
+		assertThat(result1.size()).isEqualTo(2);
+		assertThat(result1.get(0)).isEqualTo(expectedFolderDescription_A01);
+		assertThat(result1.get(1)).isEqualTo(expectedFolderTitle_A01);
 		List<Object> result2 = content.get(1);
-		assertThat(result2.size()).isEqualTo(1);
-		assertThat(result2.get(0)).isEqualTo(expectedFolderTitle_A02);
+		assertThat(result2.size()).isEqualTo(2);
+		assertThat(result2.get(0)).isEqualTo(expectedFolderDescription_A02);
+		assertThat(result2.get(1)).isEqualTo(expectedFolderTitle_A02);
 	}
 
 	public void addDocumentDefaultReport(String title) {
