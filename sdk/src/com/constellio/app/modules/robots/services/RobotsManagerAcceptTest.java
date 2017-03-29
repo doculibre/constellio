@@ -456,6 +456,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 				Transaction transaction = new Transaction();
 				for (Record record : records) {
 					transaction.add(record.set(metadata, actionParameters.get("value")));
+					processedRecords.add(record);
 				}
 				return transaction;
 			}

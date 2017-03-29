@@ -327,9 +327,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
 		Folder newRmFolder = rm.newFolder();
 		newRmFolder.setCreatedByRobot(robotId);
+		newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
+		newRmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
 		if (parentFolder != null) {
-			newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
-			newRmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
 			newRmFolder.setOpenDate(parentFolder.getOpenDate());
 			newRmFolder.setCloseDateEntered(parentFolder.getCloseDateEntered());
 		}
