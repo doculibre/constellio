@@ -196,9 +196,9 @@ public class SearchResultReportPresenter {
 			boolean found = false;
 			for (Metadata metadata : allMetadata) {
 				if (metadata.getLocalCode().equals(reportedMetadata.getMetadataLocaleCode())) {
-					if (metadata.isEnabled()) {
+//					if (metadata.isEnabled()) {
 						returnList.add(metadata);
-					}
+//					}
 					found = true;
 					break;
 				}
