@@ -26,6 +26,7 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.conf.ConfigManagerCache;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -35,6 +36,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.cache.IgniteConfigManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
@@ -106,7 +108,23 @@ public class FactoriesTestFeatures {
 			deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
 		}
 
+		if (ConfigManagerCache.IGNITE == conf.getSettingsConfigCache()) {
+			deleteFromIgnite();
+		}
+
 		i18n.clearBundles();
+	}
+
+	private void deleteFromIgnite() {
+		try {
+			IgniteConfigManager cacheManager = getConstellioFactories().getDataLayerFactory().getCacheConfigManager();
+			if (cacheManager != null) {
+				cacheManager.getRecordCache().clear();
+				cacheManager.getManagerCache().clear();
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void deleteFromZooKeeper(String address) {

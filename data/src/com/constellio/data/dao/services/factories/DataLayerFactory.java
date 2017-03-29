@@ -7,11 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.constellio.data.threads.ConstellioJobManager;
-
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
+import com.constellio.data.conf.ConfigManagerCache;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -32,6 +31,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.cache.IgniteConfigManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.contents.HadoopContentDao;
@@ -53,6 +53,7 @@ import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class DataLayerFactory extends LayerFactory {
@@ -66,6 +67,7 @@ public class DataLayerFactory extends LayerFactory {
 
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
+	private final IgniteConfigManager cacheConfigManager;
 	private final ConfigManager configManager;
 	private final UniqueIdGenerator idGenerator;
 	private final UniqueIdGenerator secondaryIdGenerator;
@@ -106,6 +108,14 @@ public class DataLayerFactory extends LayerFactory {
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
+		}
+
+		if (dataLayerConfiguration.getSettingsConfigCache() == ConfigManagerCache.IGNITE) {
+			cacheConfigManager = new IgniteConfigManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getSettingsConfigCache() == ConfigManagerCache.MEMORY) {
+			cacheConfigManager = null;
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
 
 		if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.UUID_V1) {
@@ -171,6 +181,10 @@ public class DataLayerFactory extends LayerFactory {
 
 	public ConfigManager getConfigManager() {
 		return configManager;
+	}
+
+	public IgniteConfigManager getCacheConfigManager() {
+		return cacheConfigManager;
 	}
 
 	public ContentDao getContentsDao() {
