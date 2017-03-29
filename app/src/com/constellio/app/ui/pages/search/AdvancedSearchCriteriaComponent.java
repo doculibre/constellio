@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
@@ -33,18 +24,15 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.converter.StringToDoubleConverter;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.joda.time.LocalDateTime;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AdvancedSearchCriteriaComponent extends Table {
 	public static final String LEFT_PARENS_FIELD = "leftParensField";
@@ -267,7 +255,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				public void valueChange(Property.ValueChangeEvent event) {
 					SearchOperator newOperator = (SearchOperator) operator.getValue();
 					if (newOperator != null) {
-						criterion.setSearchOperator(newOperator);
+						if(newOperator == SearchOperator.EQUALS ||  newOperator == SearchOperator.CONTAINS_TEXT) {
+							criterion.setSearchOperator(exact.getValue() ? SearchOperator.EQUALS : SearchOperator.CONTAINS_TEXT);
+						} else {
+							criterion.setSearchOperator(newOperator);
+						}
 						value.setVisible(
 								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
 						exact.setVisible(
