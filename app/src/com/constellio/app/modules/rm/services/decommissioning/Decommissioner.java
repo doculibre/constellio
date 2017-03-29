@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.services.factories.AppLayerFactory;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -20,6 +12,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Content;
@@ -38,6 +31,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	protected final DecommissioningService decommissioningService;
@@ -335,9 +334,24 @@ public abstract class Decommissioner {
 	}
 
 	private void processContainers() {
-		for (DecomListContainerDetail detail : decommissioningList.getContainerDetails()) {
-			processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+		List<String> containerIdUsed = new ArrayList<>();
+		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+			if (detail.isFolderExcluded()) {
+				continue;
+			}
+			containerIdUsed.add(detail.getContainerRecordId());
 		}
+
+		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
+		for (DecomListContainerDetail detail : containerDetails) {
+			if(containerIdUsed.contains(detail.getContainerRecordId())) {
+				processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+			} else {
+				decommissioningList.removeContainerDetail(detail.getContainerRecordId());
+			}
+		}
+
+		add(decommissioningList);
 	}
 
 	protected void updateContainer(ContainerRecord container, DecomListContainerDetail detail) {
