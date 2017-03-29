@@ -78,7 +78,6 @@ public class ESMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
             modifyLabelForMimeType(mimeTypeFacet, "application/vnd.ms-powerpoint.slideshow.macroenabled.12");
             modifyLabelForMimeType(mimeTypeFacet, "application/vnd.visio");
             modifyLabelForMimeType(mimeTypeFacet, "application/msword");
-            System.out.println(mimeTypeFacet.get("fieldValuesLabel"));
         }
 
         private void modifyLabelForMimeType(Facet facet, String mimeType) {
