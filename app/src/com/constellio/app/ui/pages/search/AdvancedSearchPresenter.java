@@ -517,14 +517,21 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
-		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
+		if(searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
-		return new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
+		if(searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
 	}
 
 	public void logRecordView(RecordVO recordVO) {
