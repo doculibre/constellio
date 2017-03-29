@@ -10,5 +10,5 @@ import com.constellio.model.entities.records.Transaction;
 public interface ActionExecutor {
 
 	Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records, List<Record> processedRecords);
+			List<Record> records, List<Record> processedRecords, boolean dryRun);
 }

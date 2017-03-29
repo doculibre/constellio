@@ -13,6 +13,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -78,9 +79,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	User currentUser;
 	String robotId;
 	List<Record> processedRecords;
+	boolean dryRun;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-													 AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
+			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords, boolean dryRun) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -94,48 +96,59 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.robotId = robotId;
 		this.processedRecords = processedRecords;
+		this.dryRun = dryRun;
 	}
 
 	public void execute() {
 		transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
-		//TODO Test
-		//transaction.setSkippingRequiredValuesValidation(true);
+		// TODO Test
+		// transaction.setSkippingRequiredValuesValidation(true);
 
 		connectorFolder = es.wrapConnectorDocument(record);
 		classifyConnectorFolderInTaxonomy();
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new ClassifyServicesRuntimeException(e);
-		}
 
-		if (!newExclusions.isEmpty()) {
-			addNewExclusionToConnector(0);
-		}
+		if (!dryRun) {
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new ClassifyServicesRuntimeException(e);
+			}
 
-		if (params.getActionAfterClassification() == ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM) {
-			for (Record documentInTransaction : transaction.getRecords()) {
-				//FIXME sharepoint
-				if (documentInTransaction.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE
-						+ "_") /*|| documentInTransaction.getSchemaCode().startsWith(ConnectorSharepointDocument.SCHEMA_TYPE + "_")*/) {
-					ConnectorDocument<?> connectorDocument = es.wrapConnectorDocument(documentInTransaction);
-					connectorServices(connectorDocument).deleteDocumentOnRemoteComponent(connectorDocument);
-					try {
-						recordServices.add(robots.newRobotLog().setRobot(robotId)
-								.setTitle("Document '" + connectorDocument.getURL()
-										+ "' supprimé suite à sa classification dans Constellio"));
-					} catch (RecordServicesException e) {
-						throw new RuntimeException(e);
+			if (!newExclusions.isEmpty()) {
+				addNewExclusionToConnector(0);
+			}
+
+			if (params.getActionAfterClassification() == ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM) {
+				for (Record documentInTransaction : transaction.getRecords()) {
+					// FIXME sharepoint
+					if (documentInTransaction.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE
+							+ "_") /*|| documentInTransaction.getSchemaCode().startsWith(ConnectorSharepointDocument.SCHEMA_TYPE + "_")*/) {
+						ConnectorDocument<?> connectorDocument = es.wrapConnectorDocument(documentInTransaction);
+						connectorServices(connectorDocument).deleteDocumentOnRemoteComponent(connectorDocument);
+						logguerMessage(String.format("Document '%s' supprimé suite à sa classification dans Constellio",
+								connectorDocument.getURL()));
 					}
 				}
 			}
 		}
 	}
 
+	private void logguerMessage(String message) {
+		if (!dryRun) {
+			try {
+				LOGGER.info(message);
+				recordServices.add(robots.newRobotLog().setTitle(message).setRobot(robotId));
+			} catch (RecordServicesException e1) {
+				LOGGER.error("Failed to create the robot error log", e1);
+				throw new RuntimeException("Failed to create the robot error log", e1);
+			}
+		}
+	}
+
 	private void addNewExclusionToConnector(int i) {
-		//TODO TEST!!!
+		// TODO TEST!!!
 		try {
 			Transaction connectorInstanceTransaction = new Transaction();
 			connectorInstanceTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
@@ -156,7 +169,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 
-	//TODO Test
+	// TODO Test
 
 	private void classifyConnectorFolderInTaxonomy() {
 
@@ -177,21 +190,20 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 
-	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy,
-								 Metadata codeMetadata) {
+	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata) {
 
-		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(recordServices).extractInfoFromPath(
-				fullConnectorDocPath, params.getPathPrefix(), params.getDelimiter(), codeMetadata);
+		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(recordServices)
+				.extractInfoFromPath(fullConnectorDocPath, params.getPathPrefix(), params.getDelimiter(), codeMetadata);
 
 		if (recordPathInfo != null) {
 			processFolder(fullConnectorDocPath, targetTaxonomy, codeMetadata, recordPathInfo);
 		}
 	}
 
-	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy,
-							   Metadata codeMetadata, ClassifiedRecordPathInfo recordUrlInfo) {
-		LOGGER.info("processFolder(" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode() + ", "
-				+ recordUrlInfo + ")");
+	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata,
+			ClassifiedRecordPathInfo recordUrlInfo) {
+		LOGGER.info("Process Folder : [" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode()
+				+ ", " + recordUrlInfo + "]");
 		String folderName = recordUrlInfo.getLastPathSegment();
 		MetadataSchema folderSchema = rm.folder.schema();
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
@@ -200,8 +212,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (rmRecord == null) {
 			Record parentConcept = recordUrlInfo.getConceptWhereRecordIsCreated();
 			if (parentConcept != null) {
-				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema,
-						parentConcept);
+				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept);
 			} else if (targetTaxonomy != null) {
 				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName);
 			} else {
@@ -221,12 +232,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath);
 			classifyDocumentsFromFolder(rmFolder);
 		}
-		//		if (params.getActionAfterClassification().isConnectorDocumentExcluded()) {
-		//			markAsUnfetched(connectorFolder);
-		//		}
+		// if (params.getActionAfterClassification().isConnectorDocumentExcluded()) {
+		// markAsUnfetched(connectorFolder);
+		// }
 	}
 
 	private void processFolderWithoutTaxonomy(String folderName, String url) {
+		LOGGER.info("Process Folder Without Taxonomy : [" + folderName + ", " + url + "]");
 		MetadataSchema folderSchema = rm.folder.schema();
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, url);
@@ -244,10 +256,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 
 		rmFolder.setCreatedByRobot(robotId);
-		rmFolder.setParentFolder(parentFolder);
 		mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
-		if (params.getDefaultParentFolder() != null && parentFolder == null) {
-			rmFolder.setParentFolder(params.getDefaultParentFolder());
+		if (rmFolder.getParentFolder() == null) {
+			rmFolder.setParentFolder(parentFolder);
+			if (params.getDefaultParentFolder() != null && parentFolder == null) {
+				rmFolder.setParentFolder(params.getDefaultParentFolder());
+			}
 		}
 		recordServices.recalculate(rmFolder);
 		rmFolder.setFormModifiedOn(connectorFolder.getLastModified());
@@ -324,11 +338,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-										   MetadataSchema folderSchema, Record parentConcept) {
+			MetadataSchema folderSchema, Record parentConcept) {
 		Folder newRmFolder = rm.newFolder();
 		newRmFolder.setCreatedByRobot(robotId);
-		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy))
-				.get(0);
+		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy)).get(0);
 		if (taxoMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			taxoMetadata = getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(folderSchema, taxoMetadata);
 		}
@@ -381,6 +394,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				}
 			}
 		}
+
 
 		try {
 			transaction.add(rmDocument);
@@ -446,11 +460,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			return builder.toString();
 		}
 		//
-		//		if (fullPath.endsWith("/")) {
-		//			fullPath = fullPath.substring(0, fullPath.length() - 1);
-		//		}
+		// if (fullPath.endsWith("/")) {
+		// fullPath = fullPath.substring(0, fullPath.length() - 1);
+		// }
 		//
-		//		return org.apache.commons.lang3.StringUtils.substringBeforeLast(fullPath, "/");
+		// return org.apache.commons.lang3.StringUtils.substringBeforeLast(fullPath, "/");
 	}
 
 	private MetadataSchema adjustFolderSchema(Folder rmFolder, Map<String, String> folderEntry) {
@@ -480,20 +494,52 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	private void useAllDefaultValuesFromParams(Folder rmFolder) {
 
-		//rmFolder.setParentFolder(params.getDefaultParentFolder());
+		// rmFolder.setParentFolder(params.getDefaultParentFolder());
 		String taxonomy = params.getInTaxonomy();
-		if (!RMTaxonomies.ADMINISTRATIVE_UNITS.equals(taxonomy)) {
+		if (rmFolder.getAdministrativeUnitEntered() == null) {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
 
-		if (!RMTaxonomies.CLASSIFICATION_PLAN.equals(taxonomy) || rmFolder.getCategoryEntered() == null) {
+		if (rmFolder.getCategoryEntered() == null) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
+		if (rmFolder.getUniformSubdivisionEntered() == null) {
+			rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
+		}
+		if (rmFolder.getRetentionRuleEntered() == null) {
+			rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
 
-		rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
-		rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
-		rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
-		rmFolder.setOpenDate(params.getDefaultOpenDate());
+			if (rmFolder.getRetentionRuleEntered() == null && rmFolder.getCategoryEntered() != null) {
+				Category defaultCategory = rm.getCategory(rmFolder.getCategoryEntered());
+				List<String> retentionRules = defaultCategory.getRententionRules();
+				if (!retentionRules.isEmpty()) {
+					rmFolder.setRetentionRuleEntered(retentionRules.get(0));
+				}
+			}
+		}
+		if (rmFolder.getCopyStatusEntered() == null) {
+			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
+		}
+		if (rmFolder.getOpenDate() == null) {
+			rmFolder.setOpenDate(params.getDefaultOpenDate());
+		}
+
+		addMediumTypeToFolder(rmFolder);
+	}
+
+	private void addMediumTypeToFolder(Folder folder) {
+		Metadata metadata = folder.getSchema().get(Folder.MEDIUM_TYPES);
+		String referencedTypeCode = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+		Metadata codeMetadata = robots.getTypes().getDefaultSchema(referencedTypeCode).getMetadata("code");
+
+		Record mediumType = recordServices.getRecordByMetadata(codeMetadata, "MD");
+		if (mediumType == null) {
+			mediumType = recordServices.getRecordByMetadata(codeMetadata, "DM");
+		}
+
+		if (mediumType != null) {
+			folder.setMediumTypes(recordServices.getRecordsById(robots.getCollection(), Arrays.asList(mediumType.getId())));
+		}
 	}
 
 	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder) {
@@ -523,31 +569,31 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private void setMetadataInRmRecord(RecordWrapper rmRecord, MetadataSchema schema, String metadataCode, String value) {
 		Metadata metadata = schema.getMetadata(metadataCode);
 		switch (metadata.getType()) {
-			case STRING:
-				if (metadata.isMultivalue()) {
-					rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
-				} else {
-					rmRecord.set(metadataCode, value);
-				}
-				break;
-			case REFERENCE:
-				String collection = rmRecord.getCollection();
-				MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
-				MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
-				MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
-				Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
-				Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
-				rmRecord.set(metadataCode, referencedRecord.getId());
-				break;
-			case ENUM:
-				rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
-				break;
-			case DATE:
-				rmRecord.set(metadataCode, parseDate(value));
-				break;
-			case DATE_TIME:
-				rmRecord.set(metadataCode, parseDateTime(value));
-				break;
+		case STRING:
+			if (metadata.isMultivalue()) {
+				rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
+			} else {
+				rmRecord.set(metadataCode, value);
+			}
+			break;
+		case REFERENCE:
+			String collection = rmRecord.getCollection();
+			MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
+			MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
+			Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
+			Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
+			rmRecord.set(metadataCode, referencedRecord.getId());
+			break;
+		case ENUM:
+			rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
+			break;
+		case DATE:
+			rmRecord.set(metadataCode, parseDate(value));
+			break;
+		case DATE_TIME:
+			rmRecord.set(metadataCode, parseDateTime(value));
+			break;
 		}
 	}
 
@@ -562,7 +608,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	public Map<String, ClassifiedDocument> classifyDocuments(String inRmFolder, List<ConnectorDocument<?>> documentsRecords,
-															 Boolean majorVersions) {
+			Boolean majorVersions) {
 		Map<String, ClassifiedDocument> createdRecordsByUrls = new HashMap<>();
 		for (ConnectorDocument document : documentsRecords) {
 			try {
@@ -598,14 +644,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				List<String> availableVersions = connectorServices(connectorDocument)
 						.getAvailableVersions(connectorDocument.getConnector(), connectorDocument);
 				for (String availableVersion : availableVersions) {
-					InputStream versionStream = connectorServices(connectorDocument)
-							.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
+					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument,
+							CLASSIFY_DOCUMENT, availableVersion);
 					newVersionDataSummary = contentManager.upload(versionStream, false, true, connectorDocument.getTitle());
 					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {
-				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
-						connectorDocument, CLASSIFY_DOCUMENT);
+				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument,
+						CLASSIFY_DOCUMENT);
 
 				String version;
 				if (document.getContent() != null) {
@@ -619,12 +665,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
-		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument|IcapException e) {
+		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument | IcapException e) {
 			Exception exception = e;
 
 			if (e instanceof IcapException) {
 				if (e instanceof IcapException.ThreatFoundException) {
-					exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+					exception = new IcapException(
+							$(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
 				} else {
 					if (e.getCause() == null) {
 						exception = new IcapException($(e, ((IcapException) e).getFileName()));
@@ -643,16 +690,16 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
-									  ContentVersionDataSummary newVersionDataSummary, Document document) {
+			ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
-				document.getContent().updateContentWithVersionAndName(
-						currentUser, newVersionDataSummary, versionNumber, connectorDocument.getTitle());
+				document.getContent().updateContentWithVersionAndName(currentUser, newVersionDataSummary, versionNumber,
+						connectorDocument.getTitle());
 				document.setContent(document.getContent());
 			}
 		} else {
-			document.setContent(contentManager
-					.createWithVersion(currentUser, connectorDocument.getTitle(), newVersionDataSummary, versionNumber));
+			document.setContent(contentManager.createWithVersion(currentUser, connectorDocument.getTitle(), newVersionDataSummary,
+					versionNumber));
 		}
 	}
 
