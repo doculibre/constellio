@@ -3,16 +3,20 @@ package com.constellio.app.modules.rm.ui.pages.systemCheck;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.server.*;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView {
 
@@ -20,13 +24,17 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 
 	private VerticalLayout mainLayout;
 
-	private HorizontalLayout buttonsLayout;
+	private HorizontalLayout buttonsLayout, referenceLayout;
 
 	private Label systemCheckInfoLabel;
 
 	private Button startSystemCheckButton;
 
 	private Button startSystemCheckAndRepairButton;
+
+	private Button optainsReferences;
+
+	private TextField idField;
 
 	private BaseTextArea reportContentField;
 
@@ -64,7 +72,22 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 		reportContentField.setHeight("100%");
 		reportContentField.setEnabled(true);
 
-		mainLayout.addComponents(systemCheckInfoLabel, buttonsLayout, reportContentField);
+		referenceLayout = new HorizontalLayout();
+		idField = new TextField();
+
+		StreamResource report = null;
+		optainsReferences = new Button($("SystemCheckView.optainsReferences"));
+		optainsReferences.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				File report = presenter.getReferencesFor(idField.getValue());
+				Resource resource = DownloadLink.wrapForDownload(new FileResource(report));
+				Page.getCurrent().open(resource, "download", false);
+			}
+		});
+		referenceLayout.addComponents(idField, optainsReferences);
+
+		mainLayout.addComponents(systemCheckInfoLabel, buttonsLayout, reportContentField, referenceLayout);
 		buttonsLayout.addComponents(startSystemCheckButton, startSystemCheckAndRepairButton);
 
 		return mainLayout;
