@@ -15,7 +15,6 @@ public class TaskListAddRemoveLinkedDocumentsLookupField extends ListAddRemoveFi
         return new TaskLinkedDocumentsFieldImpl();
     }
 
-    //FIXME should be always Vo or not
     @Override
     protected String getItemCaption(Object itemId) {
         return converter.convertToPresentation((String) itemId, String.class, getLocale());
