@@ -35,10 +35,7 @@ public class RMTaskSchemaExtension extends RecordExtension {
         String schemaReactivationRequest = Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME;
         String schemaReturnRequest = Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME;
 
-        if (schemaExtensionRequest.equals(event.getSchemaTypeCode()) ||
-                schemaBorrowRequest.equals(event.getSchemaTypeCode()) ||
-                schemaReactivationRequest.equals(event.getSchemaTypeCode()) ||
-                schemaReturnRequest.equals(event.getSchemaTypeCode())) {
+        if (Task.SCHEMA_TYPE.equals(event.getSchemaTypeCode())) {
             return ExtensionBooleanResult.FALSE;
         }
         return super.isLogicallyDeletable(event);
