@@ -419,6 +419,10 @@ $popup-view-z-index: 3;
     }
 
 	.base-display {
+		
+		.base-display-main-layout {
+			width: 100%;
+		}
 
 		.v-label-undef-w {
 			white-space: normal;

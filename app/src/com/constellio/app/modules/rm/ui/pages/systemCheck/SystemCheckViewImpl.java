@@ -73,6 +73,7 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 		reportContentField.setEnabled(true);
 
 		referenceLayout = new HorizontalLayout();
+		referenceLayout.setSpacing(true);
 		idField = new TextField();
 
 		StreamResource report = null;

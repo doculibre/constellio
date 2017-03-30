@@ -265,12 +265,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		criterion.setWidth("100%");
 
-		@SuppressWarnings("unchecked") List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
+		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
 		for (MetadataVO metadata : sortableMetadata) {
 			criterion.addItem(metadata.getCode());
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
-		criterion.setPageLength(criterion.size());
+//		criterion.setPageLength(criterion.size());
 		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();

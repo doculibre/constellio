@@ -603,6 +603,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		table.setWidth("100%");
 
 		return new FolderDetailTableGenerator(presenter, this, containerizable)
+				.displayingLegacyId(presenter.shouldDisplayLegacyId())
 				.displayingRetentionRule(presenter.shouldDisplayRetentionRuleInDetails())
 				.displayingCategory(presenter.shouldDisplayCategoryInDetails())
 				.displayingSort(presenter.shouldDisplaySort())
