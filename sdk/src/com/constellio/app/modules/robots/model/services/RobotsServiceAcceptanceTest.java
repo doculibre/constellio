@@ -26,7 +26,6 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 	private final String rootRobotId = "rootRobotId";
 	private final String child1Id = "child1";
 	private final String child2Id = "child2";
-	private final String anothertRobotId = "anothertRobotId";
 
 	private RobotSchemaRecordServices robots;
 	private RobotsService robotsService;
@@ -40,11 +39,12 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 	private Robot child12;
 	private Robot child21;
 
-	private Robot anotherRobot;
-
-
-	private String dummyActionParametersId = "dummyActionParametersId";
-	private String anotherDummyActionParametersId = "anotherDummyActionParametersId";
+	private String rootRobotActionParametersId = "rootRobotActionParametersId";
+	private String child1ActionParametersId = "child1ActionParametersId";
+	private String child2ActionParametersId = "child2ActionParametersId";
+	private String child11ActionParametersId = "child11ActionParametersId";
+	private String child12ActionParametersId = "child12ActionParametersId";
+	private String child21ActionParametersId = "child21ActionParametersId";
 
 	@Before
 	public void setUp()
@@ -61,8 +61,12 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 		actionParameterSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getSchema(ActionParameters.DEFAULT_SCHEMA);
 
-		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(dummyActionParametersId));
-		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(anotherDummyActionParametersId));
+		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(rootRobotActionParametersId));
+		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(child1ActionParametersId));
+		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(child2ActionParametersId));
+		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(child11ActionParametersId));
+		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(child12ActionParametersId));
+		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(child21ActionParametersId));
 		createRobotsHierarchy();
 
 	}
@@ -72,14 +76,8 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 		robotsService.deleteRobotHierarchy(rootRobotId);
 
 		assertThat(robots.searchRobots(allRobotsQuery())).isEmpty();
-	}
-
-	@Test
-	public void whenDeletingRobotThenActionParameterDeleted() {
-		robotsService.deleteRobotHierarchy(anothertRobotId);
-
 		List<ActionParameters> actionParametersList = robots.searchActionParameterss(new LogicalSearchQuery(LogicalSearchQueryOperators.from(actionParameterSchema).returnAll()));
-		assertThat(actionParametersList).extracting("id").containsExactly(dummyActionParametersId);
+		assertThat(actionParametersList).isEmpty();
 	}
 
 	@Test
@@ -99,13 +97,12 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		Transaction transaction = new Transaction();
 
-		rootRobot = newRobot(rootRobotId).setTitle("Root robot");
-		child1 = newRobot(child1Id).setTitle("Child 1").setParent(rootRobot);
-		child2 = newRobot(child2Id).setTitle("Child 2").setParent(rootRobot);
-		child11 = newRobot("child11").setTitle("Child 1.1").setParent(child1);
-		child12 = newRobot("child12").setTitle("Child 1.2").setParent(child1);
-		child21 = newRobot("child21").setTitle("Child 2.1").setParent(child2);
-		anotherRobot = newRobot(anothertRobotId).setTitle("Child 2.1").setParent(child2).setActionParameters(anotherDummyActionParametersId);
+		rootRobot = newRobot(rootRobotId).setTitle("Root robot").setActionParameters(rootRobotActionParametersId);
+		child1 = newRobot(child1Id).setTitle("Child 1").setParent(rootRobot).setActionParameters(child1ActionParametersId);
+		child2 = newRobot(child2Id).setTitle("Child 2").setParent(rootRobot).setActionParameters(child2ActionParametersId);
+		child11 = newRobot("child11").setTitle("Child 1.1").setParent(child1).setActionParameters(child11ActionParametersId);
+		child12 = newRobot("child12").setTitle("Child 1.2").setParent(child1).setActionParameters(child12ActionParametersId);
+		child21 = newRobot("child21").setTitle("Child 2.1").setParent(child2).setActionParameters(child21ActionParametersId);
 
 		transaction.add(rootRobot);
 		transaction.add(child1);
@@ -113,7 +110,6 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 		transaction.add(child11);
 		transaction.add(child12);
 		transaction.add(child21);
-		transaction.add(anotherRobot);
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 	}
@@ -123,7 +119,6 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 		robot.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE);
 		robot.setSearchCriterion(new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE).where(TITLE).isEqualTo("Chuck Norris"));
 		robot.setAction("zeAction");
-		robot.setActionParameters(dummyActionParametersId);
 		robot.setExcludeProcessedByChildren(true);
 		return robot;
 	}
