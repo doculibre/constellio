@@ -17,4 +17,6 @@ public interface DecommissioningListView extends BaseView, ArchivesManagementVie
 	FolderDetailVO getPackageableFolder(String key);
 
 	ContainerVO getContainer(ContainerRecord containerRecord);
+
+	void addUpdateContainer(ContainerVO containerVO);
 }

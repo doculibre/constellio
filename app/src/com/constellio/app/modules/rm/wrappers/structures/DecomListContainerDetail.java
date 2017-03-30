@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 public class DecomListContainerDetail implements ModifiableStructure {
 
 	String containerRecordId;
+	Double availableSize;
 	boolean full;
 	boolean dirty;
 
@@ -35,6 +36,16 @@ public class DecomListContainerDetail implements ModifiableStructure {
 	public DecomListContainerDetail setFull(Boolean full) {
 		dirty = true;
 		this.full = Boolean.TRUE.equals(full);
+		return this;
+	}
+
+	public Double getAvailableSize() {
+		return availableSize;
+	}
+
+	public DecomListContainerDetail setAvailableSize(Double availableSize) {
+		dirty = true;
+		this.availableSize = availableSize;
 		return this;
 	}
 
