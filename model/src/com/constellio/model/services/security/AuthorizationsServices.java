@@ -1021,8 +1021,18 @@ public class AuthorizationsServices {
 		if (principals.isEmpty()) {
 			return null;
 		} else {
-			addAuthorizationToPrincipals(principals, detail.getId());
-			transaction.addAll(principals);
+
+			for (Record principal : principals) {
+				Record principalInTransaction = transaction.getRecord(principal.getId());
+				if (principalInTransaction == null) {
+					principalInTransaction = principal;
+					transaction.add(principal);
+				}
+				addAuthorizationToPrincipal(detail.getId(), principalInTransaction);
+			}
+
+			//addAuthorizationToPrincipals(principals, detail.getId());
+			//transaction.addAll(principals);
 			return detail;
 		}
 	}
