@@ -3,19 +3,15 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import org.joda.time.LocalDate;
-
-import java.util.List;
 
 /**
  * Created by Constellio on 2017-03-23.
@@ -70,18 +66,8 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
     }
 
     private void completeReturnRequest(RMTask task) {
-        List<String> linkedFolders = task.getLinkedFolders();
-        Transaction transaction = new Transaction();
-        if(linkedFolders != null) {
-            List<Folder> folders = rmSchemas.getFolders(linkedFolders);
-            for(Folder folder: folders) {
-                folder.setBorrowed(null);
-                transaction.add(folder);
-            }
-        }
-
         try {
-            appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
+            borrowingServices.returnRecordsFromTask(task.getId(), LocalDate.now(), userServices.getUserInCollection(task.getAssigner(), collection));
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }
