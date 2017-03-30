@@ -123,6 +123,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_0_10_5(),
 				new RMMigrationTo7_1(),
 				new RMMigrationTo7_1_1(),
+				new RMMigrationTo7_1_2(),
 				new RMMigrationTo7_1_3()
 		);
 	}
@@ -230,7 +231,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.selectionPanelExtensions.add(new RMSelectionPanelExtension(appLayerFactory, collection));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
-//		extensions.lockedRecords.add(MediumType.SCHEMA_TYPE, MediumType.);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.RETURN_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.REACTIVATION_REQUEST);
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -253,7 +256,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMBorrowTaskApprovedExtension(collection, appLayerFactory));
-		extensions.recordExtensions.add(new RMTaskSchemaExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);

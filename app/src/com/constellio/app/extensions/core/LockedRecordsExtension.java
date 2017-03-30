@@ -2,16 +2,18 @@ package com.constellio.app.extensions.core;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 
 /**
- * Created by constellios on 2017-03-30.
+ * Created by Charles Blanchette on 2017-03-30.
  */
 public class LockedRecordsExtension extends RecordExtension {
 
+    public static final String CODE_OR_LINKED_SCHEMA_MUST_NOT_BE_MODIFIED = "codeOrLinkedSchemaMustNotBeModified";
     AppLayerFactory appLayerFactory;
     AppLayerCollectionExtensions collectionExtensions;
 
@@ -24,20 +26,22 @@ public class LockedRecordsExtension extends RecordExtension {
     @Override
     public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
 
-        //collectionExtensions.lockedRecords
-
         if (collectionExtensions.lockedRecords.contains(event.getSchemaTypeCode())) {
-            String recordCode = event.getRecord().get(Schemas.CODE);
+            String recordCode = event.getRecord().getCopyOfOriginalRecord().get(Schemas.CODE);
+            String recordLinkedSchema = event.getRecord().getCopyOfOriginalRecord().get(Schemas.LINKED_SCHEMA);
             if (collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(recordCode)) {
-                //ensure nothing import has been changed
-
-                //Le code et le champ linkedSchema doivent être restés intactes
+                if (!recordCode.equals(event.getRecord().get(Schemas.CODE)) || !recordLinkedSchema.equals(event.getRecord().get(Schemas.LINKED_SCHEMA))) {
+                    event.getValidationErrors().add(LockedRecordsExtension.class, CODE_OR_LINKED_SCHEMA_MUST_NOT_BE_MODIFIED);
+                }
             }
-
         }
+    }
 
-        super.recordInModificationBeforeSave(event);
-
-
+    @Override
+    public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+        if (collectionExtensions.lockedRecords.contains(event.getSchemaTypeCode())) {
+            return ExtensionBooleanResult.FALSE;
+        }
+        return super.isLogicallyDeletable(event);
     }
 }

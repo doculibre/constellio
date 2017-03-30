@@ -10,6 +10,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 public class RMTaskType extends TaskType {
 
     public static final String BORROW_REQUEST = "borrowRequest";
+    public static final String RETURN_REQUEST = "returnRequest";
+    public static final String REACTIVATION_REQUEST = "reactivationRequest";
+    public static final String BORROW_EXTENSION_REQUEST = "borrowExtensionRequest";
 
     public RMTaskType(Record record, MetadataSchemaTypes types) {
         super(record, types);
