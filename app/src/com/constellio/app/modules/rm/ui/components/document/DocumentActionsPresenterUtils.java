@@ -319,24 +319,28 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public synchronized void createPDFA() {
 		DocumentVO documentVO = getDocumentVO();
-		Record record = presenterUtils.getRecord(documentVO.getId());
-		Document document = new Document(record, presenterUtils.types());
-		Content content = document.getContent();
-		ContentConversionManager conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
-		if (content != null) {
-			try {
-				conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
-				conversionManager.convertContentToPDFA(getCurrentUser(), content);
-				presenterUtils.addOrUpdate(document.getWrappedRecord());
+		if(!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")){
+			Record record = presenterUtils.getRecord(documentVO.getId());
+			Document document = new Document(record, presenterUtils.types());
+			Content content = document.getContent();
+			ContentConversionManager conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+			if (content != null) {
+				try {
+					conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+					conversionManager.convertContentToPDFA(getCurrentUser(), content);
+					presenterUtils.addOrUpdate(document.getWrappedRecord());
 
-				decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
+					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-				actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
-			} catch (Exception e) {
-				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
-			} finally {
-				conversionManager.close();
+					actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+				} catch (Exception e) {
+					actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
+				} finally {
+					conversionManager.close();
+				}
 			}
+		} else {
+			actionsComponent.showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
 	}
 
