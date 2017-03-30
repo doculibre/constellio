@@ -48,12 +48,14 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     AppLayerFactory appLayerFactory;
     ModelLayerFactory modelLayerFactory;
     TasksSchemasRecordsServices taskSchemas;
+    RMSchemasRecordsServices rmSchemas;
 
     public RMBorrowRequestButtonExtension(String collection, AppLayerFactory appLayerFactory) {
         this.collection = collection;
         this.appLayerFactory = appLayerFactory;
         this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
         this.taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+        this.rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
     }
 
     @Override
@@ -134,9 +136,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
                                 $("cancel"),
                                 new ConfirmDialog.Listener() {
                                     public void onClose(ConfirmDialog dialog) {
-                                        if (dialog.isConfirmed()) {
-                                            borrowRequest(view, true);
-                                        } else if (dialog.isCanceled()) {
+                                        if (dialog.isCanceled()) {
                                             return;
                                         } else {
                                             borrowRequest(view, false);
@@ -263,14 +263,17 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
                 DisplayFolderViewImpl displayFolderView = (DisplayFolderViewImpl) view;
                 Task borrowRequest;
                 if(isContainer) {
-                    borrowRequest = taskSchemas.newBorrowContainerRequestTask(getCurrentUser(view).getId(), (String) displayFolderView.getRecord().get(Folder.CONTAINER));
+                    String recordId = (String) displayFolderView.getRecord().get(Folder.CONTAINER);
+                    borrowRequest = taskSchemas.newBorrowContainerRequestTask(getCurrentUser(view).getId(), getAssignees(recordId), recordId);
                 } else {
-                    borrowRequest = taskSchemas.newBorrowFolderRequestTask(getCurrentUser(view).getId(), displayFolderView.getRecord().getId());
+                    String recordId = displayFolderView.getRecord().getId();
+                    borrowRequest = taskSchemas.newBorrowFolderRequestTask(getCurrentUser(view).getId(), getAssignees(recordId), recordId);
                 }
                 modelLayerFactory.newRecordServices().add(borrowRequest);
             } else if (view instanceof DisplayContainerViewImpl) {
                 DisplayContainerViewImpl displayContainerView = (DisplayContainerViewImpl) view;
-                Task borrowRequest = taskSchemas.newBorrowContainerRequestTask(getCurrentUser(view).getId(), displayContainerView.getPresenter().getContainerId());
+                String containerId = displayContainerView.getPresenter().getContainerId();
+                Task borrowRequest = taskSchemas.newBorrowContainerRequestTask(getCurrentUser(view).getId(), getAssignees(containerId), containerId);
                 modelLayerFactory.newRecordServices().add(borrowRequest);
             } else throw new UnsupportedOperationException("invalid view : " + view.getClass().getCanonicalName());
         } catch (RecordServicesException e) {
@@ -282,11 +285,13 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
         try {
             if (view instanceof DisplayFolderViewImpl) {
                 DisplayFolderViewImpl displayFolderView = (DisplayFolderViewImpl) view;
-                Task returnRequest = taskSchemas.newReturnFolderRequestTask(getCurrentUser(view).getId(), displayFolderView.getRecord().getId());
+                String folderId = displayFolderView.getRecord().getId();
+                Task returnRequest = taskSchemas.newReturnFolderRequestTask(getCurrentUser(view).getId(), getAssignees(folderId), folderId);
                 modelLayerFactory.newRecordServices().add(returnRequest);
             } else if (view instanceof DisplayContainerViewImpl) {
                 DisplayContainerViewImpl displayFolderView = (DisplayContainerViewImpl) view;
-                Task returnRequest = taskSchemas.newReturnContainerRequestTask(getCurrentUser(view).getId(), displayFolderView.getPresenter().getContainerId());
+                String containerId = displayFolderView.getPresenter().getContainerId();
+                Task returnRequest = taskSchemas.newReturnContainerRequestTask(getCurrentUser(view).getId(), getAssignees(containerId), containerId);
                 modelLayerFactory.newRecordServices().add(returnRequest);
             } else throw new UnsupportedOperationException("invalid view : " + view.getClass().getCanonicalName());
         } catch (RecordServicesException e) {
@@ -298,11 +303,13 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
         try {
             if (view instanceof DisplayFolderViewImpl) {
                 DisplayFolderViewImpl displayFolderView = (DisplayFolderViewImpl) view;
-                Task reactivationRequest = taskSchemas.newReactivateFolderRequestTask(getCurrentUser(view).getId(), displayFolderView.getRecord().getId());
+                String folderId = displayFolderView.getRecord().getId();
+                Task reactivationRequest = taskSchemas.newReactivateFolderRequestTask(getCurrentUser(view).getId(), getAssignees(folderId), folderId);
                 modelLayerFactory.newRecordServices().add(reactivationRequest);
             } else if (view instanceof DisplayContainerViewImpl) {
                 DisplayContainerViewImpl displayContainerView = (DisplayContainerViewImpl) view;
-                Task reactivationRequest = taskSchemas.newReactivationContainerRequestTask(getCurrentUser(view).getId(), displayContainerView.getPresenter().getContainerId());
+                String containerId = displayContainerView.getPresenter().getContainerId();
+                Task reactivationRequest = taskSchemas.newReactivationContainerRequestTask(getCurrentUser(view).getId(), getAssignees(containerId), containerId);
                 modelLayerFactory.newRecordServices().add(reactivationRequest);
             } else throw new UnsupportedOperationException("invalid view : " + view.getClass().getCanonicalName());
         } catch (RecordServicesException e) {
@@ -314,11 +321,13 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
         try {
             if (view instanceof DisplayFolderViewImpl) {
                 DisplayFolderViewImpl displayFolderView = (DisplayFolderViewImpl) view;
-                Task borrowExtensionRequest = taskSchemas.newBorrowFolderExtensionRequestTask(getCurrentUser(view).getId(), displayFolderView.getRecord().getId(), new LocalDate(req.getValue()));
+                String folderId = displayFolderView.getRecord().getId();
+                Task borrowExtensionRequest = taskSchemas.newBorrowFolderExtensionRequestTask(getCurrentUser(view).getId(), getAssignees(folderId), folderId, new LocalDate(req.getValue()));
                 modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
             } else if (view instanceof DisplayContainerViewImpl) {
                 DisplayContainerViewImpl displayContainerView = (DisplayContainerViewImpl) view;
-                Task borrowExtensionRequest = taskSchemas.newBorrowContainerExtensionRequestTask(getCurrentUser(view).getId(), displayContainerView.getPresenter().getContainerId(), new LocalDate(req.getValue()));
+                String containerId = displayContainerView.getPresenter().getContainerId();
+                Task borrowExtensionRequest = taskSchemas.newBorrowContainerExtensionRequestTask(getCurrentUser(view).getId(), getAssignees(containerId), containerId, new LocalDate(req.getValue()));
                 modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
             } else throw new UnsupportedOperationException("invalid view : " + view.getClass().getCanonicalName());
         } catch (RecordServicesException e) {
@@ -387,5 +396,10 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
             this.type = type;
             return this;
         }
+    }
+
+    private List<String> getAssignees(String recordId) {
+        return modelLayerFactory.newAuthorizationsServices()
+                .getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER, modelLayerFactory.newRecordServices().getDocumentById(recordId));
     }
 }

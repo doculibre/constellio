@@ -11,7 +11,6 @@ public class ReactivationRequest extends Task {
 
     public static final String SCHEMA_NAME = "reactivationRequest";
     public static final String ACCEPTED = "accepted";
-    public static final String COMPLETED_BY = "completedBy";
 
     public ReactivationRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);

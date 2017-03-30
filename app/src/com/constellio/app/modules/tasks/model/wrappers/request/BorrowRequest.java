@@ -11,7 +11,6 @@ public class BorrowRequest extends Task {
 
     public static final String SCHEMA_NAME = "borrowRequest";
     public static final String ACCEPTED = "accepted";
-    public static final String COMPLETED_BY = "completedBy";
 
     public BorrowRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);
