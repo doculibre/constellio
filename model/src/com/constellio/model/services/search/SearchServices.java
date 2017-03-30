@@ -32,6 +32,7 @@ import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
@@ -373,6 +374,11 @@ public class SearchServices {
 			if (!fieldsWithBoosts.contains(analyzedField)) {
 				sb.append(analyzedField + " ");
 			}
+		}
+
+		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+		if (!fieldsWithBoosts.contains(idAnalyzedField)) {
+			sb.append(idAnalyzedField + " ");
 		}
 
 		//		sb.append("search_txt_");
