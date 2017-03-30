@@ -76,11 +76,11 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 		referenceLayout.setSpacing(true);
 		idField = new TextField();
 
-		StreamResource report = null;
 		optainsReferences = new Button($("SystemCheckView.optainsReferences"));
 		optainsReferences.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
+				System.out.println(idField.getValue());
 				File report = presenter.getReferencesFor(idField.getValue());
 				Resource resource = DownloadLink.wrapForDownload(new FileResource(report));
 				Page.getCurrent().open(resource, "download", false);
