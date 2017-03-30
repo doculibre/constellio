@@ -206,4 +206,9 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		}
 	}
 
+	void backgroundViewMonitor() {
+		userFoldersDataProvider.fireDataRefreshEvent();
+		userDocumentsDataProvider.fireDataRefreshEvent();
+	}
+
 }
