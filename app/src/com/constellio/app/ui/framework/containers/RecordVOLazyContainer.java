@@ -3,6 +3,8 @@ package com.constellio.app.ui.framework.containers;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
@@ -107,23 +109,46 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			super(true, batchSize, null);
 			this.dataProviders = dataProviders;
 
+			List<MetadataVO> propertyMetadataVOs = new ArrayList<>();
+			List<MetadataVO> tablePropertyMetadataVOs = new ArrayList<>();
+			List<MetadataVO> extraPropertyMetadataVOs = new ArrayList<>();
 			List<MetadataVO> queryMetadataVOs = new ArrayList<>();
+			
 			for (RecordVODataProvider dataProvider : dataProviders) {
 				MetadataSchemaVO schema = dataProvider.getSchema();
-				List<MetadataVO> dataProviderQueryMetadataVOs = schema.getTableMetadatas();
+				List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
+				tablePropertyMetadataVOs.addAll(dataProviderTableMetadataVOs);
+				List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
 				if (!tableMetadatasOnly) {
-					List<MetadataVO> dataProviderAllMetadataVOs = schema.getDisplayMetadatas();
-					for (MetadataVO metadataVO : dataProviderAllMetadataVOs) {
+					List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
+					for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
 						if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
 							dataProviderQueryMetadataVOs.add(metadataVO);
 						}
 					}
 				}
-				for (MetadataVO metadata : dataProviderQueryMetadataVOs) {
-					if (!queryMetadataVOs.contains(metadata)) {
-						super.addProperty(metadata, metadata.getJavaType(), null, true, true);
+				for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
+					if (!queryMetadataVOs.contains(metadataVO)) {
+						if (dataProviderTableMetadataVOs.contains(metadataVO)) {
+							tablePropertyMetadataVOs.add(metadataVO);
+						} else {
+							extraPropertyMetadataVOs.add(metadataVO);
+						}
 					}
 				}
+			}
+			
+			Collections.sort(extraPropertyMetadataVOs, new Comparator<MetadataVO>() {
+				@Override
+				public int compare(MetadataVO o1, MetadataVO o2) {
+					return o1.getLabel().compareTo(o2.getLabel());
+				}
+			});
+			propertyMetadataVOs.addAll(tablePropertyMetadataVOs);
+			propertyMetadataVOs.addAll(extraPropertyMetadataVOs);
+			
+			for (MetadataVO metadataVO : propertyMetadataVOs) {
+				super.addProperty(metadataVO, metadataVO.getJavaType(), null, true, true);
 			}
 		}
 	}

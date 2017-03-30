@@ -386,6 +386,13 @@ $popup-view-z-index: 3;
 	    opacity: 0.4;
 	    filter: alpha(opacity=40); /* msie */
 	}
+	
+	.v-contextmenu {
+		.popupContent {
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+	}
 
     body, div, p, h2, h3, pre {
 		-webkit-user-select: text;
@@ -1352,6 +1359,17 @@ $popup-view-z-index: 3;
 
 				.v-slot-list-add-remove-comment {
 					width: 100%;
+				}
+			}
+	
+			.retention-rule-display {
+				
+				.v-slot-display-value {
+				
+					.display-value-retentionRule_default_copyRetentionRules, .display-value-retentionRule_default_documentCopyRetentionRules {
+						padding-right: 0px;
+					}
+					
 				}
 			}
         }
