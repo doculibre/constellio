@@ -52,6 +52,10 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		presenter.forContainerId(event.getParameters());
 	}
 
+	public DisplayContainerPresenter getPresenter() {
+		return this.presenter;
+	}
+
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
