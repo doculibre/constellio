@@ -57,4 +57,14 @@ public class RMTask extends Task {
 		set(LINKED_DOCUMENTS, linkedDocuments);
 		return this;
 	}
+
+	public List<String> getLinkedContainers() {
+		return getList(LINKED_CONTAINERS);
+	}
+
+	@Override
+	public RMTask setLinkedContainers(List<?> linkedContainers) {
+		set(LINKED_CONTAINERS, linkedContainers);
+		return this;
+	}
 }

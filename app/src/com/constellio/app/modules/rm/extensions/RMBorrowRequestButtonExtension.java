@@ -4,19 +4,14 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerView;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -25,15 +20,12 @@ import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorato
 import com.constellio.app.ui.pages.base.BasePresenterUtils;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.*;
-import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -100,35 +92,66 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
 
     private Button buildRequestBorrowButton(final BaseViewImpl view) {
         if (view instanceof DisplayFolderViewImpl) {
-            return new BaseButton($("DisplayFolderView.borrow")) {
-                @Override
-                protected void buttonClick(ClickEvent event) {
-                    ConfirmDialog.show(
-                            UI.getCurrent(),
-                            $("DisplayFolderViewImpl.requestBorrowButtonTitle"),
-                            $("DisplayFolderViewImpl.requestBorrowButtonMessage"),
-                            $("cancel"),
-                            $("DisplayFolderView.borrowContainerInstead"),
-                            $("DisplayFolderView.confirmBorrowFolder"),
-                            new ConfirmDialog.Listener() {
-                                public void onClose(ConfirmDialog dialog) {
-                                    if (dialog.isConfirmed()) {
-                                        borrowRequest(view);
-                                    } else if (dialog.isCanceled()) {
-                                        return;
-                                    } else {
-                                        borrowRequest(view);
+            if(((DisplayFolderViewImpl) view).getRecord().get(Folder.CONTAINER) != null) {
+                return new BaseButton($("DisplayFolderView.borrow")) {
+                    @Override
+                    protected void buttonClick(ClickEvent event) {
+                        ConfirmDialog.show(
+                                UI.getCurrent(),
+                                $("DisplayFolderViewImpl.requestBorrowButtonTitle"),
+                                $("DisplayFolderViewImpl.requestBorrowButtonMessage"),
+                                $("cancel"),
+                                $("DisplayFolderView.borrowContainerInstead"),
+                                $("DisplayFolderView.confirmBorrowFolder"),
+                                new ConfirmDialog.Listener() {
+                                    public void onClose(ConfirmDialog dialog) {
+                                        if (dialog.isConfirmed()) {
+                                            borrowRequest(view, true);
+                                        } else if (dialog.isCanceled()) {
+                                            return;
+                                        } else {
+                                            borrowRequest(view, false);
+                                        }
                                     }
-                                }
-                            }).setWidth("55%");
+                                }).setWidth("55%");
 
-                }
+                    }
 
-                @Override
-                public boolean isVisible() {
-                    return !isRecordBorrowed(view);
-                }
-            };
+                    @Override
+                    public boolean isVisible() {
+                        return !isRecordBorrowed(view);
+                    }
+                };
+            } else {
+                return new BaseButton($("DisplayFolderView.borrow")) {
+                    @Override
+                    protected void buttonClick(ClickEvent event) {
+                        ConfirmDialog.show(
+                                UI.getCurrent(),
+                                $("DisplayFolderViewImpl.requestBorrowButtonTitle"),
+                                $("DisplayFolderViewImpl.requestBorrowButtonMessage"),
+                                $("DisplayFolderView.confirmBorrowFolder"),
+                                $("cancel"),
+                                new ConfirmDialog.Listener() {
+                                    public void onClose(ConfirmDialog dialog) {
+                                        if (dialog.isConfirmed()) {
+                                            borrowRequest(view, true);
+                                        } else if (dialog.isCanceled()) {
+                                            return;
+                                        } else {
+                                            borrowRequest(view, false);
+                                        }
+                                    }
+                                }).setWidth("55%");
+
+                    }
+
+                    @Override
+                    public boolean isVisible() {
+                        return !isRecordBorrowed(view);
+                    }
+                };
+            }
         } else if (view instanceof DisplayContainerViewImpl) {
             return new ConfirmDialogButton($("DisplayFolderView.borrow")) {
 
@@ -139,7 +162,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
 
                 @Override
                 protected void confirmButtonClick(ConfirmDialog dialog) {
-                    borrowRequest(view);
+                    borrowRequest(view, true);
                 }
 
                 @Override
@@ -234,11 +257,16 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
         };
     }
 
-    public void borrowRequest(BaseViewImpl view) {
+    public void borrowRequest(BaseViewImpl view, boolean isContainer) {
         try {
             if (view instanceof DisplayFolderViewImpl) {
                 DisplayFolderViewImpl displayFolderView = (DisplayFolderViewImpl) view;
-                Task borrowRequest = taskSchemas.newBorrowFolderRequestTask(getCurrentUser(view).getId(), displayFolderView.getRecord().getId());
+                Task borrowRequest;
+                if(isContainer) {
+                    borrowRequest = taskSchemas.newBorrowContainerRequestTask(getCurrentUser(view).getId(), (String) displayFolderView.getRecord().get(Folder.CONTAINER));
+                } else {
+                    borrowRequest = taskSchemas.newBorrowFolderRequestTask(getCurrentUser(view).getId(), displayFolderView.getRecord().getId());
+                }
                 modelLayerFactory.newRecordServices().add(borrowRequest);
             } else if (view instanceof DisplayContainerViewImpl) {
                 DisplayContainerViewImpl displayContainerView = (DisplayContainerViewImpl) view;

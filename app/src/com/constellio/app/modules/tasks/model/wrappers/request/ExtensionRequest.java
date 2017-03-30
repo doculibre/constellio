@@ -12,6 +12,7 @@ public class ExtensionRequest extends Task {
     public static final String SCHEMA_NAME = "borrowExtensionRequest";
     public static final String EXTENSION_VALUE = "extensionValue";
     public static final String ACCEPTED = "accepted";
+    public static final String COMPLETED_BY = "completedBy";
 
     public ExtensionRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);
@@ -23,6 +24,15 @@ public class ExtensionRequest extends Task {
 
     public ExtensionRequest setAccepted(boolean accepted) {
         set(ACCEPTED, accepted);
+        return this;
+    }
+
+    public String getCompletedBy() {
+        return get(COMPLETED_BY);
+    }
+
+    public ExtensionRequest setCompletedBy(String user) {
+        set(COMPLETED_BY, user);
         return this;
     }
 }

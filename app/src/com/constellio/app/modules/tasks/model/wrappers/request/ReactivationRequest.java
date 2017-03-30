@@ -11,6 +11,7 @@ public class ReactivationRequest extends Task {
 
     public static final String SCHEMA_NAME = "reactivationRequest";
     public static final String ACCEPTED = "accepted";
+    public static final String COMPLETED_BY = "completedBy";
 
     public ReactivationRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);
@@ -22,6 +23,15 @@ public class ReactivationRequest extends Task {
 
     public ReactivationRequest setAccepted(boolean accepted) {
         set(ACCEPTED, accepted);
+        return this;
+    }
+
+    public String getCompletedBy() {
+        return get(COMPLETED_BY);
+    }
+
+    public ReactivationRequest setCompletedBy(String user) {
+        set(COMPLETED_BY, user);
         return this;
     }
 }

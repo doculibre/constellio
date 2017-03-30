@@ -49,6 +49,7 @@ public class Task extends RecordWrapper {
 	public static final String NEXT_TASK_CREATED = "nextTaskCreated";
 	public static final String LINKED_FOLDERS = "linkedFolders";
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";
+	public static final String LINKED_CONTAINERS = "linkedContainers";
 
 	public static final String DEFAULT_NEXT_TASK = "default";
 
@@ -421,6 +422,11 @@ public class Task extends RecordWrapper {
 
 	public Task setLinkedFolders(List<?> folderIds) {
 		set(LINKED_FOLDERS, folderIds);
+		return this;
+	}
+
+	public Task setLinkedContainers(List<?> containerIds) {
+		set(LINKED_CONTAINERS, containerIds);
 		return this;
 	}
 

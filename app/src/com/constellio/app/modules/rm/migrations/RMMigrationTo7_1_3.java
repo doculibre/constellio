@@ -4,9 +4,9 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
@@ -135,10 +135,15 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 					.setType(MetadataValueType.DATE_TIME);
 
 			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.EXTENSION_VALUE).defineDataEntry().asManual().setType(MetadataValueType.DATE);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME).create(BorrowRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME).create(ReactivationRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME).create(ReturnRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME).create(BorrowRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME).create(ReactivationRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME).create(ReturnRequest.ACCEPTED).defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.COMPLETED_BY).setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE));
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME).create(BorrowRequest.COMPLETED_BY).setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE));
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME).create(ReactivationRequest.COMPLETED_BY).setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE));
+			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME).create(ReturnRequest.COMPLETED_BY).setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE));
+
 
 			MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);
 			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(MetadataValueType.STRING).defineDataEntry().asManual();
