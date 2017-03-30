@@ -82,8 +82,8 @@ dependencies {
     compile "com.vaadin:vaadin-client-compiled:7.7.4"
 //    compile "com.vaadin:vaadin-client-compiler:7.7.4"
     compile "com.vaadin:vaadin-sass-compiler:0.9.11"
-    compile "org.apache.solr:solr-solrj:6.3.0"
-    compile "org.apache.solr:solr-core:6.3.0"
+    compile "org.apache.solr:solr-solrj:6.4.2"
+    compile "org.apache.solr:solr-core:6.4.2"
     compile "org.apache.zookeeper:zookeeper:3.4.6"
     compile "javax.validation:validation-api:1.1.0.Final"
 

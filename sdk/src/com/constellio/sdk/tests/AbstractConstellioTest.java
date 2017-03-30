@@ -987,7 +987,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void givenTransactionLogIsEnabled(final SecondTransactionLogReplayFilter filter) {
-		final File logTempFolder = getCurrentTestSession().getFileSystemTestFeatures().newTempFolderWithName("tLog");
+		final File logTempFolder = getCurrentTestSession()
+				.getFileSystemTestFeatures()
+				.newTempFolderWithName("tLog");
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
 			public void alter(InMemoryDataLayerConfiguration configuration) {
