@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
@@ -88,6 +89,16 @@ public class RobotsService {
 		}
 		recordServices.logicallyDelete(robot.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(robot.getWrappedRecord(), User.GOD);
+
+		deleteRobotsActionParameters(robot);
+	}
+
+	private void deleteRobotsActionParameters(Robot robot) {
+		String actionParamId = robot.getActionParameters();
+		ActionParameters actionParameters = robots.getActionParameters(actionParamId);
+
+		recordServices.logicallyDelete(actionParameters.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(actionParameters.getWrappedRecord(), User.GOD);
 	}
 
 	public void deleteRobotHierarchy(String robotId) {
