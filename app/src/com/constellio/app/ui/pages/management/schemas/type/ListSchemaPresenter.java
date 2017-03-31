@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.type;
 
 import java.util.Map;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -12,10 +13,13 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaView> {
 
 	private Map<String, String> parameters;
 	private String schemaTypeCode;
+	AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollection(collection);
 
 	public ListSchemaPresenter(ListSchemaView view) {
 		super(view);
@@ -84,7 +88,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	public void backButtonClicked() {
 		view.navigate().to().listSchemaTypes();
 	}
-	
+
 	boolean isDeletePossible(String schemaCode) {
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
 		return appSchemasServices.isSchemaDeletable(collection, schemaCode);
@@ -93,13 +97,17 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	public void deleteButtonClicked(String schemaCode) {
 		if (isDeletePossible(schemaCode)) {
 			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-			appSchemasServices.deleteSchemaCode(collection, schemaCode);
-			view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
+			if (collectionExtensions.lockedRecords.contains($("ListSchemaTypeView.schemaCode"), schemaCode.split("_")[1])) {
+				view.showMessage($("ListSchemaTypeView.message"));
+			} else {
+				appSchemasServices.deleteSchemaCode(collection, schemaCode);
+				view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
+			}
 		}
 	}
 
 	public boolean isDeleteButtonVisible(String schemaCode) {
 		return isDeletePossible(schemaCode);
 	}
-	
+
 }

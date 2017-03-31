@@ -12571,6 +12571,11 @@ div.v-layout.v-horizontal.v-widget {
 	filter: alpha(opacity=40);
 }
 
+.constellio .v-contextmenu .popupContent {
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
 .constellio body, .constellio div, .constellio p, .constellio h2, .constellio h3, .constellio pre {
 	-webkit-user-select: text;
 }
@@ -13517,6 +13522,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
 	width: 100%;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+	padding-right: 0px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu {

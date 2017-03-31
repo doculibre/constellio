@@ -15,6 +15,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -42,7 +43,8 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 
 	@Override
 	protected Component initContent() {
-		table = new Generator().attachedTo(new Table());
+		table = new BaseTable("FolderRetentionRuleTable");
+		new Generator().attachedTo(table);
 		table.setWidth("100%");
 		return table;
 	}

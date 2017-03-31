@@ -4,21 +4,33 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.ui.framework.components.BaseLabel;
+import com.constellio.app.ui.framework.components.converters.RecordIdListToStringConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.app.ui.i18n.i18n;
 import com.vaadin.data.Property;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class FolderCopyRuleFieldImpl extends CustomField<String> implements FolderCopyRuleField {
+	
+	private Generator generator;
 	private Table table;
-	private List<CopyRetentionRule> rules;
+	private List<CopyRetentionRule> copyRetentionRules;
+	private RecordIdListToStringConverter recordIdListToStringConverter = new RecordIdListToStringConverter("<br />");
 
-	public FolderCopyRuleFieldImpl(List<CopyRetentionRule> rules) {
-		this.rules = rules;
+	public FolderCopyRuleFieldImpl(List<CopyRetentionRule> copyRetentionRules) {
+		this.copyRetentionRules = copyRetentionRules;
 	}
 
 	@Override
@@ -38,7 +50,7 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 
 	@Override
 	public void setFieldChoices(List<CopyRetentionRule> rules) {
-		this.rules = rules;
+		this.copyRetentionRules = rules;
 		if (table != null) {
 			updateTable();
 		}
@@ -46,7 +58,8 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 
 	@Override
 	protected Component initContent() {
-		table = new Generator().attachedTo(new Table());
+		generator = new Generator();
+		table = generator.attachedTo(new Table());
 		table.setWidth("100%");
 		updateTable();
 		return table;
@@ -54,35 +67,55 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 
 	private void updateTable() {
 		table.removeAllItems();
-		for (CopyRetentionRule rule : rules) {
+		boolean showTitleColumn = false;
+		for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
+			if (StringUtils.isNotBlank(copyRetentionRule.getTitle())) {
+				showTitleColumn = true;
+				break;
+			}
+		}
+		if (!showTitleColumn) {
+			table.setVisibleColumns(generator.noTitle());
+		} else {
+			table.setVisibleColumns(generator.allColumns());
+		}
+		for (CopyRetentionRule rule : copyRetentionRules) {
 			table.addItem(rule);
 		}
-		table.setPageLength(rules.size());
+		table.setPageLength(copyRetentionRules.size());
 	}
 
 	private class Generator implements ColumnGenerator {
 		public static final String SELECTOR = "selector";
-		public static final String TITLE = "title";
-		public static final String NUMBER = "number";
-		public static final String TYPE = "type";
 		public static final String RULE = "rule";
+		public static final String TITLE = "title";
+		public static final String TYPE = "type";
+		public static final String MEDIUM_TYPES = "mediumTypes";
+		
+		private String[] allColumns() {
+			return new String[] { SELECTOR, RULE, TITLE, TYPE, MEDIUM_TYPES };
+		}
+
+		private String[] noTitle() {
+			return new String[] { SELECTOR, RULE, TYPE, MEDIUM_TYPES };
+		}
 
 		public Table attachedTo(Table table) {
 			table.addGeneratedColumn(SELECTOR, this);
 			table.setColumnHeader(SELECTOR, "");
 			table.setColumnWidth(SELECTOR, 50);
 
+			table.addGeneratedColumn(RULE, this);
+			table.setColumnHeader(RULE, $("FolderCopyRuleField.rule"));
+
 			table.addGeneratedColumn(TITLE, this);
 			table.setColumnHeader(TITLE, $("FolderCopyRuleField.title"));
-
-			table.addGeneratedColumn(NUMBER, this);
-			table.setColumnHeader(NUMBER, $("FolderCopyRuleField.number"));
 
 			table.addGeneratedColumn(TYPE, this);
 			table.setColumnHeader(TYPE, $("FolderCopyRuleField.type"));
 
-			table.addGeneratedColumn(RULE, this);
-			table.setColumnHeader(RULE, $("FolderCopyRuleField.rule"));
+			table.addGeneratedColumn(MEDIUM_TYPES, this);
+			table.setColumnHeader(MEDIUM_TYPES, $("FolderCopyRuleField.mediumTypes"));
 
 			return table;
 		}
@@ -92,25 +125,25 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 			if (columnId == null) {
 				return null;
 			}
-			CopyRetentionRule rule = (CopyRetentionRule) itemId;
+			CopyRetentionRule copyRetentionRule = (CopyRetentionRule) itemId;
 			switch ((String) columnId) {
 			case SELECTOR:
-				return generateSelectorCell(rule);
-			case TITLE:
-				return generateTitleCell(rule);
-			case NUMBER:
-				return generateNumberCell(rule);
-			case TYPE:
-				return generateTypeCell(rule);
+				return generateSelectorCell(copyRetentionRule);
 			case RULE:
-				return generateRuleCell(rule);
+				return generateRuleCell(copyRetentionRule);
+			case TITLE:
+				return generateTitleCell(copyRetentionRule);
+			case MEDIUM_TYPES:
+				return generateMediumTypesCell(copyRetentionRule);
+			case TYPE:
+				return generateTypeCell(copyRetentionRule);
 			}
 			return null;
 		}
 
-		private Object generateSelectorCell(final CopyRetentionRule rule) {
+		private Object generateSelectorCell(final CopyRetentionRule copyRetentionRule) {
 			final CheckBox box = new CheckBox();
-			if (rule.getId().equals(getInternalValue())) {
+			if (copyRetentionRule.getId().equals(getInternalValue())) {
 				box.setValue(true);
 				box.setEnabled(false);
 			}
@@ -118,27 +151,44 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					if (box.getValue()) {
-						setValue(rule.getId());
+						setValue(copyRetentionRule.getId());
 					}
 				}
 			});
 			return box;
 		}
 
-		private Object generateNumberCell(CopyRetentionRule rule) {
-			return rule.getCode();
+		private Object generateRuleCell(CopyRetentionRule copyRetentionRule) {
+			return copyRetentionRule.toString();
 		}
 
-		private Object generateTitleCell(CopyRetentionRule rule) {
-			return rule.getTitle();
+		private Object generateTitleCell(CopyRetentionRule copyRetentionRule) {
+			BaseLabel titleLabel = new BaseLabel(copyRetentionRule.getTitle());
+
+			StringBuilder niceTitle = new StringBuilder();
+			if (StringUtils.isNotBlank(copyRetentionRule.getDescription())) {
+				niceTitle.append(copyRetentionRule.getDescription());
+				niceTitle.append("<br/><br/>");
+			}
+			niceTitle.append($("DetailsFieldGroup.ignoreActivePeriod"));
+			niceTitle.append(":");
+			niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
+
+			
+			titleLabel.addStyleName(ValoTheme.BUTTON_LINK);
+			titleLabel.addExtension(new NiceTitle(titleLabel, niceTitle.toString()));
+			return titleLabel;
 		}
 
-		private Object generateTypeCell(CopyRetentionRule rule) {
-			return new ReferenceDisplay(rule.getTypeId());
+		private Object generateTypeCell(CopyRetentionRule copyRetentionRule) {
+			return new ReferenceDisplay(copyRetentionRule.getTypeId(), false);
 		}
 
-		private Object generateRuleCell(CopyRetentionRule rule) {
-			return rule.toString();
+		private Object generateMediumTypesCell(CopyRetentionRule copyRetentionRule) {
+			List<String> mediumTypeIds = copyRetentionRule.getMediumTypeIds();
+			String mediumTypes = recordIdListToStringConverter.convertToPresentation(mediumTypeIds, String.class, i18n.getLocale());
+			return new Label(mediumTypes, ContentMode.HTML);
 		}
+		
 	}
 }

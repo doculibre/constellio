@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtens
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
+import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -27,8 +28,11 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
@@ -119,6 +123,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_0_10_5(),
 				new RMMigrationTo7_1(),
 				new RMMigrationTo7_1_1(),
+				new RMMigrationTo7_1_2(),
 				new RMMigrationTo7_1_3()
 		);
 	}
@@ -224,6 +229,11 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.pagesComponentsExtensions.add(new RMCleanAdministrativeUnitButtonExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMBorrowRequestButtonExtension(collection, appLayerFactory));
 		extensions.selectionPanelExtensions.add(new RMSelectionPanelExtension(appLayerFactory, collection));
+
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.RETURN_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.REACTIVATION_REQUEST);
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -246,6 +256,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMBorrowTaskApprovedExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
