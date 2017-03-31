@@ -172,12 +172,12 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 				niceTitle.append(copyRetentionRule.getDescription());
 				niceTitle.append("<br/><br/>");
 			}
-			//TODO voir si l'on ajoute un option dans le pilotage pour ça.
-//			niceTitle.append($("DetailsFieldGroup.ignoreActivePeriod"));
-//			niceTitle.append(":");
-//			niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
+			if (copyRetentionRule.isIgnoreActivePeriod()) {
+				niceTitle.append($("DetailsFieldGroup.ignoreActivePeriod"));
+				niceTitle.append(":");
+				niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
+			}
 
-			
 			titleLabel.addStyleName(ValoTheme.BUTTON_LINK);
 			titleLabel.addExtension(new NiceTitle(titleLabel, niceTitle.toString()));
 			return titleLabel;
