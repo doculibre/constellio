@@ -138,8 +138,10 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		List<Record> taxonomy2RootRecords = services.getRootConcept(records.taxo2_defaultSchemaItem1.getCollection(), "taxo2",
 				options);
 
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem1, records.taxo1_firstTypeItem2);
-		assertThat(taxonomy2RootRecords).containsOnly(records.taxo2_defaultSchemaItem1, records.taxo2_defaultSchemaItem2);
+		assertThat(taxonomy1RootRecords).extracting("id")
+				.containsOnly(records.taxo1_firstTypeItem1.getId(), records.taxo1_firstTypeItem2.getId());
+		assertThat(taxonomy2RootRecords).extracting("id")
+				.containsOnly(records.taxo2_defaultSchemaItem1.getId(), records.taxo2_defaultSchemaItem2.getId());
 
 	}
 
@@ -212,7 +214,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem2);
+		assertThat(taxonomy1RootRecords).extracting("id").containsOnly(records.taxo1_firstTypeItem2.getId());
 	}
 
 	@Test
