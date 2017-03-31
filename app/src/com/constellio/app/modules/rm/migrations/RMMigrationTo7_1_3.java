@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
@@ -73,6 +74,10 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		displayManager.saveSchema(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
 				.withNewFormMetadata(Task.DEFAULT_SCHEMA + "_" + Task.LINKED_CONTAINERS));
+		displayManager.saveSchema(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
+				.withNewFormMetadata(Task.DEFAULT_SCHEMA + "_" + Task.REASON));
+		displayManager.saveMetadata(displayManager.getMetadata(collection, Task.DEFAULT_SCHEMA + "_" + Task.REASON)
+				.withInputType(MetadataInputType.TEXTAREA));
 
 		String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
 		displayManager.saveMetadata(displayManager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_CONTAINERS)
@@ -154,7 +159,7 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 					.defineReferencesTo(typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)).setMultivalue(true);
 			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.COMPLETED_BY).setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE)).setSystemReserved(true);
-			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.REASON).setType(STRING).defineDataEntry().asManual();
+			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.REASON).setType(MetadataValueType.TEXT).defineDataEntry().asManual();
 			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.EXTENSION_VALUE)
 					.defineDataEntry().asManual().setType(MetadataValueType.DATE);
 			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.ACCEPTED)

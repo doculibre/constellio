@@ -7,7 +7,6 @@ import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveT
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskReminderField;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
-import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
 import com.vaadin.ui.Field;
 
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
@@ -45,9 +44,10 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			field = new TaskDecisionFieldImpl();
 			break;
 		case BorrowRequest.ACCEPTED:
-			field = new BooleanOptionGroup();
-			postBuild(field, metadata);
-			field.addStyleName("horizontal");
+			field = new TaskAcceptedFieldImpl();
+			break;
+		case BorrowRequest.REASON:
+			field = new TaskReasonFieldImpl();
 			break;
 		default:
 			field = super.build(metadata);

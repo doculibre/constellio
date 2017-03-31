@@ -190,6 +190,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustDecisionField();
 		adjustRelativeDueDate();
 		adjustAcceptedField();
+		adjustReasonField();
 	}
 
 	private void adjustProgressPercentageField() {
@@ -233,6 +234,24 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			} catch (NoSuchRecordWithId e) {
 				view.adjustAcceptedField(false);
+			}
+		}
+	}
+
+	private void adjustReasonField() {
+		CustomTaskField field =  view.getForm().getCustomField(Task.REASON);
+		if(field != null) {
+			try {
+				Task task = loadTask();
+
+				if (!completeMode) {
+					field.setVisible(false);
+					return;
+				}
+				field.setVisible(true);
+
+			} catch (NoSuchRecordWithId e) {
+				field.setVisible(false);
 			}
 		}
 	}
