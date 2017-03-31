@@ -1,18 +1,11 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
@@ -39,6 +32,16 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
 	TaskVO taskVO;
@@ -154,11 +157,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			String folderId = paramsMap.get("folderId");
 			if (folderId != null) {
-				new RMTask(task).setLinkedFolders(Arrays.asList(folderId));
+				new RMTask(task).setLinkedFolders(asList(folderId));
 			}
 			String documentId = paramsMap.get("documentId");
 			if (documentId != null) {
-				new RMTask(task).setLinkedDocuments(Arrays.asList(documentId));
+				new RMTask(task).setLinkedDocuments(asList(documentId));
 			}
 		}
 		completeMode = "true".equals(paramsMap.get("completeTask"));
@@ -186,6 +189,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustProgressPercentageField();
 		adjustDecisionField();
 		adjustRelativeDueDate();
+		adjustAcceptedField();
 	}
 
 	private void adjustProgressPercentageField() {
@@ -212,6 +216,24 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 		} catch (NoSuchRecordWithId e) {
 			field.setVisible(false);
+		}
+	}
+
+	private void adjustAcceptedField() {
+		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
+				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
+		String schemaCode = getTask().getSchema().getCode();
+		if(acceptedSchemas.contains(schemaCode)) {
+			try {
+				if (!completeMode) {
+					view.adjustAcceptedField(false);
+					return;
+				}
+				view.adjustAcceptedField(true);
+
+			} catch (NoSuchRecordWithId e) {
+				view.adjustAcceptedField(false);
+			}
 		}
 	}
 

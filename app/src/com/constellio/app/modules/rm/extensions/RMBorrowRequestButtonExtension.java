@@ -102,8 +102,8 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
                                 UI.getCurrent(),
                                 $("DisplayFolderViewImpl.requestBorrowButtonTitle"),
                                 $("DisplayFolderViewImpl.requestBorrowButtonMessage"),
-                                $("cancel"),
                                 $("DisplayFolderView.borrowContainerInstead"),
+                                $("cancel"),
                                 $("DisplayFolderView.confirmBorrowFolder"),
                                 new ConfirmDialog.Listener() {
                                     public void onClose(ConfirmDialog dialog) {

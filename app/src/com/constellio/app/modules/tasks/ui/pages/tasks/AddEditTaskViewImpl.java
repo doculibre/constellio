@@ -1,10 +1,12 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered.SourceException;
@@ -30,6 +32,18 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	@Override
 	public void setRecord(TaskVO taskVO) {
 		this.taskVO = taskVO;
+	}
+
+	@Override
+	public void adjustAcceptedField(boolean isVisible) {
+		BooleanOptionGroup field = (BooleanOptionGroup) getForm().getCustomField(BorrowRequest.ACCEPTED);
+		if(isVisible) {
+			field.setVisible(true);
+			field.setRequired(true);
+		} else if(field != null){
+			field.setVisible(false);
+			field.setRequired(false);
+		}
 	}
 
 	@Override
@@ -78,6 +92,8 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 					}
 				}
 			}
+
+
 		};
 
 		for (final Field<?> field : recordForm.getFields()) {
