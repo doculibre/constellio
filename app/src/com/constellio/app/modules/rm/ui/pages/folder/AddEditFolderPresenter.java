@@ -150,7 +150,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		isDuplicateStructureAction = isDuplicateAction && paramsMap.containsKey(STRUCTURE);
 		if (isDuplicateStructureAction) {
 			Folder folder = rmSchemas().wrapFolder(record);
-			record = decommissioningService().duplicateStructure(folder, getCurrentUser(), false).getWrappedRecord();
+			try {
+				record = decommissioningService().duplicateStructure(folder, getCurrentUser(), false).getWrappedRecord();
+			} catch (RecordServicesException.ValidationException e) {
+				view.showErrorMessage($(e.getErrors()));
+			} catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			}
+
 		} else if (isDuplicateAction) {
 			Folder folder = rmSchemas().wrapFolder(record);
 			record = decommissioningService().duplicate(folder, getCurrentUser(), false).getWrappedRecord();

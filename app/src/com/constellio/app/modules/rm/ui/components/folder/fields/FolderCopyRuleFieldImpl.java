@@ -107,9 +107,11 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 
 			table.addGeneratedColumn(RULE, this);
 			table.setColumnHeader(RULE, $("FolderCopyRuleField.rule"));
+			table.setColumnWidth(RULE, 200);
 
 			table.addGeneratedColumn(TITLE, this);
 			table.setColumnHeader(TITLE, $("FolderCopyRuleField.title"));
+			table.setColumnWidth(TITLE, 250);
 
 			table.addGeneratedColumn(TYPE, this);
 			table.setColumnHeader(TYPE, $("FolderCopyRuleField.type"));
@@ -170,9 +172,10 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 				niceTitle.append(copyRetentionRule.getDescription());
 				niceTitle.append("<br/><br/>");
 			}
-			niceTitle.append($("DetailsFieldGroup.ignoreActivePeriod"));
-			niceTitle.append(":");
-			niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
+			//TODO voir si l'on ajoute un option dans le pilotage pour ça.
+//			niceTitle.append($("DetailsFieldGroup.ignoreActivePeriod"));
+//			niceTitle.append(":");
+//			niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
 
 			
 			titleLabel.addStyleName(ValoTheme.BUTTON_LINK);
