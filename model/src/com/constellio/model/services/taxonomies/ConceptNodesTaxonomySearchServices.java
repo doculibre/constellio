@@ -11,11 +11,17 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -23,6 +29,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -65,9 +72,37 @@ public class ConceptNodesTaxonomySearchServices {
 		query.filteredByStatus(options.getIncludeStatus());
 		query.setStartRow(options.getStartRow());
 		query.setNumberOfRows(options.getRows());
-		query.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.LINKABLE));
+		query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection, options));
 		query.sortAsc(CODE).sortAsc(TITLE);
 		return query;
+	}
+
+	public ReturnedMetadatasFilter returnedMetadatasForRecordsIn(String collection, TaxonomiesSearchOptions options) {
+		//TODO Detect which records could possibly be in the taxonomy and only return those essential fields
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+
+		Set<String> metadatas = new HashSet<>();
+		metadatas.add(Schemas.TITLE.getDataStoreCode());
+		metadatas.add(Schemas.LINKABLE.getDataStoreCode());
+		metadatas.add(Schemas.VISIBLE_IN_TREES.getDataStoreCode());
+		metadatas.add(Schemas.TOKENS.getDataStoreCode());
+		metadatas.add(Schemas.ATTACHED_ANCESTORS.getDataStoreCode());
+		metadatas.add(Schemas.ALL_REMOVED_AUTHS.getDataStoreCode());
+
+		if (options.getReturnedMetadatasFilter() != null && options.getReturnedMetadatasFilter().getAcceptedFields() != null) {
+			metadatas.addAll(options.getReturnedMetadatasFilter().getAcceptedFields());
+		}
+
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				for (Metadata metadata : schema.getMetadatas()) {
+					if (metadata.getInheritance() == null && metadata.isEssentialInSummary()) {
+						metadatas.add(metadata.getDataStoreCode());
+					}
+				}
+			}
+		}
+		return ReturnedMetadatasFilter.onlyFields(metadatas);
 	}
 
 	public List<Record> getChildConcept(Record record, TaxonomiesSearchOptions options) {
