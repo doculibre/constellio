@@ -5,7 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 /**
- * Created by constellios on 2017-03-30.
+ * Created by Charles Blanchette on 2017-03-30.
  */
 public class RMTaskType extends TaskType {
 
