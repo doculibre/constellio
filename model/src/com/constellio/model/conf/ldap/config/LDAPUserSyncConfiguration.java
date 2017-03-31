@@ -9,36 +9,46 @@ import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 
 public class LDAPUserSyncConfiguration {
+
+	public static final String TIME_PATTERN = "HH:mm";
+
 	transient RegexFilter userFilter;
 
 	transient RegexFilter groupFilter;
 
 	Duration durationBetweenExecution;
 
+	private List<String> scheduleTime;
+
 	private List<String> selectedCollectionsCodes;
 
 	AzureADUserSynchConfig azurUserSynchConfig = new AzureADUserSynchConfig();
 	NonAzureADUserSynchConfig nonAzureADUserSynchConfig = new NonAzureADUserSynchConfig();
 
+    boolean membershipAutomaticDerivationActivated = true;
+
 	public LDAPUserSyncConfiguration(String user, String password,
-			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
-			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList) {
-		this(user, password, userFilter, groupFilter, durationBetweenExecution, groupBaseContextList,
-				usersWithoutGroupsBaseContextList, new ArrayList<String>());
+			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution, List<String> scheduleTime,
+            List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList, List<String> userFilterGroupsList, boolean membershipAutomaticDerivationActivated) {
+		this(user, password, userFilter, groupFilter, durationBetweenExecution, scheduleTime, groupBaseContextList,
+				usersWithoutGroupsBaseContextList, userFilterGroupsList, membershipAutomaticDerivationActivated, new ArrayList<String>());
 	}
 
 	public LDAPUserSyncConfiguration(String user, String password,
-			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
-			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList,
+			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution, List<String> scheduleTime,
+			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList, List<String> userFilterGroupsList, boolean membershipAutomaticDerivationActivated,
 			List<String> selectedCollectionsCodes) {
 		this.nonAzureADUserSynchConfig.user = user;
 		this.nonAzureADUserSynchConfig.password = password;
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
+		this.scheduleTime = scheduleTime;
 		this.nonAzureADUserSynchConfig.groupBaseContextList = groupBaseContextList;
 		this.nonAzureADUserSynchConfig.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
+		this.nonAzureADUserSynchConfig.userFilterGroupsList = userFilterGroupsList;
+		this.membershipAutomaticDerivationActivated = membershipAutomaticDerivationActivated;
 	}
 
 	public LDAPUserSyncConfiguration(AzureADUserSynchConfig azurUserSynchConfig,
@@ -92,6 +102,14 @@ public class LDAPUserSyncConfiguration {
 
 	public void setDurationBetweenExecution(Duration durationBetweenExecution) {
 		this.durationBetweenExecution = durationBetweenExecution;
+	}
+
+	public List<String> getScheduleTime() {
+		return scheduleTime;
+	}
+
+	public void setScheduleTime(List<String> scheduleTime) {
+		this.scheduleTime = scheduleTime;
 	}
 
 	public List<String> getGroupBaseContextList() {
@@ -158,7 +176,15 @@ public class LDAPUserSyncConfiguration {
         return this.azurUserSynchConfig.getUsersFilter();
     }
 
-    public List<String> getUserGroups() {
+	public boolean isMembershipAutomaticDerivationActivated() {
+		return  membershipAutomaticDerivationActivated;
+	}
+
+	public List<String> getUserGroups() {
         return this.azurUserSynchConfig.getUserGroups();
     }
+
+	public List<String> getUserFilterGroupsList() {
+		return nonAzureADUserSynchConfig.userFilterGroupsList;
+	}
 }
