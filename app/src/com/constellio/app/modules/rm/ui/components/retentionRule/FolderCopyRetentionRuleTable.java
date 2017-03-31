@@ -149,8 +149,8 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		if (formMode) {
 			table.setColumnWidth(CODE, 50);
 			table.setColumnWidth(DETAILS, 70);
-			table.setColumnWidth(COPY_TYPE, 250);
-			table.setColumnWidth(MEDIUM_TYPES, 200);
+			table.setColumnWidth(COPY_TYPE, 225);
+			table.setColumnWidth(MEDIUM_TYPES, 175);
 			table.setColumnWidth(CONTENT_TYPES_COMMENT, 50);
 			table.setColumnWidth(ACTIVE_RETENTION_PERIOD, 158);
 			table.setColumnWidth(ACTIVE_RETENTION_COMMENT, 50);
@@ -159,7 +159,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.setColumnWidth(INACTIVE_DISPOSAL_TYPE, 158);
 			table.setColumnWidth(INACTIVE_DISPOSAL_COMMENT, 50);
 			table.setColumnWidth(ESSENTIAL, 50);
-			table.setColumnExpandRatio(TITLE, 1);
+			table.setColumnWidth(TITLE, 200);
 			
 			table.addContainerProperty(CODE, BaseTextField.class, null);
 			table.addContainerProperty(TITLE, BaseTextField.class, null);
@@ -187,6 +187,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.setColumnWidth(INACTIVE_DISPOSAL_TYPE, 50);
 			table.setColumnWidth(INACTIVE_DISPOSAL_COMMENT, 50);
 			table.setColumnWidth(ESSENTIAL, 50);
+			table.setColumnWidth(TITLE, 200);
 			table.setColumnExpandRatio(TITLE, 1);
 			
 			table.addContainerProperty(CODE, Label.class, null);

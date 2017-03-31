@@ -32,6 +32,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -102,11 +103,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			view.showErrorMessage($("CartView.cannotDuplicate"));
 			return;
 		}
-		DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
-		for (Folder folder : getCartFolders()) {
-			service.duplicateStructureAndSave(folder, getCurrentUser());
+		try {
+			DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
+			for (Folder folder : getCartFolders()) {
+				service.duplicateStructureAndSave(folder, getCurrentUser());
+			}
+			view.showMessage($("CartView.duplicated"));
+		} catch (RecordServicesException.ValidationException e) {
+			view.showErrorMessage($(e.getErrors()));
+		} catch (Exception e) {
+			view.showErrorMessage(e.getMessage());
 		}
-		view.showMessage($("CartView.duplicated"));
 	}
 
 	public boolean canDelete() {
