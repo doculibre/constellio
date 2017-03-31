@@ -32,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScript {
@@ -153,6 +154,7 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 					.defineReferencesTo(typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)).setMultivalue(true);
 			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.COMPLETED_BY).setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE)).setSystemReserved(true);
+			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.REASON).setType(STRING).defineDataEntry().asManual();
 			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.EXTENSION_VALUE)
 					.defineDataEntry().asManual().setType(MetadataValueType.DATE);
 			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.ACCEPTED)
@@ -166,8 +168,8 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
 
 			MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);
-			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(MetadataValueType.STRING).defineDataEntry().asManual();
-			eventSchemaType.getDefaultSchema().create(Event.TASK).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(STRING).defineDataEntry().asManual();
+			eventSchemaType.getDefaultSchema().create(Event.TASK).setType(STRING).defineDataEntry().asManual();
 			eventSchemaType.getDefaultSchema().create(Event.DESCRIPTION).setType(MetadataValueType.TEXT).defineDataEntry().asManual();
 		}
 	}

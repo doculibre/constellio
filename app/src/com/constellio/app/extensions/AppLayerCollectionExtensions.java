@@ -57,6 +57,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -100,6 +101,10 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<SystemCheckExtension> systemCheckExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordExportExtension> recordExportExtensions = new VaultBehaviorsList<>();
+
+	//Key : schema type code
+	//Values : record's code
+	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
