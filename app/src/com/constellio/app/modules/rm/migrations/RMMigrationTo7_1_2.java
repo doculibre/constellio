@@ -25,13 +25,13 @@ import java.util.List;
 public class RMMigrationTo7_1_2 implements MigrationScript {
     @Override
     public String getVersion() {
-        return "7.1.3";
+        return "7.1.2";
     }
 
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
                         AppLayerFactory appLayerFactory) {
-        new SchemaAlterationFor7_1_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+        new SchemaAlterationFor7_1_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
         createMediumTypes(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
     }
 
@@ -74,15 +74,15 @@ public class RMMigrationTo7_1_2 implements MigrationScript {
 
     }
 
-    class SchemaAlterationFor7_1_3 extends MetadataSchemasAlterationHelper {
+    class SchemaAlterationFor7_1_2 extends MetadataSchemasAlterationHelper {
 
-        protected SchemaAlterationFor7_1_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
+        protected SchemaAlterationFor7_1_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
                                            AppLayerFactory appLayerFactory) {
             super(collection, migrationResourcesProvider, appLayerFactory);
         }
 
         public String getVersion() {
-            return "7.1.3";
+            return "7.1.2";
         }
 
         @Override
