@@ -499,4 +499,29 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 				// Groups imported based on groups search base and groups search filter
 				"emptyGroup"})));
 	}
+
+	@Test
+	public void givenExistingPreviouslySyncedUserInSomeLocalGroup_WhenSyncing_ThenUserHasBothTheLocalGroupAndThoseJustSynced() {
+		// Given
+		final LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
+
+        final String myLocalGroupCode = "myLocalGroupCode";
+		final GlobalGroup myLocalGroup = userServices.createGlobalGroup(myLocalGroupCode, myLocalGroupCode, Arrays.asList(new String[]{ zeCollection }), null, GlobalGroupStatus.ACTIVE, true);
+		userServices.addUpdateGlobalGroup(myLocalGroup);
+
+        ldapUserSyncManager.synchronizeIfPossible();
+
+        final String myUsername = "bfay";
+		UserCredential myUserCredential = userServices.getUser(myUsername);
+		userServices.addUserToCollection(myUserCredential, zeCollection);
+		myUserCredential.withGlobalGroups(Arrays.asList(new String[]{ myLocalGroupCode }));
+		userServices.addUpdateUserCredential(myUserCredential);
+
+		// When
+		ldapUserSyncManager.synchronizeIfPossible();
+
+		// Then
+		myUserCredential = userServices.getUser(myUsername);
+		assertThat(new TreeSet<>(myUserCredential.getGlobalGroups())).isEqualTo(new TreeSet<>(Arrays.asList(new String[]{"CN=B,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", "CN=C,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", myLocalGroupCode})));
+	}
 }
