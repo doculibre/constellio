@@ -357,9 +357,11 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 				niceTitle.append(copyRetentionRule.getDescription());
 				niceTitle.append("<br/><br/>");
 			}
-			niceTitle.append($("DetailsFieldGroup.ignoreActivePeriod"));
-			niceTitle.append(":");
-			niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
+			if (copyRetentionRule.isIgnoreActivePeriod()) {
+				niceTitle.append($("DetailsFieldGroup.ignoreActivePeriod"));
+				niceTitle.append(":");
+				niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
+			}
 			
 			titleLabel.addStyleName(ValoTheme.BUTTON_LINK);
 			titleLabel.addExtension(new NiceTitle(titleLabel, niceTitle.toString()));
