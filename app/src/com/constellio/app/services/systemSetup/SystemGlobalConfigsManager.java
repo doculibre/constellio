@@ -12,6 +12,7 @@ public class SystemGlobalConfigsManager implements StatefulService {
 	final static String MARKED_FOR_REINDEXING = "markedForReindexing";
 	final static String REINDEXING_REQUIRED = "reindexingRequired";
 	final static String RESTART_REQUIRED = "restartRequired";
+	final static String LAST_REINDEXING_FAILED = "lastReindexingFailed";
 	final static String MAIN_DATA_LANGUAGE = "mainLanguage";
 	final static String TOKEN_DURATION = "tokenDuration";
 	final static String NOTIFICATION_MINUTES = "notificationMinutes";
@@ -71,6 +72,14 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	public void setRestartRequired(boolean value) {
 		setProperty(RESTART_REQUIRED, value ? "true" : "false");
+	}
+
+	public boolean hasLastReindexingFailed() {
+		return "true".equals(getGlobalProperties().get(LAST_REINDEXING_FAILED));
+	}
+
+	public void setLastReindexingFailed(boolean value) {
+		setProperty(LAST_REINDEXING_FAILED, value ? "true" : "false");
 	}
 
 	private Map<String, String> getGlobalProperties() {
