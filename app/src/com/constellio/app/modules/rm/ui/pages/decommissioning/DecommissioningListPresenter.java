@@ -17,6 +17,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
@@ -313,6 +314,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return "deposit";
 		}
 		return null;
+	}
+
+	public boolean shouldDisplayLegacyId() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isLegacyIdInDecommisioningLists();
 	}
 
 	public boolean shouldAllowContainerEditing() {

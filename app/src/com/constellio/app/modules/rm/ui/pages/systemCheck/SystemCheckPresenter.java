@@ -5,9 +5,22 @@ import com.constellio.app.services.records.SystemCheckManager;
 import com.constellio.app.services.records.SystemCheckReportBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.server.StreamResource;
+import org.apache.commons.io.FileUtils;
+
+import java.io.*;
+import java.util.List;
+
 
 public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 
@@ -68,6 +81,24 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			view.setSystemCheckRunning(false);
 			buttonsDisabled = false;
 		}
+	}
+
+	File getReferencesFor(String id) {
+		File file = new File("referenceReport.txt");
+		try {
+			PrintWriter writer = new PrintWriter(file);
+			writer.print("");
+			writer.close();
+			LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(view.getCollection()).where(Schemas.ALL_REFERENCES).isEqualTo(id);
+			List<Record> recordLists = modelLayerFactory.newSearchServices().search(new LogicalSearchQuery(condition));
+			for (Record record : recordLists) {
+				FileUtils.write(file, record.getId() + " " + record.getSchemaCode() + " " + record.getTitle() + "\n", true);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return file;
 	}
 
 	void backButtonClicked() {

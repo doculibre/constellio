@@ -603,4 +603,20 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		this.batchProcessSchemaType = batchProcessSchemaType;
 		return this;
 	}
+
+	@Override
+	public void allSearchResultsButtonClicked() {
+		throw new RuntimeException("Should not have been called");
+	}
+
+	@Override
+	public void selectedSearchResultsButtonClicked() {
+		throw new RuntimeException("Should not have been called");
+	}
+
+	@Override
+	public boolean isSearchResultsSelectionForm() {
+		return false;
+	}
+	
 }

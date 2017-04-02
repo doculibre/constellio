@@ -117,22 +117,6 @@ public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends Cons
 	}
 
 	@Test
-	public void givenTaxoAndNoMappingAndMissingDefaultValueThenError()
-			throws Exception {
-		when(parameters.getInTaxonomy()).thenReturn("taxo");
-		when(parameters.getPathPrefix()).thenReturn("prefix");
-		when(parameters.getDefaultCategory()).thenReturn("categoryId");
-		when(parameters.getDefaultRetentionRule()).thenReturn("retRuleId");
-		when(parameters.getDefaultCopyStatus()).thenReturn(CopyType.PRINCIPAL);
-		when(parameters.getDefaultOpenDate()).thenReturn(new LocalDate());
-
-		validator.validate(parameters, schema, configProvider, errors);
-
-		assertThat(errors).has(size(1)).has(error(
-				ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_ALL_DEFAULT_VALUES_WHEN_NO_MAPPING_AND_NO_PARENT_FOLDER));
-	}
-
-	@Test
 	public void givenTaxoAndNoPathPrefixThenError()
 			throws Exception {
 		when(parameters.getInTaxonomy()).thenReturn("taxo");
@@ -145,21 +129,6 @@ public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends Cons
 
 		assertThat(errors).has(size(1)).has(error(
 				ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_PATH_PREFIX_WITH_TAXO));
-	}
-
-	@Test
-	public void givenNoTaxoAndNoMappingAndMissingDefaultValueThenError()
-			throws Exception {
-		when(parameters.getPathPrefix()).thenReturn("prefix");
-		when(parameters.getDefaultCategory()).thenReturn("categoryId");
-		when(parameters.getDefaultRetentionRule()).thenReturn("retRuleId");
-		when(parameters.getDefaultCopyStatus()).thenReturn(CopyType.PRINCIPAL);
-		when(parameters.getDefaultOpenDate()).thenReturn(new LocalDate());
-
-		validator.validate(parameters, schema, configProvider, errors);
-
-		assertThat(errors).has(size(1)).has(error(
-				ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_ALL_DEFAULT_VALUES_WHEN_NO_MAPPING_AND_NO_PARENT_FOLDER));
 	}
 
 	private Condition<? super ValidationErrors> size(final int size) {

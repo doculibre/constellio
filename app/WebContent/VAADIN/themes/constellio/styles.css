@@ -12600,6 +12600,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: red;
 }
 
+.constellio .base-display .base-display-main-layout {
+	width: 100%;
+}
+
 .constellio .base-display .v-label-undef-w {
 	white-space: normal;
 }

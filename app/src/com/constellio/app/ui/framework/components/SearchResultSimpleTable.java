@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -20,16 +11,13 @@ import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultSimpleTable extends RecordVOTable implements SearchResultTable {
 	
@@ -130,18 +118,9 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
-		if (selectAll) {
-			for (Object itemId : container.getItemIds(0, maxSelectableResults)) {
-				if (!deselected.contains(itemId)) {
-					RecordVO record = container.getRecordVO((int) itemId);
-					result.add(record.getId());
-				}
-			}
-		} else {
-			for (Object itemId : selected) {
-				RecordVO record = container.getRecordVO((int) itemId);
-				result.add(record.getId());
-			}
+		for (Object itemId : selected) {
+			RecordVO record = container.getRecordVO((int) itemId);
+			result.add(record.getId());
 		}
 		return result;
 	}

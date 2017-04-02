@@ -63,7 +63,8 @@ public class RMConfigs {
 			UNIFORM_SUBDIVISION_ENABLED,
 			STORAGE_SPACE_TITLE_CALCULATOR_ENABLED,
 			COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS,
-			CHECK_OUT_DOCUMENT_AFTER_CREATION;
+			CHECK_OUT_DOCUMENT_AFTER_CREATION,
+			LEGACY_ID_IN_DECOMMISSIONING_LISTS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -189,6 +190,8 @@ public class RMConfigs {
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
 		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
+		
+		add(LEGACY_ID_IN_DECOMMISSIONING_LISTS = decommissioning.createBooleanFalseByDefault("legacyIdInDecommisioningLists"));
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
@@ -450,4 +453,9 @@ public class RMConfigs {
 	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
 		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
 	}
+	
+	public boolean isLegacyIdInDecommisioningLists() {
+		return manager.getValue(LEGACY_ID_IN_DECOMMISSIONING_LISTS);
+	}
+	
 }
