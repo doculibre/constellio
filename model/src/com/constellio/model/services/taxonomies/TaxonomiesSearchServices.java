@@ -39,6 +39,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
@@ -420,8 +421,8 @@ public class TaxonomiesSearchServices {
 	private GetConceptRecordsWithVisibleRecordsResponse getConceptRecordsWithVisibleRecords(GetChildrenContext context) {
 
 		GetConceptRecordsWithVisibleRecordsResponse methodResponse = new GetConceptRecordsWithVisibleRecordsResponse();
-
-		LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options);
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(context.getCollection());
+		LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
 		Iterator<List<Record>> iterator;
 		int lastIteratedRecordIndex = 0;

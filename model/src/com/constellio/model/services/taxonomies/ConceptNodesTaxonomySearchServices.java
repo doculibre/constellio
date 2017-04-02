@@ -81,6 +81,13 @@ public class ConceptNodesTaxonomySearchServices {
 		//TODO Detect which records could possibly be in the taxonomy and only return those essential fields
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 
+		return returnedMetadatasForRecordsIn(collection, options, types);
+	}
+
+	public static ReturnedMetadatasFilter returnedMetadatasForRecordsIn(String collection,
+			TaxonomiesSearchOptions options, MetadataSchemaTypes types) {
+		//TODO Detect which records could possibly be in the taxonomy and only return those essential fields
+
 		Set<String> metadatas = new HashSet<>();
 		metadatas.add(Schemas.TITLE.getDataStoreCode());
 		metadatas.add(Schemas.LINKABLE.getDataStoreCode());
@@ -110,10 +117,12 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public SPEQueryResponse getChildNodesResponse(Record record, TaxonomiesSearchOptions options) {
-		return searchServices.query(childNodesQuery(record, options));
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record);
+		return searchServices.query(childNodesQuery(record, options,types));
 	}
 
-	public static LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options) {
+	public static LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
+			MetadataSchemaTypes types) {
 		LogicalSearchCondition condition = fromTypesInCollectionOf(record).where(directChildOf(record).andWhere(visibleInTrees));
 
 		return new LogicalSearchQuery(condition)
@@ -121,11 +130,12 @@ public class ConceptNodesTaxonomySearchServices {
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
 				.sortAsc(CODE).sortAsc(TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter()
-						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
+				.setReturnedMetadatas(
+						returnedMetadatasForRecordsIn(record.getCollection(), options, types));
 	}
 
-	public static LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy, TaxonomiesSearchOptions options) {
+	public static LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy, TaxonomiesSearchOptions options,
+			MetadataSchemaTypes types) {
 		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(directChildOf(record)).andWhere(visibleInTrees);
 
 		return new LogicalSearchQuery(condition)
@@ -133,8 +143,8 @@ public class ConceptNodesTaxonomySearchServices {
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
 				.sortAsc(CODE).sortAsc(TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter()
-						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
+				.setReturnedMetadatas(
+						returnedMetadatasForRecordsIn(record.getCollection(), options, types));
 	}
 
 	OngoingLogicalSearchCondition fromConceptsOf(Taxonomy taxonomy) {
