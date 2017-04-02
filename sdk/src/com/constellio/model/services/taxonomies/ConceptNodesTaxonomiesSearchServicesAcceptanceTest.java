@@ -156,15 +156,15 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		List<Record> taxonomy2RecordChildren = services.getChildConcept(records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
 				options);
 
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
-				records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1,
-				records.taxo1_firstTypeItem2_secondTypeItem2);
-		assertThat(taxonomy1FirstTypeItem2SecondItem2RecordChildren).containsOnly(
-				records.taxo1_firstTypeItem2_secondTypeItem2_secondTypeItem1,
-				records.taxo1_firstTypeItem2_secondTypeItem2_secondTypeItem2, folder);
-		assertThat(taxonomy2RecordChildren).containsOnly(
-				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1,
-				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2);
+		assertThat(taxonomy1FirstTypeItem2RecordChildren).extracting("id").containsOnly(
+				records.taxo1_firstTypeItem2_firstTypeItem1.getId(), records.taxo1_firstTypeItem2_firstTypeItem2.getId(),
+				records.taxo1_firstTypeItem2_secondTypeItem1.getId(), records.taxo1_firstTypeItem2_secondTypeItem2.getId());
+		assertThat(taxonomy1FirstTypeItem2SecondItem2RecordChildren).extracting("id").containsOnly(
+				records.taxo1_firstTypeItem2_secondTypeItem2_secondTypeItem1.getId(),
+				records.taxo1_firstTypeItem2_secondTypeItem2_secondTypeItem2.getId(), folder.getId());
+		assertThat(taxonomy2RecordChildren).extracting("id").containsOnly(
+				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1.getId(),
+				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2.getId());
 
 	}
 
@@ -194,7 +194,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		List<Record> subFolderRecordChildren = services.getChildConcept(subFolder, options);
 		List<Record> documentRecordChildren = services.getChildConcept(document, options);
 
-		assertThat(folderRecordChildren).containsOnly(subFolder, document);
+		assertThat(folderRecordChildren).extracting("id").containsOnly(subFolder.getId(), document.getId());
 		assertThat(subFolderRecordChildren).isEmpty();
 		assertThat(documentRecordChildren).isEmpty();
 
@@ -402,7 +402,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 
 		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
 
-		assertThat(folderRecordChildren).containsOnly(document);
+		assertThat(folderRecordChildren).extracting("id").containsOnly(document.getId());
 
 	}
 
@@ -419,7 +419,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		options.setIncludeStatus(StatusFilter.ALL);
 		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
 
-		assertThat(folderRecordChildren).containsOnly(subFolder, document);
+		assertThat(folderRecordChildren).extracting("id").containsOnly(subFolder.getId(), document.getId());
 
 	}
 
@@ -436,7 +436,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		options.setIncludeStatus(StatusFilter.DELETED);
 		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
 
-		assertThat(folderRecordChildren).containsOnly(subFolder);
+		assertThat(folderRecordChildren).extracting("id").containsOnly(subFolder.getId());
 
 	}
 
