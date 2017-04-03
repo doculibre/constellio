@@ -79,7 +79,7 @@ public class LayerFactory {
 		}
 	}
 
-	public String toResourceName(String name) {
+	public final String toResourceName(String name) {
 		if (instanceName == null) {
 			return name;
 		} else {
