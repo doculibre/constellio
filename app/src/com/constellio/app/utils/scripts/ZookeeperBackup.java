@@ -21,14 +21,16 @@ public class ZookeeperBackup {
 		if (!importDir.exists()) {
 			System.err.println("importDir: " + importDir + " does not exists");
 		}
+		
+		ZookeeperBackup zb = new ZookeeperBackup();
 		if ("--import".equals(argv[0])) {
-			importOption(importDir, argv[2]);
+			zb.importOption(importDir, argv[2]);
 		} else if ("--export".equals(argv[0])) {
-			exportOption(importDir, argv[2]);
+			zb.exportOption(importDir, argv[2]);
 		}
 	}
 
-	private static void importOption(File localDir, String zkAddress) throws Exception {
+	public void importOption(File localDir, String zkAddress) throws Exception {
 		System.out.println("Connecting to : " + zkAddress);
 		ZooKeeperConfigManager configManager = new ZooKeeperConfigManager(zkAddress, "/", new IOServices(null));
 		if (localDir.listFiles().length == 0) {
@@ -38,7 +40,7 @@ public class ZookeeperBackup {
 		System.out.println("Import to Zookeeper completed");
 	}
 
-	private static void exportOption(File localDir, String zkAddress) throws Exception {
+	public void exportOption(File localDir, String zkAddress) throws Exception {
 		File tempFolder = File.createTempFile("temp_", Long.toString(System.nanoTime()));
 		System.out.println("Connecting to : " + zkAddress);
 		ZooKeeperConfigManager configManager = new ZooKeeperConfigManager(zkAddress, "/", new IOServices(null));
@@ -48,6 +50,8 @@ public class ZookeeperBackup {
 		configManager.exportTo(localDir);
 		System.out.println("Export to " + localDir + " + completed");
 	}
+	
+//	public void purge
 
 	private static boolean validateArgs(String argv[]) throws Exception {
 		if (argv.length != 3) {
