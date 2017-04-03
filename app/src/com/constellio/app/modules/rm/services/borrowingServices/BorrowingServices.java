@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.*;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -81,8 +82,21 @@ public class BorrowingServices {
 			}
 			recordServices.execute(t);
 		}
-        if (task.getLinkedDocuments() != null) {
-            schemaType = Document.SCHEMA_TYPE;
+        if (task.getLinkedContainers() != null) {
+			schemaType = ContainerRecord.SCHEMA_TYPE;
+			Transaction t = new Transaction();
+			for(String containerId: task.getLinkedContainers()) {
+				borrowContainer(containerId, borrowingDate, returnDate, currentUser, borrowerEntered, borrowingType, false);
+				Record event = rm.newEvent()
+						.setUsername(currentUser.getUsername())
+						.setTask(taskId)
+						.setType(EventType.BORROW_FOLDER)
+						.setIp(currentUser.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
+				t.add(event);
+			}
+			recordServices.execute(t);
         }
         alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, borrowingDate, returnDate, null, currentUser, borrowerEntered, borrowingType);
 	}
@@ -109,9 +123,22 @@ public class BorrowingServices {
 			}
 			recordServices.execute(t);
 		}
-        if (task.getLinkedDocuments() != null) {
-            schemaType = Document.SCHEMA_TYPE;
-        }
+		if (task.getLinkedContainers() != null) {
+			schemaType = ContainerRecord.SCHEMA_TYPE;
+			Transaction t = new Transaction();
+			for(String containerId: task.getLinkedContainers()) {
+				returnContainer(containerId, currentUser, returnDate, false);
+				Record event = rm.newEvent()
+						.setUsername(currentUser.getUsername())
+						.setTask(taskId)
+						.setType(EventType.BORROW_FOLDER)
+						.setIp(currentUser.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
+				t.add(event);
+			}
+			recordServices.execute(t);
+		}
         alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, null, returnDate, null, currentUser, null, null);
 	}
 
@@ -165,6 +192,25 @@ public class BorrowingServices {
 		}
 	}
 
+	public void borrowContainer(String containerId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
+							 User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		Record record = recordServices.getDocumentById(containerId);
+		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
+		validateCanBorrow(currentUser, containerRecord, borrowingDate);
+		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
+				previewReturnDate,
+				currentUser.getId());
+		recordServices.update(containerRecord);
+		if (borrowingType == BorrowingType.BORROW) {
+			loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+		} else {
+			loggingServices
+					.consultingRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+		}
+	}
+
 	public void returnFolder(String folderId, User currentUser, LocalDate returnDate, boolean isCreateEvent)
 			throws RecordServicesException {
 
@@ -179,6 +225,17 @@ public class BorrowingServices {
 		}
 	}
 
+	public void returnContainer(String containerId, User currentUser, LocalDate returnDate, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		Record record = recordServices.getDocumentById(containerId);
+		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
+		validateCanReturnContainer(currentUser, containerRecord);
+		setReturnedMetadatasToContainer(containerRecord);
+		recordServices.update(containerRecord);
+		loggingServices.returnRecord(record, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+	}
+
 	public void validateCanReturnFolder(User currentUser, Folder folder) {
 		if (currentUser.hasReadAccess().on(folder)) {
 			if (folder.getBorrowed() == null || !folder.getBorrowed()) {
@@ -189,6 +246,19 @@ public class BorrowingServices {
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder(currentUser.getUsername(), folder.getId());
+		}
+	}
+
+	public void validateCanReturnContainer(User currentUser, ContainerRecord containerRecord) {
+		if (currentUser.hasReadAccess().on(containerRecord)) {
+			if (containerRecord.getBorrowed() == null || !containerRecord.getBorrowed()) {
+				throw new BorrowingServicesRunTimeException_ContainerIsNotBorrowed(containerRecord.getId());
+			} else if (!currentUser.getUserRoles().contains(RGD) && !currentUser.getId()
+					.equals(containerRecord.getBorrower())) {
+				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer(currentUser.getUsername());
+			}
+		} else {
+			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(), containerRecord.getId());
 		}
 	}
 
@@ -207,6 +277,19 @@ public class BorrowingServices {
 		}
 	}
 
+	public void validateCanBorrow(User currentUser, ContainerRecord containerRecord, LocalDate borrowingDate) {
+
+		if (currentUser.hasReadAccess().on(containerRecord)) {
+			if (containerRecord.getBorrowed() != null && containerRecord.getBorrowed()) {
+				throw new BorrowingServicesRunTimeException_ContainerIsAlreadyBorrowed(containerRecord.getId());
+			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
+				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
+			}
+		} else {
+			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(), containerRecord.getId());
+		}
+	}
+
 	private void setBorrowedMetadatasToFolder(Folder folder, LocalDateTime borrowingDate, LocalDate previewReturnDate,
 			String userId, String borrowerEnteredId, BorrowingType borrowingType) {
 		folder.setBorrowed(true);
@@ -218,6 +301,14 @@ public class BorrowingServices {
 		folder.setAlertUsersWhenAvailable(new ArrayList<String>());
 	}
 
+	private void setBorrowedMetadatasToContainer(ContainerRecord containerRecord, LocalDateTime borrowingDate, LocalDate previewReturnDate,
+											  String userId) {
+		containerRecord.setBorrowed(true);
+		containerRecord.setBorrowDate(borrowingDate != null ? borrowingDate.toLocalDate() : TimeProvider.getLocalDate());
+		containerRecord.setPlanifiedReturnDate(previewReturnDate);
+		containerRecord.setBorrower(userId);
+	}
+
 	private void setReturnedMetadatasToFolder(Folder folder) {
 		folder.setBorrowed(null);
 		folder.setBorrowDate(null);
@@ -225,6 +316,13 @@ public class BorrowingServices {
 		folder.setBorrowUser(null);
 		folder.setBorrowUserEntered(null);
 		folder.setBorrowType(null);
+	}
+
+	private void setReturnedMetadatasToContainer(ContainerRecord containerRecord) {
+		containerRecord.setBorrowed(null);
+		containerRecord.setBorrowDate(null);
+		containerRecord.setPlanifiedReturnDate(null);
+		containerRecord.setBorrower((String) null);
 	}
 
 	public String validateBorrowingInfos(String userId, LocalDate borrowingDate, LocalDate previewReturnDate,

@@ -65,7 +65,7 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
         }
     }
 
-    private void completeBorrowRequest(RMTask task, Boolean isAccepted) {
+    public void completeBorrowRequest(RMTask task, Boolean isAccepted) {
         try {
             User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
             borrowingServices.borrowRecordsFromTask(task.getId(), LocalDate.now(), LocalDate.now(),
@@ -75,7 +75,7 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
         }
     }
 
-    private void completeReturnRequest(RMTask task, Boolean isAccepted) {
+    public void completeReturnRequest(RMTask task, Boolean isAccepted) {
         try {
             User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
             borrowingServices.returnRecordsFromTask(task.getId(), LocalDate.now(), user);
@@ -84,11 +84,11 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
         }
     }
 
-    private void completeReactivationRequest(RMTask task, Boolean isAccepted) {
+    public void completeReactivationRequest(RMTask task, Boolean isAccepted) {
 
     }
 
-    private void completeBorrowExtensionRequest(RMTask task, Boolean isAccepted) {
+    public void completeBorrowExtensionRequest(RMTask task, Boolean isAccepted) {
 
     }
 }
