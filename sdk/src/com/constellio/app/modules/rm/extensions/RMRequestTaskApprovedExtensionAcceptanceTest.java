@@ -13,6 +13,7 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -111,5 +112,40 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 
         container = records.getContainerBac13();
         assertThat(container.getBorrowed()).isNull();
+    }
+
+    @Test
+    public void givenBorrowExtendedRequestCompletedThenBorrowFolder() throws RecordServicesException {
+        recordServices.update(records.getFolder_A42().setBorrowed(true).setBorrowUser(records.getChuckNorris().getId()).setBorrowPreviewReturnDate(LocalDate.now()));
+        RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderExtensionRequestTask(records.getChuckNorris().getId(),
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, LocalDate.now().plusDays(7)).getWrappedRecord());
+        recordServices.add(task);
+
+
+        Folder folder = records.getFolder_A42();
+        assertThat(folder.getBorrowed()).isTrue();
+        assertThat(folder.getBorrowPreviewReturnDate()).isEqualTo(LocalDate.now());
+        extension.completeBorrowExtensionRequest(task, true);
+
+        folder = records.getFolder_A42();
+        assertThat(folder.getBorrowed()).isTrue();
+        assertThat(folder.getBorrowPreviewReturnDate()).isEqualTo(LocalDate.now().plusDays(7));
+    }
+
+    @Test
+    public void givenBorrowExtendedCompletedThenBorrowContainer() throws RecordServicesException {
+        recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId()).setPlanifiedReturnDate(LocalDate.now()));
+        RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerExtensionRequestTask(records.getChuckNorris().getId(),
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, LocalDate.now().plusDays(7)).getWrappedRecord());
+        recordServices.add(task);
+
+        ContainerRecord containerRecord = records.getContainerBac13();
+        assertThat(containerRecord.getBorrowed()).isTrue();
+        assertThat(containerRecord.getPlanifiedReturnDate()).isEqualTo(LocalDate.now());
+        extension.completeBorrowExtensionRequest(task, true);
+
+        containerRecord = records.getContainerBac13();
+        assertThat(containerRecord.getBorrowed()).isTrue();
+        assertThat(containerRecord.getPlanifiedReturnDate()).isEqualTo(LocalDate.now().plusDays(7));
     }
 }

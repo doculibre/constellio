@@ -152,7 +152,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
         LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
         EmailAddress adresseReceiver = new EmailAddress("Gandalf Leblanc", "gandalf@doculibre.com");
         recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.extendRecordsBorrowingPeriodFromTask(zeTask.getId(), zeDate, zeDate, users.charlesIn(zeCollection), users.gandalfIn(zeCollection), BorrowingType.BORROW);
+        borrowingServices.extendRecordsBorrowingPeriodFromTask(zeTask.getId(), zeDate, users.charlesIn(zeCollection));
         EmailToSend emailToSend = getEmailToSend(ALERT_BORROWING_EXTENTED);
         assertThat(emailToSend).isNotNull();
         assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_BORROWING_EXTENTED);

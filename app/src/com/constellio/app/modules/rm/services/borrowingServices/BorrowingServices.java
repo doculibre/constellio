@@ -157,19 +157,28 @@ public class BorrowingServices {
         alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, null, null, reactivationDate, currentUser, null, null);
     }
 
-    public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate borrowingDate, LocalDate returnDate, User currentUser,
-                                                     User borrowerEntered, BorrowingType borrowingType)
+    public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User currentUser)
             throws RecordServicesException {
         Record taskRecord = recordServices.getDocumentById(taskId);
         RMTask task = rm.wrapRMTask(taskRecord);
         String schemaType = "";
         if (task.getLinkedFolders() != null) {
             schemaType = Folder.SCHEMA_TYPE;
+			Transaction t = new Transaction();
+			for(String folderId: task.getLinkedFolders()) {
+				extendBorrowDateForFolder(folderId, returnDate, currentUser, false);
+			}
+			recordServices.execute(t);
         }
         if (task.getLinkedDocuments() != null) {
             schemaType = Document.SCHEMA_TYPE;
+			Transaction t = new Transaction();
+			for(String containerId: task.getLinkedContainers()) {
+				extendBorrowDateForContainer(containerId, returnDate, currentUser, false);
+			}
+			recordServices.execute(t);
         }
-        alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, borrowingDate, returnDate, null, currentUser, borrowerEntered, borrowingType);
+        alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, null, returnDate, null, null, currentUser, null);
     }
 
 	public void borrowFolder(String folderId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
@@ -210,6 +219,29 @@ public class BorrowingServices {
 					.consultingRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
 		}
 	}
+
+	public void extendBorrowDateForFolder(String folderId, LocalDate previewReturnDate, User currentUser, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		Record folderRecord = recordServices.getDocumentById(folderId);
+		Folder folder = rm.wrapFolder(folderRecord);
+		boolean equals = Boolean.TRUE.equals(folder.getBorrowed());
+		boolean equals1 = folder.getBorrowUser().equals(currentUser.getId());
+		if(equals && equals1) {
+			recordServices.update(folder.setBorrowPreviewReturnDate(previewReturnDate));
+		}
+	}
+
+	public void extendBorrowDateForContainer(String containerId, LocalDate previewReturnDate, User currentUser, boolean isCreateEvent)
+			throws RecordServicesException {
+
+		Record record = recordServices.getDocumentById(containerId);
+		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
+		if(Boolean.TRUE.equals(containerRecord.getBorrowed()) && containerRecord.getBorrower().equals(currentUser.getId())) {
+			recordServices.update(containerRecord.setPlanifiedReturnDate(previewReturnDate));
+		}
+	}
+
 
 	public void returnFolder(String folderId, User currentUser, LocalDate returnDate, boolean isCreateEvent)
 			throws RecordServicesException {

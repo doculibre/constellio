@@ -89,6 +89,11 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
     }
 
     public void completeBorrowExtensionRequest(RMTask task, Boolean isAccepted) {
-
+        try {
+            User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
+            borrowingServices.extendRecordsBorrowingPeriodFromTask(task.getId(), (LocalDate) task.get(ExtensionRequest.EXTENSION_VALUE), user);
+        } catch (RecordServicesException e) {
+            e.printStackTrace();
+        }
     }
 }
