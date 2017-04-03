@@ -511,7 +511,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	//KEEP
 	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId){
-		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
+		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
 					.setTitle($("returnRequest")).setAssigneeUsersCandidates(assignees)
 					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
 	}
