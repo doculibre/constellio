@@ -23,7 +23,7 @@ import static java.util.Arrays.asList;
 /**
  * Created by Constellio on 2017-03-23.
  */
-public class RMBorrowTaskApprovedExtension extends RecordExtension {
+public class RMRequestTaskApprovedExtension extends RecordExtension {
 
     String collection;
     AppLayerFactory appLayerFactory;
@@ -32,7 +32,7 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
     BorrowingServices borrowingServices;
     UserServices userServices;
 
-    public RMBorrowTaskApprovedExtension(String collection, AppLayerFactory appLayerFactory) {
+    public RMRequestTaskApprovedExtension(String collection, AppLayerFactory appLayerFactory) {
 
         this.collection = collection;
         this.appLayerFactory = appLayerFactory;

@@ -38,7 +38,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 /**
  * Created by Constellio on 2017-03-16.
  */
-public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
+public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
     enum RequestType {
         EXTENSION, BORROW
@@ -50,7 +50,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     TasksSchemasRecordsServices taskSchemas;
     RMSchemasRecordsServices rmSchemas;
 
-    public RMBorrowRequestButtonExtension(String collection, AppLayerFactory appLayerFactory) {
+    public RMRequestTaskButtonExtension(String collection, AppLayerFactory appLayerFactory) {
         this.collection = collection;
         this.appLayerFactory = appLayerFactory;
         this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -95,7 +95,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     private Button buildRequestBorrowButton(final BaseViewImpl view) {
         if (view instanceof DisplayFolderViewImpl) {
             if(((DisplayFolderViewImpl) view).getRecord().get(Folder.CONTAINER) != null) {
-                return new BaseButton($("RMBorrowRequestButtonExtension.borrowRequest")) {
+                return new BaseButton($("RMRequestTaskButtonExtension.borrowRequest")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         ConfirmDialog.show(
@@ -125,7 +125,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
                     }
                 };
             } else {
-                return new BaseButton($("RMBorrowRequestButtonExtension.borrowRequest")) {
+                return new BaseButton($("RMRequestTaskButtonExtension.borrowRequest")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         ConfirmDialog.show(
@@ -153,7 +153,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
                 };
             }
         } else if (view instanceof DisplayContainerViewImpl) {
-            return new ConfirmDialogButton($("RMBorrowRequestButtonExtension.borrowRequest")) {
+            return new ConfirmDialogButton($("RMRequestTaskButtonExtension.borrowRequest")) {
 
                 @Override
                 protected String getConfirmDialogMessage() {
@@ -174,7 +174,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestReturnButton(final BaseViewImpl view) {
-        return new ConfirmDialogButton($("RMBorrowRequestButtonExtension.returnRequest")) {
+        return new ConfirmDialogButton($("RMRequestTaskButtonExtension.returnRequest")) {
 
             @Override
             protected String getConfirmDialogMessage() {
@@ -194,7 +194,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestReactivationButton(final BaseViewImpl view) {
-        return new ConfirmDialogButton($("RMBorrowRequestButtonExtension.reactivationRequest")) {
+        return new ConfirmDialogButton($("RMRequestTaskButtonExtension.reactivationRequest")) {
 
             @Override
             protected String getConfirmDialogMessage() {
