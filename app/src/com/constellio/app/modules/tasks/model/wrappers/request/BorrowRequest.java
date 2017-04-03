@@ -7,23 +7,13 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 /**
  * Created by Marco on 2017-03-28.
  */
-public class BorrowRequest extends Task {
+public class BorrowRequest extends RequestTask {
 
     public static final String SCHEMA_NAME = "borrowRequest";
     public static final String FULL_SCHEMA_NAME = Task.SCHEMA_TYPE + "_" + SCHEMA_NAME;
-    public static final String ACCEPTED = "accepted";
 
     public BorrowRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);
-    }
-
-    public boolean isAccepted() {
-        return Boolean.TRUE.equals(get(ACCEPTED));
-    }
-
-    public BorrowRequest setAccepted(boolean accepted) {
-        set(ACCEPTED, accepted);
-        return this;
     }
 
     public String getCompletedBy() {

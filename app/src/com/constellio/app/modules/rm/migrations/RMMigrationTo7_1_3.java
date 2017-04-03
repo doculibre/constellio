@@ -155,21 +155,33 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.BORROW_RETURN_DATE)
 					.setType(MetadataValueType.DATE_TIME);
 
-			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.LINKED_CONTAINERS).setType(MetadataValueType.REFERENCE)
+			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.LINKED_CONTAINERS).setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)).setMultivalue(true);
-			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.COMPLETED_BY).setType(MetadataValueType.REFERENCE)
+			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.COMPLETED_BY).setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE)).setSystemReserved(true);
-			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).create(Task.REASON).setType(MetadataValueType.TEXT).defineDataEntry().asManual();
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.EXTENSION_VALUE)
-					.defineDataEntry().asManual().setType(MetadataValueType.DATE);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME).create(ExtensionRequest.ACCEPTED)
-					.defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME).create(BorrowRequest.ACCEPTED)
-					.defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME).create(ReactivationRequest.ACCEPTED)
-					.defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
-			typesBuilder.getSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME).create(ReturnRequest.ACCEPTED)
-					.defineDataEntry().asManual().setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.REASON).setType(MetadataValueType.TEXT);
+			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.EXTENSION_VALUE)
+					.setType(MetadataValueType.DATE);
+			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.ACCEPTED)
+					.setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.ACCEPTED)
+					.setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(ReactivationRequest.FULL_SCHEMA_NAME).createUndeletable(ReactivationRequest.ACCEPTED)
+					.setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(ReturnRequest.FULL_SCHEMA_NAME).createUndeletable(ReturnRequest.ACCEPTED)
+					.setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
+			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.APPLICANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
+			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.APPLICANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
+			typesBuilder.getSchema(ReactivationRequest.FULL_SCHEMA_NAME).createUndeletable(ReactivationRequest.APPLICANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
+			typesBuilder.getSchema(ReturnRequest.FULL_SCHEMA_NAME).createUndeletable(ReturnRequest.APPLICANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
 
 
 			MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);

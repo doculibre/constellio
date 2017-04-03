@@ -5,12 +5,10 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.*;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.services.records.RecordServicesException;
@@ -69,9 +67,9 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
 
     private void completeBorrowRequest(RMTask task, Boolean isAccepted) {
         try {
+            User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
             borrowingServices.borrowRecordsFromTask(task.getId(), LocalDate.now(), LocalDate.now(),
-                    userServices.getUserInCollection(task.getAssigner(), collection), userServices.getUserInCollection(task.getAssigner(), collection),
-                    BorrowingType.BORROW);
+                    user, user, BorrowingType.BORROW);
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }
@@ -79,7 +77,8 @@ public class RMBorrowTaskApprovedExtension extends RecordExtension {
 
     private void completeReturnRequest(RMTask task, Boolean isAccepted) {
         try {
-            borrowingServices.returnRecordsFromTask(task.getId(), LocalDate.now(), userServices.getUserInCollection(task.getAssigner(), collection));
+            User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
+            borrowingServices.returnRecordsFromTask(task.getId(), LocalDate.now(), user);
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }

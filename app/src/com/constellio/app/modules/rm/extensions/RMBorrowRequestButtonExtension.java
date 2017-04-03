@@ -95,7 +95,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     private Button buildRequestBorrowButton(final BaseViewImpl view) {
         if (view instanceof DisplayFolderViewImpl) {
             if(((DisplayFolderViewImpl) view).getRecord().get(Folder.CONTAINER) != null) {
-                return new BaseButton($("DisplayFolderView.borrow")) {
+                return new BaseButton($("RMBorrowRequestButtonExtension.borrowRequest")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         ConfirmDialog.show(
@@ -125,7 +125,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
                     }
                 };
             } else {
-                return new BaseButton($("DisplayFolderView.borrow")) {
+                return new BaseButton($("RMBorrowRequestButtonExtension.borrowRequest")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         ConfirmDialog.show(
@@ -153,7 +153,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
                 };
             }
         } else if (view instanceof DisplayContainerViewImpl) {
-            return new ConfirmDialogButton($("DisplayFolderView.borrow")) {
+            return new ConfirmDialogButton($("RMBorrowRequestButtonExtension.borrowRequest")) {
 
                 @Override
                 protected String getConfirmDialogMessage() {
@@ -174,7 +174,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestReturnButton(final BaseViewImpl view) {
-        return new ConfirmDialogButton($("DocumentActionsComponent.checkIn")) {
+        return new ConfirmDialogButton($("RMBorrowRequestButtonExtension.returnRequest")) {
 
             @Override
             protected String getConfirmDialogMessage() {
@@ -194,7 +194,7 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestReactivationButton(final BaseViewImpl view) {
-        return new ConfirmDialogButton($("DisplayFolderView.reactivation")) {
+        return new ConfirmDialogButton($("RMBorrowRequestButtonExtension.reactivationRequest")) {
 
             @Override
             protected String getConfirmDialogMessage() {
@@ -304,12 +304,12 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
             if (view instanceof DisplayFolderViewImpl) {
                 DisplayFolderViewImpl displayFolderView = (DisplayFolderViewImpl) view;
                 String folderId = displayFolderView.getRecord().getId();
-                Task reactivationRequest = taskSchemas.newReactivateFolderRequestTask(getCurrentUser(view).getId(), getAssignees(folderId), folderId);
+                Task reactivationRequest = taskSchemas.newReactivateFolderRequestTask(getCurrentUser(view).getUsername(), getAssignees(folderId), folderId);
                 modelLayerFactory.newRecordServices().add(reactivationRequest);
             } else if (view instanceof DisplayContainerViewImpl) {
                 DisplayContainerViewImpl displayContainerView = (DisplayContainerViewImpl) view;
                 String containerId = displayContainerView.getPresenter().getContainerId();
-                Task reactivationRequest = taskSchemas.newReactivationContainerRequestTask(getCurrentUser(view).getId(), getAssignees(containerId), containerId);
+                Task reactivationRequest = taskSchemas.newReactivationContainerRequestTask(getCurrentUser(view).getUsername(), getAssignees(containerId), containerId);
                 modelLayerFactory.newRecordServices().add(reactivationRequest);
             } else throw new UnsupportedOperationException("invalid view : " + view.getClass().getCanonicalName());
         } catch (RecordServicesException e) {
@@ -322,12 +322,12 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
             if (view instanceof DisplayFolderViewImpl) {
                 DisplayFolderViewImpl displayFolderView = (DisplayFolderViewImpl) view;
                 String folderId = displayFolderView.getRecord().getId();
-                Task borrowExtensionRequest = taskSchemas.newBorrowFolderExtensionRequestTask(getCurrentUser(view).getId(), getAssignees(folderId), folderId, new LocalDate(req.getValue()));
+                Task borrowExtensionRequest = taskSchemas.newBorrowFolderExtensionRequestTask(getCurrentUser(view).getUsername(), getAssignees(folderId), folderId, new LocalDate(req.getValue()));
                 modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
             } else if (view instanceof DisplayContainerViewImpl) {
                 DisplayContainerViewImpl displayContainerView = (DisplayContainerViewImpl) view;
                 String containerId = displayContainerView.getPresenter().getContainerId();
-                Task borrowExtensionRequest = taskSchemas.newBorrowContainerExtensionRequestTask(getCurrentUser(view).getId(), getAssignees(containerId), containerId, new LocalDate(req.getValue()));
+                Task borrowExtensionRequest = taskSchemas.newBorrowContainerExtensionRequestTask(getCurrentUser(view).getUsername(), getAssignees(containerId), containerId, new LocalDate(req.getValue()));
                 modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
             } else throw new UnsupportedOperationException("invalid view : " + view.getClass().getCanonicalName());
         } catch (RecordServicesException e) {
@@ -339,11 +339,11 @@ public class RMBorrowRequestButtonExtension extends PagesComponentsExtension {
         if (view instanceof DisplayFolderViewImpl) {
             DisplayFolderViewImpl displayView = (DisplayFolderViewImpl) view;
             Folder f = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getFolder(displayView.getRecord().getId());
-            return Boolean.TRUE.equals(f.getBorrowed()) && f.getBorrowUser().equals(getCurrentUser(view).getId()) && getCurrentUser(view).has(RMPermissionsTo.BORROW_FOLDER).on(f);
+            return Boolean.TRUE.equals(f.getBorrowed()) && f.getBorrowUser().equals(getCurrentUser(view).getId());
         } else if (view instanceof DisplayContainerViewImpl) {
             DisplayContainerViewImpl displayView = (DisplayContainerViewImpl) view;
             ContainerRecord c = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getContainerRecord(displayView.getPresenter().getContainerId());
-            return Boolean.TRUE.equals(c.getBorrowed()) && getCurrentUser(view).has(RMPermissionsTo.BORROW_FOLDER).on(c);
+            return Boolean.TRUE.equals(c.getBorrowed()) && c.getBorrower().equals(getCurrentUser(view).getId());
         }
         return false;
     }
