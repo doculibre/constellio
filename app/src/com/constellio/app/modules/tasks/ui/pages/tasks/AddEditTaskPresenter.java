@@ -2,10 +2,7 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.*;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
@@ -170,6 +167,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					.getFirstFinishedStatus();
 			if (finishedStatus != null) {
 				task.setStatus(finishedStatus.getId());
+			}
+			if(tasksSchemas.isRequestTask(task)) {
+				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
 			}
 		}
 		workflowId = paramsMap.get("workflowId");

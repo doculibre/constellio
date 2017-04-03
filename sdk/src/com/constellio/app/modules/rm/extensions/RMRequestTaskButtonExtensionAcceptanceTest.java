@@ -112,9 +112,9 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
-        assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId());
+        assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED, RequestTask.APPLICANT, Task.TYPE, Task.TITLE)
+                .containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId(), "Demande d'emprunt du dossier: Crocodile");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
@@ -127,8 +127,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_CONTAINERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId(), "Demande d'emprunt du contenant: 10_A_06");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
 
 
@@ -139,8 +139,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_CONTAINERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId(), "Demande d'emprunt du contenant: 10_A_06");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
@@ -155,8 +155,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.RETURN_REQUEST).getId());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.RETURN_REQUEST).getId(), "Demande de retour du dossier: Crocodile");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
@@ -169,8 +169,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_CONTAINERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.RETURN_REQUEST).getId());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.RETURN_REQUEST).getId(), "Demande de retour du contenant: 10_A_06");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
@@ -185,8 +185,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.REACTIVATION_REQUEST).getId());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.REACTIVATION_REQUEST).getId(), "Demande de réactivation du dossier: Crocodile");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
@@ -199,8 +199,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_CONTAINERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.REACTIVATION_REQUEST).getId());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.REACTIVATION_REQUEST).getId(), "Demande de réactivation du contenant: 10_A_06");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
@@ -215,8 +215,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE, ExtensionRequest.EXTENSION_VALUE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_EXTENSION_REQUEST).getId(), LocalDate.now());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE, ExtensionRequest.EXTENSION_VALUE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_EXTENSION_REQUEST).getId(), "Demande de renouvellement d'emprunt du dossier: Crocodile",  LocalDate.now());
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
@@ -229,8 +229,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThat(tasks.size()).isEqualTo(1);
         Task task = tasks.get(0);
         assertThatRecord(task).extracting(Task.LINKED_CONTAINERS, RequestTask.ACCEPTED,
-                RequestTask.APPLICANT, Task.TYPE, ExtensionRequest.EXTENSION_VALUE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
-                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_EXTENSION_REQUEST).getId(), LocalDate.now());
+                RequestTask.APPLICANT, Task.TYPE, Task.TITLE, ExtensionRequest.EXTENSION_VALUE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
+                taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_EXTENSION_REQUEST).getId(), "Demande de renouvellement d'emprunt du contenant: 10_A_06", LocalDate.now());
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 }

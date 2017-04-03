@@ -503,60 +503,67 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId) {
+	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle) {
 		Task task = newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME));
-		return task.setTitle($("borrowRequest")).setAssigneeUsersCandidates(assignees)
+		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId){
+	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle){
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
-					.setTitle($("returnRequest")).setAssigneeUsersCandidates(assignees)
+					.setTitle($("TaskSchemasRecordsServices.returnFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId){
+	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle){
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
-					.setTitle($("reactivationRequest")).setAssigneeUsersCandidates(assignees)
+					.setTitle($("TaskSchemasRecordsServices.reactivationFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newBorrowFolderExtensionRequestTask(String assignerId, List<String> assignees, String folderId, LocalDate value) {
+	public Task newBorrowFolderExtensionRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle, LocalDate value) {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
-					.setTitle($("borrowExtensionRequest")).setAssigneeUsersCandidates(assignees)
+					.setTitle($("TaskSchemasRecordsServices.borrowFolderExtensionRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ExtensionRequest.EXTENSION_VALUE, value);
 	}
 
 	//KEEP
-	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId) {
+	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME))
-				.setTitle($("borrowRequest")).setAssigneeUsersCandidates(assignees)
+				.setTitle($("TaskSchemasRecordsServices.borrowContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newReturnContainerRequestTask(String assignerId, List<String> assignees, String containerId) {
+	public Task newReturnContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
-				.setTitle($("returnRequest")).setAssigneeUsersCandidates(assignees)
+				.setTitle($("TaskSchemasRecordsServices.returnContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId) {
+	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
-				.setTitle($("reactivateRequest")).setAssigneeUsersCandidates(assignees)
+				.setTitle($("TaskSchemasRecordsServices.reactivationContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newBorrowContainerExtensionRequestTask(String assignerId, List<String> assignees, String containerId, LocalDate value) {
+	public Task newBorrowContainerExtensionRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle, LocalDate value) {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
-				.setTitle($("extensionRequest")).setAssigneeUsersCandidates(assignees)
+				.setTitle($("TaskSchemasRecordsServices.borrowContainerExtensionRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ExtensionRequest.EXTENSION_VALUE, value);
+	}
+
+	//KEEP
+	public boolean isRequestTask(Task task) {
+		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
+				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
+		return acceptedSchemas.contains(task.getSchemaCode());
 	}
 }

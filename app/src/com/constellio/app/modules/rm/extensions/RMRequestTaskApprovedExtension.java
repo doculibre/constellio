@@ -67,9 +67,10 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
 
     public void completeBorrowRequest(RMTask task, Boolean isAccepted) {
         try {
-            User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
+            User applicant = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
+            User respondant = rmSchemas.getUser((String) task.get(RequestTask.RESPONDANT));
             borrowingServices.borrowRecordsFromTask(task.getId(), LocalDate.now(), LocalDate.now(),
-                    user, user, BorrowingType.BORROW);
+                    respondant, applicant, BorrowingType.BORROW);
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }
@@ -77,8 +78,9 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
 
     public void completeReturnRequest(RMTask task, Boolean isAccepted) {
         try {
-            User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
-            borrowingServices.returnRecordsFromTask(task.getId(), LocalDate.now(), user);
+            User applicant = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
+            User respondant = rmSchemas.getUser((String) task.get(RequestTask.RESPONDANT));
+            borrowingServices.returnRecordsFromTask(task.getId(), LocalDate.now(), respondant, applicant);
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }
@@ -90,8 +92,9 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
 
     public void completeBorrowExtensionRequest(RMTask task, Boolean isAccepted) {
         try {
-            User user = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
-            borrowingServices.extendRecordsBorrowingPeriodFromTask(task.getId(), (LocalDate) task.get(ExtensionRequest.EXTENSION_VALUE), user);
+            User applicant = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
+            User respondant = rmSchemas.getUser((String) task.get(RequestTask.RESPONDANT));
+            borrowingServices.extendRecordsBorrowingPeriodFromTask(task.getId(), (LocalDate) task.get(ExtensionRequest.EXTENSION_VALUE), respondant, applicant);
         } catch (RecordServicesException e) {
             e.printStackTrace();
         }

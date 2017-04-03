@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
@@ -60,8 +61,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     @Test
     public void givenBorrowRequestCompletedThenBorrowFolder() throws RecordServicesException {
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42).getWrappedRecord());
-        recordServices.add(task);
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, records.getFolder_A42().getTitle()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
         extension.completeBorrowRequest(task, true);
 
@@ -73,8 +74,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     @Test
     public void givenBorrowRequestCompletedThenBorrowContainer() throws RecordServicesException {
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13).getWrappedRecord());
-        recordServices.add(task);
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, records.getContainerBac13().getTitle()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
         extension.completeBorrowRequest(task, true);
 
@@ -87,8 +88,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     public void givenReturnRequestCompletedThenBorrowFolder() throws RecordServicesException {
         recordServices.update(records.getFolder_A42().setBorrowed(true).setBorrowUser(records.getChuckNorris().getId()));
         RMTask task = rm.wrapRMTask(taskSchemas.newReturnFolderRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42).getWrappedRecord());
-        recordServices.add(task);
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, records.getFolder_A42().getTitle()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 
         Folder folder = records.getFolder_A42();
@@ -103,8 +104,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     public void givenReturnRequestCompletedThenBorrowContainer() throws RecordServicesException {
         recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId()));
         RMTask task = rm.wrapRMTask(taskSchemas.newReturnContainerRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13).getWrappedRecord());
-        recordServices.add(task);
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, records.getContainerBac13().getTitle()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
         ContainerRecord container = records.getContainerBac13();
         assertThat(container.getBorrowed()).isTrue();
@@ -118,8 +119,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     public void givenBorrowExtendedRequestCompletedThenBorrowFolder() throws RecordServicesException {
         recordServices.update(records.getFolder_A42().setBorrowed(true).setBorrowUser(records.getChuckNorris().getId()).setBorrowPreviewReturnDate(LocalDate.now()));
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderExtensionRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, LocalDate.now().plusDays(7)).getWrappedRecord());
-        recordServices.add(task);
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, records.getFolder_A42().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 
         Folder folder = records.getFolder_A42();
@@ -136,8 +137,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     public void givenBorrowExtendedCompletedThenBorrowContainer() throws RecordServicesException {
         recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId()).setPlanifiedReturnDate(LocalDate.now()));
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerExtensionRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, LocalDate.now().plusDays(7)).getWrappedRecord());
-        recordServices.add(task);
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, records.getContainerBac13().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
         ContainerRecord containerRecord = records.getContainerBac13();
         assertThat(containerRecord.getBorrowed()).isTrue();

@@ -183,6 +183,18 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 			typesBuilder.getSchema(ReturnRequest.FULL_SCHEMA_NAME).createUndeletable(ReturnRequest.APPLICANT)
 					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
+			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.RESPONDANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
+			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.RESPONDANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
+			typesBuilder.getSchema(ReactivationRequest.FULL_SCHEMA_NAME).createUndeletable(ReactivationRequest.RESPONDANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
+			typesBuilder.getSchema(ReturnRequest.FULL_SCHEMA_NAME).createUndeletable(ReturnRequest.RESPONDANT)
+					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setSystemReserved(true);
 
 
 			MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);

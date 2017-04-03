@@ -59,8 +59,8 @@ public class BorrowingServices {
         this.collection = collection;
     }
 
-    public void borrowRecordsFromTask(String taskId, LocalDate borrowingDate, LocalDate returnDate, User currentUser,
-                                      User borrowerEntered, BorrowingType borrowingType)
+    public void borrowRecordsFromTask(String taskId, LocalDate borrowingDate, LocalDate returnDate, User respondant,
+                                      User applicant, BorrowingType borrowingType)
             throws RecordServicesException {
 
         String schemaType = "";
@@ -70,12 +70,12 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				borrowFolder(folderId, borrowingDate, returnDate, currentUser, borrowerEntered, borrowingType, false);
+				borrowFolder(folderId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
 				Record event = rm.newEvent()
-						.setUsername(currentUser.getUsername())
+						.setUsername(applicant.getUsername())
 						.setTask(taskId)
 						.setType(EventType.BORROW_FOLDER)
-						.setIp(currentUser.getLastIPAddress())
+						.setIp(applicant.getLastIPAddress())
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
@@ -86,22 +86,22 @@ public class BorrowingServices {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String containerId: task.getLinkedContainers()) {
-				borrowContainer(containerId, borrowingDate, returnDate, currentUser, borrowerEntered, borrowingType, false);
+				borrowContainer(containerId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
 				Record event = rm.newEvent()
-						.setUsername(currentUser.getUsername())
+						.setUsername(applicant.getUsername())
 						.setTask(taskId)
 						.setType(EventType.BORROW_FOLDER)
-						.setIp(currentUser.getLastIPAddress())
+						.setIp(applicant.getLastIPAddress())
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
 			}
 			recordServices.execute(t);
         }
-        alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, borrowingDate, returnDate, null, currentUser, borrowerEntered, borrowingType);
+        alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, borrowingDate, returnDate, null, respondant, applicant, borrowingType);
 	}
 
-    public void returnRecordsFromTask(String taskId, LocalDate returnDate, User currentUser)
+    public void returnRecordsFromTask(String taskId, LocalDate returnDate, User respondant, User applicant)
             throws RecordServicesException {
 
 		Record taskRecord = recordServices.getDocumentById(taskId);
@@ -111,12 +111,12 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				returnFolder(folderId, currentUser, returnDate, false);
+				returnFolder(folderId, applicant, returnDate, false);
 				Record event = rm.newEvent()
-						.setUsername(currentUser.getUsername())
+						.setUsername(applicant.getUsername())
 						.setTask(taskId)
 						.setType(EventType.RETURN_FOLDER)
-						.setIp(currentUser.getLastIPAddress())
+						.setIp(applicant.getLastIPAddress())
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
@@ -127,19 +127,19 @@ public class BorrowingServices {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String containerId: task.getLinkedContainers()) {
-				returnContainer(containerId, currentUser, returnDate, false);
+				returnContainer(containerId, applicant, returnDate, false);
 				Record event = rm.newEvent()
-						.setUsername(currentUser.getUsername())
+						.setUsername(applicant.getUsername())
 						.setTask(taskId)
 						.setType(EventType.BORROW_FOLDER)
-						.setIp(currentUser.getLastIPAddress())
+						.setIp(applicant.getLastIPAddress())
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
 			}
 			recordServices.execute(t);
 		}
-        alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, null, returnDate, null, currentUser, null, null);
+        alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, null, returnDate, null, respondant, applicant, null);
 	}
 
     public void reactivateRecordsFromTask(String taskId, LocalDate reactivationDate, User currentUser)
@@ -157,7 +157,7 @@ public class BorrowingServices {
         alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, null, null, reactivationDate, currentUser, null, null);
     }
 
-    public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User currentUser)
+    public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User respondant, User applicant)
             throws RecordServicesException {
         Record taskRecord = recordServices.getDocumentById(taskId);
         RMTask task = rm.wrapRMTask(taskRecord);
@@ -166,7 +166,7 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				extendBorrowDateForFolder(folderId, returnDate, currentUser, false);
+				extendBorrowDateForFolder(folderId, returnDate, applicant, false);
 			}
 			recordServices.execute(t);
         }
@@ -174,11 +174,11 @@ public class BorrowingServices {
             schemaType = Document.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String containerId: task.getLinkedContainers()) {
-				extendBorrowDateForContainer(containerId, returnDate, currentUser, false);
+				extendBorrowDateForContainer(containerId, returnDate, applicant, false);
 			}
 			recordServices.execute(t);
         }
-        alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, null, returnDate, null, null, currentUser, null);
+        alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, null, returnDate, null, respondant, applicant, null);
     }
 
 	public void borrowFolder(String folderId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,

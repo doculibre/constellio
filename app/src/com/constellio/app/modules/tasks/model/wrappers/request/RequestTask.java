@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 abstract public class RequestTask extends Task{
     public static final String ACCEPTED = "accepted";
     public static final String APPLICANT = "applicant";
+    public static final String RESPONDANT = "respondant";
 
     public RequestTask(Record record, MetadataSchemaTypes types) {
         super(record, types);
