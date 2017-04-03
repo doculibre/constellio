@@ -9,6 +9,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class LayerFactory {
 
+	private String instanceName;
+
 	private LayerFactory bottomLayerFactory;
 
 	private StatefullServiceDecorator statefullServiceDecorator;
@@ -19,13 +21,20 @@ public class LayerFactory {
 
 	private boolean initialized;
 
-	public LayerFactory(StatefullServiceDecorator statefullServiceDecorator) {
+	public LayerFactory(StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 		this.statefullServiceDecorator = statefullServiceDecorator;
+		this.instanceName = instanceName;
 	}
 
-	public LayerFactory(LayerFactory bottomLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
+	public LayerFactory(LayerFactory bottomLayerFactory, StatefullServiceDecorator statefullServiceDecorator,
+			String instanceName) {
 		this.bottomLayerFactory = bottomLayerFactory;
 		this.statefullServiceDecorator = statefullServiceDecorator;
+		this.instanceName = instanceName;
+	}
+
+	public String getInstanceName() {
+		return instanceName;
 	}
 
 	public <T extends StatefulService> T add(T statefulService) {
@@ -67,6 +76,14 @@ public class LayerFactory {
 	protected void ensureNotYetInitialized() {
 		if (initialized) {
 			throw new ImpossibleRuntimeException("Layer is already initialized");
+		}
+	}
+
+	public String toResourceName(String name) {
+		if (instanceName == null) {
+			return name;
+		} else {
+			return instanceName + ":" + name;
 		}
 	}
 }

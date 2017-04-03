@@ -7,6 +7,7 @@ import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.TimeProvider;
 
 public class BackgroundThreadCommand implements Runnable {
@@ -22,11 +23,12 @@ public class BackgroundThreadCommand implements Runnable {
 	Semaphore tasksSemaphore;
 
 	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted,
-			AtomicBoolean stopRequested, Semaphore tasksSemaphore) {
+			AtomicBoolean stopRequested, Semaphore tasksSemaphore, DataLayerFactory dataLayerFactory) {
 		this.configuration = configuration;
 		this.tasksSemaphore = tasksSemaphore;
 		this.logger = LoggerFactory.getLogger(configuration.getRepeatedAction().getClass());
-		this.threadName = configuration.getId() + " (" + configuration.getRepeatedAction().getClass().getName() + ")";
+		this.threadName = dataLayerFactory
+				.toResourceName(configuration.getId() + " (" + configuration.getRepeatedAction().getClass().getName() + ")");
 		this.stopRequested = stopRequested;
 		this.systemStarted = systemStarted;
 	}
