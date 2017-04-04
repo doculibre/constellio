@@ -126,7 +126,8 @@ public class ConstellioEIMConfigs {
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
-		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50).scriptedBy(LazyTreeBufferSizeValidationScript.class));
+		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
+				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -193,6 +194,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(WRITE_ZZRECORDS_IN_TLOG);
 	}
 
+	public Boolean isTableDynamicConfiguration() {
+		return manager.getValue(TABLE_DYNAMIC_CONFIGURATION);
+	}
+
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
 	}
@@ -225,7 +230,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(CMIS_NEVER_RETURN_ACL);
 	}
 
-	public Boolean isRemoveExtensionFromRecordTitle(){
+	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
 	}
 
