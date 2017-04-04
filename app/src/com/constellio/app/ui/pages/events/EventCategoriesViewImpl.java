@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.events;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
@@ -12,6 +10,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EventCategoriesViewImpl extends BaseViewImpl implements EventCategoriesView {
 
@@ -72,6 +72,12 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		Button recordRequestLink = newDocumentRequestLink();
 		recordRequestLink.addStyleName(RECORDS_REQUEST_LINK_BUTTON);
 		layout.addComponents(recordRequestLink);
+
+		Button borrowedFoldersLink = newBorrowedOrReturnedFoldersEventsLink();
+		layout.addComponent(borrowedFoldersLink);
+
+		Button borrowedContainersLink = newBorrowedOrReturnedContainersEventsLink();
+		layout.addComponent(borrowedContainersLink);
 
 		Button currentlyBorrowedDocumentsLink = newCurrentlyBorrowedDocumentsLink();
 		currentlyBorrowedDocumentsLink.addStyleName(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);

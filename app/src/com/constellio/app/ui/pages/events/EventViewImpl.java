@@ -1,14 +1,9 @@
 package com.constellio.app.ui.pages.events;
 
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayWindowButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -26,6 +21,9 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Map;
 
 public class EventViewImpl extends BaseViewImpl implements EventView {
 	public static final String EVENT_TABLE_STYLE = "selenium-event-table";

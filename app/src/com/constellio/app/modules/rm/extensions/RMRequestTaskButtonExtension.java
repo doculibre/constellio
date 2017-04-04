@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -155,6 +156,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 final User currentUser = context.getCurrentUser();
                 VerticalLayout mainLayout = new VerticalLayout();
                 final BaseIntegerField borrowDurationField = new BaseIntegerField($("RMRequestTaskButtonExtension.borrowDuration"));
+
+                borrowDurationField.setValue(String.valueOf(new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getBorrowingDurationDays()));
                 HorizontalLayout buttonLayout = new HorizontalLayout();
 
                 BaseButton borrowFolderButton = new BaseButton($("RMRequestTaskButtonExtension.confirmBorrowFolder")) {

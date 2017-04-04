@@ -73,6 +73,8 @@ public class BorrowingServices {
 				borrowFolder(folderId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
+						.setRecordId(folderId)
+						.setTitle(rm.getFolder(folderId).getTitle())
 						.setReceiver(respondant)
 						.setReason(task.getReason())
 						.setTask(taskId)
@@ -91,8 +93,12 @@ public class BorrowingServices {
 				borrowContainer(containerId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
+						.setRecordId(containerId)
+						.setTitle(rm.getContainerRecord(containerId).getTitle())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
 						.setTask(taskId)
-						.setType(EventType.BORROW_FOLDER)
+						.setType(EventType.BORROW_CONTAINER)
 						.setIp(applicant.getLastIPAddress())
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
@@ -116,6 +122,10 @@ public class BorrowingServices {
 				returnFolder(folderId, applicant, returnDate, false);
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
+						.setRecordId(folderId)
+						.setTitle(rm.getFolder(folderId).getTitle())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
 						.setTask(taskId)
 						.setType(EventType.RETURN_FOLDER)
 						.setIp(applicant.getLastIPAddress())
@@ -132,8 +142,12 @@ public class BorrowingServices {
 				returnContainer(containerId, applicant, returnDate, false);
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
+						.setRecordId(containerId)
+						.setTitle(rm.getContainerRecord(containerId).getTitle())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
 						.setTask(taskId)
-						.setType(EventType.BORROW_FOLDER)
+						.setType(EventType.RETURN_CONTAINER)
 						.setIp(applicant.getLastIPAddress())
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
@@ -195,11 +209,14 @@ public class BorrowingServices {
 				currentUser.getId(), borrowerEntered.getId(),
 				borrowingType);
 		recordServices.update(folder);
-		if (borrowingType == BorrowingType.BORROW) {
-			loggingServices.borrowRecord(folderRecord, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
-		} else {
-			loggingServices
-					.consultingRecord(folderRecord, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+
+		if(isCreateEvent) {
+			if (borrowingType == BorrowingType.BORROW) {
+				loggingServices.borrowRecord(folderRecord, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			} else {
+				loggingServices
+						.consultingRecord(folderRecord, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			}
 		}
 	}
 
@@ -214,11 +231,13 @@ public class BorrowingServices {
 				previewReturnDate,
 				currentUser.getId());
 		recordServices.update(containerRecord);
-		if (borrowingType == BorrowingType.BORROW) {
-			loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
-		} else {
-			loggingServices
-					.consultingRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+		if(isCreateEvent) {
+			if (borrowingType == BorrowingType.BORROW) {
+				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			} else {
+				loggingServices
+						.consultingRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			}
 		}
 	}
 
@@ -254,8 +273,11 @@ public class BorrowingServices {
 		BorrowingType borrowingType = folder.getBorrowType();
 		setReturnedMetadatasToFolder(folder);
 		recordServices.update(folder);
-		if (borrowingType == BorrowingType.BORROW) {
-			loggingServices.returnRecord(folderRecord, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+
+		if(isCreateEvent) {
+			if (borrowingType == BorrowingType.BORROW) {
+				loggingServices.returnRecord(folderRecord, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			}
 		}
 	}
 
@@ -267,7 +289,10 @@ public class BorrowingServices {
 		validateCanReturnContainer(currentUser, containerRecord);
 		setReturnedMetadatasToContainer(containerRecord);
 		recordServices.update(containerRecord);
-		loggingServices.returnRecord(record, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+
+		if(isCreateEvent) {
+			loggingServices.returnRecord(record, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+		}
 	}
 
 	public void validateCanReturnFolder(User currentUser, Folder folder) {

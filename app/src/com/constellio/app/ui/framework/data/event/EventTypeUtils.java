@@ -1,16 +1,17 @@
 package com.constellio.app.ui.framework.data.event;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class EventTypeUtils implements Serializable {
 
@@ -141,6 +142,13 @@ public class EventTypeUtils implements Serializable {
 			if (eventType.equals(EventType.DELETE_FOLDER) || eventType.equals(EventType.DELETE_DOCUMENT)) {
 				Metadata reasonMetadata = metadataSchema.getMetadata(Event.REASON);
 				metadataCodes.add(reasonMetadata.getCode());
+			} else if(isPotentiallyFromRequestTask(eventType)) {
+				Metadata taskMetadata = metadataSchema.getMetadata(Event.TASK);
+				metadataCodes.add(taskMetadata.getCode());
+				Metadata receiverMetadata = metadataSchema.getMetadata(Event.RECEIVER_NAME);
+				metadataCodes.add(receiverMetadata.getCode());
+				Metadata descriptionMetadata = metadataSchema.getMetadata(Event.DESCRIPTION);
+				metadataCodes.add(descriptionMetadata.getCode());
 			}
 		} else if (isUserEvent(eventType) ||
 				isGroupEvent(eventType)) {
@@ -150,6 +158,11 @@ public class EventTypeUtils implements Serializable {
 			metadataCodes.add(Event.DELTA);
 		}
 		return metadataCodes;
+	}
+
+	private static boolean isPotentiallyFromRequestTask(String eventType) {
+		return asList(EventType.BORROW_FOLDER, EventType.BORROW_CONTAINER, EventType.RETURN_FOLDER, EventType.RETURN_CONTAINER,
+					EventType.REACTIVATING_FOLDER).contains(eventType);
 	}
 
 	private static List<String> getEventUserMetadata(MetadataSchema metadataSchema) {

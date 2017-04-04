@@ -34,7 +34,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScript {
@@ -83,6 +83,11 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
 		displayManager.saveMetadata(displayManager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_CONTAINERS)
 				.withMetadataGroup(detailsTab));
+
+		displayManager.saveSchema(displayManager.getSchema(collection, Event.DEFAULT_SCHEMA)
+				.withNewTableMetadatas(Event.DEFAULT_SCHEMA + "_" + Event.RECEIVER_NAME,
+						Event.DEFAULT_SCHEMA + "_" + Event.TASK,
+						Event.DEFAULT_SCHEMA + "_" + Event.DESCRIPTION));
 	}
 
 	private void migrateRoles(String collection, ModelLayerFactory modelLayerFactory) {
@@ -196,11 +201,10 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 
-
 			MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);
-			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(STRING).defineDataEntry().asManual();
-			eventSchemaType.getDefaultSchema().create(Event.TASK).setType(STRING).defineDataEntry().asManual();
-			eventSchemaType.getDefaultSchema().create(Event.DESCRIPTION).setType(MetadataValueType.TEXT).defineDataEntry().asManual();
+			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+			eventSchemaType.getDefaultSchema().create(Event.TASK).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(Task.SCHEMA_TYPE));
+			eventSchemaType.getDefaultSchema().create(Event.DESCRIPTION).setType(MetadataValueType.TEXT);
 		}
 	}
 }
