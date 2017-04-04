@@ -1,11 +1,5 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -24,6 +18,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class CoreNavigationConfiguration implements Serializable {
 	
@@ -425,7 +425,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+						return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
 					}
 				});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
@@ -436,7 +436,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TRASH_BIN, TRASH_BIN_ICON) {
