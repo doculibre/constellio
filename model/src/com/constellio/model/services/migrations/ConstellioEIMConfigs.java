@@ -63,6 +63,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration REMOVE_EXTENSION_FROM_RECORD_TITLE;
 
+	public static final SystemConfiguration TABLE_DYNAMIC_CONFIGURATION;
+
 	public static final SystemConfiguration TRANSACTION_DELAY;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
@@ -84,7 +86,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration DEFAULT_START_TAB;
 
 	public static final SystemConfiguration DEFAULT_TAXONOMY;
-	
+
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
@@ -135,6 +137,8 @@ public class ConstellioEIMConfigs {
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
+
+		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
 		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
@@ -241,7 +245,7 @@ public class ConstellioEIMConfigs {
 		}
 
 	}
-	
+
 	public static class LazyTreeBufferSizeValidationScript extends AbstractSystemConfigurationScript<Integer> {
 
 		@Override
@@ -257,7 +261,7 @@ public class ConstellioEIMConfigs {
 			parameters.put("maxValue", max);
 			return parameters;
 		}
-		
+
 	}
 
 	public boolean getIcapScanActivated() {
@@ -287,7 +291,7 @@ public class ConstellioEIMConfigs {
 	public int getTransactionDelay() {
 		return manager.getValue(TRANSACTION_DELAY);
 	}
-	
+
 	public int getLazyTreeBufferSize() {
 		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
 	}
