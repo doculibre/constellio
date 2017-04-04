@@ -162,50 +162,50 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setEnabled(true);
 
 		switch (value) {
-		case BOOLEAN:
-			if (multivalueType.getValue()) {
-				multivalueType.setValue(false);
-			}
-			multivalueType.setEnabled(false);
-			sortableField.setEnabled(false);
-			break;
-		case TEXT:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			searchableField.setEnabled(!inherited);
-			break;
-		case CONTENT:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			searchableField.setEnabled(!inherited);
-			break;
-		case DATE:
-			multivalueType.setEnabled(true);
-			break;
-		case DATE_TIME:
-			multivalueType.setEnabled(true);
-			break;
-		case INTEGER:
-			multivalueType.setEnabled(true);
-			searchableField.setEnabled(!inherited);
-			break;
-		case REFERENCE:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			refType.setEnabled(true);
-			refType.setRequired(true);
-			break;
-		case STRING:
-			multivalueType.setEnabled(true);
-			searchableField.setEnabled(!inherited);
-			break;
-		case NUMBER:
-			multivalueType.setEnabled(true);
-			searchableField.setEnabled(!inherited);
-			break;
-		case STRUCTURE:
-			multivalueType.setEnabled(true);
-			break;
+			case BOOLEAN:
+				if (multivalueType.getValue()) {
+					multivalueType.setValue(false);
+				}
+				multivalueType.setEnabled(false);
+				sortableField.setEnabled(false);
+				break;
+			case TEXT:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				searchableField.setEnabled(!inherited);
+				break;
+			case CONTENT:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				searchableField.setEnabled(!inherited);
+				break;
+			case DATE:
+				multivalueType.setEnabled(true);
+				break;
+			case DATE_TIME:
+				multivalueType.setEnabled(true);
+				break;
+			case INTEGER:
+				multivalueType.setEnabled(true);
+				searchableField.setEnabled(!inherited);
+				break;
+			case REFERENCE:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				refType.setEnabled(true);
+				refType.setRequired(true);
+				break;
+			case STRING:
+				multivalueType.setEnabled(true);
+				searchableField.setEnabled(!inherited);
+				break;
+			case NUMBER:
+				multivalueType.setEnabled(true);
+				searchableField.setEnabled(!inherited);
+				break;
+			case STRUCTURE:
+				multivalueType.setEnabled(true);
+				break;
 		}
 	}
 
@@ -215,27 +215,27 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		searchableField.setValue(false);
 
 		switch (value) {
-		case BOOLEAN:
-			sortableField.setValue(false);
-		case TEXT:
-			sortableField.setValue(false);
-		case CONTENT:
-			sortableField.setValue(false);
-		case REFERENCE:
-			sortableField.setValue(false);
-			break;
-		case DATE:
-			break;
-		case DATE_TIME:
-			break;
-		case INTEGER:
-			break;
-		case STRING:
-			break;
-		case NUMBER:
-			break;
-		case STRUCTURE:
-			break;
+			case BOOLEAN:
+				sortableField.setValue(false);
+			case TEXT:
+				sortableField.setValue(false);
+			case CONTENT:
+				sortableField.setValue(false);
+			case REFERENCE:
+				sortableField.setValue(false);
+				break;
+			case DATE:
+				break;
+			case DATE_TIME:
+				break;
+			case INTEGER:
+				break;
+			case STRING:
+				break;
+			case NUMBER:
+				break;
+			case STRUCTURE:
+				break;
 		}
 	}
 
@@ -458,7 +458,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					showErrorMessage(e.getMessage());
 					return;
 				}
-				presenter.saveButtonClicked(formMetadataVO, editMode);
+				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 
 			@Override
