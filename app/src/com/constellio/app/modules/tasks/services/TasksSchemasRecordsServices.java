@@ -503,10 +503,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle) {
+	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId, int numberOfDays, String recordTitle) {
 		Task task = newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME));
 		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
+					.setLinkedFolders(asList(folderId)).set(BorrowRequest.BORROW_DURATION, numberOfDays).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
@@ -532,10 +532,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
+	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId, int numberOfDays, String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.borrowContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
+				.setLinkedContainers(asList(containerId)).set(BorrowRequest.BORROW_DURATION, numberOfDays).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP

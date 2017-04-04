@@ -115,6 +115,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 		try {
 			Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
+			if (completeMode && tasksSchemas.isRequestTask(task)) {
+				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
+			}
 			if (task.getAssignee() == null) {
 				task.setAssignationDate(null);
 				task.setAssigner(null);
@@ -167,9 +170,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					.getFirstFinishedStatus();
 			if (finishedStatus != null) {
 				task.setStatus(finishedStatus.getId());
-			}
-			if(tasksSchemas.isRequestTask(task)) {
-				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
 			}
 		}
 		workflowId = paramsMap.get("workflowId");

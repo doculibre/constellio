@@ -61,7 +61,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     @Test
     public void givenBorrowRequestCompletedThenBorrowFolder() throws RecordServicesException {
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, records.getFolder_A42().getTitle()).getWrappedRecord());
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, 7, records.getFolder_A42().getTitle()).getWrappedRecord());
         recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
         extension.completeBorrowRequest(task, true);
@@ -74,7 +74,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     @Test
     public void givenBorrowRequestCompletedThenBorrowContainer() throws RecordServicesException {
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerRequestTask(records.getChuckNorris().getId(),
-                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, records.getContainerBac13().getTitle()).getWrappedRecord());
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, 7, records.getContainerBac13().getTitle()).getWrappedRecord());
         recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
         extension.completeBorrowRequest(task, true);

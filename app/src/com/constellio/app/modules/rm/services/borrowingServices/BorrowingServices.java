@@ -73,6 +73,8 @@ public class BorrowingServices {
 				borrowFolder(folderId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
 						.setTask(taskId)
 						.setType(EventType.BORROW_FOLDER)
 						.setIp(applicant.getLastIPAddress())

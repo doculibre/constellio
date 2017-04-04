@@ -7,6 +7,8 @@ import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerPresent
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
@@ -16,6 +18,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -36,8 +39,8 @@ import java.util.Locale;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Constellio on 2017-04-03.
@@ -69,6 +72,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         );
 
         extension = spy(new RMRequestTaskButtonExtension(zeCollection, getAppLayerFactory()));
+        doNothing().when(extension).adjustButtons(any(Folder.class), any(ContainerRecord.class), any(User.class));
 
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         taskSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -105,7 +109,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
     @Test
     public void givenBorrowButtonClickedForFolderThenCreateValidTask() {
         folderPresenter.forParams(records.folder_A42); //Crocodile
-        extension.borrowRequest(folderView, false);
+        extension.borrowRequest(folderView, false, "7");
 
         List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));
@@ -121,7 +125,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
     @Test
     public void givenBorrowButtonClickedForContainerThenCreateValidTask() {
         folderPresenter.forParams(records.folder_A42); //Crocodile
-        extension.borrowRequest(folderView, true);
+        extension.borrowRequest(folderView, true, "7");
         List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));
         assertThat(tasks.size()).isEqualTo(1);
@@ -133,7 +137,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 
 
         containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
-        extension.borrowRequest(containerView, true);
+        extension.borrowRequest(containerView, true, "7");
         tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).where(Schemas.IDENTIFIER).isNotEqual(task.getId()))));
         assertThat(tasks.size()).isEqualTo(1);

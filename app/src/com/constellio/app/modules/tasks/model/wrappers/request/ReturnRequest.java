@@ -15,13 +15,4 @@ public class ReturnRequest extends RequestTask {
     public ReturnRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);
     }
-
-    public String getCompletedBy() {
-        return get(COMPLETED_BY);
-    }
-
-    public ReturnRequest setCompletedBy(String user) {
-        set(COMPLETED_BY, user);
-        return this;
-    }
 }

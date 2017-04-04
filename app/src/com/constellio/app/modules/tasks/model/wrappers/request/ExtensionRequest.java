@@ -16,13 +16,4 @@ public class ExtensionRequest extends RequestTask {
     public ExtensionRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);
     }
-
-    public String getCompletedBy() {
-        return get(COMPLETED_BY);
-    }
-
-    public ExtensionRequest setCompletedBy(String user) {
-        set(COMPLETED_BY, user);
-        return this;
-    }
 }

@@ -15,13 +15,4 @@ public class ReactivationRequest extends RequestTask {
     public ReactivationRequest(Record record, MetadataSchemaTypes types) {
         super(record, types);
     }
-
-    public String getCompletedBy() {
-        return get(COMPLETED_BY);
-    }
-
-    public ReactivationRequest setCompletedBy(String user) {
-        set(COMPLETED_BY, user);
-        return this;
-    }
 }

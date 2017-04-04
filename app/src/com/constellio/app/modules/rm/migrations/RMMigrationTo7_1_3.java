@@ -158,11 +158,11 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
 			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.LINKED_CONTAINERS).setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)).setMultivalue(true);
-			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.COMPLETED_BY).setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE)).setSystemReserved(true);
 			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.REASON).setType(MetadataValueType.TEXT);
 			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.EXTENSION_VALUE)
 					.setType(MetadataValueType.DATE);
+			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.BORROW_DURATION)
+					.setType(MetadataValueType.NUMBER).setDefaultRequirement(true);
 			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.ACCEPTED)
 					.setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
 			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.ACCEPTED)

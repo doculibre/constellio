@@ -50,7 +50,6 @@ public class Task extends RecordWrapper {
 	public static final String LINKED_FOLDERS = "linkedFolders";
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";
 	public static final String LINKED_CONTAINERS = "linkedContainers";
-	public static final String COMPLETED_BY = "completedBy";
 	public static final String REASON = "reason";
 
 	public static final String DEFAULT_NEXT_TASK = "default";
@@ -420,6 +419,10 @@ public class Task extends RecordWrapper {
 			throw new RuntimeException("Has no single next task");
 		}
 		return getNextTasksDecisions().get(nextTasks.get(0));
+	}
+
+	public String getReason() {
+		return (String) get(REASON);
 	}
 
 	public Task setLinkedFolders(List<?> folderIds) {
