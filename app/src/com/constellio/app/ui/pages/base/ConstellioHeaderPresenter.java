@@ -358,6 +358,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	public void selectionChanged(String recordId, Boolean selected) {
+//		refreshSelectionPanel = true;
 		SessionContext sessionContext = header.getSessionContext();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		Record record = searchServices.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())

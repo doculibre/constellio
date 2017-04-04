@@ -34,6 +34,7 @@ public class NiceTitle extends AbstractExtension {
 				componentId = new UUIDV1Generator().next();
 				component.setId(componentId);
 			}
+			component.addStyleName("nicetitle-link");
 			JavaScript javascript = JavaScript.getCurrent();
 			javascript.execute(
 					"document.getElementById(\"" + componentId + "\").setAttribute(\"title\", \"" + titleEscaped + "\")");

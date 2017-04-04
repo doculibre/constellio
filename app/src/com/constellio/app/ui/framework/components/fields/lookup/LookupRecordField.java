@@ -49,7 +49,6 @@ public class LookupRecordField extends LookupField<String> {
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess,
 			RecordTextInputDataProvider recordTextInputDataProvider) {
 		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
-		setItemConverter(new RecordIdToCaptionConverter());
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
