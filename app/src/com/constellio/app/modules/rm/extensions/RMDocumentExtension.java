@@ -13,10 +13,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.extensions.events.records.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.util.List;
@@ -129,4 +126,21 @@ public class RMDocumentExtension extends RecordExtension {
 	@Override
 	public void recordModified(RecordModificationEvent event) {
 	}
+
+
+	@Override
+	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+
+			if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+				Document document = rm.wrapDocument(event.getRecord());
+
+				Content contentVersionVO = document.getContent();
+				String checkoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+
+				if (checkoutUserId != null) {
+					return ExtensionBooleanResult.FALSE;
+				}
+			}
+				return super.isLogicallyDeletable(event);
+		}
 }
