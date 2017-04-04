@@ -150,12 +150,10 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
             @Override
             protected Component buildWindowContent() {
                 final Context context = buildContext(view);
+                final Folder folder = context.getFolder();
+                final ContainerRecord container = context.getContainer();
+                final User currentUser = context.getCurrentUser();
                 VerticalLayout mainLayout = new VerticalLayout();
-                TextArea messageField = new TextArea();
-                messageField.setValue($("RMRequestTaskButtonExtension.requestBorrowFolderOrContainerButtonMessage"));
-                messageField.setReadOnly(true);
-                messageField.setWidth("100%");
-                messageField.addStyleName(ValoTheme.TEXTAREA_BORDERLESS);
                 final BaseIntegerField borrowDurationField = new BaseIntegerField($("RMRequestTaskButtonExtension.borrowDuration"));
                 HorizontalLayout buttonLayout = new HorizontalLayout();
 
@@ -168,7 +166,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
                     @Override
                     public boolean isVisible() {
-                        return isFolderBorrowable(context.getFolder(), context.getCurrentUser());
+                        return isFolderBorrowable(folder, currentUser);
                     }
                 };
                 BaseButton borrowContainerButton = new BaseButton($("RMRequestTaskButtonExtension.confirmBorrowContainer")) {
@@ -180,7 +178,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
                     @Override
                     public boolean isVisible() {
-                        return isContainerBorrowable(context.getContainer(), context.getCurrentUser());
+                        return isContainerBorrowable(container, currentUser);
                     }
                 };
                 BaseButton cancelButton = new BaseButton($("cancel")) {
@@ -189,6 +187,18 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                         getWindow().close();
                     }
                 };
+
+                TextArea messageField = new TextArea();
+                messageField.setWidth("100%");
+                messageField.addStyleName(ValoTheme.TEXTAREA_BORDERLESS);
+                if(borrowFolderButton.isVisible() && borrowContainerButton.isVisible()) {
+                    messageField.setValue($("RMRequestTaskButtonExtension.requestBorrowFolderOrContainerMessage"));
+                } else if(borrowFolderButton.isVisible()) {
+                    messageField.setValue($("RMRequestTaskButtonExtension.requestBorrowFolderMessage"));
+                } else {
+                    messageField.setValue($("RMRequestTaskButtonExtension.requestBorrowContainerMessage"));
+                }
+                messageField.setReadOnly(true);
 
                 buttonLayout.setSpacing(true);
                 buttonLayout.addComponents(cancelButton, borrowContainerButton, borrowFolderButton);
