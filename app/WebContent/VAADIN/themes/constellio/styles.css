@@ -11843,6 +11843,15 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer !important;
 }
 
+.constellio .nicetitle-link-disabled {
+	text-decoration: none;
+	color: #474747;
+}
+
+.constellio .nicetitle-link-disabled:hover {
+	color: #474747;
+}
+
 .constellio .auto-scroll {
 	overflow: auto;
 }

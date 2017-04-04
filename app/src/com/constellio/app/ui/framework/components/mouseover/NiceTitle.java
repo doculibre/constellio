@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.components.mouseover;
 
-import java.util.UUID;
-
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,10 +33,17 @@ public class NiceTitle extends AbstractExtension {
 				component.setId(componentId);
 			}
 			component.addStyleName("nicetitle-link");
+			
+			StringBuilder js = new StringBuilder();
+			String getById = "document.getElementById(\"" + componentId + "\")";
+			js.append(getById + ".className = " + getById + ".className.replace(\"v-disabled\", \"nicetitle-link-disabled\")");
+			js.append(";");
+			js.append(getById + ".setAttribute(\"title\", \"" + titleEscaped + "\")");
+			js.append(";");
+			js.append("makeNiceTitleA(" + getById + ")");
+			
 			JavaScript javascript = JavaScript.getCurrent();
-			javascript.execute(
-					"document.getElementById(\"" + componentId + "\").setAttribute(\"title\", \"" + titleEscaped + "\")");
-			javascript.execute("makeNiceTitleA(document.getElementById(\"" + componentId + "\"))");
+			javascript.execute(js.toString());
 		}
 	}
 
