@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.vaadin.server.AbstractExtension;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
@@ -30,9 +31,10 @@ public class NiceTitle extends AbstractExtension {
 			String titleEscaped = StringEscapeUtils.escapeJavaScript(title);
 			String componentId = component.getId();
 			if (componentId == null) {
-				componentId = UUID.randomUUID().toString();
+				componentId = new UUIDV1Generator().next();
 				component.setId(componentId);
 			}
+			component.addStyleName("nicetitle-link");
 			JavaScript javascript = JavaScript.getCurrent();
 			javascript.execute(
 					"document.getElementById(\"" + componentId + "\").setAttribute(\"title\", \"" + titleEscaped + "\")");

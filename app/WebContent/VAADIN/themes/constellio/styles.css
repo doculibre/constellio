@@ -11839,6 +11839,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .nicetitle-link {
+	cursor: pointer !important;
+}
+
 .constellio .auto-scroll {
 	overflow: auto;
 }

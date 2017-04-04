@@ -34,13 +34,10 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -200,35 +197,7 @@ public class TaxonomiesSearchServices {
 	}
 
 	private ReturnedMetadatasFilter returnedMetadatasForRecordsIn(GetChildrenContext context) {
-		return returnedMetadatasForRecordsIn(context.getCollection(), context.options);
-	}
-
-	private ReturnedMetadatasFilter returnedMetadatasForRecordsIn(String collection, TaxonomiesSearchOptions options) {
-		//TODO Detect which records could possibly be in the taxonomy and only return those essential fields
-		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-
-		Set<String> metadatas = new HashSet<>();
-		metadatas.add(Schemas.TITLE.getDataStoreCode());
-		metadatas.add(Schemas.LINKABLE.getDataStoreCode());
-		metadatas.add(Schemas.VISIBLE_IN_TREES.getDataStoreCode());
-		metadatas.add(Schemas.TOKENS.getDataStoreCode());
-		metadatas.add(Schemas.ATTACHED_ANCESTORS.getDataStoreCode());
-		metadatas.add(Schemas.ALL_REMOVED_AUTHS.getDataStoreCode());
-
-		if (options.getReturnedMetadatasFilter() != null && options.getReturnedMetadatasFilter().getAcceptedFields() != null) {
-			metadatas.addAll(options.getReturnedMetadatasFilter().getAcceptedFields());
-		}
-
-		for (MetadataSchemaType type : types.getSchemaTypes()) {
-			for (MetadataSchema schema : type.getAllSchemas()) {
-				for (Metadata metadata : schema.getMetadatas()) {
-					if (metadata.getInheritance() == null && metadata.isEssentialInSummary()) {
-						metadatas.add(metadata.getDataStoreCode());
-					}
-				}
-			}
-		}
-		return ReturnedMetadatasFilter.onlyFields(metadatas);
+		return conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(context.getCollection(), context.options);
 	}
 
 	private LinkableTaxonomySearchResponse getVisibleChildrenRecords(GetChildrenContext ctx) {
@@ -452,8 +421,8 @@ public class TaxonomiesSearchServices {
 	private GetConceptRecordsWithVisibleRecordsResponse getConceptRecordsWithVisibleRecords(GetChildrenContext context) {
 
 		GetConceptRecordsWithVisibleRecordsResponse methodResponse = new GetConceptRecordsWithVisibleRecordsResponse();
-
-		LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options);
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(context.getCollection());
+		LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
 		Iterator<List<Record>> iterator;
 		int lastIteratedRecordIndex = 0;
@@ -608,8 +577,8 @@ public class TaxonomiesSearchServices {
 	public LinkableTaxonomySearchResponse getVisibleRootConceptResponse(User user, String collection, String taxonomyCode,
 			TaxonomiesSearchOptions options, String forSelectionOfSchemaType) {
 		LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.getRootConceptsQuery(collection, taxonomyCode, options);
-		SearchResponseIterator<Record> rootIterator = searchServices.recordsIteratorKeepingOrder(
-				mainQuery.setNumberOfRows(100000).setStartRow(0), 50);
+		//		SearchResponseIterator<Record> rootIterator = searchServices.recordsIteratorKeepingOrder(
+		//				mainQuery.setNumberOfRows(100000).setStartRow(0), 50);
 
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
 		boolean selectingAConcept =
@@ -713,7 +682,8 @@ public class TaxonomiesSearchServices {
 				.filteredWithUser(user, options.getRequiredAccess())
 				.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(returnedMetadatasForRecordsIn(usingTaxonomy.getCollection(), options));
+				.setReturnedMetadatas(
+						conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(usingTaxonomy.getCollection(), options));
 
 		for (Record child : children) {
 			query.addQueryFacet("childrens", facetQueryFor(usingTaxonomy, child));
@@ -946,7 +916,8 @@ public class TaxonomiesSearchServices {
 				.filteredByStatus(options.getIncludeStatus())
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
-				.setReturnedMetadatas(returnedMetadatasForRecordsIn(condition.getCollection(), options))
+				.setReturnedMetadatas(
+						conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(condition.getCollection(), options))
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
 	}
 

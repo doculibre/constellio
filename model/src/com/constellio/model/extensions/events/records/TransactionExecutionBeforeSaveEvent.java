@@ -2,6 +2,7 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 
 public class TransactionExecutionBeforeSaveEvent {
@@ -30,5 +31,17 @@ public class TransactionExecutionBeforeSaveEvent {
 
 	public ValidationErrors getValidationErrors() {
 		return validationErrors;
+	}
+
+	public boolean isNewRecordImport() {
+
+		for (Record record : transaction.getModifiedRecords()) {
+			if (!record.isSaved() && record.get(Schemas.LEGACY_ID) != null) {
+				return true;
+			}
+		}
+
+		return false;
+
 	}
 }

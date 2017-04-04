@@ -62,6 +62,10 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.nicetitle-link {
+		cursor: pointer !important;	
+	}
+
 	.auto-scroll {
 		overflow: auto;
 	}

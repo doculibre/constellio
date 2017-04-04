@@ -125,7 +125,8 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 		List<String> taxoGroups = asList("group1", "group2");
 
 		Taxonomy taxonomy1 = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
-		Taxonomy taxonomy2 = new Taxonomy("2", "2", "collection1", false, taxoUsers, taxoGroups, asList("anotherSchemaType"));
+		Taxonomy taxonomy2 = new Taxonomy("2", "2", "collection1", false, taxoUsers, taxoGroups, asList("anotherSchemaType"),
+				true);
 
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);
 		taxonomiesManager.addTaxonomy(taxonomy2, schemasManager);
@@ -136,11 +137,13 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 		assertThat(enableTaxonomies.get(0).isVisibleInHomePage()).isTrue();
 		assertThat(enableTaxonomies.get(0).getUserIds()).isEmpty();
 		assertThat(enableTaxonomies.get(0).getGroupIds()).isEmpty();
+		assertThat(enableTaxonomies.get(0).isShowParentsInSearchResults()).isFalse();
 
 		assertThat(enableTaxonomies.get(1).getCode()).isEqualTo(taxonomy2.getCode());
 		assertThat(enableTaxonomies.get(1).isVisibleInHomePage()).isFalse();
 		assertThat(enableTaxonomies.get(1).getUserIds()).isEqualTo(taxoUsers);
 		assertThat(enableTaxonomies.get(1).getGroupIds()).isEqualTo(taxoGroups);
+		assertThat(enableTaxonomies.get(1).isShowParentsInSearchResults()).isTrue();
 		assertThat(disableTaxonomies).isEmpty();
 	}
 

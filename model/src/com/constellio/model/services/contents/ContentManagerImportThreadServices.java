@@ -28,6 +28,9 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class ContentManagerImportThreadServices {
 
+	private static final int DEFAULT_BATCH_SIZE = 1000;
+	private static final int THREADS = 3;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContentManagerImportThreadServices.class);
 	private static final String READ_FILE_INPUTSTREAM = "ContentManagerImportThreadServices-ReadFileInputStream";
 	private static final String BIGFILE_EXTRACT_TEMP_FOLDER = "ContentManagerImportThreadServices-BigFileExtractTempFolder";
@@ -46,7 +49,7 @@ public class ContentManagerImportThreadServices {
 	private boolean deleteUnusedContentEnabled;
 
 	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory) {
-		this(modelLayerFactory, 10000);
+		this(modelLayerFactory, DEFAULT_BATCH_SIZE);
 	}
 
 	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory, int batchSize) {
@@ -85,7 +88,7 @@ public class ContentManagerImportThreadServices {
 
 	private void importFiles(List<File> files) {
 		LOGGER.info("importing files " + files + "");
-		BulkUploader uploader = new BulkUploader(modelLayerFactory);
+		BulkUploader uploader = new BulkUploader(modelLayerFactory, THREADS);
 		uploader.setHandleDeletionOfUnreferencedHashes(false);
 
 		List<File> extractedBigFileFolders = new ArrayList<>();

@@ -648,19 +648,15 @@ public class DecommissioningService {
 		return taxonomiesManager.getEnabledTaxonomyWithCode(collection, ADMINISTRATIVE_UNITS);
 	}
 
-	public Folder duplicateStructureAndSave(Folder folder, User currentUser) {
+	public Folder duplicateStructureAndSave(Folder folder, User currentUser) throws RecordServicesException {
 		return duplicateStructure(folder, currentUser, true);
 	}
 
-	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
+	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) throws RecordServicesException {
 
 		Transaction transaction = new Transaction();
 		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
+		recordServices.execute(transaction);
 		return duplicatedFolder;
 	}
 
