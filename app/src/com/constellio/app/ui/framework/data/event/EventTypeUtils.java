@@ -98,14 +98,22 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.reindexing");
 		} else if (eventType.equals(EventType.RESTARTING)) {
 			return $("ListEventsView.restarting");
-		} else if (eventType.equals(EventType.REACTIVATING_FOLDER)) {
-			return $("ListEventsView.reactivatingFolder");
-		} else if (eventType.equals(EventType.ACCEPT_BORROWING_DOCUMENT)) {
-			return $("ListEventsView.AcceptedBorrowingRequest");
-		} else if (eventType.equals(EventType.REFUSE_BORROWING_DOCUMENT)) {
-			return $("ListEventsView.RefusedBorrowingRequest");
-		} else if (eventType.equals(EventType.BORROWING_TIME_EXTENSIONS)) {
-			return $("ListEventsView.TimeExtentionsRequest");
+		} else if (eventType.equals(EventType.BORROW_REQUEST_FOLDER)) {
+			return $("ListEventsView.borrowRequestFolder");
+		} else if (eventType.equals(EventType.RETURN_REQUEST_FOLDER)) {
+			return $("ListEventsView.returnRequestFolder");
+		} else if (eventType.equals(EventType.REACTIVATION_REQUEST_FOLDER)) {
+			return $("ListEventsView.reactivationRequestFolder");
+		} else if (eventType.equals(EventType.BORROW_EXTENSION_REQUEST_FOLDER)) {
+			return $("ListEventsView.borrowExtensionRequestFolder");
+		} else if (eventType.equals(EventType.BORROW_REQUEST_CONTAINER)) {
+			return $("ListEventsView.borrowRequestContainer");
+		} else if (eventType.equals(EventType.RETURN_REQUEST_CONTAINER)) {
+			return $("ListEventsView.returnRequestContainer");
+		} else if (eventType.equals(EventType.REACTIVATION_REQUEST_CONTAINER)) {
+			return $("ListEventsView.reactivationRequestContainer");
+		} else if (eventType.equals(EventType.BORROW_EXTENSION_REQUEST_CONTAINER)) {
+			return $("ListEventsView.borrowExtensionRequestContainer");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
@@ -147,7 +155,7 @@ public class EventTypeUtils implements Serializable {
 				metadataCodes.add(taskMetadata.getCode());
 				Metadata receiverMetadata = metadataSchema.getMetadata(Event.RECEIVER_NAME);
 				metadataCodes.add(receiverMetadata.getCode());
-				Metadata descriptionMetadata = metadataSchema.getMetadata(Event.DESCRIPTION);
+				Metadata descriptionMetadata = metadataSchema.getMetadata(Event.REASON);
 				metadataCodes.add(descriptionMetadata.getCode());
 			}
 		} else if (isUserEvent(eventType) ||
@@ -157,12 +165,23 @@ public class EventTypeUtils implements Serializable {
 		if (isModificationEvent(eventType)) {
 			metadataCodes.add(Event.DELTA);
 		}
+		if(isRequestTaskEvent(eventType)) {
+			metadataCodes.add(Event.ACCEPTED);
+		}
 		return metadataCodes;
+	}
+
+	private static boolean isRequestTaskEvent(String eventType) {
+		return asList(EventType.BORROW_REQUEST_FOLDER, EventType.RETURN_REQUEST_FOLDER, EventType.REACTIVATION_REQUEST_FOLDER, EventType.BORROW_EXTENSION_REQUEST_FOLDER,
+				EventType.BORROW_REQUEST_CONTAINER, EventType.RETURN_REQUEST_CONTAINER, EventType.REACTIVATION_REQUEST_CONTAINER, EventType.BORROW_EXTENSION_REQUEST_CONTAINER)
+				.contains(eventType);
 	}
 
 	private static boolean isPotentiallyFromRequestTask(String eventType) {
 		return asList(EventType.BORROW_FOLDER, EventType.BORROW_CONTAINER, EventType.RETURN_FOLDER, EventType.RETURN_CONTAINER,
-					EventType.REACTIVATING_FOLDER).contains(eventType);
+				EventType.BORROW_REQUEST_FOLDER, EventType.RETURN_REQUEST_FOLDER, EventType.REACTIVATION_REQUEST_FOLDER, EventType.BORROW_EXTENSION_REQUEST_FOLDER,
+				EventType.BORROW_REQUEST_CONTAINER, EventType.RETURN_REQUEST_CONTAINER, EventType.REACTIVATION_REQUEST_CONTAINER, EventType.BORROW_EXTENSION_REQUEST_CONTAINER)
+				.contains(eventType);
 	}
 
 	private static List<String> getEventUserMetadata(MetadataSchema metadataSchema) {
@@ -265,6 +284,11 @@ public class EventTypeUtils implements Serializable {
 	public static boolean isModificationEvent(String eventType) {
 		//FIXME list all events
 		if (eventType.contains("modify_")) {
+			return true;
+		} else if(asList(EventType.BORROW_FOLDER, EventType.BORROW_CONTAINER,
+				EventType.BORROW_REQUEST_FOLDER, EventType.BORROW_EXTENSION_REQUEST_FOLDER,
+				EventType.BORROW_REQUEST_CONTAINER, EventType.BORROW_EXTENSION_REQUEST_CONTAINER)
+				.contains(eventType)) {
 			return true;
 		} else {
 			return false;

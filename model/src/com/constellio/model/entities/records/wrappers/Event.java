@@ -21,7 +21,8 @@ public class Event extends RecordWrapper {
 	public static final String RECEIVER_NAME = "receiverName";
 	public static final String TASK = "task";
 	public static final String DESCRIPTION = "description";
-	
+	public static final String ACCEPTED = "accepted";
+
 	public Event(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
 	}
@@ -159,6 +160,15 @@ public class Event extends RecordWrapper {
 
 	public Event setTask(String taskID) {
 		set(TASK, taskID);
+		return this;
+	}
+
+	public Boolean getAccepted() {
+		return get(ACCEPTED);
+	}
+
+	public Event setAccepted(Boolean isAccepted) {
+		set(ACCEPTED, isAccepted);
 		return this;
 	}
 }

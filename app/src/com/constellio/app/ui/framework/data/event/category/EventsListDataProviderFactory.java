@@ -54,8 +54,8 @@ public class EventsListDataProviderFactory {
 				return new UsersAndGroupsAddOrRemoveEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 			case REINDEX_AND_RESTART:
 				return new ReindexAndRestartEventDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
-			case DOCUMENT_REQUEST:
-				return new DocumentRequestDataEventsProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
+			case REQUEST_TASKS:
+				return new RequestTasksDataEventsProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 			default:
 				throw new RuntimeException("Unsupported");
 		}

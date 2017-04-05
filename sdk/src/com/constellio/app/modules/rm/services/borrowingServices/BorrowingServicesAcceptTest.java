@@ -75,7 +75,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
         LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
         EmailAddress adresseReceiver = new EmailAddress("Gandalf Leblanc", "gandalf@doculibre.com");
         recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.borrowRecordsFromTask(zeTask.getId(), zeDate, zeDate, users.charlesIn(zeCollection), users.gandalfIn(zeCollection), BorrowingType.BORROW);
+        borrowingServices.borrowRecordsFromTask(zeTask.getId(), zeDate, zeDate, users.charlesIn(zeCollection), users.gandalfIn(zeCollection), BorrowingType.BORROW, true);
         EmailToSend emailToSend = getEmailToSend(ALERT_BORROWED);
         assertThat(emailToSend).isNotNull();
         assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_BORROWED);
@@ -102,7 +102,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
         LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
         EmailAddress adresseReceiver = new EmailAddress("Charles-François Xavier", "charles@doculibre.com");
         recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.returnRecordsFromTask(zeTask.getId(), zeDate, users.adminIn(zeCollection), users.charlesIn(zeCollection));
+        borrowingServices.returnRecordsFromTask(zeTask.getId(), zeDate, users.adminIn(zeCollection), users.charlesIn(zeCollection), true);
         EmailToSend emailToSend = getEmailToSend(ALERT_RETURNED);
         assertThat(emailToSend).isNotNull();
         assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_RETURNED);
@@ -152,7 +152,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
         LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
         EmailAddress adresseReceiver = new EmailAddress("Gandalf Leblanc", "gandalf@doculibre.com");
         recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.extendRecordsBorrowingPeriodFromTask(zeTask.getId(), zeDate, users.adminIn(zeCollection), users.charlesIn(zeCollection));
+        borrowingServices.extendRecordsBorrowingPeriodFromTask(zeTask.getId(), zeDate, users.adminIn(zeCollection), users.charlesIn(zeCollection), true);
         EmailToSend emailToSend = getEmailToSend(ALERT_BORROWING_EXTENTED);
         assertThat(emailToSend).isNotNull();
         assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_BORROWING_EXTENTED);

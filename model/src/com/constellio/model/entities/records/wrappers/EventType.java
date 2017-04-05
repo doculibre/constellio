@@ -16,6 +16,14 @@ public class EventType {
 
 	public static final String RETURN = "return";
 
+	public static final String BORROW_REQUEST = "borrow_request";
+
+	public static final String RETURN_REQUEST = "return_request";
+
+	public static final String REACTIVATION_REQUEST = "reactivation_request";
+
+	public static final String BORROW_EXTENSION_REQUEST = "borrow_extension_request";
+
 	public static final String OPEN_SESSION = "open_session";
 
 	public static final String CLOSE_SESSION = "close_session";
@@ -36,6 +44,14 @@ public class EventType {
 
 	public static final String RETURN_FOLDER = "return_folder";
 
+	public static final String BORROW_REQUEST_FOLDER = "borrow_request_folder";
+
+	public static final String RETURN_REQUEST_FOLDER = "return_request_folder";
+
+	public static final String REACTIVATION_REQUEST_FOLDER = "reactivation_request_folder";
+
+	public static final String BORROW_EXTENSION_REQUEST_FOLDER = "borrow_extension_request_folder";
+
 	public static final String CREATE_DOCUMENT = "create_document";
 
 	public static final String MODIFY_DOCUMENT = "modify_document";
@@ -43,10 +59,6 @@ public class EventType {
 	public static final String DELETE_DOCUMENT = "delete_document";
 
 	public static final String BORROW_DOCUMENT = "borrow_document";
-
-	public static final String ACCEPT_BORROWING_DOCUMENT = "accept_borrowing_document";
-
-	public static final String REFUSE_BORROWING_DOCUMENT = "refuse_borrowing_document";
 
 	public static final String BORROWING_TIME_EXTENSIONS = "borrowing_time_extensions";
 
@@ -63,6 +75,14 @@ public class EventType {
 	public static final String BORROW_CONTAINER = "borrow_containerRecord";
 
 	public static final String RETURN_CONTAINER = "return_containerRecord";
+
+	public static final String BORROW_REQUEST_CONTAINER = "borrow_request_containerRecord";
+
+	public static final String RETURN_REQUEST_CONTAINER = "return_request_containerRecord";
+
+	public static final String REACTIVATION_REQUEST_CONTAINER = "reactivation_request_containerRecord";
+
+	public static final String BORROW_EXTENSION_REQUEST_CONTAINER = "borrow_extension_request_containerRecord";
 
 	public static final String CREATE_USER = CREATE + "_" + User.SCHEMA_TYPE;
 

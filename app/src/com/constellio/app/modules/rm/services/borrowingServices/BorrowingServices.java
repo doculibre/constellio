@@ -60,7 +60,7 @@ public class BorrowingServices {
     }
 
     public void borrowRecordsFromTask(String taskId, LocalDate borrowingDate, LocalDate returnDate, User respondant,
-                                      User applicant, BorrowingType borrowingType)
+									  User applicant, BorrowingType borrowingType, boolean isAccepted)
             throws RecordServicesException {
 
         String schemaType = "";
@@ -70,7 +70,10 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				borrowFolder(folderId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
+				if(isAccepted) {
+					borrowFolder(folderId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
+				}
+				loggingServices.completeBorrowRequestTask(recordServices.getDocumentById(folderId), task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
 						.setRecordId(folderId)
@@ -90,7 +93,10 @@ public class BorrowingServices {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String containerId: task.getLinkedContainers()) {
-				borrowContainer(containerId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
+				if(isAccepted) {
+					borrowContainer(containerId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
+				}
+				loggingServices.completeBorrowRequestTask(recordServices.getDocumentById(containerId), task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
 						.setRecordId(containerId)
@@ -109,7 +115,7 @@ public class BorrowingServices {
         alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, borrowingDate, returnDate, null, respondant, applicant, borrowingType);
 	}
 
-    public void returnRecordsFromTask(String taskId, LocalDate returnDate, User respondant, User applicant)
+    public void returnRecordsFromTask(String taskId, LocalDate returnDate, User respondant, User applicant, boolean isAccepted)
             throws RecordServicesException {
 
 		Record taskRecord = recordServices.getDocumentById(taskId);
@@ -119,7 +125,10 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				returnFolder(folderId, applicant, returnDate, false);
+				if(isAccepted) {
+					returnFolder(folderId, applicant, returnDate, false);
+				}
+				loggingServices.completeReturnRequestTask(recordServices.getDocumentById(folderId), task.getId(), isAccepted, applicant, respondant, task.getReason());
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
 						.setRecordId(folderId)
@@ -139,7 +148,10 @@ public class BorrowingServices {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String containerId: task.getLinkedContainers()) {
-				returnContainer(containerId, applicant, returnDate, false);
+				if(isAccepted) {
+					returnContainer(containerId, applicant, returnDate, false);
+				}
+				loggingServices.completeReturnRequestTask(recordServices.getDocumentById(containerId), task.getId(), isAccepted, applicant, respondant, task.getReason());
 				Record event = rm.newEvent()
 						.setUsername(applicant.getUsername())
 						.setRecordId(containerId)
@@ -173,7 +185,7 @@ public class BorrowingServices {
         alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, null, null, reactivationDate, currentUser, null, null);
     }
 
-    public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User respondant, User applicant)
+    public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User respondant, User applicant, boolean isAccepted)
             throws RecordServicesException {
         Record taskRecord = recordServices.getDocumentById(taskId);
         RMTask task = rm.wrapRMTask(taskRecord);
@@ -182,15 +194,22 @@ public class BorrowingServices {
             schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
-				extendBorrowDateForFolder(folderId, returnDate, applicant, false);
+				if(isAccepted) {
+					extendBorrowDateForFolder(folderId, returnDate, applicant, false);
+					loggingServices.completeBorrowExtensionRequestTask(recordServices.getDocumentById(folderId), task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
+				}
+
 			}
 			recordServices.execute(t);
         }
-        if (task.getLinkedDocuments() != null) {
-            schemaType = Document.SCHEMA_TYPE;
+        if (task.getLinkedContainers() != null) {
+            schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
 			for(String containerId: task.getLinkedContainers()) {
-				extendBorrowDateForContainer(containerId, returnDate, applicant, false);
+				if(isAccepted) {
+					extendBorrowDateForContainer(containerId, returnDate, applicant, false);
+				}
+				loggingServices.completeBorrowExtensionRequestTask(recordServices.getDocumentById(containerId), task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
 			}
 			recordServices.execute(t);
         }

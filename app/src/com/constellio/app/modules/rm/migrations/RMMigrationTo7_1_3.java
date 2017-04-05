@@ -205,6 +205,7 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 			eventSchemaType.getDefaultSchema().create(Event.TASK).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(Task.SCHEMA_TYPE));
 			eventSchemaType.getDefaultSchema().create(Event.DESCRIPTION).setType(MetadataValueType.TEXT);
+			eventSchemaType.getDefaultSchema().create(Event.ACCEPTED).setType(MetadataValueType.BOOLEAN);
 		}
 	}
 }
