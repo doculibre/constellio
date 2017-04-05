@@ -102,7 +102,12 @@ public class RMRecordAppExtension extends RecordAppExtension {
 				try {
 					fileName = FileIconUtils.getIconPathForMimeType(mimeType);
 				} catch (Exception e) {
-					fileName = "document";
+					Content content = document.getContent();
+					if (content != null) {
+						fileName = content.getCurrentVersion().getFilename();
+					} else {
+						fileName = "document";
+					}
 				}
 			} else {
 				fileName = "document";

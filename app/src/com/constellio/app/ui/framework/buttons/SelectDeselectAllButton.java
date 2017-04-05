@@ -19,7 +19,7 @@ public abstract class SelectDeselectAllButton extends BaseButton {
 	}
 
 	public SelectDeselectAllButton(String selectAllCaption, String deselectAllCaption, boolean selectAllMode) {
-		super(selectAllCaption);
+		super(selectAllMode ? selectAllCaption : deselectAllCaption);
 		this.selectAllCaption = selectAllCaption;
 		this.deselectAllCaption = deselectAllCaption;
 		this.selectAllMode = selectAllMode;
