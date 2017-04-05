@@ -3,14 +3,10 @@ package com.constellio.app.ui.pages.imports;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -24,7 +20,6 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
-import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -103,23 +98,28 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			}
 
 		} else {
+			if (appLayerFactory.getSystemGlobalConfigsManager().hasLastReindexingFailed()) {
+				view.showErrorMessage($("ExportView.lastReindexingFailed"));
 
-			try {
+			} else {
 
-				SystemStateExportParams params = new SystemStateExportParams();
-				if (includeContents) {
-					params.setExportAllContent();
-				} else {
-					params.setExportNoContent();
+				try {
+
+					SystemStateExportParams params = new SystemStateExportParams();
+					if (includeContents) {
+						params.setExportAllContent();
+					} else {
+						params.setExportNoContent();
+					}
+					if (StringUtils.isNotBlank(exportedIdsStr)) {
+						params.setOnlyExportContentOfRecords(asList(StringUtils.split(exportedIdsStr, ",")));
+					}
+					exporter().exportSystemToFile(file, params);
+					view.startDownload(filename, new FileInputStream(file), "application/zip");
+				} catch (Throwable t) {
+					LOGGER.error("Error while generating savestate", t);
+					view.showErrorMessage($("ExportView.error"));
 				}
-				if (StringUtils.isNotBlank(exportedIdsStr)) {
-					params.setOnlyExportContentOfRecords(asList(StringUtils.split(exportedIdsStr, ",")));
-				}
-				exporter().exportSystemToFile(file, params);
-				view.startDownload(filename, new FileInputStream(file), "application/zip");
-			} catch (Throwable t) {
-				LOGGER.error("Error while generating savestate", t);
-				view.showErrorMessage($("ExportView.error"));
 			}
 		}
 

@@ -31,9 +31,13 @@ public class BulkUploader {
 	boolean handleDeletionOfUnreferencedHashes = true;
 
 	public BulkUploader(ModelLayerFactory modelLayerFactory) {
+		this(modelLayerFactory, 4);
+	}
+
+	public BulkUploader(ModelLayerFactory modelLayerFactory, int threads) {
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
-		this.pool = new ForkJoinPool(4);
+		this.pool = new ForkJoinPool(threads);
 	}
 
 	public void setHandleDeletionOfUnreferencedHashes(boolean handleDeletionOfUnreferencedHashes) {

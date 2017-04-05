@@ -1,10 +1,9 @@
 package com.constellio.app.ui.framework.components.mouseover;
 
-import java.util.UUID;
-
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.vaadin.server.AbstractExtension;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
@@ -30,13 +29,21 @@ public class NiceTitle extends AbstractExtension {
 			String titleEscaped = StringEscapeUtils.escapeJavaScript(title);
 			String componentId = component.getId();
 			if (componentId == null) {
-				componentId = UUID.randomUUID().toString();
+				componentId = new UUIDV1Generator().next();
 				component.setId(componentId);
 			}
+			component.addStyleName("nicetitle-link");
+			
+			StringBuilder js = new StringBuilder();
+			String getById = "document.getElementById(\"" + componentId + "\")";
+			js.append(getById + ".className = " + getById + ".className.replace(\"v-disabled\", \"nicetitle-link-disabled\")");
+			js.append(";");
+			js.append(getById + ".setAttribute(\"title\", \"" + titleEscaped + "\")");
+			js.append(";");
+			js.append("makeNiceTitleA(" + getById + ")");
+			
 			JavaScript javascript = JavaScript.getCurrent();
-			javascript.execute(
-					"document.getElementById(\"" + componentId + "\").setAttribute(\"title\", \"" + titleEscaped + "\")");
-			javascript.execute("makeNiceTitleA(document.getElementById(\"" + componentId + "\"))");
+			javascript.execute(js.toString());
 		}
 	}
 

@@ -290,10 +290,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
-		createPDFAButton = new LinkButton($("DocumentActionsComponent.createPDFA")) {
+		createPDFAButton = new ConfirmDialogButton($("DocumentActionsComponent.createPDFA")) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.createPDFAButtonClicked();
+			protected void confirmButtonClick(ConfirmDialog dialog) { presenter.createPDFAButtonClicked(); }
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmCreatePDFA");
 			}
 		};
 
