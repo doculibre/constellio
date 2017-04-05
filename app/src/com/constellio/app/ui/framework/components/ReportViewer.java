@@ -14,6 +14,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.utils.MimeTypes;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
@@ -43,19 +44,10 @@ public class ReportViewer extends VerticalLayout {
 	static String getMimeTypeFromFileName(String filename) {
 		if (StringUtils.isBlank(filename)) {
 			return DownloadStreamResource.PDF_MIMETYPE;
+		} else {
+			String extension = StringUtils.substringAfterLast(filename, ".").toLowerCase();
+			return MimeTypes.lookupMimeType(extension);
 		}
-		String extension = StringUtils.substringAfterLast(filename, ".");
-		if (StringUtils.isBlank(extension)) {
-			return DownloadStreamResource.PDF_MIMETYPE;
-		}
-		extension = extension.toLowerCase();
-		if (extension.equals("xls") || extension.equals("xlsx")) {
-			return DownloadStreamResource.EXCEL_MIMETYPE;
-		}
-		if (extension.equals("zip")) {
-			return DownloadStreamResource.ZIP_MIMETYPE;
-		}
-		return DownloadStreamResource.PDF_MIMETYPE;
 	}
 
 	@Deprecated
