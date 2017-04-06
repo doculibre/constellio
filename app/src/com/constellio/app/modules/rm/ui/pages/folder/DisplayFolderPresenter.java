@@ -291,7 +291,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getBorrowButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanBorrow(user, folder, null);
-			return ComponentState.visibleIf(user.has(RMPermissionsTo.BORROW_FOLDER).on(folder));
+			return ComponentState.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -300,7 +300,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState.visibleIf(user.has(RMPermissionsTo.BORROW_FOLDER).on(folder));
+			return ComponentState.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}

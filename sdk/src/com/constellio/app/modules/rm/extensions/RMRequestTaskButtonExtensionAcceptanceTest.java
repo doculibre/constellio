@@ -16,6 +16,7 @@ import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.model.entities.records.wrappers.User;
@@ -72,7 +73,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         );
 
         extension = spy(new RMRequestTaskButtonExtension(zeCollection, getAppLayerFactory()));
-        doNothing().when(extension).adjustButtons(any(Folder.class), any(ContainerRecord.class), any(User.class));
+        doNothing().when(extension).adjustButtons(any(BaseViewImpl.class), any(Folder.class), any(ContainerRecord.class), any(User.class));
 
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         taskSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());

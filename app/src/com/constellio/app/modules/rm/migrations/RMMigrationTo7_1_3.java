@@ -96,24 +96,33 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		Role manager = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.MANAGER);
 		Role user = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.USER);
 		modelLayerFactory.getRolesManager().updateRole(rgd.withNewPermissions(asList(
-				RMPermissionsTo.MANAGE_REQUEST_ON_DOCUMENT,
-				RMPermissionsTo.BORROWING_REQUEST_ON_DOCUMENT,
+				RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
+				RMPermissionsTo.BORROWING_FOLDER_DIRECTLY,
+				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
 				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER
+				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.BORROW_CONTAINER
 		)));
 		modelLayerFactory.getRolesManager().updateRole(admin.withNewPermissions(asList(
-				RMPermissionsTo.BORROWING_REQUEST_ON_DOCUMENT,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER
+				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.BORROW_CONTAINER
 		)));
 
 		modelLayerFactory.getRolesManager().updateRole(manager.withNewPermissions(asList(
-				RMPermissionsTo.BORROWING_REQUEST_ON_DOCUMENT,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER
+				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.BORROW_CONTAINER
 		)));
 
 		modelLayerFactory.getRolesManager().updateRole(user.withNewPermissions(asList(
-				RMPermissionsTo.BORROWING_REQUEST_ON_DOCUMENT,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER
+				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.BORROW_CONTAINER
 		)));
 	}
 

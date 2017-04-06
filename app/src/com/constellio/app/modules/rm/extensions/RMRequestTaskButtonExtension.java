@@ -11,6 +11,10 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -53,10 +57,6 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     TasksSchemasRecordsServices taskSchemas;
     RMSchemasRecordsServices rmSchemas;
 
-    Button borrowRequestButton, returnRequestButton, reactivationRequestButton, borrowExtensionRequestButton;
-
-    Button borrowFolderButton, borrowContainerButton;
-
     public RMRequestTaskButtonExtension(String collection, AppLayerFactory appLayerFactory) {
         this.collection = collection;
         this.appLayerFactory = appLayerFactory;
@@ -81,29 +81,44 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 container = null;
             }
             currentUser = getCurrentUser(view);
-            adjustButtons(folder, container, currentUser);
+            adjustButtons(view, folder, container, currentUser);
         } else if (mainComponent instanceof DisplayContainerViewImpl) {
             DisplayContainerViewImpl view = (DisplayContainerViewImpl) mainComponent;
             folder = null;
             container = rmSchemas.getContainerRecord(view.getPresenter().getContainerId());
             currentUser = getCurrentUser(view);
-            adjustButtons(folder, container, currentUser);
+            adjustButtons(view, folder, container, currentUser);
         }
     }
 
-    public void adjustButtons(Folder folder, ContainerRecord containerRecord, User currentUser) {
-        borrowRequestButton.setVisible(isFolderBorrowable(folder, currentUser) || isContainerBorrowable(containerRecord, currentUser));
-        returnRequestButton.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
-        reactivationRequestButton.setVisible(isFolderReactivable(folder, currentUser));
-        borrowExtensionRequestButton.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
+    public void adjustButtons(BaseViewImpl view, Folder folder, ContainerRecord containerRecord, User currentUser) {
+        List<Button> actionMenuButtons = view.getActionMenuButtons();
+        for(Button button: actionMenuButtons) {
+            if (button.getId() != null) {
+                switch (button.getId()) {
+                    case BorrowRequest.SCHEMA_NAME:
+                        button.setVisible(isFolderBorrowable(folder, currentUser));
+                        break;
+                    case ReturnRequest.SCHEMA_NAME:
+                        button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
+                        break;
+                    case ReactivationRequest.SCHEMA_NAME:
+                        button.setVisible(isFolderReactivable(folder, currentUser));
+                        break;
+                    case ExtensionRequest.SCHEMA_NAME:
+                        button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
+                        break;
+                }
+            }
+        }
     }
 
     private boolean isFolderBorrowable(Folder folder, User currentUser) {
-        return folder != null && !Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.has(RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER).on(folder);
+        return folder != null && !Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER).on(folder);
     }
 
     private boolean isContainerBorrowable(ContainerRecord container, User currentUser) {
-        return container != null && !Boolean.TRUE.equals(container.getBorrowed()) && currentUser.has(RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER).on(container);
+        return container != null && !Boolean.TRUE.equals(container.getBorrowed()) && currentUser.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
     }
 
     private boolean isPrincipalRecordReturnable(Folder folder, ContainerRecord container, User currentUser) {
@@ -115,7 +130,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private boolean isFolderReactivable(Folder folder, User currentUser) {
-        return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().equals(FolderMediaType.ANALOG);
+        return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().equals(FolderMediaType.ANALOG)
+                && currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
     }
 
     @Override
@@ -147,9 +163,10 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestBorrowButton(final BaseViewImpl view) {
-        return borrowRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowRequest"), $("RMRequestTaskButtonExtension.requestBorrowButtonTitle")) {
+        WindowButton borrowRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowRequest"), $("RMRequestTaskButtonExtension.requestBorrowButtonTitle")) {
             @Override
             protected Component buildWindowContent() {
+                getWindow().setHeight("250px");
                 final Context context = buildContext(view);
                 final Folder folder = context.getFolder();
                 final ContainerRecord container = context.getContainer();
@@ -172,6 +189,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                         return isFolderBorrowable(folder, currentUser);
                     }
                 };
+                borrowFolderButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
                 BaseButton borrowContainerButton = new BaseButton($("RMRequestTaskButtonExtension.confirmBorrowContainer")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
@@ -184,6 +202,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                         return isContainerBorrowable(container, currentUser);
                     }
                 };
+                borrowContainerButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
                 BaseButton cancelButton = new BaseButton($("cancel")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
@@ -192,6 +211,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 };
 
                 TextArea messageField = new TextArea();
+                messageField.setHeight("50%");
                 messageField.setWidth("100%");
                 messageField.addStyleName(ValoTheme.TEXTAREA_BORDERLESS);
                 if(borrowFolderButton.isVisible() && borrowContainerButton.isVisible()) {
@@ -204,20 +224,22 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 messageField.setReadOnly(true);
 
                 buttonLayout.setSpacing(true);
-                buttonLayout.addComponents(cancelButton, borrowContainerButton, borrowFolderButton);
+                buttonLayout.addComponents(borrowContainerButton, borrowFolderButton, cancelButton);
 
                 mainLayout.setHeight("100%");
                 mainLayout.setWidth("100%");
-                mainLayout.setSpacing(false);
+                mainLayout.setSpacing(true);
                 mainLayout.addComponents(messageField, borrowDurationField, buttonLayout);
 
                 return mainLayout;
             }
         };
+        borrowRequestButton.setId(BorrowRequest.SCHEMA_NAME);
+        return borrowRequestButton;
     }
 
     private Button buildRequestReturnButton(final BaseViewImpl view) {
-        return returnRequestButton = new ConfirmDialogButton($("RMRequestTaskButtonExtension.returnRequest")) {
+        ConfirmDialogButton returnRequestButton = new ConfirmDialogButton($("RMRequestTaskButtonExtension.returnRequest")) {
 
             @Override
             protected String getConfirmDialogMessage() {
@@ -229,10 +251,12 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 returnRequest(view);
             }
         };
+        returnRequestButton.setId(ReturnRequest.SCHEMA_NAME);
+        return returnRequestButton;
     }
 
     private Button buildRequestReactivationButton(final BaseViewImpl view) {
-        return reactivationRequestButton = new ConfirmDialogButton($("RMRequestTaskButtonExtension.reactivationRequest")) {
+        ConfirmDialogButton reactivationRequestButton = new ConfirmDialogButton($("RMRequestTaskButtonExtension.reactivationRequest")) {
 
             @Override
             protected String getConfirmDialogMessage() {
@@ -244,10 +268,12 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 reactivationRequested(view);
             }
         };
+        reactivationRequestButton.setId(ReactivationRequest.SCHEMA_NAME);
+        return reactivationRequestButton;
     }
 
     private Button buildRequestBorrowExtensionButton(final BaseViewImpl view) {
-        return borrowExtensionRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowExtensionRequest"), $("RMRequestTaskButtonExtension.borrowExtensionRequest")) {
+        WindowButton borrowExtensionRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowExtensionRequest"), $("RMRequestTaskButtonExtension.borrowExtensionRequest")) {
             @PropertyId("value")
             private InlineDateField datefield;
 
@@ -283,6 +309,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 return this.datefield;
             }
         };
+        borrowExtensionRequestButton.setId(ExtensionRequest.SCHEMA_NAME);
+        return borrowExtensionRequestButton;
     }
 
     public void borrowRequest(BaseViewImpl view, boolean isContainer, String inputForNumberOfDays) {

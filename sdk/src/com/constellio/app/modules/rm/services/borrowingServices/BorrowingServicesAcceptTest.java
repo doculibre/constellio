@@ -10,28 +10,21 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.*;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BorrowingServicesAcceptTest extends ConstellioTest {
@@ -66,120 +59,6 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
         emailToSendSchema = tasksSchemas.emailToSend();
 
         givenTimeIs(nowDate);
-    }
-
-    @Test
-    public void givenRecordsBorrowedFromTaskThenValidEmailToSendCreate() throws Exception {
-        zeTask = tasksSchemas.newTask();
-        LocalDate zeDate = new LocalDate(2017, 03, 24);
-        LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
-        EmailAddress adresseReceiver = new EmailAddress("Gandalf Leblanc", "gandalf@doculibre.com");
-        recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.borrowRecordsFromTask(zeTask.getId(), zeDate, zeDate, users.charlesIn(zeCollection), users.gandalfIn(zeCollection), BorrowingType.BORROW, true);
-        EmailToSend emailToSend = getEmailToSend(ALERT_BORROWED);
-        assertThat(emailToSend).isNotNull();
-        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_BORROWED);
-        assertThat(emailToSend.getTo()).isEqualTo(asList(adresseReceiver));
-        assertThat(emailToSend.getFrom()).isNull();
-        assertThat(emailToSend.getSendOn()).isEqualTo(zeDateTime);
-        assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est emprunté : taskTitle");
-        assertThat(emailToSend.getParameters()).hasSize(10);
-        assertThat(emailToSend.getParameters()).containsOnly(
-                "subject:Alerte lorsque le document est emprunté : taskTitle",
-                "borrowingDate:" + zeDate, "returnDate:" + zeDate,
-                "currentUser:charles", "borrowingType:" + BorrowingType.BORROW,
-                "borrowerEntered:gandalf", "title:" + zeTask.getTitle(),
-                "constellioURL:http://localhost:8080/constellio/",
-                "recordURL:http://localhost:8080/constellio/#!displayDocument/" + zeTask.getId(),
-                "recordType:document"
-        );
-    }
-
-    @Test
-    public void givenRecordsReturnedFromTaskThenValidateEmailToSendCreate() throws Exception {
-        zeTask = tasksSchemas.newTask();
-        LocalDate zeDate = new LocalDate(2017, 03, 24);
-        LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
-        EmailAddress adresseReceiver = new EmailAddress("Charles-François Xavier", "charles@doculibre.com");
-        recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.returnRecordsFromTask(zeTask.getId(), zeDate, users.adminIn(zeCollection), users.charlesIn(zeCollection), true);
-        EmailToSend emailToSend = getEmailToSend(ALERT_RETURNED);
-        assertThat(emailToSend).isNotNull();
-        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_RETURNED);
-        assertThat(emailToSend.getTo()).isEqualTo(asList(adresseReceiver));
-        assertThat(emailToSend.getFrom()).isNull();
-        assertThat(emailToSend.getSendOn()).isEqualTo(zeDateTime);
-        assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est retourné : taskTitle");
-        assertThat(emailToSend.getParameters()).hasSize(7);
-        assertThat(emailToSend.getParameters()).containsOnly(
-                "subject:Alerte lorsque le document est retourné : taskTitle",
-                "currentUser:charles", "returnDate:" + zeDate,
-                "title:" + zeTask.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-                "recordURL:http://localhost:8080/constellio/#!displayDocument/" + zeTask.getId(),
-                "recordType:document"
-        );
-    }
-
-    @Test
-    public void givenRecordsReactivatedFromTaskThenValidEmailToSendCreate() throws Exception {
-        zeTask = tasksSchemas.newTask();
-        LocalDate zeDate = new LocalDate(2017, 03, 24);
-        LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
-        EmailAddress adresseReceiver = new EmailAddress("Charles-François Xavier", "charles@doculibre.com");
-        recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.reactivateRecordsFromTask(zeTask.getId(), zeDate, users.charlesIn(zeCollection));
-        EmailToSend emailToSend = getEmailToSend(ALERT_REACTIVATED);
-        assertThat(emailToSend).isNotNull();
-        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_REACTIVATED);
-        assertThat(emailToSend.getTo()).isEqualTo(asList(adresseReceiver));
-        assertThat(emailToSend.getFrom()).isNull();
-        assertThat(emailToSend.getSendOn()).isEqualTo(zeDateTime);
-        assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est réactivé : taskTitle");
-        assertThat(emailToSend.getParameters()).hasSize(7);
-        assertThat(emailToSend.getParameters()).containsOnly(
-                "subject:Alerte lorsque le document est réactivé : taskTitle",
-                "reactivationDate:" + zeDate, "currentUser:charles", "title:" + zeTask.getTitle(),
-                "constellioURL:http://localhost:8080/constellio/",
-                "recordURL:http://localhost:8080/constellio/#!displayDocument/" + zeTask.getId(),
-                "recordType:document"
-        );
-    }
-
-    @Test
-    public void givenRecordsBorrowingExtendedFromTaskThenValidateEmailToSendCreate() throws Exception {
-        zeTask = tasksSchemas.newTask();
-        LocalDate zeDate = new LocalDate(2017, 03, 24);
-        LocalDateTime zeDateTime = TimeProvider.getLocalDateTime();
-        EmailAddress adresseReceiver = new EmailAddress("Gandalf Leblanc", "gandalf@doculibre.com");
-        recordServices.add(zeTask.setTitle("taskTitle"));
-        borrowingServices.extendRecordsBorrowingPeriodFromTask(zeTask.getId(), zeDate, users.adminIn(zeCollection), users.charlesIn(zeCollection), true);
-        EmailToSend emailToSend = getEmailToSend(ALERT_BORROWING_EXTENTED);
-        assertThat(emailToSend).isNotNull();
-        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_BORROWING_EXTENTED);
-        assertThat(emailToSend.getTo()).isEqualTo(asList(adresseReceiver));
-        assertThat(emailToSend.getFrom()).isNull();
-        assertThat(emailToSend.getSendOn()).isEqualTo(zeDateTime);
-        assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque l'emprunt du document est prolongé : taskTitle");
-        assertThat(emailToSend.getParameters()).hasSize(8);
-        assertThat(emailToSend.getParameters()).containsOnly(
-                "subject:Alerte lorsque l'emprunt du document est prolongé : taskTitle",
-                "currentUser:charles", "returnDate:" + zeDate,
-                "title:" + zeTask.getTitle(), "constellioURL:http://localhost:8080/constellio/",
-                "recordURL:http://localhost:8080/constellio/#!displayDocument/" + zeTask.getId(),
-                "recordType:document", "extensionDate:" + zeDate
-        );
-    }
-
-    private EmailToSend getEmailToSend(String template) {
-        LogicalSearchCondition condition = from(emailToSendSchema)
-                .where(tasksSchemas.emailToSend().getMetadata(EmailToSend.TEMPLATE))
-                .isEqualTo(template);
-        Record emailRecord = searchServices.searchSingleResult(condition);
-        if (emailRecord != null) {
-            return tasksSchemas.wrapEmailToSend(emailRecord);
-        } else {
-            return null;
-        }
     }
 
     @Test

@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.constants;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.Permissions;
 
 import java.util.List;
@@ -50,7 +49,11 @@ public class RMPermissionsTo {
 			"modifyInactiveBorrowedFolder");
 	public static final String MODIFY_OPENING_DATE_FOLDER = permission(FOLDER_GROUP,
 			"modifyOpeningDateFolder");
-	public static final String BORROWING_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "borrowinRequestOnFolder");
+	public static final String BORROWING_FOLDER_DIRECTLY = permission(FOLDER_GROUP, "borrowingFolderDirectly");
+
+	public static final String BORROWING_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "borrowingRequestOnFolder");
+
+	public static final String REACTIVATION_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "reactivationRequestOnFolder");
 
 	public static final String MANAGE_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "manageRequestOnFolder");
 
@@ -83,10 +86,6 @@ public class RMPermissionsTo {
 
 	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
 
-	public static final String BORROWING_REQUEST_ON_DOCUMENT = permission(DOCUMENT_GROUP, "borrowinRequestOnDocument");
-
-	public static final String MANAGE_REQUEST_ON_DOCUMENT = permission(DOCUMENT_GROUP, "manageRequestOnDocument");
-
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
 
@@ -97,6 +96,10 @@ public class RMPermissionsTo {
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
+
+	public static final String BORROW_CONTAINER = permission(DECOMMISSIONING, "borrowContainer");
+	public static final String BORROWING_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "borrowingRequestOnContainer");
+	public static final String MANAGE_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "manageRequestOnContainer");
 
 	public static final String CREATE_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createActiveFolderToSemiActiveDecommissioningList");
 	public static final String EDIT_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editActiveFolderToSemiActiveDecommissioningList");
