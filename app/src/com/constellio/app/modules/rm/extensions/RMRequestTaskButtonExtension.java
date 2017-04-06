@@ -340,8 +340,10 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 borrowRequest = taskSchemas.newBorrowFolderRequestTask(currentUser.getId(), getAssignees(recordId), recordId, numberOfDays, folder.getTitle());
             }
             modelLayerFactory.newRecordServices().add(borrowRequest);
+            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
+            view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
         }
     }
 
@@ -359,9 +361,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 String containerId = container.getId();
                 Task returnRequest = taskSchemas.newReturnContainerRequestTask(currentUser.getId(), getAssignees(containerId), containerId, container.getTitle());
                 modelLayerFactory.newRecordServices().add(returnRequest);
+            } else {
+                view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
             }
+            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
+            view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
         }
     }
 
@@ -379,9 +385,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 String containerId = container.getId();
                 Task reactivationRequest = taskSchemas.newReactivationContainerRequestTask(currentUser.getId(), getAssignees(containerId), containerId, container.getTitle());
                 modelLayerFactory.newRecordServices().add(reactivationRequest);
+            } else {
+                view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
             }
+            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
+            view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
         }
     }
 
@@ -399,9 +409,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 String containerId = container.getId();
                 Task borrowExtensionRequest = taskSchemas.newBorrowContainerExtensionRequestTask(currentUser.getId(), getAssignees(containerId), containerId, container.getTitle(), new LocalDate(req.getValue()));
                 modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
+            } else {
+                view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
             }
+            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
+            view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
         }
     }
 
