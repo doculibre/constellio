@@ -42,14 +42,16 @@ public class RMMigrationTo7_1_3_1 implements MigrationScript {
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            migrateMediumType(typesBuilder);
+            migrateLabel(typesBuilder);
+            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.TITLE).setSortable(true);
 
         }
 
-        private void migrateMediumType(MetadataSchemaTypesBuilder typesBuilder) {
+        private void migrateLabel(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_TRANSFER_DATE).addLabel(Language.French, "Date de transfert prévue");
             typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DEPOSIT_DATE).addLabel(Language.French, "Date de versement prévue");
             typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DESTRUCTION_DATE).addLabel(Language.French, "Date de destruction prévue");
+
         }
     }
 }
