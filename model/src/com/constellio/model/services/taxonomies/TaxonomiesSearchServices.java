@@ -664,9 +664,12 @@ public class TaxonomiesSearchServices {
 	}
 
 	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
-			User user, Taxonomy usingTaxonomy, Record inRecord, TaxonomiesSearchOptions options) {
+			User user, Taxonomy usingTaxonomy, Record inRecord, TaxonomiesSearchOptions originalOptions) {
 
 		SPEQueryResponse mainQueryResponse;
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(originalOptions);
+		options.setRows(10000);
+		options.setStartRow(0);
 		if (inRecord == null) {
 			mainQueryResponse = conceptNodesTaxonomySearchServices.getRootConceptResponse(
 					usingTaxonomy.getCollection(), usingTaxonomy.getCode(), options);
@@ -702,7 +705,14 @@ public class TaxonomiesSearchServices {
 						hasVisibleChildren));
 			}
 		}
-		return new LinkableTaxonomySearchResponse(resultVisible.size(), resultVisible);
+
+		int from = originalOptions.getStartRow();
+		int to = originalOptions.getEndRow();
+		if (resultVisible.size() < to) {
+			to = resultVisible.size();
+		}
+
+		return new LinkableTaxonomySearchResponse(resultVisible.size(), resultVisible.subList(from, to));
 
 	}
 
