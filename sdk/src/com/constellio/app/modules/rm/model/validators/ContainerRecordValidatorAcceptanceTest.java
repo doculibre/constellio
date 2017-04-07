@@ -126,16 +126,15 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest{
 
     @Test
     public void givenReindexingAndValidatorIsFailingThenDoNotCrash() throws RecordServicesException {
-        ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(2));
-        recordServices.add(containerRecord);
-        addFoldersLinkedToContainer(containerRecord.getId());
-        recordServices.recalculate(containerRecord);
+        StorageSpace storageSpace = buildDefaultStorageSpace().setCapacity(5);
+        recordServices.add(storageSpace);
+
+        ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(10).setStorageSpace(storageSpace);;
         Transaction transaction = new Transaction();
         transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-        transaction.add(containerRecord);
+        transaction.update(containerRecord.getWrappedRecord());
         recordServices.execute(transaction);
-        ContainerRecord newContainer = rm.getContainerRecord(containerRecord.getId());
-        assertThat(newContainer.getLinearSize()).isGreaterThan(containerRecord.getCapacity());
+
         getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
         reindexIfRequired();
     }
