@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -120,6 +122,22 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest{
                     "La capacité (10.0 cm) doit être plus grande ou égale à la longueur linéaire (20.0 cm)",
                     "L'emplacement storageTest ne peut pas contenir ce type de contenant");
         }
+    }
+
+    @Test
+    public void givenReindexingAndValidatorIsFailingThenDoNotCrash() throws RecordServicesException {
+        ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(2));
+        recordServices.add(containerRecord);
+        addFoldersLinkedToContainer(containerRecord.getId());
+        recordServices.recalculate(containerRecord);
+        Transaction transaction = new Transaction();
+        transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+        transaction.add(containerRecord);
+        recordServices.execute(transaction);
+        ContainerRecord newContainer = rm.getContainerRecord(containerRecord.getId());
+        assertThat(newContainer.getLinearSize()).isGreaterThan(containerRecord.getCapacity());
+        getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
+        reindexIfRequired();
     }
 
     public ContainerRecord buildDefaultContainer() {
