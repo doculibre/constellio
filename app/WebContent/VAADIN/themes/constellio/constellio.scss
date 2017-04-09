@@ -62,6 +62,19 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.nicetitle-link {
+		cursor: pointer !important;	
+	}
+
+	.nicetitle-link-disabled  {
+		text-decoration: none;
+		color: rgb(71, 71, 71);
+	}
+
+	.nicetitle-link-disabled:hover {
+		color: rgb(71, 71, 71);
+	}
+
 	.auto-scroll {
 		overflow: auto;
 	}

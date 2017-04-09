@@ -1,25 +1,34 @@
 package com.constellio.app.ui.framework.buttons;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.reports.ReportField;
 import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -34,25 +43,18 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import com.vaadin.ui.VerticalLayout;
 
 public class LabelsButton extends WindowButton {
     @PropertyId("startPosition")
-    private ComboBox startPosition;
+    private ComboBox startPositionField;
     @PropertyId("labelConfigurations")
-    private ComboBox format;
+    private ComboBox formatField;
     @PropertyId("numberOfCopies")
-    private TextField copies;
+    private TextField copiesField;
     private ModelLayerFactory model;
     private String type;
     private SearchServices ss;
@@ -69,7 +71,7 @@ public class LabelsButton extends WindowButton {
     }
 
     public LabelsButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, String type, List<String> idObject, String user) {
-        super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
+        super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "250px"));
         this.model = factory.getModelLayerFactory();
         this.collection = collection;
         this.factory = factory;
@@ -84,91 +86,126 @@ public class LabelsButton extends WindowButton {
 
     @Override
     protected Component buildWindowContent() {
-        startPosition = new ComboBox($("LabelsButton.startPosition"));
+        startPositionField = new ComboBox($("LabelsButton.startPosition"));
+        startPositionField.setNullSelectionAllowed(false);
+        startPositionField.setRequired(true);
 
-        startPosition.setNullSelectionAllowed(false);
-
-        List<PrintableLabel> configurations = getTemplates(type);
-        if (configurations.size() > 0) {
-            this.size = (Double) configurations.get(0).get(PrintableLabel.LIGNE) * (Double) configurations.get(0).get(PrintableLabel.COLONNE);
-            startPosition.clear();
+        List<PrintableLabel> printableLabels = getTemplates(type);
+        if (printableLabels.size() > 0) {
+            this.size = (Double) printableLabels.get(0).get(PrintableLabel.LIGNE) * (Double) printableLabels.get(0).get(PrintableLabel.COLONNE);
+            startPositionField.clear();
             for (int i = 1; i <= size; i++) {
-                startPosition.addItem(i);
+                startPositionField.addItem(i);
             }
         }
 
-        format = new ComboBox($("LabelsButton.labelFormat"));
-        for (PrintableLabel configuration : configurations) {
-            format.addItem(configuration);
-            format.setItemCaption(configuration, configuration.getTitle());
+        formatField = new ComboBox($("LabelsButton.labelFormat"));
+        formatField.setRequired(true);
+        
+        List<Object> formatOptions = new ArrayList<Object>(printableLabels);
+        if (printableLabels.isEmpty()) {
+        	List<LabelTemplate> templates = getTemplates();
+            formatOptions.addAll(templates);
+        }    
+        for (Object formatOption : formatOptions) {
+            formatField.addItem(formatOption);
+            String itemCaption;
+            if (formatOption instanceof PrintableLabel) {
+                itemCaption = ((PrintableLabel) formatOption).getTitle();
+            } else {
+                String templateName = ((LabelTemplate) formatOption).getName();
+                itemCaption = $(templateName);
+            }
+            formatField.setItemCaption(formatOption, itemCaption);
         }
 
-        for (LabelTemplate template : getTemplates()) {
-            format.addItem(template);
-            format.setItemCaption(template, $(template.getName()));
+        if (formatOptions.size() > 0) {
+            formatField.select(formatOptions.get(0));
         }
-
-        if (configurations.size() > 0) {
-            format.select(configurations.get(0));
-        }
-        format.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
-        format.setNullSelectionAllowed(false);
-        format.setValue(configurations.get(0));
-        format.addValueChangeListener(new ValueChangeListener() {
+        formatField.setPageLength(printableLabels.size());
+        formatField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+        formatField.setNullSelectionAllowed(false);
+        formatField.setValue(printableLabels.get(0));
+        formatField.addValueChangeListener(new ValueChangeListener() {
             @Override
             public void valueChange(ValueChangeEvent event) {
                 Object ob = event.getProperty().getValue();
+                Integer previousStartPosition = (Integer) startPositionField.getValue();
                 if (ob instanceof PrintableLabel) {
                     PrintableLabel report = (PrintableLabel) event.getProperty().getValue();
                     size = (Double) report.get(PrintableLabel.COLONNE) * (Double) report.get(PrintableLabel.LIGNE);
-                    startPosition.clear();
-                    startPosition.removeAllItems();
+                    startPositionField.clear();
+                    startPositionField.removeAllItems();
                     for (int i = 1; i <= size; i++) {
-                        startPosition.addItem(i);
+                        startPositionField.addItem(i);
+                    }
+                    if (previousStartPosition != null && previousStartPosition <= size) {
+                    	startPositionField.setValue(previousStartPosition);
+                    } else if (size > 0) {
+                    	startPositionField.setValue(1);
                     }
                 } else if (ob instanceof LabelTemplate) {
                     LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
                     int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
-                    startPosition.clear();
-                    startPosition.removeAllItems();
+                    startPositionField.clear();
+                    startPositionField.removeAllItems();
                     for (int i = 1; i <= size; i++) {
-                        startPosition.addItem(i);
+                        startPositionField.addItem(i);
+                    }
+                    if (previousStartPosition != null && previousStartPosition <= size) {
+                    	startPositionField.setValue(previousStartPosition);
+                    } else if (size > 0) {
+                    	startPositionField.setValue(1);
                     }
                 } else throw new UnsupportedOperationException();
             }
         });
 
-        copies = new TextField($("LabelsButton.numberOfCopies"));
-        copies.setConverter(Integer.class);
+        copiesField = new TextField($("LabelsButton.numberOfCopies"));
+        copiesField.setRequired(true);
+        copiesField.setConverter(Integer.class);
+        
+        final HorizontalLayout startAndCopiesLayout = new HorizontalLayout(startPositionField, copiesField);
+//        startAndCopiesLayout.setWidth("100%");
+        startAndCopiesLayout.setSpacing(true);
 
         return new BaseForm<LabelParametersVO>(
-                new LabelParametersVO(new LabelTemplate()), this, startPosition, format, copies) {
+                new LabelParametersVO(new LabelTemplate()), this, startPositionField, formatField, copiesField) {
             @Override
+			protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
+            	if (field == startPositionField) {
+            		fieldLayout.addComponent(startAndCopiesLayout);
+            	} else if (field != copiesField) {
+    				super.addFieldToLayout(field, fieldLayout);
+            	}
+			}
+
+			@Override
             protected void saveButtonClick(LabelParametersVO parameters)
                     throws ValidationException {
-                Object ob = format.getValue();
+                Object ob = formatField.getValue();
                 if (ob instanceof PrintableLabel) {
-                    PrintableLabel selected = (PrintableLabel) format.getValue();
+                    PrintableLabel selected = (PrintableLabel) formatField.getValue();
                     ReportUtils ru = new ReportUtils(collection, factory, user);
                     try {
-                        if ((Integer) startPosition.getValue() > size) {
+                        if ((Integer) startPositionField.getValue() > size) {
                             throw new Exception($("ButtonLabel.error.posisbiggerthansize"));
                         }
-                        ru.setStartingPosition((Integer) startPosition.getValue() - 1);
-                        ru.setNumberOfCopies(Integer.parseInt(copies.getValue()));
-                        String xml = type.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, null) : ru.convertContainerWithIdentifierToXML(ids, null);
+                        ru.setStartingPosition((Integer) startPositionField.getValue() - 1);
+                        ru.setNumberOfCopies(Integer.parseInt(copiesField.getValue()));
+                        String xml = type.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, (ReportField[]) null) : ru.convertContainerWithIdentifierToXML(ids, null);
                         Content content = selected.get(PrintableLabel.JASPERFILE);
                         InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
                         FileUtils.copyInputStreamToFile(inputStream, new File("jasper.jasper"));
                         File file = new File("jasper.jasper");
-                        Content c = ru.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) format.getValue()).getTitle() + ".pdf");
-                        getWindow().setContent(new LabelViewer(c, ReportUtils.escapeForXmlTag(((PrintableLabel) format.getValue()).getTitle()) + ".pdf"));
+                        Content c = ru.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
+                        getWindow().setContent(new LabelViewer(c, ReportUtils.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf"));
                         Page.getCurrent().getJavaScript().execute("$('iframe').find('#print').remove()");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else if (ob instanceof LabelTemplate) {
-                    LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
+                    LabelTemplate labelTemplate = formatField.getValue() != null ? (LabelTemplate) formatField.getValue() : new LabelTemplate();
                     LabelsReportParameters params = new LabelsReportParameters(
                             ids, labelTemplate,
                             parameters.getStartPosition(), parameters.getNumberOfCopies());
@@ -176,10 +213,16 @@ public class LabelsButton extends WindowButton {
                     getWindow().setContent(new ReportViewer(writer, getLabelsReportFactory().getFilename(params)));
                 } else throw new UnsupportedOperationException();
             }
+            
             @Override
             protected void cancelButtonClick(LabelParametersVO parameters) {
                 getWindow().close();
             }
+            
+			@Override
+			protected String getSaveButtonCaption() {
+				return $("LabelsButton.generate");
+			}
         };
     }
 

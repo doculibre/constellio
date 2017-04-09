@@ -216,13 +216,13 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         boolean isClassifiedInFolder = !Boolean.TRUE.equals(classificationOption.getValue());
                         try {
                             classifyButtonClicked(parentId, categoryId, isClassifiedInFolder, param);
-                            ConstellioUI.getCurrent().updateContent();
                         } catch (Throwable e) {
 //                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
 //                            showErrorMessage("DisplayFolderView.parentFolderException");
                             e.printStackTrace();
                         }
                         getWindow().close();
+                        ConstellioUI.getCurrent().updateContent();
                     }
                 };
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -506,10 +506,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             	}
             }
 		}
-        View currentView = ConstellioUI.getCurrent().getCurrentView();
-        if (currentView instanceof ListUserDocumentsView) {
-        	((ListUserDocumentsView) currentView).refresh();
-        }
+//        View currentView = ConstellioUI.getCurrent().getCurrentView();
+//        if (currentView instanceof ListUserDocumentsView) {
+//        	((ListUserDocumentsView) currentView).refresh();
+//        }
     }
 
     private void emailPreparationRequested(AvailableActionsParam param) {

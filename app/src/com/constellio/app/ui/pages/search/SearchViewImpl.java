@@ -400,7 +400,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected Button buildSelectAllButton() {
-		selectDeselectAllButton = new SelectDeselectAllButton() {
+		String selectAllCaption;
+		String deselectAllCaption;
+		if (isDetailedView()) {
+			selectAllCaption = $("SearchView.selectCurrentPage");
+			deselectAllCaption = $("SearchView.deselectCurrentPage");
+		} else {
+			selectAllCaption = $("selectAll");
+			deselectAllCaption = $("deselectAll");
+		}
+		selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {

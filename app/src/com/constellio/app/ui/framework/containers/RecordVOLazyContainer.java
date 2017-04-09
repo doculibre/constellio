@@ -13,12 +13,14 @@ import org.vaadin.addons.lazyquerycontainer.Query;
 import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
 import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.DataProvider.DataRefreshListener;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Item;
 
 @SuppressWarnings("serial")
@@ -35,9 +37,10 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 	}
 
 	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize) {
-		super(new RecordVOLazyQueryDefinition(dataProviders, false, batchSize), new RecordVOLazyQueryFactory(dataProviders));
+		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown(), batchSize),
+				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
-		for(RecordVODataProvider dataProvider : dataProviders) {
+		for (RecordVODataProvider dataProvider : dataProviders) {
 			dataProvider.setBatchSize(batchSize);
 		}
 		for (RecordVODataProvider dataProvider : dataProviders) {
@@ -49,7 +52,14 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			});
 		}
 	}
-	
+
+	private static boolean isOnlyTableMetadatasShown() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(
+				constellioFactories.getModelLayerFactory().getSystemConfigurationsManager());
+		return !configs.isTableDynamicConfiguration();
+	}
+
 	public List<MetadataSchemaVO> getSchemas() {
 		List<MetadataSchemaVO> schemas = new ArrayList<>();
 		for (RecordVODataProvider dataProvider : dataProviders) {
@@ -57,7 +67,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		}
 		return schemas;
 	}
-	
+
 	private static RecordVODataProviderAndRecordIndex forRecordIndex(List<RecordVODataProvider> dataProviders, int index) {
 		RecordVODataProviderAndRecordIndex result = null;
 		int lastSize = 0;
@@ -72,20 +82,20 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		}
 		return result;
 	}
-	
+
 	public RecordVO getRecordVO(int index) {
 		RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, index);
 		int recordIndexForDataProvider = dataProviderAndRecordIndex.recordIndex;
 
 		return dataProviderAndRecordIndex.dataProvider.getRecordVO(recordIndexForDataProvider);
 	}
-	
+
 	private static class RecordVODataProviderAndRecordIndex implements Serializable {
-		
+
 		private RecordVODataProvider dataProvider;
-		
+
 		private int recordIndex;
-		
+
 		public RecordVODataProviderAndRecordIndex(RecordVODataProvider dataProvider, int recordIndex) {
 			this.dataProvider = dataProvider;
 			this.recordIndex = recordIndex;
@@ -113,7 +123,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			List<MetadataVO> tablePropertyMetadataVOs = new ArrayList<>();
 			List<MetadataVO> extraPropertyMetadataVOs = new ArrayList<>();
 			List<MetadataVO> queryMetadataVOs = new ArrayList<>();
-			
+
 			for (RecordVODataProvider dataProvider : dataProviders) {
 				MetadataSchemaVO schema = dataProvider.getSchema();
 				List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
@@ -137,7 +147,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 					}
 				}
 			}
-			
+
 			Collections.sort(extraPropertyMetadataVOs, new Comparator<MetadataVO>() {
 				@Override
 				public int compare(MetadataVO o1, MetadataVO o2) {
@@ -146,7 +156,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			});
 			propertyMetadataVOs.addAll(tablePropertyMetadataVOs);
 			propertyMetadataVOs.addAll(extraPropertyMetadataVOs);
-			
+
 			for (MetadataVO metadataVO : propertyMetadataVOs) {
 				super.addProperty(metadataVO, metadataVO.getJavaType(), null, true, true);
 			}
@@ -192,18 +202,18 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 				@Override
 				public List<Item> loadItems(int startIndex, int count) {
 					List<Item> items = new ArrayList<Item>();
-					
+
 					RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, startIndex);
 					RecordVODataProvider firstDataProvider = dataProviderAndRecordIndex.dataProvider;
 					int startIndexForFirstDataProvider = dataProviderAndRecordIndex.recordIndex;
 
-
-					List<RecordVO> recordVOsFromFirstDataProvider = firstDataProvider.listRecordVOs(startIndexForFirstDataProvider, count);
+					List<RecordVO> recordVOsFromFirstDataProvider = firstDataProvider
+							.listRecordVOs(startIndexForFirstDataProvider, count);
 					for (RecordVO recordVO : recordVOsFromFirstDataProvider) {
 						Item item = new RecordVOItem(recordVO);
 						items.add(item);
 					}
-					
+
 					if (items.size() < count) {
 						// We need to add results from extra dataProviders
 						boolean firstDataProviderFound = false;
@@ -214,7 +224,8 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 								// Only records belonging to dataProviders after the first are relevant
 								int startIndexForDataProvider = 0;
 								int countForDataProvider = count - items.size();
-								List<RecordVO> recordVOsFromDataProvider = dataProvider.listRecordVOs(startIndexForDataProvider, countForDataProvider);
+								List<RecordVO> recordVOsFromDataProvider = dataProvider
+										.listRecordVOs(startIndexForDataProvider, countForDataProvider);
 								for (RecordVO recordVO : recordVOsFromDataProvider) {
 									Item item = new RecordVOItem(recordVO);
 									items.add(item);
@@ -225,7 +236,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 							}
 						}
 					}
-					
+
 					return items;
 				}
 

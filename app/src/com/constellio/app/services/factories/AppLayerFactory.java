@@ -271,9 +271,18 @@ public class AppLayerFactory extends LayerFactory {
 		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
 		getModulesManager().enableComplementaryModules();
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
-			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-			systemGlobalConfigsManager.setMarkedForReindexing(false);
-			systemGlobalConfigsManager.setReindexingRequired(false);
+			try {
+				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+				systemGlobalConfigsManager.setMarkedForReindexing(false);
+				systemGlobalConfigsManager.setReindexingRequired(false);
+				systemGlobalConfigsManager.setLastReindexingFailed(false);
+			} catch (Exception e) {
+				LOGGER.error("Reindexing failed", e);
+				systemGlobalConfigsManager.setMarkedForReindexing(false);
+				systemGlobalConfigsManager.setReindexingRequired(true);
+				systemGlobalConfigsManager.setLastReindexingFailed(true);
+			}
+
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
 

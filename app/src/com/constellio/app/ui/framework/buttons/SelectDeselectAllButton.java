@@ -11,11 +11,15 @@ public abstract class SelectDeselectAllButton extends BaseButton {
 	private String deselectAllCaption;
 
 	public SelectDeselectAllButton() {
-		this($("selectAll"), $("deselectAll"), true);
+		this($("selectAll"), $("deselectAll"));
+	}
+
+	public SelectDeselectAllButton(String selectAllCaption, String deselectAllCaption) {
+		this(selectAllCaption, deselectAllCaption, true);
 	}
 
 	public SelectDeselectAllButton(String selectAllCaption, String deselectAllCaption, boolean selectAllMode) {
-		super(selectAllCaption);
+		super(selectAllMode ? selectAllCaption : deselectAllCaption);
 		this.selectAllCaption = selectAllCaption;
 		this.deselectAllCaption = deselectAllCaption;
 		this.selectAllMode = selectAllMode;

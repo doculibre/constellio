@@ -69,6 +69,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
@@ -315,13 +316,20 @@ public class BatchProcessingPresenterService {
 						// Default value is always null
 						required = false;
 						defaultValue = null;
-						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
+//						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
 						Map<String, List<FacetValue>> fieldFacetValues = searchServices
 								.query(query.addFieldFacet("schema_s").setNumberOfRows(0)).getFieldFacetValues();
 						for (FacetValue facetValue : fieldFacetValues.get("schema_s")) {
-							if (facetValue.getQuantity() > 0 && schemas.schema(facetValue.getValue()).getMetadata(metadataCode)
-									.isUnmodifiable()) {
-								return null;
+							long resultCountForFacetValue = facetValue.getQuantity();
+							String schemaCode = facetValue.getValue();
+							MetadataSchema schema = schemas.schema(schemaCode);
+							try {
+								Metadata metadata = schema.get(metadataCode);
+								if (resultCountForFacetValue > 0 && metadata.isUnmodifiable()) {
+									return null;
+								}
+							} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+								continue;
 							}
 						}
 						return super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,

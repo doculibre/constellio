@@ -545,7 +545,7 @@ public class SettingsImportServices {
 			metadataBuilder.setLabels(labels);
 		}
 
-		setMetadataDataEntry(schemaBuilder, importedMetadata, metadataBuilder);
+		setMetadataDataEntry(typesBuilder, schemaBuilder, importedMetadata, metadataBuilder);
 
 		if (importedMetadata.getDuplicable() != null) {
 			metadataBuilder.setDuplicable(importedMetadata.getDuplicable());
@@ -617,8 +617,8 @@ public class SettingsImportServices {
 		}
 	}
 
-	private void setMetadataDataEntry(MetadataSchemaBuilder schemaBuilder, ImportedMetadata importedMetadata,
-			MetadataBuilder metadataBuilder) {
+	private void setMetadataDataEntry(MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder schemaBuilder,
+			ImportedMetadata importedMetadata, MetadataBuilder metadataBuilder) {
 		ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
 		if (dataEntry != null) {
 			switch (dataEntry.getType().toLowerCase()) {
@@ -637,7 +637,10 @@ public class SettingsImportServices {
 			case "copied":
 				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
 					MetadataBuilder referenceMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getReferencedMetadata());
-					MetadataBuilder copiedMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getCopiedMetadata());
+					MetadataSchemaTypeBuilder referencedSchemaType = typesBuilder
+							.getSchemaType(referenceMetadataBuilder.getAllowedReferencesBuilder().getSchemaType());
+					MetadataBuilder copiedMetadataBuilder = referencedSchemaType.getDefaultSchema()
+							.getMetadata(dataEntry.getCopiedMetadata());
 
 					metadataBuilder.defineDataEntry().asCopied(referenceMetadataBuilder, copiedMetadataBuilder);
 

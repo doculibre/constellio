@@ -5,7 +5,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -110,13 +110,11 @@ public class SearchPresenterService {
 		return facetQuery;
 	}
 
-	private static class ComparatorByLabel implements Comparator<FacetValueVO> {
+	private static class ComparatorByLabel extends AbstractTextComparator<FacetValueVO> {
 
 		@Override
-		public int compare(FacetValueVO o1, FacetValueVO o2) {
-			String label1 = o1.getLabel();
-			String label2 = o2.getLabel();
-			return label1.compareTo(label2);
+		protected String getText(FacetValueVO object) {
+			return object.getLabel();
 		}
 	}
 
