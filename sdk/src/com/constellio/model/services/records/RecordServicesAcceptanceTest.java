@@ -24,6 +24,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransie
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -88,6 +89,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Cann
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -1682,6 +1684,170 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenBrokenReferencesThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'", "Pointeur d'L'ours"));
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", null));
+
+	}
+
+	@Test
+	public void givenBrokenReferencesInCopiedValueThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
+						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
+						anotherSchemaType.getMetadata("stringMetadata").defineDataEntry()
+								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+					}
+				}));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+		recordServices.execute(transaction);
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'", "L'ours"));
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", null));
+
+	}
+
+	@Test
+	public void givenBrokenMultivalueReferencesInCopiedValueThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
+						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
+						anotherSchemaType.getMetadata("stringMetadata").setMultivalue(true).defineDataEntry()
+								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+					}
+				}));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+		recordServices.execute(transaction);
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'", asList("L'ours")));
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", new ArrayList<>()));
+
+	}
+
+	@Test
+	public void givenBrokenMultivalueReferencesThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
+				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "d'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur ")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+		recordServices.execute(transaction);
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur ", "Pointeur [d'ours]"));
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", "Pointeur d'ours brisé[]"));
 
 	}
 

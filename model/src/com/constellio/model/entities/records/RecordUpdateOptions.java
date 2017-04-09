@@ -29,6 +29,8 @@ public class RecordUpdateOptions {
 
 	private boolean catchExtensionsValidationsErrors = false;
 
+	private boolean catchBrokenReferenceErrors = false;
+
 	boolean skippingRequiredValuesValidation = false;
 	private boolean skippingReferenceToLogicallyDeletedValidation = false;
 
@@ -201,6 +203,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setCatchExtensionsValidationsErrors(boolean catchExtensionsValidationsErrors) {
 		this.catchExtensionsValidationsErrors = catchExtensionsValidationsErrors;
+		return this;
+	}
+
+	public boolean isCatchBrokenReferenceErrors() {
+		return catchBrokenReferenceErrors;
+	}
+
+	public RecordUpdateOptions setCatchBrokenReferenceErrors(boolean catchBrokenReferenceErrors) {
+		this.catchBrokenReferenceErrors = catchBrokenReferenceErrors;
 		return this;
 	}
 }

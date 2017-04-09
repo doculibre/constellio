@@ -23,6 +23,7 @@ import com.constellio.model.entities.calculators.dependencies.HierarchyDependenc
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -41,6 +42,7 @@ import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocuments
 
 public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends ConstellioTest {
 
+	RecordUpdateOptions options = new RecordUpdateOptions();
 	TwoTaxonomiesContainingFolderAndDocumentsSetup schemas =
 			new TwoTaxonomiesContainingFolderAndDocumentsSetup(zeCollection);
 	FolderSchema folderSchema = schemas.new FolderSchema();
@@ -156,7 +158,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		when(recordProvider.getRecord(records.taxo1_firstTypeItem1.getId())).thenReturn(records.taxo1_firstTypeItem1);
 
 		services.calculateValueInRecord((RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
-				recordProvider, schemas.getTypes());
+				recordProvider, schemas.getTypes(), options);
 
 		assertThat(records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");
 	}
