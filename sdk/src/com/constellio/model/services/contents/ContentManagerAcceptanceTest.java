@@ -239,6 +239,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		// Then, the exception is thrown.
 	}
 
+	@InternetTest
 	@Test
 	public void givenIcapActivatedWhenUploadingInfectedNonYetParsedContentThenThreatFoundExceptionThrown()
 			throws Exception {
