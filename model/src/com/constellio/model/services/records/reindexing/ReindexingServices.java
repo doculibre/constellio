@@ -166,7 +166,8 @@ public class ReindexingServices {
 		}
 
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
-		transactionOptions.setValidationsEnabled(false);
+		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
+				.setCatchExtensionsExceptions(true);
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
