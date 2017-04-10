@@ -29,6 +29,7 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -42,6 +43,8 @@ import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003Import
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
@@ -189,7 +192,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		File zipFile = buildZipWith("administrativeUnit.xml", "category.xml", "folder.xml", "document.xml",
-				"retentionRule.xml", "ddvDocumentType.xml");
+				"retentionRule.xml", "ddvDocumentType.xml", "event.xml", "containerRecord.xml", "ddvContainerRecordType.xml");
 
 		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
 
@@ -197,6 +200,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		importAndValidateWithRetentionRules();
 		importAndValidateDocumentType();
 		importAndValidateDocumentWithVersions();
+		importAndValidateEvents();
 	}
 
 	@Test
@@ -490,6 +494,29 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(folder4.getTitle()).isEqualTo("A Wonderful and Cold (Sub)Folder Again");
 		assertThat(folder4.getKeywords()).isEmpty();
 
+	}
+
+	private void importAndValidateEvents() {
+		Folder folder660 = rm.getFolderWithLegacyId("660");
+		Folder folder670 = rm.getFolderWithLegacyId("670");
+		ContainerRecord containerRecord412903 = rm.getContainerRecordWithLegacyId("412903");
+		Event event1 = rm.wrapEvent(expectedRecordWithLegacyId("event1"));
+		assertThat(event1.getType()).isEqualTo(EventType.CREATE_FOLDER);
+		assertThat(event1.getRecordId()).isEqualTo(folder660.getId());
+		assertThat(event1.getTitle()).isEqualTo("A Wonderful and Cold Folder");
+		assertThat(event1.getCreatedOn()).isEqualTo(dateTime(2002, 2, 2, 2, 2, 2));
+
+		Event event2 = rm.wrapEvent(expectedRecordWithLegacyId("event2"));
+		assertThat(event2.getType()).isEqualTo(EventType.MODIFY_FOLDER);
+		assertThat(event2.getRecordId()).isEqualTo(folder670.getId());
+		assertThat(event2.getTitle()).isEqualTo("A Wonderful |#!/$%?*()_+ Folder");
+		assertThat(event2.getCreatedOn()).isEqualTo(dateTime(2003, 3, 3, 3, 3, 3));
+
+		Event event3 = rm.wrapEvent(expectedRecordWithLegacyId("event3"));
+		assertThat(event3.getType()).isEqualTo(EventType.BORROW_CONTAINER);
+		assertThat(event3.getRecordId()).isEqualTo(containerRecord412903.getId());
+		assertThat(event3.getTitle()).isEqualTo("00001");
+		assertThat(event3.getCreatedOn()).isEqualTo(dateTime(2004, 4, 4, 4, 4, 4));
 	}
 
 	private void importAndValidateDocumentWithVersions() {
