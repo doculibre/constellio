@@ -130,9 +130,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void copyContentButtonClicked() {
-		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
-		}
+		actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 	}
 
 	protected boolean isDeleteDocumentPossible() {

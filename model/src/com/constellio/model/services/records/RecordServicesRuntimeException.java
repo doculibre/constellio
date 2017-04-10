@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.utils.LoggerUtils;
+import com.constellio.model.entities.schemas.Metadata;
 
 @SuppressWarnings("serial")
 public class RecordServicesRuntimeException extends RuntimeException {
@@ -36,6 +37,16 @@ public class RecordServicesRuntimeException extends RuntimeException {
 
 		public NoSuchRecordWithId(String id, Exception e) {
 			super("No such record with id : " + id, e);
+		}
+	}
+
+	public static class BrokenReference extends RecordServicesRuntimeException {
+
+		public BrokenReference(String recordIdWithReference, String referencedId, Metadata metadata,
+				Exception e) {
+			super("Record '" + recordIdWithReference + "' is referencing an inexistent record '" + referencedId
+					+ "' of schema type '" + metadata.getReferencedSchemaType() + "' in metadata '" + metadata.getLocalCode()
+					+ "'", e);
 		}
 	}
 

@@ -33,6 +33,7 @@ import org.mockito.Mockito;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -52,6 +53,8 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
+
+	RecordUpdateOptions options = new RecordUpdateOptions();
 
 	@Mock ModelLayerLogger modelLayerLogger;
 
@@ -142,7 +145,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		List<Metadata> sortedAutomaticMetadatas = asList(firstMetadata, secondMetadata);
 
 		doNothing().when(services).updateAutomaticMetadata(any(RecordImpl.class), any(RecordProvider.class), any(Metadata.class),
-				eq(reindexedMetadata), any(MetadataSchemaTypes.class));
+				eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(RecordUpdateOptions.class));
 
 		MetadataSchemaTypes types = mock(MetadataSchemaTypes.class);
 		MetadataSchema schema = mock(MetadataSchema.class);
@@ -151,13 +154,13 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		when(types.getSchema(zeSchema.code())).thenReturn(schema);
 		when(schema.getAutomaticMetadatas()).thenReturn(sortedAutomaticMetadatas);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
 
 		InOrder inOrder = Mockito.inOrder(services);
 		inOrder.verify(services)
-				.updateAutomaticMetadata(record, recordProvider, firstMetadata, reindexedMetadata, types);
+				.updateAutomaticMetadata(record, recordProvider, firstMetadata, reindexedMetadata, types, options);
 		inOrder.verify(services)
-				.updateAutomaticMetadata(record, recordProvider, secondMetadata, reindexedMetadata, types);
+				.updateAutomaticMetadata(record, recordProvider, secondMetadata, reindexedMetadata, types, options);
 
 	}
 
@@ -166,11 +169,11 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CopiedDataEntry(aString(), aString()));
-		doNothing().when(services).setCopiedValuesInRecords(record, metadata, recordProvider, reindexedMetadata);
+		doNothing().when(services).setCopiedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, options);
 
-		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes());
+		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), options);
 
-		verify(services).setCopiedValuesInRecords(record, metadata, recordProvider, reindexedMetadata);
+		verify(services).setCopiedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, options);
 
 	}
 
@@ -180,11 +183,12 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CalculatedDataEntry(mock(MetadataValueCalculator.class)));
 		doNothing().when(services).setCalculatedValuesInRecords(eq(record), eq(metadata), eq(recordProvider), eq(
-				reindexedMetadata), any(MetadataSchemaTypes.class));
+				reindexedMetadata), any(MetadataSchemaTypes.class), eq(options));
 
-		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes());
+		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), options);
 
-		verify(services).setCalculatedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, schemas.getTypes());
+		verify(services)
+				.setCalculatedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, schemas.getTypes(), options);
 
 	}
 
@@ -193,14 +197,14 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 
 		doNothing().when(services).copyValueInRecord(any(RecordImpl.class), any(Metadata.class), eq(recordProvider),
-				any(Metadata.class), any(Metadata.class));
+				any(Metadata.class), any(Metadata.class), any(RecordUpdateOptions.class));
 		record.set(zeSchema.firstReferenceToAnotherSchema(), "aNewId");
 
 		services.setCopiedValuesInRecords(record, zeSchema.stringCopiedFromFirstReferenceStringMeta(), recordProvider,
-				reindexedMetadata);
+				reindexedMetadata, options);
 
 		verify(services).copyValueInRecord(any(RecordImpl.class), any(Metadata.class), eq(recordProvider), any(Metadata.class),
-				any(Metadata.class));
+				any(Metadata.class), any(RecordUpdateOptions.class));
 	}
 
 	@Test
@@ -208,13 +212,13 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 
 		doNothing().when(services).copyValueInRecord(any(RecordImpl.class), any(Metadata.class), eq(recordProvider),
-				any(Metadata.class), any(Metadata.class));
+				any(Metadata.class), any(Metadata.class), any(RecordUpdateOptions.class));
 
 		services.setCopiedValuesInRecords(record, zeSchema.stringCopiedFromFirstReferenceStringMeta(), recordProvider,
-				reindexedMetadata);
+				reindexedMetadata, options);
 
 		verify(services, never()).copyValueInRecord(any(RecordImpl.class), any(Metadata.class), eq(recordProvider),
-				any(Metadata.class), any(Metadata.class));
+				any(Metadata.class), any(Metadata.class), any(RecordUpdateOptions.class));
 	}
 
 	@Test
@@ -222,13 +226,14 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 
 		doNothing().when(services).copyValueInRecord(any(RecordImpl.class), any(Metadata.class), eq(recordProvider),
-				any(Metadata.class), any(Metadata.class));
+				any(Metadata.class), any(Metadata.class), any(RecordUpdateOptions.class));
 
 		services.setCopiedValuesInRecords(record, zeSchema.stringCopiedFromFirstReferenceStringMeta(), recordProvider,
-				new TransactionRecordsReindexation(new MetadataList(zeSchema.stringCopiedFromFirstReferenceStringMeta())));
+				new TransactionRecordsReindexation(new MetadataList(zeSchema.stringCopiedFromFirstReferenceStringMeta())),
+				options);
 
 		verify(services).copyValueInRecord(any(RecordImpl.class), any(Metadata.class), eq(recordProvider), any(Metadata.class),
-				any(Metadata.class));
+				any(Metadata.class), any(RecordUpdateOptions.class));
 	}
 
 	@Test
@@ -236,7 +241,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 		when(recordWithReferenceToRecordWithValue.getModifiedValues()).thenReturn(new HashMap<String, Object>());
 
-		services.updateAutomaticMetadatas(recordWithReferenceToRecordWithValue, recordProvider, reindexedMetadata);
+		services.updateAutomaticMetadatas(recordWithReferenceToRecordWithValue, recordProvider, reindexedMetadata, options);
 
 		assertThat(recordWithReferenceToRecordWithValue.getModifiedValues().isEmpty()).isTrue();
 	}
@@ -246,7 +251,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 
 		services.setCopiedValuesInRecords(recordWithReferenceToRecordWithValue,
-				zeSchema.stringCopiedFromFirstReferenceStringMeta(), recordProvider, reindexedMetadata);
+				zeSchema.stringCopiedFromFirstReferenceStringMeta(), recordProvider, reindexedMetadata, options);
 
 		verify(schemasManager.getSchemaTypes(zeCollection)).getMetadata(zeSchema.firstReferenceToAnotherSchemaCompleteCode());
 		verify(schemasManager.getSchemaTypes(zeCollection)).getMetadata(anotherSchema.stringMetadataCompleteCode);
@@ -258,7 +263,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 
 		services.setCopiedValuesInRecords(recordWithReferenceToRecordWithValue,
-				zeSchema.stringCopiedFromFirstReferenceStringMeta(), recordProvider, reindexedMetadata);
+				zeSchema.stringCopiedFromFirstReferenceStringMeta(), recordProvider, reindexedMetadata, options);
 
 		InOrder inOrder = Mockito.inOrder(recordWithReferenceToRecordWithValue,
 				referencedRecordWithAStringAndADateValue);
@@ -276,16 +281,16 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		when(recordWithReferenceToRecordWithValue.getModifiedValues()).thenReturn(mapWithModifiedValue);
 
 		services.setCopiedValuesInRecords(recordWithReferenceToRecordWithValue, metadataWithCopyDataEntry, recordProvider,
-				reindexedMetadata);
+				reindexedMetadata, options);
 
 		verify(services).copyValueInRecord(recordWithReferenceToRecordWithValue, metadataWithCopyDataEntry, recordProvider,
-				referenceMetadata, copiedMetadata);
+				referenceMetadata, copiedMetadata, options);
 	}
 
 	@Test
 	public void givenRecordWithNullReferenceWhenSetAutomaticValuesInRecordsThenSetCopiedValueToNull()
 			throws Exception {
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
 		verify(record).updateAutomaticValue(metadataWithCopyDataEntry, null);
 	}
@@ -294,12 +299,13 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 	public void givenRecordWithReferenceWhenSetAutomaticValuesInRecordsThenCallCopyReferenceValueInRecord()
 			throws Exception {
 		doNothing().when(services).copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata,
-				"value");
+				"value", referenceMetadata, options);
 		record.set(referenceMetadata, "value");
 
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
-		verify(services).copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata, "value");
+		verify(services).copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata, "value"
+				, referenceMetadata, options);
 	}
 
 	@Test
@@ -310,7 +316,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 		record.set(referenceMetadata, null);
 
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
 		verify(record).updateAutomaticValue(metadataWithCopyDataEntry, Collections.emptyList());
 	}
@@ -323,7 +329,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 		record.set(referenceMetadata, new ArrayList<>());
 
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
 		verify(record).updateAutomaticValue(metadataWithCopyDataEntry, Collections.emptyList());
 	}
@@ -336,7 +342,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 		record.set(referenceMetadata, new ArrayList<>());
 
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
 		verify(record).updateAutomaticValue(metadataWithCopyDataEntry, Collections.emptyList());
 	}
@@ -349,7 +355,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		record.set(referenceMetadata,
 				Arrays.asList(idReferencedRecordWithAStringAndADateValue, idReferencedRecordWithAStringAndADateValue));
 
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
 		InOrder inOrder = Mockito.inOrder(recordProvider, record, referencedRecordWithAStringAndADateValue);
 		inOrder.verify(record).getList(referenceMetadata);
@@ -370,7 +376,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		record.set(referenceMetadata,
 				Arrays.asList(idReferencedRecordWithAStringListAndADateListValue, idReferencedRecordWithAnotherStringListValue));
 
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
 		InOrder inOrder = Mockito.inOrder(recordProvider, record, referencedRecordWithAStringListAndADateListValue,
 				referencedRecordWithAnotherStringListValue);
@@ -394,7 +400,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		createOtherSchemaRecordsWithMultivalueMetadata();
 		record.set(referenceMetadata, idReferencedRecordWithAStringListAndADateListValue);
 
-		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+		services.copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 
 		InOrder inOrder = Mockito.inOrder(recordProvider, record, referencedRecordWithAStringListAndADateListValue);
 		inOrder.verify(record, times(2)).get(referenceMetadata);

@@ -25,6 +25,12 @@ public class RecordUpdateOptions {
 
 	private boolean skipUSRMetadatasRequirementValidations = false;
 
+	private boolean catchExtensionsExceptions = false;
+
+	private boolean catchExtensionsValidationsErrors = false;
+
+	private boolean catchBrokenReferenceErrors = false;
+
 	boolean skippingRequiredValuesValidation = false;
 	private boolean skippingReferenceToLogicallyDeletedValidation = false;
 
@@ -50,6 +56,12 @@ public class RecordUpdateOptions {
 		this.unicityValidationsEnabled = copy.unicityValidationsEnabled;
 
 		this.skipMaskedMetadataValidations = copy.skipMaskedMetadataValidations;
+
+		this.catchExtensionsExceptions = copy.catchExtensionsExceptions;
+
+		this.catchExtensionsValidationsErrors = copy.catchExtensionsValidationsErrors;
+
+		this.catchBrokenReferenceErrors = copy.catchBrokenReferenceErrors;
 
 		this.skipUSRMetadatasRequirementValidations = copy.skipUSRMetadatasRequirementValidations;
 
@@ -174,6 +186,34 @@ public class RecordUpdateOptions {
 	public static RecordUpdateOptions validationExceptionSafeOptions() {
 		return new RecordUpdateOptions().setSkipReferenceValidation(true).setValidationsEnabled(false)
 				.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
-				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true);
+				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true)
+				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
+	}
+
+	public boolean isCatchExtensionsExceptions() {
+		return catchExtensionsExceptions;
+	}
+
+	public RecordUpdateOptions setCatchExtensionsExceptions(boolean catchExtensionsExceptions) {
+		this.catchExtensionsExceptions = catchExtensionsExceptions;
+		return this;
+	}
+
+	public boolean isCatchExtensionsValidationsErrors() {
+		return catchExtensionsValidationsErrors;
+	}
+
+	public RecordUpdateOptions setCatchExtensionsValidationsErrors(boolean catchExtensionsValidationsErrors) {
+		this.catchExtensionsValidationsErrors = catchExtensionsValidationsErrors;
+		return this;
+	}
+
+	public boolean isCatchBrokenReferenceErrors() {
+		return catchBrokenReferenceErrors;
+	}
+
+	public RecordUpdateOptions setCatchBrokenReferenceErrors(boolean catchBrokenReferenceErrors) {
+		this.catchBrokenReferenceErrors = catchBrokenReferenceErrors;
+		return this;
 	}
 }

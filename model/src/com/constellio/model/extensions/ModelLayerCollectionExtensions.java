@@ -1,9 +1,13 @@
 package com.constellio.model.extensions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifiableByParams;
@@ -28,6 +32,8 @@ import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 
 public class ModelLayerCollectionExtensions {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ModelLayerCollectionExtensions.class);
 
 	//------------ Extension points -----------
 
@@ -76,43 +82,87 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callRecordInCreationBeforeSave(
-			RecordInCreationBeforeSaveEvent event) {
+	public void callRecordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInCreationBeforeSave(event);
+			try {
+				extension.recordInCreationBeforeSave(event);
+
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
-	public void callRecordInModificationBeforeSave(
-			RecordInModificationBeforeSaveEvent event) {
+	public void callRecordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInModificationBeforeSave(event);
+			try {
+				extension.recordInModificationBeforeSave(event);
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
 	public void callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
-			RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+			RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event, RecordUpdateOptions options) {
+
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInCreationBeforeValidationAndAutomaticValuesCalculation(event);
+			try {
+				extension.recordInCreationBeforeValidationAndAutomaticValuesCalculation(event);
+
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
+
+	}
+
+	public static void handleException(RuntimeException e, String recordId, String extensionClassname,
+			RecordUpdateOptions options) {
+		//if (e instanceof ValidationRuntimeException) {
+		//	if (options.isCatchExtensionsValidationsErrors()) {
+		//		LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+		//			} else {
+		//		throw e;
+		//		}
+		//} else {
+		if (options.isCatchExtensionsExceptions()) {
+			LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+		} else {
+			throw e;
+		}
+		//}
 	}
 
 	public void callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
-			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInModificationBeforeValidationAndAutomaticValuesCalculation(event);
+			try {
+				extension.recordInModificationBeforeValidationAndAutomaticValuesCalculation(event);
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
-	public void callRecordCreated(RecordCreationEvent event) {
+	public void callRecordCreated(RecordCreationEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordCreated(event);
+			try {
+				extension.recordCreated(event);
+
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
-	public void callRecordModified(RecordModificationEvent event) {
+	public void callRecordModified(RecordModificationEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordModified(event);
+			try {
+				extension.recordModified(event);
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
