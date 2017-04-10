@@ -61,6 +61,8 @@ public class RecordUpdateOptions {
 
 		this.catchExtensionsValidationsErrors = copy.catchExtensionsValidationsErrors;
 
+		this.catchBrokenReferenceErrors = copy.catchBrokenReferenceErrors;
+
 		this.skipUSRMetadatasRequirementValidations = copy.skipUSRMetadatasRequirementValidations;
 
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
@@ -185,7 +187,7 @@ public class RecordUpdateOptions {
 		return new RecordUpdateOptions().setSkipReferenceValidation(true).setValidationsEnabled(false)
 				.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
 				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true)
-				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true);
+				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
 	}
 
 	public boolean isCatchExtensionsExceptions() {
