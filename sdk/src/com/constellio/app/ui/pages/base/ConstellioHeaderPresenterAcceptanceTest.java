@@ -1,30 +1,23 @@
-package com.constellio.app.ui.pages.search;
+package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.base.UIContext;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -35,29 +28,25 @@ import java.util.Locale;
 
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Constelio on 2016-11-04.
  */
-public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
+public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 
     Users users = new Users();
     @Mock
-    AdvancedSearchView advancedSearchView;
+    ConstellioHeaderImpl header;
     @Mock
     CoreViews navigator;
     RMTestRecords rmRecords = new RMTestRecords(zeCollection);
     RMSchemasRecordsServices schemasRecordsServices;
-    AdvancedSearchPresenter presenter;
+    @Mock ConstellioHeaderPresenter presenter;
     SessionContext sessionContext;
-    @Mock
-    UIContext uiContext;
     RecordServices recordServices;
-    LocalDateTime now = new LocalDateTime();
-    LocalDateTime shishOClock = new LocalDateTime().plusDays(1);
 
     MetadataSchemasManager metadataSchemasManager;
     SearchServices searchServices;
@@ -81,37 +70,18 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
         sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
         sessionContext.setCurrentLocale(Locale.FRENCH);
 
-        when(advancedSearchView.getSessionContext()).thenReturn(sessionContext);
-        when(advancedSearchView.getCollection()).thenReturn(zeCollection);
-        when(advancedSearchView.getConstellioFactories()).thenReturn(getConstellioFactories());
-        when(advancedSearchView.getUIContext()).thenReturn(uiContext);
+        when(header.getSessionContext()).thenReturn(sessionContext);
+        when(header.getCollection()).thenReturn(zeCollection);
+        when(header.getConstellioFactories()).thenReturn(getConstellioFactories());
 
-        presenter = new AdvancedSearchPresenter(advancedSearchView);
-    }
-
-    @Test
-    public void givenViewIsEnteredThenAddToCartButtonOnlyShowsWhenUserHasPermission() {
-        String roleCode = users.aliceIn(zeCollection).getUserRoles().get(0);
-        RolesManager rolesManager = getAppLayerFactory().getModelLayerFactory().getRolesManager();
-
-        Role role = rolesManager.getRole(zeCollection, roleCode);
-        Role editedRole = role.withPermissions(new ArrayList<String>());
-        rolesManager.updateRole(editedRole);
-
-        connectWithAlice();
-        assertThat(presenter.hasCurrentUserPermissionToUseCart()).isFalse();
-
-        Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_CART));
-        rolesManager.updateRole(editedRole2);
-
-        connectWithAlice();
-        assertThat(presenter.hasCurrentUserPermissionToUseCart()).isTrue();
+        presenter = spy(new ConstellioHeaderPresenter(header));
+        doNothing().when(presenter).sort(anyList());
     }
 
     @Test
     public void givenAdvanceSearchThenMetadataChoiceIsLimitedByUsedSchemas() throws RecordServicesException {
         connectWithAdmin();
-        List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+        List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
 
         getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
             @Override
@@ -125,43 +95,35 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
         metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
                 .withVisibleInAdvancedSearchStatus(true));
 
-        assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE));
+        assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
         recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
         recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true).set(AUTHORIZATIONS, new ArrayList<>()));
 
-        List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+        List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
         newMetadatas.removeAll(baseMetadatas);
         assertThat(newMetadatas.size()).isEqualTo(1);
         assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_customSchema_newSearchableMetadata");
 
         connectWithBob();
-        assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE));
-    }
-
-    private void connectWithAlice() {
-        sessionContext = FakeSessionContext.adminInCollection(zeCollection);
-        sessionContext.setCurrentLocale(Locale.FRENCH);
-        when(advancedSearchView.getSessionContext()).thenReturn(sessionContext);
-        presenter = new AdvancedSearchPresenter(advancedSearchView);
+        assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
     }
 
     private void connectWithAdmin() {
         sessionContext = FakeSessionContext.adminInCollection(zeCollection);
         sessionContext.setCurrentLocale(Locale.FRENCH);
-        when(advancedSearchView.getSessionContext()).thenReturn(sessionContext);
-        presenter = new AdvancedSearchPresenter(advancedSearchView);
+        when(header.getSessionContext()).thenReturn(sessionContext);
+        presenter = spy(new ConstellioHeaderPresenter(header));
+        presenter.schemaTypeSelected(Folder.SCHEMA_TYPE);
+        doNothing().when(presenter).sort(anyList());
     }
 
     private void connectWithBob() {
         sessionContext = FakeSessionContext.bobInCollection(zeCollection);
         sessionContext.setCurrentLocale(Locale.FRENCH);
-        when(advancedSearchView.getSessionContext()).thenReturn(sessionContext);
-        presenter = new AdvancedSearchPresenter(advancedSearchView);
-    }
-
-    //
-    private MetadataSchemaTypes getSchemaTypes() {
-        return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+        when(header.getSessionContext()).thenReturn(sessionContext);
+        presenter = spy(new ConstellioHeaderPresenter(header));
+        presenter.schemaTypeSelected(Folder.SCHEMA_TYPE);
+        doNothing().when(presenter).sort(anyList());
     }
 
     private Folder newFolder(String title) {
