@@ -47,11 +47,11 @@ public class RecordDisplay extends BaseDisplay {
 				Label captionLabel = new Label(caption);
 
 				String captionId = STYLE_CAPTION + "-" + metadata.getCode();
-				captionLabel.setId(captionId);
+				//captionLabel.setId(captionId);
 				captionLabel.addStyleName(captionId);
 
 				String valueId = STYLE_VALUE + "-" + metadata.getCode();
-				displayComponent.setId(valueId);
+				//displayComponent.setId(valueId);
 				displayComponent.addStyleName(valueId);
 
 				captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent));

@@ -77,7 +77,7 @@ public class MetadataFieldFactory implements Serializable {
 		boolean required = metadata.isRequired();
 		String caption = metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 
-		field.setId(metadata.getCode());
+//		field.setId(metadata.getCode());
 		field.setCaption(caption);
 		field.setRequired(required);
 		field.setReadOnly(readOnly);

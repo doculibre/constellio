@@ -157,7 +157,10 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		popupView = newPopupView(advancedSearchForm);
 
 		MenuBar collectionMenu = buildCollectionMenu();
+		collectionMenu.setId("collectionMenu");
+		
 		MenuBar actionMenu = buildActionMenu();
+		actionMenu.setId("actionMenu");
 		
 		selectionButton = buildSelectionButton();
 		setSelectionButtonIcon();
@@ -715,7 +718,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 			menuItem.setVisible(state.isVisible());
 			menuItem.setEnabled(state.isEnabled());
-			menuItem.setStyleName(item.getCode());
+			menuItem.setStyleName("ConstellioHeader-" + item.getCode());
 		}
 		return headerMenu;
 	}

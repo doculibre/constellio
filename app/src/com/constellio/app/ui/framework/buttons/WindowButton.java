@@ -65,7 +65,7 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	public void buttonClick(ClickEvent event) {
 		if (window == null || !UI.getCurrent().getWindows().contains(window)) {
 			window = new BaseWindow(getWindowCaption());
-			window.setId(WINDOW_STYLE_NAME);
+	//		window.setId(WINDOW_STYLE_NAME);
 			window.addStyleName(WINDOW_STYLE_NAME);
 			window.setModal(configuration.isModal());
 			window.setResizable(configuration.isResizable());
