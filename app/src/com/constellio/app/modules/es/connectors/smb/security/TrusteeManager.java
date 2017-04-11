@@ -26,7 +26,7 @@ import org.xml.sax.SAXException;
 
 public class TrusteeManager {
 
-	private static final String TRUSTEE_FOLDER = "trustee_const";
+	private static final String TRUSTEE_FOLDER = "._NETWARE";
 
 	private static final String TRUSTEE_ELEMENT = "trustee";
 	private static final String INHERITED_RIGHTS_MASKS_ELEMENT = "inherited_rights_mask";

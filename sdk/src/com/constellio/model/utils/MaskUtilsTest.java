@@ -1,7 +1,6 @@
 package com.constellio.model.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 
@@ -10,6 +9,13 @@ public class MaskUtilsTest {
 	@Test
 	public void whenValidatingValidValueThenTrue()
 			throws Exception {
+
+		assertThat(MaskUtils.isValid("***-***-**A9", "123-666-42A2")).isTrue();
+		assertThat(MaskUtils.isValid("***-***-**A9", "123-666-42B2")).isTrue();
+		assertThat(MaskUtils.isValid("***-***-**A9", "123-666-4242")).isFalse();
+		assertThat(MaskUtils.isValid("***-***-**A9", "A23-666-42A2")).isTrue();
+		assertThat(MaskUtils.isValid("***-***-**A9", "A23-666-42B2")).isTrue();
+		assertThat(MaskUtils.isValid("***-***-**A9", "A23-666-42CC")).isFalse();
 
 		assertThat(MaskUtils.isValid("999-999-9999", "123-666-4242")).isTrue();
 		assertThat(MaskUtils.isValid("999-999-9999", "123-666-424")).isFalse();
@@ -52,7 +58,8 @@ public class MaskUtilsTest {
 	}
 
 	@Test
-	public void whenStrictFormatValidValueThenTrue() throws MaskUtilsException {
+	public void whenStrictFormatValidValueThenTrue()
+			throws MaskUtilsException {
 		assertThat(MaskUtils.strictFormat("999-999-9999", "1236664242")).isEqualTo("123-666-4242");
 		assertThat(MaskUtils.strictFormat("(999) 999-9999", "1236664242")).isEqualTo("(123) 666-4242");
 		assertThat(MaskUtils.strictFormat("(AAA) 999-9999", "BCD6664240")).isEqualTo("(BCD) 666-4240");
@@ -60,8 +67,9 @@ public class MaskUtilsTest {
 	}
 
 	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
-	public void whenStrictFormatInvalidValueThenException() throws MaskUtilsException {
-			assertThat(MaskUtils.strictFormat("999-999-9999", "1"));
+	public void whenStrictFormatInvalidValueThenException()
+			throws MaskUtilsException {
+		assertThat(MaskUtils.strictFormat("999-999-9999", "1"));
 	}
 
 	@Test
@@ -71,8 +79,6 @@ public class MaskUtilsTest {
 		assertThat(MaskUtils.format("99999", "1")).isEqualTo("00001");
 		assertThat(MaskUtils.format("99999", "42")).isEqualTo("00042");
 	}
-
-
 
 	@Test
 	public void whenNoMaskThenValid()

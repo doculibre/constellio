@@ -38,6 +38,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -360,10 +361,14 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	public void selectionChanged(String recordId, Boolean selected) {
 //		refreshSelectionPanel = true;
 		SessionContext sessionContext = header.getSessionContext();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		Record record = searchServices.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())
-				.where(Schemas.IDENTIFIER).isEqualTo(recordId));
-		String schemaTypeCode = record == null? null:record.getTypeCode();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		Record record;
+		try {
+			record = recordServices.getDocumentById(recordId);
+		} catch (NoSuchRecordWithId e) {
+			record = null;
+		}
+		String schemaTypeCode = record == null? null : record.getTypeCode();
 		if (selected) {
 			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
 			unselectedRecordsWithSchema.remove(recordId);
@@ -389,14 +394,21 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		List<String> selectedRecordIds = new ArrayList<>(header.getSessionContext().getSelectedRecordIds());
 		Map<String, Long> selectedRecordSchemaTypeCodes = new HashMap<>(header.getSessionContext().getSelectedRecordSchemaTypeCodes());
 		Set<Map.Entry<String, String>> entries = unselectedRecordsWithSchema.entrySet();
-		for(Map.Entry<String, String> entry: entries) {
-			selectedRecordIds.remove(entry.getKey());
-			if (selectedRecordSchemaTypeCodes.containsKey(entry.getValue())) {
-				if (selectedRecordSchemaTypeCodes.get(entry.getValue()) == 1L) {
-					selectedRecordSchemaTypeCodes.remove(entry.getValue());
-				} else {
-					selectedRecordSchemaTypeCodes.put(entry.getValue(), selectedRecordSchemaTypeCodes.get(entry.getValue()) - 1);
+		for (Iterator<Map.Entry<String, String>> it = entries.iterator(); it.hasNext();) {
+			Map.Entry<String, String> entry = it.next();
+			String recordId = entry.getKey();
+			String schemaCode = entry.getValue();
+			if (selectedRecordIds.contains(recordId)) {
+				selectedRecordIds.remove(recordId);
+				if (selectedRecordSchemaTypeCodes.containsKey(schemaCode)) {
+					if (selectedRecordSchemaTypeCodes.get(schemaCode) == 1L) {
+						selectedRecordSchemaTypeCodes.remove(schemaCode);
+					} else {
+						selectedRecordSchemaTypeCodes.put(entry.getValue(), selectedRecordSchemaTypeCodes.get(schemaCode) - 1);
+					}
 				}
+			} else {
+				it.remove();
 			}
 		}
 

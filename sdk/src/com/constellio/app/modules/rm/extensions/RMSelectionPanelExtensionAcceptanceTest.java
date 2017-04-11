@@ -107,12 +107,12 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
                 tuple("Aigle - Document numérique avec le même exemplaire"),
                 tuple("Abeille (Copie)"), tuple("Abeille - Livre de recettes"), tuple("Aigle - Petit guide"),
                 tuple("Aigle - Document procès verbal numérique avec un autre exemplaire"),
-                tuple("Poire.odt"), tuple("Abeille - Typologie"), tuple("Aigle - Histoire"), tuple("Abeille - Histoire"),
+                tuple("Poire.odt (Copie)"), tuple("Abeille - Typologie"), tuple("Aigle - Histoire"), tuple("Abeille - Histoire"),
                 tuple("Aigle - Document contrat numérique avec un autre exemplaire"),
                 tuple("Abeille - Document analogique avec le même exemplaire"),
                 tuple("Abeille - Document numérique avec le même exemplaire"),
                 tuple("Aigle - Document analogique avec le même exemplaire"),
-                tuple("Abeille - Document procès verbal numérique avec un autre exemplaire"), tuple("Lynx.odt"),
+                tuple("Abeille - Document procès verbal numérique avec un autre exemplaire"), tuple("Lynx.odt (Copie)"),
                 tuple("Aigle - Livre de recettes"), tuple("Abeille - Document contrat analogique avec un autre exemplaire"),
                 tuple("Aigle - Typologie"));
     }

@@ -184,7 +184,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(dataEntry.getType()).isEqualTo(DataEntryType.COPIED);
 		CopiedDataEntry copiedDataEntry = (CopiedDataEntry) dataEntry;
 
-		assertThat(copiedDataEntry.getCopiedMetadata()).isEqualTo("folder_default_title");
+		assertThat(copiedDataEntry.getCopiedMetadata()).isEqualTo("category_default_title");
 		assertThat(copiedDataEntry.getReferenceMetadata()).isEqualTo("folder_default_category");
 
 		//newWebDriver();

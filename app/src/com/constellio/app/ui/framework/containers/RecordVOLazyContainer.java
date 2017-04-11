@@ -53,6 +53,10 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		}
 	}
 
+	public List<RecordVODataProvider> getDataProviders() {
+		return dataProviders;
+	}
+
 	private static boolean isOnlyTableMetadatasShown() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(

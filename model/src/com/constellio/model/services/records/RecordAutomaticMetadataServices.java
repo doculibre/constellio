@@ -29,6 +29,7 @@ import com.constellio.model.entities.calculators.dependencies.ReferenceDependenc
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -73,45 +74,45 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation) {
+			TransactionRecordsReindexation reindexation, RecordUpdateOptions options) {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types);
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, options);
 		}
 
 	}
 
-	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider) {
+	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, RecordUpdateOptions options) {
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getEagerTransientMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types);
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, options);
 		}
 
 	}
 
-	public void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider) {
+	public void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider, RecordUpdateOptions options) {
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getLazyTransientMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types);
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, options);
 		}
 
 	}
 
 	void updateAutomaticMetadata(RecordImpl record, RecordProvider recordProvider, Metadata metadata,
-			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, RecordUpdateOptions options) {
 		if (metadata.isMarkedForDeletion()) {
 			record.updateAutomaticValue(metadata, null);
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
-			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation);
+			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation, options);
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
-			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types, options);
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 			//We don't want to calculate this metadata during record imports
@@ -155,7 +156,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void setCopiedValuesInRecords(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation) {
+			TransactionRecordsReindexation reindexation, RecordUpdateOptions options) {
 
 		CopiedDataEntry copiedDataEntry = (CopiedDataEntry) metadataWithCopyDataEntry.getDataEntry();
 		Metadata referenceMetadata = schemasManager.getSchemaTypes(record.getCollection())
@@ -169,7 +170,7 @@ public class RecordAutomaticMetadataServices {
 			Metadata copiedMetadata = schemasManager.getSchemaTypes(record.getCollection())
 					.getMetadata(copiedDataEntry.getCopiedMetadata());
 
-			copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
+			copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 		}
 	}
 
@@ -206,11 +207,11 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void calculateValueInRecord(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
-			MetadataSchemaTypes types) {
+			MetadataSchemaTypes types, RecordUpdateOptions options) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		Map<Dependency, Object> values = new HashMap<>();
 		boolean requiredValuesDefined = addValuesFromDependencies(record, metadataWithCalculatedDataEntry, recordProvider,
-				calculator, values, types);
+				calculator, values, types, options);
 
 		Object calculatedValue;
 		if (requiredValuesDefined) {
@@ -231,7 +232,7 @@ public class RecordAutomaticMetadataServices {
 
 	boolean addValuesFromDependencies(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
 			MetadataValueCalculator<?> calculator,
-			Map<Dependency, Object> values, MetadataSchemaTypes types) {
+			Map<Dependency, Object> values, MetadataSchemaTypes types, RecordUpdateOptions options) {
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (dependency instanceof LocalDependency<?>) {
 				if (!addValueForLocalDependency(record, values, dependency)) {
@@ -239,13 +240,13 @@ public class RecordAutomaticMetadataServices {
 				}
 
 			} else if (dependency instanceof ReferenceDependency<?>) {
-				if (!addValueForReferenceDependency(record, recordProvider, values, dependency)) {
+				if (!addValueForReferenceDependency(record, recordProvider, values, dependency, options)) {
 					return false;
 				}
 
 			} else if (dependency instanceof DynamicLocalDependency) {
 				addValueForDynamicLocalDependency(record, metadata, values, (DynamicLocalDependency) dependency, types,
-						recordProvider);
+						recordProvider, options);
 
 			} else if (dependency instanceof ConfigDependency<?>) {
 				ConfigDependency<?> configDependency = (ConfigDependency<?>) dependency;
@@ -261,7 +262,7 @@ public class RecordAutomaticMetadataServices {
 
 	private void addValueForDynamicLocalDependency(RecordImpl record, Metadata calculatedMetadata,
 			Map<Dependency, Object> values, DynamicLocalDependency dependency, MetadataSchemaTypes types,
-			RecordProvider recordProvider) {
+			RecordProvider recordProvider, RecordUpdateOptions options) {
 
 		Map<String, Object> dynamicDependencyValues = new HashMap<>();
 
@@ -271,7 +272,7 @@ public class RecordAutomaticMetadataServices {
 
 			if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
 					&& record.getLazyTransientValues().isEmpty()) {
-				loadTransientLazyMetadatas(record, recordProvider);
+				loadTransientLazyMetadatas(record, recordProvider, options);
 			}
 
 			if (new SchemaUtils().isDependentMetadata(calculatedMetadata, metadata, dependency)) {
@@ -313,14 +314,14 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	boolean addValueForReferenceDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			Dependency dependency) {
+			Dependency dependency, RecordUpdateOptions options) {
 		ReferenceDependency<?> referenceDependency = (ReferenceDependency<?>) dependency;
 		Metadata referenceMetadata = getMetadataFromDependency(record, referenceDependency);
 
 		if (!referenceMetadata.isMultivalue()) {
-			return addSingleValueReference(record, recordProvider, values, referenceDependency, referenceMetadata);
+			return addSingleValueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options);
 		} else {
-			return addMultivalueReference(record, recordProvider, values, referenceDependency, referenceMetadata);
+			return addMultivalueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options);
 		}
 	}
 
@@ -377,12 +378,22 @@ public class RecordAutomaticMetadataServices {
 
 	@SuppressWarnings("unchecked")
 	private boolean addMultivalueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			ReferenceDependency<?> referenceDependency, Metadata referenceMetadata) {
+			ReferenceDependency<?> referenceDependency, Metadata referenceMetadata, RecordUpdateOptions options) {
 		List<String> referencesValues = record.<String>getList(referenceMetadata);
 		List<Record> referencedRecords = new ArrayList<>();
 		for (String referenceValue : referencesValues) {
 			if (referenceValue != null) {
-				referencedRecords.add(recordProvider.getRecord(referenceValue));
+				try {
+					referencedRecords.add(recordProvider.getRecord(referenceValue));
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					RuntimeException brokenReferenceException = new RecordServicesRuntimeException.BrokenReference(
+							record.getId(), referenceValue, referenceMetadata, e);
+					if (options.isCatchBrokenReferenceErrors()) {
+						LOGGER.warn("Broken reference while calculating automatic metadata", brokenReferenceException);
+					} else {
+						throw brokenReferenceException;
+					}
+				}
 			}
 		}
 		List<Object> referencedValues = new ArrayList<>();
@@ -414,13 +425,24 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	private boolean addSingleValueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			ReferenceDependency<?> dependency, Metadata referenceMetadata) {
+			ReferenceDependency<?> dependency, Metadata referenceMetadata, RecordUpdateOptions options) {
 		String referenceValue = (String) record.get(referenceMetadata);
 		Record referencedRecord;
 		if (dependency.isRequired() && referenceValue == null) {
 			return false;
 		} else {
-			referencedRecord = referenceValue == null ? null : recordProvider.getRecord(referenceValue);
+			try {
+				referencedRecord = referenceValue == null ? null : recordProvider.getRecord(referenceValue);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				RuntimeException brokenReferenceException = new RecordServicesRuntimeException.BrokenReference(
+						record.getId(), referenceValue, referenceMetadata, e);
+				if (options.isCatchBrokenReferenceErrors()) {
+					LOGGER.warn("Broken reference while calculating automatic metadata", brokenReferenceException);
+					referencedRecord = null;
+				} else {
+					throw brokenReferenceException;
+				}
+			}
 		}
 
 		Object dependencyValue;
@@ -463,7 +485,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void copyValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			Metadata referenceMetadata, Metadata copiedMetadata) {
+			Metadata referenceMetadata, Metadata copiedMetadata, RecordUpdateOptions options) {
 
 		if (referenceMetadata.isMultivalue()) {
 			List<String> referencedRecordIds = record.getList(referenceMetadata);
@@ -471,45 +493,63 @@ public class RecordAutomaticMetadataServices {
 				record.updateAutomaticValue(metadataWithCopyDataEntry, Collections.emptyList());
 			} else {
 				copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata,
-						referencedRecordIds);
+						referencedRecordIds, referenceMetadata, options);
 			}
 		} else {
 			String referencedRecordId = record.get(referenceMetadata);
 			if (referencedRecordId == null) {
 				record.updateAutomaticValue(metadataWithCopyDataEntry, null);
 			} else {
-				copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata, referencedRecordId);
+				copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata, referencedRecordId,
+						referenceMetadata, options);
 			}
 		}
 
 	}
 
 	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			Metadata copiedMetadata, String referencedRecordId) {
-		Record referencedRecord = recordProvider.getRecord(referencedRecordId);
-		Object copiedValue = referencedRecord.get(copiedMetadata);
+			Metadata copiedMetadata, String referencedRecordId, Metadata referenceMetadata, RecordUpdateOptions options) {
+		Object copiedValue;
+		try {
+			Record referencedRecord = recordProvider.getRecord(referencedRecordId);
+			copiedValue = referencedRecord.get(copiedMetadata);
+
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			RuntimeException brokenReferenceException = new RecordServicesRuntimeException.BrokenReference(
+					record.getId(), referencedRecordId, referenceMetadata, e);
+			if (options.isCatchBrokenReferenceErrors()) {
+				LOGGER.warn("Broken reference while calculating automatic metadata", brokenReferenceException);
+				copiedValue = null;
+			} else {
+				throw brokenReferenceException;
+			}
+		}
 		record.updateAutomaticValue(metadataWithCopyDataEntry, copiedValue);
 	}
 
 	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			Metadata copiedMetadata, List<String> referencedRecordIds) {
+			Metadata copiedMetadata, List<String> referencedRecordIds, Metadata referenceMetadata, RecordUpdateOptions options) {
 		List<Object> values = new ArrayList<>();
 		for (String referencedRecordId : referencedRecordIds) {
 			if (referencedRecordId != null) {
-				RecordImpl referencedRecord = (RecordImpl) recordProvider.getRecord(referencedRecordId);
+				try {
+					RecordImpl referencedRecord = (RecordImpl) recordProvider.getRecord(referencedRecordId);
 
-				//TODO
-				//				if (copiedMetadata.getTransiency() == MetadataVolatility.TRANSIENT_LAZY
-				//						&& referencedRecord.getLazyTransientValues().isEmpty()) {
-				//					loadTransientLazyMetadatas(referencedRecord, recordProvider);
-				//				}
-
-				if (copiedMetadata.isMultivalue()) {
-					values.addAll(referencedRecord.getList(copiedMetadata));
-				} else {
-					Object value = referencedRecord.get(copiedMetadata);
-					if (value != null) {
-						values.add(value);
+					if (copiedMetadata.isMultivalue()) {
+						values.addAll(referencedRecord.getList(copiedMetadata));
+					} else {
+						Object value = referencedRecord.get(copiedMetadata);
+						if (value != null) {
+							values.add(value);
+						}
+					}
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					RuntimeException brokenReferenceException = new RecordServicesRuntimeException.BrokenReference(
+							record.getId(), referencedRecordId, referenceMetadata, e);
+					if (options.isCatchBrokenReferenceErrors()) {
+						LOGGER.warn("Broken reference while calculating automatic metadata", brokenReferenceException);
+					} else {
+						throw brokenReferenceException;
 					}
 				}
 			}
@@ -555,7 +595,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void setCalculatedValuesInRecords(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, RecordUpdateOptions options) {
 
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 
@@ -565,7 +605,7 @@ public class RecordAutomaticMetadataServices {
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
 				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)
 				|| lazyTransientMetadataToLoad) {
-			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider, types);
+			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider, types, options);
 		}
 	}
 

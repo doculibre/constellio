@@ -531,7 +531,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		table.setContainerDataSource(nestedContainer);
 		
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(folderContentComponent, new RecordVOSelectionTableAdapter(table) {
+		RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
@@ -546,8 +546,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				presenter.recordSelectionChanged(recordVO, selected);
 				adjustSelectAllButton(selected);
 			}
-		});
-		folderContentComponent = table;
+		};
+		tabSheet.replaceComponent(folderContentComponent, tableAdapter);
+		folderContentComponent = tableAdapter;
 	}
 
 	@Override

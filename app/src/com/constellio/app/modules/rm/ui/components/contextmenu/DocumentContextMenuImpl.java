@@ -31,6 +31,7 @@ import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 
@@ -54,7 +55,6 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
-	private View parentView;
 
 	protected DocumentContextMenuPresenter presenter;
 
@@ -302,13 +302,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	public void postClose() {
-		if(parentView instanceof HomeViewImpl) {
-			navigateTo().home("checkedOutDocuments");
-		}
-	}
-
-	public void setParentView(View view) {
-		parentView = view;
+		refreshParent();
 	}
 
 	@Override
@@ -397,6 +391,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void open(Component component) {
+		super.open(component);
+	}
+
+	@Override
 	public void open(int x, int y) {
 		if (visible) {
 			super.open(x, y);
@@ -417,4 +416,13 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, "_top");
 	}
+
+	@Override
+	public void refreshParent() {
+		View parentView = ConstellioUI.getCurrent().getCurrentView();
+		if (parentView instanceof HomeViewImpl) {
+			navigateTo().home("checkedOutDocuments");
+		}
+	}
+	
 }
