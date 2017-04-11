@@ -358,6 +358,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				documentVO.setContent(currentVersionVO);
 
 				updateActionsComponent();
+				actionsComponent.refreshParent();
 				actionsComponent.showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));

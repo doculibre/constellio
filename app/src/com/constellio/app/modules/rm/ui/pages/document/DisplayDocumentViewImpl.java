@@ -727,6 +727,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return documentVO;
 	}
 
+	@Override
+	public void refreshParent() {
+		// No parent
+	}
+
 	private class StartWorkflowButton extends WindowButton {
 		public StartWorkflowButton() {
 			super($("TasksManagementView.startWorkflow"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));

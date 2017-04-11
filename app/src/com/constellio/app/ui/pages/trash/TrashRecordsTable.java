@@ -10,12 +10,14 @@ import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
-import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Property;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
@@ -27,16 +29,22 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class TrashRecordsTable extends RecordVOTable {
+	
 	private static final Resource RELATED_RESOURCE = new ThemeResource("images/commun/warning.png");
 	private final TrashPresenter presenter;
 	private final RecordVODataProvider dataProvider;
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public TrashRecordsTable(RecordVODataProvider dataProvider, final TrashPresenter presenter) {
-		super("", new ButtonsContainer(new RecordVOLazyContainer(dataProvider), "buttons"));
+		super("");
 		this.presenter = presenter;
-		this.dataProvider = presenter.getTrashRecords();
+		this.dataProvider = dataProvider;
 
-		ButtonsContainer withButtons = (ButtonsContainer) getContainerDataSource();
+		setColumnCollapsingAllowed(true);
+		setContextMenuPossible(false);
+		setContainerDataSource(new ButtonsContainer(new RecordVOLazyContainer(dataProvider), "buttons"));
+
+		ButtonsContainer<?> withButtons = (ButtonsContainer<?>) getContainerDataSource();
 		withButtons.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -101,7 +109,18 @@ public class TrashRecordsTable extends RecordVOTable {
 		setColumnHeader("checkbox", "");
 		setColumnHeader("buttons", "");
 		setCellStyleGenerator(new TrashStyleGenerator());
+	}
 
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		return new RecordVOTableColumnsManager() {
+			@Override
+			public void manage(Table table, String tableId) {
+				super.manage(table, tableId);
+				setColumnCollapsed(Schemas.MODIFIED_ON.getLocalCode(), true);
+				setColumnCollapsed(Schemas.LOGICALLY_DELETED_ON.getLocalCode(), false);
+			}
+		};
 	}
 
 	public class TrashStyleGenerator implements CellStyleGenerator {
