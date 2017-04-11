@@ -55,4 +55,6 @@ public interface DocumentActionsComponent extends Serializable {
 	void setBorrowedMessage(String borrowedMessageKey, String... args);
 
 	void openAgentURL(String agentURL);
+	
+	void refreshParent();
 }

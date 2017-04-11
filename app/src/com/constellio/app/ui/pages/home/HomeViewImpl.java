@@ -15,7 +15,6 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
-import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -171,9 +170,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
-		if ((DocumentContextMenuImpl) table.getContextMenu() != null) {
-			((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
-		}
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
