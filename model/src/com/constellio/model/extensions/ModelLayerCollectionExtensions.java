@@ -75,10 +75,19 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callTransactionExecutionBeforeSave(
-			TransactionExecutionBeforeSaveEvent event) {
+	public void callTransactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.transactionExecutionBeforeSave(event);
+			try {
+				extension.transactionExecutionBeforeSave(event);
+
+			} catch (RuntimeException e) {
+				if (options.isCatchExtensionsExceptions()) {
+					LOGGER.warn("Exception while calling extension of class '" + extension.getClass().getName()
+							+ "' on transaction ", e);
+				} else {
+					throw e;
+				}
+			}
 		}
 	}
 

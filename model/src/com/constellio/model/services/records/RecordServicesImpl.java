@@ -512,9 +512,17 @@ public class RecordServicesImpl extends BaseRecordServices {
 		ValidationErrors errors = new ValidationErrors();
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
 
-		extensions.callTransactionExecutionBeforeSave(new TransactionExecutionBeforeSaveEvent(transaction, errors));
-
 		boolean catchValidationsErrors = transaction.getRecordUpdateOptions().isCatchExtensionsValidationsErrors();
+
+		ValidationErrors transactionExtensionErrors =
+				catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
+
+		extensions.callTransactionExecutionBeforeSave(
+				new TransactionExecutionBeforeSaveEvent(transaction, transactionExtensionErrors), options);
+		if (catchValidationsErrors && !transactionExtensionErrors.isEmptyErrorAndWarnings()) {
+			LOGGER.warn("Validating errors added by extensions : \n" + $(transactionExtensionErrors));
+		}
+
 		for (Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
 				ValidationErrors recordErrors =
