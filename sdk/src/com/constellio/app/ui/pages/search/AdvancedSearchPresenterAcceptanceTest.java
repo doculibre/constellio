@@ -91,7 +91,8 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 
     @Test
     public void givenViewIsEnteredThenAddToCartButtonOnlyShowsWhenUserHasPermission() {
-        String roleCode = users.aliceIn(zeCollection).getUserRoles().get(0);
+        List<String> userRoles = users.aliceIn(zeCollection).getUserRoles();
+        String roleCode = userRoles.get(0);
         RolesManager rolesManager = getAppLayerFactory().getModelLayerFactory().getRolesManager();
 
         Role role = rolesManager.getRole(zeCollection, roleCode);
@@ -139,7 +140,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
     }
 
     private void connectWithAlice() {
-        sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+        sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
         sessionContext.setCurrentLocale(Locale.FRENCH);
         when(advancedSearchView.getSessionContext()).thenReturn(sessionContext);
         presenter = new AdvancedSearchPresenter(advancedSearchView);
