@@ -106,7 +106,8 @@ public class ConstellioFactories {
 				decorator.getStatefullServiceDecorator(), instanceName));
 
 		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactory(dataLayerFactory, foldersLocator,
-				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName));
+				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName,
+				new ModelLayerFactoryFactory()));
 
 		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactory(appLayerConfiguration, modelLayerFactory,
 				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName));
