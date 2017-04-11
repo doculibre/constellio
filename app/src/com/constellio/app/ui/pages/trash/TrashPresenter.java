@@ -54,11 +54,11 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		return selectedRecords.contains(recordVO.getId());
 	}
 
-	public void recordToggled(RecordVO record) {
+	public void recordSelectionChanged(RecordVO record, boolean selected) {
 		String recordId = record.getId();
-		if (selectedRecords.contains(recordId)) {
+		if (!selected && selectedRecords.contains(recordId)) {
 			selectedRecords.remove(recordId);
-		} else {
+		} else if (selected && !selectedRecords.contains(recordId)) {
 			selectedRecords.add(recordId);
 		}
 		view.enableOrDisableActionButtons();
