@@ -25,11 +25,12 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 
 public class TrashViewImpl extends BaseViewImpl implements TrashView {
+	
 	private final TrashPresenter presenter;
 	private ComboBox typeSelectionDropDown;
 	private Label recordsToDeleteMessage;
 	private Button restoreSelectionButton, deleteSelectionButton;
-	private Table logicallyDeletedRecordsTable;
+	private Component logicallyDeletedRecordsTable;
 	private VerticalLayout vLayout;
 
 	public TrashViewImpl() {
@@ -81,7 +82,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	}
 
 	private void rebuildTrashTable() {
-		Table newTable = buildTrashTable();
+		Component newTable = buildTrashTable();
 		vLayout.replaceComponent(this.logicallyDeletedRecordsTable, newTable);
 		this.logicallyDeletedRecordsTable = newTable;
 
@@ -152,7 +153,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 
 	}
 
-	private Table buildTrashTable() {
+	private Component buildTrashTable() {
 		if (StringUtils.isBlank(getSelectedType())) {
 			Table emptyTable = new Table();
 			emptyTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
@@ -160,7 +161,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 			return emptyTable;
 		}
 
-		Table trashRecords = new TrashRecordsTable(presenter.getTrashRecords(), presenter);
+		Component trashRecords = new TrashRecordsTable(presenter.getTrashRecords(), presenter);
 
 		//trashRecords.header
 		return trashRecords;
