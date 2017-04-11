@@ -1,12 +1,20 @@
 package com.constellio.app.ui.pages.home;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu;
+
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
-import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -38,17 +46,14 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	
@@ -165,9 +170,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
-		if ((DocumentContextMenuImpl) table.getContextMenu() != null) {
-			((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
-		}
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
@@ -289,6 +291,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		public void setCompositionRoot(Component compositionRoot) {
 			super.setCompositionRoot(compositionRoot);
 		}
+
+		@Override
+		public Component getCompositionRoot() {
+			return super.getCompositionRoot();
+		}
 	}
 
 	private class RecentTable extends BaseTable {
@@ -398,6 +405,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	@Override
 	public void openURL(String url) {
 		Page.getCurrent().open(url, null);
-	}
+	}	
 
 }

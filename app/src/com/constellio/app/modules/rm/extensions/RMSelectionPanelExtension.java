@@ -405,6 +405,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             for(Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
                             }
+                            String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
+                            newDocument.setTitle(title);
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
                             break;

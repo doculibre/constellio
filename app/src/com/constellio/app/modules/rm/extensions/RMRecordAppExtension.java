@@ -123,6 +123,8 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
 			Folder folder = new Folder(record, types());
 			fileName = getFolderIconPath(folder, params.isExpanded());
+		} else if (schemaTypeCode.equals(UserFolder.SCHEMA_TYPE)) {
+			fileName = getFolderIconPath();
 		} else if (schemaTypeCode.equals(ContainerRecord.SCHEMA_TYPE)) {
 			fileName = getContainerIconPath();
 		}
@@ -135,6 +137,10 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	private String getDocumentIconPath() {
 		return IMAGES_DIR + "/icons/ext/document.gif";
+	}
+
+	private String getFolderIconPath() {
+		return IMAGES_DIR + "/icons/folder/folder.png";
 	}
 
 	private String getFolderIconPath(Folder folder, boolean expanded) {

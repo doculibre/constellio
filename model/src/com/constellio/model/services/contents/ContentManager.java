@@ -268,6 +268,12 @@ public class ContentManager implements StatefulService {
 
 		try {
 			String hash = hashingService.getHashFromStream(closeableInputStreamFactory);
+			try (final InputStream icapInputStream = closeableInputStreamFactory.create(hash + ".icapscan")) {
+				if (closeableInputStreamFactory instanceof CopyInputStreamFactory) {
+					icapService.scan(fileName, icapInputStream);
+				}
+			}
+			
 			if (handleDeletionOfUnreferencedHashes) {
 				markForDeletionIfNotReferenced(hash);
 			}
@@ -326,14 +332,6 @@ public class ContentManager implements StatefulService {
 
 	private ParsedContent parseAndSave(String hash, CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
-		//
-		try (final InputStream inputStream = inputStreamFactory.create(hash + ".icapscan")) {
-			if (inputStreamFactory instanceof CopyInputStreamFactory) {
-				final String filename = ((CopyInputStreamFactory) inputStreamFactory).getFilename();
-				icapService.scan(filename, inputStream);
-			}
-		}
-
 		ParsedContent parsedContent = tryToParse(inputStreamFactory);
 		saveParsedContent(hash, parsedContent);
 		return parsedContent;
@@ -349,7 +347,6 @@ public class ContentManager implements StatefulService {
 
 	ParsedContent tryToParse(CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
-
 		try {
 			return fileParser.parse(inputStreamFactory, inputStreamFactory.length());
 
