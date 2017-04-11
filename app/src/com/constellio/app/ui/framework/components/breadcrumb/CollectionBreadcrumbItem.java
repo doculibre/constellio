@@ -19,7 +19,7 @@ public class CollectionBreadcrumbItem implements BreadcrumbItem {
 
 	@Override
 	public boolean isEnabled() {
-		return false;
+		return true;
 	}
 
 }

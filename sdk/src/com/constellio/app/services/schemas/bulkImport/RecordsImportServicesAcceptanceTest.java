@@ -162,6 +162,14 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(decomListComments.get(1).getMessage()).isEqualTo("super message");
     }
 
+    //TODO faire passer ce test
+    @Test
+    public void whenImportingExcelRetentionRulesWithEmptyRules() throws Exception{
+        File excelFile = getTestResourceFile("GRICS_3_colonnes.xls");
+
+        importServices.bulkImport(Excel2003ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+    }
+
     @Test(expected = RecordServicesRuntimeException.IdAlreadyExisting.class)
     public void givenRecordsWithIdAlreadyExistingWhenImportingZipOfXMLFilesWithRealIdsThenException()
             throws Exception {

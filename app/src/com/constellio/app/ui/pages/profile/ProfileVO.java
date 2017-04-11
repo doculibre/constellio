@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.profile;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -21,10 +20,14 @@ public class ProfileVO implements Serializable {
 	DefaultTabInFolderDisplay defaultTabInFolderDisplay;
 	String defaultTaxonomy;
 	String loginLanguageCode;
+	String jobTitle;
+	String fax;
+	String address;
+	boolean agentManuallyDisabled;
 
 	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email, String personalEmails,
 			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
-			String password, String confirmPassword, String oldPassword) {
+			String password, String confirmPassword, String oldPassword, boolean agentManuallyDisabled) {
 		this.image = image;
 		this.username = username;
 		this.firstName = firstName;
@@ -38,11 +41,12 @@ public class ProfileVO implements Serializable {
 		this.password = password;
 		this.confirmPassword = confirmPassword;
 		this.oldPassword = oldPassword;
+		this.agentManuallyDisabled = agentManuallyDisabled;
 	}
 
 	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String startTab,
 			DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
-			String oldPassword) {
+			String oldPassword, boolean agentManuallyDisabled) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -55,6 +59,28 @@ public class ProfileVO implements Serializable {
 		this.password = password;
 		this.confirmPassword = confirmPassword;
 		this.oldPassword = oldPassword;
+		this.agentManuallyDisabled = agentManuallyDisabled;
+	}
+
+	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String fax, String jobTitle, String address, String startTab,
+					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
+					 String oldPassword, boolean agentManuallyDisabled) {
+		this.username = username;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+		this.personalEmails = personalEmails;
+		this.phone = phone;
+		this.fax = fax;
+		this.jobTitle = jobTitle;
+		this.address = address;
+		this.startTab = startTab;
+		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
+		this.defaultTaxonomy = defaultTaxonomy;
+		this.password = password;
+		this.confirmPassword = confirmPassword;
+		this.oldPassword = oldPassword;
+		this.agentManuallyDisabled = agentManuallyDisabled;
 	}
 
 	public String getUsername() {
@@ -167,5 +193,37 @@ public class ProfileVO implements Serializable {
 
 	public void setLoginLanguageCode(String loginLanguageCode) {
 		this.loginLanguageCode = loginLanguageCode;
+	}
+
+	public boolean isAgentManuallyDisabled() {
+		return agentManuallyDisabled;
+	}
+
+	public void setAgentManuallyDisabled(boolean agentManuallyDisabled) {
+		this.agentManuallyDisabled = agentManuallyDisabled;
+	}
+
+	public String getJobTitle() {
+		return jobTitle;
+	}
+
+	public void setJobTitle(String jobTitle) {
+		this.jobTitle = jobTitle;
+	}
+
+	public String getFax() {
+		return fax;
+	}
+
+	public void setFax(String fax) {
+		this.fax = fax;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
 	}
 }

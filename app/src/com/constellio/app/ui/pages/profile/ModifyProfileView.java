@@ -6,4 +6,6 @@ public interface ModifyProfileView extends BaseView {
 	
 	void updateUI();
 	
+	void setAgentManuallyDisabledVisible(boolean visible);
+	
 }

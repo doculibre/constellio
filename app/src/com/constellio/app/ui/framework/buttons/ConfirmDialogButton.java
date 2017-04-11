@@ -11,8 +11,14 @@ import com.vaadin.ui.UI;
 
 @SuppressWarnings("serial")
 public abstract class ConfirmDialogButton extends IconButton {
+	
+	public static enum DialogMode {
+		TEXT, INFO, WARNING, ERROR, STOP
+	};
 
 	private static ConfirmDialog.Factory factory = new DefaultConfirmDialogFactory();
+	
+	private DialogMode dialogMode = DialogMode.TEXT;
 
 	static {
 		ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
@@ -20,6 +26,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 			public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
 					String notOKCaption) {
 				ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
+				confirmDialog.setCaptionAsHtml(true);
 				confirmDialog.addAttachListener(new AttachListener() {
 					@Override
 					public void attach(AttachEvent event) {
@@ -43,12 +50,48 @@ public abstract class ConfirmDialogButton extends IconButton {
 		super(iconResource, caption, iconOnly);
 	}
 
+	public DialogMode getDialogMode() {
+		return dialogMode;
+	}
+
+	public void setDialogMode(DialogMode dialogMode) {
+		this.dialogMode = dialogMode;
+	}
+
 	@Override
 	protected final void buttonClick(ClickEvent event) {
+		String dialogMessage = getConfirmDialogMessage();
+		String iconName;
+		switch (dialogMode) {
+		case INFO:
+			iconName = "info";
+			break;
+		case  WARNING:
+			iconName = "warn";
+			break;
+		case  ERROR:
+			iconName = "error";
+			break;
+		case  STOP:
+			iconName = "stop";
+			break;
+		case TEXT:
+		default:	
+			iconName = null;
+			iconName = "info";
+			break;
+		};
+		if (iconName != null) {
+			StringBuilder html = new StringBuilder();
+//			html.append("<span class=\"confirm-dialog-info\">");
+			html.append(dialogMessage);
+//			html.append("</span>");
+			dialogMessage = html.toString();
+		}
 		ConfirmDialog.show(
 				UI.getCurrent(),
 				getConfirmDialogTitle(),
-				getConfirmDialogMessage(),
+				dialogMessage,
 				getConfirmDialogOKCaption(),
 				getConfirmDialogCancelCaption(),
 				new ConfirmDialog.Listener() {

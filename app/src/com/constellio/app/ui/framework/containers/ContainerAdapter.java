@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.containers;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.vaadin.data.Container;
@@ -18,10 +19,12 @@ import com.vaadin.data.util.AbstractContainer;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
 
 @SuppressWarnings("serial")
-public abstract class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
+public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
 		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier {
 
 	protected T adapted;
+	
+	private List<Container.ItemSetChangeListener> itemSetChangeListeners = new ArrayList<>();
 
 	public ContainerAdapter(T adapted) {
 		this.adapted = adapted;
@@ -269,6 +272,7 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).addListener(listener);
 		}
+		itemSetChangeListeners.add(listener);
     }
 
     @Override
@@ -277,6 +281,7 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).addItemSetChangeListener(listener);
 		}
+		itemSetChangeListeners.add(listener);
     }
 
     @Override
@@ -285,6 +290,7 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).removeItemSetChangeListener(listener);
 		}
+		itemSetChangeListeners.remove(listener);
     }
 
     /**
@@ -297,6 +303,7 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).removeListener(listener);
 		}
+		itemSetChangeListeners.remove(listener);
     }
 
 	@Override
@@ -330,9 +337,35 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 		}
 	}
 
-	protected abstract Collection<?> getOwnContainerPropertyIds();
+	protected Collection<?> getOwnContainerPropertyIds() {
+		return Collections.emptyList();
+	}
 
-	protected abstract Class<?> getOwnType(Object propertyId);
+	protected Class<?> getOwnType(Object propertyId) {
+		return null;
+	}
 
-	protected abstract Property<?> getOwnContainerProperty(Object itemId, Object propertyId);
+	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void fireItemSetChange() {
+		super.fireItemSetChange();
+		if (adapted instanceof ContainerAdapter) {
+			((ContainerAdapter<T>) adapted).fireItemSetChange();
+		} else if (adapted instanceof RefreshableContainer) {
+			((RefreshableContainer) adapted).refresh();
+		}
+	}
+
+	@Override
+	protected void fireItemSetChange(ItemSetChangeEvent event) {
+		super.fireItemSetChange(event);
+		for (ItemSetChangeListener listener : itemSetChangeListeners) {
+			listener.containerItemSetChange(event);
+		}
+	}
+	
 }

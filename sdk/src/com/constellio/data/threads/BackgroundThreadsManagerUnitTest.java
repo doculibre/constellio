@@ -14,12 +14,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 
+	@Mock DataLayerFactory dataLayerFactory;
 	@Mock DataLayerConfiguration dataLayerConfiguration;
 	@Mock Runnable repeatedAction, command;
 	@Mock ScheduledExecutorService scheduledExecutorService;
@@ -32,7 +34,7 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 		when(dataLayerConfiguration.isBackgroundThreadsEnabled()).thenReturn(true);
 		when(dataLayerConfiguration.getBackgroudThreadsPoolSize()).thenReturn(4);
 
-		backgroundThreadsManager = spy(new BackgroundThreadsManager(dataLayerConfiguration));
+		backgroundThreadsManager = spy(new BackgroundThreadsManager(dataLayerConfiguration, dataLayerFactory));
 		doReturn(scheduledExecutorService).when(backgroundThreadsManager).newScheduledExecutorService();
 	}
 

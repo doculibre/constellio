@@ -25,6 +25,7 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 	String schemaTypeCode;
 	boolean writeAccess;
 	TaxonomiesSearchFilter filter;
+	boolean ignoreLinkability;
 
 	public LinkableRecordTreeNodesDataProvider(String taxonomyCode, String schemaTypeCode, boolean writeAccess) {
 		this(taxonomyCode, schemaTypeCode, writeAccess, null);
@@ -38,6 +39,9 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		this.filter = filter;
 	}
 
+	public void setIgnoreLinkability(boolean ignoreLinkability) {
+		this.ignoreLinkability = ignoreLinkability;
+	}
 
 	@Override
 	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize, FastContinueInfos infos) {
@@ -70,9 +74,13 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
 						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
+
 		if (writeAccess) {
 			options.setRequiredAccess(Role.WRITE);
 		}
+
+		options.setAlwaysReturnTaxonomyConceptsWithReadAccess(ignoreLinkability);
+
 		options.setFilter(filter);
 
 		return options;

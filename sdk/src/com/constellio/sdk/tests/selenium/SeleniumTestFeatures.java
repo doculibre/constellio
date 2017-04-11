@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests.selenium;
 
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -179,7 +180,7 @@ public class SeleniumTestFeatures {
 			} else {
 				webDriver = newPhantomJSWebDriver(phantomJSBinaryDir);
 			}
-			FoldersLocator foldersLocator = factoriesTestFeatures.getFoldersLocator();
+			FoldersLocator foldersLocator = factoriesTestFeatures.getFoldersLocator(DEFAULT_NAME);
 			openedWebDriver = new ConstellioWebDriver(webDriver, url, foldersLocator, skipTestsRule);
 			currentPageLoadTime = "";
 
@@ -256,7 +257,7 @@ public class SeleniumTestFeatures {
 			} else {
 				webDriver = newPhantomJSWebDriver(phantomJSBinaryDir);
 			}
-			FoldersLocator foldersLocator = factoriesTestFeatures.getFoldersLocator();
+			FoldersLocator foldersLocator = factoriesTestFeatures.getFoldersLocator(DEFAULT_NAME);
 			openedWebDriver = new ConstellioWebDriver(webDriver, url, foldersLocator, skipTestsRule);
 			currentPageLoadTime = "";
 

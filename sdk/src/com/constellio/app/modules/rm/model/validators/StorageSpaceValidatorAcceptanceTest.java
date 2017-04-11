@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model.validators;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -42,6 +43,25 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         recordServices = getModelLayerFactory().newRecordServices();
         searchServices = getModelLayerFactory().newSearchServices();
+    }
+
+    @Test(expected = RecordServicesException.ValidationException.class)
+    public void givenEnableOrDisableStorageSpaceTitleCalculatorConfigThenTitleIsOk()
+            throws RecordServicesException {
+        recordServices.add(buildParentStorageSpaces().setCapacity(10L));
+        recordServices.add(buildChildStorageSpaces().setCapacity(20L));
+        assertThat(rm.getStorageSpace("storageSpaceParent").getTitle()).isEqualTo("Parent");
+        assertThat(rm.getStorageSpace("storageSpaceChild").getTitle()).isEqualTo("Child");
+
+        givenConfig(RMConfigs.STORAGE_SPACE_TITLE_CALCULATOR_ENABLED, true);
+        reindexIfRequired();
+        assertThat(rm.getStorageSpace("storageSpaceParent").getTitle()).isEqualTo("PARENT");
+        assertThat(rm.getStorageSpace("storageSpaceChild").getTitle()).isEqualTo("PARENT-CHILD");
+
+        givenConfig(RMConfigs.STORAGE_SPACE_TITLE_CALCULATOR_ENABLED, false);
+        reindexIfRequired();
+        assertThat(rm.getStorageSpace("storageSpaceParent").getTitle()).isEqualTo("PARENT");
+        assertThat(rm.getStorageSpace("storageSpaceChild").getTitle()).isEqualTo("PARENT-CHILD");
     }
 
     @Test(expected = RecordServicesException.ValidationException.class)

@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.constellio.data.threads.ConstellioJobManager;
-
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -53,6 +51,7 @@ import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class DataLayerFactory extends LayerFactory {
@@ -80,9 +79,9 @@ public class DataLayerFactory extends LayerFactory {
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-			StatefullServiceDecorator statefullServiceDecorator) {
+			StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 
-		super(statefullServiceDecorator);
+		super(statefullServiceDecorator, instanceName);
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		// TODO Possibility to configure the logger
@@ -91,7 +90,7 @@ public class DataLayerFactory extends LayerFactory {
 		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
 		this.dataLayerLogger = new DataLayerLogger();
 
-		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration));
+		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 

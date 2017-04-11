@@ -1,10 +1,17 @@
 package com.constellio.app.services.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.pages.search.criteria.FacetSelectionsFactory;
@@ -13,7 +20,6 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadataFactory;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -25,13 +31,23 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.calculators.*;
+import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
+import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
+import com.constellio.model.services.schemas.calculators.AllUserAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
+import com.constellio.model.services.schemas.calculators.PathCalculator;
+import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
+import com.constellio.model.services.schemas.calculators.RolesCalculator;
+import com.constellio.model.services.schemas.calculators.TokensCalculator2;
+import com.constellio.model.services.schemas.calculators.UserTokensCalculator2;
 import com.constellio.model.services.schemas.validators.DecisionValidator;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedSystemMigrationCombo {
   String collection;
@@ -358,6 +374,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder group_visibleInTrees = groupSchema.get("visibleInTrees");
     group_visibleInTrees.setSystemReserved(true);
     group_visibleInTrees.setUndeletable(true);
+    MetadataBuilder user_address = userSchema.create("address").setType(MetadataValueType.STRING);
     MetadataBuilder user_allReferences = userSchema.get("allReferences");
     user_allReferences.setMultivalue(true);
     user_allReferences.setSystemReserved(true);
@@ -417,6 +434,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder user_errorOnPhysicalDeletion = userSchema.get("errorOnPhysicalDeletion");
     user_errorOnPhysicalDeletion.setSystemReserved(true);
     user_errorOnPhysicalDeletion.setUndeletable(true);
+    MetadataBuilder user_fax = userSchema.create("fax").setType(MetadataValueType.STRING);
     MetadataBuilder user_firstname = userSchema.create("firstname").setType(MetadataValueType.STRING);
     user_firstname.setUndeletable(true);
     MetadataBuilder user_followers = userSchema.get("followers");
@@ -1971,6 +1989,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder task_workflowRecordIdentifiers = taskSchema.create("workflowRecordIdentifiers").setType(MetadataValueType.STRING);
     task_workflowRecordIdentifiers.setMultivalue(true);
     task_workflowRecordIdentifiers.setUndeletable(true);
+    MetadataBuilder userCredential_address = userCredentialSchema.create("address").setType(MetadataValueType.STRING);
     MetadataBuilder userCredential_allReferences = userCredentialSchema.get("allReferences");
     userCredential_allReferences.setMultivalue(true);
     userCredential_allReferences.setSystemReserved(true);
@@ -2024,6 +2043,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder userCredential_errorOnPhysicalDeletion = userCredentialSchema.get("errorOnPhysicalDeletion");
     userCredential_errorOnPhysicalDeletion.setSystemReserved(true);
     userCredential_errorOnPhysicalDeletion.setUndeletable(true);
+    MetadataBuilder userCredential_fax = userCredentialSchema.create("fax").setType(MetadataValueType.STRING);
     MetadataBuilder userCredential_firstname = userCredentialSchema.create("firstname").setType(MetadataValueType.STRING);
     userCredential_firstname.setUndeletable(true);
     MetadataBuilder userCredential_followers = userCredentialSchema.get("followers");
@@ -2046,6 +2066,7 @@ public final class GeneratedSystemMigrationCombo {
     userCredential_inheritedauthorizations.setMultivalue(true);
     userCredential_inheritedauthorizations.setSystemReserved(true);
     userCredential_inheritedauthorizations.setUndeletable(true);
+    MetadataBuilder userCredential_jobTitle = userCredentialSchema.create("jobTitle").setType(MetadataValueType.STRING);
     MetadataBuilder userCredential_lastname = userCredentialSchema.create("lastname").setType(MetadataValueType.STRING);
     userCredential_lastname.setUndeletable(true);
     MetadataBuilder userCredential_legacyIdentifier = userCredentialSchema.get("legacyIdentifier");
@@ -2094,6 +2115,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder userCredential_personalEmails = userCredentialSchema.create("personalEmails").setType(MetadataValueType.STRING);
     userCredential_personalEmails.setMultivalue(true);
     userCredential_personalEmails.setUndeletable(true);
+    MetadataBuilder userCredential_phone = userCredentialSchema.create("phone").setType(MetadataValueType.STRING);
     MetadataBuilder userCredential_principalpath = userCredentialSchema.get("principalpath");
     userCredential_principalpath.setSystemReserved(true);
     userCredential_principalpath.setUndeletable(true);

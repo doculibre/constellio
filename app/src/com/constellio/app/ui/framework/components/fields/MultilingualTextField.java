@@ -1,24 +1,28 @@
 package com.constellio.app.ui.framework.components.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.VerticalLayout;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class MultilingualTextField extends CustomField<Map<String, String>> {
 	private final Map<String, String> value;
 	private VerticalLayout layout;
+	private final boolean areFieldsSetToRequired;
 
-	public MultilingualTextField() {
+	public MultilingualTextField(boolean areFieldsSetToRequired) {
 		value = new HashMap<>();
+		this.areFieldsSetToRequired = areFieldsSetToRequired;
 		for (String language : getCollectionLanguages()) {
 			value.put(language, null);
 		}
@@ -70,6 +74,8 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 					setInternalValue(value);
 				}
 			});
+			field.setRequired(areFieldsSetToRequired);
+			field.setId(language);
 			layout.addComponent(field);
 		}
 	}
@@ -78,5 +84,16 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		return ConstellioFactories.getInstance().getModelLayerFactory().getCollectionsListManager()
 				.getCollectionLanguages(collection);
+	}
+
+	public void validateFields() throws Validator.InvalidValueException {
+		if(areFieldsSetToRequired) {
+			Iterator<Component> componentIterator = layout.iterator();
+			while(componentIterator.hasNext()) {
+				BaseTextField field = (BaseTextField) componentIterator.next();
+				field.setRequiredError($("MultilingualTextField.requiredError", $("Language."+field.getId()).toLowerCase()));
+				field.validate();
+			}
+		}
 	}
 }

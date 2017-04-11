@@ -1,9 +1,18 @@
 package com.constellio.app.ui.application;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.collection.*;
+import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesViewImpl;
+import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
+import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
+import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
+import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
+import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
@@ -11,7 +20,11 @@ import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
-import com.constellio.app.ui.pages.imports.*;
+import com.constellio.app.ui.pages.imports.ExportViewImpl;
+import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportGroupsFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportSchemaTypesFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
@@ -53,7 +66,11 @@ import com.constellio.app.ui.pages.management.schemas.metadata.AddEditMetadataVi
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaMetadataViewImpl;
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaViewImpl;
 import com.constellio.app.ui.pages.management.schemas.type.ListSchemaViewImpl;
-import com.constellio.app.ui.pages.management.taxonomy.*;
+import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptViewImpl;
+import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyViewImpl;
+import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
+import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementSearchViewImpl;
+import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
 import com.constellio.app.ui.pages.management.updates.UpdateManagerViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainViewImpl;
 import com.constellio.app.ui.pages.profile.ModifyProfileViewImpl;
@@ -69,10 +86,6 @@ import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ClassBasedViewProvider;
 import com.vaadin.navigator.ViewProvider;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class NavigatorConfigurationService implements Serializable {
 	public static final String HOME = "";
@@ -161,6 +174,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String TAXONOMY_SEARCH = "taxonomySearch";
 
 	public static final String SYSTEM_CHECK = "systemCheck";
+	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -260,6 +274,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LABEL_AJOUT, AddEditLabelViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LABEL_VIEW, LabelViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORT_VIEW, ReportConfigViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

@@ -17,6 +17,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
+	
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
 	private DocumentFormImpl recordForm;
