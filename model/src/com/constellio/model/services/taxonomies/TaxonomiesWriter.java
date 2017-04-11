@@ -21,6 +21,7 @@ public class TaxonomiesWriter {
 	private static final String USER_IDS = "userIds";
 	private static final String GROUP_IDS = "groupIds";
 	private static final String VISIBLE_IN_HOME_PAGE = "visibleInHomePage";
+	private static final String SHOW_PARENTS_IN_SEARCH_RESULTS = "showParentsInSearchResults";
 	private static final String TAXONOMY = "taxonomy";
 	private static final String ENABLES = "enables";
 	private static final String DISABLES = "disables";
@@ -52,12 +53,15 @@ public class TaxonomiesWriter {
 		Element taxonomyElement = new Element(TAXONOMY).setAttribute(CODE, taxonomy.getCode());
 		Element visibleInHomePageElement = new Element(VISIBLE_IN_HOME_PAGE).setText(
 				taxonomy.isVisibleInHomePage() ? "true" : "false");
+		Element showParentsInSearchResults = new Element(SHOW_PARENTS_IN_SEARCH_RESULTS).setText(
+				taxonomy.isShowParentsInSearchResults() ? "true" : "false");
 		Element groupIdsElement = new Element(GROUP_IDS).setText(StringUtils.join(taxonomy.getGroupIds(), ","));
 		Element userIdsElement = new Element(USER_IDS).setText(StringUtils.join(taxonomy.getUserIds(), ","));
 		taxonomyElement.addContent(title);
 		taxonomyElement.addContent(collection);
 		taxonomyElement.addContent(schemaTypesElements);
 		taxonomyElement.addContent(visibleInHomePageElement);
+		taxonomyElement.addContent(showParentsInSearchResults);
 		taxonomyElement.addContent(groupIdsElement);
 		taxonomyElement.addContent(userIdsElement);
 

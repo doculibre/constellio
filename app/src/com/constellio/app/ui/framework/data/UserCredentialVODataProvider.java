@@ -15,7 +15,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 
 @SuppressWarnings("serial")
-public class UserCredentialVODataProvider implements DataProvider {
+public class UserCredentialVODataProvider extends AbstractDataProvider {
 
 	private transient UserServices userServices;
 

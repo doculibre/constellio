@@ -3,12 +3,22 @@ package com.constellio.app.ui.pages.management.updates;
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.services.records.RecordServicesException;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +113,19 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public void restart() {
 		try {
 			appLayerFactory.newApplicationService().restart();
-		} catch (AppManagementServiceException ase) {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			Record event = rm.newEvent()
+					.setType(EventType.RESTARTING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("new Restarting Event")
+					.getWrappedRecord();
+			Transaction t = new Transaction();
+			t.add(event);
+			appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
+		} catch (AppManagementServiceException | RecordServicesException ase) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
 	}
@@ -112,11 +134,35 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
 			//Application is started from a test, it cannot be restarted
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			LOGGER.info("Reindexing started");
 			ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
 			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 			LOGGER.info("Reindexing finished");
+			Record eventRestarting = rm.newEvent()
+					.setType(EventType.RESTARTING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("new Restarting Event")
+					.getWrappedRecord();
+			Record eventReindexing = rm.newEvent()
+					.setType(EventType.REINDEXING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("new Reindexing Event")
+					.getWrappedRecord();
+			Transaction t = new Transaction();
+			t.addAll(asList(eventReindexing, eventRestarting));
+			try {
 
+				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
+			} catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			}
 		} else {
 			appLayerFactory.newApplicationService().markForReindexing();
 			try {

@@ -5,12 +5,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -35,6 +36,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 
@@ -149,6 +151,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			task.setDueDate(TimeProvider.getLocalDate());
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
+
+			String folderId = paramsMap.get("folderId");
+			if (folderId != null) {
+				new RMTask(task).setLinkedFolders(Arrays.asList(folderId));
+			}
+			String documentId = paramsMap.get("documentId");
+			if (documentId != null) {
+				new RMTask(task).setLinkedDocuments(Arrays.asList(documentId));
+			}
 		}
 		completeMode = "true".equals(paramsMap.get("completeTask"));
 		if (completeMode) {

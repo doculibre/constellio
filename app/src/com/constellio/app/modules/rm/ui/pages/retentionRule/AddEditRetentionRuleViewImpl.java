@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.ui.components.retentionRule.DocumentCopyRetentionRuleTable;
@@ -20,12 +16,15 @@ import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumW
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ComponentTreeUtils;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEditRetentionRuleView {
 
@@ -196,21 +195,27 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 				field = buildCategoriesField(recordVO, metadataVO);
 				postBuild(field, recordVO, metadataVO);
 				break;
-			case RetentionRule.SCOPE:
-				if (presenter.isScopeVisible()) {
-					field = new EnumWithSmallCodeComboBox<>(RetentionRuleScope.class);
-					field.addValueChangeListener(new ValueChangeListener() {
-						@Override
-						public void valueChange(ValueChangeEvent event) {
-							RetentionRuleScope scope = (RetentionRuleScope) event.getProperty().getValue();
-							presenter.scopeChanged(scope);
-						}
-					});
-					postBuild(field, recordVO, metadataVO);
-				} else {
-					field = null;
-				}
+			case RetentionRuleVO.UNIFORM_SUBDIVISIONS:
+				field = buildCategoriesField(recordVO, metadataVO);
+				postBuild(field, recordVO, metadataVO);
+				field.setVisible(presenter.areSubdivisionUniformEnabled());
+				field.setEnabled(presenter.areSubdivisionUniformEnabled());
 				break;
+			case RetentionRule.SCOPE:
+					if (presenter.isScopeVisible()) {
+						field = new EnumWithSmallCodeComboBox<>(RetentionRuleScope.class);
+						field.addValueChangeListener(new ValueChangeListener() {
+							@Override
+							public void valueChange(ValueChangeEvent event) {
+								RetentionRuleScope scope = (RetentionRuleScope) event.getProperty().getValue();
+								presenter.scopeChanged(scope);
+							}
+						});
+						postBuild(field, recordVO, metadataVO);
+					} else {
+						field = null;
+					}
+					break;
 			default:
 				field = super.build(recordVO, metadataVO);
 				break;

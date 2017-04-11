@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -9,6 +23,7 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -30,20 +45,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript {
 
@@ -165,15 +166,10 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 			migrateContainerRecord(typesBuilder);
 
+			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.MIME_TYPE).setEssentialInSummary(true);
 
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
 
-			//Used in search conditions:
-			//folderSchema.getMetadata(Folder.ACTIVE_RETENTION_TYPE).setTransiency(TRANSIENT_EAGER);
-			//folderSchema.getMetadata(Folder.INACTIVE_DISPOSAL_TYPE).setTransiency(TRANSIENT_EAGER);
-
-			//TODO : Tester si ces métadonnées peuvent être rendu transients
-			folderSchema.getMetadata(Folder.APPLICABLE_COPY_RULES).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.ACTIVE_RETENTION_CODE).setTransiency(TRANSIENT_EAGER);
 
 			folderSchema.getMetadata(Folder.SEMIACTIVE_RETENTION_CODE).setTransiency(TRANSIENT_EAGER);
@@ -184,6 +180,9 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.MAIN_COPY_RULE).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.DECOMMISSIONING_DATE).setTransiency(TRANSIENT_EAGER);
+
+			folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
+			folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).setTaxonomyRelationship(true);
 
 		}
 
@@ -199,7 +198,6 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			manager.updateRole(
 					manager.getRole(collection, RMRoles.MANAGER).withNewPermissions(asList(MANAGE_LABELS_PERMISSION)));
 		}
-
 
 	}
 

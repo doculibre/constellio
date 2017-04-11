@@ -72,9 +72,13 @@ public class RecordToVOBuilder implements Serializable {
 		}
 
 		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode);
-		BuildRecordVOParams buildRecordVOParams = new BuildRecordVOParams(record, recordVO);
-		constellioFactories.getAppLayerFactory().getExtensions()
-				.forCollection(record.getCollection()).buildRecordVO(buildRecordVOParams);
+		if (recordVO.getSchema() != null) {
+			BuildRecordVOParams buildRecordVOParams = new BuildRecordVOParams(record, recordVO);
+			constellioFactories.getAppLayerFactory().getExtensions()
+					.forCollection(record.getCollection()).buildRecordVO(buildRecordVOParams);
+		} else {
+			recordVO = null;
+		}
 
 		return recordVO;
 	}

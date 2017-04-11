@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -13,38 +14,20 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
-import com.constellio.app.modules.rm.wrappers.type.FolderType;
-import com.constellio.app.modules.rm.wrappers.type.MediumType;
-import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
-import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
-import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -270,13 +253,17 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, StorageSpace.DEFAULT_SCHEMA)
 				.getFormMetadataCodes();
 
+		assertThat(metadataCodes.subList(0, 6)).isEqualTo(asList(
+				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.TYPE,
+				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CODE,
+				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.TITLE,
+				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DESCRIPTION,
+				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CAPACITY,
+				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DECOMMISSIONING_TYPE
+		));
+
 		assertThat(metadataCodes.size()).isNotZero();
-		assertThat(metadataCodes.get(0)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.TYPE);
-		assertThat(metadataCodes.get(1)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CODE);
-		assertThat(metadataCodes.get(2)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DESCRIPTION);
-		assertThat(metadataCodes.get(3)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CAPACITY);
-		assertThat(metadataCodes.get(4)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.DECOMMISSIONING_TYPE);
-		assertThat(metadataCodes.get(5)).isEqualTo(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.PARENT_STORAGE_SPACE);
+
 	}
 
 	@Test
@@ -292,11 +279,13 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, UniformSubdivision.DEFAULT_SCHEMA)
 				.getFormMetadataCodes();
 
-		assertThat(metadataCodes.size()).isNotZero();
-		assertThat(metadataCodes.get(0)).isEqualTo(UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.CODE);
-		assertThat(metadataCodes.get(1)).isEqualTo(UniformSubdivision.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode());
-		assertThat(metadataCodes.get(2)).isEqualTo(UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.RETENTION_RULE);
-		assertThat(metadataCodes.get(3)).isEqualTo(UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.DESCRIPTION);
+		assertThat(metadataCodes.subList(0, 4)).isEqualTo(asList(
+				UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.CODE,
+				UniformSubdivision.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode(),
+				UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.RETENTION_RULE,
+				UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.DESCRIPTION
+		));
+
 	}
 
 	@Test
@@ -314,7 +303,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 				"workflowInstance", "ddvMediumType", "filingSpace", "workflow", "ddvFolderType", "collection",
 				"userTask", "uniformSubdivision", "authorizationDetails", "administrativeUnit", "ddvDocumentType",
 				"folder", "task", "ddvTaskStatus", "containerRecord", "report", "category", "facet", "retentionRule",
-				"user", "printable");
+				"user", "printable", "userFolder");
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy administrativeUnitsTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode("zeCollection",
 				RMTaxonomies.ADMINISTRATIVE_UNITS);

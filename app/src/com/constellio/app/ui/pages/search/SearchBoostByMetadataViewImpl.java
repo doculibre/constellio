@@ -92,7 +92,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 	private void addButtons(final SearchBoostDataProvider provider, ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button button = buildAddEditForm(presenter.getSearchBoostVO((Integer) itemId, provider));
 				button.setStyleName(ValoTheme.BUTTON_BORDERLESS);
 				button.addStyleName(EditButton.BUTTON_STYLE);
@@ -102,7 +102,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

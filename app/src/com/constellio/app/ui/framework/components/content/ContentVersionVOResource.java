@@ -15,7 +15,13 @@ public class ContentVersionVOResource extends StreamResource {
 			public InputStream getStream() {
 				return contentVersionVO.getInputStreamProvider().getInputStream(STREAM_NAME);
 			}
-		}, contentVersionVO.getFileName());
+		}, getFilename(contentVersionVO));
+	}
+	
+	private static String getFilename(ContentVersionVO contentVersionVO) {
+		String filename = contentVersionVO.getFileName();
+		filename = filename.replace("%", "");
+		return filename;
 	}
 
 }

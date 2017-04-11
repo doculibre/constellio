@@ -9,8 +9,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.*;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -109,6 +111,8 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
 				.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
+
+
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
@@ -176,7 +180,10 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 			} else {
 				generatedFastCoreMigration.applyGeneratedSchemaAlteration(typesBuilder);
 			}
-
+//
+//
+//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).get(User.ADDRESS).addLabel(Language.French, "Adresse");
+//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).get(User.FAX).addLabel(Language.French, "Télécopieur");
 		}
 
 	}

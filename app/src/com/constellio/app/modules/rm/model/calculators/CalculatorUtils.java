@@ -76,7 +76,11 @@ public class CalculatorUtils {
 
 		int numberOfYearWhenVariableDelay = defaultNumberOfYearWhenVariableDelay;
 		if (copyRule.getOpenActiveRetentionPeriod() != null && copyRule.getOpenActiveRetentionPeriod() >= 0) {
-			numberOfYearWhenVariableDelay = copyRule.getOpenActiveRetentionPeriod();
+			if (defaultNumberOfYearWhenVariableDelay == -1) {
+				numberOfYearWhenVariableDelay = copyRule.getOpenActiveRetentionPeriod();
+			} else {
+				numberOfYearWhenVariableDelay = defaultNumberOfYearWhenVariableDelay + copyRule.getOpenActiveRetentionPeriod();
+			}
 		}
 
 		if (adjustedDecommissioningDate == null) {

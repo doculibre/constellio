@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtens
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
+import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -118,6 +119,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_0_5(),
 				new RMMigrationTo7_0_10_5(),
 				new RMMigrationTo7_1(),
+				new RMMigrationTo7_1_1(),
+				new RMMigrationTo7_1_3(),
+				new RMMigrationTo7_1_3_1(),
 				new RMMigrationTo7_2()
 		);
 	}
@@ -220,6 +224,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions(appLayerFactory));
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new RMCleanAdministrativeUnitButtonExtension(collection, appLayerFactory));
+		extensions.selectionPanelExtensions.add(new RMSelectionPanelExtension(appLayerFactory, collection));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -234,12 +240,14 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMFolderExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMCreateDecommissioningListExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new SessionContextRecordExtension());
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DecommissioningListImportExtension(collection, modelLayerFactory));
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);

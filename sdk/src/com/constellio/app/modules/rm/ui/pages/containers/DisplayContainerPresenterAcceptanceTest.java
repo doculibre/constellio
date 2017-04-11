@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -17,7 +16,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -28,6 +26,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 
 public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 	@Mock DisplayContainerView view;
@@ -91,35 +90,6 @@ public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenContainerWithMissingLinearMeasureInAllRecordsThenThrowException()
-			throws Exception {
-		container.setCapacity(100d);
-		recordVO = new RecordToVOBuilder().build(container.getWrappedRecord(), RecordVO.VIEW_MODE.FORM, sessionContext);
-		try {
-			presenter.getFillRatio(recordVO);
-			fail("should fail");
-		} catch (ContainerWithoutCapacityException e) {
-			fail("should return valid exception");
-		} catch (RecordInContainerWithoutLinearMeasure recordInContainerWithoutLinearMeasure) {
-		}
-	}
-
-	@Test
-	public void givenContainerWithOneMissingLinearMeasureThenThrowException()
-			throws Exception {
-		container.setCapacity(10d);
-		recordServices.update(records.getFolder_C50().setLinearSize(4d));
-		recordVO = new RecordToVOBuilder().build(container.getWrappedRecord(), RecordVO.VIEW_MODE.FORM, sessionContext);
-		try {
-			presenter.getFillRatio(recordVO);
-			fail("should fail");
-		} catch (ContainerWithoutCapacityException e) {
-			fail("should return valid exception");
-		} catch (RecordInContainerWithoutLinearMeasure recordInContainerWithoutLinearMeasure) {
-		}
-	}
-
-	@Test
 	public void givenContainerWithoutFoldersThenReturnZero()
 			throws Exception, RecordInContainerWithoutLinearMeasure, ContainerWithoutCapacityException {
 		Double expectedRatio = 0d;
@@ -140,15 +110,4 @@ public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 		return getModelLayerFactory().newSearchServices().search(query);
 	}
 
-	@Test
-	public void givenContainerWithAllRecordsHavingLinearMeasureAndThenThrowReturnValidRatio()
-			throws Exception, RecordInContainerWithoutLinearMeasure, ContainerWithoutCapacityException {
-		Double expectedRatio = 60d;
-		container.setCapacity(10d);
-		recordServices.update(records.getFolder_C55().setLinearSize(2d));
-		recordServices.update(records.getFolder_C50().setLinearSize(4d));
-		recordVO = new RecordToVOBuilder().build(container.getWrappedRecord(), RecordVO.VIEW_MODE.FORM, sessionContext);
-		Double ratio = presenter.getFillRatio(recordVO);
-		assertThat(ratio).isEqualTo(expectedRatio);
-	}
 }

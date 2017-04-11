@@ -4,7 +4,6 @@ import static com.constellio.app.ui.framework.components.ComponentState.enabledI
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
@@ -15,6 +14,7 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -40,6 +40,7 @@ import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
@@ -51,12 +52,13 @@ import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRules
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -75,10 +77,17 @@ import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
 import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.AgentStatus;
+import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 
 public class RMNavigationConfiguration implements Serializable {
+
+	public static final String NEW_DOCUMENT = "newDocument";
 	public static final String ADD_FOLDER = "addFolder";
 	public static final String ADD_DOCUMENT = "addDocument";
 
@@ -179,7 +188,14 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_FOLDER) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).addFolder();
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if (currentView instanceof DisplayFolderView) {
+					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					String parentFolderId = displayFolderView.getRecord().getId();
+					navigate.to(RMViews.class).addFolder(parentFolderId);
+				} else {
+					navigate.to(RMViews.class).addFolder();
+				}
 			}
 
 			@Override
@@ -187,10 +203,17 @@ public class RMNavigationConfiguration implements Serializable {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
 			}
 		}, 0);
-		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(NEW_DOCUMENT) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).addDocument();
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if (currentView instanceof DisplayFolderView) {
+					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					String folderId = displayFolderView.getRecord().getId();
+					navigate.to(RMViews.class).newDocument(folderId);
+				} else {
+					navigate.to(RMViews.class).newDocument();
+				}
 			}
 
 			@Override
@@ -198,9 +221,59 @@ public class RMNavigationConfiguration implements Serializable {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
 		}, 1);
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
+			@Override
+			public void activate(Navigation navigate) {
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if (currentView instanceof DisplayFolderView) {
+					DisplayFolderView displayFolderView = (DisplayFolderView) currentView;
+					String folderId = displayFolderView.getRecord().getId();
+					navigate.to(RMViews.class).addDocument(folderId);
+				} else {
+					navigate.to(RMViews.class).addDocument();
+				}
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
+			}
+		}, 2);
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
+		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
+			@Override
+			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
+																	 SessionContext sessionContext) {
+				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
+				if (getDefaultDataProvider() == -1) {
+					int defaultTab = tabSheet.getDefaultTab();
+					setDefaultDataProvider(defaultTab);
+				}	
+				return tabSheet.getDataProviders();
+			}
+
+			@Override
+			public BaseContextMenu getContextMenu() {
+				final DocumentContextMenuImpl menu = new DocumentContextMenuImpl();
+				menu.addContextMenuTreeListener(new TreeListener() {
+					@Override
+					public void onContextMenuOpenFromTreeItem(ContextMenuOpenedOnTreeItemEvent event) {
+						String recordId = (String) event.getItemId();
+						menu.openFor(recordId);
+					}
+				});
+				return menu;
+			}
+		};
+
+		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
+			config.add(HomeView.TABS, taxonomyTree);
+		} else {
+			config.replace(HomeView.TABS, taxonomyTree);
+		}
+
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
 			@Override
 			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
@@ -222,40 +295,6 @@ public class RMNavigationConfiguration implements Serializable {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
 			}
 		});
-		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
-			private int defaultTab;
-
-			@Override
-			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-					SessionContext sessionContext) {
-				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
-				defaultTab = tabSheet.getDefaultTab();
-				return tabSheet.getDataProviders();
-			}
-
-			@Override
-			public int getDefaultDataProvider() {
-				return defaultTab;
-			}
-
-			@Override
-			public BaseContextMenu getContextMenu() {
-				final DocumentContextMenuImpl menu = new DocumentContextMenuImpl();
-				menu.addContextMenuTreeListener(new TreeListener() {
-					@Override
-					public void onContextMenuOpenFromTreeItem(ContextMenuOpenedOnTreeItemEvent event) {
-						String recordId = (String) event.getItemId();
-						menu.openFor(recordId);
-					}
-				});
-				return menu;
-			}
-		};
-		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
-			config.add(HomeView.TABS, taxonomyTree);
-		} else {
-			config.replace(HomeView.TABS, taxonomyTree);
-		}
 	}
 
 	private static void configureCollectionAdmin(NavigationConfig config) {
@@ -412,17 +451,20 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				List<String> permissions = new ArrayList<>();
-				permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
-				permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
-				permissions.add(TasksPermissionsTo.MANAGE_WORKFLOWS);
-
-				boolean canManageCollection = user.hasAny(permissions).globally();
-
-				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				boolean canManageSystem = userServices.has(user.getUsername())
-						.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
-				return canManageCollection || canManageSystem ? ComponentState.INVISIBLE : ComponentState.ENABLED;
+				ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+				UserServices userServices = modelLayerFactory.newUserServices();
+				SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+				
+				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
+				
+				String username = user.getUsername();
+				SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
+				AgentStatus agentStatus = userCredentials.getAgentStatus();
+				if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
+					agentStatus = AgentStatus.ENABLED;
+				}
+				
+				return visibleIf(rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported() && agentStatus == AgentStatus.DISABLED);
 			}
 		});
 	}

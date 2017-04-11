@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
@@ -12,6 +13,8 @@ import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
+import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;

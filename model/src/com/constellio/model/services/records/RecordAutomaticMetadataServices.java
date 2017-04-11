@@ -114,7 +114,10 @@ public class RecordAutomaticMetadataServices {
 			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
-			setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+			//We don't want to calculate this metadata during record imports
+			if (record.get(Schemas.LEGACY_ID) == null || record.isSaved()) {
+				setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+			}
 
 		}
 	}

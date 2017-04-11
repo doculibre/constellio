@@ -60,6 +60,7 @@ public class ClassifyConnectorHelper {
 
 		String[] rawPathParts = path.replace(pathPrefix, "").split("/");
 
+		boolean taxonomyStarted = false;
 		boolean stillInTaxonomy = true;
 		Record conceptOfPreviousSegment = null;
 
@@ -79,10 +80,13 @@ public class ClassifyConnectorHelper {
 				}
 			} else if (stillInTaxonomy) {
 				conceptOfCurrentSegment = recordServices.getRecordByMetadata(codeMetadata, pathPart);
-				stillInTaxonomy = conceptOfCurrentSegment != null;
+				if (taxonomyStarted) {
+					stillInTaxonomy = conceptOfCurrentSegment != null;
+				}
 			}
 
 			if (conceptOfCurrentSegment != null) {
+				taxonomyStarted = true;
 				if (!isDetectedConceptInHisParent(conceptOfPreviousSegment, conceptOfCurrentSegment)) {
 					//The current segment is the code of concept, but this concept is not a child of the last segment's concept
 					//This segment is considered as a regular "folder" outside of the taxonomy

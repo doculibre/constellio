@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -10,10 +15,6 @@ import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContainerAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
@@ -91,11 +92,11 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		anotherContainer = rm.getContainerRecord("anotherContainer");
 
 		assertThat(storage42.getCode()).isEqualTo("Ze42");
-		assertThat(storage42.getTitle()).isEqualTo("Ze42");
+		assertThat(storage42.getTitle()).isEqualTo("Ze storage");
 		assertThat(storage42.getDescription()).isEqualTo("Ze description");
 
 		assertThat(storage666.getCode()).isEqualTo("Ze666");
-		assertThat(storage666.getTitle()).isEqualTo("Ze42-Ze666");
+		assertThat(storage666.getTitle()).isEqualTo("Ze child storage");
 		assertThat(storage666.getDescription()).isEqualTo("Ze description");
 		assertThat(storage666.getDecommissioningType()).isEqualTo(DecommissioningType.DEPOSIT);
 		assertThat(storage666.getParentStorageSpace()).isEqualTo("42");

@@ -23,6 +23,7 @@ public class CorePermissions {
 	public static final String MANAGE_VALUELIST = permission(COLLECTION_MANAGEMENT, "manageValueList");
 	public static final String MANAGE_METADATASCHEMAS = permission(COLLECTION_MANAGEMENT, "manageMetadataSchemas");
 	public static final String MANAGE_SECURITY = permission(COLLECTION_MANAGEMENT, "manageSecurity");
+	public static final String MANAGE_SEARCH_BOOST = permission(COLLECTION_MANAGEMENT, "manageSearchBoost");
 	public static final String MANAGE_METADATAEXTRACTOR = permission(COLLECTION_MANAGEMENT, "manageMetadataExtractor");
 	public static final String MANAGE_CONNECTORS = permission(COLLECTION_MANAGEMENT, "manageConnectors");
 	public static final String MANAGE_SEARCHENGINE = permission(COLLECTION_MANAGEMENT, "manageSearchEngine");
@@ -45,6 +46,7 @@ public class CorePermissions {
 	public static final String MANAGE_SYSTEM_UPDATES = permission(SYSTEM_MANAGEMENT, "manageSystemUpdates");
 	public static final String MANAGE_LDAP = permission(SYSTEM_MANAGEMENT, "ldapConfigurationManagement");
 	public static final String MANAGE_LABELS = permission(SYSTEM_MANAGEMENT, "manageLabels");
+	public static final String VIEW_SYSTEM_BATCH_PROCESSES = permission(SYSTEM_MANAGEMENT, "viewSystemBatchProcesses");
 
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(SYSTEM_MANAGEMENT);
 

@@ -172,7 +172,7 @@ public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappi
 				new BeanItemContainer<>(FieldMapper.class, mapping.getFieldMappers()));
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

@@ -20,6 +20,7 @@ public class TaxonomiesReader {
 	private static final String USER_IDS = "userIds";
 	private static final String GROUP_IDS = "groupIds";
 	private static final String VISIBLE_IN_HOME_PAGE = "visibleInHomePage";
+	private static final String SHOW_PARENTS_IN_SEARCH_RESULTS = "showParentsInSearchResults";
 	private static final String COLLECTION = "collection";
 	private static final String ENABLES = "enables";
 	private static final String SCHEMA_TYPES = "schemaTypes";
@@ -61,12 +62,13 @@ public class TaxonomiesReader {
 		List<String> groupIds = toIdsList(taxonomyElement.getChildText(GROUP_IDS));
 
 		boolean visibleInHomePage = "true".equals(taxonomyElement.getChildText(VISIBLE_IN_HOME_PAGE));
+		boolean showParents = "true".equals(taxonomyElement.getChildText(SHOW_PARENTS_IN_SEARCH_RESULTS));
 		List<String> taxonomySchemaTypes = new ArrayList<>();
 		for (Element schemaTypeElement : taxonomyElement.getChild(SCHEMA_TYPES).getChildren()) {
 			taxonomySchemaTypes.add(schemaTypeElement.getText());
 		}
 		return new Taxonomy(code, title, collection, visibleInHomePage,
-				userIds, groupIds, taxonomySchemaTypes);
+				userIds, groupIds, taxonomySchemaTypes, showParents);
 	}
 
 	private List<String> toIdsList(String idsStr) {

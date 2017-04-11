@@ -115,4 +115,9 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 		return recordForm;
 	}
 
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
 }
