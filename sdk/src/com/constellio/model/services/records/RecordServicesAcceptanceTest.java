@@ -79,6 +79,7 @@ import com.constellio.model.extensions.events.records.RecordInCreationBeforeVali
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -1649,6 +1650,43 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenExceptionThrownByTransactionExecutionBeforeSaveExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
 	public void givenValidationExceptionThrownByRecordInModificationBeforeSaveExtensionThenCatchedDependingOnTransactionOption()
 			throws Exception {
 
@@ -1664,6 +1702,43 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
 		recordServices.add(record);
 		record.set(Schemas.TITLE, "Édouard Lechat");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true).setCatchExtensionsExceptions(false);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenValidationExceptionThrownByTransactionExecutionBeforeSafeExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
+				event.getValidationErrors().add(RecordServicesAcceptanceTest.class, "Ze validation error");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
 		Transaction transaction = new Transaction(record);
 		try {
 			recordServices.execute(transaction);
