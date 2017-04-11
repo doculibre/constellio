@@ -219,7 +219,9 @@ public class RecordVOTable extends BaseTable {
 			} else {
 				metadataDisplay = new Label("");
 			}
-			if ((metadataDisplay instanceof Label) && metadataVO.codeMatches(Schemas.TITLE_CODE)) {
+			boolean instance = metadataDisplay instanceof Label;
+			boolean matchCode = metadataVO.codeMatches(Schemas.TITLE_CODE);
+			if (instance && matchCode) {
 				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
 				MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
 				String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
