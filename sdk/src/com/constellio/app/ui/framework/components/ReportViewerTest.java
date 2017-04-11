@@ -1,18 +1,17 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.EXCEL_MIMETYPE;
-import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.PDF_MIMETYPE;
-import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.ZIP_MIMETYPE;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
+
+import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportViewerTest {
 	@Test
 	public void givenExcelFileNameWhenGetMimeThenExcel()
 			throws Exception {
 		assertThat(ReportViewer.getMimeTypeFromFileName("lo l.xls")).isEqualTo(EXCEL_MIMETYPE);
-		assertThat(ReportViewer.getMimeTypeFromFileName("lol.xlsX")).isEqualTo(EXCEL_MIMETYPE);
+		assertThat(ReportViewer.getMimeTypeFromFileName("lo l.xlsx")).isEqualTo(SPREADSHEET_MIMETYPE);
+		assertThat(ReportViewer.getMimeTypeFromFileName("lol.xlsX")).isEqualTo(SPREADSHEET_MIMETYPE);
 	}
 
 	@Test
