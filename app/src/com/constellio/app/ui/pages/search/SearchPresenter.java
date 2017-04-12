@@ -455,7 +455,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		List<MetadataVO> result = new ArrayList<>();
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
-			if(metadataLocalCodes.contains(metadata.getLocalCode())) {
+			if(!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch()) {
 					result.add(builder.build(metadata, view.getSessionContext()));

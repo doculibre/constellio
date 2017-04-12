@@ -200,7 +200,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		List<MetadataVO> result = new ArrayList<>();
 		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
-			if(metadataLocalCodes.contains(metadata.getLocalCode())) {
+			if(!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch()) {
 					result.add(builder.build(metadata, view.getSessionContext()));

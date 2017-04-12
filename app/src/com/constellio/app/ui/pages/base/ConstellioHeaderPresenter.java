@@ -5,12 +5,10 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -109,12 +107,21 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		if (types != null) {
 			for (MetadataSchemaType type : types.getSchemaTypes()) {
 				SchemaTypeDisplayConfig config = schemasDisplayManager().getType(header.getCollection(), type.getCode());
-				if (config.isAdvancedSearch()) {
+				if (config.isAdvancedSearch() && isVisibleForUser(type, getCurrentUser())) {
 					result.add(builder.build(type));
 				}
 			}
 		}
 		return result;
+	}
+
+	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
+		if(ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+			return false;
+		} else if(StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
+			return false;
+		}
+		return true;
 	}
 
 	public String getSchemaType() {
@@ -145,7 +152,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		List<MetadataVO> result = new ArrayList<>();
 		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
-			if(metadataLocalCodes.contains(metadata.getLocalCode())) {
+			if(!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch()) {
 					result.add(builder.build(metadata, header.getSessionContext()));
