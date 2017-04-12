@@ -150,6 +150,26 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		recentTable.addStyleName("record-table");
 		return new RecordVOSelectionTableAdapter(recentTable) {
 			@Override
+			public void selectAll() {
+				selectAllByItemId();
+			}
+
+			@Override
+			public void deselectAll() {
+				deselectAllByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return isAllItemsSelectedByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return isAllItemsDeselectedByItemId();
+			}
+			
+			@Override
 			public void setSelected(Object itemId, boolean selected) {
 				RecordVO recordVO = recentTable.getRecordVO(itemId);
 				String recordId = recordVO.getId();
@@ -191,6 +211,26 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			}
 		});
 		return new RecordVOSelectionTableAdapter(table) {
+			@Override
+			public void selectAll() {
+				selectAllByItemId();
+			}
+
+			@Override
+			public void deselectAll() {
+				deselectAllByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return isAllItemsSelectedByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return isAllItemsDeselectedByItemId();
+			}
+			
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);

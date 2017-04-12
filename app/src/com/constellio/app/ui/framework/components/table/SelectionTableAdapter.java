@@ -52,16 +52,22 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 				@Override
 				protected void onSelectAll(ClickEvent event) {
 					SelectionTableAdapter.this.selectAll();
+					for (Object visibleItemId : SelectionTableAdapter.this.table.getVisibleItemIds()) {
+						setChecked(visibleItemId, isSelected(visibleItemId));
+					}
 				}
 				
 				@Override
 				protected void onDeselectAll(ClickEvent event) {
 					SelectionTableAdapter.this.deselectAll();
+					for (Object visibleItemId : SelectionTableAdapter.this.table.getVisibleItemIds()) {
+						setChecked(visibleItemId, isSelected(visibleItemId));
+					}
 				}
 			};
 			toggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 			toggleButton.addStyleName(ValoTheme.BUTTON_LINK);
-			if (table.getItemIds().isEmpty()) {
+			if (table.size() == 0) {
 				toggleButton.setVisible(false);
 			}
 			
@@ -185,7 +191,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 //		}
 	}
 	
-	protected boolean isAllItemsSelected() {
+	protected boolean isAllItemsSelectedByItemId() {
 		boolean allItemsSelected;
 		if (table != null) {
 			Collection<?> itemIds = table.getItemIds();
@@ -202,7 +208,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		return allItemsSelected;
 	}
 
-	protected boolean isAllItemsUnselected() {
+	protected boolean isAllItemsDeselectedByItemId() {
 		boolean allItemsUnselected;
 		if (table != null) {
 			Collection<?> itemIds = table.getItemIds();
@@ -219,7 +225,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		return allItemsUnselected;
 	}
 	
-	public void selectAll() {
+	public void selectAllByItemId() {
 		if (table != null) {
 			for (Object itemId : table.getItemIds()) {
 				CheckBox checkBox = getCheckBox(itemId);
@@ -230,7 +236,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		}
 	}
 	
-	public void deselectAll() {
+	public void deselectAllByItemId() {
 		if (table != null) {
 			for (Object itemId : table.getItemIds()) {
 				CheckBox checkBox = getCheckBox(itemId);
@@ -240,6 +246,14 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			}
 		}
 	}
+	
+	public abstract void selectAll();
+	
+	public abstract void deselectAll();
+	
+	public abstract boolean isAllItemsSelected();
+	
+	public abstract boolean isAllItemsDeselected();
 	
 	public abstract boolean isSelected(Object itemId);
 	

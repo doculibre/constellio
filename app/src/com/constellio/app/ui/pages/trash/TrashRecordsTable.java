@@ -115,14 +115,35 @@ public class TrashRecordsTable extends SelectionTableAdapter {
 	}
 
 	@Override
+	public boolean isAllItemsSelected() {
+		return presenter.isAllItemsSelected();
+	}
+
+	@Override
+	public boolean isAllItemsDeselected() {
+		return presenter.isAllItemsDeselected();
+	}
+
+	@Override
+	public void selectAll() {
+		presenter.selectAllClicked();
+	}
+
+	@Override
+	public void deselectAll() {
+		presenter.deselectAllClicked();
+	}
+
+	@Override
 	public boolean isSelected(Object itemId) {
-		return TrashRecordsTable.this.presenter.isRecordSelected(TrashRecordsTable.this.dataProvider.getRecordVO((Integer) itemId));
+		return presenter.isRecordSelected(dataProvider.getRecordVO((Integer) itemId));
 	}
 
 	@Override
 	public void setSelected(Object itemId, boolean selected) {
 		Integer index = (Integer) itemId;
-		RecordVO entity = TrashRecordsTable.this.dataProvider.getRecordVO(index);
-		TrashRecordsTable.this.presenter.recordSelectionChanged(entity, selected);
+		RecordVO entity = dataProvider.getRecordVO(index);
+		presenter.recordSelectionChanged(entity, selected);
 	}
+	
 }
