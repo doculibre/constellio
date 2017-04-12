@@ -100,7 +100,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public void processButtonClicked() {
 		if(searchServices().getResultsCount(from(rmRecordsServices.folder.schemaType()).where(rmRecordsServices.folder.borrowed()).isTrue()
 				.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList.getFolders())) > 0) {
-			view.showErrorMessage($("DecommissioningListPresenter.someFoldersAreBorrowed"));
+			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
 			return;
 		}
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
