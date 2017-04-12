@@ -269,8 +269,8 @@ public class RecordVOTable extends BaseTable {
 			setColumnExpandRatio(titleMetadata, 1);
 			if (isContextMenuPossible()) {
 				addContextMenu();
+				addMenuBarColumn();
 			}
-			addMenuBarColumn();
 		}
 	}
 
@@ -365,15 +365,17 @@ public class RecordVOTable extends BaseTable {
 		});
 	}
 
-	public void collapseColumn(String metadataCode) {
+	public void setColumnCollapsed(String metadataCode, boolean collapsed) {
 		if (!isColumnCollapsingAllowed()) {
 			return;
 		}
-		Object[] metadataList = getVisibleColumns();
-		for (Object metadata : metadataList) {
-			MetadataVO metadataVO = (MetadataVO) metadata;
-			if (metadataVO.getCode().contains(metadataCode)) {
-				setColumnCollapsed(metadata, true);
+		Object[] visibleColumnIds = getVisibleColumns();
+		for (Object visibleColumnId : visibleColumnIds) {
+			if (visibleColumnId instanceof  MetadataVO) {
+				MetadataVO metadataVO = (MetadataVO) visibleColumnId;
+				if (metadataVO.getCode().contains(metadataCode)) {
+					setColumnCollapsed(visibleColumnId, collapsed);
+				}
 			}
 		}
 	}

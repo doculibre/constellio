@@ -22,6 +22,7 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
@@ -819,6 +820,7 @@ public class DecommissioningService {
 			folder.setAdministrativeUnitEntered(userFolder.getAdministrativeUnit());
 			folder.setCategoryEntered(userFolder.getCategory());
 			folder.setRetentionRuleEntered(userFolder.getRetentionRule());
+			folder.setCopyStatusEntered(CopyType.PRINCIPAL);
 		}
 	}
 

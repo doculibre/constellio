@@ -7,8 +7,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -24,7 +22,6 @@ import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
@@ -57,7 +54,6 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
-	private View parentView;
 
 	protected DocumentMenuBarPresenter presenter;
 
@@ -294,13 +290,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	}
 
 	public void postClose() {
-		if(parentView instanceof HomeViewImpl) {
-			navigateTo().home("checkedOutDocuments");
-		}
-	}
-
-	public void setParentView(View view) {
-		parentView = view;
+		refreshParent();
 	}
 
 	@Override
@@ -396,6 +386,14 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	@Override
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, "_top");
+	}
+
+	@Override
+	public void refreshParent() {
+		View parentView = ConstellioUI.getCurrent().getCurrentView();
+		if (parentView instanceof HomeViewImpl) {
+			navigateTo().home("checkedOutDocuments");
+		}
 	}
 
 }

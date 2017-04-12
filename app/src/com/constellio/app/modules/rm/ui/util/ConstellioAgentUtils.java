@@ -14,6 +14,7 @@ import java.net.URLEncoder;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -171,7 +172,9 @@ public class ConstellioAgentUtils {
 		if (StringUtils.isNotBlank(agentURL)) {
 			sb.append(agentURL);
 			sb.append(URL_SEP);
-			appendedAgentURL = StringUtils.removeStart(appendedAgentURL, "constellio://");
+			if (appendedAgentURL.startsWith("constellio://")) {
+				appendedAgentURL = StringUtils.removeStart(appendedAgentURL, "constellio://");
+			}
 			try {
 				appendedAgentURL = URLDecoder.decode(appendedAgentURL, "UTF-8");
 				appendedAgentURL = StringUtils.substringAfter(appendedAgentURL, "/agentPath");
@@ -229,6 +232,7 @@ public class ConstellioAgentUtils {
 		String currentUsername = currentUserVO.getUsername();
 		String currentUserId = currentUserVO.getId();
 		String filename = contentVersionVO.getFileName();
+		String extension = FilenameUtils.getExtension(filename);
 		filename = UnicodeUtils.unicodeEscape(filename);
 
 		MetadataSchemaTypes types = types(sessionContext);
