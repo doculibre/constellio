@@ -450,6 +450,26 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 		selectionTableAdapter = new SelectionTableAdapter(selectionTable) {
 			@Override
+			public void selectAll() {
+				presenter.selectAllClicked();
+			}
+
+			@Override
+			public void deselectAll() {
+				presenter.deselectAllClicked();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return presenter.isAllItemsSelected();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return presenter.isAllItemsDeselected();
+			}
+			
+			@Override
 			public boolean isSelected(Object itemId) {
 				String recordId = (String) itemId;
 				return presenter.isSelected(recordId);
@@ -784,6 +804,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		return true && list.size() > 0;
 	}
 
+	@Override
 	public void refreshButtons() {
 		actionMenuLayout.removeAllComponents();
 		buildSelectionPanelButtons(actionMenuLayout);

@@ -533,6 +533,26 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
 		RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
 			@Override
+			public void selectAll() {
+				presenter.selectAllClicked();
+			}
+
+			@Override
+			public void deselectAll() {
+				presenter.deselectAllClicked();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return presenter.isAllItemsSelected();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return presenter.isAllItemsDeselected();
+			}
+
+			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
 				RecordVO recordVO = item.getRecord();

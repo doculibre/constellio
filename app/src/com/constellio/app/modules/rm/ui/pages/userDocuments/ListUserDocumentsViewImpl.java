@@ -143,6 +143,26 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		
 		userContentSelectTableAdapter = new RecordVOSelectionTableAdapter(userContentTable) {
 			@Override
+			public void selectAll() {
+				presenter.selectAllClicked();
+			}
+
+			@Override
+			public void deselectAll() {
+				presenter.deselectAllClicked();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return presenter.isAllItemsSelected();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return presenter.isAllItemsDeselected();
+			}
+
+			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
 				RecordVO recordVO = item.getRecord();
