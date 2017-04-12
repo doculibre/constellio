@@ -339,7 +339,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("field_s", "1");
 		fields.put("field_ss", Arrays.asList("1"));
-		fields.put("fields_ss", Arrays.asList("1", "2"));
+		fields.put("fields_ss", Arrays.asList("1", "1", "2", "3"));
 
 		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
 
@@ -352,7 +352,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("field_s", "1");
 		fields.put("field_ss", Arrays.asList("1"));
-		fields.put("fields_ss", Arrays.asList("1", "2"));
+		fields.put("fields_ss", Arrays.asList("1", "2", "2", "3"));
 
 		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
 
@@ -365,7 +365,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("field_l", 1l);
 		fields.put("field_ls", Arrays.asList(1l));
-		fields.put("fields_ls", Arrays.asList(1l, 2l));
+		fields.put("fields_ls", Arrays.asList(1l, 2l, 2l, 3l));
 
 		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
 
