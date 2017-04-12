@@ -1,17 +1,7 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.model.enums.RetentionType;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.PendingAlert;
@@ -19,6 +9,11 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class Folder extends RMObject {
 	public static final String SCHEMA_TYPE = "folder";
@@ -102,6 +97,11 @@ public class Folder extends RMObject {
 	//public static final String CALENDAR_YEAR = "calendarYear";
 	//TO DELETE
 	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
+
+	public static final String REACTIVATION_DATES = "reactivationDates";
+	public static final String REACTIVATION_USERS = "reactivationUsers";
+	public static final String PREVIOUS_TRANSFER_DATES = "previousTransferDates";
+	public static final String PREVIOUS_DEPOSIT_DATES = "previousDepositDates";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {

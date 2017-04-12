@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -73,6 +74,13 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
 	private void adjustSchemaDisplay() {
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+
+		displayManager.saveSchema(displayManager.getSchema(collection, Folder.DEFAULT_SCHEMA)
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_DATES, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION));
+
 		displayManager.saveSchema(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
 				.withNewFormMetadata(Task.DEFAULT_SCHEMA + "_" + Task.LINKED_CONTAINERS));
 		displayManager.saveSchema(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
@@ -161,6 +169,13 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DATES).setType(MetadataValueType.DATE).setMultivalue(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_USERS).setType(MetadataValueType.REFERENCE).setMultivalue(true).defineReferencesTo(
+					typesBuilder.getSchemaType(User.SCHEMA_TYPE)
+			);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_DEPOSIT_DATES).setType(MetadataValueType.DATE).setMultivalue(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_TRANSFER_DATES).setType(MetadataValueType.DATE).setMultivalue(true);
+
 			MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.getSchemaType(Task.SCHEMA_TYPE);
 			taskSchemaType.createCustomSchema(BorrowRequest.SCHEMA_NAME);
 			taskSchemaType.createCustomSchema(ReturnRequest.SCHEMA_NAME);
