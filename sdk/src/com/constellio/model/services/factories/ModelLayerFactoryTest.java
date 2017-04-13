@@ -81,7 +81,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 
 		modelLayerFactory = spy(
 				new ModelLayerFactory(dataLayerFactory, foldersLocator, modelLayerConfiguration,
-						statefullServiceDecorator, new Delayed<>(constellioModulesManager), null));
+						statefullServiceDecorator, new Delayed<>(constellioModulesManager), null, null));
 	}
 
 	@Test
