@@ -11868,6 +11868,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: hidden;
 }
 
+.constellio .horizontal-option-group {
+	white-space: normal;
+}
+
 .constellio .button-badge {
 	position: relative;
 }
