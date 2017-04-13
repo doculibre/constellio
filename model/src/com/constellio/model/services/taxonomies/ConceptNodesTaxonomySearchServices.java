@@ -89,6 +89,7 @@ public class ConceptNodesTaxonomySearchServices {
 		//TODO Detect which records could possibly be in the taxonomy and only return those essential fields
 
 		Set<String> metadatas = new HashSet<>();
+		metadatas.add(Schemas.CODE.getDataStoreCode());
 		metadatas.add(Schemas.TITLE.getDataStoreCode());
 		metadatas.add(Schemas.LINKABLE.getDataStoreCode());
 		metadatas.add(Schemas.VISIBLE_IN_TREES.getDataStoreCode());
@@ -118,7 +119,7 @@ public class ConceptNodesTaxonomySearchServices {
 
 	public SPEQueryResponse getChildNodesResponse(Record record, TaxonomiesSearchOptions options) {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record);
-		return searchServices.query(childNodesQuery(record, options,types));
+		return searchServices.query(childNodesQuery(record, options, types));
 	}
 
 	public static LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
