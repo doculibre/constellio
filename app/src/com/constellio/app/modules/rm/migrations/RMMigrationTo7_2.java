@@ -55,6 +55,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
             try {
                 recordServices.execute(transaction);
             } catch (RecordServicesException e) {
+                e.printStackTrace();
                 throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
             }
         }
@@ -77,6 +78,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
             try {
                 recordServices.execute(transaction);
             } catch (RecordServicesException e) {
+                e.printStackTrace();
                 throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
             }
         }
