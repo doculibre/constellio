@@ -276,16 +276,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
 	}
 
-//TODO	@Test
-	public void whenSearchByIdThenRecordFound()
-			throws Exception{
-		String recordId = "00000000166";
-		simpleSearchPresenter = new SimpleSearchPresenter(view);
-		simpleSearchPresenter.setSearchExpression(recordId);
-		assertThat(simpleSearchPresenter.getSearchResults().size()).isEqualTo(1);
-		assertThat(simpleSearchPresenter.getSearchResults().getRecordVO(0).getId()).isEqualTo(recordId);
-	}
-
 	private List<String> getRecordsIds(List<SearchResultVO> records) {
 		List<String> returnList = new ArrayList<>();
 		for (SearchResultVO record : records) {
