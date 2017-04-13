@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -23,10 +14,7 @@ import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactory
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.*;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
@@ -51,6 +39,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "rm";
@@ -121,7 +118,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_1(),
 				new RMMigrationTo7_1_1(),
 				new RMMigrationTo7_1_3(),
-				new RMMigrationTo7_1_3_1()
+				new RMMigrationTo7_1_3_1(),
+				new RMMigrationTo7_2()
 		);
 	}
 
@@ -242,12 +240,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new SessionContextRecordExtension());
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
+		extensions.recordImportExtensions.add(new EventImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DecommissioningListImportExtension(collection, modelLayerFactory));
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
-		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);

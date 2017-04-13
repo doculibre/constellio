@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests.schemas;
 
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -96,7 +97,7 @@ public class SchemaTestFeatures {
 
 	public SchemaTestFeatures use() {
 		if (manager == null) {
-			manager = factoriesTestFeatures.newModelServicesFactory().getMetadataSchemasManager();
+			manager = factoriesTestFeatures.newModelServicesFactory(DEFAULT_NAME).getMetadataSchemasManager();
 			collectionsManager = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory().getCollectionsManager();
 			pluginManager = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory().getPluginManager();
 			modulesManager = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory().getModulesManager();

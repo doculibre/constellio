@@ -12,6 +12,7 @@ import org.junit.Test;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
@@ -256,6 +257,21 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		manager.deleteRole(validRole);
 
 		assertThat(manager.getAllRoles(zeCollection)).hasSize(3).extracting("code").doesNotContain(validRole.getCode());
+	}
+
+	@Test
+	public void givenMultipleInstancesWhenAddingRoleThenAvailableInAllInstances()
+			throws RolesManagerRuntimeException {
+		OpenedResourcesWatcher.enabled = false;
+		RolesManager managerCreatedBeforeNewRole = getModelLayerFactory("createdBeforeNewRole").getRolesManager();
+		manager.addRole(validRole);
+		RolesManager managerCreatedAfterNewRole = getModelLayerFactory("createdAfterNewRole").getRolesManager();
+
+		assertThat(manager.getAllRoles(zeCollection)).hasSize(2);
+		assertThat(managerCreatedAfterNewRole.getAllRoles(zeCollection)).hasSize(2);
+
+		//TODO Maxime
+		assertThat(managerCreatedBeforeNewRole.getAllRoles(zeCollection)).hasSize(1);
 	}
 
 	@Test(expected = RolesManagerRuntimeException_Validation.class)

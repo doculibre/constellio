@@ -130,9 +130,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void copyContentButtonClicked() {
-		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
-		}
+		actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 	}
 
 	protected boolean isDeleteDocumentPossible() {
@@ -360,6 +358,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				documentVO.setContent(currentVersionVO);
 
 				updateActionsComponent();
+				actionsComponent.refreshParent();
 				actionsComponent.showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));

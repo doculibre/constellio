@@ -1,12 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.robots.model.RegisteredAction;
@@ -32,6 +25,7 @@ import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.Search
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -46,6 +40,12 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		implements FieldOverridePresenter, SearchCriteriaPresenter, DynamicParametersPresenter {
@@ -185,13 +185,26 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		MetadataSchemaType schemaType = schemaType(schemaFilter);
+		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser())).getFieldFacetValues("schema_s");
+		Set<String> metadataLocalCodes = new HashSet<>();
+		if(schema_s != null) {
+			for(FacetValue facetValue: schema_s) {
+				if(facetValue.getQuantity() > 0) {
+					String schema = facetValue.getValue();
+					metadataLocalCodes.addAll(types().getSchema(schema).getMetadatas().toLocalCodesList());
+				}
+			}
+		}
 
 		List<MetadataVO> result = new ArrayList<>();
 		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
-			MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-			if (config.isVisibleInAdvancedSearch()) {
-				result.add(builder.build(metadata, view.getSessionContext()));
+			if(!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
+				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
+				if (config.isVisibleInAdvancedSearch()) {
+					result.add(builder.build(metadata, view.getSessionContext()));
+				}
 			}
 		}
 		return result;

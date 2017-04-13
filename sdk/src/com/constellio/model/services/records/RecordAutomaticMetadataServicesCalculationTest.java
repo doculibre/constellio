@@ -29,6 +29,7 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -48,6 +49,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTest {
 
+	RecordUpdateOptions options = new RecordUpdateOptions();
 	RecordAutomaticMetadataServices services;
 	@Mock RecordProvider recordProvider;
 
@@ -122,28 +124,29 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	@Test
 	public void givenDependencyModifiedWhenSettingCalculatedValuesInRecordThenValueCalculated() {
 		doNothing().when(services).calculateValueInRecord(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordUpdateOptions.class));
 		doReturn(true).when(services).calculatorDependencyModified(any(RecordImpl.class), any(MetadataValueCalculator.class),
 				any(MetadataSchemaTypes.class), any(Metadata.class));
 
 		services.setCalculatedValuesInRecords(record, zeSchema.calculatedDaysBetween(), recordProvider, reindexedMetadata,
-				schemas.getTypes());
+				schemas.getTypes(), options);
 
-		verify(services).calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes());
+		verify(services)
+				.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(), options);
 	}
 
 	@Test
 	public void givenDependencyNotModifiedWhenSettingCalculatedValuesInRecordThenValueCalculated() {
 		doNothing().when(services).calculateValueInRecord(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordUpdateOptions.class));
 		doReturn(false).when(services).calculatorDependencyModified(any(RecordImpl.class), any(MetadataValueCalculator.class),
 				any(MetadataSchemaTypes.class), any(Metadata.class));
 
 		services.setCalculatedValuesInRecords(record, zeSchema.calculatedDaysBetween(), recordProvider, reindexedMetadata,
-				schemas.getTypes());
+				schemas.getTypes(), options);
 
 		verify(services, never())
-				.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes());
+				.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(), options);
 	}
 
 	@Test
@@ -166,12 +169,12 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	public void whenUpdatingAutomaticValuesInRecordsThenSetValueForAllMetadatas()
 			throws Exception {
 		doNothing().when(services).setCalculatedValuesInRecords(any(RecordImpl.class), any(Metadata.class),
-				any(RecordProvider.class), eq(reindexedMetadata), any(MetadataSchemaTypes.class));
+				any(RecordProvider.class), eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(RecordUpdateOptions.class));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
 
 		verify(services).setCalculatedValuesInRecords(record, zeSchema.calculatedDaysBetween(), recordProvider,
-				reindexedMetadata, schemas.getTypes());
+				reindexedMetadata, schemas.getTypes(), options);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -179,9 +182,10 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	public void givenRequiredDependencyUndefinedWhenCalculateValuesInRecordThenUseDefaultValue() {
 		doReturn(false).when(services)
 				.addValuesFromDependencies(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
-						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class));
+						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class),
+						any(RecordUpdateOptions.class));
 
-		services.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes());
+		services.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(), options);
 
 		verify(record).updateAutomaticValue(zeSchema.calculatedDaysBetween(), -1.0);
 	}
@@ -191,10 +195,11 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	public void givenRequiredDependencyDefinedWhenCalculateValuesInRecordThenCalculateValue() {
 		doReturn(true).when(services)
 				.addValuesFromDependencies(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
-						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class));
+						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class),
+						any(RecordUpdateOptions.class));
 		doReturn(calculator).when(services).getCalculatorFrom(any(Metadata.class));
 
-		services.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes());
+		services.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(), options);
 
 		verify(record).updateAutomaticValue(eq(zeSchema.calculatedDaysBetween()), anyObject());
 		verify(calculator).calculate(any(CalculatorParameters.class));
@@ -205,13 +210,15 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	public void givenTwoLocalAndOneReferenceDependenciesWhenGetValuesFromDependenciesThenAllValueRetrieved() {
 		doReturn(true).when(services).addValueForLocalDependency(any(RecordImpl.class), any(Map.class), any(Dependency.class));
 		doReturn(true).when(services).addValueForReferenceDependency(any(RecordImpl.class), any(RecordProvider.class),
-				any(Map.class), any(ReferenceDependency.class));
+				any(Map.class), any(ReferenceDependency.class), any(RecordUpdateOptions.class));
 		Map aMap = mock(Map.class);
-		services.addValuesFromDependencies(record, mock(Metadata.class), recordProvider, calculator, aMap, schemas.getTypes());
+		services.addValuesFromDependencies(record, mock(Metadata.class), recordProvider, calculator, aMap, schemas.getTypes(),
+				options);
 
 		verify(services).addValueForLocalDependency(eq(record), eq(aMap), eq(aLocalDependency));
 		verify(services).addValueForLocalDependency(eq(record), eq(aMap), eq(anotherLocalDependency));
-		verify(services).addValueForReferenceDependency(eq(record), eq(recordProvider), eq(aMap), eq(aReferenceDependency));
+		verify(services)
+				.addValueForReferenceDependency(eq(record), eq(recordProvider), eq(aMap), eq(aReferenceDependency), eq(options));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -253,7 +260,8 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn("otherRecordId").when(record).get(aReferenceMetadata);
 		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
 
-		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency)).isFalse();
+		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options))
+				.isFalse();
 		verify(aMap, never()).put(any(Dependency.class), anyObject());
 	}
 
@@ -271,7 +279,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
 		doReturn("aValue").when(otherRecord).get(theReferencedMetadata);
 
-		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency)).isTrue();
+		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options)).isTrue();
 		verify(aMap).put(aReferenceDependency, "aValue");
 	}
 

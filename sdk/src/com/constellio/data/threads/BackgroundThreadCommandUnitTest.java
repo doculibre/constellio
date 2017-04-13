@@ -11,7 +11,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -19,11 +18,14 @@ import org.joda.time.LocalTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
+import org.mockito.Mock;
 
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 
+	@Mock DataLayerFactory dataLayerFactory;
 	AtomicBoolean systemStarted = new AtomicBoolean(true);
 	AtomicBoolean stopRequested = new AtomicBoolean(false);
 	TestRunnable nestedCommand;
@@ -38,7 +40,8 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 
 		configuration = spy(
 				BackgroundThreadConfiguration.repeatingAction(zeId, nestedCommand).executedEvery(Duration.standardSeconds(42)));
-		command = spy(new BackgroundThreadCommand(configuration, systemStarted,stopRequested, new Semaphore(10)));
+		command = spy(
+				new BackgroundThreadCommand(configuration, systemStarted, stopRequested, new Semaphore(10), dataLayerFactory));
 	}
 
 	@Test

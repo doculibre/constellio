@@ -146,7 +146,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 
-		saveButton = new Button($("save"));
+		saveButton = new Button(getSaveButtonCaption());
 		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		saveButton.addClickListener(new ClickListener() {
@@ -156,7 +156,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			}
 		});
 
-		cancelButton = new Button($("cancel"));
+		cancelButton = new Button(getCancelButtonCaption());
 		cancelButton.addStyleName(CANCEL_BUTTON);
 		cancelButton.addClickListener(new ClickListener() {
 			@Override
@@ -171,6 +171,14 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
+	}
+	
+	protected String getSaveButtonCaption() {
+		return $("save");
+	}
+	
+	protected String getCancelButtonCaption() {
+		return $("cancel");
 	}
 
 	private void addToDefaultLayoutOrTabSheet(Field<?> field) {
@@ -202,6 +210,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 		} else {
 			fieldLayout = formLayout;
 		}
+		addFieldToLayout(field, fieldLayout);
+	}
+	
+	protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
 		fieldLayout.addComponent(field);
 	}
 

@@ -48,6 +48,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -802,6 +803,11 @@ public class RecordsImportServicesExecutor {
 			if (availableSchemaTypes.contains(schemaType)) {
 				importedSchemaTypes.add(schemaType);
 			}
+		}
+
+		if (importedSchemaTypes.contains(Event.SCHEMA_TYPE)) {
+			importedSchemaTypes.remove(Event.SCHEMA_TYPE);
+			importedSchemaTypes.add(Event.SCHEMA_TYPE);
 		}
 
 		return importedSchemaTypes;

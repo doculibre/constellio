@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.data;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
@@ -123,6 +124,8 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 		LogicalSearchCondition condition;
 
+		Metadata sort = null;
+
 		if (schemaTypeCode != null) {
 
 			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
@@ -131,7 +134,14 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
 			} else {
+				String caption = $("caption." + type.getCode() + ".record");
+
 				condition = from(type).returnAll();
+				if (caption != null && caption.startsWith("{code}")) {
+					sort = Schemas.CODE;
+				} else {
+					sort = Schemas.TITLE;
+				}
 			}
 		} else {
 
@@ -154,6 +164,11 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);
+
+		if (sort != null) {
+			query.sortAsc(sort);
+		}
+
 		if (security) {
 			if (writeAccess) {
 				query.filteredWithUserWrite(user);

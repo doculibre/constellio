@@ -22,11 +22,19 @@ public class RMMigrationTo7_1_3_1 implements MigrationScript {
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
         new SchemaAlterationFor7_1_3_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
+        updateNewPermissions(appLayerFactory, collection);
     }
 
     public void migration()
     {
 
+    }
+
+    private void updateNewPermissions(AppLayerFactory appLayerFactory, String collection) {
+        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+
+        Role admRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+        modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.MANAGE_SEARCH_BOOST)));
     }
 
     class SchemaAlterationFor7_1_3_1 extends MetadataSchemasAlterationHelper {

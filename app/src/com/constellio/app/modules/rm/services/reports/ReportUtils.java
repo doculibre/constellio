@@ -200,32 +200,32 @@ public class ReportUtils {
             for (Folder fol : foldersFound) {
                 Element folder = new Element("folder");
                 Element metadatas = new Element("metadatas");
-                for (ReportField metadonnee : parameters) {
-                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+                for (ReportField reportField : parameters) {
+                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(reportField.getSchema());
 //                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
-                    if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+                    if (reportField.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                        List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+                        List<String> IdsList = fol.getSchema().get(reportField.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(reportField.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(reportField.getCode())));
                         List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
                         for (Record refRecords : referenceRecords) {
-                            Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                            Element refElementCode = new Element("ref_" + reportField.getCode().replace("_default", "") + "_code");
                             refElementCode.setText(refRecords.get(Schemas.CODE) + "");
-                            Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                            Element refElementTitle = new Element("ref_" + reportField.getCode().replace("_default", "") + "_title");
                             refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
                             metadatas.addContent(asList(refElementCode, refElementTitle));
                         }
-                    } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-                        if (fol.get(metadonnee.getCode()) != null) {
-                            Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-                            refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
-                            Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-                            refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
+                    } else if (reportField.getTypes().equals(MetadataValueType.ENUM)) {
+                        if (fol.get(reportField.getCode()) != null) {
+                            Element refElementCode = new Element(escapeForXmlTag(reportField.getLabel()) + "_code");
+                            refElementCode.setText(((EnumWithSmallCode) fol.get(reportField.getCode())).getCode());
+                            Element refElementTitle = new Element(escapeForXmlTag(reportField.getLabel()) + "_title");
+                            refElementTitle.setText(fol.get(reportField.getCode()) + "");
                             metadatas.addContent(asList(refElementCode, refElementTitle));
                         }
                     } else {
-                        Element m = new Element(metadonnee.getLabel() != null ? escapeForXmlTag(metadonnee.getLabel()) : metadonnee.getCode().split("_")[2]);
-                        m.setText(metadonnee.formatData(fol.get(metadonnee.getCode()) != null ? fol.get(metadonnee.getCode()) + "" : null));
+                        Element m = new Element(reportField.getLabel() != null ? escapeForXmlTag(reportField.getLabel()) : reportField.getCode().split("_")[2]);
+                        m.setText(reportField.formatData(fol.get(reportField.getCode()) != null ? fol.get(reportField.getCode()) + "" : null));
                         metadatas.addContent(m);
                     }
                 }
