@@ -13,11 +13,15 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by constellios on 2017-04-11.
  */
 public class RMEventRecordExtension extends RecordExtension {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(RMEventRecordExtension.class);
 
     private final RMSchemasRecordsServices rmSchema;
     final String collection;
@@ -51,13 +55,18 @@ public class RMEventRecordExtension extends RecordExtension {
                     || wrappedEvent.getType().equals(EventType.FOLDER_RELOCATION) || wrappedEvent.getType().equals(EventType.RECEIVE_FOLDER)
                     || wrappedEvent.getType().equals(EventType.RECEIVE_CONTAINER))
             {
-                wrappedEvent.getPaths();
+                try
+                {
+                    DecommissioningList decommissioningList = rm.getDecommissioningList(wrappedEvent.getRecordId());
 
-                DecommissioningList decommissioningList = rm.getDecommissioningList(wrappedEvent.getRecordId());
-
-                AdministrativeUnit administrativeUnit = rmSchema.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
-
-                wrappedEvent.setEventPrincipalPath(administrativeUnit.getPaths().get(0) + wrappedEvent.getPaths().get(0));
+                    AdministrativeUnit administrativeUnit = rmSchema.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
+                    wrappedEvent.setEventPrincipalPath(administrativeUnit.getPaths().get(0) + wrappedEvent.getPaths().get(0));
+                }
+                catch(Exception e)
+                {
+                    // When event are created before the DecommissioningList.
+                    LOGGER.warn("recordInCreationBeforeSave, When event are created before the DecommissioningList, Should not happen in production only in unit testing.");
+                }
             }
         }
     }
