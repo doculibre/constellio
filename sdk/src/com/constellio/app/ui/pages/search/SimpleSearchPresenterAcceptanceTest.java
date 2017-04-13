@@ -1,28 +1,12 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.importExport.settings.SettingsImportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
@@ -35,8 +19,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -45,6 +27,21 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
@@ -260,7 +257,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void giveIDIsSetToNotSortableThenNotAllowedInSort()
+	public void givenIDIsSetToNotSortableThenNotAllowedInSort()
 			throws Exception {
 		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
@@ -270,6 +267,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata("id").setSortable(false);
 				types.getDefaultSchema(Document.SCHEMA_TYPE).getMetadata("id").setSortable(false);
 				types.getDefaultSchema(Task.SCHEMA_TYPE).getMetadata("id").setSortable(false);
+				types.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get("id").setSortable(false);
 			}
 		});
 
