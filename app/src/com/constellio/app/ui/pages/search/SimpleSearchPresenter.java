@@ -88,7 +88,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	public String getUserSearchExpression() {
 		return searchExpression;
 	}
-	
+
 	public void setSearchExpression(String searchExpression) {
 		this.searchExpression = searchExpression;
 	}
@@ -111,12 +111,17 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		}
 	}
 
+	@Override
+	public boolean isPreferAnalyzedFields() {
+		return true;
+	}
+
 	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataVO> result = new ArrayList<>();
 		Set<String> resultCodes = new HashSet<>();
-		for(MetadataSchemaType metadataSchemaType: schemaTypes) {
+		for (MetadataSchemaType metadataSchemaType : schemaTypes) {
 			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
-				if(resultCodes.add(metadata.getLocalCode())) {
+				if (resultCodes.add(metadata.getLocalCode())) {
 					result.add(metadata);
 				}
 			}
@@ -203,7 +208,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageLength(selectedPageLength);
 		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord());
-//			recordServices().update(search);
+		//			recordServices().update(search);
 		updateUIContext(search);
 		if (refreshPage) {
 			view.navigate().to().simpleSearchReplay(search.getId());

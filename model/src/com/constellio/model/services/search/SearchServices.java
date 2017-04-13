@@ -208,17 +208,21 @@ public class SearchServices {
 
 	public String getLanguage(LogicalSearchQuery query) {
 		if (query.getCondition().isCollectionSearch()) {
-			String collection = query.getCondition().getCollection();
-			String language;
-			try {
-				language = collectionsListManager.getCollectionLanguages(collection).get(0);
-			} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-				language = mainDataLanguage;
-			}
-			return language;
+			return getLanguageCode(query.getCondition().getCollection());
+
 		} else {
 			return mainDataLanguage;
 		}
+	}
+
+	public String getLanguageCode(String collection) {
+		String language;
+		try {
+			language = collectionsListManager.getCollectionLanguages(collection).get(0);
+		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+			language = mainDataLanguage;
+		}
+		return language;
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
