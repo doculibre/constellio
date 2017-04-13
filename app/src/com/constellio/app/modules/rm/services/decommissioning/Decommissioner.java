@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.services.factories.AppLayerFactory;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -20,6 +12,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Content;
@@ -38,6 +31,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	protected final DecommissioningService decommissioningService;
@@ -137,6 +136,9 @@ public abstract class Decommissioner {
 	}
 
 	protected void add(RecordWrapper record) {
+		if(transaction.getRecordIds().contains(record.getId())) {
+			throw new ImpossibleRuntimeException("Duplicate records in transaction");
+		}
 		transaction.addUpdate(record.getWrappedRecord());
 	}
 
@@ -378,6 +380,9 @@ public abstract class Decommissioner {
 			loggingServices.logDecommissioning(decommissioningList, user);
 		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		for(Record record: transaction.getRecords()) {
+			recordServices.recalculate(record);
+		}
 		try {
 			recordServices.execute(transaction);
 			for (Record record : recordsToDelete) {
@@ -488,6 +493,13 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	protected void processDeletedFolder(Folder folder, DecomListFolderDetail detail) {
 		removeFolderFromContainer(folder);
 		markFolderDestroyed(folder);
+		//TODO
+//		try {
+//			modelLayerFactory.newRecordServices().update(folder);
+//		} catch (RecordServicesException e) {
+//			e.printStackTrace();
+//		}
+		//add(folder);
 		if (configs.deleteFolderRecordsWithDestruction()) {
 			delete(folder);
 		}
