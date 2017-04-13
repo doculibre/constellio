@@ -1,22 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
@@ -47,6 +30,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
 		implements NewReportPresenter {
@@ -108,6 +98,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void processButtonClicked() {
+		if(searchServices().getResultsCount(from(rmRecordsServices.folder.schemaType()).where(rmRecordsServices.folder.borrowed()).isTrue()
+				.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList.getFolders())) > 0) {
+			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
+			return;
+		}
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($(mayContainAnalogicalMedia() ?
 				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));

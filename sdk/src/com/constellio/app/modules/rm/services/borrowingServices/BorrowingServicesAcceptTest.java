@@ -1,32 +1,29 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_CannotBorrowActiveFolder;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsNotBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_InvalidBorrowingDate;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.*;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BorrowingServicesAcceptTest extends ConstellioTest {
 
@@ -316,6 +313,27 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		assertThat(event.getUsername()).isEqualTo(this.records.getAdmin().getUsername());
 		assertThat(event.getType()).isEqualTo(EventType.RETURN_FOLDER);
 		assertThat(event.getCreatedOn().toLocalDate()).isEqualTo(nowDate);
+	}
+
+	@Test(expected = BorrowingServicesRunTimeException_FolderIsInDecommissioningList.class)
+	public void givenFolderInNonProcessedDecommissioningListThenExceptionIsThrown()
+			throws Exception {
+
+		nowDate = nowDate.plusDays(1);
+		givenTimeIs(nowDate);
+		borrowingServices.validateCanBorrow(records.getAdmin(), records.getFolder_A48(), nowDate);
+	}
+
+	@Test
+	public void givenFolderOnlyInProcessedDecommissioningListThenNoExceptionThrown()
+			throws Exception {
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		nowDate = nowDate.plusDays(1);
+		givenTimeIs(nowDate);
+		borrowingServices.validateCanBorrow(records.getAdmin(), records.getFolder_A48(), nowDate);
 	}
 
 	@Test(expected = BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder.class)
