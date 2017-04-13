@@ -49,6 +49,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 	private TaskVO zeTaskAssociatedVO;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 
+	// TODO Francis Baril faire passer sans RMModule.
 	@Before
 	public void setUp()
 			throws Exception {
