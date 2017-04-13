@@ -1,14 +1,7 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.services.factories.AppLayerFactory;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -20,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Content;
@@ -38,6 +32,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	protected final DecommissioningService decommissioningService;
@@ -175,12 +175,13 @@ public abstract class Decommissioner {
 	}
 
 	private void processFolders() {
+		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
 			if (detail.isFolderExcluded()) {
 				continue;
 			}
 			Folder folder = rm.getFolder(detail.getFolderId());
-			preprocessFolder(folder, detail);
+			preprocessFolder(folder, detail, decommissioningListType);
 			processFolder(folder, detail);
 			add(folder);
 		}
@@ -188,8 +189,8 @@ public abstract class Decommissioner {
 
 	protected abstract void processDocuments();
 
-	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail) {
-		if (folder.getCloseDateEntered() == null) {
+	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail, DecommissioningListType decommissioningListType) {
+		if (folder.getCloseDateEntered() == null && DecommissioningListType.FOLDERS_TO_CLOSE.equals(decommissioningListType)) {
 			folder.setCloseDateEntered(processingDate);
 		}
 		if (detail.getContainerRecordId() != null) {
