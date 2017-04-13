@@ -231,6 +231,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 						showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
 					} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
 						showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
+					} else if (presenter.isAnyFolderBorrowed()) {
+						showErrorMessage($("CartView.aFolderIsBorrowed"));
 					} else {
 						super.buttonClick(event);
 					}
