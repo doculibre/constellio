@@ -19,7 +19,6 @@ public class DecomListContainerDetailFactory implements StructureFactory {
 		try {
 			decomListContainerDetail.setAvailableSize(Double.valueOf(readString(stringTokenizer)));
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 
 		decomListContainerDetail.dirty = false;
