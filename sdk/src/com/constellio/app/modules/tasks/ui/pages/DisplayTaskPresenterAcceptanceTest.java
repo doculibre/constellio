@@ -52,7 +52,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		prepareSystem(withZeCollection().withTasksModule().withAllTest(users));
+		prepareSystem(withZeCollection().withConstellioRMModule().withTasksModule().withAllTest(users));
 		givenTimeIs(testDate);
 
 		recordServices = getModelLayerFactory().newRecordServices();
