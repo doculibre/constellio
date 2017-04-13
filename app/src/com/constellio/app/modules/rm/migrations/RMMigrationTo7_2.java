@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
@@ -52,6 +53,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
         while (batchIterator.hasNext()) {
             Transaction transaction = new Transaction();
             transaction.addAll(batchIterator.next());
+            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
             try {
                 recordServices.execute(transaction);
             } catch (RecordServicesException e) {
@@ -75,6 +77,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
         while (batchIterator.hasNext()) {
             Transaction transaction = new Transaction();
             transaction.addAll(batchIterator.next());
+            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
             try {
                 recordServices.execute(transaction);
             } catch (RecordServicesException e) {
