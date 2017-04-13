@@ -17,8 +17,11 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -314,10 +317,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return "deposit";
 		}
 		return null;
-	}
-
-	public boolean shouldDisplayLegacyId() {
-		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isLegacyIdInDecommisioningLists();
 	}
 
 	public boolean shouldAllowContainerEditing() {
@@ -641,4 +640,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public boolean canCurrentUserManageStorageSpaces() {
 		return presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
+
+	public DecommissioningListFolderTableExtension getFolderDetailTableExtension() {
+		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getDecommissioningListFolderTableExtension();
+	}
+	
 }

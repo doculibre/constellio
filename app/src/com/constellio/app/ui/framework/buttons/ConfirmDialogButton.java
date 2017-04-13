@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.buttons;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.dialogs.ConfirmDialog.ContentMode;
 import org.vaadin.dialogs.DefaultConfirmDialogFactory;
 
 import com.constellio.app.ui.framework.components.BaseWindow;
@@ -26,7 +27,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 			public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
 					String notOKCaption) {
 				ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
-				confirmDialog.setCaptionAsHtml(true);
+				confirmDialog.setContentMode(ContentMode.HTML);
 				confirmDialog.addAttachListener(new AttachListener() {
 					@Override
 					public void attach(AttachEvent event) {
@@ -78,14 +79,15 @@ public abstract class ConfirmDialogButton extends IconButton {
 		case TEXT:
 		default:	
 			iconName = null;
-			iconName = "info";
 			break;
 		};
 		if (iconName != null) {
 			StringBuilder html = new StringBuilder();
-//			html.append("<span class=\"confirm-dialog-info\">");
+			html.append("<span class=\"confirm-dialog-" + iconName + "\">");
+			html.append("<span class=\"confirm-dialog-message\">");
 			html.append(dialogMessage);
-//			html.append("</span>");
+			html.append("</span>");
+			html.append("</span>");
 			dialogMessage = html.toString();
 		}
 		ConfirmDialog.show(

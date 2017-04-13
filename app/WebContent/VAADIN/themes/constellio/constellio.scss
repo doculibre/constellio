@@ -884,27 +884,55 @@ $popup-view-z-index: 3;
 	}
 	
 	.confirm-dialog-info {
-		background-image: url('images/icons/dialog/info.png');
+		background-image: url('images/icons/dialog/information.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+		}
 	}
 	
 	.confirm-dialog-warn {
-		background-image: url('images/icons/dialog/warn.png');
+		background-image: url('images/icons/dialog/sign_warning.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+		}
 	}
 	
 	.confirm-dialog-error {
 		background-image: url('images/icons/dialog/error.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+			font-weight: bold;
+			color: red;
+		}
 	}
 	
 	.confirm-dialog-stop {
-		background-image: url('images/icons/dialog/stop.png');
+		background-image: url('images/icons/dialog/sign_stop.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+			font-weight: bold;
+			color: red;
+		}
 	}
 	
     .constellio-layout {
