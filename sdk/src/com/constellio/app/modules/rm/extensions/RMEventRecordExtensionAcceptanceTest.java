@@ -73,14 +73,7 @@ public class RMEventRecordExtensionAcceptanceTest extends ConstellioTest {
         DecommissioningList decommissioningList = getDecommissioningList(DecommissioningListType.FOLDERS_TO_TRANSFER);
         assertLastEvent(decommissioningList, EventType.FOLDER_RELOCATION);
     }
-
-    @Test
-    public void given()
-    {
-        decommisioningLoggingService.logPdfAGeneration(records.getDocumentWithContent_A19(), records.getAdmin());
-
-
-    }
+    
 
     private void assertLastEvent(DecommissioningList decommissioningList, String decomissioningListType)
     {
