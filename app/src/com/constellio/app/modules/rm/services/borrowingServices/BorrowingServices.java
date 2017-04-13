@@ -1,19 +1,8 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
-import java.util.ArrayList;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_CannotBorrowActiveFolder;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsNotBorrowed;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_InvalidBorrowingDate;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.*;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -22,16 +11,25 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
 
 public class BorrowingServices {
 	public static final String RGD = "RGD";
 	private final RecordServices recordServices;
+	private final SearchServices searchServices;
 	private final LoggingServices loggingServices;
 	private final RMSchemasRecordsServices rm;
 
 	public BorrowingServices(String collection, ModelLayerFactory modelLayerFactory) {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.loggingServices = modelLayerFactory.newLoggingServices();
+		this.searchServices = modelLayerFactory.newSearchServices();
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
@@ -92,6 +90,8 @@ public class BorrowingServices {
 				throw new BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed(folder.getId());
 			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
+			} else if(isInDecommissioningList(folder)) {
+				throw new BorrowingServicesRunTimeException_FolderIsInDecommissioningList(folder.getId());
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder(currentUser.getUsername(), folder.getId());
@@ -159,6 +159,12 @@ public class BorrowingServices {
 			errorMessage = "BorrowingServices.invalidReturnDate";
 		}
 		return errorMessage;
+	}
+
+	private boolean isInDecommissioningList(Folder folder) {
+		boolean isInDecommissioningList = searchServices.getResultsCount(LogicalSearchQueryOperators.from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.folders()).isEqualTo(folder.getId()).andWhere(rm.decommissioningList.processingDate()).isNull()) > 0;
+		return isInDecommissioningList;
 	}
 	
 }

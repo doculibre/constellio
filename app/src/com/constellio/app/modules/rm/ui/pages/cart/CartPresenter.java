@@ -32,7 +32,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -272,6 +271,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	List<Folder> getCartFolders() {
 		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
+	}
+
+	List<String> getCartFolderIds() {
+		return cart().getFolders();
 	}
 
 	private List<Document> getCartDocuments() {
@@ -618,5 +621,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public boolean isSearchResultsSelectionForm() {
 		return false;
 	}
-	
+
+	public boolean isAnyFolderBorrowed() {
+		return searchServices().getResultsCount(from(rm().folder.schemaType()).where(rm().folder.borrowed()).isTrue()
+				.andWhere(Schemas.IDENTIFIER).isIn(getCartFolderIds())) > 0;
+	}
 }
