@@ -98,8 +98,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void processButtonClicked() {
-		if(searchServices().getResultsCount(from(rmRecordsServices.folder.schemaType()).where(rmRecordsServices.folder.borrowed()).isTrue()
-				.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList.getFolders())) > 0) {
+		if(!isListReadyToBeProcessed()) {
 			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
 			return;
 		}
@@ -107,6 +106,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		view.showMessage($(mayContainAnalogicalMedia() ?
 				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
 		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+	}
+
+	public boolean isListReadyToBeProcessed() {
+		return !(searchServices().getResultsCount(from(rmRecordsServices().folder.schemaType()).where(rmRecordsServices().folder.borrowed()).isTrue()
+				.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
 	}
 
 	public void validateButtonClicked() {
