@@ -123,7 +123,6 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 		for(DecomListFolderDetail folder: result) {
 			if(!sortedResult.contains(folder)) {
 				sortedResult.add(folder);
-				break;
 			}
 		}
 		try {
