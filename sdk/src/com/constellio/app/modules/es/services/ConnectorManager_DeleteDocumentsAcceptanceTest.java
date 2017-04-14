@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import org.eclipse.jetty.server.Server;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,6 +65,41 @@ public class ConnectorManager_DeleteDocumentsAcceptanceTest extends ConstellioTe
 		connectorManager.totallyDeleteConnectorRecordsSkippingValidation(getDataLayerFactory().newRecordDao(), connectorInstance);
 
 		assertThat(connectorDocuments()).isEmpty();
+	}
+
+	@Test
+	public void whenIndexingAWebsiteAndDeletingConnectorDocumentsThenAllDocumentsDeleted2()
+			throws Exception {
+
+		givenTestWebsiteInState1();
+		givenDataSet1Connector();
+
+		connectorDocuments = tickAndGetAllDocuments();
+		assertThat(connectorDocuments).isNotEmpty();
+
+		connectorManager.totallyDeleteConnectorRecordsSkippingValidation(getDataLayerFactory().newRecordDao(), connectorInstance);
+
+		assertThat(connectorDocuments()).isEmpty();
+	}
+
+	@After
+	public void tearDown()
+			throws Exception {
+		eventObserver.close();
+
+		if (server != null) {
+			stopWebsiteServer();
+		}
+	}
+
+	private void stopWebsiteServer() {
+		try {
+			server.stop();
+			server.join();
+			server = null;
+		} catch (Exception e) {
+
+		}
 	}
 
 	private void givenTestWebsiteInState1() {
