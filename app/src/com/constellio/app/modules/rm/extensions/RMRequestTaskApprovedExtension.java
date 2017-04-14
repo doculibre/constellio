@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.*;
@@ -31,6 +32,7 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
     TasksSchemasRecordsServices tasksSchemas;
     RMSchemasRecordsServices rmSchemas;
     BorrowingServices borrowingServices;
+    DecommissioningService decommissioningService;
     UserServices userServices;
     LoggingServices loggingServices;
 
@@ -43,6 +45,7 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
         this.borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
         this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
         this.loggingServices = appLayerFactory.getModelLayerFactory().newLoggingServices();
+        this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
     }
 
     @Override
@@ -92,7 +95,13 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
     }
 
     public void completeReactivationRequest(RMTask task, boolean isAccepted) {
-
+        try {
+            User applicant = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
+            User respondant = rmSchemas.getUser((String) task.get(RequestTask.RESPONDANT));
+            decommissioningService.reactivateRecordsFromTask(task.getId(), (LocalDate) task.get(ReactivationRequest.REACTIVATION_DATE), respondant, applicant, isAccepted);
+        } catch (RecordServicesException e) {
+            e.printStackTrace();
+        }
     }
 
     public void completeBorrowExtensionRequest(RMTask task, boolean isAccepted) {

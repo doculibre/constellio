@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -39,6 +31,13 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScript {
 
@@ -210,6 +209,8 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 					.setType(MetadataValueType.DATE);
 			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.BORROW_DURATION)
 					.setType(MetadataValueType.NUMBER).setDefaultRequirement(true);
+			typesBuilder.getSchema(ReactivationRequest.FULL_SCHEMA_NAME).createUndeletable(ReactivationRequest.REACTIVATION_DATE)
+					.setType(MetadataValueType.DATE).setDefaultRequirement(true);
 			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.ACCEPTED)
 					.setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
 			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.ACCEPTED)

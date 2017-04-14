@@ -182,7 +182,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
     @Test
     public void givenReactivationButtonClickedForFolderThenCreateValidTask() {
         folderPresenter.forParams(records.folder_A42); //Crocodile
-        extension.reactivationRequested(folderView);
+        extension.reactivationRequested(folderView, new RMRequestTaskButtonExtension.Request(new LocalDate().now(), RMRequestTaskButtonExtension.RequestType.REACTIVATION));
 
         List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));
@@ -198,7 +198,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
     @Test
     public void givenReactivationButtonClickedForContainerThenCreateValidTask() {
         containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
-        extension.reactivationRequested(containerView);
+        extension.reactivationRequested(containerView, new RMRequestTaskButtonExtension.Request(new LocalDate().now(), RMRequestTaskButtonExtension.RequestType.REACTIVATION));
         List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));
         assertThat(tasks.size()).isEqualTo(1);
@@ -212,7 +212,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
     @Test
     public void givenBorrowExtensionButtonClickedForFolderThenCreateValidTask() {
         folderPresenter.forParams(records.folder_A42); //Crocodile
-        extension.borrowExtensionRequested(folderView, new RMRequestTaskButtonExtension.Request(new LocalDate().now(), RMRequestTaskButtonExtension.RequestType.EXTENSION));;
+        extension.borrowExtensionRequested(folderView, new RMRequestTaskButtonExtension.Request(new LocalDate().now(), RMRequestTaskButtonExtension.RequestType.EXTENSION));
 
         List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));

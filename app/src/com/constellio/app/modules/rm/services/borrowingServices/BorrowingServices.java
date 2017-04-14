@@ -6,7 +6,6 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.*;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.data.utils.TimeProvider;
@@ -176,21 +175,6 @@ public class BorrowingServices {
 		}
 	}
 
-    public void reactivateRecordsFromTask(String taskId, LocalDate reactivationDate, User currentUser)
-            throws RecordServicesException {
-
-        Record taskRecord = recordServices.getDocumentById(taskId);
-        RMTask task = rm.wrapRMTask(taskRecord);
-        String schemaType = "";
-        if (task.getLinkedFolders() != null) {
-            schemaType = Folder.SCHEMA_TYPE;
-        }
-        if (task.getLinkedDocuments() != null) {
-            schemaType = Document.SCHEMA_TYPE;
-        }
-        alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, null, null, null, reactivationDate, currentUser, null, null);
-    }
-
     public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User respondant, User applicant, boolean isAccepted)
             throws RecordServicesException {
         Record taskRecord = recordServices.getDocumentById(taskId);
@@ -202,10 +186,10 @@ public class BorrowingServices {
 			for(String folderId: task.getLinkedFolders()) {
 				if(isAccepted) {
 					extendBorrowDateForFolder(folderId, returnDate, applicant, false);
-					Record record = recordServices.getDocumentById(folderId);
-					loggingServices.completeBorrowExtensionRequestTask(record, task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
-					alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, record, null, returnDate, null, respondant, applicant, null);
 				}
+				Record record = recordServices.getDocumentById(folderId);
+				loggingServices.completeBorrowExtensionRequestTask(record, task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
+				alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, record, null, returnDate, null, respondant, applicant, null);
 			}
 			recordServices.execute(t);
         }

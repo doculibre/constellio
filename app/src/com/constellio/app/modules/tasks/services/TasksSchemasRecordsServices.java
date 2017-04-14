@@ -517,10 +517,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle){
+	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle, LocalDate localDate){
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
 					.setTitle($("TaskSchemasRecordsServices.reactivationFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
+					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId).set(ReactivationRequest.REACTIVATION_DATE, localDate);
 	}
 
 	//KEEP
@@ -546,10 +546,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
+	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle, LocalDate localDate) {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.reactivationContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
+				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId).set(ReactivationRequest.REACTIVATION_DATE, localDate);
 	}
 
 	//KEEP

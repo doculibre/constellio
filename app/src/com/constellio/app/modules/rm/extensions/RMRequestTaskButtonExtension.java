@@ -30,6 +30,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -48,7 +49,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
     enum RequestType {
-        EXTENSION, BORROW
+        EXTENSION, BORROW, REACTIVATION
     }
 
     String collection;
@@ -103,7 +104,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                         button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
                         break;
                     case ReactivationRequest.SCHEMA_NAME:
-                        button.setVisible(isFolderReactivable(folder, currentUser));
+                        button.setVisible(isPrincipalRecordReativable(folder, containerRecord, currentUser));
                         break;
                     case ExtensionRequest.SCHEMA_NAME:
                         button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
@@ -111,6 +112,26 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 }
             }
         }
+    }
+
+    private boolean isPrincipalRecordReativable(Folder folder, ContainerRecord containerRecord, User currentUser) {
+        if(folder != null) {
+            return isFolderReactivable(folder, currentUser);
+        } else {
+            return isContainerReactivable(containerRecord, currentUser);
+        }
+    }
+
+    private boolean isContainerReactivable(ContainerRecord containerRecord, User currentUser) {
+        List<Folder> folders = rmSchemas.searchFolders(LogicalSearchQueryOperators.from(rmSchemas.folder.schemaType()).where(rmSchemas.folder.container()).isEqualTo(containerRecord.getId()));
+        if(folders != null) {
+            for(Folder folder: folders) {
+                if(isFolderReactivable(folder, currentUser)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean isFolderBorrowable(Folder folder, User currentUser) {
@@ -256,16 +277,40 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestReactivationButton(final BaseViewImpl view) {
-        ConfirmDialogButton reactivationRequestButton = new ConfirmDialogButton($("RMRequestTaskButtonExtension.reactivationRequest")) {
+        WindowButton reactivationRequestButton = new WindowButton($("RMRequestTaskButtonExtension.reactivationRequest"), $("RMRequestTaskButtonExtension.reactivationRequest")) {
+            @PropertyId("value")
+            private InlineDateField datefield;
 
             @Override
-            protected String getConfirmDialogMessage() {
-                return $("DisplayFolderView.confirmReactivationMessage");
+            protected Component buildWindowContent() {
+                Label dateLabel = new Label($("DisplayFolderView.confirmReactivationMessage"));
+
+                datefield = new InlineDateField();
+                List<BaseForm.FieldAndPropertyId> fields = Collections.singletonList(new BaseForm.FieldAndPropertyId(datefield, "value"));
+                Request req = new Request(new Date(), RequestType.REACTIVATION);
+                BaseForm form = new BaseForm<Request>(req, this, datefield) {
+
+                    @Override
+                    protected void saveButtonClick(Request viewObject) throws ValidationException {
+                        viewObject.setValue(datefield.getValue());
+                        reactivationRequested(view, viewObject);
+                        getWindow().close();
+                    }
+
+                    @Override
+                    protected void cancelButtonClick(Request viewObject) {
+                        getWindow().close();
+                    }
+                };
+                return form;
             }
 
-            @Override
-            protected void confirmButtonClick(ConfirmDialog dialog) {
-                reactivationRequested(view);
+            public void setDatefield(InlineDateField datefield) {
+                this.datefield = datefield;
+            }
+
+            public InlineDateField getDatefield() {
+                return this.datefield;
             }
         };
         reactivationRequestButton.setId(ReactivationRequest.SCHEMA_NAME);
@@ -371,19 +416,20 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
         }
     }
 
-    public void reactivationRequested(BaseViewImpl view) {
+    public void reactivationRequested(BaseViewImpl view, Request req) {
         Context context = buildContext(view);
         Folder folder = context.getFolder();
         ContainerRecord container = context.getContainer();
         User currentUser = context.getCurrentUser();
+        LocalDate localDate = new LocalDate(req.getValue());
         try {
             if(folder != null) {
                 String folderId = folder.getId();
-                Task reactivationRequest = taskSchemas.newReactivateFolderRequestTask(currentUser.getId(), getAssignees(folderId), folderId, folder.getTitle());
+                Task reactivationRequest = taskSchemas.newReactivateFolderRequestTask(currentUser.getId(), getAssignees(folderId), folderId, folder.getTitle(), localDate);
                 modelLayerFactory.newRecordServices().add(reactivationRequest);
             } else if (container != null) {
                 String containerId = container.getId();
-                Task reactivationRequest = taskSchemas.newReactivationContainerRequestTask(currentUser.getId(), getAssignees(containerId), containerId, container.getTitle());
+                Task reactivationRequest = taskSchemas.newReactivationContainerRequestTask(currentUser.getId(), getAssignees(containerId), containerId, container.getTitle(), localDate);
                 modelLayerFactory.newRecordServices().add(reactivationRequest);
             } else {
                 view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
