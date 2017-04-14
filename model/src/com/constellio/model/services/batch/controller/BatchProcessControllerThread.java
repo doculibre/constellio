@@ -1,5 +1,16 @@
 package com.constellio.model.services.batch.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -13,16 +24,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class BatchProcessControllerThread extends ConstellioThread {
 
@@ -40,7 +41,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	private AtomicLong completed = new AtomicLong();
 
 	public BatchProcessControllerThread(ModelLayerFactory modelLayerFactory, int numberOfRecordsPerTask) {
-		super(RESOURCE_NAME);
+		super(modelLayerFactory.toResourceName(RESOURCE_NAME));
 		this.modelLayerFactory = modelLayerFactory;
 		this.batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
@@ -66,7 +67,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 		BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 		if (batchProcess != null) {
-			if(batchProcess.getRecords() != null) {
+			if (batchProcess.getRecords() != null) {
 				processFromIds(batchProcess);
 			} else {
 				processFromQuery(batchProcess);
@@ -76,7 +77,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		waitUntilNotified();
 	}
 
-	private void processFromIds(BatchProcess batchProcess) throws Exception{
+	private void processFromIds(BatchProcess batchProcess)
+			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
 		RecordFromIdListIterator iterator = new RecordFromIdListIterator(batchProcess.getRecords(), modelLayerFactory);

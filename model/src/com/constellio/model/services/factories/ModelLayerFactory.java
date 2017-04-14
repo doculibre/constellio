@@ -1,5 +1,17 @@
 package com.constellio.model.services.factories;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+
+import java.io.IOException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -8,6 +20,7 @@ import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -53,24 +66,18 @@ import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.*;
+import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
+import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.UserPhotosServices;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 import com.constellio.model.services.workflows.WorkflowExecutor;
 import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
 import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
 import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexManager;
 import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactory extends LayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactory.class);
@@ -112,17 +119,20 @@ public class ModelLayerFactory extends LayerFactory {
 	private final SearchBoostManager searchBoostManager;
 	private final ModelLayerLogger modelLayerLogger;
 	private EncryptionServices encryptionServices;
+	private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
-			Delayed<ConstellioModulesManager> modulesManagerDelayed) {
+			Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
-		super(dataLayerFactory, statefullServiceDecorator);
+		super(dataLayerFactory, statefullServiceDecorator, instanceName);
 
 		systemCollectionListeners = new ArrayList<>();
 
+		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		this.recordsCaches = new RecordsCaches(this);
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
@@ -142,7 +152,6 @@ public class ModelLayerFactory extends LayerFactory {
 						recordsCaches));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
-
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
@@ -402,6 +411,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public RecordPopulateServices newRecordPopulateServices() {
 		return new RecordPopulateServices(schemasManager, contentsManager, systemConfigurationsManager, modelLayerExtensions);
+	}
+
+	public Factory<ModelLayerFactory> getModelLayerFactoryFactory() {
+		return modelLayerFactoryFactory;
 	}
 
 	final void setEncryptionKey(Key key) {

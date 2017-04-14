@@ -9,6 +9,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class OpenedResourcesWatcher {
 
+	public static boolean enabled = true;
+
 	public static boolean logStackTraces = false;
 
 	public static String openingStackHeader = "Where the resource was opened";

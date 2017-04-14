@@ -26,6 +26,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -598,11 +599,34 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
                     try {
                         Content content = toContent(contentVersionVO);
                         document.setContent(content);
+						String filename = contentVersionVO.getFileName();
+						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
+						if("eml".equals(extension)) {
+							IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+							InputStream inputStream = null;
+							try {
+								inputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromEML");
+								Email email = rmSchemasRecordsServices.newEmail(filename, inputStream);
+								document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
+
+								((Email) document).setSubject(email.getSubject());
+								((Email) document).setEmailObject(email.getEmailObject());
+								((Email) document).setEmailSentOn(email.getEmailSentOn());
+								((Email) document).setEmailReceivedOn(email.getEmailReceivedOn());
+								((Email) document).setEmailFrom(email.getEmailFrom());
+								((Email) document).setEmailTo(email.getEmailTo());
+								((Email) document).setEmailCCTo(email.getEmailCCTo());
+								((Email) document).setEmailBCCTo(email.getEmailBCCTo());
+								((Email) document).setEmailContent(email.getEmailContent());
+								((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
+							} finally {
+								ioServices.closeQuietly(inputStream);
+							}
+						}
                         modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
                         documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
                         documentVO.getContent().setMajorVersion(null);
                         documentVO.getContent().setHash(null);
-                        String filename = contentVersionVO.getFileName();
                         if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
                             filename = FilenameUtils.removeExtension(filename);
                         }

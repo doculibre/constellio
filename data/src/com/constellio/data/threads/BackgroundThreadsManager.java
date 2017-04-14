@@ -5,10 +5,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured;
 
@@ -23,9 +23,12 @@ public class BackgroundThreadsManager implements StatefulService {
 
 	Semaphore tasksSemaphore;
 
-	public BackgroundThreadsManager(DataLayerConfiguration dataLayerConfiguration) {
+	DataLayerFactory dataLayerFactory;
+
+	public BackgroundThreadsManager(DataLayerConfiguration dataLayerConfiguration, DataLayerFactory dataLayerFactory) {
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		this.tasksSemaphore = new Semaphore(1000);
+		this.dataLayerFactory = dataLayerFactory;
 	}
 
 	@Override
@@ -74,7 +77,8 @@ public class BackgroundThreadsManager implements StatefulService {
 	}
 
 	Runnable getRunnableCommand(BackgroundThreadConfiguration backgroundThreadConfiguration) {
-		return new BackgroundThreadCommand(backgroundThreadConfiguration, systemStarted, stopRequested, tasksSemaphore);
+		return new BackgroundThreadCommand(backgroundThreadConfiguration, systemStarted, stopRequested, tasksSemaphore,
+				dataLayerFactory);
 	}
 
 	ScheduledExecutorService newScheduledExecutorService() {

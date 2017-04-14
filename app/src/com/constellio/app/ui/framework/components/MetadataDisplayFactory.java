@@ -76,16 +76,19 @@ public class MetadataDisplayFactory implements Serializable {
 				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
+				boolean hasAVisibleComponent = false;
 				for (Object elementDisplayValue : collectionDisplayValue) {
 					Component elementDisplayComponent = buildSingleValue(recordVO,
 							metadataValue.getMetadata(), elementDisplayValue);
 					if (elementDisplayComponent != null) {
 						elementDisplayComponent.setSizeFull();
 						elementDisplayComponents.add(elementDisplayComponent);
+						hasAVisibleComponent = hasAVisibleComponent || elementDisplayComponent.isVisible();
 					}
 				}
 				if (!elementDisplayComponents.isEmpty()) {
 					displayComponent = newCollectionValueDisplayComponent(elementDisplayComponents);
+					displayComponent.setVisible(hasAVisibleComponent);
 				} else {
 					displayComponent = null;
 				}
