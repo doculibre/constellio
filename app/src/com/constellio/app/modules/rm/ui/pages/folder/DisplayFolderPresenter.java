@@ -776,7 +776,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	public List<LabelTemplate> getTemplates() {
+	public List<LabelTemplate> getCustomTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Folder.SCHEMA_TYPE);
+	}
+
+	public List<LabelTemplate> getDefaultTemplates() {
 		return appLayerFactory.getLabelTemplateManager().listTemplates(Folder.SCHEMA_TYPE);
 	}
 
