@@ -259,6 +259,9 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		included.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
+				if(!(boolean) included.getValue()) {
+					presenter.removeFromContainer(detail);
+				}
 				presenter.setValidationStatus(detail, (boolean) included.getValue());
 			}
 		});
