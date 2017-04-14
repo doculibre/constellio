@@ -618,7 +618,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTo()).hasSize(1);
 		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
 		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
-		final String subject = "Alerte lorsque le dossier est disponible: " + folderC30.getTitle();
+		final String subject = "Le dossier demandé est disponible: " + folderC30.getTitle();
 		assertThat(emailToSend.getSubject()).isEqualTo(subject);
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();
