@@ -177,7 +177,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
 				new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
-						dataLayerFactory.getBackgroundThreadsManager()));
+						dataLayerFactory.getConstellioJobManager()));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
 						ioServicesFactory.newHashingService(BASE64), newUserServices()));

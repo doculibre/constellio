@@ -49,13 +49,13 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 		assertThat(groupsNames).contains("group1", "group2", "group3", "group4");
 	}
 
+
 	@Test
 	public void whenSearchingMoreThan1000GroupsThenReturnAllGroups()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
 		String ouWith2997groups = "OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca";
-		Set<LDAPGroup> groups = new LDAPServicesImpl()
-				.getAllGroups(ldapContext, Arrays.asList(new String[] { ouWith2997groups }));
+		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[] { ouWith2997groups }));
 		assertThat(groups.size()).isEqualTo(2997);
 	}
 
@@ -65,7 +65,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 		LdapContext ldapContext = getValidContext();
 		String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
 		List<String> users = new LDAPServicesImpl()
-				.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, ouWith3001Users);
+				.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, ouWith3001Users, LDAPTestConfig.getUserFilterGroupsList());
 		assertThat(users.size()).isEqualTo(3001);
 	}
 
