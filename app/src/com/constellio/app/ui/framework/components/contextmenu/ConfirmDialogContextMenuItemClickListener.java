@@ -5,18 +5,29 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
 
-import com.vaadin.ui.UI;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 
 public abstract class ConfirmDialogContextMenuItemClickListener implements BaseContextMenuItemClickListener {
+	
+	private DialogMode dialogMode;
+	
+	public ConfirmDialogContextMenuItemClickListener() {
+		this(null);
+	}
+	
+	public ConfirmDialogContextMenuItemClickListener(DialogMode dialogMode) {
+		this.dialogMode = dialogMode;
+	}
 
 	@Override
 	public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-		ConfirmDialog.show(
-				UI.getCurrent(),
-				getConfirmDialogTitle(),
-				getConfirmDialogMessage(),
-				getConfirmDialogOKCaption(),
-				getConfirmDialogCancelCaption(),
+		ConfirmDialogButton.showDialog(
+				dialogMode, 
+				getConfirmDialogTitle(), 
+				getConfirmDialogMessage(), 
+				getConfirmDialogOKCaption(), 
+				getConfirmDialogCancelCaption(), 
 				new ConfirmDialog.Listener() {
 					public void onClose(ConfirmDialog dialog) {
 						if (dialog.isConfirmed()) {

@@ -29,6 +29,7 @@ import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -48,7 +49,11 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+/**
+ * FIXME Use a presenter
+ */
 public class LabelsButton extends WindowButton {
+	
     @PropertyId("startPosition")
     private ComboBox startPositionField;
     @PropertyId("labelConfigurations")
@@ -61,20 +66,24 @@ public class LabelsButton extends WindowButton {
     private RMSchemasRecordsServices rm;
     private String collection;
     private List<String> ids;
-    private AppLayerFactory factory;
+    private AppLayerFactory appLayerFactory;
     private ContentManager contentManager;
     private double size;
     private String user;
+    private Factory<List<LabelTemplate>> customLabelTemplatesFactory;
+    private Factory<List<LabelTemplate>> defaultLabelTemplatesFactory;
 
-    public LabelsButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, String type, String id, String user) {
-        this(caption, windowsCaption, factory, collection, type, Arrays.asList(id), user);
+    public LabelsButton(String caption, String windowsCaption, Factory<List<LabelTemplate>> customLabelTemplatesFactory, Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory, String collection, String type, String id, String user) {
+        this(caption, windowsCaption, customLabelTemplatesFactory, defaultLabelTemplatesFactory, factory, collection, type, Arrays.asList(id), user);
     }
 
-    public LabelsButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, String type, List<String> idObject, String user) {
+    public LabelsButton(String caption, String windowsCaption, Factory<List<LabelTemplate>> customLabelTemplatesFactory, Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory, String collection, String type, List<String> idObject, String user) {
         super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "250px"));
+        this.customLabelTemplatesFactory = customLabelTemplatesFactory;
+        this.defaultLabelTemplatesFactory = defaultLabelTemplatesFactory;
         this.model = factory.getModelLayerFactory();
         this.collection = collection;
-        this.factory = factory;
+        this.appLayerFactory = factory;
         this.ss = model.newSearchServices();
         this.type = type;
         this.ids = idObject;
@@ -89,10 +98,11 @@ public class LabelsButton extends WindowButton {
         startPositionField = new ComboBox($("LabelsButton.startPosition"));
         startPositionField.setNullSelectionAllowed(false);
         startPositionField.setRequired(true);
-
-        List<PrintableLabel> printableLabels = getTemplates(type);
-        if (printableLabels.size() > 0) {
-            this.size = (Double) printableLabels.get(0).get(PrintableLabel.LIGNE) * (Double) printableLabels.get(0).get(PrintableLabel.COLONNE);
+        
+    	List<LabelTemplate> customTemplates = getCustomTemplates();
+        if (customTemplates.size() > 0) {
+        	LabelTemplate firstLabelTemplate = customTemplates.get(0);
+            this.size = firstLabelTemplate.getLines() * firstLabelTemplate.getColumns();
             startPositionField.clear();
             for (int i = 1; i <= size; i++) {
                 startPositionField.addItem(i);
@@ -102,10 +112,29 @@ public class LabelsButton extends WindowButton {
         formatField = new ComboBox($("LabelsButton.labelFormat"));
         formatField.setRequired(true);
         
-        List<Object> formatOptions = new ArrayList<Object>(printableLabels);
-        if (printableLabels.isEmpty()) {
-        	List<LabelTemplate> templates = getTemplates();
-            formatOptions.addAll(templates);
+        List<Object> formatOptions = new ArrayList<Object>(customTemplates);
+        if (customTemplates.isEmpty()) {
+        	List<PrintableLabel> printableLabels = getTemplates(type);
+            if (!printableLabels.isEmpty()) {
+            	PrintableLabel firstPrintableLabel = printableLabels.get(0);
+                this.size = (Double) firstPrintableLabel.get(PrintableLabel.LIGNE) * (Double) firstPrintableLabel.get(PrintableLabel.COLONNE);
+                startPositionField.clear();
+                for (int i = 1; i <= size; i++) {
+                    startPositionField.addItem(i);
+                }
+                formatOptions.addAll(printableLabels);
+            } else {
+            	List<LabelTemplate> defaultTemplates = getDefaultTemplates();
+                if (defaultTemplates.size() > 0) {
+                	LabelTemplate firstLabelTemplate = defaultTemplates.get(0);
+                    this.size = firstLabelTemplate.getLines() * firstLabelTemplate.getColumns();
+                    startPositionField.clear();
+                    for (int i = 1; i <= size; i++) {
+                        startPositionField.addItem(i);
+                    }
+                }
+                formatOptions.addAll(defaultTemplates);
+            }
         }    
         for (Object formatOption : formatOptions) {
             formatField.addItem(formatOption);
@@ -122,10 +151,10 @@ public class LabelsButton extends WindowButton {
         if (formatOptions.size() > 0) {
             formatField.select(formatOptions.get(0));
         }
-        formatField.setPageLength(printableLabels.size());
+        formatField.setPageLength(formatOptions.size());
         formatField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
         formatField.setNullSelectionAllowed(false);
-        formatField.setValue(printableLabels.get(0));
+        formatField.setValue(formatOptions.get(0));
         formatField.addValueChangeListener(new ValueChangeListener() {
             @Override
             public void valueChange(ValueChangeEvent event) {
@@ -186,7 +215,7 @@ public class LabelsButton extends WindowButton {
                 Object ob = formatField.getValue();
                 if (ob instanceof PrintableLabel) {
                     PrintableLabel selected = (PrintableLabel) formatField.getValue();
-                    ReportUtils ru = new ReportUtils(collection, factory, user);
+                    ReportUtils ru = new ReportUtils(collection, appLayerFactory, user);
                     try {
                         if ((Integer) startPositionField.getValue() > size) {
                             throw new Exception($("ButtonLabel.error.posisbiggerthansize"));
@@ -243,12 +272,16 @@ public class LabelsButton extends WindowButton {
         this.ids.add(id);
     }
 
-    public List<LabelTemplate> getTemplates() {
-        return this.factory.getLabelTemplateManager().listTemplates(Folder.SCHEMA_TYPE);
+    public List<LabelTemplate> getCustomTemplates() {
+        return customLabelTemplatesFactory.get();
+    }
+
+    public List<LabelTemplate> getDefaultTemplates() {
+        return defaultLabelTemplatesFactory.get();
     }
 
     public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
-        final AppLayerCollectionExtensions extensions = factory.getExtensions().forCollection(collection);
+        final AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
         final RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
         return rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue();
     }
