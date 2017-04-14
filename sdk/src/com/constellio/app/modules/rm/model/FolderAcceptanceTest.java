@@ -2851,6 +2851,49 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenFolderHasBeenReactivatedWithoutACustomCalculationDateThenFirstReactivationUsedForCalculation()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setOpenDate(february2_2015);
+		folder.setCloseDateEntered(february11_2015);
+		folder.setMediumTypes(MD, PA);
+		folder.addReactivation(users.gandalfIn(zeCollection), date(2017, 2, 11));
+		getModelLayerFactory().newRecordServices().add(folder);
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(date(2018, 12, 31));
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(date(2023, 12, 31));
+
+	}
+
+	@Test
+	public void givenFolderHasBeenReactivatedWithACustomCalculationDateThenCustomDateUsedForCalculation()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setOpenDate(february2_2015);
+		folder.setCloseDateEntered(february11_2015);
+		folder.setMediumTypes(MD, PA);
+
+		folder.addReactivation(users.gandalfIn(zeCollection), date(2017, 2, 11));
+		getModelLayerFactory().newRecordServices().add(folder);
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(date(2018, 12, 31));
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(date(2023, 12, 31));
+
+	}
+
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {

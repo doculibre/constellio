@@ -1,5 +1,13 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -8,6 +16,7 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -30,24 +39,17 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.apache.commons.io.IOUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScript {
 
-    private AppLayerFactory appLayerFactory;
-    private String collection;
-    private MigrationResourcesProvider migrationResourcesProvider;
+	private AppLayerFactory appLayerFactory;
+	private String collection;
+	private MigrationResourcesProvider migrationResourcesProvider;
 
-    @Override
-    public String getVersion() {
-        return "7.1.3";
-    }
+	@Override
+	public String getVersion() {
+		return "7.1.3";
+	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
@@ -64,7 +66,8 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME));
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.REACTIVATION_REQUEST).setTitle("Demande de réactivation")
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME));
-		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_EXTENSION_REQUEST).setTitle("Demande de prolongation d'emprunt")
+		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_EXTENSION_REQUEST)
+				.setTitle("Demande de prolongation d'emprunt")
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME));
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 		adjustSchemaDisplay();
@@ -76,10 +79,14 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Folder.DEFAULT_SCHEMA)
-				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_DATES, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
-				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
-				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
-				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION));
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_DATES,
+						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS,
+						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES,
+						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES,
+						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION));
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
 				.withNewFormMetadata(Task.DEFAULT_SCHEMA + "_" + Task.LINKED_CONTAINERS));
@@ -135,7 +142,8 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 	}
 
 	private void reloadEmailTemplates() {
-		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
+		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
+				.equals("en")) {
 			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED);
 			reloadEmailTemplate("alertReturnedTemplate_en.html", RMEmailTemplateConstants.ALERT_RETURNED);
 			reloadEmailTemplate("alertReactivatedTemplate_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED);
@@ -152,7 +160,8 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
-			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager().replaceCollectionTemplate(templateId, collection, templateInputStream);
+			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
+					.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -169,12 +178,20 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DATES).setType(MetadataValueType.DATE).setMultivalue(true);
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_USERS).setType(MetadataValueType.REFERENCE).setMultivalue(true).defineReferencesTo(
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DECOMMISSIONING_DATE)
+					.setType(MetadataValueType.DATE);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DATES)
+					.setType(MetadataValueType.DATE).setMultivalue(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_USERS)
+					.setType(MetadataValueType.REFERENCE).setMultivalue(true).defineReferencesTo(
 					typesBuilder.getSchemaType(User.SCHEMA_TYPE)
 			);
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_DEPOSIT_DATES).setType(MetadataValueType.DATE).setMultivalue(true);
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_TRANSFER_DATES).setType(MetadataValueType.DATE).setMultivalue(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_DEPOSIT_DATES)
+					.setType(MetadataValueType.DATE).setMultivalue(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_TRANSFER_DATES)
+					.setType(MetadataValueType.DATE).setMultivalue(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.DECOMMISSIONING_DATE)
+					.defineDataEntry().asCalculated(FolderDecommissioningDateCalculator2.class);
 
 			MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.getSchemaType(Task.SCHEMA_TYPE);
 			taskSchemaType.createCustomSchema(BorrowRequest.SCHEMA_NAME);
@@ -185,7 +202,8 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.BORROW_RETURN_DATE)
 					.setType(MetadataValueType.DATE_TIME);
 
-			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.LINKED_CONTAINERS).setType(MetadataValueType.REFERENCE)
+			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.LINKED_CONTAINERS)
+					.setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)).setMultivalue(true);
 			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.REASON).setType(MetadataValueType.TEXT);
 			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.EXTENSION_VALUE)
@@ -226,8 +244,10 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 					.setSystemReserved(true);
 
 			MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);
-			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
-			eventSchemaType.getDefaultSchema().create(Event.TASK).setType(REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(Task.SCHEMA_TYPE));
+			eventSchemaType.getDefaultSchema().create(Event.RECEIVER_NAME).setType(REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+			eventSchemaType.getDefaultSchema().create(Event.TASK).setType(REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(Task.SCHEMA_TYPE));
 			eventSchemaType.getDefaultSchema().create(Event.DESCRIPTION).setType(MetadataValueType.TEXT);
 			eventSchemaType.getDefaultSchema().create(Event.ACCEPTED).setType(MetadataValueType.BOOLEAN);
 		}
