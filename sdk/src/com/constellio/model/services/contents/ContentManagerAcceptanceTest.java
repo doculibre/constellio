@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import com.constellio.sdk.tests.annotations.InternetTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -238,6 +239,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		// Then, the exception is thrown.
 	}
 
+	@InternetTest
 	@Test
 	public void givenIcapActivatedWhenUploadingInfectedNonYetParsedContentThenThreatFoundExceptionThrown()
 			throws Exception {
@@ -259,6 +261,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		}
 	}
 
+	@InternetTest
 	@Test(expected = IcapException.CommunicationFailure.class)
 	public void givenIcapActivatedWhenIOExceptionWhenUploadingNonYetParsedContentThenCommunicationExceptionThrown()
 			throws Exception {
@@ -273,6 +276,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.upload(contentStream, "someFileName");
 	}
 
+	@InternetTest
 	@Test(expected = IcapException.TimeoutException.class)
 	public void givenIcapActivatedWhenTimeoutExceptionWhenUploadingNonYetParsedContentThenTimeoutExceptionThrown()
 			throws Exception {
@@ -288,6 +292,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.upload(contentStream, "someFileName");
 	}
 
+	@InternetTest
 	@Test
 	public void givenIcapActivatedWhenUploadingNonInfectedThenNoExceptionThrown()
 			throws Exception {
@@ -303,6 +308,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.upload(contentStream, "someFileName");
 	}
 
+	@InternetTest
 	@Test
 	public void givenIcapIsNotActivatedWhenUploadingInfectedNonYetParsedContentThenNoThreatFoundExceptionThrown()
 			throws Exception {

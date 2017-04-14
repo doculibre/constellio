@@ -243,6 +243,7 @@ public class TaxonomiesSearchServices {
 			}
 
 			List<Record> nonNullRecords = new ArrayList<>();
+			realRecordsRows = Math.max(0, realRecordsRows);
 			nonTaxonomyRecordsResponse = getNonTaxonomyRecords(ctx, childrenWithoutAccessToInclude, realRecordsStart,
 					realRecordsRows);
 			nonNullRecords.addAll(nonTaxonomyRecordsResponse.getRecords());
