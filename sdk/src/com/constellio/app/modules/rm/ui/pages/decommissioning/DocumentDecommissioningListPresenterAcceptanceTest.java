@@ -98,7 +98,7 @@ public class DocumentDecommissioningListPresenterAcceptanceTest extends Constell
         assertThat(rm.getDecommissioningList(decommissioningList.getId()).getDocuments()).containsOnly(records.document_A19, records.document_A79, records.document_B30);
         recordVOList = presenter.getDocuments().listRecordVOs(0,4);
         presenter.removeDocumentsButtonClicked(buildSelectedMap(true, true, false));
-        assertThat(rm.getDecommissioningList(decommissioningList.getId()).getDocuments()).containsOnly(records.document_A79);
+        assertThat(rm.getDecommissioningList(decommissioningList.getId()).getDocuments()).containsOnly(records.document_B30);
         recordVOList = presenter.getDocuments().listRecordVOs(0,4);
         presenter.removeDocumentsButtonClicked(buildSelectedMap(true));
         assertThat(rm.getDecommissioningList(decommissioningList.getId()).getDocuments()).isEmpty();
