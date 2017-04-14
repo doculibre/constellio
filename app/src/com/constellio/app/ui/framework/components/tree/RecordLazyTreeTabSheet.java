@@ -78,12 +78,6 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 				selectTab(getTab(getSelectedTab()));
 			}
 		});
-		if (selectedTab == -1) {
-			selectedTab = 0;
-		}
-		PlaceHolder placeHolder = (PlaceHolder) getTab(selectedTab).getComponent();
-		placeHolder.setCompositionRoot(newLazyTree(dataProviders.get(selectedTab), bufferSize));
-		setSelectedTab(placeHolder);
 	}
 
 	private void selectTab(Tab tab) {
@@ -93,12 +87,23 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 
 		int position = getTabPosition(tab);
 		setSelectedTab(position);
-
-		PlaceHolder tabComponent = (PlaceHolder) tab.getComponent();
+		
+		PlaceHolder tabComponent = (PlaceHolder) getSelectedTab();
 		if (tabComponent.getComponentCount() == 0) {
 			tabComponent.setCompositionRoot(newLazyTree(dataProviders.get(position), bufferSize));
 		}
+	}
 
+	@Override
+	public void attach() {
+		super.attach();
+		
+		PlaceHolder tabComponent = (PlaceHolder) getSelectedTab();
+		if (tabComponent.getComponentCount() == 0) {
+			Tab tab = getTab(tabComponent);
+			int position = getTabPosition(tab);
+			tabComponent.setCompositionRoot(newLazyTree(dataProviders.get(position), bufferSize));
+		}
 	}
 
 	private static List<RecordLazyTreeDataProvider> toDataProviders(String[] taxonomyCodes) {
