@@ -158,7 +158,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 
 	@Test
 	public void givenFolderPlacedInContainerThenUpdateDecommissioningListAndView()
-			throws RecordServicesException {
+			throws Exception {
 		when(folderDetailVO.getFolderId()).thenReturn("zeFolder");
 		when(containerVO.getId()).thenReturn("zeContainer");
 		when(list.getFolderDetail("zeFolder")).thenReturn(folderDetail);

@@ -145,22 +145,23 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		view.navigate().to(RMViews.class).searchContainerForDecommissioningList(recordId);
 	}
 
-	public void folderPlacedInContainer(FolderDetailVO folder, ContainerVO container) {
+	public void folderPlacedInContainer(FolderDetailVO folder, ContainerVO container) throws Exception {
 		Double containerAvailableSize = container.getAvailableSize();
 		Double folderLinearSize = folder.getLinearSize();
 		if(containerAvailableSize != null && folderLinearSize != null && containerAvailableSize < folderLinearSize) {
-			view.showErrorMessage($("DecommissioningListView.containerCannotContainFolder", folderLinearSize, containerAvailableSize));
-			return;
+			String messageToShow = $("DecommissioningListView.containerCannotContainFolder", folderLinearSize, containerAvailableSize);
+			view.showErrorMessage(messageToShow);
+			throw new Exception(messageToShow);
 		}
 		folder.setContainerRecordId(container.getId());
 		DecommissioningList decommissioningList = decommissioningList();
 		if(containerAvailableSize != null && folderLinearSize != null) {
 			containerAvailableSize = containerAvailableSize - folderLinearSize;
 		}
-		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize));
-		decommissioningList.getContainerDetail(container.getId()).setAvailableSize(containerAvailableSize);
+		DecomListContainerDetail newContainerDetail = decommissioningList.getContainerDetail(container.getId()).setAvailableSize(containerAvailableSize);
 		decommissioningList.getFolderDetail(folder.getFolderId()).setFolderLinearSize(folderLinearSize).setContainerRecordId(container.getId());
 		addOrUpdate(decommissioningList.getWrappedRecord());
+		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize), newContainerDetail);
 
 		view.setProcessable(folder);
 		view.updateProcessButtonState(isProcessable());
@@ -601,13 +602,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	private boolean fill(ContainerRecord containerRecord, Map.Entry<String, Double> entry) {
 		recordServices().recalculate(containerRecord);
 		try {
-			recordServices().update(rmRecordsServices().getFolder(entry.getKey()).setContainer(containerRecord).setLinearSize(entry.getValue()));
 			folderPlacedInContainer(view.getPackageableFolder(entry.getKey()), view.getContainer(containerRecord));
-			return true;
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			return false;
 		}
-		return false;
+		return true;
 	}
 
 	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
@@ -661,9 +660,5 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean canCurrentUserManageStorageSpaces() {
 		return presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
-	}
-
-	public void updateContainerDetails() {
-
 	}
 }
