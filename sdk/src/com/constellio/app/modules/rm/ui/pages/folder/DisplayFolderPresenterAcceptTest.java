@@ -1,5 +1,27 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.users.UserServices;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -350,7 +372,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void whenGetTemplatesThenReturnFolderTemplates()
 			throws Exception {
 
-		List<LabelTemplate> labelTemplates = presenter.getTemplates();
+		List<LabelTemplate> labelTemplates = presenter.getDefaultTemplates();
 
 		assertThat(labelTemplates).hasSize(8);
 

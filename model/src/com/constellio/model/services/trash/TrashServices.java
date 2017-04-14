@@ -23,6 +23,7 @@ import com.constellio.model.services.records.RecordDeleteServicesRuntimeExceptio
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
@@ -100,7 +101,13 @@ public class TrashServices {
 	public Set<String> deleteSelection(Set<String> selectedRecords, User currentUser) {
 		Set<String> returnSet = new HashSet<>();
 		for (String recordId : selectedRecords) {
-			Record record = recordServices().getDocumentById(recordId);
+			Record record;
+			try {
+				record = recordServices().getDocumentById(recordId);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				// Already deleted, ignore
+				continue;
+			}
 			try {
 				boolean deleted = handleRecordPhysicalDelete(record, currentUser);
 				if (!deleted) {

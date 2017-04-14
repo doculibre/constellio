@@ -1,5 +1,14 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -26,17 +35,14 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView, BatchProcessingView {
 	
@@ -112,14 +118,22 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		selectionActions.add(batchProcessingButton);
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 				@Override
 				public List<LabelTemplate> get() {
-					return presenter.getTemplates();
+					return presenter.getCustomTemplates();
+				}
+			};
+			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getDefaultTemplates();
 				}
 			};
 			final LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
 					$("SearchView.printLabels"),
+					customLabelTemplatesFactory,
+					defaultLabelTemplatesFactory,
 					getConstellioFactories().getAppLayerFactory(),
 					getSessionContext().getCurrentCollection(),
 					schemaType, getSelectedRecordIds(), getSessionContext().getCurrentUser().getUsername());
