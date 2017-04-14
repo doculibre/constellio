@@ -593,10 +593,11 @@ public class TaxonomiesSearchServices {
 			for (int i = 0; i < options.getStartRow(); i++) {
 				visibleRecords.add(null);
 			}
-			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 50, continueInfos.lastReturnRecordIndex).inBatches();
+			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100, continueInfos.lastReturnRecordIndex)
+					.inBatches();
 
 		} else {
-			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 50).inBatches();
+			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100).inBatches();
 		}
 
 		int consumed = 0;
