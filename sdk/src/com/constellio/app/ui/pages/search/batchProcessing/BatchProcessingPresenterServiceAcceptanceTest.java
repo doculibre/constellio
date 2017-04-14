@@ -1,33 +1,5 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
@@ -59,6 +31,27 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTest {
 
@@ -385,6 +378,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		ContainerRecord container2 = records.getContainerBac02();
 		ContainerRecord container3 = records.getContainerBac03();
 
+		getModelLayerFactory().newRecordServices().update(container1.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container2.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
+
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(container1.getId(), container2.getId(), container3.getId()))))
@@ -413,6 +410,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		ContainerRecord container1 = records.getContainerBac01();
 		ContainerRecord container2 = records.getContainerBac02();
 		ContainerRecord container3 = records.getContainerBac03();
+
+		getModelLayerFactory().newRecordServices().update(container1.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container2.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(container1.getId(), container2.getId(), container3.getId()))
