@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -145,9 +138,6 @@ public abstract class Decommissioner {
 	}
 
 	protected void add(RecordWrapper record) {
-		if (transaction.getRecordIds().contains(record.getId())) {
-			throw new ImpossibleRuntimeException("Duplicate records in transaction");
-		}
 		transaction.addUpdate(record.getWrappedRecord());
 	}
 
