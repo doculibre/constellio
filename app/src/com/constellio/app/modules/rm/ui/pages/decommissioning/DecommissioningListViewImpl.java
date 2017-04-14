@@ -603,7 +603,30 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		processableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		VerticalLayout layout = new VerticalLayout(header, processableFolders, buildOrderProcessableFoldersButton());
+		BaseButton removeFromFolderButton = new BaseButton($("DecommissioningListView.removeFromFolder")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				List<FolderDetailVO> selected = new ArrayList<>();
+				for (Object itemId : processableFolders.getItemIds()) {
+					FolderDetailVO folder = (FolderDetailVO) itemId;
+					if (folder.isSelected()) {
+						folder.setSelected(false);
+						selected.add(folder);
+					}
+				}
+				for (FolderDetailVO folder : selected) {
+					try {
+						presenter.removeFromContainer(folder);
+						if(folder.isPackageable()) {
+							setPackageable(folder);
+						}
+					} catch (Exception e) {
+					}
+				}
+			}
+		};
+
+		VerticalLayout layout = new VerticalLayout(header, removeFromFolderButton, processableFolders, buildOrderProcessableFoldersButton());
 		layout.setSpacing(true);
 
 		return layout;
