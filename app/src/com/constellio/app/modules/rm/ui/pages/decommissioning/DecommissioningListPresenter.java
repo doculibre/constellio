@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
@@ -98,6 +99,33 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void processButtonClicked() {
+		HashMap<String, Double> sizeToBePlacedPerContainer = new HashMap<>();
+		RMSchemasRecordsServices rm = rmRecordsServices();
+		for(FolderDetailVO folder: getFoldersToValidate()) {
+			String newContainerRecordId = folder.getContainerRecordId();
+			Double newLinearSize = folder.getLinearSize();
+			if(StringUtils.isNotBlank(newContainerRecordId) && newLinearSize != null && sizeToBePlacedPerContainer.containsKey(newContainerRecordId)) {
+				sizeToBePlacedPerContainer.put(newContainerRecordId, sizeToBePlacedPerContainer.get(newContainerRecordId) + newLinearSize);
+			} else if(StringUtils.isNotBlank(newContainerRecordId) && newLinearSize != null && !sizeToBePlacedPerContainer.containsKey(newContainerRecordId)) {
+				sizeToBePlacedPerContainer.put(newContainerRecordId, newLinearSize);
+			}
+
+			Folder oldFolder = rm.getFolder(folder.getFolderId());
+			String oldContainerRecordId = oldFolder.getContainer();
+			Double oldLinearSize = oldFolder.getLinearSize();
+			if(StringUtils.isNotBlank(oldContainerRecordId) && oldLinearSize != null && sizeToBePlacedPerContainer.containsKey(oldContainerRecordId)) {
+				sizeToBePlacedPerContainer.put(oldContainerRecordId, sizeToBePlacedPerContainer.get(oldContainerRecordId) - oldLinearSize);
+			} else if(StringUtils.isNotBlank(oldContainerRecordId) && oldLinearSize != null && !sizeToBePlacedPerContainer.containsKey(oldContainerRecordId)) {
+				sizeToBePlacedPerContainer.put(oldContainerRecordId, oldLinearSize);
+			}
+		}
+		List<ContainerRecord> containersToValidate = rm.getContainerRecords(new ArrayList<String>(sizeToBePlacedPerContainer.keySet()));
+		for (ContainerRecord container: containersToValidate) {
+			if(container.getAvailableSize() < sizeToBePlacedPerContainer.get(container.getId())) {
+				view.showErrorMessage($("DecommissioningListView.notEnoughSpaceInContainer", container.getIdentifier()));
+				return;
+			}
+		}
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($(mayContainAnalogicalMedia() ?
 				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
