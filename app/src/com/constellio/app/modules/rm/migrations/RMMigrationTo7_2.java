@@ -4,16 +4,22 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -25,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 /**
  * Created by Charles Blanchette on 2017-03-22.
@@ -87,6 +94,14 @@ public class RMMigrationTo7_2 implements MigrationScript {
         }
 
         migrateSearchableSchemaTypes(collection, migrationResourcesProvider, appLayerFactory);
+        updateNewPermissions(appLayerFactory, collection);
+    }
+
+    private void updateNewPermissions(AppLayerFactory appLayerFactory, String collection) {
+        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+
+        Role admRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+        modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.MANAGE_SEARCH_BOOST)));
     }
 
     private void migrateSearchableSchemaTypes(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
@@ -132,7 +147,16 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+            migrateLabel(typesBuilder);
+            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.TITLE).setSortable(true);
             typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT);
+        }
+
+        private void migrateLabel(MetadataSchemaTypesBuilder typesBuilder) {
+            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_TRANSFER_DATE).addLabel(Language.French, "Date de transfert prévue");
+            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DEPOSIT_DATE).addLabel(Language.French, "Date de versement prévue");
+            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DESTRUCTION_DATE).addLabel(Language.French, "Date de destruction prévue");
+
         }
     }
 }
