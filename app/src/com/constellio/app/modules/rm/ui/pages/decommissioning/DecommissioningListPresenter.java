@@ -636,7 +636,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 	}
 
-	private boolean fill(ContainerRecord containerRecord, Map.Entry<String, Double> entry) {
+	protected boolean fill(ContainerRecord containerRecord, Map.Entry<String, Double> entry) {
 		recordServices().recalculate(containerRecord);
 		try {
 			folderPlacedInContainer(view.getPackageableFolder(entry.getKey()), view.getContainer(containerRecord));
