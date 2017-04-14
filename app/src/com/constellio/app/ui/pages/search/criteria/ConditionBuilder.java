@@ -88,7 +88,7 @@ public class ConditionBuilder {
 			return from(schemaType).where(metadata).isEqualTo(value);
 		case CONTAINS_TEXT:
 			String stringValue = (String) criterion.getValue();
-			return metadata.getType() == MetadataValueType.STRING ?
+			return (metadata.getType() == MetadataValueType.STRING && !metadata.isSearchable()) ?
 					from(schemaType).where(metadata).isContainingText(stringValue) :
 					from(schemaType).where(metadata).query(stringValue);
 		case LESSER_THAN:
