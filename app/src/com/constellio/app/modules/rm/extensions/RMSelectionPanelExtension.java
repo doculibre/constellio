@@ -1,27 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -30,12 +8,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -76,15 +49,19 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.IOUtils;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import java.io.*;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -499,8 +476,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         List<String> recordIds = param.getIds();
         List<String> couldNotMove = new ArrayList<>();
         if ((isClassifiedInFolder && isNotBlank(parentId)) || (!isClassifiedInFolder && isNotBlank(categoryId))) {
-            RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
             RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+            RecordServices recordServices = recordServices();
             for (String id: recordIds) {
             	Record record = null;
                 try {
@@ -551,6 +528,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         	int successCount = recordIds.size() - couldNotMove.size();
             showErrorMessage($("ConstellioHeader.selection.actions.couldNotClassify", successCount, recordIds.size()));
         }
+    }
+
+    protected RecordServices recordServices() {
+        return appLayerFactory.getModelLayerFactory().newRecordServices();
     }
 
     protected void deleteUserFolder(AvailableActionsParam param, RMUserFolder rmUserFolder, User user) {
