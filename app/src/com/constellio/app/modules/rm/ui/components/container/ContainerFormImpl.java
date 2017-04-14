@@ -21,7 +21,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public abstract class ContainerFormImpl extends RecordForm implements ContainerForm {
 
     public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter) {
-        this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE), presenter));
+        this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE), (Double) record.get(ContainerRecord.CAPACITY), presenter));
         if(presenter.isMultipleMode()) {
             WindowButton newSaveButton = new WindowButton(saveButton.getCaption(), saveButton.getCaption()) {
                 @Override
@@ -86,6 +86,11 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
     @SuppressWarnings("unchecked")
     public Field<String> getTypeField() {
         return (Field<String>) getField(ContainerRecord.TYPE);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Field<String> getCapacityField() {
+        return (Field<String>) getField(ContainerRecord.CAPACITY);
     }
 
     @SuppressWarnings("unchecked")

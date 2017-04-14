@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import java.util.StringTokenizer;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+
+import java.util.StringTokenizer;
 
 public class DecomListContainerDetailFactory implements StructureFactory {
 
@@ -16,6 +16,11 @@ public class DecomListContainerDetailFactory implements StructureFactory {
 		DecomListContainerDetail decomListContainerDetail = new DecomListContainerDetail();
 		decomListContainerDetail.setContainerRecordId(readString(stringTokenizer));
 		decomListContainerDetail.setFull(Boolean.valueOf(readString(stringTokenizer)));
+		try {
+			decomListContainerDetail.setAvailableSize(Double.valueOf(readString(stringTokenizer)));
+		} catch (Exception e) {
+		}
+
 		decomListContainerDetail.dirty = false;
 		return decomListContainerDetail;
 	}
@@ -31,6 +36,9 @@ public class DecomListContainerDetailFactory implements StructureFactory {
 		writeString(stringBuilder, "" + decomListContainerDetail.isFull() == null ?
 				String.valueOf(false) :
 				String.valueOf(decomListContainerDetail.isFull()));
+		writeString(stringBuilder, "" + decomListContainerDetail.getAvailableSize() == null ?
+				NULL :
+				String.valueOf(decomListContainerDetail.getAvailableSize()));
 		return stringBuilder.toString();
 	}
 

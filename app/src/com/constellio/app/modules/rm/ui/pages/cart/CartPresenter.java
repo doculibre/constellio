@@ -518,7 +518,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
 		list.setDecommissioningListType(decomType);
-		list.setFolderDetailsFrom(getCartFolders());
+		list.setFolderDetailsFor(getCartFolders());
 
 		try {
 			recordServices().add(list);

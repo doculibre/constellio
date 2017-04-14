@@ -194,7 +194,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		try {
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
 			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				decommissioningList.addFolderDetailsFor(selected.toArray(new String[0]));
+				decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
 				recordServices().update(decommissioningList.getWrappedRecord());
 				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 			} else {

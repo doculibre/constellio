@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -145,9 +138,6 @@ public abstract class Decommissioner {
 	}
 
 	protected void add(RecordWrapper record) {
-		if (transaction.getRecordIds().contains(record.getId())) {
-			throw new ImpossibleRuntimeException("Duplicate records in transaction");
-		}
 		transaction.addUpdate(record.getWrappedRecord());
 	}
 
@@ -347,9 +337,24 @@ public abstract class Decommissioner {
 	}
 
 	private void processContainers() {
-		for (DecomListContainerDetail detail : decommissioningList.getContainerDetails()) {
-			processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+		List<String> containerIdUsed = new ArrayList<>();
+		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+			if (detail.isFolderExcluded()) {
+				continue;
+			}
+			containerIdUsed.add(detail.getContainerRecordId());
 		}
+
+		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
+		for (DecomListContainerDetail detail : containerDetails) {
+			if(containerIdUsed.contains(detail.getContainerRecordId())) {
+				processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+			} else {
+				decommissioningList.removeContainerDetail(detail.getContainerRecordId());
+			}
+		}
+
+		add(decommissioningList);
 	}
 
 	protected void updateContainer(ContainerRecord container, DecomListContainerDetail detail) {

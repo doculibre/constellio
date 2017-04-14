@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import java.util.StringTokenizer;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+
+import java.util.StringTokenizer;
 
 public class DecomListFolderDetailFactory implements StructureFactory {
 	private static final String NULL = "~null~";
@@ -22,6 +22,12 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		decomListFolderDetail.setContainerRecordId(readString(stringTokenizer));
 		decomListFolderDetail.setReversedSort(Boolean.valueOf(readString(stringTokenizer)));
 		decomListFolderDetail.setFolderLinearSize(readDouble(stringTokenizer));
+		try {
+			decomListFolderDetail.setIsPlacedInContainer(Boolean.valueOf(readString(stringTokenizer)));
+		} catch (Exception e) {
+			decomListFolderDetail.setIsPlacedInContainer(false);
+		}
+
 		decomListFolderDetail.dirty = false;
 		return decomListFolderDetail;
 	}
@@ -39,6 +45,9 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		writeString(stringBuilder, decomListFolderDetail.getContainerRecordId());
 		writeString(stringBuilder, String.valueOf(decomListFolderDetail.isReversedSort()));
 		writeDouble(stringBuilder, decomListFolderDetail.getFolderLinearSize());
+		writeString(stringBuilder, "" + decomListFolderDetail.isPlacedInContainer() == null ?
+				String.valueOf(false) :
+				String.valueOf(decomListFolderDetail.isPlacedInContainer()));
 		return stringBuilder.toString();
 	}
 

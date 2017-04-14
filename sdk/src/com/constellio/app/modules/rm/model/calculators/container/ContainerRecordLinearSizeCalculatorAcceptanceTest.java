@@ -55,19 +55,22 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     @Test
     public void givenParametersThenCalculatorReturnsGoodValue()  {
         when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(5));
-
         assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
         when(parameters.get(calculator.linearSizeSumParam)).thenReturn(new Double(9001));
-
         assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
         when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(null);
-
         assertThat(calculator.calculate(parameters)).isEqualTo(9001);
 
         when(parameters.get(calculator.linearSizeSumParam)).thenReturn(null);
+        assertThat(calculator.calculate(parameters)).isNull();
 
+        when(parameters.get(calculator.isFullParam)).thenReturn(Boolean.TRUE);
+        when(parameters.get(calculator.capacityParam)).thenReturn(42.0);
+        assertThat(calculator.calculate(parameters)).isEqualTo(42);
+
+        when(parameters.get(calculator.capacityParam)).thenReturn(null);
         assertThat(calculator.calculate(parameters)).isNull();
     }
 
@@ -129,8 +132,33 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
         assertThat(rm.wrapContainerRecord(record).getLinearSize()).isEqualTo(new Double(0));
     }
 
+    @Test
+    public void givenContainerWithFullMetadataSetToTrueThenLinearSizeIsEqualToCapacity()
+            throws RecordServicesException {
+
+        ContainerRecord containerRecord = buildDefaultContainer();
+        containerRecord.setFull(Boolean.TRUE);
+        recordServices.add(containerRecord);
+
+        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+        Record record = searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("containerTest"));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeEntered()).isNull();
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeSum()).isEqualTo(new Double(0));
+        assertThat(rm.wrapContainerRecord(record).getLinearSize()).isEqualTo(new Double(42));
+
+        containerRecord.setCapacity(null);
+        recordServices.add(containerRecord);
+
+        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+        record = searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("containerTest"));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeEntered()).isNull();
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeSum()).isEqualTo(new Double(0));
+        assertThat(rm.wrapContainerRecord(record).getLinearSize()).isNull();
+    }
+
     public ContainerRecord buildDefaultContainer() {
-        return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary");
+        return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary")
+                .setCapacity(42);
     }
 
     public void addFoldersLinkedToContainer(String containerID)

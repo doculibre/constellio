@@ -27,7 +27,7 @@ public class FolderDetailToVOBuilder {
 		folderDetailVO.setRetentionRuleId(folder.getRetentionRule());
 		folderDetailVO.setCategoryCode(folder.getCategoryCode());
 		folderDetailVO.setPackageable(
-				!detailWithType.getDecommissioningType().isClosureOrDestroyal());
+				!detailWithType.getDecommissioningType().isClosureOrDestroyal() && !detail.isPlacedInContainer());
 		folderDetailVO.setSortable(folder.getInactiveDisposalType() == DisposalType.SORT);
 		folderDetailVO.setReversedSort(detail.isReversedSort());
 		folderDetailVO.setSelected(false);
