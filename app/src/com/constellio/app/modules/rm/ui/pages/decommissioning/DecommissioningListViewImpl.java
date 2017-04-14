@@ -750,6 +750,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			if(!wasFound) {
 				containerVOs.addItem(containerVO);
 				presenter.addContainerToDecommissioningList(containerVO);
+				newContainerDetail = presenter.getContainerDetail(containerVO.getId());
 			}
 			addContainerToComponent(newContainerDetail, containerTable, containerComponent);
 		}

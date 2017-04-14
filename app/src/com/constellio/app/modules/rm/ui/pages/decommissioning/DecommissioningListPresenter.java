@@ -187,7 +187,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		if(containerAvailableSize != null && folderLinearSize != null) {
 			containerAvailableSize = containerAvailableSize - folderLinearSize;
 		}
-		DecomListContainerDetail newContainerDetail = decommissioningList.getContainerDetail(container.getId()).setAvailableSize(containerAvailableSize);
+		DecomListContainerDetail newContainerDetail = decommissioningList.getContainerDetail(container.getId());
+		if(newContainerDetail != null) {
+			newContainerDetail.setAvailableSize(containerAvailableSize);
+		}
 		decommissioningList.getFolderDetail(folder.getFolderId()).setFolderLinearSize(folderLinearSize).setContainerRecordId(container.getId()).setIsPlacedInContainer(true);
 		addOrUpdate(decommissioningList.getWrappedRecord());
 		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize), newContainerDetail);
@@ -325,6 +328,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public List<DecomListContainerDetail> getContainerDetails() {
 		DecommissioningList decommissioningList = decommissioningList();
 		return decommissioningList.getContainerDetails();
+	}
+
+	public DecomListContainerDetail getContainerDetail(String containerId) {
+		DecommissioningList decommissioningList = decommissioningList();
+		return decommissioningList.getContainerDetail(containerId);
 	}
 
 	public List<ContainerVO> getContainers() {

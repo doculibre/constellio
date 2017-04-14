@@ -404,8 +404,7 @@ public class DecommissioningList extends RecordWrapper {
 	public DecommissioningList addContainerDetailsFrom(List<ContainerRecord> containers) {
 		List<DecomListContainerDetail> details = new ArrayList<>(getContainerDetails());
 		for (ContainerRecord container : containers) {
-			DecomListContainerDetail detail = new DecomListContainerDetail(container.getId())
-					.setFull(container.isFull() != null && container.isFull());
+			DecomListContainerDetail detail = new DecomListContainerDetail(container);
 			details.add(detail);
 		}
 		return setContainerDetails(details);
