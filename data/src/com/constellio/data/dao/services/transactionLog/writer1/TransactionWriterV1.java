@@ -198,10 +198,10 @@ public class TransactionWriterV1 {
 
 		} else if (value instanceof Date) {
 			LocalDateTime dateTime = new LocalDateTime(value);
-			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement(""));
+			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement("")) + "Z";
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement(""));
+			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("")) + "Z";
 
 		} else {
 			return lineFeedPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("__LINEBREAK__"));
