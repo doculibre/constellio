@@ -218,7 +218,7 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 	private List<FolderDetailWithType> getPackageableFolders() {
 		List<FolderDetailWithType> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder) && !folder.getDetail().isPlacedInContainer()) {
 				result.add(folder);
 			}
 		}
@@ -228,7 +228,7 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 	private List<FolderDetailWithType> getProcessableFolders() {
 		List<FolderDetailWithType> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder) || folder.getDetail().isPlacedInContainer())) {
 				result.add(folder);
 			}
 		}
