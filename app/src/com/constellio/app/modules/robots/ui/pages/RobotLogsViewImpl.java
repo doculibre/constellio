@@ -43,7 +43,7 @@ public class RobotLogsViewImpl extends BaseViewImpl implements RobotLogsView {
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		RecordVODataProvider logs = presenter.getLogs();
-		RecordVOTable table = new RecordVOTable($("RobotLogsView.logs", logs.size()));
+		RecordVOTable table = new RecordVOTable();
 		table.setContainerDataSource(new RecordVOLazyContainer(logs));
 		table.setWidth("100%");
 		return table;

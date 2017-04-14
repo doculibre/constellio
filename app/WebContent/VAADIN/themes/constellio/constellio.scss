@@ -62,6 +62,19 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.nicetitle-link {
+		cursor: pointer !important;	
+	}
+
+	.nicetitle-link-disabled  {
+		text-decoration: none;
+		color: rgb(71, 71, 71);
+	}
+
+	.nicetitle-link-disabled:hover {
+		color: rgb(71, 71, 71);
+	}
+
 	.auto-scroll {
 		overflow: auto;
 	}
@@ -76,6 +89,10 @@ $popup-view-z-index: 3;
 
 	.no-scroll-vertical {
 		overflow-y: hidden;
+	}
+
+	.horizontal-option-group {
+		white-space: normal;
 	}
 
 	.button-badge {
@@ -419,6 +436,10 @@ $popup-view-z-index: 3;
     }
 
 	.base-display {
+		
+		.base-display-main-layout {
+			width: 100%;
+		}
 
 		.v-label-undef-w {
 			white-space: normal;
@@ -859,27 +880,55 @@ $popup-view-z-index: 3;
 	}
 	
 	.confirm-dialog-info {
-		background-image: url('images/icons/dialog/info.png');
+		background-image: url('images/icons/dialog/information.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+		}
 	}
 	
 	.confirm-dialog-warn {
-		background-image: url('images/icons/dialog/warn.png');
+		background-image: url('images/icons/dialog/sign_warning.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+		}
 	}
 	
 	.confirm-dialog-error {
 		background-image: url('images/icons/dialog/error.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+			font-weight: bold;
+			color: red;
+		}
 	}
 	
 	.confirm-dialog-stop {
-		background-image: url('images/icons/dialog/stop.png');
+		background-image: url('images/icons/dialog/sign_stop.png');
 		background-repeat: no-repeat;
-		background-position: 2px 10px;
+		vertical-align: center;
+		display: block;
+		
+		.confirm-dialog-message {
+			padding-left: 40px;
+			display: block;
+			font-weight: bold;
+			color: red;
+		}
 	}
 	
     .constellio-layout {

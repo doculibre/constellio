@@ -26,8 +26,8 @@ import com.constellio.model.entities.schemas.InheritedMetadataBehaviors;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -735,10 +735,11 @@ public class MetadataBuilder {
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
+		final Factory<ModelLayerFactory> modelLayerFactoryFactory = modelLayerFactory.getModelLayerFactoryFactory();
 		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 			@Override
 			public EncryptionServices get() {
-				return modelLayerFactory.newEncryptionServices();
+				return modelLayerFactoryFactory.get().newEncryptionServices();
 			}
 		};
 

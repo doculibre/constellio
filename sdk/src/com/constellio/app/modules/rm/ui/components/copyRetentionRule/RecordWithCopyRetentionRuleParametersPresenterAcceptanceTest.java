@@ -1,20 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.Locale;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -26,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -36,6 +22,19 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Locale;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extends ConstellioTest {
 
@@ -74,7 +73,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
@@ -292,5 +291,25 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 		when(fields.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		assertThat(presenter.getOptions(presenter.toRequest())).containsOnly(principal888_4_C);
 
+	}
+
+	@Test
+	public void givenRequestWithQueryThenGetOptionsReturnExpectedRules() {
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection)).setSchemaType(rm.documentSchemaType())
+				.setQuery(new LogicalSearchQuery().setCondition(from(rm.documentSchemaType()).where(rm.document.title())
+						.isContainingText("Chat")))
+				.addModifiedMetadata(Document.AUTHOR, "Gandalf");
+		presenter.getOptions(request);
+	}
+
+	@Test
+	public void givenRequestWithIdsThenGetOptionsReturnExpectedRules() {
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(rm.documentSchemaType()).where(rm.document.title())
+				.isContainingText("Chat"));
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection)).setSchemaType(rm.documentSchemaType())
+				.setIds(searchServices.searchRecordIds(query))
+				.addModifiedMetadata(Document.AUTHOR, "Gandalf");
+		presenter.getOptions(request);
 	}
 }

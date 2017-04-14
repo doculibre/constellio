@@ -4,19 +4,27 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.util.List;
 import java.util.Locale;
 
 import static java.util.Arrays.asList;
@@ -100,6 +108,29 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
 
         assertThat(rm.getDecommissioningList("decomTestDoc").getDocuments()).containsOnly(records.document_A19, records.document_A49,
                 records.document_A79, records.document_B30, records.document_B33);
+    }
+
+    @Test
+    public void givenBuilderThenShowOnlyNonBorrowedFolders() throws Exception {
+        presenter.forParams("semiActiveToDeposit");
+        presenter.forRequestParameters("semiActiveToDeposit");
+        presenter.adminUnitId = records.unitId_10a;
+
+
+        SearchServices searchServices = getModelLayerFactory().newSearchServices();
+        LogicalSearchCondition searchCondition = presenter.getSearchCondition();
+        List<String> recordIds = searchServices.searchRecordIds(searchCondition);
+        assertThat(recordIds).contains(records.folder_A48);
+
+
+        RecordServices recordServices = getModelLayerFactory().newRecordServices();
+        recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+        recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+        new BorrowingServices(zeCollection, getModelLayerFactory()).borrowFolder(records.folder_A48, LocalDate.now(),
+                LocalDate.now().plusDays(1), records.getAdmin(), records.getAdmin(), BorrowingType.BORROW);
+
+        recordIds = searchServices.searchRecordIds(searchCondition);
+        assertThat(recordIds).doesNotContain(records.folder_A48);
     }
 
     private DecommissioningList buildDefaultFolderDecommissioningList() {

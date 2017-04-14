@@ -85,19 +85,32 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		List<Map<String, String>> copyRetentionRules = params.getImportRecord().getList(RetentionRule.COPY_RETENTION_RULES);
 		boolean copyRetentionRulePrincipalAndNotSortExist = false;
 		for (Map<String, String> copyRetentionRule : copyRetentionRules) {
-			final String strIndex = String.valueOf(index);
-			ValidationErrors errors = decorateForIndex(params.getErrors(), index);
-			copyRetentionRulePrincipalAndNotSortExist |= prevalidateCopyRetentionRule(copyRetentionRule, errors);
+			if (hasValue(copyRetentionRule)) {
+				final String strIndex = String.valueOf(index);
+				ValidationErrors errors = decorateForIndex(params.getErrors(), index);
+				copyRetentionRulePrincipalAndNotSortExist |= prevalidateCopyRetentionRule(copyRetentionRule, errors);
+			}
 			index++;
 		}
 
 		index = 0;
 		List<Map<String, String>> documentTypes = params.getImportRecord().getList(RetentionRule.DOCUMENT_TYPES_DETAILS);
 		for (Map<String, String> documentType : documentTypes) {
-			ValidationErrors errors = decorateForIndex(params.getErrors(), index);
-			prevalidateDocumentType(documentType, errors, copyRetentionRulePrincipalAndNotSortExist);
+			if (hasValue(documentType)) {
+				ValidationErrors errors = decorateForIndex(params.getErrors(), index);
+				prevalidateDocumentType(documentType, errors, copyRetentionRulePrincipalAndNotSortExist);
+			}
 			index++;
 		}
+	}
+
+	private boolean hasValue(Map<String, String> copyRetentionRule) {
+		for (Map.Entry<String, String> entry : copyRetentionRule.entrySet()) {
+			if (StringUtils.isNotBlank(entry.getValue()) && !"null".equals(entry.getValue().toLowerCase())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	ValidationErrors decorateForIndex(ValidationErrors errors, int index) {
@@ -128,12 +141,14 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		index = 0;
 		for (Map<String, String> copyRetentionRule : copyRetentionRules) {
-			ValidationErrors errors = decorateForIndex(params.getErrors(), index);
-			String value = (String) copyRetentionRule.get(MEDIUM_TYPES);
-			String[] mediumTypes = value.split(",");
-			for (String code : mediumTypes) {
-				if (mediumTypeResolver.getMediumTypeByCode(code) == null) {
-					errors.add(RetentionRuleImportExtension.class, INVALID_MEDIUM_TYPE_CODE, asMap("value", code));
+			if (hasValue(copyRetentionRule)) {
+				ValidationErrors errors = decorateForIndex(params.getErrors(), index);
+				String value = (String) copyRetentionRule.get(MEDIUM_TYPES);
+				String[] mediumTypes = value.split(",");
+				for (String code : mediumTypes) {
+					if (mediumTypeResolver.getMediumTypeByCode(code) == null) {
+						errors.add(RetentionRuleImportExtension.class, INVALID_MEDIUM_TYPE_CODE, asMap("value", code));
+					}
 				}
 			}
 			index++;
@@ -303,7 +318,9 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		List<CopyRetentionRule> copyRetentionRuleList = new ArrayList<>();
 
 		for (Map<String, String> copyRetentionRule : copyRetentionRules) {
-			copyRetentionRuleList.add(buildCopyRetentionRule(mediumTypeResolver, copyRetentionRule, RULES_TYPE_FOLDER));
+			if (hasValue(copyRetentionRule)) {
+				copyRetentionRuleList.add(buildCopyRetentionRule(mediumTypeResolver, copyRetentionRule, RULES_TYPE_FOLDER));
+			}
 		}
 
 		Collections.sort(copyRetentionRuleList, new Comparator<CopyRetentionRule>() {

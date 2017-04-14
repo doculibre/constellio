@@ -147,9 +147,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return containerId;
 	}
 
-	public List<LabelTemplate> getTemplates() {
-		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
+	public List<LabelTemplate> getCustomTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(ContainerRecord.SCHEMA_TYPE);
+	}
 
+	public List<LabelTemplate> getDefaultTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 	}
 
 	public Double getFillRatio(RecordVO container)
@@ -174,7 +177,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private LogicalSearchQuery getFoldersQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
 				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
-		return new LogicalSearchQuery(condition);
+		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser());
 	}
 
 	private boolean isContainerRecyclingAllowed() {

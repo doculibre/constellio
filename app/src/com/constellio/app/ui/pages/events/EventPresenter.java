@@ -56,7 +56,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(CorePermissions.VIEW_EVENTS).globally();
+		return user.has(CorePermissions.VIEW_EVENTS).onSomething();
 	}
 
 	public RecordVODataProvider getDataProvider() {
@@ -221,12 +221,11 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		Record linkedRecord = recordServices().getDocumentById(eventId);
 		String linkedRecordId = linkedRecord.getId();
 		try {
-			recordServices().getDocumentById(linkedRecordId);
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
 				view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
 			} else if (getEventType().contains("folder")) {
 				view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
-			} else if (getEventType().contains("document")) {
+			} else if (getEventType().contains("document") || EventType.PDF_A_GENERATION.equals(getEventType())) {
 				view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
 			} else {
 				view.navigate().to(TaskViews.class).displayTask(linkedRecordId);

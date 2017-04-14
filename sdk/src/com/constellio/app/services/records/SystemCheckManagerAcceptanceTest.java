@@ -10,6 +10,7 @@ import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTe
 import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage6;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
@@ -22,14 +23,14 @@ import static org.joda.time.LocalDate.now;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.users.UserServices;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
@@ -39,13 +40,20 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
+import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -293,7 +301,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(dakotaInZeCollection.getUserAuthorizations()).isEmpty();
 	}
 
-
 	@Test
 	public void givenLogicallyDeletedAdministrativeUnitsAndCategoriesThenRepairRestoreThem()
 			throws Exception {
@@ -452,6 +459,49 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
 		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+	}
+
+	@Test
+	public void givenOldFloatingRobotActionsWhenDiagnoseAndRepairThenRemoved()
+			throws Exception {
+
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule()
+				.withAllTestUsers().withRMTest(records).withFoldersAndContainersOfEveryStatus());
+
+		RobotSchemaRecordServices robotsSchemas = new RobotSchemaRecordServices(zeCollection, getAppLayerFactory());
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Robot robot = robotsSchemas.newRobot().setCode("Term").setTitle("Inator");
+		Transaction tx = new Transaction();
+		tx.add(robot.setSchemaFilter(es.connectorSmbFolder.schemaType().getCode()));
+		tx.add(robotsSchemas.newActionParameters());
+		tx.add(robotsSchemas.newActionParameters());
+		String parameter = tx.add(robotsSchemas.newActionParameters()).getId();
+		robot.setActionParameters(parameter);
+		robot.setSearchCriterion(new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+				.where(es.connectorSmbFolder.url()).isContainingText("sharepoint://"));
+
+		getModelLayerFactory().newRecordServices().execute(tx);
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(robotsSchemas.actionParameters.schemaType()).returnAll());
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(3);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(3);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
+
 	}
 
 	private static enum RecordStatus {ACTIVE, LOGICALLY_DELETED, DELETED}

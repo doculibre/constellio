@@ -1,28 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfiguration;
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.app.modules.complementary.esRmRobots.services.SmbClassifyServices;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDownloadSmbDocument;
@@ -33,13 +10,17 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.robots.model.services.RobotsService;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
-import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfiguration;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.params.ParamUtils;
@@ -53,7 +34,27 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.File;
+import java.util.*;
+
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Patrick on 2015-12-15.
@@ -62,6 +63,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
 	MockedNavigation navigator;
 	@Mock AddEditRobotView view;
+	SessionContext sessionContext;
 	RobotsService robotsService;
 	AddEditRobotPresenter presenter;
 	Robot robot;
@@ -205,6 +207,13 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 				.setTitle("robot1");
 		recordServices.add(robot.getWrappedRecord());
 
+		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+
+		when(view.getSessionContext()).thenReturn(sessionContext);
+		when(view.getCollection()).thenReturn(zeCollection);
+		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
+
 		presenter = new AddEditRobotPresenter(view);
 	}
 
@@ -222,6 +231,61 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		List<Criterion> criteria = robot.getSearchCriteria();
 		assertThat(presenter.getSearchResults(criteria).size()).isEqualTo(1);
 
+	}
+
+	@Test
+	public void givenAdvanceSearchThenMetadataChoiceIsLimitedByUsedSchemas() throws RecordServicesException {
+		connectWithAdmin();
+		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("customSchema").create("newSearchableMetadata")
+						.setType(MetadataValueType.STRING).setSearchable(true);
+			}
+		});
+
+		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
+				.withVisibleInAdvancedSearchStatus(true));
+
+		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
+		recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
+		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true).set(AUTHORIZATIONS, new ArrayList<>()));
+
+		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
+		newMetadatas.removeAll(baseMetadatas);
+		assertThat(newMetadatas.size()).isEqualTo(1);
+		assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_customSchema_newSearchableMetadata");
+
+		connectWithBob();
+		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
+	}
+
+	private void connectWithAdmin() {
+		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(view.getSessionContext()).thenReturn(sessionContext);
+		presenter = spy(new AddEditRobotPresenter(view));
+		presenter.schemaFilterSelected(Folder.SCHEMA_TYPE);
+	}
+
+	private void connectWithBob() {
+		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(view.getSessionContext()).thenReturn(sessionContext);
+		presenter = spy(new AddEditRobotPresenter(view));
+		presenter.schemaFilterSelected(Folder.SCHEMA_TYPE);
+	}
+
+	private Folder newFolder(String title) {
+		return rm.newFolderWithId("testFolder").setTitle(title).setOpenDate(LocalDate.now())
+				.setAdministrativeUnitEntered(records.unitId_10a)
+				.setCategoryEntered(records.categoryId_X110)
+				.setRetentionRuleEntered(records.getRule2())
+				.setCopyStatusEntered(CopyType.PRINCIPAL)
+				.set("aCustomRequiredMetadata", "test");
 	}
 
 	// ---------------------------------------

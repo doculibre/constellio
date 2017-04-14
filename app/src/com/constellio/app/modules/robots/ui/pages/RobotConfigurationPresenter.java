@@ -6,7 +6,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.reports.DryRunReportWriterFactory;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
@@ -64,22 +67,31 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	}
 
 	public String getReportTitle() {
-		return new DryRunReportWriterFactory(
-				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext()).getFilename();
+		return new DryRunReportWriterFactory(new ArrayList<DryRunRobotAction>(), view.getSessionContext()).getFilename();
 	}
 
 	public StreamSource getResource() {
-		final DryRunReportWriterFactory factory = new DryRunReportWriterFactory(
-				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext());
 		return new StreamSource() {
+			private static final String MUTEX = "mutex";
+			private DryRunReportWriterFactory factory;
+			
 			@Override
 			public InputStream getStream() {
 				ByteArrayOutputStream output = new ByteArrayOutputStream();
-				try {
-					factory.getReportBuilder(modelLayerFactory).write(output);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
+				
+				synchronized (MUTEX) {
+					if (factory == null) {
+						List<DryRunRobotAction> dryRun = manager().dryRun(robotSchemas().getRobot(rootRobotId));
+						factory = new DryRunReportWriterFactory(dryRun, view.getSessionContext());
+					}
+
+					try {
+						factory.getReportBuilder(modelLayerFactory).write(output);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
 				}
+				
 				return new ByteArrayInputStream(output.toByteArray());
 			}
 		};

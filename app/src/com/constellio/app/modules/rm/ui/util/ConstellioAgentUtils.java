@@ -8,11 +8,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -44,6 +46,8 @@ import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
 
 public class ConstellioAgentUtils {
+	
+	public static final String URL_SEP = "agentURLSep";
 
 	public static final String AGENT_DOWNLOAD_URL = "http://constellio.com/agent/";
 
@@ -162,6 +166,26 @@ public class ConstellioAgentUtils {
 		}
 		return addConstellioProtocol(agentURL, request);
 	}
+	
+	public static String appendAgentURL(String agentURL, String appendedAgentURL) {
+		StringBuilder sb = new StringBuilder();
+		if (StringUtils.isNotBlank(agentURL)) {
+			sb.append(agentURL);
+			sb.append(URL_SEP);
+			if (appendedAgentURL.startsWith("constellio://")) {
+				appendedAgentURL = StringUtils.removeStart(appendedAgentURL, "constellio://");
+			}
+			try {
+				appendedAgentURL = URLDecoder.decode(appendedAgentURL, "UTF-8");
+				appendedAgentURL = StringUtils.substringAfter(appendedAgentURL, "/agentPath");
+				appendedAgentURL = URLEncoder.encode(appendedAgentURL, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		sb.append(appendedAgentURL);
+		return sb.toString();
+	}
 
 	public static String getAgentSmbURL(String smbPath) {
 		return getAgentSmbURL(smbPath, null);
@@ -208,6 +232,7 @@ public class ConstellioAgentUtils {
 		String currentUsername = currentUserVO.getUsername();
 		String currentUserId = currentUserVO.getId();
 		String filename = contentVersionVO.getFileName();
+		String extension = FilenameUtils.getExtension(filename);
 		filename = UnicodeUtils.unicodeEscape(filename);
 
 		MetadataSchemaTypes types = types(sessionContext);

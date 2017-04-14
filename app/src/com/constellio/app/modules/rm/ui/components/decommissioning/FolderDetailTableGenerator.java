@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -26,6 +32,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
 	public static final String FOLDER_ID = "id";
+	public static final String PREVIOUS_ID = "previousId";
 	public static final String FOLDER = "folder";
 	public static final String RETENTION_RULE = "rule";
 	public static final String CATEGORY_CODE = "categoryCode";
@@ -39,6 +46,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	private final DecommissioningListPresenter presenter;
 	private final DecommissioningListViewImpl view;
 	private final boolean packageable;
+	private DecommissioningListFolderTableExtension extension;
 	private boolean displayRetentionRule;
 	private boolean displayCategory;
 	private boolean displaySort;
@@ -54,6 +62,11 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		displayCategory = true;
 		displaySort = false;
 		displayValidation = false;
+	}
+
+	public FolderDetailTableGenerator withExtension(DecommissioningListFolderTableExtension extension) {
+		this.extension = extension;
+		return this;
 	}
 
 	public FolderDetailTableGenerator displayingRetentionRule(boolean displayRetentionRule) {
@@ -108,6 +121,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		table.addGeneratedColumn(FOLDER_ID, this);
 		table.setColumnHeader(FOLDER_ID, $("DecommissioningListView.folderDetails.id"));
 		visibleColumns.add(FOLDER_ID);
+
+		if (extension != null) {
+			table.addGeneratedColumn(PREVIOUS_ID, this);
+			table.setColumnHeader(PREVIOUS_ID, $("DecommissioningListView.folderDetails.previousId"));
+			visibleColumns.add(PREVIOUS_ID);
+		}
 
 		table.addGeneratedColumn(FOLDER, this);
 		table.setColumnHeader(FOLDER, $("DecommissioningListView.folderDetails.folder"));
@@ -166,6 +185,8 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			return buildValidationColumn(detail);
 		case FOLDER_ID:
 			return new Label(detail.getFolderId());
+		case PREVIOUS_ID:
+			return new Label(extension.getPreviousId(detail));
 		case FOLDER:
 			return new ReferenceDisplay(detail.getFolderId());
 		case SORT:

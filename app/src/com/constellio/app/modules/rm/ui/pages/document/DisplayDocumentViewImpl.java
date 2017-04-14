@@ -24,6 +24,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -290,12 +291,16 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
-		createPDFAButton = new LinkButton($("DocumentActionsComponent.createPDFA")) {
+		createPDFAButton = new ConfirmDialogButton($("DocumentActionsComponent.createPDFA")) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.createPDFAButtonClicked();
+			protected void confirmButtonClick(ConfirmDialog dialog) { presenter.createPDFAButtonClicked(); }
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmCreatePDFA");
 			}
 		};
+		((ConfirmDialogButton) createPDFAButton).setDialogMode(DialogMode.STOP);
 
 		shareDocumentButton = new LinkButton($("DocumentActionsComponent.shareDocument")) {
 			@Override
@@ -722,6 +727,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public DocumentVO getDocumentVO() {
 		return documentVO;
+	}
+
+	@Override
+	public void refreshParent() {
+		// No parent
 	}
 
 	private class StartWorkflowButton extends WindowButton {

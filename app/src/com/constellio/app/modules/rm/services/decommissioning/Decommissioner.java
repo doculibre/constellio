@@ -1,6 +1,14 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -55,7 +63,8 @@ public abstract class Decommissioner {
 	private LocalDate processingDate;
 	private User user;
 
-	public static Decommissioner forList(DecommissioningList decommissioningList, DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+	public static Decommissioner forList(DecommissioningList decommissioningList, DecommissioningService decommissioningService,
+			AppLayerFactory appLayerFactory) {
 		switch (decommissioningList.getDecommissioningListType()) {
 		case FOLDERS_TO_CLOSE:
 			return new ClosingDecommissioner(decommissioningService, appLayerFactory);
@@ -126,7 +135,7 @@ public abstract class Decommissioner {
 	private void markApproved() {
 		add(decommissioningList.setApprovalDate(processingDate).setApprovalUser(user));
 	}
-	
+
 	protected void removeManualArchivisticStatus(Folder folder) {
 		folder.setManualArchivisticStatus(null);
 	}
@@ -136,6 +145,9 @@ public abstract class Decommissioner {
 	}
 
 	protected void add(RecordWrapper record) {
+		if (transaction.getRecordIds().contains(record.getId())) {
+			throw new ImpossibleRuntimeException("Duplicate records in transaction");
+		}
 		transaction.addUpdate(record.getWrappedRecord());
 	}
 
@@ -174,12 +186,13 @@ public abstract class Decommissioner {
 	}
 
 	private void processFolders() {
+		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
 			if (detail.isFolderExcluded()) {
 				continue;
 			}
 			Folder folder = rm.getFolder(detail.getFolderId());
-			preprocessFolder(folder, detail);
+			preprocessFolder(folder, detail, decommissioningListType);
 			processFolder(folder, detail);
 			add(folder);
 		}
@@ -187,8 +200,8 @@ public abstract class Decommissioner {
 
 	protected abstract void processDocuments();
 
-	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail) {
-		if (folder.getCloseDateEntered() == null) {
+	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail, DecommissioningListType decommissioningListType) {
+		if (folder.getCloseDateEntered() == null && DecommissioningListType.FOLDERS_TO_CLOSE.equals(decommissioningListType)) {
 			folder.setCloseDateEntered(processingDate);
 		}
 		if (detail.getContainerRecordId() != null) {
@@ -392,6 +405,11 @@ public abstract class Decommissioner {
 			loggingServices.logDecommissioning(decommissioningList, user);
 		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+		if (!transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll()) {
+			transaction.removeUnchangedRecords();
+		}
+
 		try {
 			recordServices.execute(transaction);
 			for (Record record : recordsToDelete) {
@@ -502,6 +520,13 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	protected void processDeletedFolder(Folder folder, DecomListFolderDetail detail) {
 		removeFolderFromContainer(folder);
 		markFolderDestroyed(folder);
+		//TODO
+		//		try {
+		//			modelLayerFactory.newRecordServices().update(folder);
+		//		} catch (RecordServicesException e) {
+		//			e.printStackTrace();
+		//		}
+		//add(folder);
 		if (configs.deleteFolderRecordsWithDestruction()) {
 			delete(folder);
 		}
@@ -610,7 +635,8 @@ class DestroyingDecommissioner extends DeactivatingDecommissioner {
 class SortingDecommissioner extends DeactivatingDecommissioner {
 	private final boolean depositByDefault;
 
-	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault, AppLayerFactory appLayerFactory) {
+	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault,
+			AppLayerFactory appLayerFactory) {
 		super(decommissioningService, appLayerFactory);
 		this.depositByDefault = depositByDefault;
 	}

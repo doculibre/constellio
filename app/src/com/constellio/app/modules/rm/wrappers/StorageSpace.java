@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public class StorageSpace extends RecordWrapper {
 
@@ -42,6 +42,8 @@ public class StorageSpace extends RecordWrapper {
 	public static final String CONTAINER_TYPE = "containerType";
 
 	public static final String NUMBER_OF_CHILD = "numberOfChild";
+
+	public static final String NUMBER_OF_CONTAINERS = "numberOfContainers";
 
 	public StorageSpace(Record record,
 			MetadataSchemaTypes types) {

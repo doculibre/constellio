@@ -1,6 +1,27 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -126,10 +147,19 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				return;
 			}
 		}
+		if(!isListReadyToBeProcessed()) {
+			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
+			return;
+		}
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($(mayContainAnalogicalMedia() ?
 				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
 		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+	}
+
+	public boolean isListReadyToBeProcessed() {
+		return !(searchServices().getResultsCount(from(rmRecordsServices().folder.schemaType()).where(rmRecordsServices().folder.borrowed()).isTrue()
+				.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
 	}
 
 	public void validateButtonClicked() {
@@ -710,4 +740,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 		detail.setPackageable(!decommissioningService().isFolderProcessable(decommissioningList, decommissioningList.getFolderDetailWithType(detail.getFolderId())));
 	}
+
+	public DecommissioningListFolderTableExtension getFolderDetailTableExtension() {
+		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getDecommissioningListFolderTableExtension();
+	}
+
 }

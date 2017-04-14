@@ -139,6 +139,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 
 	@Test
 	public void givenProcessButtonClickedThenProcessTheListAndRefreshWithMessage() {
+		doReturn(true).when(presenter).isListReadyToBeProcessed();
 		presenter.processButtonClicked();
 		verify(service, times(1)).decommission(list, user);
 		verify(view, times(1)).showMessage(anyString());
