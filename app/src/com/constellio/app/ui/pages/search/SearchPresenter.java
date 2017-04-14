@@ -381,6 +381,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public abstract List<MetadataVO> getMetadataAllowedInSort();
 
+	public abstract boolean isPreferAnalyzedFields();
+
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
@@ -389,10 +391,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setFreeTextQuery(getUserSearchExpression())
 				.filteredWithUser(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES)
-				.setPreferAnalyzedFields(true);
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 
-//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
-//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+		//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
+		//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);

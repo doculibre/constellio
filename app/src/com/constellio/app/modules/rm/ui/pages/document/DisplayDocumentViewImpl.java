@@ -24,6 +24,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -299,6 +300,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				return $("ConfirmDialog.confirmCreatePDFA");
 			}
 		};
+		((ConfirmDialogButton) createPDFAButton).setDialogMode(DialogMode.STOP);
 
 		shareDocumentButton = new LinkButton($("DocumentActionsComponent.shareDocument")) {
 			@Override

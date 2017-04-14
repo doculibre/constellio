@@ -30,6 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.trash.TrashServices;
 import com.constellio.model.services.trash.TrashServices.RecordsIdsAndTitles;
@@ -37,7 +38,14 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Table;
 
 public class TrashPresenter extends BasePresenter<TrashView> {
-	Set<String> selectedRecords = new HashSet<>();
+	
+	Boolean allItemsSelected = false;
+	
+	Boolean allItemsDeselected = false;
+	
+	Set<String> selectedRecordIds = new HashSet<>();
+	
+	private RecordVODataProvider dataProvider;
 
 	private transient TrashServices trashServices;
 
@@ -51,21 +59,24 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public boolean isRecordSelected(RecordVO recordVO) {
-		return selectedRecords.contains(recordVO.getId());
+		return !allItemsDeselected && (allItemsSelected || selectedRecordIds.contains(recordVO.getId()));
 	}
 
-	public void recordToggled(RecordVO record) {
+	public void recordSelectionChanged(RecordVO record, boolean selected) {
+		allItemsSelected = false;
+		allItemsDeselected = false;
+		
 		String recordId = record.getId();
-		if (selectedRecords.contains(recordId)) {
-			selectedRecords.remove(recordId);
-		} else {
-			selectedRecords.add(recordId);
+		if (!selected && selectedRecordIds.contains(recordId)) {
+			selectedRecordIds.remove(recordId);
+		} else if (selected && !selectedRecordIds.contains(recordId)) {
+			selectedRecordIds.add(recordId);
 		}
 		view.enableOrDisableActionButtons();
 	}
 
 	public boolean atLeastOneRecordSelected() {
-		return selectedRecords.size() != 0;
+		return !allItemsDeselected && (allItemsSelected || selectedRecordIds.size() != 0);
 	}
 
 	public RecordVODataProvider getTrashRecords() {
@@ -74,12 +85,16 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(currentDefaultSchema, VIEW_MODE.TABLE, asList(Schemas.LOGICALLY_DELETED_ON.getLocalCode()),
 						view.getSessionContext(), true);
-		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+		return dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return trashServices().getTrashRecordsQueryForType(view.getSelectedType(), getCurrentUser());
+				return TrashPresenter.this.getQuery();
 			}
 		};
+	}
+	
+	private LogicalSearchQuery getQuery() {
+		return trashServices().getTrashRecordsQueryForType(view.getSelectedType(), getCurrentUser());
 	}
 
 	private TrashServices trashServices() {
@@ -90,7 +105,9 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public void clearSelectedRecords() {
-		this.selectedRecords.clear();
+		allItemsSelected = false;
+		allItemsDeselected = false;
+		this.selectedRecordIds.clear();
 	}
 
 	public SchemaTypeVODataProvider getSchemaTypes() {
@@ -105,20 +122,22 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public List<String> restoreSelection() {
-		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
+		Set<String> selection = computeSelection();
+		if (StringUtils.isBlank(view.getSelectedType()) || selection.isEmpty()) {
 			return asList();
 		}
-		List<String> returnSet = trashServices().restoreSelection(this.selectedRecords, getCurrentUser());
-		this.selectedRecords.clear();
+		List<String> returnSet = trashServices().restoreSelection(selection, getCurrentUser());
+		this.selectedRecordIds.clear();
 		return returnSet;
 	}
 
 	public Set<String> deleteSelection() {
-		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
+		Set<String> selection = computeSelection();
+		if (StringUtils.isBlank(view.getSelectedType()) || selection.isEmpty()) {
 			return new HashSet<>();
 		}
-		Set<String> notDeleted = trashServices().deleteSelection(this.selectedRecords, getCurrentUser());
-		this.selectedRecords.clear();
+		Set<String> notDeleted = trashServices().deleteSelection(selection, getCurrentUser());
+		this.selectedRecordIds.clear();
 		return notDeleted;
 	}
 
@@ -135,7 +154,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	public void displayButtonClicked(RecordVO entity) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(entity.getSchema().getCode());
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(entity.getSchema().getCode());
 		for (RecordNavigationExtension extension : recordNavigationExtensions) {
 			if (extension.isViewForSchemaTypeCode(schemaTypeCode)) {
 				NavigationParams navigationParams = new NavigationParams(ConstellioUI.getCurrent().navigate(), entity,
@@ -159,4 +178,37 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 					+ "<br>" + $("TrashView.relatedRecordTitles") + "<br>" + StringUtils.join(relatedRecordTitles, "<br>");
 		}
 	}
+	
+	Set<String> computeSelection() {
+		Set<String> selection = new HashSet<>();
+		if (allItemsSelected) {
+			LogicalSearchQuery query = getQuery();
+			SearchServices searchServices = searchServices();
+			selection.addAll(searchServices.searchRecordIds(query));
+		} else if (!allItemsDeselected) {
+			selection.addAll(selectedRecordIds);
+		}
+		return selection;
+	}
+
+	boolean isAllItemsSelected() {
+		return allItemsSelected;
+	}
+
+	boolean isAllItemsDeselected() {
+		return allItemsDeselected;
+	}
+
+	void selectAllClicked() {
+		allItemsSelected = true;
+		allItemsDeselected = false;
+		view.enableOrDisableActionButtons();
+	}
+
+	void deselectAllClicked() {
+		allItemsSelected = false;
+		allItemsDeselected = true;
+		view.enableOrDisableActionButtons();
+	}
+	
 }
