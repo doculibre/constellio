@@ -53,6 +53,8 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	@Mock FolderDetailVO processable2;
 	@Mock FolderDetailVO packageable1;
 	@Mock FolderDetailVO packageable2;
+	@Mock FolderDetailVO packageable1Detail;
+	@Mock FolderDetailVO packageable2Detail;
 	@Mock ContainerVO containerVO;
 	@Mock DecomListFolderDetail folderDetail;
 	MockedNavigation navigator;
@@ -79,6 +81,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter = spy(new DecommissioningListPresenter(view).forRecordId(ZE_LIST));
 
 		doReturn(service).when(presenter).decommissioningService();
+		doReturn(false).when(presenter).isFolderPlacedInContainer(any(FolderDetailWithType.class));
 		doReturn(rm).when(presenter).rmRecordsServices();
 
 		UI.setCurrent(new UI() {
@@ -164,6 +167,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		when(containerVO.getId()).thenReturn("zeContainer");
 		when(list.getFolderDetail("zeFolder")).thenReturn(folderDetail);
 		when(folderDetail.setFolderLinearSize(any(Double.class))).thenReturn(folderDetail);
+		when(folderDetail.setContainerRecordId(any(String.class))).thenReturn(folderDetail);
 		when(service.isProcessable(list, user)).thenReturn(true);
 
 		presenter.folderPlacedInContainer(folderDetailVO, containerVO);

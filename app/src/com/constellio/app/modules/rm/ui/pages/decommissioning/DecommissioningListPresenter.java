@@ -269,7 +269,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder) && !folder.getDetail().isPlacedInContainer()) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder) && !isFolderPlacedInContainer(folder)) {
 				result.add(builder.build(folder));
 			}
 		}
@@ -280,11 +280,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder) || folder.getDetail().isPlacedInContainer())) {
+			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder) || isFolderPlacedInContainer(folder))) {
 				result.add(builder.build(folder));
 			}
 		}
 		return result;
+	}
+
+	protected boolean isFolderPlacedInContainer(FolderDetailWithType folder) {
+		return folder.getDetail().isPlacedInContainer();
 	}
 
 	public List<FolderDetailVO> getExcludedFolders() {
