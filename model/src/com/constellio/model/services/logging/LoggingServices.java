@@ -197,21 +197,21 @@ public class LoggingServices {
 
 	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason, String delta) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.BORROW_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setDelta(delta).setDescription(String.valueOf(isAccepted)));
+				.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 
 	public void completeReturnRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.RETURN_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setDescription(String.valueOf(isAccepted)));
+				.setTask(taskId).setReceiver(respondant).setAccepted(isAccepted));
 	}
 
-	public void completeReactivationRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason) {
+	public void completeReactivationRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason, String delta) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.REACTIVATION_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setDescription(String.valueOf(isAccepted)));
+				.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 
 	public void completeBorrowExtensionRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason, String delta) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.BORROW_EXTENSION_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setDelta(delta).setDescription(String.valueOf(isAccepted)));
+				.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 }

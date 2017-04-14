@@ -36,6 +36,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -77,6 +78,7 @@ public class DecommissioningService {
 	private final DecommissioningEmailService emailService;
 	private final ConstellioEIMConfigs eimConfigs;
 	private final MetadataSchemasManager metadataSchemasManager;
+	private final LoggingServices loggingServices;
 
 	public DecommissioningService(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -92,6 +94,7 @@ public class DecommissioningService {
 		this.emailService = new DecommissioningEmailService(collection, modelLayerFactory);
 		this.eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.loggingServices = modelLayerFactory.newLoggingServices();
 	}
 
 	public DecommissioningList createDecommissioningList(DecommissioningListParams params, User user) {
@@ -959,6 +962,7 @@ public class DecommissioningService {
 							.addPreviousDepositDate(folder.getActualDepositDate()).addPreviousTransferDate(folder.getActualTransferDate())
 							.setActualDepositDate(null).setActualTransferDate(null));
 				}
+				loggingServices.completeReactivationRequestTask(recordServices.getDocumentById(folder.getId()), task.getId(), isAccepted, applicant, respondant, task.getReason(), reactivationDate.toString());
 				alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, folder.getWrappedRecord(), null, null, reactivationDate, respondant, applicant, null);
 			}
 			recordServices.execute(t);
@@ -979,6 +983,7 @@ public class DecommissioningService {
 					}
 				}
 				recordServices.execute(t);
+				loggingServices.completeReactivationRequestTask(recordServices.getDocumentById(containerId), task.getId(), isAccepted, applicant, respondant, task.getReason(), reactivationDate.toString());
 				alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, containerRecord.getWrappedRecord(), null, null, reactivationDate, respondant, applicant, null);
 			}
 
