@@ -107,8 +107,6 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		assertWhenSearchingFolderTitleWithExactMatch("Gorille rose").containsOnly("A48");
 		assertWhenSearchingFolderTitleWithExactMatch("gorille rose").isEmpty();
 		assertWhenSearchingFolderTitleWithExactMatch("Gorille").isEmpty();
-		//assertWhenSearchingFolderTitleWithoutExactMatch("Gori*").isEmpty();
-		//assertWhenSearchingFolderTitleWithoutExactMatch("Gori?le rose").isEmpty();
 
 		assertWhenSearchingFolderTitleWithoutExactMatch("Gorille").containsOnly("A48");
 		assertWhenSearchingFolderTitleWithoutExactMatch("Gorilles").containsOnly("A48");
@@ -124,16 +122,21 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		assertWhenSearchingFolderTitleWithExactMatch("Chauve souris").isEmpty();
 		assertWhenSearchingFolderTitleWithExactMatch("Chauve").isEmpty();
 		assertWhenSearchingFolderTitleWithExactMatch("souris").isEmpty();
-		//assertWhenSearchingFolderTitleWithoutExactMatch("Gori*").isEmpty();
-		//assertWhenSearchingFolderTitleWithoutExactMatch("Gori?le rose").isEmpty();
+		assertWhenSearchingFolderTitleWithExactMatch("Souris").containsOnly("A93");
+		assertWhenSearchingFolderTitleWithExactMatch("Chauve-Souris").isEmpty();
 
-		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve-souris").containsOnly("A17", "A93");
-		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve").containsOnly("A17");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Souris").containsOnly("A17", "A93");
 		assertWhenSearchingFolderTitleWithoutExactMatch("souris").containsOnly("A17", "A93");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve-souris").containsOnly("A17", "A93");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve-Souris").containsOnly("A17", "A93");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve").containsOnly("A17");
 		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve*").containsOnly("A17");
 		assertWhenSearchingFolderTitleWithoutExactMatch("Chauv*").containsOnly("A17");
 		assertWhenSearchingFolderTitleWithoutExactMatch("*souris").isEmpty();
 		assertWhenSearchingFolderTitleWithoutExactMatch("*our*").contains("A17");
+
+		assertWhenSearchingFolderTitleWithoutExactMatch("Cheval").containsOnly("A18");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chevaux").containsOnly("A18");
 
 	}
 
