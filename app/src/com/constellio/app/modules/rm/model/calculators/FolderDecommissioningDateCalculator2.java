@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDateIfNotAlready;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -17,6 +10,12 @@ import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDateIfNotAlready;
 
 public class FolderDecommissioningDateCalculator2 implements MetadataValueCalculator<LocalDate> {
 
@@ -48,7 +47,7 @@ public class FolderDecommissioningDateCalculator2 implements MetadataValueCalcul
 		String yearEnd = parameters.get(configYearEndParam);
 		int requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
 
-		if (!reactivationDates.isEmpty()) {
+		if (reactivationDates != null && !reactivationDates.isEmpty()) {
 			if (reactivationDecommissioningDate == null) {
 				return toNextEndOfYearDateIfNotAlready(reactivationDates.get(0), yearEnd, requiredDaysBeforeYearEnd);
 			} else {
