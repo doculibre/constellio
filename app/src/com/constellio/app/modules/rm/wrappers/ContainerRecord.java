@@ -334,4 +334,8 @@ public class ContainerRecord extends RecordWrapper {
 	public Double getAvailableSize() {
 		return get(AVAILABLE_SIZE);
 	}
+
+	public static ContainerRecord wrap(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new ContainerRecord(record, types);
+	}
 }

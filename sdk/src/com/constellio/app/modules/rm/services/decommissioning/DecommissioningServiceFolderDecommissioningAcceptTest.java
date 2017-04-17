@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMConfigs.DecommissioningPhase;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -27,6 +19,13 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningServiceFolderDecommissioningAcceptTest extends ConstellioTest {
 	DecommissioningService service;
@@ -387,7 +386,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
-		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A01));
+		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.getFolder_A01()));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
 	}
 
@@ -405,7 +404,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
-		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A04));
+		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.getFolder_A04()));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
 	}
 
@@ -423,7 +422,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
-		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A07));
+		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.getFolder_A07()));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
 	}
 
@@ -441,7 +440,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_TRANSFER);
-		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A10));
+		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.getFolder_A10()));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
 	}
 
@@ -459,7 +458,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DEPOSIT);
-		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A10));
+		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.getFolder_A10()));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
 	}
 
@@ -477,7 +476,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DESTROY);
-		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A10));
+		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.getFolder_A10()));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
 	}
 
@@ -496,9 +495,9 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DEPOSIT);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(
-				new DecomListFolderDetail(records.folder_A42).setContainerRecordId(records.containerId_bac13),
-				new DecomListFolderDetail(records.folder_A43).setContainerRecordId(records.containerId_bac13),
-				new DecomListFolderDetail(records.folder_A44).setContainerRecordId(records.containerId_bac13));
+				new DecomListFolderDetail(records.getFolder_A42()).setContainerRecordId(records.containerId_bac13),
+				new DecomListFolderDetail(records.getFolder_A43()).setContainerRecordId(records.containerId_bac13),
+				new DecomListFolderDetail(records.getFolder_A44()).setContainerRecordId(records.containerId_bac13));
 		assertThat(decommissioningList.getContainerDetails()).containsOnly(
 				new DecomListContainerDetail(records.containerId_bac13));
 	}
@@ -519,7 +518,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DEPOSIT);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(
-				new DecomListFolderDetail(records.folder_A42).setContainerRecordId(records.containerId_bac13));
+				new DecomListFolderDetail(records.getFolder_A42()).setContainerRecordId(records.containerId_bac13));
 		assertThat(decommissioningList.getContainerDetails()).containsOnly(
 				new DecomListContainerDetail(records.containerId_bac13));
 	}
@@ -539,9 +538,9 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DESTROY);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(
-				new DecomListFolderDetail(records.folder_A42).setContainerRecordId(records.containerId_bac13),
-				new DecomListFolderDetail(records.folder_A43).setContainerRecordId(records.containerId_bac13),
-				new DecomListFolderDetail(records.folder_A44).setContainerRecordId(records.containerId_bac13));
+				new DecomListFolderDetail(records.getFolder_A42()).setContainerRecordId(records.containerId_bac13),
+				new DecomListFolderDetail(records.getFolder_A43()).setContainerRecordId(records.containerId_bac13),
+				new DecomListFolderDetail(records.getFolder_A44()).setContainerRecordId(records.containerId_bac13));
 		assertThat(decommissioningList.getContainerDetails()).containsOnly(
 				new DecomListContainerDetail(records.containerId_bac13));
 	}

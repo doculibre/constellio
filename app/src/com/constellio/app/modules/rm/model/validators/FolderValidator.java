@@ -15,9 +15,12 @@ public class FolderValidator implements RecordValidator {
 
 	public static final String FOLDER_CATEGORY_MUST_BE_RELATED_TO_ITS_RULE = "folderCategoryMustBeRelatedToItsRule";
 	public static final String FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE = "folderUniformSubdivisionMustBeRelatedToItsRule";
+	public static final String FOLDER_OPENING_DATE_GREATER_THAN_CLOSING_DATE = "folderOpeningDataGreaterThanClosingDate";
 	public static final String RULE_CODE = "ruleCode";
 	public static final String CATEGORY_CODE = "categoryCode";
 	public static final String UNIFORM_SUBDIVISION = "categoryCode";
+	public static final String OPENING_DATE = "openingDate";
+	public static final String CLOSING_DATE = "closingDate";
 
 	@Override
 	public void validate(RecordValidatorParams params) {
@@ -48,6 +51,12 @@ public class FolderValidator implements RecordValidator {
 
 				params.getValidationErrors().add(FolderValidator.class, FOLDER_CATEGORY_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 			 }
+		} else if (folder != null  && folder.getCloseDateEntered() != null && folder.getOpeningDate().compareTo(folder.getCloseDateEntered()) > 0) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(OPENING_DATE, folder.getOpeningDate());
+			parameters.put(CLOSING_DATE, folder.getCloseDate());
+
+			params.getValidationErrors().add(FolderValidator.class, FOLDER_OPENING_DATE_GREATER_THAN_CLOSING_DATE, parameters);
 		}
 	}
 

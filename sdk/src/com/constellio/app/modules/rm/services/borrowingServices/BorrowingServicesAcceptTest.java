@@ -13,12 +13,21 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -323,9 +332,30 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
         assertThat(event.getCreatedOn().toLocalDate()).isEqualTo(nowDate);
     }
 
-    @Test(expected = BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder.class)
-    public void whenReturnFolderWithDifferentUserWithoutRGDRoleThenException()
-            throws Exception {
+	@Test(expected = BorrowingServicesRunTimeException_FolderIsInDecommissioningList.class)
+	public void givenFolderInNonProcessedDecommissioningListThenExceptionIsThrown()
+			throws Exception {
+
+		nowDate = nowDate.plusDays(1);
+		givenTimeIs(nowDate);
+		borrowingServices.validateCanBorrow(records.getAdmin(), records.getFolder_A48(), nowDate);
+	}
+
+	@Test
+	public void givenFolderOnlyInProcessedDecommissioningListThenNoExceptionThrown()
+			throws Exception {
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		nowDate = nowDate.plusDays(1);
+		givenTimeIs(nowDate);
+		borrowingServices.validateCanBorrow(records.getAdmin(), records.getFolder_A48(), nowDate);
+	}
+
+	@Test(expected = BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder.class)
+	public void whenReturnFolderWithDifferentUserWithoutRGDRoleThenException()
+			throws Exception {
 
         givenBorrowedFolderC30ByAdmin();
         Folder folderC30 = records.getFolder_C30();

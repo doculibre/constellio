@@ -66,6 +66,7 @@ public class Folder extends RMObject {
 	public static final String MEDIA_TYPE = "mediaType";
 	public static final String CONTAINER = "container";
 	public static final String TYPE = "type";
+	public static final String TITLE = "title";
 	public static final String FOLDER_TYPE = "folderType";
 	public static final String COMMENTS = "comments";
 	public static final String BORROWED = "borrowed";

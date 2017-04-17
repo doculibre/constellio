@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRuleFactory;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
@@ -250,6 +251,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
 		List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
 		CopyRetentionRuleFactory copyRetentionRuleFactory = new CopyRetentionRuleFactory();
+		CopyRetentionRuleInRuleFactory copyRetentionRuleInRuleFactory = new CopyRetentionRuleInRuleFactory();
 		SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();
 
 		SPEQueryResponse response = searchServices
@@ -257,7 +259,12 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		Map<String, List<FacetValue>> applicableCopyRuleList = response.getFieldFacetValues();
 		for (FacetValue facetValue : applicableCopyRuleList.get(rm.folder.applicableCopyRule().getDataStoreCode())) {
 			if (facetValue.getQuantity() == response.getNumFound()) {
-				copyRetentionRules.add((CopyRetentionRule) copyRetentionRuleFactory.build(facetValue.getValue()));
+				if (request.getSchemaType().getCode().equals(Document.SCHEMA_TYPE)) {
+					copyRetentionRules.add(((CopyRetentionRuleInRule) copyRetentionRuleInRuleFactory.build(facetValue.getValue()))
+							.getCopyRetentionRule());
+				} else {
+					copyRetentionRules.add((CopyRetentionRule) copyRetentionRuleFactory.build(facetValue.getValue()));
+				}
 			}
 		}
 

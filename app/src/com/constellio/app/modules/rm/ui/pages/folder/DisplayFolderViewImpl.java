@@ -322,15 +322,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		
 		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO);
 
-		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
-				return presenter.getTemplates();
+				return presenter.getCustomTemplates();
+			}
+		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates();
 			}
 		};
 		try {
 			printLabelButton = new LabelsButton($("DisplayFolderView.printLabel"),
-					$("DisplayFolderView.printLabel"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId(), getSessionContext().getCurrentUser().getUsername());
+					$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId(), getSessionContext().getCurrentUser().getUsername());
 		} catch (Exception e) {
 			showErrorMessage(e.getMessage());
 		}
@@ -531,7 +537,27 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		table.setContainerDataSource(nestedContainer);
 		
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(folderContentComponent, new RecordVOSelectionTableAdapter(table) {
+		RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
+			@Override
+			public void selectAll() {
+				presenter.selectAllClicked();
+			}
+
+			@Override
+			public void deselectAll() {
+				presenter.deselectAllClicked();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return presenter.isAllItemsSelected();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return presenter.isAllItemsDeselected();
+			}
+
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
@@ -546,8 +572,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				presenter.recordSelectionChanged(recordVO, selected);
 				adjustSelectAllButton(selected);
 			}
-		});
-		folderContentComponent = table;
+		};
+		tabSheet.replaceComponent(folderContentComponent, tableAdapter);
+		folderContentComponent = tableAdapter;
 	}
 
 	@Override

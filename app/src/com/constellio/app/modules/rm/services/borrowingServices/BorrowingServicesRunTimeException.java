@@ -93,6 +93,14 @@ public class BorrowingServicesRunTimeException extends RuntimeException {
 		}
 	}
 
+	public static class BorrowingServicesRunTimeException_FolderIsInDecommissioningList
+			extends BorrowingServicesRunTimeException {
+
+		public BorrowingServicesRunTimeException_FolderIsInDecommissioningList(String folderId) {
+			super("Folder is in a decommissioning list :" + folderId);
+		}
+	}
+
 	public static class BorrowingServicesRunTimeException_ContainerIsAlreadyBorrowed
 			extends BorrowingServicesRunTimeException {
 

@@ -1,26 +1,24 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.utils.MimeTypes;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import org.omg.CORBA.Object;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportViewer extends VerticalLayout {
 
@@ -43,19 +41,13 @@ public class ReportViewer extends VerticalLayout {
 	static String getMimeTypeFromFileName(String filename) {
 		if (StringUtils.isBlank(filename)) {
 			return DownloadStreamResource.PDF_MIMETYPE;
+		} else {
+			String extension = StringUtils.substringAfterLast(filename, ".").toLowerCase();
+			if(StringUtils.isBlank(extension)) {
+				return DownloadStreamResource.PDF_MIMETYPE;
+			}
+			return MimeTypes.lookupMimeType(extension);
 		}
-		String extension = StringUtils.substringAfterLast(filename, ".");
-		if (StringUtils.isBlank(extension)) {
-			return DownloadStreamResource.PDF_MIMETYPE;
-		}
-		extension = extension.toLowerCase();
-		if (extension.equals("xls") || extension.equals("xlsx")) {
-			return DownloadStreamResource.EXCEL_MIMETYPE;
-		}
-		if (extension.equals("zip")) {
-			return DownloadStreamResource.ZIP_MIMETYPE;
-		}
-		return DownloadStreamResource.PDF_MIMETYPE;
 	}
 
 	@Deprecated
@@ -94,6 +86,7 @@ public class ReportViewer extends VerticalLayout {
 		public static String PDF_MIMETYPE = "application/pdf";
 		public static String ZIP_MIMETYPE = "application/zip";
 		public static String EXCEL_MIMETYPE = "application/vnd.ms-excel";
+		public static String SPREADSHEET_MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 		public DownloadStreamResource(StreamSource source, String filename) {
 			this(source, filename, getMimeTypeFromFileName(filename));

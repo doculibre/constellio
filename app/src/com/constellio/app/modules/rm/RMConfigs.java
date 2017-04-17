@@ -189,7 +189,7 @@ public class RMConfigs {
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
 		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
-
+		
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -450,4 +450,5 @@ public class RMConfigs {
 	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
 		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
 	}
+	
 }

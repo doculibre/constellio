@@ -11,8 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCaptionConverter;
+import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
 import com.constellio.app.ui.framework.components.fields.autocomplete.RecordAutocompleteField;
@@ -49,7 +49,6 @@ public class LookupRecordField extends LookupField<String> {
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess,
 			RecordTextInputDataProvider recordTextInputDataProvider) {
 		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
-		setItemConverter(new RecordIdToCaptionConverter());
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
@@ -59,13 +58,13 @@ public class LookupRecordField extends LookupField<String> {
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
-		setItemConverter(new RecordIdToCaptionConverter());
+		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
 
 	public LookupRecordField(RecordTextInputDataProvider recordTextInputDataProvider,
 			LookupTreeDataProvider<String>[] lookupTreeDataProviders) {
 		super(recordTextInputDataProvider, lookupTreeDataProviders);
-		setItemConverter(new RecordIdToCaptionConverter());
+		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
 
 	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,

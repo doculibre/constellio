@@ -435,7 +435,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).globally());
+				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).onSomething());
 			}
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(AGENT, FontAwesome.LAPTOP, AgentViewGroup.class) {

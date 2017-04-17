@@ -1,5 +1,20 @@
 package com.constellio.app.api.extensions;
 
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -7,7 +22,10 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.pages.search.*;
+import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
+import com.constellio.app.ui.pages.search.AdvancedSearchView;
+import com.constellio.app.ui.pages.search.SimpleSearchPresenter;
+import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.CriteriaBuilder;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -15,19 +33,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
-import java.util.*;
-
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * Created by Constelio on 2016-10-19.
@@ -109,7 +114,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 		appLayerFactory.getExtensions().forCollection(zeCollection).searchPageExtensions.add(searchPageExtension2);
 
 		final LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(new ConditionBuilder(rm.folderSchemaType()).build(criteriaBuilder.build()));
+				.setCondition(new ConditionBuilder(rm.folderSchemaType(), "fr").build(criteriaBuilder.build()));
 		AdvancedSearchPresenter advancedSearchPresenter = new AdvancedSearchPresenter(advancedSearchView) {
 			@Override
 			protected LogicalSearchQuery getSearchQuery() {

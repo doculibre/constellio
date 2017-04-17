@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -82,7 +81,7 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         if (mapDecomListFolderDetail.containsKey(FOLDER_ID) && StringUtils
                 .isNotEmpty(mapDecomListFolderDetail.get(FOLDER_ID))) {
             Folder folder = rm.getFolderWithLegacyId(mapDecomListFolderDetail.get(FOLDER_ID));
-            decomListFolderDetail = new DecomListFolderDetail(folder.getId());
+            decomListFolderDetail = new DecomListFolderDetail(folder);
         } else {
             decomListFolderDetail = new DecomListFolderDetail();
         }

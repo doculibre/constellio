@@ -1,5 +1,22 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -53,17 +70,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -72,6 +78,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	String schemaTypeCode;
 	private int pageNumber;
 	private String searchID;
+	private boolean batchProcessOnAllSearchResults;
 
 	private transient LogicalSearchCondition condition;
 
@@ -177,6 +184,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return getMetadataAllowedInSort(schemaTypeCode);
 	}
 
+	@Override
+	public boolean isPreferAnalyzedFields() {
+		return false;
+	}
+
 	public List<MetadataVO> getMetadataAllowedInBatchEdit() {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
@@ -232,10 +244,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	void buildSearchCondition()
 			throws ConditionException {
+		String languageCode = searchServices().getLanguageCode(view.getCollection());
 		MetadataSchemaType type = schemaType(schemaTypeCode);
 		condition = (view.getSearchCriteria().isEmpty()) ?
 				from(type).returnAll() :
-				new ConditionBuilder(type).build(view.getSearchCriteria());
+				new ConditionBuilder(type, languageCode).build(view.getSearchCriteria());
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {
@@ -255,7 +268,12 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return config.getInputType() != MetadataInputType.HIDDEN;
 	}
 
-	public List<LabelTemplate> getTemplates() {
+	public List<LabelTemplate> getCustomTemplates() {
+		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
+		return labelTemplateManager.listExtensionTemplates(schemaTypeCode);
+	}
+
+	public List<LabelTemplate> getDefaultTemplates() {
 		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
 		return labelTemplateManager.listTemplates(schemaTypeCode);
 	}
@@ -418,19 +436,19 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public String getOriginType() {
-		return batchProcessingPresenterService().getOriginType(buildLogicalSearchQuery());
+		return batchProcessingPresenterService().getOriginType(buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
 	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
-		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, buildLogicalSearchQuery());
+		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
 	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
-				.simulate(selectedType, buildLogicalSearchQuery().setNumberOfRows(100), viewObject, getCurrentUser());
+				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
@@ -438,7 +456,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public void processBatchButtonClicked(String selectedType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
-				.execute(selectedType, buildLogicalSearchQuery(), viewObject, getCurrentUser());
+				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
 		view.navigate().to().batchProcesses();
 	}
 
@@ -464,19 +482,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
-		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildLogicalSearchQuery());
+		return batchProcessingPresenterService()
+				.newRecordFieldFactory(schemaType, selectedType, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
 	public boolean hasWriteAccessOnAllRecords() {
-		LogicalSearchQuery query = buildLogicalSearchQuery();
+		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
 		return searchServices().getResultsCount(query.filteredWithUserWrite(getCurrentUser())) == searchServices()
 				.getResultsCount(query);
 	}
 
 	@Override
 	public long getNumberOfRecords() {
-		return (int) searchServices().getResultsCount(buildLogicalSearchQuery());
+		return (int) searchServices().getResultsCount(buildBatchProcessLogicalSearchQuery());
 	}
 
 	public void switchToTableView() {
@@ -508,8 +527,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 
-	public LogicalSearchQuery buildLogicalSearchQuery() {
-		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
+	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
+		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
+		if (!batchProcessOnAllSearchResults) {
 			return buildLogicalSearchQueryWithSelectedIds();
 		} else {
 			return buildLogicalSearchQueryWithUnselectedIds();
@@ -517,14 +537,35 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
-		return new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
-		return new LogicalSearchQuery()
+		LogicalSearchQuery query = new LogicalSearchQuery()
 				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
+	}
+
+	public LogicalSearchQuery buildLogicalSearchQueryWithAllSearchResults() {
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
 	}
 
 	public void logRecordView(RecordVO recordVO) {
@@ -533,4 +574,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 	}
+
+	@Override
+	public void allSearchResultsButtonClicked() {
+		batchProcessOnAllSearchResults = true;
+	}
+
+	@Override
+	public void selectedSearchResultsButtonClicked() {
+		batchProcessOnAllSearchResults = false;
+	}
+
+	@Override
+	public boolean isSearchResultsSelectionForm() {
+		return true;
+	}
+
 }

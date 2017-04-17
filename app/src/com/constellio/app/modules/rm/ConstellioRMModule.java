@@ -14,10 +14,7 @@ import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactory
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.*;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
@@ -122,6 +119,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_1(),
 				new RMMigrationTo7_1_1(),
 				new RMMigrationTo7_1_2(),
+				new RMMigrationTo7_1_3(),
 				new RMMigrationTo7_2()
 		);
 	}
@@ -249,12 +247,14 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new SessionContextRecordExtension());
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
+		extensions.recordImportExtensions.add(new EventImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DecommissioningListImportExtension(collection, modelLayerFactory));
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMRequestTaskApprovedExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);

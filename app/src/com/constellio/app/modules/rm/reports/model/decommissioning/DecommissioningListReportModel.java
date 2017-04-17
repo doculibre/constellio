@@ -72,11 +72,14 @@ public class DecommissioningListReportModel {
 
 		String category;
 
-		public DecommissioningListReportModel_Folder(String id, String title, String retentionRule, String category) {
+		String containerRecord;
+
+		public DecommissioningListReportModel_Folder(String id, String title, String retentionRule, String category, String containerRecord) {
 			this.id = id;
 			this.title = title;
 			this.retentionRule = retentionRule;
 			this.category = category;
+			this.containerRecord = containerRecord;
 		}
 
 		public String getId() {
@@ -110,5 +113,9 @@ public class DecommissioningListReportModel {
 		public void setCategory(String category) {
 			this.category = category;
 		}
+
+		public String getContainerRecord(){ return containerRecord; }
+
+        public void setContainerRecord(String containerRecord){ this.containerRecord = containerRecord; }
 	}
 }

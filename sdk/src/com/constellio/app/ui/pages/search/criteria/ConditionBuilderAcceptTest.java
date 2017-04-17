@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -48,7 +49,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		folderConditionBuilder = new ConditionBuilder(rm.folderSchemaType());
+		folderConditionBuilder = new ConditionBuilder(rm.folderSchemaType(), "fr");
 	}
 
 	@Test
@@ -59,7 +60,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.ADMINISTRATIVE_UNIT).isEqualTo(records.unitId_10a).booleanOperator(AND);
 		builder.addCriterion("title").isContainingText("Écureuil").withLeftParens().booleanOperator(OR);
-		builder.addCriterion("title").isContainingText("ouille").withRightParens();
+		builder.addCriterion("title").isContainingText("grenouille").withRightParens();
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A45, records.folder_A49);
 
 		// A && ( B || (C & D) || E)
@@ -68,8 +69,74 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		builder.addCriterion("title").isContainingText("Écureuil").withLeftParens().booleanOperator(OR);
 		builder.addCriterion("title").isContainingText("Chauve").withLeftParens().booleanOperator(AND);
 		builder.addCriterion("title").isContainingText("souris").withRightParens().booleanOperator(OR);
-		builder.addCriterion("title").isContainingText("ouille").withRightParens();
+		builder.addCriterion("title").isContainingText("grenouille").withRightParens();
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A45, records.folder_A49, records.folder_A17);
+
+	}
+
+	private ListAssert<String> assertWhenSearchingFolderTitleWithExactMatch(String text) {
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion("title").isEqualTo(text);
+
+		try {
+			return assertThat(recordIdsOfFolderCriteria(builder));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private ListAssert<String> assertWhenSearchingFolderTitleWithoutExactMatch(String text) {
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion("title").isContainingText(text);
+
+		try {
+			return assertThat(recordIdsOfFolderCriteria(builder));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Test
+	public void whenSearchingAnalyzedFieldAndExactExpressionThenGoodResults()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
+		recordServices.update(records.getFolder_A48().setTitle("Gorille rose"));
+
+		assertWhenSearchingFolderTitleWithExactMatch("Gorille rose").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithExactMatch("gorille rose").isEmpty();
+		assertWhenSearchingFolderTitleWithExactMatch("Gorille").isEmpty();
+
+		assertWhenSearchingFolderTitleWithoutExactMatch("Gorille").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Gorilles").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Goril").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("rose").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("rosé").containsOnly("A48");
+		//assertWhenSearchingFolderTitleWithoutExactMatch("Gor?lle").containsOnly("A48");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Gori*").containsOnly("A48");
+		//assertWhenSearchingFolderTitleWithoutExactMatch("ril").isEmpty();
+		assertWhenSearchingFolderTitleWithoutExactMatch("gorille").containsOnly("A48");
+
+		assertWhenSearchingFolderTitleWithExactMatch("Chauve-souris").containsOnly("A17");
+		assertWhenSearchingFolderTitleWithExactMatch("Chauve souris").isEmpty();
+		assertWhenSearchingFolderTitleWithExactMatch("Chauve").isEmpty();
+		assertWhenSearchingFolderTitleWithExactMatch("souris").isEmpty();
+		assertWhenSearchingFolderTitleWithExactMatch("Souris").containsOnly("A93");
+		assertWhenSearchingFolderTitleWithExactMatch("Chauve-Souris").isEmpty();
+
+		assertWhenSearchingFolderTitleWithoutExactMatch("Souris").containsOnly("A17", "A93");
+		assertWhenSearchingFolderTitleWithoutExactMatch("souris").containsOnly("A17", "A93");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve-souris").containsOnly("A17", "A93");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve-Souris").containsOnly("A17", "A93");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve").containsOnly("A17");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauve*").containsOnly("A17");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chauv*").containsOnly("A17");
+		assertWhenSearchingFolderTitleWithoutExactMatch("*souris").isEmpty();
+		assertWhenSearchingFolderTitleWithoutExactMatch("*our*").contains("A17");
+
+		assertWhenSearchingFolderTitleWithoutExactMatch("Cheval").containsOnly("A18");
+		assertWhenSearchingFolderTitleWithoutExactMatch("Chevaux").containsOnly("A18");
 
 	}
 

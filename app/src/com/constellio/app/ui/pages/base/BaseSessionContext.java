@@ -26,7 +26,7 @@ public abstract class BaseSessionContext implements SessionContext {
 		if (!selectedRecordIds.contains(recordId)) {
 			selectedRecordIds.add(recordId);
 			if (selectedRecordSchemaTypeCodes.containsKey(schemaTypeCode)) {
-				selectedRecordSchemaTypeCodes.put(schemaTypeCode, selectedRecordSchemaTypeCodes.get(schemaTypeCode)+1);
+				selectedRecordSchemaTypeCodes.put(schemaTypeCode, selectedRecordSchemaTypeCodes.get(schemaTypeCode) + 1);
 			} else {
 				selectedRecordSchemaTypeCodes.put(schemaTypeCode, 1L);
 			}

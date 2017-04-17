@@ -61,6 +61,7 @@ public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigra
 		migrations.add(new ESRMRobotsMigrationTo6_1());
 		migrations.add(new ESRMRobotsMigrationTo6_2_2_1());
 		migrations.add(new ESRMRobotsMigrationTo7_0_1());
+		migrations.add(new ESRMRobotsMigrationTo7_1());
 
 		return migrations;
 	}

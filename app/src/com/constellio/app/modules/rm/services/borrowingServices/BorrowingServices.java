@@ -347,6 +347,8 @@ public class BorrowingServices {
 				throw new BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed(folder.getId());
 			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
+			} else if(isInDecommissioningList(folder)) {
+				throw new BorrowingServicesRunTimeException_FolderIsInDecommissioningList(folder.getId());
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder(currentUser.getUsername(), folder.getId());
@@ -443,6 +445,12 @@ public class BorrowingServices {
         }
         return errorMessage;
     }
+
+	private boolean isInDecommissioningList(Folder folder) {
+		boolean isInDecommissioningList = searchServices.getResultsCount(LogicalSearchQueryOperators.from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.folders()).isEqualTo(folder.getId()).andWhere(rm.decommissioningList.processingDate()).isNull()) > 0;
+		return isInDecommissioningList;
+	}
 
     private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate, LocalDate returnDate, LocalDate reactivationDate, User currentUser,
                             User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {

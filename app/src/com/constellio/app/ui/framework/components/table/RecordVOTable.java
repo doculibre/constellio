@@ -219,7 +219,9 @@ public class RecordVOTable extends BaseTable {
 			} else {
 				metadataDisplay = new Label("");
 			}
-			if ((metadataDisplay instanceof Label) && metadataVO.codeMatches(Schemas.TITLE_CODE)) {
+			boolean instance = metadataDisplay instanceof Label;
+			boolean matchCode = metadataVO.codeMatches(Schemas.TITLE_CODE);
+			if (instance && matchCode) {
 				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
 				MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
 				String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
@@ -269,8 +271,8 @@ public class RecordVOTable extends BaseTable {
 			setColumnExpandRatio(titleMetadata, 1);
 			if (isContextMenuPossible()) {
 				addContextMenu();
+				addMenuBarColumn();
 			}
-			addMenuBarColumn();
 		}
 	}
 
@@ -365,15 +367,17 @@ public class RecordVOTable extends BaseTable {
 		});
 	}
 
-	public void collapseColumn(String metadataCode) {
+	public void setColumnCollapsed(String metadataCode, boolean collapsed) {
 		if (!isColumnCollapsingAllowed()) {
 			return;
 		}
-		Object[] metadataList = getVisibleColumns();
-		for (Object metadata : metadataList) {
-			MetadataVO metadataVO = (MetadataVO) metadata;
-			if (metadataVO.getCode().contains(metadataCode)) {
-				setColumnCollapsed(metadata, true);
+		Object[] visibleColumnIds = getVisibleColumns();
+		for (Object visibleColumnId : visibleColumnIds) {
+			if (visibleColumnId instanceof  MetadataVO) {
+				MetadataVO metadataVO = (MetadataVO) visibleColumnId;
+				if (metadataVO.getCode().contains(metadataCode)) {
+					setColumnCollapsed(visibleColumnId, collapsed);
+				}
 			}
 		}
 	}

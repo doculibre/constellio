@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -24,6 +13,12 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class AdvancedSearchPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "zeField_s";
@@ -115,7 +110,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		presenter.forRequestParameters("");
 
-		presenter.getTemplates();
+		presenter.getDefaultTemplates();
 
 		verify(labelTemplateManager).listTemplates(Folder.SCHEMA_TYPE);
 	}
@@ -126,7 +121,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getSchemaType()).thenReturn(ContainerRecord.SCHEMA_TYPE);
 		presenter.forRequestParameters("");
 
-		presenter.getTemplates();
+		presenter.getDefaultTemplates();
 
 		verify(labelTemplateManager).listTemplates(ContainerRecord.SCHEMA_TYPE);
 	}

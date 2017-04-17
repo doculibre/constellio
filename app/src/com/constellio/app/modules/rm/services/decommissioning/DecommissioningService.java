@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
@@ -13,6 +14,8 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
@@ -47,6 +50,19 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.taxonomies.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import com.constellio.model.services.taxonomies.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -116,10 +132,10 @@ public class DecommissioningService {
 				folders.addAll(getFoldersInContainers(containers));
 				folders = LangUtils.withoutDuplicates(folders);
 			}
-			decommissioningList.setFolderDetailsFrom(folders);
+			decommissioningList.setFolderDetailsFor(folders);
 			decommissioningList.setContainerDetailsFrom(containers);
 		} else {
-			decommissioningList.setFolderDetailsFor(recordIds);
+			decommissioningList.setFolderDetailsFor(rm.getFolders(recordIds));
 		}
 
 		try {
@@ -286,14 +302,26 @@ public class DecommissioningService {
 		}
 	}
 
-	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments) {
+	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments, boolean saveComment) {
 		List<String> parameters = new ArrayList<>();
+		List<Comment> commentaires = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
 
 		sendEmailForList(list, null, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
 		for (String user : users) {
 			list.addValidationRequest(user, TimeProvider.getLocalDate());
+		}
+		for (Comment comment : list.getComments()) {
+			commentaires.add(comment);
+		}
+		if (saveComment) {
+			Comment comment = new Comment();
+			comment.setMessage(comments);
+			comment.setUser(sender);
+			comment.setDateTime(LocalDateTime.now());
+			commentaires.add(comment);
+			list.setComments(commentaires);
 		}
 		try {
 			recordServices.update(list, sender);
@@ -648,19 +676,15 @@ public class DecommissioningService {
 		return taxonomiesManager.getEnabledTaxonomyWithCode(collection, ADMINISTRATIVE_UNITS);
 	}
 
-	public Folder duplicateStructureAndSave(Folder folder, User currentUser) {
+	public Folder duplicateStructureAndSave(Folder folder, User currentUser) throws RecordServicesException {
 		return duplicateStructure(folder, currentUser, true);
 	}
 
-	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
+	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) throws RecordServicesException {
 
 		Transaction transaction = new Transaction();
 		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
+		recordServices.execute(transaction);
 		return duplicatedFolder;
 	}
 
@@ -823,6 +847,7 @@ public class DecommissioningService {
 			folder.setAdministrativeUnitEntered(userFolder.getAdministrativeUnit());
 			folder.setCategoryEntered(userFolder.getCategory());
 			folder.setRetentionRuleEntered(userFolder.getRetentionRule());
+			folder.setCopyStatusEntered(CopyType.PRINCIPAL);
 		}
 	}
 

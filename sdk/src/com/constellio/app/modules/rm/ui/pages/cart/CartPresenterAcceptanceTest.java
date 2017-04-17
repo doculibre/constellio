@@ -1,23 +1,27 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class CartPresenterAcceptanceTest extends ConstellioTest {
 
@@ -191,5 +195,25 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).isEmpty();
 
+	}
+
+	@Test
+	public void givenNewCartWithBorrowedFoldersThenCannotCreateDecommissioningList()
+			throws Exception {
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		new BorrowingServices(zeCollection, getModelLayerFactory()).borrowFolder(records.folder_A48, LocalDate.now(),
+				LocalDate.now().plusDays(1), records.getAdmin(), records.getAdmin(), BorrowingType.BORROW);
+
+		Cart cart = rm.newCart();
+		cart.setOwner(users.adminIn(zeCollection));
+		cart.setFolders(asList(records.folder_A47, records.folder_A48));
+		cart.setTitle("ze cart");
+		recordServices.add(cart);
+		cartPresenter.forParams(cart.getId());
+
+		assertThat(cartPresenter.isAnyFolderBorrowed()).isTrue();
 	}
 }

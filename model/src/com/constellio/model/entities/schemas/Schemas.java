@@ -137,6 +137,10 @@ public class Schemas {
 		if (metadata.isMultivalue()) {
 			dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
 			dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+
+		} else if (metadata.getLocalCode().equals("id")) {
+			dataStoreCode = "id_txt_" + languageCode;
+
 		} else {
 			dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
 			if (metadata.getType() == MetadataValueType.CONTENT) {

@@ -11839,6 +11839,19 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .nicetitle-link {
+	cursor: pointer !important;
+}
+
+.constellio .nicetitle-link-disabled {
+	text-decoration: none;
+	color: #474747;
+}
+
+.constellio .nicetitle-link-disabled:hover {
+	color: #474747;
+}
+
 .constellio .auto-scroll {
 	overflow: auto;
 }
@@ -11853,6 +11866,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .no-scroll-vertical {
 	overflow-y: hidden;
+}
+
+.constellio .horizontal-option-group {
+	white-space: normal;
 }
 
 .constellio .button-badge {
@@ -12600,6 +12617,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: red;
 }
 
+.constellio .base-display .base-display-main-layout {
+	width: 100%;
+}
+
 .constellio .base-display .v-label-undef-w {
 	white-space: normal;
 }
@@ -12730,10 +12751,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-window .popupContent .v-window-maximizebox {
 	height: initial;
-}
-
-.constellio .v-window .popupContent .v-has-caption {
-	padding-left: 10px;
 }
 
 .constellio .window-button-window .v-scrollable {
@@ -12981,27 +12998,55 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .confirm-dialog-info {
-	background-image: url('images/icons/dialog/info.png');
+	background-image: url('images/icons/dialog/information.png');
 	background-repeat: no-repeat;
-	background-position: 2px 10px;
+	vertical-align: center;
+	display: block;
+}
+
+.constellio .confirm-dialog-info .confirm-dialog-message {
+	padding-left: 40px;
+	display: block;
 }
 
 .constellio .confirm-dialog-warn {
-	background-image: url('images/icons/dialog/warn.png');
+	background-image: url('images/icons/dialog/sign_warning.png');
 	background-repeat: no-repeat;
-	background-position: 2px 10px;
+	vertical-align: center;
+	display: block;
+}
+
+.constellio .confirm-dialog-warn .confirm-dialog-message {
+	padding-left: 40px;
+	display: block;
 }
 
 .constellio .confirm-dialog-error {
 	background-image: url('images/icons/dialog/error.png');
 	background-repeat: no-repeat;
-	background-position: 2px 10px;
+	vertical-align: center;
+	display: block;
+}
+
+.constellio .confirm-dialog-error .confirm-dialog-message {
+	padding-left: 40px;
+	display: block;
+	font-weight: bold;
+	color: red;
 }
 
 .constellio .confirm-dialog-stop {
-	background-image: url('images/icons/dialog/stop.png');
+	background-image: url('images/icons/dialog/sign_stop.png');
 	background-repeat: no-repeat;
-	background-position: 2px 10px;
+	vertical-align: center;
+	display: block;
+}
+
+.constellio .confirm-dialog-stop .confirm-dialog-message {
+	padding-left: 40px;
+	display: block;
+	font-weight: bold;
+	color: red;
 }
 
 .constellio .constellio-layout .sidebar {
