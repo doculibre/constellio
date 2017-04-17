@@ -29,6 +29,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.io.IOUtils;
@@ -39,7 +40,7 @@ import java.io.InputStream;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
 
-public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo7_2 extends MigrationHelper implements MigrationScript {
 
 	private AppLayerFactory appLayerFactory;
 	private String collection;
@@ -47,7 +48,7 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
 	@Override
 	public String getVersion() {
-		return "7.1.3";
+		return "7.2";
 	}
 
 	@Override
@@ -56,8 +57,15 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
-		new SchemaAlterationFor7_1_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor7_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		createNewTaskTypes(appLayerFactory, taskSchemas);
+		adjustSchemaDisplay();
+		migrateRoles(collection, appLayerFactory.getModelLayerFactory());
+		reloadEmailTemplates();
+	}
+
+	private void createNewTaskTypes(AppLayerFactory appLayerFactory, TasksSchemasRecordsServices taskSchemas) throws RecordServicesException {
 		Transaction transaction = new Transaction();
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST).setTitle("Demande d'emprunt")
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME));
@@ -69,9 +77,6 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 				.setTitle("Demande de prolongation d'emprunt")
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME));
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
-		adjustSchemaDisplay();
-		migrateRoles(collection, appLayerFactory.getModelLayerFactory());
-		reloadEmailTemplates();
 	}
 
 	private void adjustSchemaDisplay() {
@@ -176,15 +181,19 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		}
 	}
 
-	private class SchemaAlterationFor7_1_3 extends MetadataSchemasAlterationHelper {
+	private class SchemaAlterationFor7_2 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor7_1_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
+		protected SchemaAlterationFor7_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
 				AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			migrateMetadatasForRequestEvents(typesBuilder);
+		}
+
+		public void migrateMetadatasForRequestEvents(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DECOMMISSIONING_DATE)
 					.setType(MetadataValueType.DATE);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DATES)
