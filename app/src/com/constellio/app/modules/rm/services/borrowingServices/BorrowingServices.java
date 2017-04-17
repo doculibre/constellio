@@ -86,7 +86,8 @@ public class BorrowingServices {
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
-				alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, folder.getWrappedRecord(), borrowingDate, returnDate, null, respondant, applicant, borrowingType);
+				alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, folder.getWrappedRecord(),
+						borrowingDate, returnDate, null, respondant, applicant, borrowingType, isAccepted);
 			}
 			recordServices.execute(t);
 		}
@@ -111,7 +112,8 @@ public class BorrowingServices {
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
-				alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, containerRecord.getWrappedRecord(), borrowingDate, returnDate, null, respondant, applicant, borrowingType);
+				alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, containerRecord.getWrappedRecord(),
+						borrowingDate, returnDate, null, respondant, applicant, borrowingType, isAccepted);
 			}
 			recordServices.execute(t);
         }
@@ -144,7 +146,8 @@ public class BorrowingServices {
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
-				alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, folder.getWrappedRecord(), null, returnDate, null, respondant, applicant, null);
+				alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, folder.getWrappedRecord(), null,
+						returnDate, null, respondant, applicant, null, isAccepted);
 			}
 			recordServices.execute(t);
 		}
@@ -169,7 +172,8 @@ public class BorrowingServices {
 						.setCreatedOn(TimeProvider.getLocalDateTime())
 						.getWrappedRecord();
 				t.add(event);
-				alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, containerRecord.getWrappedRecord(), null, returnDate, null, respondant, applicant, null);
+				alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, containerRecord.getWrappedRecord(),
+						null, returnDate, null, respondant, applicant, null, isAccepted);
 			}
 			recordServices.execute(t);
 		}
@@ -189,7 +193,8 @@ public class BorrowingServices {
 				}
 				Record record = recordServices.getDocumentById(folderId);
 				loggingServices.completeBorrowExtensionRequestTask(record, task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
-				alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, record, null, returnDate, null, respondant, applicant, null);
+				alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, record, null, returnDate,
+						null, respondant, applicant, null, isAccepted);
 			}
 			recordServices.execute(t);
         }
@@ -202,7 +207,8 @@ public class BorrowingServices {
 				}
 				Record record = recordServices.getDocumentById(containerId);
 				loggingServices.completeBorrowExtensionRequestTask(record, task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
-				alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, record, null, returnDate, null, respondant, applicant, null);
+				alertUsers(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED, schemaType, taskRecord, record, null, returnDate,
+						null, respondant, applicant, null, isAccepted);
 			}
 			recordServices.execute(t);
         }
@@ -439,7 +445,7 @@ public class BorrowingServices {
     }
 
     private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate, LocalDate returnDate, LocalDate reactivationDate, User currentUser,
-                            User borrowerEntered, BorrowingType borrowingType) {
+                            User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {
 
         try {
             String displayURL = schemaType.equals(Folder.SCHEMA_TYPE) ? RMNavigationConfiguration.DISPLAY_FOLDER : RMNavigationConfiguration.DISPLAY_CONTAINER;
@@ -472,7 +478,8 @@ public class BorrowingServices {
             emailToSend.setTo(toAddress);
             emailToSend.setSendOn(sendDate);
             emailToSend.setSubject(subject);
-            emailToSend.setTemplate(template);
+			String fullTemplate = isAccepted? template+RMEmailTemplateConstants.ACCEPTED: template+RMEmailTemplateConstants.DENIED;
+            emailToSend.setTemplate(fullTemplate);
             parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
             String recordTitle = record.getTitle();
             parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
@@ -481,7 +488,8 @@ public class BorrowingServices {
             parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
             parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
             parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $(schemaType).toLowerCase());
-            emailToSend.setParameters(parameters);
+			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
+			emailToSend.setParameters(parameters);
             transaction.add(emailToSend);
 
             recordServices.execute(transaction);
