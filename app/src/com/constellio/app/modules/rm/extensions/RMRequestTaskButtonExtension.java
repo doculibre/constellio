@@ -98,7 +98,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
             if (button.getId() != null) {
                 switch (button.getId()) {
                     case BorrowRequest.SCHEMA_NAME:
-                        button.setVisible(isFolderBorrowable(folder, currentUser));
+                        button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser));
                         break;
                     case ReturnRequest.SCHEMA_NAME:
                         button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
@@ -134,12 +134,21 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
         return false;
     }
 
-    private boolean isFolderBorrowable(Folder folder, User currentUser) {
-        return folder != null && !Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER).on(folder);
+    private boolean isFolderBorrowable(Folder folder, ContainerRecord container, User currentUser) {
+        return folder != null && !Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER).on(folder)
+                && !(container != null && Boolean.TRUE.equals(container.getBorrowed()));
     }
 
     private boolean isContainerBorrowable(ContainerRecord container, User currentUser) {
         return container != null && !Boolean.TRUE.equals(container.getBorrowed()) && currentUser.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
+    }
+
+    private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser) {
+        if(folder != null) {
+            return isFolderBorrowable(folder, container, currentUser);
+        } else {
+            return isContainerBorrowable(container, currentUser);
+        }
     }
 
     private boolean isPrincipalRecordReturnable(Folder folder, ContainerRecord container, User currentUser) {
@@ -207,7 +216,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
                     @Override
                     public boolean isVisible() {
-                        return isFolderBorrowable(folder, currentUser);
+                        return isFolderBorrowable(folder, container, currentUser);
                     }
                 };
                 borrowFolderButton.setStyleName(ValoTheme.BUTTON_PRIMARY);

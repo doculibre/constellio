@@ -79,13 +79,13 @@ public class RMMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Folder.DEFAULT_SCHEMA)
 				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_DATES,
-						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+						Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS)
 				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS,
-						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+						Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS)
 				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES,
-						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION)
+						Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS)
 				.withNewDisplayMetadataBefore(Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES,
-						Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION));
+						Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS));
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
 				.withNewFormMetadata(Task.DEFAULT_SCHEMA + "_" + Task.LINKED_CONTAINERS));
