@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -27,10 +29,12 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.modules.rm.RMEmailTemplateConstants.*;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
@@ -447,7 +451,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
     }
 
     @Test
-    public void givenBorrowExtendedCompletedAndApprovedThenDoNotExtendContainer() throws RecordServicesException {
+    public void givenBorrowExtendedCompletedAndDeniedThenDoNotExtendContainer() throws RecordServicesException {
         recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId()).setPlanifiedReturnDate(LocalDate.now()));
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerExtensionRequestTask(records.getChuckNorris().getId(),
                 asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, records.getContainerBac13().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
@@ -477,6 +481,188 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
                 "title:" + containerRecord.getTitle(), "constellioURL:http://localhost:8080/constellio/",
                 "recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
                 "recordType:containerrecord", "extensionDate:" + localDate,
+                "isAccepted:Non"
+        );
+    }
+
+    @Test
+    public void givenReactivationRequestCompletedAndApprovedThenReactivateFolder() throws RecordServicesException {
+        RMTask task = rm.wrapRMTask(taskSchemas.newReactivateFolderRequestTask(records.getChuckNorris().getId(),
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, records.getFolder_A42().getTitle(),
+                LocalDate.now()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+        LocalDate previousTransferDate = records.getFolder_A42().getActualTransferDate();
+        assertThat(previousTransferDate != null);
+
+        extension.completeReactivationRequest(task, true);
+
+        Folder folder = records.getFolder_A42();
+        assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+        assertThat(folder.getReactivationDecommissioningDate()).isEqualTo(LocalDate.now());
+        assertThat(folder.getReactivationDates()).isEqualTo(asList(LocalDate.now()));
+        assertThat(folder.getReactivationUsers()).isEqualTo(asList(records.getChuckNorris().getId()));
+        assertThat(folder.getPreviousTransferDates()).isEqualTo(asList(previousTransferDate));
+        assertThat(folder.getPreviousDepositDates()).isEmpty();
+        assertThat(folder.getActualTransferDate()).isNull();
+
+        EmailAddress adresseReceiver = new EmailAddress("Chuck Norris", "chuck@doculibre.com");
+        EmailToSend emailToSend = getEmailToSend(ALERT_REACTIVATED_ACCEPTED);
+        assertThat(emailToSend).isNotNull();
+        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_REACTIVATED_ACCEPTED);
+        assertThat(emailToSend.getTo()).isEqualTo(Arrays.asList(adresseReceiver));
+        assertThat(emailToSend.getFrom()).isNull();
+        assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
+        assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
+        assertThat(emailToSend.getParameters()).hasSize(8);
+        assertThat(emailToSend.getParameters()).containsOnly(
+                "subject:" + task.getTitle(),
+                "reactivationDate:" + localDate,
+                "currentUser:admin", "title:" + folder.getTitle(),
+                "constellioURL:http://localhost:8080/constellio/",
+                "recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+                "recordType:folder",
+                "isAccepted:Oui"
+        );
+    }
+
+    @Test
+    public void givenReactivationRequestCompletedAndDeniedThenDoNotReactivateFolder() throws RecordServicesException {
+        RMTask task = rm.wrapRMTask(taskSchemas.newReactivateFolderRequestTask(records.getChuckNorris().getId(),
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, records.getFolder_A42().getTitle(),
+                LocalDate.now()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+        LocalDate previousTransferDate = records.getFolder_A42().getActualTransferDate();
+        assertThat(previousTransferDate != null);
+
+        extension.completeReactivationRequest(task, false);
+
+        Folder folder = records.getFolder_A42();
+        assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+        assertThat(folder.getReactivationDecommissioningDate()).isNull();
+        assertThat(folder.getReactivationDates()).isEmpty();
+        assertThat(folder.getReactivationUsers()).isEmpty();
+        assertThat(folder.getPreviousTransferDates()).isEmpty();
+        assertThat(folder.getPreviousDepositDates()).isEmpty();
+        assertThat(folder.getActualTransferDate()).isEqualTo(previousTransferDate);
+
+        EmailAddress adresseReceiver = new EmailAddress("Chuck Norris", "chuck@doculibre.com");
+        EmailToSend emailToSend = getEmailToSend(ALERT_REACTIVATED_DENIED);
+        assertThat(emailToSend).isNotNull();
+        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_REACTIVATED_DENIED);
+        assertThat(emailToSend.getTo()).isEqualTo(Arrays.asList(adresseReceiver));
+        assertThat(emailToSend.getFrom()).isNull();
+        assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
+        assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
+        assertThat(emailToSend.getParameters()).hasSize(8);
+        assertThat(emailToSend.getParameters()).containsOnly(
+                "subject:" + task.getTitle(),
+                "reactivationDate:" + localDate,
+                "currentUser:admin", "title:" + folder.getTitle(),
+                "constellioURL:http://localhost:8080/constellio/",
+                "recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
+                "recordType:folder",
+                "isAccepted:Non"
+        );
+    }
+
+    @Test
+    public void givenReactivationRequestCompletedAndApprovedThenReactivateContainer() throws RecordServicesException {
+        RMTask task = rm.wrapRMTask(taskSchemas.newReactivationContainerRequestTask(records.getChuckNorris().getId(),
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, records.getContainerBac13().getTitle(),
+                LocalDate.now()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+        Map<String, LocalDate> previousTransferDates = new HashMap<>();
+        LogicalSearchCondition condition = allConditions(
+                where(rm.folder.container()).isEqualTo(records.containerId_bac13),
+                where(rm.folder.archivisticStatus()).isNotEqual(FolderStatus.ACTIVE),
+                where(rm.folder.mediaType()).isEqualTo(FolderMediaType.ANALOG)
+        );
+        for(Folder folder: rm.searchFolders(condition)) {
+            LocalDate previousTransferDate = records.getFolder_A42().getActualTransferDate();
+            assertThat(previousTransferDate != null);
+            previousTransferDates.put(folder.getId(), previousTransferDate);
+        }
+
+        extension.completeReactivationRequest(task, true);
+
+        for(Folder folder: rm.searchFolders(condition)) {
+            assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+            assertThat(folder.getReactivationDecommissioningDate()).isEqualTo(LocalDate.now());
+            assertThat(folder.getReactivationDates()).isEqualTo(asList(LocalDate.now()));
+            assertThat(folder.getReactivationUsers()).isEqualTo(asList(records.getChuckNorris().getId()));
+            assertThat(folder.getPreviousTransferDates()).isEqualTo(asList(previousTransferDates.get(folder.getId())));
+            assertThat(folder.getPreviousDepositDates()).isEmpty();
+            assertThat(folder.getActualTransferDate()).isNull();
+        }
+
+
+        EmailAddress adresseReceiver = new EmailAddress("Chuck Norris", "chuck@doculibre.com");
+        EmailToSend emailToSend = getEmailToSend(ALERT_REACTIVATED_ACCEPTED);
+        assertThat(emailToSend).isNotNull();
+        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_REACTIVATED_ACCEPTED);
+        assertThat(emailToSend.getTo()).isEqualTo(Arrays.asList(adresseReceiver));
+        assertThat(emailToSend.getFrom()).isNull();
+        assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
+        assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
+        assertThat(emailToSend.getParameters()).hasSize(8);
+        assertThat(emailToSend.getParameters()).containsOnly(
+                "subject:" + task.getTitle(),
+                "reactivationDate:" + localDate,
+                "currentUser:admin", "title:" + records.getContainerBac13().getTitle(),
+                "constellioURL:http://localhost:8080/constellio/",
+                "recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
+                "recordType:containerrecord",
+                "isAccepted:Oui"
+        );
+    }
+
+    @Test
+    public void givenReactivationRequestCompletedAndDeniedThenDoNotReactivateContainer() throws RecordServicesException {
+        RMTask task = rm.wrapRMTask(taskSchemas.newReactivationContainerRequestTask(records.getChuckNorris().getId(),
+                asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, records.getContainerBac13().getTitle(),
+                LocalDate.now()).getWrappedRecord());
+        recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+        Map<String, LocalDate> previousTransferDates = new HashMap<>();
+        LogicalSearchCondition condition = allConditions(
+                where(rm.folder.container()).isEqualTo(records.containerId_bac13),
+                where(rm.folder.archivisticStatus()).isNotEqual(FolderStatus.ACTIVE),
+                where(rm.folder.mediaType()).isEqualTo(FolderMediaType.ANALOG)
+        );
+        for(Folder folder: rm.searchFolders(condition)) {
+            LocalDate previousTransferDate = records.getFolder_A42().getActualTransferDate();
+            assertThat(previousTransferDate != null);
+            previousTransferDates.put(folder.getId(), previousTransferDate);
+        }
+
+        extension.completeReactivationRequest(task, false);
+
+        for(Folder folder: rm.searchFolders(condition)) {
+            assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+            assertThat(folder.getReactivationDecommissioningDate()).isNull();
+            assertThat(folder.getReactivationDates()).isEmpty();
+            assertThat(folder.getReactivationUsers()).isEmpty();
+            assertThat(folder.getPreviousTransferDates()).isEmpty();
+            assertThat(folder.getPreviousDepositDates()).isEmpty();
+            assertThat(folder.getActualTransferDate()).isEqualTo(previousTransferDates.get(folder.getId()));
+        }
+
+
+        EmailAddress adresseReceiver = new EmailAddress("Chuck Norris", "chuck@doculibre.com");
+        EmailToSend emailToSend = getEmailToSend(ALERT_REACTIVATED_DENIED);
+        assertThat(emailToSend).isNotNull();
+        assertThat(emailToSend.getTemplate()).isEqualTo(ALERT_REACTIVATED_DENIED);
+        assertThat(emailToSend.getTo()).isEqualTo(Arrays.asList(adresseReceiver));
+        assertThat(emailToSend.getFrom()).isNull();
+        assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
+        assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
+        assertThat(emailToSend.getParameters()).hasSize(8);
+        assertThat(emailToSend.getParameters()).containsOnly(
+                "subject:" + task.getTitle(),
+                "reactivationDate:" + localDate,
+                "currentUser:admin", "title:" + records.getContainerBac13().getTitle(),
+                "constellioURL:http://localhost:8080/constellio/",
+                "recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
+                "recordType:containerrecord",
                 "isAccepted:Non"
         );
     }
