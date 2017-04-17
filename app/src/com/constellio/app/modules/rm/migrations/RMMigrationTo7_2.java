@@ -4,32 +4,47 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -96,10 +111,14 @@ public class RMMigrationTo7_2 implements MigrationScript {
         migrateSearchableSchemaTypes(collection, migrationResourcesProvider, appLayerFactory);
         updateNewPermissions(appLayerFactory, collection);
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		createNewTaskTypes(appLayerFactory, taskSchemas);
-		adjustSchemaDisplay();
+		try {
+			createNewTaskTypes(appLayerFactory, taskSchemas);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException("Failed to create new task types in RMMigration7_2");
+		}
+		adjustSchemaDisplay(appLayerFactory, migrationResourcesProvider, collection);
 		migrateRoles(collection, appLayerFactory.getModelLayerFactory());
-		reloadEmailTemplates();
+		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
     }
 
     private void updateNewPermissions(AppLayerFactory appLayerFactory, String collection) {
@@ -119,6 +138,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
 	private void createNewTaskTypes(AppLayerFactory appLayerFactory, TasksSchemasRecordsServices taskSchemas) throws RecordServicesException {
 		Transaction transaction = new Transaction();
+		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST).setTitle("Demande d'emprunt")
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME));
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.RETURN_REQUEST).setTitle("Demande de retour")
@@ -131,7 +151,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
-	private void adjustSchemaDisplay() {
+	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Folder.DEFAULT_SCHEMA)
@@ -197,30 +217,31 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		)));
 	}
 
-	private void reloadEmailTemplates() {
+	private void reloadEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("en")) {
-			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED);
-			reloadEmailTemplate("alertReturnedTemplate_en.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED);
-			reloadEmailTemplate("alertReactivatedTemplate_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED);
-			reloadEmailTemplate("alertBorrowingExtendedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED);
-			reloadEmailTemplate("alertBorrowedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED);
-			reloadEmailTemplate("alertReturnedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED);
-			reloadEmailTemplate("alertReactivatedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED);
-			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED);
+			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplate_en.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplate_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
 		} else {
-			reloadEmailTemplate("alertBorrowedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED);
-			reloadEmailTemplate("alertReturnedTemplate.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED);
-			reloadEmailTemplate("alertReactivatedTemplate.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED);
-			reloadEmailTemplate("alertBorrowingExtendedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED);
-			reloadEmailTemplate("alertBorrowedTemplateDenied.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED);
-			reloadEmailTemplate("alertReturnedTemplateDenied.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED);
-			reloadEmailTemplate("alertReactivatedTemplateDenied.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED);
-			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED);
+			reloadEmailTemplate("alertBorrowedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplate.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplate.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowedTemplateDenied.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplateDenied.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplateDenied.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
 		}
 	}
 
-	private void reloadEmailTemplate(final String templateFileName, final String templateId) {
+	private void reloadEmailTemplate(final String templateFileName, final String templateId, AppLayerFactory appLayerFactory,
+									 MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
@@ -286,7 +307,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DATES)
 					.setType(MetadataValueType.DATE).setMultivalue(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_USERS)
-					.setType(MetadataValueType.REFERENCE).setMultivalue(true).defineReferencesTo(
+					.setType(REFERENCE).setMultivalue(true).defineReferencesTo(
 					typesBuilder.getSchemaType(User.SCHEMA_TYPE)
 			);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_DEPOSIT_DATES)
@@ -306,7 +327,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 					.setType(MetadataValueType.DATE_TIME);
 
 			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.LINKED_CONTAINERS)
-					.setType(MetadataValueType.REFERENCE)
+					.setType(REFERENCE)
 					.defineReferencesTo(typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)).setMultivalue(true);
 			typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.REASON).setType(MetadataValueType.TEXT);
 			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.EXTENSION_VALUE)
@@ -324,28 +345,28 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			typesBuilder.getSchema(ReturnRequest.FULL_SCHEMA_NAME).createUndeletable(ReturnRequest.ACCEPTED)
 					.setType(MetadataValueType.BOOLEAN).setDefaultValue(null);
 			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.APPLICANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.APPLICANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 			typesBuilder.getSchema(ReactivationRequest.FULL_SCHEMA_NAME).createUndeletable(ReactivationRequest.APPLICANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 			typesBuilder.getSchema(ReturnRequest.FULL_SCHEMA_NAME).createUndeletable(ReturnRequest.APPLICANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 			typesBuilder.getSchema(ExtensionRequest.FULL_SCHEMA_NAME).createUndeletable(ExtensionRequest.RESPONDANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 			typesBuilder.getSchema(BorrowRequest.FULL_SCHEMA_NAME).createUndeletable(BorrowRequest.RESPONDANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 			typesBuilder.getSchema(ReactivationRequest.FULL_SCHEMA_NAME).createUndeletable(ReactivationRequest.RESPONDANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 			typesBuilder.getSchema(ReturnRequest.FULL_SCHEMA_NAME).createUndeletable(ReturnRequest.RESPONDANT)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
+					.setType(REFERENCE).defineReferencesTo(typesBuilder.getDefaultSchema(User.SCHEMA_TYPE))
 					.setSystemReserved(true);
 
 			MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);

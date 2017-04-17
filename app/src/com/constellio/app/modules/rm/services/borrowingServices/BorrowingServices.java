@@ -23,6 +23,8 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -44,12 +46,14 @@ public class BorrowingServices {
     private final UserServices userServices;
     private final LoggingServices loggingServices;
     private final RMSchemasRecordsServices rm;
-    ConstellioEIMConfigs eimConfigs;
+	private final SearchServices searchServices;
+	ConstellioEIMConfigs eimConfigs;
     MetadataSchemasManager metadataSchemasManager;
     String collection;
 
     public BorrowingServices(String collection, ModelLayerFactory modelLayerFactory) {
         this.recordServices = modelLayerFactory.newRecordServices();
+        this.searchServices = modelLayerFactory.newSearchServices();
         this.userServices = modelLayerFactory.newUserServices();
         this.loggingServices = modelLayerFactory.newLoggingServices();
         this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);

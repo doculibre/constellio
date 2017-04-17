@@ -127,7 +127,7 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
         recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
         recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
         new BorrowingServices(zeCollection, getModelLayerFactory()).borrowFolder(records.folder_A48, LocalDate.now(),
-                LocalDate.now().plusDays(1), records.getAdmin(), records.getAdmin(), BorrowingType.BORROW);
+                LocalDate.now().plusDays(1), records.getAdmin(), records.getAdmin(), BorrowingType.BORROW, true);
 
         recordIds = searchServices.searchRecordIds(searchCondition);
         assertThat(recordIds).doesNotContain(records.folder_A48);

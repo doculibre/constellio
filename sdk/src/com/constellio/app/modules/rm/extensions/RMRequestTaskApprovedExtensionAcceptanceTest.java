@@ -14,7 +14,9 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -82,6 +84,10 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
         RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderRequestTask(records.getChuckNorris().getId(),
                 asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, 7, records.getFolder_A42().getTitle()).getWrappedRecord());
         recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+
+        recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+        recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+        recordServices.physicallyDeleteNoMatterTheStatus(records.getList01().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 
         extension.completeBorrowRequest(task, true);
 
