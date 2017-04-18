@@ -4,7 +4,7 @@
         <title>The wonderful life of Dakota : An unexpected Journey</title>
         <folder>662</folder>
         <content type="content">
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt" filename="An unexpected Journey"
+            <contentVersion url="https://files.slack.com/files-pri/T027CK5P0-F4WQY394M/download/pg338?pub_secret=a76e89b2ab" filename="An unexpected Journey"
                             major="true"/>
         </content>
     </record>
@@ -12,14 +12,13 @@
         <title>The wonderful life of Dakota : The Kings Return</title>
         <folder>662</folder>
         <content type="content">
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt"
+            <contentVersion url="https://files.slack.com/files-pri/T027CK5P0-F4WQY394M/download/pg338?pub_secret=a76e89b2ab"
                             lastModificationDateTime="2014-06-09 23:38:45" filename="The Kings Return1"
                             comment="DVD #1" major="true"/>
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg339.txt"
-                            lastModificationDateTime="2015-06-09 23:38:45" filename="The Kings Return2"
+            <contentVersion url="https://files.slack.com/files-pri/T027CK5P0-F4WQY77TP/download/pg339?pub_secret=8263e52c1b" filename="The Kings Return2"
                             comment="DVD #2"
                             major="false"/>
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg340.txt" filename="The Kings Return3"
+            <contentVersion url="https://files.slack.com/files-pri/T027CK5P0-F4WNA7N9G/download/pg340.tar.gz?pub_secret=0cb75a0a0c" filename="The Kings Return3"
                             comment="DVD #3 : extras" major="true"/>
         </content>
     </record>
@@ -27,7 +26,7 @@
         <title>The wonderful life of Dakota : The Return of the Jedi</title>
         <folder>662</folder>
         <content type="content">
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt" filename="The Return of the Jedi"/>
+            <contentVersion url="https://files.slack.com/files-pri/T027CK5P0-F4WQY394M/download/pg338?pub_secret=a76e89b2ab" filename="The Return of the Jedi"/>
         </content>
     </record>
 </records>

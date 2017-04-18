@@ -103,15 +103,23 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildLabelsButton(final String schemaType) {
-		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
-				return presenter.getTemplates(schemaType);
+				return presenter.getCustomTemplates(schemaType);
+			}
+		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates(schemaType);
 			}
 		};
 		LabelsButton labelsButton = new LabelsButton(
 				$("SearchView.labels"),
 				$("SearchView.printLabels"),
+				customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory,
 				getConstellioFactories().getAppLayerFactory(),
 				getSessionContext().getCurrentCollection(),
 				Folder.SCHEMA_TYPE,
@@ -231,6 +239,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 						showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
 					} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
 						showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
+					} else if (presenter.isAnyFolderBorrowed()) {
+						showErrorMessage($("CartView.aFolderIsBorrowed"));
 					} else {
 						super.buttonClick(event);
 					}
@@ -443,7 +453,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

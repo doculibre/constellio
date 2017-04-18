@@ -153,7 +153,11 @@ public class BaseSchemasRecordsServices {
 	}
 
 	public Record create(MetadataSchema schema, String id) {
-		return modelLayerFactory.newRecordServices().newRecordWithSchema(schema, id);
+		if (id == null) {
+			return modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
+		} else {
+			return modelLayerFactory.newRecordServices().newRecordWithSchema(schema, id);
+		}
 	}
 
 	public Record getByCode(MetadataSchemaType schemaType, String code) {

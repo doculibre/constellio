@@ -1,11 +1,5 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -14,17 +8,25 @@ import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
-import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+
 public class CoreNavigationConfiguration implements Serializable {
+	
 	public static final String CONFIG = "config";
 	public static final String CONFIG_ICON = "images/icons/config/configuration.png";
 	public static final String LDAP_CONFIG = "ldapConfig";
@@ -84,15 +86,31 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
 	public static final String TRASH = "trash";
+	public static final String BATCH_PROCESSES = "batchProcesses";
 
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
 	public void configureNavigation(NavigationConfig config) {
+		configureHeaderActionMenu(config);
 		configureSystemAdmin(config);
 		configureCollectionAdmin(config);
 		configureMainLayoutNavigation(config);
 	}
+
+	private static void configureHeaderActionMenu(NavigationConfig config) {
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(BATCH_PROCESSES) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().batchProcesses();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return ComponentState.ENABLED;
+			}
+		});
+	}	
 
 	private void configureSystemAdmin(NavigationConfig config) {
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(CONFIG, CONFIG_ICON) {
@@ -407,7 +425,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+						return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
 					}
 				});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
@@ -418,7 +436,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TRASH_BIN, TRASH_BIN_ICON) {
@@ -482,7 +500,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				});
 
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(TRASH, FontAwesome.TRASH, TrashViewImpl.class) {
+				new NavigationItem.Active(TRASH, FontAwesome.TRASH, TrashViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						navigate.to().trash();

@@ -41,7 +41,7 @@ public class FaultInjectorSolrServerFactory implements SolrServerFactory {
 		}
 
 		@Override
-		public NamedList<Object> request(SolrRequest request)
+		public NamedList<Object> request(SolrRequest request, String collection)
 				throws SolrServerException, IOException {
 			//if (random.nextInt(10) == 0) {
 			//	throw new RemoteSolrException(404, "Random injected fault", new RuntimeException());
@@ -50,8 +50,8 @@ public class FaultInjectorSolrServerFactory implements SolrServerFactory {
 		}
 
 		@Override
-		public void shutdown() {
-			nestedSolrServer.shutdown();
+		public void close() throws IOException {
+			nestedSolrServer.close();
 		}
 	}
 

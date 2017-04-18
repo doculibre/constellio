@@ -129,7 +129,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				&& query.getFieldBoosts().isEmpty()
 				&& query.getQueryBoosts().isEmpty()
 				&& query.getStartRow() == 0
-				&& query.getNumberOfRows() == 10000000
+				&& query.getNumberOfRows() == 100000
 				&& query.getStatisticFields().isEmpty()
 				&& !query.isPreferAnalyzedFields()
 				&& query.getResultsProjection() == null

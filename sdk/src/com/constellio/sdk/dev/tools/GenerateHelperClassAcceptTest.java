@@ -76,6 +76,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(UserDocument.DEFAULT_SCHEMA, UserDocument.class);
 		wrappers.put(SolrAuthorizationDetails.DEFAULT_SCHEMA, SolrAuthorizationDetails.class);
 		wrappers.put(Printable.DEFAULT_SCHEMA, Printable.class);
+		wrappers.put(UserFolder.DEFAULT_SCHEMA, UserFolder.class);
+
 		System.out.println(header());
 
 		printGeneratedSchemas(wrappers, false);
@@ -106,6 +108,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.class);
 		wrappers.put(StorageSpace.DEFAULT_SCHEMA, StorageSpace.class);
 		wrappers.put(PrintableLabel.SCHEMA_NAME, PrintableLabel.class);
+		wrappers.put(RMUserFolder.DEFAULT_SCHEMA, RMUserFolder.class);
+		wrappers.put(RMTask.DEFAULT_SCHEMA, RMTask.class);
 
 		System.out.println(header());
 

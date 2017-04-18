@@ -831,85 +831,85 @@ public class DemoTestRecords {
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
 				.setContainerDetailsFor(containerId_bac18, containerId_bac19)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setFolderDetailsFor(asList(folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47));
+				.setFolderDetailsForIds(asList(folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_02)).setTitle("Liste analogique à détruire")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-				.setFolderDetailsFor(asList(folder_A54, folder_A55, folder_A56));
+				.setFolderDetailsForIds(asList(folder_A54, folder_A55, folder_A56));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_03)).setTitle("Liste hybride à fermer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_CLOSE)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setFolderDetailsFor(asList(folder_A01, folder_A02, folder_A03));
+				.setFolderDetailsForIds(asList(folder_A01, folder_A02, folder_A03));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_04)).setTitle("Liste analogique à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setContainerDetailsFor(containerId_bac14, containerId_bac15)
-				.setFolderDetailsFor(asList(folder_A22, folder_A23, folder_A24));
+				.setFolderDetailsForIds(asList(folder_A22, folder_A23, folder_A24));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_05)).setTitle("Liste hybride à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setFolderDetailsFor(asList(folder_A19, folder_A20, folder_A21));
+				.setFolderDetailsForIds(asList(folder_A19, folder_A20, folder_A21));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_06)).setTitle("Liste électronique à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setFolderDetailsFor(asList(folder_A25, folder_A26, folder_A27));
+				.setFolderDetailsForIds(asList(folder_A25, folder_A26, folder_A27));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_07)).setTitle("Liste analogique à détruire")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
-				.setFolderDetailsFor(asList(folder_A54, folder_A55, folder_A56));
+				.setFolderDetailsForIds(asList(folder_A54, folder_A55, folder_A56));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_08)).setTitle("Liste hybride à déposer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
-				.setFolderDetailsFor(folder_B30, folder_B33, folder_B35);
+				.setFolderDetailsForIds(folder_B30, folder_B33, folder_B35);
 
 		transaction.add(schemas.newDecommissioningListWithId(list_09)).setTitle("Liste électronique à déposer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
-				.setFolderDetailsFor(asList(folder_A57, folder_A58, folder_A59));
+				.setFolderDetailsForIds(asList(folder_A57, folder_A58, folder_A59));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_10)).setTitle("Liste avec plusieurs supports à déposer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
-				.setFolderDetailsFor(asList(folder_A42, folder_A43, folder_A44, folder_A48, folder_A49, folder_A50));
+				.setFolderDetailsForIds(asList(folder_A42, folder_A43, folder_A44, folder_A48, folder_A49, folder_A50));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_11)).setTitle("Liste de fermeture traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_CLOSE)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
-				.setFolderDetailsFor(asList(folder_A10, folder_A11, folder_A12, folder_A13, folder_A14, folder_A15));
+				.setFolderDetailsForIds(asList(folder_A10, folder_A11, folder_A12, folder_A13, folder_A14, folder_A15));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_12)).setTitle("Liste de transfert traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac10, containerId_bac11, containerId_bac12)
-				.setFolderDetailsFor(asList(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49, folder_A50, folder_A51,
+				.setFolderDetailsForIds(asList(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49, folder_A50, folder_A51,
 						folder_A52, folder_A53, folder_A54, folder_A55, folder_A56, folder_A57, folder_A58, folder_A59));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_13)).setTitle("Liste de transfert uniforme traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac13)
-				.setFolderDetailsFor(asList(folder_A42, folder_A43, folder_A43));
+				.setFolderDetailsForIds(asList(folder_A42, folder_A43, folder_A43));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_14)).setTitle("Liste de dépôt traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac05)
-				.setFolderDetailsFor(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83, folder_A84, folder_A85,
+				.setFolderDetailsForIds(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83, folder_A84, folder_A85,
 						folder_A86, folder_A87, folder_A88, folder_A89, folder_A90, folder_A91, folder_A92, folder_A93);
 
 		transaction.add(schemas.newDecommissioningListWithId(list_15)).setTitle("Liste de dépôt uniforme traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac04)
-				.setFolderDetailsFor(asList(folder_A94, folder_A95, folder_A96));
+				.setFolderDetailsForIds(asList(folder_A94, folder_A95, folder_A96));
 
 		DecommissioningList zeList16 = schemas.newDecommissioningListWithId(list_16)
 				.setTitle("Liste analogique à transférer en contenants")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
-				.setContainerDetailsFor(containerId_bac14).setFolderDetailsFor(asList(folder_A22, folder_A23, folder_A24));
+				.setContainerDetailsFor(containerId_bac14).setFolderDetailsForIds(asList(folder_A22, folder_A23, folder_A24));
 		for (DecomListFolderDetail detail : zeList16.getFolderDetails()) {
 			detail.setContainerRecordId(containerId_bac14);
 		}

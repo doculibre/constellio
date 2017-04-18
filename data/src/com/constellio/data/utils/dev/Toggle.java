@@ -22,6 +22,7 @@ public class Toggle {
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
 	public static AvailableToggle ALERT_USERS_EMAIL = newToggle(true);
+	public static AvailableToggle CACHES_ENABLED = newToggle(true);
 
 	// ------------------------------------------------
 

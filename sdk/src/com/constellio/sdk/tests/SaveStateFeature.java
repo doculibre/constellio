@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static java.util.Arrays.asList;
 
 import java.io.File;
@@ -35,7 +36,7 @@ public class SaveStateFeature {
 		File tempContentFolder = new File(tempFolder, "content");
 		File tempSettingsFolder = new File(tempFolder, "settings");
 
-		DataLayerFactory dataLayerFactory = factoriesTestFeatures.newDaosFactory();
+		DataLayerFactory dataLayerFactory = factoriesTestFeatures.newDaosFactory(DEFAULT_NAME);
 		DataLayerConfiguration dataLayerConfiguration = dataLayerFactory.getDataLayerConfiguration();
 
 		if (!dataLayerConfiguration.isSecondTransactionLogEnabled()) {
@@ -133,8 +134,9 @@ public class SaveStateFeature {
 
 	public void saveCurrentStateToInitialStatesFolder(String title)
 			throws Exception {
-		ConstellioModulesManager modulesManager = factoriesTestFeatures.newAppServicesFactory().getModulesManager();
-		String version = factoriesTestFeatures.newAppServicesFactory().newMigrationServices().getCurrentVersion("zeCollection");
+		ConstellioModulesManager modulesManager = factoriesTestFeatures.newAppServicesFactory(DEFAULT_NAME).getModulesManager();
+		String version = factoriesTestFeatures.newAppServicesFactory(DEFAULT_NAME).newMigrationServices()
+				.getCurrentVersion("zeCollection");
 
 		List<String> moduleIds = new ArrayList<>();
 		for (Module module : modulesManager.getInstalledModules()) {

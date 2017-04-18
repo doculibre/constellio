@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -15,7 +16,7 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class CurrentlyBorrowedFoldersEventDataProvider implements EventsCategoryDataProvider {
+public class CurrentlyBorrowedFoldersEventDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
 
 	transient List<EventStatistics> events;
 

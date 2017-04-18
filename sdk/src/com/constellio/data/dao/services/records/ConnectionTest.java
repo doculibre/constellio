@@ -87,12 +87,12 @@ public class ConnectionTest {
 	}
 
 	private SolrDocument getDoc1()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		return query("id:test1").get(0);
 	}
 
 	private SolrDocument getDoc2()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		return query("id:test2").get(0);
 	}
 
@@ -106,7 +106,7 @@ public class ConnectionTest {
 	}
 
 	private List<SolrDocument> query(String q)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		solrParams.set("q", q);
 		return server.query(solrParams).getResults();

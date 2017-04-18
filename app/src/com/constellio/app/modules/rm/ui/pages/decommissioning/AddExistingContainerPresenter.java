@@ -7,8 +7,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.model.services.records.RecordImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,17 +31,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddExistingContainerPresenter extends SearchPresenter<AddExistingContainerView>
 		implements SearchCriteriaPresenter {
@@ -114,7 +103,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		DecommissioningList decommissioningList = rmRecordServices().wrapDecommissioningList(restrictedRecord);
 		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(restrictedRecord) ||
-				new DecommissioningSecurityService(view.getCollection(), appLayerFactory).hasPermissionToCreateTransferOnList(decommissioningList, user);
+				new DecommissioningSecurityService(view.getCollection(), appLayerFactory)
+						.hasPermissionToCreateTransferOnList(decommissioningList, user);
 	}
 
 	@Override
@@ -195,6 +185,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		return getMetadataAllowedInSort(ContainerRecord.SCHEMA_TYPE);
 	}
 
+	@Override
+	public boolean isPreferAnalyzedFields() {
+		return false;
+	}
+
 	public void containerAdditionRequested(List<String> selectedRecordIds) {
 		DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(recordId);
 		List<ContainerRecord> containers = rmRecordServices().wrapContainerRecords(
@@ -243,7 +238,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
-		return new ConditionBuilder(rmRecordServices().containerRecord.schemaType()).build(criteria);
+		String languageCode = searchServices().getLanguageCode(view.getCollection());
+		return new ConditionBuilder(rmRecordServices().containerRecord.schemaType(), languageCode).build(criteria);
 	}
 
 	private RMSchemasRecordsServices rmRecordServices() {
@@ -260,7 +256,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		return rmConfigs;
 	}
 
-	protected void saveTemporarySearch(boolean refreshPage) {
+	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -282,6 +278,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		if (refreshPage) {
 			view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
 		}
+		return search;
 	}
 
 	@Override

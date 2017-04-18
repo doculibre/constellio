@@ -34,7 +34,7 @@ public class BatchProcessController implements StatefulService, BatchProcessesLi
 		if (configuration.isBatchProcessesThreadEnabled()) {
 			this.thread = newBatchProcessControllerThread();
 			thread.setUncaughtExceptionHandler(LoggerUncaughtExceptionHandler.instance);
-			thread.setName("BatchProcessController");
+			thread.setName(modelLayerFactory.toResourceName("BatchProcessController"));
 			thread.start();
 		}
 	}

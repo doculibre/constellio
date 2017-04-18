@@ -3,6 +3,7 @@ package com.constellio.model.services.taxonomies;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -205,10 +206,11 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem1, options)).isEmpty();
 
-		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2, options)).containsOnly(
-				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_customSchemaItem1, false, true),
-				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_customSchemaItem2, false, true),
-				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_defaultSchemaItem2, false, true));
+		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2, options))
+				.extracting("record.id", "linkable", "hasChildren").containsOnly(
+				tuple(records.taxo2_defaultSchemaItem2_customSchemaItem1.getId(), false, true),
+				tuple(records.taxo2_defaultSchemaItem2_customSchemaItem2.getId(), false, true),
+				tuple(records.taxo2_defaultSchemaItem2_defaultSchemaItem2.getId(), false, true));
 
 		visibleChildConcept = services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_customSchemaItem1,
 				options);
@@ -223,8 +225,8 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 						options)).isEmpty();
 
 		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
-				options)).containsOnly(
-				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2, false, true));
+				options)).extracting("record.id", "linkable", "hasChildren").containsOnly(
+				tuple(records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2.getId(), false, true));
 
 		assertThat(
 				services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1,

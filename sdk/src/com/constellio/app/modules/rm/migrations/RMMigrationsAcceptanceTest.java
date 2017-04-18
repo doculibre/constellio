@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.sdk.tests.TestUtils.noDuplicates;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -20,18 +13,24 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.*;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import org.apache.commons.compress.archivers.dump.DumpArchiveEntry;
-import org.apache.cxf.ws.addressing.MetadataType;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
+import static com.constellio.sdk.tests.TestUtils.noDuplicates;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
@@ -56,6 +55,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 						metadataSchemaTypes);
 				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
 				whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(metadataSchemaTypes);
+				whenMigratingToCurrentVersionThenValidateUserFolderWasAdded();
 			}
 		}
 	}
@@ -129,64 +129,23 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		if (testCase.contains("rm") && !testCase.contains("es")) {
 			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE, Printable.SCHEMA_TYPE);
+					AdministrativeUnit.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE, Printable.SCHEMA_TYPE);
 		} else {
-			assertThat(allSchemaTypesWithSecurity()).doesNotContain(Category.SCHEMA_TYPE);
+			assertThat(allSchemaTypesWithSecurity()).doesNotContain(ContainerRecord.SCHEMA_TYPE, Category.SCHEMA_TYPE);
 		}
 
 		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French))
 				.isEqualTo("Date de l'événement");
 
-		assertThat(metadataSchemaTypes.getMetadata("event_borrowing_borrowingDate").getLabel(Language.French))
-				.isEqualTo("Date d'emprunt");
-
 		MetadataSchema filingSpaceSchema = metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA);
 		MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
 		MetadataSchema decommissioningListSchema = metadataSchemaTypes.getSchema(DecommissioningList.DEFAULT_SCHEMA);
 		MetadataSchema retentionRuleSchema = metadataSchemaTypes.getSchema(RetentionRule.DEFAULT_SCHEMA);
-		MetadataSchema borrowingSchema = metadataSchemaTypes.getSchema(Borrowing.SCHEMA_NAME);
 
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
 
-		Metadata borrowingDate = borrowingSchema.getMetadata(Borrowing.BORROWING_DATE);
-
-		assertThat(borrowingDate.getLabel(Language.French)).isEqualTo("Date d'emprunt");
-		assertThat(borrowingDate.getCollection()).isEqualTo(zeCollection);
-		assertThat(borrowingDate.getType()).isEqualTo(MetadataValueType.DATE_TIME);
-		assertThat(borrowingDate.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
-		assertThat(borrowingDate.isEssential()).isTrue();
-
-		Metadata borrowingRequestDate = borrowingSchema.getMetadata(Borrowing.REQUEST_DATE);
-
-		assertThat(borrowingRequestDate.getLabel(Language.French)).isEqualTo("Date de demande d'emprunt");
-		assertThat(borrowingRequestDate.getCollection()).isEqualTo(zeCollection);
-		assertThat(borrowingRequestDate.getType()).isEqualTo(MetadataValueType.DATE_TIME);
-		assertThat(borrowingRequestDate.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
-		assertThat(borrowingRequestDate.isEssential()).isTrue();
-
-		Metadata borrowingReturnDate = borrowingSchema.getMetadata(Borrowing.RETURN_DATE);
-
-		assertThat(borrowingReturnDate.getLabel(Language.French)).isEqualTo("Date de retour de l'emprunt");
-		assertThat(borrowingReturnDate.getCollection()).isEqualTo(zeCollection);
-		assertThat(borrowingReturnDate.getType()).isEqualTo(MetadataValueType.DATE_TIME);
-		assertThat(borrowingReturnDate.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
-		assertThat(borrowingReturnDate.isEssential()).isTrue();
-
-		Metadata borrowingReturnUsername = borrowingSchema.getMetadata(Borrowing.RETURN_USERNAME);
-
-		assertThat(borrowingReturnUsername.getLabel(Language.French)).isEqualTo("Utilisateur qui retourne l'emprunt");
-		assertThat(borrowingReturnUsername.getCollection()).isEqualTo(zeCollection);
-		assertThat(borrowingReturnUsername.getType()).isEqualTo(MetadataValueType.STRING);
-		assertThat(borrowingReturnUsername.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
-		assertThat(borrowingReturnUsername.isEssential()).isTrue();
-
-		Metadata borrowingReturnUserId = borrowingSchema.getMetadata(Borrowing.RETURN_USER_ID);
-
-		assertThat(borrowingReturnUserId.getLabel(Language.French)).isEqualTo("Utilisateur qui retourne l'emprunt");
-		assertThat(borrowingReturnUserId.getCollection()).isEqualTo(zeCollection);
-		assertThat(borrowingReturnUserId.getType()).isEqualTo(MetadataValueType.STRING);
-		assertThat(borrowingReturnUserId.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
-		assertThat(borrowingReturnUserId.isEssential()).isTrue();
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
+				.getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
 
 	}
 
@@ -235,6 +194,10 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_CREATED_ON,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_BY,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_ON,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_DATES,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS);
 
 		//		SchemaDisplayConfig categoryDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
@@ -354,5 +317,23 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		} else {
 			return new SDKFoldersLocator().getInitialStatesFolder();
 		}
+	}
+
+	private void whenMigratingToCurrentVersionThenValidateUserFolderWasAdded() {
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		MetadataSchema defaultSchema = types.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
+		MetadataSchema userDocumentSchema = types.getSchemaType(UserDocument.SCHEMA_TYPE).getDefaultSchema();
+		assertThat(defaultSchema).isNotNull();
+		assertThat(defaultSchema.getMetadatas()).contains(
+				defaultSchema.getMetadata(UserFolder.USER),
+				defaultSchema.getMetadata(UserFolder.FORM_CREATED_ON),
+				defaultSchema.getMetadata(UserFolder.FORM_MODIFIED_ON),
+				defaultSchema.getMetadata(UserFolder.PARENT_USER_FOLDER),
+				defaultSchema.getMetadata(RMUserFolder.ADMINISTRATIVE_UNIT),
+				defaultSchema.getMetadata(RMUserFolder.CATEGORY),
+				defaultSchema.getMetadata(RMUserFolder.RETENTION_RULE));
+		assertThat(userDocumentSchema.getMetadatas()).contains(userDocumentSchema.getMetadata(UserDocument.USER_FOLDER));
+		assertThat(userDocumentSchema.getMetadatas()).contains(userDocumentSchema.getMetadata(UserDocument.FORM_CREATED_ON));
+		assertThat(userDocumentSchema.getMetadatas()).contains(userDocumentSchema.getMetadata(UserDocument.FORM_MODIFIED_ON));
 	}
 }

@@ -18,255 +18,249 @@ import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UpdateContentVersionWindowImpl extends BaseWindow implements UpdateContentVersionWindow, DropHandler {
+	
+	private boolean checkingIn;
+	
+	private String nullValue = new String();
+	
+	private ContentVersionVO newVersionVO;
+	
+	private Object majorVersion;
+	
+	private Property<ContentVersionVO> contentVersionProperty = new NestedMethodProperty<ContentVersionVO>(this, "contentVersion");
+	
+	private Property<Object> majorVersionProperty = new NestedMethodProperty<Object>(this, "majorVersion");
 
-    private boolean checkingIn;
+	private VerticalLayout mainLayout;
+	
+	private BaseForm<RecordVO> uploadForm;
+	
+	private Label errorLabel;
+	
+	private ContentVersionUploadField uploadField;
+	
+	private OptionGroup majorVersionField;
+	
+	private UpdateContentVersionPresenter presenter;
+	
+	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records) {
+		setModal(true);
+		setWidth("70%");
+		setZIndex(null);
+		
+		mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+		mainLayout.setWidth("100%");
+		
+		String title = $("UpdateContentVersionWindow.newVersionTitle"); 
+		setCaption(title);
+		
+		errorLabel = new Label();
+		errorLabel.addStyleName("error-label");
+		errorLabel.setVisible(false);
+		
+		uploadField = new ContentVersionUploadField(false) {
+			@Override
+			protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
+				return false;
+			}
+		};
+		uploadField.setCaption($("UpdateContentVersionWindow.uploadField"));
+		uploadField.setImmediate(true);
+		uploadField.addValidator(new Validator() {
+			@Override
+			public void validate(Object value)
+					throws InvalidValueException {
+				if (getContentVersion() == null && getMajorVersion() instanceof Boolean) {
+					throw new InvalidValueException($("UpdateContentVersionWindow.validate.noVersionIfContentVersionUploaded"));
+				}
+			}
+		});
+		
+		majorVersionField = new OptionGroup();
+		majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
+		majorVersionField.setCaption($("UpdateContentVersionWindow.version"));
+		majorVersionField.setRequired(true);
+		majorVersionField.setImmediate(true);
+		
+		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
+		fieldsAndPropertyIds.add(new FieldAndPropertyId(uploadField, "contentVersion"));
+		fieldsAndPropertyIds.add(new FieldAndPropertyId(majorVersionField, "majorVersion"));
 
-    private String nullValue = new String();
+		if (records.keySet().iterator().hasNext()) {
+			uploadForm = new BaseForm<RecordVO>(records.keySet().iterator().next(), fieldsAndPropertyIds) {
+				@Override
+				protected Item newItem(RecordVO viewObject) {
+					return new Item() {
+						@SuppressWarnings("rawtypes")
+						@Override
+						public Property getItemProperty(Object id) {
+							Property property;
+							if ("contentVersion".equals(id)) {
+								property = contentVersionProperty;
+							} else if ("majorVersion".equals(id)) {
+								property = majorVersionProperty;
+							} else {
+								property = null;
+							}
+							return property;
+						}
 
-    private ContentVersionVO newVersionVO;
+						@Override
+						public Collection<?> getItemPropertyIds() {
+							return Arrays.asList("contentVersion", "majorVersion");
+						}
 
-    private Object majorVersion;
+						@SuppressWarnings("rawtypes")
+						@Override
+						public boolean addItemProperty(Object id, Property property)
+								throws UnsupportedOperationException {
+							throw new UnsupportedOperationException("Read-only item");
+						}
 
-    private Property<ContentVersionVO> contentVersionProperty = new NestedMethodProperty<ContentVersionVO>(this, "contentVersion");
+						@Override
+						public boolean removeItemProperty(Object id)
+								throws UnsupportedOperationException {
+							throw new UnsupportedOperationException("Read-only item");
+						}
+					};
+				}
 
-    private Property<Object> majorVersionProperty = new NestedMethodProperty<Object>(this, "majorVersion");
+				@Override
+				protected void saveButtonClick(RecordVO viewObject)
+						throws ValidationException {
+					Boolean bMajorVersion;
+					if (nullValue.equals(majorVersion)) {
+						bMajorVersion = null;
+					} else {
+						bMajorVersion = (Boolean) majorVersion;
+					}
+					newVersionVO = (ContentVersionVO) uploadField.getValue();
+					presenter.contentVersionSaved(newVersionVO, bMajorVersion);
+					close();
+				}
 
-    private VerticalLayout mainLayout;
+				@Override
+				protected void cancelButtonClick(RecordVO viewObject) {
+					close();
+				}
+			};
+		}
 
-    private BaseForm<RecordVO> uploadForm;
+		uploadForm.setSizeFull();
+		
+		mainLayout.addComponents(errorLabel, uploadForm);
 
-    private Label titleLabel;
+		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
+		dragAndDropWrapper.setSizeFull();
+		setContent(dragAndDropWrapper);
+		dragAndDropWrapper.setDropHandler(uploadField);
+		
+		presenter = new UpdateContentVersionPresenter(this, records);
+	}
 
-    private Label errorLabel;
+	@Override
+	public void attach() {
+		super.attach();
+		errorLabel.setVisible(false);
+		presenter.windowAttached(checkingIn);
+	}
 
-    private ContentVersionUploadField uploadField;
+	public final ContentVersionVO getContentVersion() {
+		return newVersionVO;
+	}
 
-    private OptionGroup majorVersionField;
+	public final void setContentVersion(ContentVersionVO newVersionVO) {
+		this.newVersionVO = newVersionVO;
+	}
 
-    private UpdateContentVersionPresenter presenter;
+	public final Object getMajorVersion() {
+		return majorVersion;
+	}
 
-    public UpdateContentVersionWindowImpl(RecordVO recordVO, MetadataVO metadataVO) {
-        setModal(true);
-        setWidth("70%");
-        setHeight("450px");
-        setZIndex(null);
+	public final void setMajorVersion(Object majorVersion) {
+		this.majorVersion = majorVersion;
+	}
 
-        mainLayout = new VerticalLayout();
-        mainLayout.setSpacing(true);
-        mainLayout.setWidth("100%");
+	@Override
+	public void drop(DragAndDropEvent event) {
+		uploadField.drop(event);
+	}
 
-        String title = $("UpdateContentVersionWindow.newVersionTitle");
-        setCaption(title);
-        titleLabel = new Label(title);
-        titleLabel.addStyleName(ValoTheme.LABEL_H1);
+	@Override
+	public AcceptCriterion getAcceptCriterion() {
+		return uploadField.getAcceptCriterion();
+	}
 
-        errorLabel = new Label();
-        errorLabel.addStyleName("error-label");
-        errorLabel.setVisible(false);
+	@Override
+	public void showErrorMessage(String key, Object...args) {
+		errorLabel.setVisible(true);
+		errorLabel.setValue($(key, args));
+	}
 
-        uploadField = new ContentVersionUploadField(false) {
-            @Override
-            protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
-                return false;
-            }
-        };
-        uploadField.setCaption($("UpdateContentVersionWindow.uploadField"));
-        uploadField.setImmediate(true);
-        uploadField.addValidator(new Validator() {
-            @Override
-            public void validate(Object value)
-                    throws InvalidValueException {
-                if (getContentVersion() == null && getMajorVersion() instanceof Boolean) {
-                    throw new InvalidValueException($("UpdateContentVersionWindow.validate.noVersionIfContentVersionUploaded"));
-                }
-            }
-        });
+	@Override
+	public boolean isFormVisible() {
+		return uploadField.isVisible();
+	}
 
-        majorVersionField = new OptionGroup();
-        majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
-        majorVersionField.setCaption($("UpdateContentVersionWindow.versionReturnField"));
-        majorVersionField.setRequired(true);
-        majorVersionField.setImmediate(true);
+	@Override
+	public void setFormVisible(boolean visible) {
+		uploadField.setVisible(visible);
+		uploadField.setVisible(visible);
+	}
+	
+	@Override
+	public void setUploadFieldVisible(boolean visible) {
+		uploadField.setVisible(visible);
+		uploadField.setRequired(visible);
+	}
 
-        List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
-        fieldsAndPropertyIds.add(new FieldAndPropertyId(uploadField, "contentVersion"));
-        fieldsAndPropertyIds.add(new FieldAndPropertyId(majorVersionField, "majorVersion"));
+	private void initMajorVersionFieldOptions() {
+		majorVersionField.removeAllItems();
+		majorVersionField.addItem(false);
+		majorVersionField.addItem(true);
+	}
 
-        uploadForm = new BaseForm<RecordVO>(recordVO, fieldsAndPropertyIds) {
-            @Override
-            protected Item newItem(RecordVO viewObject) {
-                return new Item() {
-                    @SuppressWarnings("rawtypes")
-                    @Override
-                    public Property getItemProperty(Object id) {
-                        Property property;
-                        if ("contentVersion".equals(id)) {
-                            property = contentVersionProperty;
-                        } else if ("majorVersion".equals(id)) {
-                            property = majorVersionProperty;
-                        } else {
-                            property = null;
-                        }
-                        return property;
-                    }
+	@Override
+	public void addMajorMinorSameOptions() {
+		initMajorVersionFieldOptions();
+		majorVersionField.addItem(nullValue);
+		majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.newMajorVersion"));
+		majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.newMinorVersion"));
+		majorVersionField.setItemCaption(nullValue, $("UpdateContentVersionWindow.options.sameVersion"));
+	}
 
-                    @Override
-                    public Collection<?> getItemPropertyIds() {
-                        return Arrays.asList("contentVersion", "majorVersion");
-                    }
+	@Override
+	public void addMajorMinorOptions() {
+		initMajorVersionFieldOptions();
+		majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.majorVersion"));
+		majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.minorVersion"));
+	}
+	
+	public void open(boolean checkingIn) {
+		this.checkingIn = checkingIn;
+		String updatedTitle;
+		if (checkingIn) {
+			setHeight("200px");
+			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
+		} else {
+			setHeight("300px");
+			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle"); 
+		}
+		setCaption(updatedTitle);
+		UI.getCurrent().addWindow(this);
+	}
 
-                    @SuppressWarnings("rawtypes")
-                    @Override
-                    public boolean addItemProperty(Object id, Property property)
-                            throws UnsupportedOperationException {
-                        throw new UnsupportedOperationException("Read-only item");
-                    }
-
-                    @Override
-                    public boolean removeItemProperty(Object id)
-                            throws UnsupportedOperationException {
-                        throw new UnsupportedOperationException("Read-only item");
-                    }
-                };
-            }
-
-            @Override
-            protected void saveButtonClick(RecordVO viewObject)
-                    throws ValidationException {
-                Boolean bMajorVersion;
-                if (nullValue.equals(majorVersion)) {
-                    bMajorVersion = null;
-                } else {
-                    bMajorVersion = (Boolean) majorVersion;
-                }
-                newVersionVO = (ContentVersionVO) uploadField.getValue();
-                presenter.contentVersionSaved(newVersionVO, bMajorVersion);
-            }
-
-            @Override
-            protected void cancelButtonClick(RecordVO viewObject) {
-                close();
-            }
-        };
-        uploadForm.setSizeFull();
-
-        mainLayout.addComponents(titleLabel, errorLabel, uploadForm);
-
-        DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
-        dragAndDropWrapper.setSizeFull();
-        setContent(dragAndDropWrapper);
-        dragAndDropWrapper.setDropHandler(uploadField);
-
-        presenter = new UpdateContentVersionPresenter(this, recordVO, metadataVO);
-    }
-
-    @Override
-    public void attach() {
-        super.attach();
-        errorLabel.setVisible(false);
-        presenter.windowAttached(checkingIn);
-    }
-
-    public final ContentVersionVO getContentVersion() {
-        return newVersionVO;
-    }
-
-    public final void setContentVersion(ContentVersionVO newVersionVO) {
-        this.newVersionVO = newVersionVO;
-    }
-
-    public final Object getMajorVersion() {
-        return majorVersion;
-    }
-
-    public final void setMajorVersion(Object majorVersion) {
-        this.majorVersion = majorVersion;
-    }
-
-    @Override
-    public void drop(DragAndDropEvent event) {
-        uploadField.drop(event);
-    }
-
-    @Override
-    public AcceptCriterion getAcceptCriterion() {
-        return uploadField.getAcceptCriterion();
-    }
-
-    @Override
-    public void showErrorMessage(String key, Object... args) {
-        errorLabel.setVisible(true);
-        errorLabel.setValue($(key, args));
-    }
-
-    @Override
-    public boolean isFormVisible() {
-        return uploadField.isVisible();
-    }
-
-    @Override
-    public void setFormVisible(boolean visible) {
-        uploadField.setVisible(visible);
-        uploadField.setVisible(visible);
-    }
-
-    @Override
-    public void setUploadFieldVisible(boolean visible) {
-        uploadField.setVisible(visible);
-        uploadField.setRequired(visible);
-    }
-
-    private void initMajorVersionFieldOptions() {
-        majorVersionField.removeAllItems();
-        majorVersionField.addItem(true);
-        majorVersionField.addItem(false);
-    }
-
-    @Override
-    public void addMajorMinorSameOptions() {
-        initMajorVersionFieldOptions();
-        majorVersionField.addItem(nullValue);
-        majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.newMinorVersion"));
-        majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.newMajorVersion"));
-        majorVersionField.setItemCaption(nullValue, $("UpdateContentVersionWindow.options.sameVersion"));
-    }
-
-    @Override
-    public void addMajorMinorOptions() {
-        initMajorVersionFieldOptions();
-        majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.minorVersion"));
-        majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.majorVersion"));
-    }
-
-    public void open(boolean checkingIn) {
-        this.checkingIn = checkingIn;
-        String updatedTitle;
-        if (checkingIn) {
-            updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
-            majorVersionField.setCaption($("UpdateContentVersionWindow.versionReturnField"));
-        } else {
-            updatedTitle = $("UpdateContentVersionWindow.newVersionTitle");
-            majorVersionField.setCaption($("UpdateContentVersionWindow.versionSaveField"));
-        }
-        setCaption(updatedTitle);
-        titleLabel.setValue(updatedTitle);
-        UI.getCurrent().addWindow(this);
-    }
-
-    @Override
-    public void close() {
-        if (newVersionVO != null && newVersionVO.getInputStreamProvider() != null) {
-            newVersionVO.getInputStreamProvider().deleteTemp();
-        }
-        super.close();
-    }
-
+	@Override
+	public void close() {
+		if (newVersionVO != null && newVersionVO.getInputStreamProvider() != null) {
+			newVersionVO.getInputStreamProvider().deleteTemp();
+		}
+		super.close();
+	}
 }

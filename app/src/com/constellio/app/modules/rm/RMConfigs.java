@@ -1,18 +1,20 @@
 package com.constellio.app.modules.rm;
 
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -59,6 +61,8 @@ public class RMConfigs {
 			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
 			DEFAULT_TAB_IN_FOLDER_DISPLAY,
 			UNIFORM_SUBDIVISION_ENABLED,
+			STORAGE_SPACE_TITLE_CALCULATOR_ENABLED,
+			COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
@@ -70,7 +74,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -185,7 +189,7 @@ public class RMConfigs {
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
 		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
-
+		
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -212,6 +216,8 @@ public class RMConfigs {
 
 		add(AGENT_READ_ONLY_WARNING = agent.createBooleanTrueByDefault("readOnlyWarning"));
 
+		add(AGENT_DISABLED_UNTIL_FIRST_CONNECTION = agent.createBooleanFalseByDefault("agentDisabledUntilFirstConnection"));
+
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
@@ -232,10 +238,19 @@ public class RMConfigs {
 		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
 				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
 
+		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = others
+				.createBooleanFalseByDefault("enableStorageSpaceTitleCalculator")
+				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
+
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
 				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
 
 		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
+
+		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
+				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
+						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
+						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -392,6 +407,10 @@ public class RMConfigs {
 		return manager.getValue(AGENT_READ_ONLY_WARNING);
 	}
 
+	public boolean isAgentDisabledUntilFirstConnection() {
+		return manager.getValue(AGENT_DISABLED_UNTIL_FIRST_CONNECTION);
+	}
+
 	public int getBorrowingDurationDays() {
 		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	}
@@ -423,4 +442,13 @@ public class RMConfigs {
 	public boolean areDocumentCheckedOutAfterCreation() {
 		return manager.getValue(CHECK_OUT_DOCUMENT_AFTER_CREATION);
 	}
+
+	public CompleteDatesWhenAddingFolderWithManualStatusChoice getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() {
+		return manager.getValue(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS);
+	}
+
+	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
+		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
+	}
+	
 }

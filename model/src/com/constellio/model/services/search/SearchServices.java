@@ -32,6 +32,7 @@ import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
@@ -207,17 +208,21 @@ public class SearchServices {
 
 	public String getLanguage(LogicalSearchQuery query) {
 		if (query.getCondition().isCollectionSearch()) {
-			String collection = query.getCondition().getCollection();
-			String language;
-			try {
-				language = collectionsListManager.getCollectionLanguages(collection).get(0);
-			} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-				language = mainDataLanguage;
-			}
-			return language;
+			return getLanguageCode(query.getCondition().getCollection());
+
 		} else {
 			return mainDataLanguage;
 		}
+	}
+
+	public String getLanguageCode(String collection) {
+		String language;
+		try {
+			language = collectionsListManager.getCollectionLanguages(collection).get(0);
+		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+			language = mainDataLanguage;
+		}
+		return language;
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
@@ -369,9 +374,15 @@ public class SearchServices {
 			fieldsWithBoosts.add(boost.getKey());
 		}
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
-			if (!fieldsWithBoosts.contains(metadata.getDataStoreCode())) {
-				sb.append(metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode() + " ");
+			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+			if (!fieldsWithBoosts.contains(analyzedField)) {
+				sb.append(analyzedField + " ");
 			}
+		}
+
+		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+		if (!fieldsWithBoosts.contains(idAnalyzedField)) {
+			sb.append(idAnalyzedField + " ");
 		}
 
 		//		sb.append("search_txt_");

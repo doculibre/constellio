@@ -1,5 +1,17 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
@@ -12,7 +24,11 @@ import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportW
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -36,14 +52,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, NewReportPresenter {
 	private transient RMSchemasRecordsServices rm;
@@ -102,11 +110,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			view.showErrorMessage($("CartView.cannotDuplicate"));
 			return;
 		}
-		DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
-		for (Folder folder : getCartFolders()) {
-			service.duplicateStructureAndSave(folder, getCurrentUser());
+		try {
+			DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
+			for (Folder folder : getCartFolders()) {
+				service.duplicateStructureAndSave(folder, getCurrentUser());
+			}
+			view.showMessage($("CartView.duplicated"));
+		} catch (RecordServicesException.ValidationException e) {
+			view.showErrorMessage($(e.getErrors()));
+		} catch (Exception e) {
+			view.showErrorMessage(e.getMessage());
 		}
-		view.showMessage($("CartView.duplicated"));
 	}
 
 	public boolean canDelete() {
@@ -267,6 +281,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
 	}
 
+	List<String> getCartFolderIds() {
+		return cart().getFolders();
+	}
+
 	private List<Document> getCartDocuments() {
 		return rm().wrapDocuments(recordServices().getRecordsById(view.getCollection(), cart().getDocuments()));
 	}
@@ -339,11 +357,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			throws RecordServicesException {
 		batchProcessingPresenterService()
 				.execute(selectedType, records, viewObject, getCurrentUser());
+		view.navigate().to().batchProcesses();
 	}
 
 	@Override
 	public boolean hasWriteAccessOnAllRecords() {
 		return hasWriteAccessOnAllRecords(getRecordsIds(batchProcessSchemaType));
+	}
+
+	@Override
+	public long getNumberOfRecords() {
+		return (long) getRecordsIds(batchProcessSchemaType).size();
 	}
 
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
@@ -379,7 +403,12 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, records);
 	}
 
-	public List<LabelTemplate> getTemplates(String schemaType) {
+	public List<LabelTemplate> getCustomTemplates(String schemaType) {
+		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
+		return labelTemplateManager.listExtensionTemplates(schemaType);
+	}
+
+	public List<LabelTemplate> getDefaultTemplates(String schemaType) {
 		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
 		return labelTemplateManager.listTemplates(schemaType);
 	}
@@ -489,7 +518,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
 		list.setDecommissioningListType(decomType);
-		list.setFolderDetailsFrom(getCartFolders());
+		list.setFolderDetailsFor(getCartFolders());
 
 		try {
 			recordServices().add(list);
@@ -589,5 +618,25 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public CartPresenter setBatchProcessSchemaType(String batchProcessSchemaType) {
 		this.batchProcessSchemaType = batchProcessSchemaType;
 		return this;
+	}
+
+	@Override
+	public void allSearchResultsButtonClicked() {
+		throw new RuntimeException("Should not have been called");
+	}
+
+	@Override
+	public void selectedSearchResultsButtonClicked() {
+		throw new RuntimeException("Should not have been called");
+	}
+
+	@Override
+	public boolean isSearchResultsSelectionForm() {
+		return false;
+	}
+
+	public boolean isAnyFolderBorrowed() {
+		return searchServices().getResultsCount(from(rm().folder.schemaType()).where(rm().folder.borrowed()).isTrue()
+				.andWhere(Schemas.IDENTIFIER).isIn(getCartFolderIds())) > 0;
 	}
 }

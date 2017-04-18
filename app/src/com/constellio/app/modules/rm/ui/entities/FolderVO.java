@@ -1,54 +1,18 @@
 package com.constellio.app.modules.rm.ui.entities;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.ACTIVE_RETENTION_TYPE;
-import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DEPOSIT_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DESTRUCTION_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_TRANSFER_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.ARCHIVISTIC_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.BORROWED;
-import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_PREVIEW_RETURN_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_USER;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_CODE;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.CLOSING_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.CONTAINER;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_RULES_EXPECTED_TRANSFER_DATES;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.DECOMMISSIONING_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
-import static com.constellio.app.modules.rm.wrappers.Folder.ENTERED_CLOSING_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.EXPECTED_DEPOSIT_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.EXPECTED_DESTRUCTION_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.EXPECTED_TRANSFER_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.FILING_SPACE_CODE;
-import static com.constellio.app.modules.rm.wrappers.Folder.FILING_SPACE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.INACTIVE_DISPOSAL_TYPE;
-import static com.constellio.app.modules.rm.wrappers.Folder.KEYWORDS;
-import static com.constellio.app.modules.rm.wrappers.Folder.MEDIUM_TYPES;
-import static com.constellio.app.modules.rm.wrappers.Folder.OPENING_DATE;
-import static com.constellio.app.modules.rm.wrappers.Folder.PARENT_FOLDER;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.SEMIACTIVE_RETENTION_TYPE;
-import static com.constellio.app.modules.rm.wrappers.Folder.TYPE;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.wrappers.Folder.*;
 
 public class FolderVO extends RecordVO {
 
@@ -326,6 +290,10 @@ public class FolderVO extends RecordVO {
 
 	public String getBorrowUserId() {
 		return get(BORROW_USER);
+	}
+
+	public void setLinearSize(Double linearSize) {
+		set(LINEAR_SIZE, linearSize);
 	}
 
 }

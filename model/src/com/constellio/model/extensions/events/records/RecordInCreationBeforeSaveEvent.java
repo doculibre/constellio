@@ -2,6 +2,7 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 
@@ -44,5 +45,10 @@ public class RecordInCreationBeforeSaveEvent implements RecordEvent {
 
 	public ValidationErrors getValidationErrors() {
 		return validationErrors;
+	}
+
+	public boolean isNewRecordImport() {
+		Record record = getRecord();
+		return !record.isSaved() && record.get(Schemas.LEGACY_ID) != null;
 	}
 }

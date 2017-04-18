@@ -2,7 +2,6 @@ package com.constellio.app.ui.pages.management.configs;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -15,6 +14,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
+import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -30,24 +30,32 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class ConfigManagementViewImpl extends BaseViewImpl implements
-														   ConfigManagementView {
+public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigManagementView {
 
 	public static final String CONFIG_ELEMENT_VALUE = "seleniumConfigValue";
 
 	ConfigManagementPresenter presenter;
 	private TabSheet tabsheet;
+	
+	SystemConfigurationGroupdataProvider dataProvider;
 
 	public ConfigManagementViewImpl() {
 		super();
 		this.presenter = new ConfigManagementPresenter(this);
+	}
+	
+	@Override
+	public void setDataProvider(SystemConfigurationGroupdataProvider dataProvider) {
+		this.dataProvider = dataProvider;
 	}
 
 	@Override
@@ -58,7 +66,6 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 
 		this.tabsheet = new TabSheet();
 
-		final SystemConfigurationGroupdataProvider dataProvider = presenter.systemConfigurationGroupDataProvider();
 		for (String groupCode : dataProvider.getCodesList()) {
 			List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getConfigs();
 			if(!configs.isEmpty()){
@@ -95,6 +102,21 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 					});
 					field.setSizeFull();
 					gridLayout.addComponent(field, 1, i);
+
+
+					OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
+						@Override
+						public void onEnterKeyPressed() {
+							presenter.saveButtonClicked();
+						}
+					};
+					if (field instanceof TextField) {
+						onEnterHandler.installOn((TextField) field);
+					} else if (field instanceof DateField) {
+						onEnterHandler.installOn((DateField) field);
+					} else if (field instanceof ComboBox) {
+						onEnterHandler.installOn((ComboBox) field);
+					}
 				}
 
 				tabsheet.addTab(gridLayout, presenter.getGroupLabel(groupCode));
@@ -109,12 +131,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 		saveButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				Iterator<Component> iterator = tabsheet.iterator();
-				while (iterator.hasNext()) {
-					Component next = iterator.next();
-					String groupCode = next.getId();
-					presenter.saveButtonClicked(groupCode, dataProvider);
-				}
+				presenter.saveButtonClicked();
 			}
 		});
 		saveButton.addStyleName(BaseForm.SAVE_BUTTON);

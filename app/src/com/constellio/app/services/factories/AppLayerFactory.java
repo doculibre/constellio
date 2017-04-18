@@ -99,8 +99,8 @@ public class AppLayerFactory extends LayerFactory {
 	private final SystemCheckManager systemCheckManager;
 
 	public AppLayerFactory(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
-			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
-		super(modelLayerFactory, statefullServiceDecorator);
+			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+		super(modelLayerFactory, statefullServiceDecorator, instanceName);
 
 		this.appLayerExtensions = new AppLayerExtensions();
 		this.modelLayerFactory = modelLayerFactory;
@@ -271,9 +271,18 @@ public class AppLayerFactory extends LayerFactory {
 		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
 		getModulesManager().enableComplementaryModules();
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
-			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-			systemGlobalConfigsManager.setMarkedForReindexing(false);
-			systemGlobalConfigsManager.setReindexingRequired(false);
+			try {
+				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+				systemGlobalConfigsManager.setMarkedForReindexing(false);
+				systemGlobalConfigsManager.setReindexingRequired(false);
+				systemGlobalConfigsManager.setLastReindexingFailed(false);
+			} catch (Exception e) {
+				LOGGER.error("Reindexing failed", e);
+				systemGlobalConfigsManager.setMarkedForReindexing(false);
+				systemGlobalConfigsManager.setReindexingRequired(true);
+				systemGlobalConfigsManager.setLastReindexingFailed(true);
+			}
+
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
 

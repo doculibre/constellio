@@ -61,10 +61,12 @@ public class WindowsPermissions {
 	}
 
 	public void process() {
-		processNovellPermissions(file, trusteeManager);
-		processNTFSPermissions(file);
-		if (!skipSharePermissions) {
-			processSharePermissions(file);
+		boolean foundNovellPermissions = processNovellPermissions(file, trusteeManager);
+		if (!foundNovellPermissions){
+			processNTFSPermissions(file);
+			if (!skipSharePermissions) {
+				processSharePermissions(file);
+			}
 		}
 		computePermissionsHash();
 	}
@@ -134,11 +136,12 @@ public class WindowsPermissions {
 		}
 	}
 
-	protected void processNovellPermissions(SmbFile file, TrusteeManager trusteeManager) {
+	protected boolean processNovellPermissions(SmbFile file, TrusteeManager trusteeManager) {
 		Set<String> names = trusteeManager.getNames(file);
 		for (String name : names) {
 			allowTokenDocument.add(name);
 		}
+		return !names.isEmpty();
 	}
 
 	protected void processSharePermissions(SmbFile file) {

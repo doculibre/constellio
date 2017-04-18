@@ -1,5 +1,23 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -7,7 +25,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
-import com.constellio.app.ui.framework.data.DataProvider;
+import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -25,18 +43,20 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.addons.lazyquerycontainer.*;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
 	public static final String STYLE_NAME = "lookup";
@@ -93,10 +113,27 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 
+		final int autoCompleteBuffer = 100;
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				return suggestInputDataProvider.getData(text, 0, 10);
+				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, autoCompleteBuffer));
+				if (itemConverter != null) {
+					Collections.sort(values, new Comparator<T>() {
+						@Override
+						public int compare(T o1, T o2) {
+							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+							return s1.compareTo(s2);
+						}
+					});
+				}
+				return values;
+			}
+
+			@Override
+			public int getBufferSize() {
+				return autoCompleteBuffer;
 			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
@@ -437,17 +474,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		boolean isSelectable(T selection);
 	}
 
-	public interface TextInputDataProvider<T> extends DataProvider {
+	public static abstract class TextInputDataProvider<T> extends AbstractDataProvider {
 
-		List<T> getData(String text, int startIndex, int count);
+		public abstract List<T> getData(String text, int startIndex, int count);
 
-		ModelLayerFactory getModelLayerFactory();
+		public abstract ModelLayerFactory getModelLayerFactory();
 
-		int size(String text);
+		public abstract int size(String text);
 
-		User getCurrentUser();
+		public abstract User getCurrentUser();
 
-		void setOnlyLinkables(boolean onlyLinkables);
+		public abstract void setOnlyLinkables(boolean onlyLinkables);
 	}
 
 	private class LookupSearchResultContainer extends LazyQueryContainer {

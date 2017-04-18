@@ -32,7 +32,12 @@ import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordProvider;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -134,8 +139,17 @@ public class RobotsManager implements StatefulService {
 		if (robot.getAction() != null) {
 			LogicalSearchQuery query = query(condition.buildCondition());
 			if (dryRunRobotActions != null) {
+				ModelLayerFactory modelLayerFactory = robotSchemas.getModelLayerFactory();
+				MetadataSchemasManager msm = modelLayerFactory.getMetadataSchemasManager();
+				MetadataSchemaTypes schemaTypes = msm.getSchemaTypes(robot.getCollection());
+				RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-				Iterator<Record> recordsIterator = searchServices.recordsIterator(query, 5000);
+				RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robot.getId(), robot.getAction(),
+						robot.getActionParameters());
+				batchProcessAction.setDryRun(true);
+				batchProcessAction.execute(searchServices.search(query), schemaTypes, new RecordProvider(recordServices));
+
+				Iterator<Record> recordsIterator = batchProcessAction.getProcessedRecords().iterator();
 				while (recordsIterator.hasNext()) {
 					Record record = recordsIterator.next();
 					dryRunRobotActions.add(dryRunRobotAction(record, robot, robotSchemas));
@@ -150,7 +164,8 @@ public class RobotsManager implements StatefulService {
 	private void createBatchProcess(String robotId, LogicalSearchQuery query, String action, String actionParametersId) {
 		if (searchServices.hasResults(query)) {
 			RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robotId, action, actionParametersId);
-			BatchProcess batchProcess = batchProcessesManager.addBatchProcessInStandby(query, batchProcessAction);
+			BatchProcess batchProcess = batchProcessesManager
+					.addBatchProcessInStandby(query, batchProcessAction, "robot " + robotId);
 			batchProcessesManager.markAsPending(batchProcess);
 		}
 	}
@@ -173,7 +188,8 @@ public class RobotsManager implements StatefulService {
 			throws ConditionException {
 
 		List<LogicalSearchCondition> conditions = new ArrayList<>();
-		LogicalSearchCondition condition = new ConditionBuilder(type).build(robot.getSearchCriteria());
+		String languageCode = searchServices.getLanguageCode(robot.getCollection());
+		LogicalSearchCondition condition = new ConditionBuilder(type, languageCode).build(robot.getSearchCriteria());
 		conditions.add(condition);
 		String parentRobotId = robot.getParent();
 		if (parentRobotId != null) {

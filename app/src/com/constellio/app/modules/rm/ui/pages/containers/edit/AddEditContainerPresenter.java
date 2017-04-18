@@ -119,16 +119,25 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	private RecordVO copyMetadataToSchema(RecordVO record, String schemaCode) {
 		MetadataSchema schema = schema(schemaCode);
 		Record container = recordServices().newRecordWithSchema(schema, record.getId());
+		boolean hasOverriddenAMetadata = false;
 		for (MetadataVO metadataVO : record.getMetadatas()) {
-			String localCode = metadataVO.getLocalCode();
+			String localCode = metadataVO.getLocalCode();			
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
 				if (metadata.getDataEntry().getType() == DataEntryType.MANUAL && !metadata.isSystemReserved()) {
-					container.set(metadata, record.get(metadataVO));
+					if(metadata.getDefaultValue() != null) {
+						container.set(metadata, metadata.getDefaultValue());
+						hasOverriddenAMetadata = hasOverriddenAMetadata || record.get(metadataVO) != null;
+					} else {
+						container.set(metadata, record.get(metadataVO));
+					}
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				e.printStackTrace();
 			}
+		}
+		if(hasOverriddenAMetadata) {
+			view.showMessage($("AddEditContainerView.hasOverriddenAMetadata"));
 		}
 		return new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());
 	}
@@ -199,5 +208,10 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public User getCurrentUser() {
 		return presenterService().getCurrentUser(getSessionContext());
+	}
+
+	public void setStorageSpaceTo(String storageSpaceId) {
+		getContainerRecord().set(ContainerRecord.STORAGE_SPACE, storageSpaceId);
+		view.reloadWithContainer(getContainerRecord());
 	}
 }

@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.events;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -39,6 +31,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -56,7 +55,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(CorePermissions.VIEW_EVENTS).globally();
+		return user.has(CorePermissions.VIEW_EVENTS).onSomething();
 	}
 
 	public RecordVODataProvider getDataProvider() {
@@ -198,6 +197,14 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return metadataValue.getMetadata().getCode().contains(Event.DELTA);
 	}
 
+	public boolean isTaskMetadata(MetadataValueVO metadataValue) {
+		return metadataValue.getMetadata().getCode().contains(Event.TASK);
+	}
+
+	public boolean isReceiverMetadata(MetadataValueVO metadataValue) {
+		return metadataValue.getMetadata().getCode().contains(Event.RECEIVER_NAME);
+	}
+
 	public boolean isTitleMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Schemas.TITLE_CODE);
 	}
@@ -221,13 +228,14 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		Record linkedRecord = recordServices().getDocumentById(eventId);
 		String linkedRecordId = linkedRecord.getId();
 		try {
-			recordServices().getDocumentById(linkedRecordId);
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
 				view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
 			} else if (getEventType().contains("folder")) {
 				view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
-			} else if (getEventType().contains("document")) {
+			} else if (getEventType().contains("document") || EventType.PDF_A_GENERATION.equals(getEventType())) {
 				view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
+			} else if (getEventType().contains("container")) {
+				view.navigate().to(RMViews.class).displayContainer(linkedRecordId);
 			} else {
 				view.navigate().to(TaskViews.class).displayTask(linkedRecordId);
 			}

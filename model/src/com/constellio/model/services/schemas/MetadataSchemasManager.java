@@ -289,7 +289,8 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		for (SchemaTypesAlterationImpact impact : impacts) {
 			LogicalSearchCondition condition = getBatchProcessCondition(impact, collection);
 			if (searchServices.hasResults(condition)) {
-				batchProcesses.add(batchProcessesManager.addBatchProcessInStandby(condition, impact.getAction()));
+				batchProcesses.add(batchProcessesManager
+						.addBatchProcessInStandby(condition, impact.getAction(), "reindex.schemasAlteration"));
 			}
 		}
 		return batchProcesses;

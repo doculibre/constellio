@@ -1,20 +1,12 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.request.*;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -27,6 +19,17 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
@@ -93,7 +96,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			= new SchemaTypeShortcuts_ddvTaskStatus_default("ddvTaskStatus_default");
 
 	public TaskType getTaskTypeByCode(String code) {
-		return wrapTaskType(getByCode(taskSchemaType(), code));
+		return wrapTaskType(getByCode(taskTypeSchemaType(), code));
 	}
 
 	public TaskType wrapTaskType(Record record) {
@@ -497,5 +500,70 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	public void setType(Task task, TaskType taskType) {
 		setType(task.getWrappedRecord(), taskType == null ? null : taskType.getWrappedRecord());
+	}
+
+	//KEEP
+	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId, int numberOfDays, String recordTitle) {
+		Task task = newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME));
+		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+					.setLinkedFolders(asList(folderId)).set(BorrowRequest.BORROW_DURATION, numberOfDays).set(RequestTask.APPLICANT, assignerId);
+	}
+
+	//KEEP
+	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle){
+		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
+					.setTitle($("TaskSchemasRecordsServices.returnFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
+	}
+
+	//KEEP
+	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle, LocalDate localDate){
+		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
+					.setTitle($("TaskSchemasRecordsServices.reactivationFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId).set(ReactivationRequest.REACTIVATION_DATE, localDate);
+	}
+
+	//KEEP
+	public Task newBorrowFolderExtensionRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle, LocalDate value) {
+		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
+					.setTitle($("TaskSchemasRecordsServices.borrowFolderExtensionRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId)
+				.set(ExtensionRequest.EXTENSION_VALUE, value);
+	}
+
+	//KEEP
+	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId, int numberOfDays, String recordTitle) {
+		return newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME))
+				.setTitle($("TaskSchemasRecordsServices.borrowContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setLinkedContainers(asList(containerId)).set(BorrowRequest.BORROW_DURATION, numberOfDays).set(RequestTask.APPLICANT, assignerId);
+	}
+
+	//KEEP
+	public Task newReturnContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
+		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
+				.setTitle($("TaskSchemasRecordsServices.returnContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
+	}
+
+	//KEEP
+	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle, LocalDate localDate) {
+		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
+				.setTitle($("TaskSchemasRecordsServices.reactivationContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId).set(ReactivationRequest.REACTIVATION_DATE, localDate);
+	}
+
+	//KEEP
+	public Task newBorrowContainerExtensionRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle, LocalDate value) {
+		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
+				.setTitle($("TaskSchemasRecordsServices.borrowContainerExtensionRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId)
+				.set(ExtensionRequest.EXTENSION_VALUE, value);
+	}
+
+	//KEEP
+	public boolean isRequestTask(Task task) {
+		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
+				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
+		return acceptedSchemas.contains(task.getSchemaCode());
 	}
 }

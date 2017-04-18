@@ -150,7 +150,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenReportWithDisabledMetadataThenGenerateReportWithoutDisabledMetadata() {
+	public void whenReportWithDisabledMetadataThenGenerateReportWithDisabledMetadata() {
 		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
 		reportTestUtils.disableAUserReportMetadata();
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,

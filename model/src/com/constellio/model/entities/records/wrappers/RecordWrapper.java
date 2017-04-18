@@ -123,6 +123,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return value == null ? defaultValue : value;
 	}
 
+	protected <T> T getEnumWithDefaultValue(String param, T defaultValue) {
+		T value = get(param);
+		return value == null ? defaultValue : value;
+	}
+
 	public String getId() {
 		return wrappedRecord.getId();
 	}

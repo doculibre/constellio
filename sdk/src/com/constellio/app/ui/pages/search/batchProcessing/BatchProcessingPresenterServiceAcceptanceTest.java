@@ -1,4 +1,5 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
@@ -112,7 +113,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	public void givenValidationExceptionsThenThrownInSimulation()
 			throws Exception {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A16))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A05, records.folder_A16))))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
@@ -128,7 +130,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		try {
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
-			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(), records.getAdmin().getUsername(), "Edit records");
+			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
+					records.getAdmin().getUsername(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -161,7 +164,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		try {
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
-			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(), records.getAdmin().getUsername(), "Edit records");
+			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
+					records.getAdmin().getUsername(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -178,7 +182,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	public void whenSetCopyRuleEnteredThenApplied()
 			throws Exception {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A16))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A05, records.folder_A16))))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
@@ -194,7 +199,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		try {
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
-			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(), records.getAdmin().getUsername(), "Edit records");
+			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
+					records.getAdmin().getUsername(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -227,7 +233,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		try {
 			Map<String, Object> modifications = new HashMap<>();
 			modifications.put(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
-			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(), records.getAdmin().getUsername(), "Edit records");
+			presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
+					records.getAdmin().getUsername(), "Edit records");
 			fail("error expected!");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
@@ -249,24 +256,27 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A16))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04, records.folder_A16))))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
 				.addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
-		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(), records.getAdmin().getUsername(), "Edit records");
+		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
+				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
 
-
-		assertThatRecord(records.getFolder_A04()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS).containsOnly(
-				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
-		);
+		assertThatRecord(records.getFolder_A04()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS)
+				.containsOnly(
+						records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
+				);
 		assertThatRecord(records.getFolder_A16()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS,
 				Folder.EXPECTED_TRANSFER_DATE, Folder.EXPECTED_DESTRUCTION_DATE, Folder.EXPECTED_DEPOSIT_DATE).containsOnly(
-				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY, null, new LocalDate(2003,10,31), null
+				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY, null,
+				new LocalDate(2003, 10, 31), null
 		);
 	}
 
@@ -282,17 +292,19 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
-		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(), records.getAdmin().getUsername(), "Edit records");
+		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
+				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
 
-
-		assertThatRecord(records.getFolder_A04()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS).containsOnly(
-				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
-		);
+		assertThatRecord(records.getFolder_A04()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS)
+				.containsOnly(
+						records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
+				);
 		assertThatRecord(records.getFolder_A16()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS,
 				Folder.EXPECTED_TRANSFER_DATE, Folder.EXPECTED_DESTRUCTION_DATE, Folder.EXPECTED_DEPOSIT_DATE).containsOnly(
-				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY, null, new LocalDate(2003,10,31), null
+				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY, null,
+				new LocalDate(2003, 10, 31), null
 		);
 	}
 
@@ -306,7 +318,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Document document3 = folderA04Documents.get(2);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(document1.getId(), document2.getId(), document3.getId()))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(document1.getId(), document2.getId(), document3.getId()))))
 				.addModifiedMetadata(Document.FOLDER, records.folder_A07);
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
@@ -353,6 +366,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
 				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+
 		);
 	}
 
@@ -364,8 +378,13 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		ContainerRecord container2 = records.getContainerBac02();
 		ContainerRecord container3 = records.getContainerBac03();
 
+		getModelLayerFactory().newRecordServices().update(container1.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container2.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
+
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(container1.getId(), container2.getId(), container3.getId()))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(container1.getId(), container2.getId(), container3.getId()))))
 				.addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
 				.addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNIT, records.unitId_20d);
 
@@ -392,6 +411,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		ContainerRecord container2 = records.getContainerBac02();
 		ContainerRecord container3 = records.getContainerBac03();
 
+		getModelLayerFactory().newRecordServices().update(container1.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container2.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
+
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(container1.getId(), container2.getId(), container3.getId()))
 				.addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
@@ -417,7 +440,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03, records.folder_A04))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A03, records.folder_A04))))
 				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
@@ -427,13 +451,13 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Alouette", "Mon dossier")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Baleine", "Mon dossier")
@@ -444,7 +468,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
-		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(), records.getAdmin().getUsername(), "Edit records");
+		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
+				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
@@ -466,13 +491,13 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Alouette", "Mon dossier")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Baleine", "Mon dossier")
@@ -483,7 +508,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
-		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(), records.getAdmin().getUsername(), "Edit records");
+		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
+				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
@@ -521,7 +547,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		});
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03, records.folder_A04))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A03, records.folder_A04))))
 				.addModifiedMetadata(Folder.TITLE, "Mon dossier")
 				.addModifiedMetadata("stringsMeta", asList("stringValue1", "stringValue2"))
 				.addModifiedMetadata("textMeta", "zeTextValue")
@@ -546,7 +573,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isNotEmpty();
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Alouette", "Mon dossier"),
@@ -567,7 +594,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isNotEmpty();
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Baleine", "Mon dossier"),
@@ -646,7 +673,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Alouette", "Mon dossier"),
@@ -667,7 +694,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).hasSize(2);
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Baleine", "Mon dossier"),
@@ -704,19 +731,22 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A01, records.folder_A02))))
 				.addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting().getId());
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
-		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(), records.getAdmin().getUsername(), "Edit records");
+		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
+				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
 
 		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-                .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02))))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A01, records.folder_A02))))
 				.addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
 				.addModifiedMetadata("subType", "");
 
@@ -759,7 +789,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
-		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(), records.getAdmin().getUsername(), "Edit records");
+		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
+				records.getAdmin().getUsername(), "Edit records");
 
 		waitForBatchProcess();
 		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
@@ -805,17 +836,34 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03,
-				records.folder_A04, records.folder_A05, records.folder_A06))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03,
+								records.folder_A04, records.folder_A05, records.folder_A06))))).isNull();
 
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A06))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A06))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))))).isNull();
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04))))).isEqualTo(records.folderTypeOther().getId());
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03))))).isEqualTo(records.folderTypeMeeting().getId());
-		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02)))))
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A06)))))
+				.isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A05, records.folder_A06)))))
+				.isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))))).isNull();
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery()
+				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04)))))
+				.isEqualTo(records.folderTypeOther().getId());
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery()
+				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A03)))))
+				.isEqualTo(records.folderTypeMeeting().getId());
+		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A01, records.folder_A02)))))
 				.isEqualTo(records.folderTypeEmploye().getId());
 	}
 

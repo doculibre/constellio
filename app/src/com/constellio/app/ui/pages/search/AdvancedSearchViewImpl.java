@@ -50,7 +50,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
 	private final ConstellioHeader header;
-	private WindowButton batchProcess;
+	private WindowButton batchProcessingButton;
 
 	public AdvancedSearchViewImpl() {
 		presenter = new AdvancedSearchPresenter(this);
@@ -82,7 +82,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	public void closeBatchProcessingWindow() {
-		batchProcess.getWindow().close();
+		batchProcessingButton.getWindow().close();
 	}
 
 	@Override
@@ -112,20 +112,28 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		String schemaType = getSchemaType();
 		List<Component> selectionActions = new ArrayList<>();
 
-		batchProcess = newBatchProcessingButton();
-		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
-		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		selectionActions.add(batchProcess);
+		batchProcessingButton = newBatchProcessingButton();
+		batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
+		batchProcessingButton.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
+		selectionActions.add(batchProcessingButton);
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 				@Override
 				public List<LabelTemplate> get() {
-					return presenter.getTemplates();
+					return presenter.getCustomTemplates();
+				}
+			};
+			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getDefaultTemplates();
 				}
 			};
 			final LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
 					$("SearchView.printLabels"),
+					customLabelTemplatesFactory,
+					defaultLabelTemplatesFactory,
 					getConstellioFactories().getAppLayerFactory(),
 					getSessionContext().getCurrentCollection(),
 					schemaType, getSelectedRecordIds(), getSessionContext().getCurrentUser().getUsername());
@@ -138,7 +146,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				}
 			});
 			selectionActions.add(labelsButton);
-			System.out.println(getSelectedRecordIds());
 		}
 
 		if (schemaType.equals(Document.SCHEMA_TYPE)) {
@@ -150,7 +157,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
 				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			if(presenter.hasCurrentUserPermissionToUseCart()) {
+			if (presenter.hasCurrentUserPermissionToUseCart()) {
 				Button addToCart = buildAddToCartButton();
 				selectionActions.add(addToCart);
 			}
@@ -162,7 +169,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 //		List<Component> actions = Arrays.asList(
 //				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter),switchViewMode);
+				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter),switchViewMode);
 
 		return results.createSummary(actions, selectionActions);
 	}
@@ -206,7 +213,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	private SearchResultTable buildSimpleResultsTable() {
 		int maxSelectableResults = presenter.getMaxSelectableResults();
 		final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-		SearchResultSimpleTable table = new SearchResultSimpleTable(container, maxSelectableResults);
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container, maxSelectableResults, presenter);
 		table.setWidth("100%");
 		return table;
 	}
@@ -269,11 +276,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	private WindowButton newBatchProcessingButton() {
 		BatchProcessingMode mode = presenter.getBatchProcessingMode();
-		if(mode.equals(ALL_METADATA_OF_SCHEMA)){
+		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
 			return new BatchProcessingButton(presenter, this);
-		}else if (mode.equals(ONE_METADATA)){
+		} else if (mode.equals(ONE_METADATA)) {
 			return new BatchProcessingModifyingOneMetadataButton(presenter, this);
-		}else{
+		} else {
 			throw new RuntimeException("Unsupported mode " + mode);
 		}
 	}
@@ -281,6 +288,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	@Override
 	public Boolean computeStatistics() {
 		return presenter.computeStatistics();
+	}
+
+	@Override
+	protected String getTitle() {
+		return $("searchResults");
 	}
 
 }

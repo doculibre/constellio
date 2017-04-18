@@ -137,16 +137,16 @@ public class BigVaultServer implements Cloneable {
 
 		try {
 			return server.query(params);
-		} catch (SolrServerException solrServerException) {
-			solrServerException.printStackTrace();
-			if (solrServerException.getCause() instanceof RemoteSolrException) {
-				RemoteSolrException remoteSolrException = (RemoteSolrException) solrServerException.getCause();
+		} catch (IOException | SolrServerException e) {
+			LOGGER.error("Error while querying solr server" , e);
+			if (e.getCause() instanceof RemoteSolrException) {
+				RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
 				if (remoteSolrException.code() == HTTP_ERROR_400_BAD_REQUEST) {
-					throw new BadRequest(params, solrServerException);
+					throw new BadRequest(params, e);
 				}
 			}
 
-			return handleQueryException(params, currentAttempt, solrServerException);
+			return handleQueryException(params, currentAttempt, e);
 
 		} catch (RemoteSolrException solrServerException) {
 			if (solrServerException.code() == HTTP_ERROR_400_BAD_REQUEST) {
@@ -612,7 +612,11 @@ public class BigVaultServer implements Cloneable {
 			//TODO
 			throw new RuntimeException(e);
 		} catch (OutOfMemoryError e) {
-			server.shutdown();
+			try {
+				server.close();
+			} catch (IOException ioe) {
+				LOGGER.error("Error while closing server", ioe);
+			}
 			throw e;
 		}
 	}

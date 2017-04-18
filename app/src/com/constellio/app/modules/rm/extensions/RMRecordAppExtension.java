@@ -1,5 +1,8 @@
 package com.constellio.app.modules.rm.extensions;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
@@ -11,13 +14,14 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class RMRecordAppExtension extends RecordAppExtension {
 	
@@ -38,7 +42,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		RecordVO recordVO = params.getBuiltRecordVO();
 
 		String schemaCode = recordVO.getSchema().getCode();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
 			ContentVersionVO contentVersion = recordVO.getMetadataValue(recordVO.getMetadata(Document.CONTENT)).getValue();
 			if (contentVersion != null) {
@@ -49,10 +53,22 @@ public class RMRecordAppExtension extends RecordAppExtension {
 				extension = "document";
 			}
 			setNiceTitle(recordVO, params.getRecord(), schemaTypeCode, schemaCode, Document.DESCRIPTION);
+		} else if (schemaTypeCode.equals(UserDocument.SCHEMA_TYPE)) {
+			ContentVersionVO contentVersion = recordVO.getMetadataValue(recordVO.getMetadata(UserDocument.CONTENT)).getValue();
+			if (contentVersion != null) {
+				resourceKey = contentVersion.getFileName();
+				extension = StringUtils.lowerCase(FilenameUtils.getExtension(resourceKey));
+			} else {
+				resourceKey = getDocumentIconPath();
+				extension = "document";
+			}
 		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
 			resourceKey = getFolderIconPath(recordVO, false);
 			extension = getFolderExtension(recordVO, false);
 			setNiceTitle(recordVO, params.getRecord(), schemaTypeCode, schemaCode, Folder.DESCRIPTION);
+		} else if (schemaTypeCode.equals(UserFolder.SCHEMA_TYPE)) {
+			resourceKey = IMAGES_DIR + "/icons/folder/folder.png";
+			extension = "folder";
 		} else if (schemaTypeCode.equals(ContainerRecord.SCHEMA_TYPE)) {
 			resourceKey = getContainerIconPath();
 			setNiceTitle(recordVO, params.getRecord(), schemaTypeCode, schemaCode, ContainerRecord.DESCRIPTION);
@@ -78,7 +94,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		String fileName = null;
 		Record record = params.getRecord();
 		String schemaCode = record.getSchemaCode();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
 			Document document = new Document(record, types());
 			String mimeType = document.getMimeType();
@@ -86,14 +102,29 @@ public class RMRecordAppExtension extends RecordAppExtension {
 				try {
 					fileName = FileIconUtils.getIconPathForMimeType(mimeType);
 				} catch (Exception e) {
-					fileName = "document";
+					Content content = document.getContent();
+					if (content != null) {
+						fileName = content.getCurrentVersion().getFilename();
+					} else {
+						fileName = "document";
+					}
 				}
+			} else {
+				fileName = "document";
+			}
+		} else if (schemaTypeCode.equals(UserDocument.SCHEMA_TYPE)) {
+			UserDocument userDocument = new UserDocument(record, types());
+			Content content = userDocument.getContent();
+			if (content != null && content.getCurrentVersion() != null) {
+				fileName = content.getCurrentVersion().getFilename();
 			} else {
 				fileName = "document";
 			}
 		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
 			Folder folder = new Folder(record, types());
 			fileName = getFolderIconPath(folder, params.isExpanded());
+		} else if (schemaTypeCode.equals(UserFolder.SCHEMA_TYPE)) {
+			fileName = getFolderIconPath();
 		} else if (schemaTypeCode.equals(ContainerRecord.SCHEMA_TYPE)) {
 			fileName = getContainerIconPath();
 		}
@@ -106,6 +137,10 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	private String getDocumentIconPath() {
 		return IMAGES_DIR + "/icons/ext/document.gif";
+	}
+
+	private String getFolderIconPath() {
+		return IMAGES_DIR + "/icons/folder/folder.png";
 	}
 
 	private String getFolderIconPath(Folder folder, boolean expanded) {

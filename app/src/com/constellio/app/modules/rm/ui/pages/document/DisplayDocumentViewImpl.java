@@ -6,9 +6,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -18,9 +19,12 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -54,8 +58,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
@@ -87,11 +89,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private DeleteButton deleteDocumentButton;
 	private Button copyContentButton;
 	private WindowButton renameContentButton;
-	private WindowButton sign;
+	private WindowButton signButton;
 	private WindowButton startWorkflowButton;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
-			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, publishButton, unpublishButton,
+			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
 			publicLinkButton;
 	
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
@@ -215,15 +217,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		presenter.backgroundViewMonitor();
 	}
 
-	@Override
-	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
-	}
+//	@Override
+//	protected ClickListener getBackButtonClickListener() {
+//		return new ClickListener() {
+//			@Override
+//			public void buttonClick(ClickEvent event) {
+//				presenter.backButtonClicked();
+//			}
+//		};
+//	}
 
 	@Override
 	public void setTasks(RecordVODataProvider dataProvider) {
@@ -289,12 +291,16 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
-		createPDFAButton = new LinkButton($("DocumentActionsComponent.createPDFA")) {
+		createPDFAButton = new ConfirmDialogButton($("DocumentActionsComponent.createPDFA")) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.createPDFAButtonClicked();
+			protected void confirmButtonClick(ConfirmDialog dialog) { presenter.createPDFAButtonClicked(); }
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmCreatePDFA");
 			}
 		};
+		((ConfirmDialogButton) createPDFAButton).setDialogMode(DialogMode.STOP);
 
 		shareDocumentButton = new LinkButton($("DocumentActionsComponent.shareDocument")) {
 			@Override
@@ -304,6 +310,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 
 		addToCartButton = buildAddToCartButton();
+		
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO);
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
@@ -392,7 +400,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				}
 			};
 
-			sign = new WindowButton($("DocumentContextMenu.sign"), $("DocumentContextMenu.sign"),
+			signButton = new WindowButton($("DocumentContextMenu.sign"), $("DocumentContextMenu.sign"),
 					WindowConfiguration.modalDialog("40%", "300px")) {
 				@Override
 				protected Component buildWindowContent() {
@@ -481,9 +489,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(createPDFAButton);
 		actionMenuButtons.add(shareDocumentButton);
-		if(presenter.hasCurrentUserPermissionToUseCart()) {
+		if (presenter.hasCurrentUserPermissionToUseCart()) {
 			actionMenuButtons.add(addToCartButton);
 		}
+		actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 		actionMenuButtons.add(uploadButton);
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
@@ -554,7 +563,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private void initUploadWindow() {
 		if (uploadWindow == null) {
 			if (documentVO != null) {
-				uploadWindow = new UpdateContentVersionWindowImpl(documentVO, documentVO.getMetadata(Document.CONTENT)) {
+				Map<RecordVO, MetadataVO> record = new HashMap<>();
+				record.put(documentVO, documentVO.getMetadata(Document.CONTENT));
+				uploadWindow = new UpdateContentVersionWindowImpl(record) {
 					@Override
 					public void close() {
 						super.close();
@@ -713,8 +724,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		this.tabSheetDecorators.remove(decorator);
 	}
 	
+	@Override
 	public DocumentVO getDocumentVO() {
 		return documentVO;
+	}
+
+	@Override
+	public void refreshParent() {
+		// No parent
 	}
 
 	private class StartWorkflowButton extends WindowButton {

@@ -51,8 +51,9 @@ public class RecordOptionGroup extends ListOptionGroup implements RecordOptionFi
 	}
 
 	public void initStyleName() {
-		if(metadataDisplayType != null && metadataDisplayType.equals(MetadataDisplayType.HORIZONTAL)) {
+		if (metadataDisplayType != null && metadataDisplayType.equals(MetadataDisplayType.HORIZONTAL)) {
 			this.addStyleName("horizontal");
+			this.addStyleName("horizontal-option-group");
 		}
 		else {
 			this.addStyleName("vertical");

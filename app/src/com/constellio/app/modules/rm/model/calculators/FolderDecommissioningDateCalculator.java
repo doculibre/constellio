@@ -31,24 +31,7 @@ public class FolderDecommissioningDateCalculator implements MetadataValueCalcula
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
-		LocalDate openingDate = parameters.get(openingDateParam);
-		LocalDate closingDate = parameters.get(closingDateParam);
-		LocalDate actualTransferDate = parameters.get(actualTransferDateParam);
-		FolderStatus folderStatus = parameters.get(folderStatusParam);
-		DecommissioningDateBasedOn basedOn = parameters.get(decommissioningDateBasedOnParam);
-
-		String yearEnd = parameters.get(configYearEndParam);
-		int requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
-
-		if (actualTransferDate != null && folderStatus.isActiveOrSemiActive()) {
-			return CalculatorUtils.toNextEndOfYearDateIfNotAlready(actualTransferDate, yearEnd, requiredDaysBeforeYearEnd);
-
-		} else if (DecommissioningDateBasedOn.OPEN_DATE == basedOn) {
-			return CalculatorUtils.toNextEndOfYearDateIfNotAlready(openingDate, yearEnd, requiredDaysBeforeYearEnd);
-
-		} else {
-			return CalculatorUtils.toNextEndOfYearDateIfNotAlready(closingDate, yearEnd, requiredDaysBeforeYearEnd);
-		}
+		return null;
 
 	}
 

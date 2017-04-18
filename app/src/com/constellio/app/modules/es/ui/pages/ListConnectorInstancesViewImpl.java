@@ -69,7 +69,7 @@ public class ListConnectorInstancesViewImpl extends BaseViewImpl implements List
 		ButtonsContainer buttonsContainer = new ButtonsContainer(recordsContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -83,7 +83,7 @@ public class ListConnectorInstancesViewImpl extends BaseViewImpl implements List
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -109,7 +109,7 @@ public class ListConnectorInstancesViewImpl extends BaseViewImpl implements List
 //		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

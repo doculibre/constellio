@@ -14,11 +14,9 @@ import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactory
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.*;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
+import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -27,9 +25,11 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -116,8 +116,11 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_6(),
 				new RMMigrationTo6_7(),
 				new RMMigrationTo7_0_5(),
+				new RMMigrationTo7_0_10_5(),
 				new RMMigrationTo7_1(),
-				new RMMigrationTo7_1_1()
+				new RMMigrationTo7_1_1(),
+				new RMMigrationTo7_1_2(),
+				new RMMigrationTo7_2()
 		);
 	}
 
@@ -220,6 +223,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMCleanAdministrativeUnitButtonExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new RMRequestTaskButtonExtension(collection, appLayerFactory));
+		extensions.selectionPanelExtensions.add(new RMSelectionPanelExtension(appLayerFactory, collection));
+
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.RETURN_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.REACTIVATION_REQUEST);
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -234,12 +244,17 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMFolderExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMCreateDecommissioningListExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new SessionContextRecordExtension());
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
+		extensions.recordImportExtensions.add(new EventImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DecommissioningListImportExtension(collection, modelLayerFactory));
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new RMRequestTaskApprovedExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
@@ -273,13 +288,16 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				authsIterator.next();
 			}
 		}
-		cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(
-				rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-						.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
 
+		if (Toggle.CACHES_ENABLED.isEnabled()) {
+			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(
+					rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+							.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
+
+		}
 	}
 
 	@Override

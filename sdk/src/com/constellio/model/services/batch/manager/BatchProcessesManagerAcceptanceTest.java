@@ -88,7 +88,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	public void givenXMLAlreadyExistingAndBatchProcessThenManagerLoadThem()
 			throws Exception {
 
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		batchProcessManager.markAsPending(batchProcess);
 
 		BatchProcessesManager newBatchProcessManager = newBatchProcessManager(zeComputer, 2);
@@ -108,7 +108,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	public void whenAddingBatchProcessThenAddedToBatchProcessList()
 			throws Exception {
 
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		assertThat(batchProcess.getStatus()).isEqualTo(BatchProcessStatus.STANDBY);
 		batchProcessManager.markAsPending(batchProcess);
 		BatchProcess loadedBatchProcess = batchProcessManager.get(batchProcess.getId());
@@ -126,8 +126,8 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddingMultipleBatchProcessThenAllAddedToListAndSortedByFIFO()
 			throws Exception {
-		BatchProcess batchProcess1 = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
-		BatchProcess batchProcess2 = batchProcessManager.addBatchProcessInStandby(otherIndexedRecordsCondition, action);
+		BatchProcess batchProcess1 = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
+		BatchProcess batchProcess2 = batchProcessManager.addBatchProcessInStandby(otherIndexedRecordsCondition, action, null);
 		batchProcessManager.markAllStandbyAsPending();
 		List<BatchProcess> loadedBatchProcess = batchProcessManager.getPendingBatchProcesses();
 
@@ -138,7 +138,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNoCurrentBatchProcessAndBatchProcessesInTodoListWhenGetCurrentBatchProcessThenReturnNext()
 			throws Exception {
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		batchProcessManager.markAsPending(batchProcess);
 		assertThat(batchProcessManager.get(batchProcess.getId()).getStatus()).isEqualTo(BatchProcessStatus.PENDING);
 
@@ -159,7 +159,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStandByBatchProcessWhenGetStandbyBatchProcessesListThenOneElement()
 			throws Exception {
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		assertThat(batchProcessManager.getStandbyBatchProcesses()).containsOnly(batchProcess);
 		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
 	}
@@ -167,7 +167,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStandByBatchProcessWhenMarkAsPendingThenPending()
 			throws Exception {
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		batchProcessManager.markAsPending(batchProcess);
 		assertThat(batchProcessManager.getStandbyBatchProcesses()).isEmpty();
 		assertThat(batchProcessManager.getPendingBatchProcesses()).hasSize(1);
@@ -176,7 +176,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStandByBatchProcessWhenCancelThenListEmpty()
 			throws Exception {
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		batchProcessManager.cancelStandByBatchProcess(batchProcess);
 		assertThat(batchProcessManager.getStandbyBatchProcesses()).isEmpty();
 		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
@@ -186,7 +186,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	public void givenCurrentBatchProcessWhenGetCurrentBatchProcessThenReturnCurrent()
 			throws Exception {
 
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		batchProcessManager.markAsPending(batchProcess);
 		BatchProcess startedBatchProcess = batchProcessManager.getCurrentBatchProcess();
 

@@ -17,8 +17,10 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
+import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
@@ -55,6 +57,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -89,6 +92,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<PagesComponentsExtension> pagesComponentsExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<SelectionPanelExtension> selectionPanelExtensions = new VaultBehaviorsList<>();
+
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<CollectionSequenceExtension> collectionSequenceExtensions = new VaultBehaviorsList<>();
@@ -96,6 +101,10 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<SystemCheckExtension> systemCheckExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordExportExtension> recordExportExtensions = new VaultBehaviorsList<>();
+
+	//Key : schema type code
+	//Values : record's code
+	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
@@ -420,5 +429,11 @@ public class AppLayerCollectionExtensions {
 			repaired |= extension.tryRepairAutomaticValue(params);
 		}
 		return repaired;
+	}
+
+	public void addAvailableActions(AvailableActionsParam param) {
+		for (SelectionPanelExtension extension : selectionPanelExtensions) {
+			extension.addAvailableActions(param);
+		}
 	}
 }

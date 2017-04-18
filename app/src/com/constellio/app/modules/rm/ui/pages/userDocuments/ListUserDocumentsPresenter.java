@@ -3,22 +3,29 @@ package com.constellio.app.modules.rm.ui.pages.userDocuments;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
+import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
@@ -26,20 +33,30 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 
 public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUserDocumentsView> {
+	
+	Boolean allItemsSelected = false;
+	
+	Boolean allItemsDeselected = false;
 
 	private static Logger LOGGER = LoggerFactory.getLogger(ListUserDocumentsPresenter.class);
 
 	private UserDocumentToVOBuilder voBuilder = new UserDocumentToVOBuilder();
+	
+	private RecordVODataProvider userFoldersDataProvider;
+	
+	private RecordVODataProvider userDocumentsDataProvider;
 
 	public ListUserDocumentsPresenter(ListUserDocumentsView view) {
 		super(view, UserDocument.DEFAULT_SCHEMA);
@@ -50,44 +67,84 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		return true;
 	}
 
-	public void viewAssembled() {
-		List<UserDocumentVO> currentUserUploadVOs = getCurrentUserDocumentVOs();
-		try {
-			view.setUserDocuments(currentUserUploadVOs);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
-
-	private List<UserDocumentVO> getCurrentUserDocumentVOs() {
+	void forParams(String params) {
 		SessionContext sessionContext = view.getSessionContext();
-
-		UserVO currentUserVO = sessionContext.getCurrentUser();
-		String collection = sessionContext.getCurrentCollection();
-
-		UserServices userServices = modelLayerFactory.newUserServices();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-
-		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
-
-		MetadataSchema schema = schema();
-		Metadata userMetadata = schema.getMetadata(UserDocument.USER);
+		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
+		UserDocumentToVOBuilder userDocumentVOBuilder = new UserDocumentToVOBuilder();
+		UserFolderToVOBuilder userFolderVOBuilder = new UserFolderToVOBuilder();
+		
+		MetadataSchema userFolderSchema = schema(UserFolder.DEFAULT_SCHEMA);
+		MetadataSchemaVO userFolderSchemaVO = schemaVOBuilder.build(userFolderSchema, VIEW_MODE.TABLE, sessionContext);
+		userFoldersDataProvider = new RecordVODataProvider(userFolderSchemaVO, userFolderVOBuilder, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return getUserFoldersQuery();
+			}
+		};
+		
+		MetadataSchema userDocumentSchema = schema(UserDocument.DEFAULT_SCHEMA);
+		MetadataSchemaVO userDocumentSchemaVO = schemaVOBuilder.build(userDocumentSchema, VIEW_MODE.TABLE, sessionContext);
+		userDocumentsDataProvider = new RecordVODataProvider(userDocumentSchemaVO, userDocumentVOBuilder, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return getUserDocumentsQuery();
+			}
+		};
+		
+		computeAllItemsSelected();
+		view.setUserContent(Arrays.asList(userFoldersDataProvider, userDocumentsDataProvider));
+	}
+	
+	private LogicalSearchQuery getUserFoldersQuery() {
+		User currentUser = getCurrentUser();
+		MetadataSchema userFolderSchema = schema(UserFolder.DEFAULT_SCHEMA);
+		Metadata userMetadata = userFolderSchema.getMetadata(UserFolder.USER);
+		Metadata parentUserFolderMetadata = userFolderSchema.getMetadata(UserFolder.PARENT_USER_FOLDER);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(LogicalSearchQueryOperators.from(schema).where(userMetadata).is(currentUser.getWrappedRecord()));
+		query.setCondition(LogicalSearchQueryOperators.from(userFolderSchema).where(userMetadata).is(currentUser.getWrappedRecord()).andWhere(parentUserFolderMetadata).isNull());
 		query.sortAsc(Schemas.IDENTIFIER);
+		
+		return query;
+	}
+	
+	private LogicalSearchQuery getUserDocumentsQuery() {
+		User currentUser = getCurrentUser();
+		MetadataSchema userDocumentSchema = schema(UserDocument.DEFAULT_SCHEMA);
+		Metadata userMetadata = userDocumentSchema.getMetadata(UserDocument.USER);
+		Metadata userFolderMetadata = userDocumentSchema.getMetadata(UserDocument.USER_FOLDER);
 
-		List<UserDocumentVO> userDocumentVOs = new ArrayList<UserDocumentVO>();
-		List<Record> matches = searchServices.search(query);
-		for (Record match : matches) {
-			UserDocumentVO userDocumentVO = (UserDocumentVO) voBuilder.build(match, VIEW_MODE.FORM, view.getSessionContext());
-			userDocumentVOs.add(userDocumentVO);
-		}
-		return userDocumentVOs;
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(LogicalSearchQueryOperators.from(userDocumentSchema).where(userMetadata).is(currentUser.getWrappedRecord()).andWhere(userFolderMetadata).isNull());
+		query.sortAsc(Schemas.IDENTIFIER);
+		
+		return query;
 	}
 
-	public void handleFile(final File file, String fileName, String mimeType, long length) {
-		Record newRecord = newRecord();
+	boolean isSelected(RecordVO recordVO) {
+		SessionContext sessionContext = view.getSessionContext();
+		return sessionContext.getSelectedRecordIds().contains(recordVO.getId());
+	}
+	
+	void selectionChanged(RecordVO recordVO, boolean selected) {
+		allItemsSelected = false;
+		allItemsDeselected = false;
+		
+		String recordId = recordVO.getId();
+		String schemaTypeCode = recordVO.getSchema().getTypeCode();
+		SessionContext sessionContext = view.getSessionContext();
+		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
+		if (selected && !selectedRecordIds.contains(recordId)) {
+			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
+		} else if (!selected) {
+			sessionContext.removeSelectedRecordId(recordId, schemaTypeCode);
+		}
+		view.refresh();
+	}
+
+	void handleFile(final File file, String fileName, String mimeType, long length) {
+		MetadataSchema userDocumentSchema = schema(UserDocument.DEFAULT_SCHEMA);
+		Record newRecord = recordServices().newRecordWithSchema(userDocumentSchema);
 
 		SessionContext sessionContext = view.getSessionContext();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -127,9 +184,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 
 			addOrUpdate(newRecord);
 			contentVersionVO.getInputStreamProvider().deleteTemp();
-
-			newUserDocumentVO = (UserDocumentVO) voBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
-			view.addUserDocument(newUserDocumentVO);
+			userDocumentsDataProvider.fireDataRefreshEvent();
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
 		} catch (Exception e) {
@@ -143,28 +198,107 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		}
 	}
 
-	public void deleteButtonClicked(UserDocumentVO userUploadVO) {
-		Record record = toRecord(userUploadVO);
+	public void deleteButtonClicked(RecordVO userContentVO) {
+		User currentUser = getCurrentUser();
+		String schemaTypeCode = userContentVO.getSchema().getTypeCode();
+		Record record;
+		if (UserFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			this.setSchemaCode(UserFolder.DEFAULT_SCHEMA);
+			record = toRecord(userContentVO);
+			this.setSchemaCode(UserDocument.DEFAULT_SCHEMA);
+		} else {
+			record = toRecord(userContentVO);
+		}
+
+
 		try {
-			delete(record);
-			view.removeUserDocument(userUploadVO);
+			if (UserFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				RMUserFolder userFolder = rm.wrapUserFolder(record);
+				DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
+				decommissioningService.deleteUserFolder(userFolder, currentUser);
+				userFoldersDataProvider.fireDataRefreshEvent();
+			} else {
+				delete(record);
+				userDocumentsDataProvider.fireDataRefreshEvent();
+			}
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
+	}
+	
+	private int secondsSinceLastRefresh = 0;
 
+	void backgroundViewMonitor() {
+		secondsSinceLastRefresh++;
+		if (secondsSinceLastRefresh >= 10) {
+			secondsSinceLastRefresh = 0;
+			userFoldersDataProvider.fireDataRefreshEvent();
+			userDocumentsDataProvider.fireDataRefreshEvent();
+		}
+	}
+	
+	void computeAllItemsSelected() {
+		SessionContext sessionContext = view.getSessionContext();
+		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		
+		List<String> userFolderIds = searchServices.searchRecordIds(getUserFoldersQuery());
+		for (String userFolderId : userFolderIds) {
+			if (!selectedRecordIds.contains(userFolderId)) {
+				allItemsSelected = false;
+				return;
+			}
+		}
+		List<String> userDocumentIds = searchServices.searchRecordIds(getUserDocumentsQuery());
+		for (String userDocumentId : userDocumentIds) {
+			if (!selectedRecordIds.contains(userDocumentId)) {
+				allItemsSelected = false;
+				return;
+			}
+		}
+		allItemsSelected = !userFolderIds.isEmpty() || !userDocumentIds.isEmpty();
 	}
 
-	public void setFolderButtonClicked() {
-		String folderId = view.getFolderId();
-		List<UserDocumentVO> selectedUserDocumentVOs = view.getSelectedUserDocuments();
-		for (UserDocumentVO selectedUserDocumentVO : selectedUserDocumentVOs) {
-			selectedUserDocumentVO.setFolder(folderId);
-			Record userDocumentRecord = toRecord(selectedUserDocumentVO);
-			addOrUpdate(userDocumentRecord);
+	boolean isAllItemsSelected() {
+		return allItemsSelected;
+	}
+
+	boolean isAllItemsDeselected() {
+		return allItemsDeselected;
+	}
+
+	void selectAllClicked() {
+		allItemsSelected = true;
+		allItemsDeselected = false;
+		
+		SessionContext sessionContext = view.getSessionContext();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<String> userFolderIds = searchServices.searchRecordIds(getUserFoldersQuery());
+		for (String userFolderId : userFolderIds) {
+			sessionContext.addSelectedRecordId(userFolderId, UserFolder.SCHEMA_TYPE);
 		}
-		List<UserDocumentVO> currentUserUploadVOs = getCurrentUserDocumentVOs();
-		view.setUserDocuments(currentUserUploadVOs);
+		List<String> userDocumentIds = searchServices.searchRecordIds(getUserDocumentsQuery());
+		for (String userDocumentId : userDocumentIds) {
+			sessionContext.addSelectedRecordId(userDocumentId, UserDocument.SCHEMA_TYPE);
+		}
+	}
+
+	void deselectAllClicked() {
+		allItemsSelected = false;
+		allItemsDeselected = true;
+		
+		SessionContext sessionContext = view.getSessionContext();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<String> userFolderIds = searchServices.searchRecordIds(getUserFoldersQuery());
+		for (String userFolderId : userFolderIds) {
+			sessionContext.removeSelectedRecordId(userFolderId, UserFolder.SCHEMA_TYPE);
+		}
+		List<String> userDocumentIds = searchServices.searchRecordIds(getUserDocumentsQuery());
+		for (String userDocumentId : userDocumentIds) {
+			sessionContext.removeSelectedRecordId(userDocumentId, UserDocument.SCHEMA_TYPE);
+		}
 	}
 
 }

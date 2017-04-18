@@ -13,6 +13,7 @@ import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
 public class RecordLookupTreeDataProvider extends BaseRecordTreeDataProvider implements LookupTreeDataProvider<String> {
+	
 	private String schemaTypeCode;
 	private Map<String, Boolean> selectableCache = new HashMap<>();
 	private boolean ignoreLinkability;

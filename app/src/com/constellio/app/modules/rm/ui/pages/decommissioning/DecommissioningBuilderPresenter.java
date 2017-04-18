@@ -27,7 +27,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
 
-
 	SearchType searchType;
 	String adminUnitId;
 	String decommissioningListId;
@@ -66,7 +64,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		String[] parts = params.split("/", 3);
 
-		if(!addMode) {
+		if (!addMode) {
 			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 			searchType = SearchType.valueOf(parts[0]);
 			view.setCriteriaSchemaType(getSchemaType());
@@ -74,8 +72,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			view.addEmptyCriterion();
 			this.displayResults = false;
 			pageNumber = 1;
-		}
-		else if (parts.length > 1) {
+		} else if (parts.length > 1) {
 			searchType = SearchType.valueOf(parts[0]);
 			SavedSearch search = getSavedSearch(parts[2]);
 			setSavedSearch(search);
@@ -94,14 +91,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public void forParams(String params) {
 		List<String> parts = asList(params.split("/", 3));
 		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-		if(parts.size() == 3 && parts.get(1).equals("id")) {
+		if (parts.size() == 3 && parts.get(1).equals("id")) {
 			addMode = false;
 			decommissioningListId = parts.get(2);
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
 			administrativeUnitSelected(decommissioningList.getAdministrativeUnit());
 			view.setAdministrativeUnit(decommissioningList.getAdministrativeUnit());
-		}
-		else {
+		} else {
 			addMode = true;
 		}
 	}
@@ -109,7 +105,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		String[] parts = params.split("/", 3);
-		if(SearchType.transfer.equals(SearchType.valueOf(parts[0]))) {
+		if (SearchType.transfer.equals(SearchType.valueOf(parts[0]))) {
 			return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
 					user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
 		} else {
@@ -158,7 +154,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	public DecommissioningList getDecommissioningList() {
-		return decommissioningListId == null ? null:rmRecordServices().getDecommissioningList(decommissioningListId);
+		return decommissioningListId == null ? null : rmRecordServices().getDecommissioningList(decommissioningListId);
 	}
 
 	public void searchRequested() {
@@ -198,7 +194,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		try {
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
 			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				decommissioningList.addFolderDetailsFor(selected.toArray(new String[0]));
+				decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
 				recordServices().update(decommissioningList.getWrappedRecord());
 				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 			} else {
@@ -253,6 +249,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
+	public boolean isPreferAnalyzedFields() {
+		return false;
+	}
+
+	@Override
 	protected LogicalSearchCondition getSearchCondition() {
 		if (condition == null) {
 			try {
@@ -272,10 +273,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		} else {
 			condition = allConditions(selectByDecommissioningStatus(), selectByAdvancedSearchCriteria(criteria));
 		}
+		if(searchType.isFolderSearch()) {
+			condition = condition.andWhere(rmRecordServices().folder.borrowed()).isFalseOrNull();
+		}
 
-		if(!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
+		if (!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
 				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally()) {
-			if(searchType.isFolderSearch()) {
+			if (searchType.isFolderSearch()) {
 				condition = condition.andWhere(rmRecordServices().folder.mediaType()).isEqualTo(FolderMediaType.ANALOG);
 			}
 		}
@@ -292,9 +296,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
+		String languageCode = searchServices().getLanguageCode(view.getCollection());
 		MetadataSchemaType type = searchType.isFolderSearch() ?
 				rmRecordServices().folder.schemaType() : rmRecordServices().documentSchemaType();
-		return new ConditionBuilder(type).build(criteria);
+		return new ConditionBuilder(type, languageCode).build(criteria);
 	}
 
 	private DecommissioningService decommissioningService() {
@@ -329,7 +334,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 	}
 
-	protected void saveTemporarySearch(boolean refreshPage) {
+	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -349,9 +354,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setPageLength(getSelectedPageLength());
 		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
 		//recordServices().update(search);
-			if (refreshPage) {
-				view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
-			}
+		if (refreshPage) {
+			view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
+		}
+		return search;
 	}
 
 	@Override
