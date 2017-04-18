@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.robots.model.RegisteredAction;
 import com.constellio.app.modules.robots.model.services.RobotsService;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
@@ -37,6 +38,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -47,6 +49,11 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		implements FieldOverridePresenter, SearchCriteriaPresenter, DynamicParametersPresenter {
+	private static final String RUN_EXTRACTORS_ACTION = "runExtractorsAction";
+	private static final String PATH_PREFIX = "pathPrefix";
+	private static final String IN_TAXONOMY = "inTaxonomy";
+	private static final String PLAN = "plan";
+	private static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
 	public static final String ADD = "add";
 	public static final String EDIT = "edit";
 
@@ -225,7 +232,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		List<Choice> choices = new ArrayList<>();
 		if (schemaFilter != null) {
 			for (RegisteredAction action : manager().getRegisteredActionsFor(schemaFilter)) {
-				choices.add(new Choice(action.getCode(), $("robot.action." + action.getCode())));
+				if (!RUN_EXTRACTORS_ACTION.equals(action.getCode())) {
+					choices.add(new Choice(action.getCode(), $("robot.action." + action.getCode())));
+				}
 			}
 		}
 		return choices;
@@ -241,7 +250,29 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		RegisteredAction action = manager().getActionFor(actionCode);
 		String schemaCode = action.getParametersSchemaLocalCode();
 		ActionParameters actionParameters = robotSchemas().newActionParameters(schemaCode);
+
+		initMetadataValue(actionParameters, DEFAULT_COPY_STATUS, CopyType.PRINCIPAL, false);
+		initMetadataValue(actionParameters, IN_TAXONOMY, PLAN, true);
+
+		try {
+			Metadata m = actionParameters.getSchema().get(PATH_PREFIX);
+			initMetadataValue(actionParameters, PATH_PREFIX, m.getDefaultValue(), true);
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			// Just ignore it : The metadata defaultCopyStatus doesn't appart to this scheme
+		}
+
 		return recordToVOBuilder.build(actionParameters.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+	}
+
+	private <T> void initMetadataValue(ActionParameters actionParameters, String metadataCode, T value, boolean force) {
+		try {
+			Metadata metadata = actionParameters.getSchema().get(metadataCode);
+			if (metadata != null && (force || actionParameters.get(metadata) == null)) {
+				actionParameters.set(metadata, value);
+			}
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			// Just ignore it : The metadata defaultCopyStatus doesn't appart to this scheme
+		}
 	}
 
 	private RecordVO loadActionParametersRecord() {
@@ -255,10 +286,10 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	private Record toParametersRecord(RecordVO recordVO) {
 		String schema = ActionParameters.SCHEMA_TYPE + "_" + getParametersSchemaLocalCode();
-		return new SchemaPresenterUtils(schema, view.getConstellioFactories(), view.getSessionContext())
-				.toRecord(recordVO);
+		return new SchemaPresenterUtils(schema, view.getConstellioFactories(), view.getSessionContext()).toRecord(recordVO);
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public boolean saveParametersRecord(RecordVO record) {
 		try {
@@ -297,8 +328,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	public SearchResultVODataProvider getSearchResults(final List<Criterion> searchCriteria) {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
-				view.getSessionContext()) {
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return getSearchQuery(searchCriteria);
@@ -307,13 +337,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	protected LogicalSearchQuery getSearchQuery(List<Criterion> searchCriteria) {
-		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition(searchCriteria))
-				.filteredWithUser(getCurrentUser())
-				.filteredByStatus(StatusFilter.ACTIVES)
-				.setPreferAnalyzedFields(true);
+		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition(searchCriteria)).filteredWithUser(getCurrentUser())
+				.filteredByStatus(StatusFilter.ACTIVES).setPreferAnalyzedFields(true);
 
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
-				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+		query.setReturnedMetadatas(
+				ReturnedMetadatasFilter.onlyFields(schemasDisplayManager.getReturnedFieldsForSearch(collection)));
 
 		return query;
 	}

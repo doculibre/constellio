@@ -49,8 +49,8 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 		final Set<String> results = azureAdClient.getUserNameList();
 
 		assertThat(results).isNotEmpty();
-		assertThat(results.size()).isEqualTo(4);
-	}
+		assertThat(results.size()).isEqualTo(21);
+}
 
 	@Test
 	public void testGetGroupNameList()
@@ -60,7 +60,7 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 		final Set<String> results = azureAdClient.getGroupNameList();
 
 		assertThat(results).isNotEmpty();
-		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.size()).isEqualTo(3);
 	}
 
 	@Test
@@ -76,15 +76,15 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 		azureAdClientSpy.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
 
 		assertThat(ldapGroups).isNotEmpty();
-		assertThat(ldapGroups.size()).isEqualTo(2);
+		assertThat(ldapGroups.size()).isEqualTo(3);
 		assertThat(ldapUsers).isNotEmpty();
-		assertThat(ldapUsers.size()).isEqualTo(3);
+		assertThat(ldapUsers.size()).isEqualTo(20);
 	}
 
 	@Test
 	public void testGetUsersAndTheirGroups()
 			throws Exception {
-		AzureAdClient.RequestHelper.maxResults = 1;
+		AzureAdClient.RequestHelper.maxResults = 2;
 
 		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
 
@@ -94,9 +94,10 @@ public class AzureAdClientAcceptanceTest extends ConstellioTest {
 		azureAdClientSpy.getUsersAndTheirGroups(ldapGroups, ldapUsers);
 
 		assertThat(ldapGroups).isNotEmpty();
-		assertThat(ldapGroups.size()).isEqualTo(2);
+		assertThat(ldapGroups.size()).isEqualTo(3);
 		assertThat(ldapUsers).isNotEmpty();
-		assertThat(ldapUsers.size()).isEqualTo(4);
+		//user 3 is without groups
+		assertThat(ldapUsers.size()).isEqualTo(21);
 	}
 
 	@Test

@@ -85,6 +85,8 @@ public class Folder extends RMObject {
 	public static final String PENDING_ALERTS = "pendingAlerts";
 	public static final String NEXT_ALERT_ON = "nextAlertOn";
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
+	public static final String ESSENTIAL = "essential";
+	public static final String CONFIDENTIAL = "confidential";
 
 	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	public static final String CALENDAR_YEAR = "calendarYear";
@@ -633,6 +635,10 @@ public class Folder extends RMObject {
 		set(FORM_CREATED_BY, user);
 		return this;
 	}
+	
+	public LocalDateTime getFormCreatedOn() {
+		return get(FORM_CREATED_ON);
+	}
 
 	public Folder setFormCreatedOn(LocalDateTime dateTime) {
 		set(FORM_CREATED_ON, dateTime);
@@ -697,6 +703,14 @@ public class Folder extends RMObject {
 
 	public String getTimeRange() {
 		return get(TIME_RANGE);
+	}
+
+	public boolean isEssential() {
+		return getBooleanWithDefaultValue(ESSENTIAL, false);
+	}
+
+	public boolean isConfidential() {
+		return getBooleanWithDefaultValue(CONFIDENTIAL, false);
 	}
 }
 

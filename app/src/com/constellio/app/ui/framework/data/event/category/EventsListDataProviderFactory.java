@@ -37,6 +37,8 @@ public class EventsListDataProviderFactory {
 		case CONNECTED_USERS_EVENT: return new ConnectedUsersEventDataProvider(modelLayerFactory, collection, currentUserName);
 		case DECOMMISSIONING_EVENTS: return new DecommissioningEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 		case USERS_AND_GROUPS_ADD_OR_REMOVE : return new UsersAndGroupsAddOrRemoveEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
+			case REINDEX_AND_RESTART:
+				return new ReindexAndRestartEventDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 		default: throw new RuntimeException("Unsupported");
 		}
 	}

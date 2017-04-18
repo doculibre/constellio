@@ -51,6 +51,9 @@ public class User extends RecordWrapper {
 	public static final String SIGNATURE = "signature";
 	public static final String LOGIN_LANGUAGE_CODE = "loginLanguageCode";
 	public static final String VISIBLE_TABLE_COLUMNS = "visibleTableColumns";
+	public static final String FAX = "fax";
+	public static final String ADDRESS = "address";
+	public static final String AGENT_ENABLED = "agentEnabled";
 
 	private transient Roles roles;
 
@@ -488,5 +491,27 @@ public class User extends RecordWrapper {
 
 	public Roles getRolesDetails() {
 		return roles;
+	}
+
+	public String getFax() {
+		return get(FAX);
+	}
+
+	public User setFax(String fax) {
+		set(FAX, fax);
+		return this;
+	}
+
+	public String getAddress() {
+		return get(ADDRESS);
+	}
+
+	public User setAddress(String address) {
+		set(ADDRESS, address);
+		return this;
+	}
+
+	public boolean isAgentEnabled() {
+		return get(AGENT_ENABLED);
 	}
 }

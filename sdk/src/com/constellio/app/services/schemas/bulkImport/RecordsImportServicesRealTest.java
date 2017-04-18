@@ -15,7 +15,6 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
@@ -63,7 +62,6 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.TimeProvider;
@@ -1910,7 +1908,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 		String testResource1 = getTestResourceFile("resource1.docx").getAbsolutePath();
 		String testResource2 = getTestResourceFile("resource2.pdf").getAbsolutePath();
-		String testResource3 = "https://dl.dropboxusercontent.com/u/422508/pg338.txt";
+		String testResource3 = "https://files.slack.com/files-pri/T027CK5P0-F4WQY394M/download/pg338?pub_secret=a76e89b2ab";
 		String testResource4 = getTestResourceFile("resource4.docx").getAbsolutePath();
 		String testResource5 = getTestResourceFile("resource5.pdf").getAbsolutePath();
 		String testResource1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";

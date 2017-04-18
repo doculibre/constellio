@@ -134,7 +134,7 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 	private void addButtons(final EventsCategoryDataProvider provider, ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DisplayButton displayButton = new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {

@@ -39,6 +39,8 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -107,7 +109,7 @@ public class PartialSystemStateExporter {
 	private void generateSaveState(File tlogsFolder, PartialSystemStateExportParams params) {
 
 		List<String> filteredSchemaTypes = asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-				ContainerRecord.SCHEMA_TYPE);
+				ContainerRecord.SCHEMA_TYPE, UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE);
 		List<FieldsPopulator> populators = new ArrayList<>();
 
 		SavestateFileWriter writer = null;

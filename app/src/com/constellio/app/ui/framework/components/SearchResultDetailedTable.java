@@ -70,18 +70,9 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
-		if (selectAll) {
-			for (Object itemId : container.getItemIds()) {
-				if (!deselected.contains(itemId)) {
-					RecordVO record = container.getRecordVO((int) itemId);
-					result.add(record.getId());
-				}
-			}
-		} else {
-			for (Object itemId : selected) {
-				RecordVO record = container.getRecordVO((int) itemId);
-				result.add(record.getId());
-			}
+		for (Object itemId : selected) {
+			RecordVO record = container.getRecordVO((int) itemId);
+			result.add(record.getId());
 		}
 		return result;
 	}

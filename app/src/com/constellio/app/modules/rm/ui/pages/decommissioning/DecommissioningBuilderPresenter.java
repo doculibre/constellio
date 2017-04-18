@@ -1,5 +1,18 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -27,20 +40,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class DecommissioningBuilderPresenter extends SearchPresenter<DecommissioningBuilderView>
 		implements SearchCriteriaPresenter {
@@ -329,7 +329,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 	}
 
-	protected void saveTemporarySearch(boolean refreshPage) {
+	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -349,9 +349,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setPageLength(getSelectedPageLength());
 		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
 		//recordServices().update(search);
-			if (refreshPage) {
-				view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
-			}
+		if (refreshPage) {
+			view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
+		}
+		return search;
 	}
 
 	@Override

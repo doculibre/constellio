@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
@@ -16,14 +7,7 @@ import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.CleanAdministrativeUnitButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.ListSequencesButton;
-import com.constellio.app.ui.framework.buttons.SearchButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
@@ -46,18 +30,17 @@ import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaxonomyManagementViewImpl extends BaseViewImpl implements TaxonomyManagementView {
 	VerticalLayout layout;
@@ -220,7 +203,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			addButton.addStyleName("add-taxo-element");
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					return new DisplayButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -234,7 +217,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					return new EditButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -248,7 +231,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
-				protected Button newButtonInstance(final Object itemId) {
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 					DeleteButton deleteButton = new DeleteButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -318,14 +301,6 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 					presenter.deleteButtonClicked(presenter.getCurrentConcept());
 				}
 			});
-			if(presenter.hasCurrentUserAccessToCurrentConcept()) {
-				actionMenuButtons.add(new CleanAdministrativeUnitButton($("TaxonomyManagementView.cleanAdministrativeUnit")) {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.cleanAdministrativeUnitButtonClicked();
-					}
-				});
-			}
 			if (presenter.isSequenceTable(currentConcept)) {
 				actionMenuButtons.add(new ListSequencesButton(currentConcept.getId(), $("TaxonomyManagementView.sequences")));
 			}
@@ -383,6 +358,14 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		} else {
 			return null;
 		}
+	}
+
+	public boolean hasCurrentUserAccessToCurrentConcept() {
+		return presenter.hasCurrentUserAccessToCurrentConcept();
+	}
+
+	public RecordVO getCurrentConcept() {
+		return presenter.getCurrentConcept();
 	}
 
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {

@@ -874,7 +874,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ensureNotUnitTest();
 		if(getModelLayerFactory().getSystemConfigurationsManager().setValue(config, value)) {
 			getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
-		};
+		}
 	}
 
 	protected void waitUntilTrue(AtomicBoolean atomicBoolean) {

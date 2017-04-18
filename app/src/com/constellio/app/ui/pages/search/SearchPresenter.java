@@ -1,28 +1,31 @@
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-
-import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
-import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
-import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.data.utils.TimeProvider;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -34,10 +37,15 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -262,7 +270,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private List<MetadataSchemaVO> getSchemas() {
 		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
-		return Arrays.asList(
+		return asList(
 				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
 				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
 				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()));
@@ -386,8 +394,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(true);
 
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
-				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+//		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
+//				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.allExceptContentAndLargeText());
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();
@@ -491,10 +500,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return true;
 	}
 
-	protected abstract void saveTemporarySearch(boolean refreshPage);
+	protected abstract SavedSearch saveTemporarySearch(boolean refreshPage);
 
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search;
+	}
+
+	protected void updateUIContext(SavedSearch savedSearch) {
+		String searchId = savedSearch.getId();
+		boolean advancedSearch = StringUtils.isNotBlank(savedSearch.getSchemaFilter());
+		UIContext uiContext = view.getUIContext();
+		uiContext.setAttribute(BaseBreadcrumbTrail.SEARCH_ID, searchId);
+		uiContext.setAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH, advancedSearch);
+		uiContext.clearAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
 	}
 
 	protected SearchBoostManager searchBoostManager() {
@@ -504,11 +522,31 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	@Override
 	public Object getReportParameters(String report) {
 		switch (report) {
-			case "Reports.fakeReport":
-				return new ExampleReportParameters(view.getSelectedRecordIds());
-			case "Reports.FolderLinearMeasureStats":
-				return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
+		case "Reports.fakeReport":
+			return new ExampleReportParameters(view.getSelectedRecordIds());
+		case "Reports.FolderLinearMeasureStats":
+			return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
+	}
+
+	protected void addToSelectionButtonClicked() {
+		SessionContext sessionContext = view.getSessionContext();
+		List<String> selectedSearchResultRecordIds = view.getSelectedRecordIds();
+		boolean someElementsNotAdded = false;
+		for (String selectedRecordId : selectedSearchResultRecordIds) {
+			Record record = modelLayerFactory.newRecordServices().getDocumentById(selectedRecordId);
+
+			if (asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE).contains(record.getTypeCode())) {
+				sessionContext.addSelectedRecordId(selectedRecordId, record == null ? null : record.getTypeCode());
+			} else {
+				someElementsNotAdded = true;
+			}
+
+		}
+
+		if (someElementsNotAdded) {
+			view.showErrorMessage($("ConstellioHeader.selection.cannotAddRecords"));
+		}
 	}
 }

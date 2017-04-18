@@ -14,6 +14,7 @@ import static com.constellio.model.services.schemas.validators.MetadataUnmodifia
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
@@ -23,6 +24,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransie
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -70,6 +72,14 @@ import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.RecordCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordModificationEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -80,6 +90,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Cann
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -1344,6 +1355,574 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
 		assertThat(recordInCache.get(zeSchema.numberMetadata())).isEqualTo(16.0);
+
+	}
+
+	@Test
+	public void givenExceptionThrownByRecordInCreationBeforeValidationAndAutomaticValuesCalculationExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+			@Override
+			public void recordInCreationBeforeValidationAndAutomaticValuesCalculation(
+					RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenExceptionThrownByRecordInCreationBeforeSaveExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenExceptionThrownByRecordCreatedExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordCreated(RecordCreationEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		record = new TestRecord(zeSchema).set(TITLE, "Édouard Lechat");
+		transaction = new Transaction(record);
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		record = new TestRecord(zeSchema).set(TITLE, "Félix");
+		transaction = new Transaction(record);
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenValidationExceptionThrownByRecordInCreationBeforeSaveExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
+				event.getValidationErrors().add(RecordServicesAcceptanceTest.class, "Ze validation error");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true).setCatchExtensionsExceptions(false);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenExceptionThrownByRecordInModificationBeforeValidationAndAutomaticValuesCalculationExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+			@Override
+			public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+					RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+		record.set(Schemas.TITLE, "Édouard Lechat");
+
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenExceptionThrownByRecordInModificationBeforeSaveExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+		record.set(Schemas.TITLE, "Édouard Lechat");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenExceptionThrownByRecordModifiedExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordModified(RecordModificationEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Un chat");
+		recordServices.add(record);
+		record.set(Schemas.TITLE, "Vodka Framboise");
+
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		record = new TestRecord(zeSchema).set(TITLE, "Un chat");
+		recordServices.add(record);
+		record.set(Schemas.TITLE, "Édouard Lechat");
+		transaction = new Transaction(record);
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		record = new TestRecord(zeSchema).set(TITLE, "Un chat");
+		recordServices.add(record);
+		record.set(Schemas.TITLE, "Félix");
+		transaction = new Transaction(record);
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenExceptionThrownByTransactionExecutionBeforeSaveExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(false).setCatchExtensionsExceptions(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenValidationExceptionThrownByRecordInModificationBeforeSaveExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
+				event.getValidationErrors().add(RecordServicesAcceptanceTest.class, "Ze validation error");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		recordServices.add(record);
+		record.set(Schemas.TITLE, "Édouard Lechat");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true).setCatchExtensionsExceptions(false);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenValidationExceptionThrownByTransactionExecutionBeforeSafeExtensionThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
+				event.getValidationErrors().add(RecordServicesAcceptanceTest.class, "Ze validation error");
+			}
+		});
+
+		Record record = new TestRecord(zeSchema).set(TITLE, "Vodka Framboise");
+		Transaction transaction = new Transaction(record);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsExceptions(true);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchExtensionsValidationsErrors(true).setCatchExtensionsExceptions(false);
+		recordServices.execute(transaction);
+
+		assertThatRecord(record).exists();
+
+	}
+
+	@Test
+	public void givenBrokenReferencesThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'", "Pointeur d'L'ours"));
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", null));
+
+	}
+
+	@Test
+	public void givenBrokenReferencesInCopiedValueThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
+						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
+						anotherSchemaType.getMetadata("stringMetadata").defineDataEntry()
+								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+					}
+				}));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+		recordServices.execute(transaction);
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'", "L'ours"));
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", null));
+
+	}
+
+	@Test
+	public void givenBrokenMultivalueReferencesInCopiedValueThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
+						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
+						anotherSchemaType.getMetadata("stringMetadata").setMultivalue(true).defineDataEntry()
+								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+					}
+				}));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+		recordServices.execute(transaction);
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'", asList("L'ours")));
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", new ArrayList<>()));
+
+	}
+
+	@Test
+	public void givenBrokenMultivalueReferencesThenCatchedDependingOnTransactionOption()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
+				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "d'ours"));
+		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur ")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+		recordServices.execute(transaction);
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur ", "Pointeur [d'ours]"));
+
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+
+		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
+		transaction = new Transaction(pointeur);
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			//OK
+		}
+
+		transaction.getRecordUpdateOptions().setCatchBrokenReferenceErrors(true);
+		recordServices.execute(transaction);
+
+		assertThatRecord(pointeur).exists();
+		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
+				"Pointeur d'ours brisé", "Pointeur d'ours brisé[]"));
 
 	}
 

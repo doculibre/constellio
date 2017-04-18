@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +59,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
@@ -416,6 +418,27 @@ public class TestUtils {
 		System.out.println(xmlOutput.outputString(document));
 	}
 
+	public static void print(RecordWrapper wrapper) {
+		StringBuilder stringBuilder = new StringBuilder(
+				"Record '" + wrapper.getId() + "' of schema '" + wrapper.getSchemaCode() + "'");
+
+		final List<Metadata> metadatas = new ArrayList<>(wrapper.getSchema().getMetadatas());
+		Collections.sort(metadatas, new Comparator<Metadata>() {
+			@Override
+			public int compare(Metadata o1, Metadata o2) {
+				return o1.getLocalCode().compareTo(o2.getLocalCode());
+			}
+		});
+
+		for (Metadata metadata : metadatas) {
+			if (wrapper.hasValue(metadata.getLocalCode())) {
+				stringBuilder.append(metadata.getLocalCode() + ": " + wrapper.get(metadata) + "\n");
+			}
+		}
+		System.out.println(stringBuilder.toString());
+
+	}
+
 	public static void write(Document document, File file) {
 		XMLOutputter xmlOutput = new XMLOutputter();
 		FileWriter fileWriter = null;
@@ -563,6 +586,16 @@ public class TestUtils {
 				throw new RuntimeException("Unsupported object of class '" + actual.getClass());
 			}
 			return assertThat(asList(objects));
+		}
+
+		public void exists() {
+			RecordServices recordServices = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices();
+			try {
+				recordServices.getDocumentById(actual.getId());
+
+			} catch (Exception e) {
+				fail("Record '" + actual.getId() + "' is supposed to exist, but it does not");
+			}
 		}
 	}
 
@@ -749,9 +782,23 @@ public class TestUtils {
 					objects[i] = ((RecordWrapper) actual).get(metadata);
 
 					if (refMetadata != null && objects[i] != null) {
-						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-								.getDocumentById((String) objects[i]);
-						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						if (objects[i] instanceof String) {
+							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+									.getDocumentById((String) objects[i]);
+							objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						} else if (objects[i] instanceof List) {
+							List<Object> values = new ArrayList<>();
+							for (Object ref : (List) objects[i]) {
+								Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory()
+										.newRecordServices()
+										.getDocumentById((String) ref);
+								values.add(getMetadataValue(referencedRecord, refMetadata));
+							}
+							objects[i] = values;
+
+						} else {
+							throw new RuntimeException("Invalid value : " + objects[i].getClass().getSimpleName());
+						}
 					}
 				}
 			} else {

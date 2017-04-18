@@ -19,14 +19,14 @@ import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.vaadin.server.Resource;
 
-public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> {
+public class BaseRecordTreeDataProvider extends AbstractDataProvider implements LazyTreeDataProvider<String> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BaseRecordTreeDataProvider.class);
 
 	private int estimatedRootNodesCount = -1;
 	private Map<String, String> parentCache = new HashMap<>();
 	private Map<String, RecordDataTreeNode> nodesCache = new HashMap<>();
-	private RecordTreeNodesDataProvider nodesDataProvider;
+	RecordTreeNodesDataProvider nodesDataProvider;
 	private Map<String, FastContinueInfos> fastContinueInfosMap = new HashMap<>();
 
 	public BaseRecordTreeDataProvider(RecordTreeNodesDataProvider recordTreeNodesDataProvider) {
@@ -103,7 +103,10 @@ public class BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> 
 		LOGGER.info("getChildren(" + parent + ", " + start + ", " + maxSize + ") => " + recordIds);
 
 		RecordDataTreeNode parentTreeNode = nodesCache.get(parent);
-		parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
+		// FIXME Francis
+		if (parentTreeNode != null) {
+			parentTreeNode.estimatedChildrenCount = Math.max(parentTreeNode.estimatedChildrenCount, (int) response.getNumFound());
+		}
 
 		int end = start + maxSize;
 		FastContinueInfos responseFastContinueInfos = response.getFastContinueInfos();

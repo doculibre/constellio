@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2017-01-30T13:47:38 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+			  name="Avery_5163_Container" columnCount="2" printOrder="Horizontal" pageWidth="595" pageHeight="842"
+			  columnWidth="232" columnSpacing="90" leftMargin="20" rightMargin="20" topMargin="0" bottomMargin="0"
+			  uuid="7172e197-17a0-43c4-a038-238b4bebe9b6">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Contenant_Adapter.xml"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<queryString language="xPath">
+		<![CDATA[/containers/container/metadatas]]>
+	</queryString>
+	<field name="ref_containerRecord_administrativeUnit_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_administrativeUnit_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_administrativeUnit_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_administrativeUnit_title]]></fieldDescription>
+	</field>
+	<field name="allreferences" class="java.lang.String">
+		<fieldDescription><![CDATA[allreferences]]></fieldDescription>
+	</field>
+	<field name="attachedancestors" class="java.lang.String">
+		<fieldDescription><![CDATA[attachedancestors]]></fieldDescription>
+	</field>
+	<field name="createdon" class="java.lang.String">
+		<fieldDescription><![CDATA[createdon]]></fieldDescription>
+	</field>
+	<field name="decommissioningtype_code" class="java.lang.String">
+		<fieldDescription><![CDATA[decommissioningtype_code]]></fieldDescription>
+	</field>
+	<field name="decommissioningtype_title" class="java.lang.String">
+		<fieldDescription><![CDATA[decommissioningtype_title]]></fieldDescription>
+	</field>
+	<field name="full" class="java.lang.String">
+		<fieldDescription><![CDATA[full]]></fieldDescription>
+	</field>
+	<field name="id" class="java.lang.String">
+		<fieldDescription><![CDATA[id]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_modifiedBy_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_modifiedBy_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_modifiedBy_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_modifiedBy_title]]></fieldDescription>
+	</field>
+	<field name="modifiedon" class="java.lang.String">
+		<fieldDescription><![CDATA[modifiedon]]></fieldDescription>
+	</field>
+	<field name="parentpath" class="java.lang.String">
+		<fieldDescription><![CDATA[parentpath]]></fieldDescription>
+	</field>
+	<field name="path" class="java.lang.String">
+		<fieldDescription><![CDATA[path]]></fieldDescription>
+	</field>
+	<field name="pathparts" class="java.lang.String">
+		<fieldDescription><![CDATA[pathparts]]></fieldDescription>
+	</field>
+	<field name="principalpath" class="java.lang.String">
+		<fieldDescription><![CDATA[principalpath]]></fieldDescription>
+	</field>
+	<field name="realdepositdate" class="java.lang.String">
+		<fieldDescription><![CDATA[realdepositdate]]></fieldDescription>
+	</field>
+	<field name="realtransferdate" class="java.lang.String">
+		<fieldDescription><![CDATA[realtransferdate]]></fieldDescription>
+	</field>
+	<field name="schema" class="java.lang.String">
+		<fieldDescription><![CDATA[schema]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_storageSpace_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_storageSpace_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_storageSpace_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_storageSpace_title]]></fieldDescription>
+	</field>
+	<field name="temporaryidentifier" class="java.lang.String">
+		<fieldDescription><![CDATA[temporaryidentifier]]></fieldDescription>
+	</field>
+	<field name="title" class="java.lang.String">
+		<fieldDescription><![CDATA[title]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_type_code" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_type_code]]></fieldDescription>
+	</field>
+	<field name="ref_containerRecord_type_title" class="java.lang.String">
+		<fieldDescription><![CDATA[ref_containerRecord_type_title]]></fieldDescription>
+	</field>
+	<field name="visibleintrees" class="java.lang.String">
+		<fieldDescription><![CDATA[visibleintrees]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="60" splitType="Stretch"/>
+	</pageHeader>
+	<detail>
+		<band height="105" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="110" y="20" width="150" height="60" uuid="ca7f7c58-1c4a-4e03-b95e-586ca1b93ba0"/>
+				<textElement>
+					<font fontName="Ebrima" size="26"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}.toUpperCase()]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="0" y="10" width="100" height="20" uuid="c48719b9-c349-4563-8185-dbdf30b1d031"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
+							 xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"
+							 type="Code128A" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{id}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField isBlankWhenNull="true">
+				<reportElement x="20" y="30" width="50" height="20" uuid="90ce81af-abc9-45e6-b9fb-d1b7a75f70c4"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{id}.toUpperCase()]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

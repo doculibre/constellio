@@ -18,6 +18,9 @@ public class FolderExpectedDestructionDateCalculator2
 	LocalDependency<LocalDate> manualExpectedDestructionDate = LocalDependency
 			.toADate(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE);
 
+	LocalDependency<LocalDate> manualExpectedDepositDate = LocalDependency
+			.toADate(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE);
+
 	@Override
 	LocalDependency<List<LocalDate>> getDatesDependency() {
 		return destructionDatesParam;
@@ -26,5 +29,10 @@ public class FolderExpectedDestructionDateCalculator2
 	@Override
 	protected LocalDependency<LocalDate> getManualDateDependency() {
 		return manualExpectedDestructionDate;
+	}
+
+	@Override
+	protected LocalDependency<LocalDate> getOtherModeManualDateDependency() {
+		return manualExpectedDepositDate;
 	}
 }

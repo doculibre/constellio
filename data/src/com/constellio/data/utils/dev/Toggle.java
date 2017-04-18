@@ -20,11 +20,12 @@ public class Toggle {
 	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
 	public static AvailableToggle EXTERNAL_TOKENS_DISABLED = newToggle();
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
+	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
+	public static AvailableToggle CACHES_ENABLED = newToggle(true);
 
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
-
 
 	static {
 		for (Field field : Toggle.class.getDeclaredFields()) {

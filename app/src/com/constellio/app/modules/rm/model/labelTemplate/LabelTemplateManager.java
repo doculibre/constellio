@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.model.labelTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +16,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 
 public class LabelTemplateManager {
 
@@ -67,29 +67,41 @@ public class LabelTemplateManager {
 		}
 	}
 
+	public List<LabelTemplate> listExtensionTemplates(String schemaType) {
+		List<LabelTemplate> labelTemplates = new ArrayList<>();
+		addTemplatesFromExtensions(schemaType, labelTemplates);
+		addToCache(labelTemplates);
+		Collections.sort(labelTemplates, new AbstractTextComparator<LabelTemplate>() {
+			@Override
+			protected String getText(LabelTemplate object) {
+				return object.getName();
+			}
+		});
+		return labelTemplates;
+	}
+
 	public List<LabelTemplate> listTemplates(String schemaType) {
 		List<LabelTemplate> labelTemplates = new ArrayList<>();
 		List<String> templateCodes = new ArrayList<>(configManager.list(LABELS_TEMPLATES_FOLDER));
 
-		for (String templateCode : templateCodes) {
-			if (templateCode.toLowerCase().endsWith("xml")) {
-				LabelTemplate labelTemplate = getLabelTemplate(templateCode);
-				if (labelTemplate.getSchemaType().equals(schemaType)) {
-					labelTemplates.add(labelTemplate);
+		if (labelTemplates.isEmpty()) {
+			for (String templateCode : templateCodes) {
+				if (templateCode.toLowerCase().endsWith("xml")) {
+					LabelTemplate labelTemplate = getLabelTemplate(templateCode);
+					if (labelTemplate.getSchemaType().equals(schemaType)) {
+						labelTemplates.add(labelTemplate);
+					}
 				}
 			}
-		}
-
-		addTemplatesFromExtensions(schemaType, labelTemplates);
-		
-		if (labelTemplates.isEmpty()) {
+			
 			addDefaultLabelTemplates(schemaType, labelTemplates);
 		}
+		
 		addToCache(labelTemplates);
-		Collections.sort(labelTemplates, new Comparator<LabelTemplate>() {
+		Collections.sort(labelTemplates, new AbstractTextComparator<LabelTemplate>() {
 			@Override
-			public int compare(LabelTemplate o1, LabelTemplate o2) {
-				return o1.getName().compareTo(o2.getName());
+			protected String getText(LabelTemplate object) {
+				return object.getName();
 			}
 		});
 		return labelTemplates;

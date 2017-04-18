@@ -3,7 +3,10 @@ package com.constellio.app.modules.robots.services;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
@@ -20,11 +23,15 @@ public class RobotBatchProcessAction implements BatchProcessAction {
 	private String action;
 
 	private String actionParametersId;
-
+	
+	private boolean dryRun;
+	private List<Record> processedRecords;
+	
 	public RobotBatchProcessAction(String robotId, String action, String actionParametersId) {
 		this.robotId = robotId;
 		this.action = action;
 		this.actionParametersId = actionParametersId;
+		this.processedRecords = new ArrayList<>();
 	}
 
 	@Override
@@ -39,16 +46,39 @@ public class RobotBatchProcessAction implements BatchProcessAction {
 			actionParameters = schemas.getActionParameters(actionParametersId);
 		}
 
-		List<Record> processedRecords = new ArrayList<>();
-		Transaction transaction = actionExecutor != null ?
-				actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch, processedRecords) : new Transaction();
-		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle($("RobotBatchProcessAction.completed"))
-				.setProcessRecordsCount(processedRecords.size()));
+		processedRecords.clear();
+		Transaction transaction = actionExecutor != null
+				? actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch, processedRecords, isDryRun()) : new Transaction();
+
+		int documents = 0;
+		int folders = 0;
+		for (Record record : processedRecords) {
+			if (StringUtils.containsIgnoreCase(record.getSchemaCode(), "document")) {
+				documents++;
+			} else if (StringUtils.containsIgnoreCase(record.getSchemaCode(), "folder")) {
+				folders++;
+			}
+		}
+
+		String message = $("RobotBatchProcessAction.completed", documents, folders);
+		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle(message).setProcessRecordsCount(processedRecords.size()));
 		return transaction;
 	}
 
 	@Override
 	public Object[] getInstanceParameters() {
 		return new Object[] { robotId, action, actionParametersId };
+	}
+
+	public boolean isDryRun() {
+		return dryRun;
+	}
+
+	public void setDryRun(boolean pDryRun) {
+		dryRun = pDryRun;
+	}
+	
+	public List<Record> getProcessedRecords() {
+		return Collections.unmodifiableList(processedRecords);
 	}
 }

@@ -166,7 +166,8 @@ public class ReindexingServices {
 		}
 
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
-		transactionOptions.setValidationsEnabled(false);
+		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
+				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true);
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
@@ -190,12 +191,12 @@ public class ReindexingServices {
 	private void reindexCollection(String collection, ReindexationParams params, RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
+		if (params.getReindexationMode().isFullRewrite()) {
+			recreateIndexes(collection);
+		}
+
 		int level = 0;
 		while (isReindexingLevel(level, types)) {
-
-			if (params.getReindexationMode().isFullRewrite()) {
-				recreateIndexes(collection);
-			}
 
 			BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
 					.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)

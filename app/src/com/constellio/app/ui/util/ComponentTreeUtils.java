@@ -16,6 +16,20 @@ import com.vaadin.ui.SingleComponentContainer;
  */
 public class ComponentTreeUtils {
 	
+	@SuppressWarnings("unchecked")
+	public static <T> T findParent(Component component, Class<T> clazz) {
+		T match = null;
+		Component currentParent = component;
+		while (match == null && currentParent != null) {
+			if (clazz.isAssignableFrom(currentParent.getClass())) {
+				match = (T) currentParent;
+				break;
+			}
+			currentParent = currentParent.getParent();
+		}
+		return match;
+	}
+	
 	public static <T> T getFirstChild(Component component, Class<T> clazz) {
 		List<T> matches = getChildren(component, clazz);
 		return !matches.isEmpty() ? matches.get(0) : null;

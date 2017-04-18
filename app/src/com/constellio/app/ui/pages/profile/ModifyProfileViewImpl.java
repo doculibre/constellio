@@ -50,6 +50,12 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
     private TextArea personalEmailsField;
 	@PropertyId("phone")
 	private TextField phoneField;
+	@PropertyId("fax")
+	private TextField faxField;
+	@PropertyId("address")
+	private TextField addressField;
+	@PropertyId("jobTitle")
+	private TextField jobTitleField;
 	@PropertyId("password")
 	private PasswordField passwordField;
 	@PropertyId("confirmPassword")
@@ -64,6 +70,10 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
+	@PropertyId("agentManuallyDisabled")
+	private CheckBox agentManuallyDisabledField;
+
+	private boolean agentManuallyDisabledVisible;
 
 	ModifyProfilePresenter presenter;
 
@@ -195,6 +205,30 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		phoneField.addStyleName("phone");
 		phoneField.setEnabled(presenter.canModify());
 
+		faxField = new TextField();
+		faxField.setCaption($("UserCredentialView.fax"));
+		faxField.setRequired(false);
+		faxField.setNullRepresentation("");
+		faxField.setId("phone");
+		faxField.addStyleName("phone");
+		faxField.setEnabled(presenter.canModify());
+
+		jobTitleField = new TextField();
+		jobTitleField.setCaption($("UserCredentialView.jobTitle"));
+		jobTitleField.setRequired(false);
+		jobTitleField.setNullRepresentation("");
+		jobTitleField.setId("phone");
+		jobTitleField.addStyleName("phone");
+		jobTitleField.setEnabled(presenter.canModify());
+
+		addressField = new TextField();
+		addressField.setCaption($("ModifyProfileView.address"));
+		addressField.setRequired(false);
+		addressField.setNullRepresentation("");
+		addressField.setId("phone");
+		addressField.addStyleName("phone");
+		addressField.setEnabled(presenter.canModify());
+
 		passwordField = new PasswordField();
 		passwordField.setCaption($("ModifyProfileView.password"));
 		passwordField.setNullRepresentation("");
@@ -275,9 +309,14 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
 		}
 
-		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
-				phoneField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-				taxonomyField) {
+		agentManuallyDisabledField = new CheckBox($("ModifyProfileView.agentManuallyDisabled"));
+		agentManuallyDisabledField.setId("agentManuallyDisabled");
+		agentManuallyDisabledField.addStyleName("agentManuallyDisabled");
+		agentManuallyDisabledField.setVisible(agentManuallyDisabledVisible);
+
+        form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
+                phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
+                taxonomyField, agentManuallyDisabledField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {
@@ -319,6 +358,11 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	@Override
 	public void updateUI() {
 		ConstellioUI.getCurrent().updateContent();
+	}
+
+	@Override
+	public void setAgentManuallyDisabledVisible(boolean visible) {
+		this.agentManuallyDisabledVisible = visible;
 	}
 
 }

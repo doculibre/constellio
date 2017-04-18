@@ -20,7 +20,7 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 
 		assertThat(schemasDisplayManager.getReturnedFieldsForSearch(zeCollection)).containsOnly(
 				"archivisticStatus_s", "title_s", "assigneeId_s", "code_s", "content_s", "modifiedOn_dt", "dueDate_da",
-				"statusId_s", "description_s", "description_t"
+				"statusId_s", "description_s", "description_t", "mimetype_s"
 		);
 	}
 }

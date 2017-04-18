@@ -74,6 +74,11 @@ public class MainLayoutPresenter implements Serializable {
 	public String getMessage() {
 		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
 		SystemGlobalConfigsManager manager = appLayerFactory.getSystemGlobalConfigsManager();
+		if (manager.hasLastReindexingFailed()) {
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());
+			return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally() ? $("MainLayout.reindexingFailed") : null;
+		}
 		if (manager.isReindexingRequired()) {
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 			User user = new PresenterService(modelLayerFactory).getCurrentUser(ConstellioUI.getCurrentSessionContext());

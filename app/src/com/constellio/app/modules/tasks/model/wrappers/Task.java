@@ -52,6 +52,8 @@ public class Task extends RecordWrapper {
 	public static final String NEXT_TASKS = "nextTasks";
 	public static final String DECISION = "decision";
 	public static final String NEXT_TASK_CREATED = "nextTaskCreated";
+	public static final String LINKED_FOLDERS = "linkedFolders";
+	public static final String LINKED_DOCUMENTS = "linkedDocuments";
 
 	public static final String DEFAULT_NEXT_TASK = "default";
 

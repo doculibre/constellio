@@ -168,7 +168,7 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 	private void addButtons(final GlobalGroupVODataProvider provider, ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -181,7 +181,7 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				final GlobalGroupVO entity = getGlobalGroupVO((Integer) itemId, provider);
 				Button editButton = new EditButton() {
 					@Override
@@ -197,7 +197,7 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				final GlobalGroupVO entity = getGlobalGroupVO((Integer) itemId, provider);
 				Button deleteButton = new DeleteButton() {
 					@Override

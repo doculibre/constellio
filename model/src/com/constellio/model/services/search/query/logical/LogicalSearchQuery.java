@@ -61,7 +61,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private Map<String, String[]> overridedQueryParams = new HashMap<>();
 
 	public LogicalSearchQuery() {
-		numberOfRows = 10000000;
+		numberOfRows = 100000;
 		startRow = 0;
 		fieldFacetLimit = 0;
 	}

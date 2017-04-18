@@ -250,6 +250,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		waitForBatchProcess();
+		reindexIfRequired();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
 		assertThatResultsOf(factory.documentSemiActiveToDestroy(records.unitId_10a))
@@ -311,6 +312,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		waitForBatchProcess();
+		reindexIfRequired();
 
 		givenTimeIs(new LocalDate(2100, 11, 5));
 		assertThatResultsOf(factory.documentSemiActiveToDeposit(records.unitId_10a))

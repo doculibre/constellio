@@ -32,6 +32,11 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String DOMAIN = "domain";
 	public static final String MS_EXCHANGE_DELEGATE_LIST = "msExchangeDelegateList";
 	public static final String DN = "dn";
+	public static final String PHONE = "phone";
+	public static final String FAX = "fax";
+	public static final String JOB_TITLE = "jobTitle";
+	public static final String ADDRESS = "address";
+	public static final String AGENT_STATUS = "agentStatus";
 
 	public SolrUserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -199,6 +204,26 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	}
 
 	@Override
+	public String getJobTitle() {
+		return get(JOB_TITLE);
+	}
+
+	@Override
+	public String getPhone() {
+		return get(PHONE);
+	}
+
+	@Override
+	public String getFax() {
+		return get(FAX);
+	}
+
+	@Override
+	public String getAddress() {
+		return get(ADDRESS);
+	}
+
+	@Override
 	public UserCredential withCollections(List<String> collections) {
 		return setCollections(collections);
 	}
@@ -301,4 +326,37 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public UserCredential withDN(String dn) {
 		return setDn(dn);
 	}
+
+	@Override
+	public UserCredential withPhone(String phone) {
+		set(PHONE, phone);
+		return this;
+	}
+
+	@Override
+	public UserCredential withJobTitle(String jobTitle) {
+		set(JOB_TITLE, jobTitle);
+		return this;
+	}
+
+	@Override
+	public UserCredential withFax(String fax) {
+		set(FAX, fax);
+		return this;
+	}
+
+	@Override
+	public UserCredential withAddress(String address) {
+		set(ADDRESS, address);
+		return this;
+	}
+
+	public AgentStatus getAgentStatus() {
+		return getEnumWithDefaultValue(AGENT_STATUS, AgentStatus.DISABLED);
+	}
+
+	public SolrUserCredential setAgentStatus(AgentStatus agentStatus) {
+		return set(AGENT_STATUS, agentStatus);
+	}
+
 }

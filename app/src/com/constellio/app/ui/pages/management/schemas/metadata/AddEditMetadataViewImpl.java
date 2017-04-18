@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -15,18 +10,19 @@ import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMetadataView {
 	final AddEditMetadataPresenter presenter;
@@ -130,21 +126,22 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				inputType.addItem(type);
 				inputType.setItemCaption(type, $(MetadataInputType.getCaptionFor(type)));
 			}
+			inputType.setValue(null);
 
 			displayType.setEnabled(false);
 			displayType.removeAllItems();
 			displayType.setEnabled(true);
-			List<MetadataDisplayType> displayTypes = MetadataDisplayType.getAvailableMetadataDisplayTypesFor(value, formMetadataVO.getInput());
+			List<MetadataDisplayType> displayTypes = MetadataDisplayType
+					.getAvailableMetadataDisplayTypesFor(value, formMetadataVO.getInput());
 			for (MetadataDisplayType type : displayTypes) {
 				displayType.addItem(type);
 				displayType.setItemCaption(type, $(MetadataDisplayType.getCaptionFor(type)));
 			}
-			if(displayTypes.size() < 2) {
+			if (displayTypes.size() < 2) {
 				displayType.setEnabled(false);
 				displayType.setVisible(false);
 				displayType.setValue(displayType.getItemIds().iterator().next());
-			}
-			else {
+			} else {
 				displayType.setEnabled(true);
 				displayType.setVisible(true);
 			}
@@ -165,50 +162,50 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setEnabled(true);
 
 		switch (value) {
-		case BOOLEAN:
-			if (multivalueType.getValue()) {
-				multivalueType.setValue(false);
-			}
-			multivalueType.setEnabled(false);
-			sortableField.setEnabled(false);
-			break;
-		case TEXT:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			searchableField.setEnabled(!inherited);
-			break;
-		case CONTENT:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			searchableField.setEnabled(!inherited);
-			break;
-		case DATE:
-			multivalueType.setEnabled(true);
-			break;
-		case DATE_TIME:
-			multivalueType.setEnabled(true);
-			break;
-		case INTEGER:
-			multivalueType.setEnabled(true);
-			searchableField.setEnabled(!inherited);
-			break;
-		case REFERENCE:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			refType.setEnabled(true);
-			refType.setRequired(true);
-			break;
-		case STRING:
-			multivalueType.setEnabled(true);
-			searchableField.setEnabled(!inherited);
-			break;
-		case NUMBER:
-			multivalueType.setEnabled(true);
-			searchableField.setEnabled(!inherited);
-			break;
-		case STRUCTURE:
-			multivalueType.setEnabled(true);
-			break;
+			case BOOLEAN:
+				if (multivalueType.getValue()) {
+					multivalueType.setValue(false);
+				}
+				multivalueType.setEnabled(false);
+				sortableField.setEnabled(false);
+				break;
+			case TEXT:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				searchableField.setEnabled(!inherited);
+				break;
+			case CONTENT:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				searchableField.setEnabled(!inherited);
+				break;
+			case DATE:
+				multivalueType.setEnabled(true);
+				break;
+			case DATE_TIME:
+				multivalueType.setEnabled(true);
+				break;
+			case INTEGER:
+				multivalueType.setEnabled(true);
+				searchableField.setEnabled(!inherited);
+				break;
+			case REFERENCE:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				refType.setEnabled(true);
+				refType.setRequired(true);
+				break;
+			case STRING:
+				multivalueType.setEnabled(true);
+				searchableField.setEnabled(!inherited);
+				break;
+			case NUMBER:
+				multivalueType.setEnabled(true);
+				searchableField.setEnabled(!inherited);
+				break;
+			case STRUCTURE:
+				multivalueType.setEnabled(true);
+				break;
 		}
 	}
 
@@ -218,27 +215,27 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		searchableField.setValue(false);
 
 		switch (value) {
-		case BOOLEAN:
-			sortableField.setValue(false);
-		case TEXT:
-			sortableField.setValue(false);
-		case CONTENT:
-			sortableField.setValue(false);
-		case REFERENCE:
-			sortableField.setValue(false);
-			break;
-		case DATE:
-			break;
-		case DATE_TIME:
-			break;
-		case INTEGER:
-			break;
-		case STRING:
-			break;
-		case NUMBER:
-			break;
-		case STRUCTURE:
-			break;
+			case BOOLEAN:
+				sortableField.setValue(false);
+			case TEXT:
+				sortableField.setValue(false);
+			case CONTENT:
+				sortableField.setValue(false);
+			case REFERENCE:
+				sortableField.setValue(false);
+				break;
+			case DATE:
+				break;
+			case DATE_TIME:
+				break;
+			case INTEGER:
+				break;
+			case STRING:
+				break;
+			case NUMBER:
+				break;
+			case STRUCTURE:
+				break;
 		}
 	}
 
@@ -250,8 +247,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		localcodeField.setRequired(true);
 
 		//$("AddEditMetadataView.title")
-		labelsField = new MultilingualTextField();
-		labelsField.setRequired(true);
+		labelsField = new MultilingualTextField(true);
+//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 
@@ -433,7 +430,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField, displayType) {//, displayedHorizontallyField) {
+				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField,
+				displayType) {//, displayedHorizontallyField) {
 
 			@Override
 			public void reload() {
@@ -443,6 +441,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			public void commit() {
+				labelsField.commit();
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {
 						field.commit();
@@ -453,7 +452,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			protected void saveButtonClick(FormMetadataVO viewObject) {
-				presenter.saveButtonClicked(formMetadataVO, editMode);
+				try {
+					labelsField.validateFields();
+				} catch (InvalidValueException e) {
+					showErrorMessage(e.getMessage());
+					return;
+				}
+				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 
 			@Override
@@ -486,7 +491,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 		});
 
-		if(presenter.isMetadataSystemReserved()) {
+		if (presenter.isMetadataSystemReserved()) {
 			disableFieldsForSystemReservedMetadatas();
 		}
 
@@ -499,20 +504,25 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		metadataForm.reload();
 	}
 
+	//TODO Move in presenter
 	public void disableFieldsForSystemReservedMetadatas() {
+
 		localcodeField.setEnabled(false);
 		valueType.setEnabled(false);
 		refType.setEnabled(false);
 		inputType.setEnabled(false);
 		multivalueType.setEnabled(false);
-		requiredField.setEnabled(false);
 		enabledField.setEnabled(false);
-		searchableField.setEnabled(false);
-		advancedSearchField.setEnabled(false);
 		highlight.setEnabled(false);
 		autocomplete.setEnabled(false);
 		duplicableField.setEnabled(false);
 		inputMask.setEnabled(false);
 		defaultValueField.setEnabled(false);
+
+		if (!formMetadataVO.getLocalcode().equals(Schemas.LEGACY_ID.getLocalCode())) {
+			requiredField.setEnabled(false);
+			searchableField.setEnabled(false);
+			advancedSearchField.setEnabled(false);
+		}
 	}
 }

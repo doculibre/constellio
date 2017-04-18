@@ -28,6 +28,8 @@ public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 	}
 
 	private static class RecordAutocompleteSuggestionsProvider implements AutocompleteSuggestionsProvider<String> {
+		
+		private static final int BUFFER_SIZE = 100;
 
 		private RecordTextInputDataProvider suggestionsProvider;
 
@@ -40,7 +42,12 @@ public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 
 		@Override
 		public List<String> suggest(String text) {
-			return suggestionsProvider.getData(text, 0, 10);
+			return suggestionsProvider.getData(text, 0, BUFFER_SIZE);
+		}
+
+		@Override
+		public int getBufferSize() {
+			return BUFFER_SIZE;
 		}
 
 	}

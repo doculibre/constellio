@@ -1,23 +1,13 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
+import com.constellio.model.entities.schemas.Metadata;
 
 import java.util.List;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDate;
-
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
 
 public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependency {
 
@@ -28,9 +18,6 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 			Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES,
 			Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES,
 			Folder.COPY_RULES_EXPECTED_TRANSFER_DATES,
-			Folder.OPENING_DATE,
-			Folder.CLOSING_DATE,
-			Folder.ENTERED_CLOSING_DATE,
 			Folder.DECOMMISSIONING_DATE,
 			Folder.ACTUAL_DEPOSIT_DATE,
 			Folder.ACTUAL_DEPOSIT_DATE,

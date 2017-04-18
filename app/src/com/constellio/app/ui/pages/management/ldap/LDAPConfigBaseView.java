@@ -68,7 +68,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 
 	@Override
 	public void updateComponents() {
-
 	}
 
 	protected Field createStringField(String value, boolean required) {

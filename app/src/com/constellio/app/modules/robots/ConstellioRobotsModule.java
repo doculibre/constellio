@@ -10,7 +10,9 @@ import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
+import com.constellio.app.modules.robots.extensions.RobotSystemCheckExtension;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationCombo;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_2;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_3;
@@ -62,6 +64,7 @@ public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWi
 		RobotsManager robotsManager = robotSchemas.getRobotsManager();
 
 		RunExtractorsActionExecutor.registerIn(robotsManager);
+		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 
 	@Override
@@ -107,9 +110,17 @@ public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWi
 	@Override
 	public void start(AppLayerFactory appLayerFactory) {
 		RobotsNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+
+
 	}
 
-	@Override
+
+	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		extensions.systemCheckExtensions.add(new RobotSystemCheckExtension(collection, appLayerFactory));
+	}
+
+		@Override
 	public void stop(AppLayerFactory appLayerFactory) {
 
 	}

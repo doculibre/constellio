@@ -173,7 +173,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 	private void addButtons(final UserCredentialVODataProvider provider, ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -186,7 +186,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				final UserCredentialVO entity = getUserCredentialVO((Integer) itemId, provider);
 				Button editButton = new EditButton() {
 					@Override

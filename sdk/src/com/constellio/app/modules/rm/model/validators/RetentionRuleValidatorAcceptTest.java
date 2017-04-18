@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.model.validators;
 import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.MUST_SPECIFY_ADMINISTRATIVE_UNITS_XOR_RESPONSIBLES_FLAG;
 import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.NO_ADMINISTRATIVE_UNITS_OR_RESPONSIBLES_FLAG;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.validation.RecordMetadataValidator.METADATA_CODE;
 import static com.constellio.sdk.tests.TestUtils.englishMessage;
 import static com.constellio.sdk.tests.TestUtils.englishMessages;
@@ -21,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.assertj.core.api.Condition;
 import org.junit.Before;
@@ -37,7 +35,6 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -46,7 +43,6 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.TestUtils;
 
 public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
@@ -284,7 +280,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		parameters.put("errorType", "required");
 		parameters.put("metadata", RetentionRule.COPY_RETENTION_RULES);
 		assertThat(frenchMessage(key, parameters)).isEqualTo(
-				"Le champ «Inactif» de l'exemplaire à la position 2 est requis.");
+				"Le champ «I» de l'exemplaire à la position 2 est requis.");
 		assertThat(englishMessage(key, parameters)).isEqualTo(
 				"Field 'Inactive' of copy at index 2 is required.");
 
@@ -296,7 +292,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		parameters.put("errorType", "invalid");
 		parameters.put("metadata", RetentionRule.COPY_RETENTION_RULES);
 		assertThat(frenchMessage(key, parameters)).isEqualTo(
-				"La valeur «*» du champ «Semi-actif» de l'exemplaire à la position 3 est invalide.");
+				"La valeur «*» du champ «SA» de l'exemplaire à la position 3 est invalide.");
 		assertThat(englishMessage(key, parameters)).isEqualTo(
 				"Value '*' of field 'Semi-active' of copy at index 3 is invalid.");
 
@@ -308,7 +304,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		parameters.put("errorType", "invalid");
 		parameters.put("metadata", RetentionRule.COPY_RETENTION_RULES);
 		assertThat(frenchMessage(key, parameters)).isEqualTo(
-				"La valeur «-1» du champ «Semi-actif» de l'exemplaire «Ze code» est invalide.");
+				"La valeur «-1» du champ «SA» de l'exemplaire «Ze code» est invalide.");
 		assertThat(englishMessage(key, parameters)).isEqualTo(
 				"Value '-1' of field 'Semi-active' of copy 'Ze code' is invalid.");
 
@@ -320,7 +316,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		parameters.put("errorType", "invalid");
 		parameters.put("metadata", RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
 		assertThat(frenchMessage(key, parameters)).isEqualTo(
-				"La valeur «-1» du champ «Semi-actif» de l'exemplaire principal par défaut pour documents est invalide.");
+				"La valeur «-1» du champ «SA» de l'exemplaire principal par défaut pour documents est invalide.");
 		assertThat(englishMessage(key, parameters)).isEqualTo(
 				"Value '-1' of field 'Semi-active' of default principal document copy is invalid.");
 
@@ -331,7 +327,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		parameters.put("errorType", "required");
 		parameters.put("metadata", RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
 		assertThat(frenchMessage(key, parameters)).isEqualTo(
-				"Le champ «Actif» de l'exemplaire secondaire pour documents est requis.");
+				"Le champ «A» de l'exemplaire secondaire pour documents est requis.");
 		assertThat(englishMessage(key, parameters)).isEqualTo(
 				"Field 'Active' of secondary document copy is required.");
 
@@ -500,8 +496,8 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 								null, "required", "copyRetentionRules")
 				);
 
-		assertThat(frenchMessages(errors)).containsOnly("Le champ «Inactif» de l'exemplaire «Copy3» est requis.",
-				"Le champ «Inactif» de l'exemplaire «Copy2» est requis.");
+		assertThat(frenchMessages(errors)).containsOnly("Le champ «I» de l'exemplaire «Copy3» est requis.",
+				"Le champ «I» de l'exemplaire «Copy2» est requis.");
 
 	}
 
