@@ -218,6 +218,9 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public RecordVO getLinkedRecordVO(RecordVO eventVO) {
 		String recordId = eventVO.get(Event.RECORD_ID);
+		if(recordId == null) {
+			return null;
+		}
 		Record linkedRecord = recordServices().getDocumentById(recordId);
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		return voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
@@ -227,6 +230,9 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		String eventId = eventVO.get(Event.RECORD_ID);
 		Record linkedRecord = recordServices().getDocumentById(eventId);
 		String linkedRecordId = linkedRecord.getId();
+		if(linkedRecordId == null) {
+			return ;
+		}
 		try {
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
 				view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);

@@ -72,17 +72,17 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
         BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 1000);
 
-        while (batchIterator.hasNext()) {
-            Transaction transaction = new Transaction();
-            transaction.addAll(batchIterator.next());
-            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-            try {
-                recordServices.execute(transaction);
-            } catch (RecordServicesException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
-            }
-        }
+//        while (batchIterator.hasNext()) {
+//            Transaction transaction = new Transaction();
+//            transaction.addAll(batchIterator.next());
+//            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+//            try {
+//                recordServices.execute(transaction);
+//            } catch (RecordServicesException e) {
+//                e.printStackTrace();
+//                throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
+//            }
+//        }
 
         new SchemaAlterationFor7_2_step1(collection, migrationResourcesProvider, appLayerFactory).migrate();
         new SchemaAlterationFor7_2_step2(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -96,17 +96,17 @@ public class RMMigrationTo7_2 implements MigrationScript {
             category.setDescription(descriptions.get(category.getId()));
         }
 
-        while (batchIterator.hasNext()) {
-            Transaction transaction = new Transaction();
-            transaction.addAll(batchIterator.next());
-            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-            try {
-                recordServices.execute(transaction);
-            } catch (RecordServicesException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
-            }
-        }
+//        while (batchIterator.hasNext()) {
+//            Transaction transaction = new Transaction();
+//            transaction.addAll(batchIterator.next());
+//            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+//            try {
+//                recordServices.execute(transaction);
+//            } catch (RecordServicesException e) {
+//                e.printStackTrace();
+//                throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
+//            }
+//        }
 
         migrateSearchableSchemaTypes(collection, migrationResourcesProvider, appLayerFactory);
         updateNewPermissions(appLayerFactory, collection);

@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -13,6 +9,9 @@ import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Map;
 
 public class EventImportExtension extends RecordImportExtension {
 
@@ -45,20 +44,47 @@ public class EventImportExtension extends RecordImportExtension {
 		if (event.getRecordId() != null) {
 			if (event.getType().toLowerCase().contains(Folder.SCHEMA_TYPE.toLowerCase())) {
 				Folder folder = rm.getFolderWithLegacyId(event.getRecordId());
-				event.setRecordId(folder.getId());
-				event.setTitle(folder.getTitle());
+				if(folder == null) {
+					try {
+						folder = rm.getFolder(event.getRecordId());
+					} catch (Exception e) {
+						event.setRecordId(null);
+					}
+				}
+				if(folder != null) {
+					event.setRecordId(folder.getId());
+					event.setTitle(folder.getTitle());
+				}
 			}
 
 			if (event.getType().toLowerCase().contains(Document.SCHEMA_TYPE.toLowerCase())) {
 				Document document = rm.getDocumentByLegacyId(event.getRecordId());
-				event.setRecordId(document.getId());
-				event.setTitle(document.getTitle());
+				if(document == null) {
+					try {
+						document = rm.getDocument(event.getRecordId());
+					} catch (Exception e) {
+						event.setRecordId(null);
+					}
+				}
+				if(document != null) {
+					event.setRecordId(document.getId());
+					event.setTitle(document.getTitle());
+				}
 			}
 
 			if (event.getType().toLowerCase().contains(ContainerRecord.SCHEMA_TYPE.toLowerCase())) {
 				ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(event.getRecordId());
-				event.setRecordId(containerRecord.getId());
-				event.setTitle(containerRecord.getTitle());
+				if(containerRecord == null) {
+					try {
+						containerRecord = rm.getContainerRecord(event.getRecordId());
+					} catch (Exception e) {
+						event.setRecordId(null);
+					}
+				}
+				if(containerRecord != null) {
+					event.setRecordId(containerRecord.getId());
+					event.setTitle(containerRecord.getTitle());
+				}
 			}
 		}
 	}

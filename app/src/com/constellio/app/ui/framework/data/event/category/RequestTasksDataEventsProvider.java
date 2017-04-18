@@ -99,26 +99,26 @@ public class RequestTasksDataEventsProvider extends AbstractDataProvider impleme
 
         EventStatistics acceptedRequest = new EventStatistics();
         acceptedRequest.setLabel($("ListEventsView.borrowRequestFolder"));
-        LogicalSearchQuery query = rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.BORROW_REQUEST_FOLDER, this.startDate, this.endDate);
+        LogicalSearchQuery query = rmSchemasRecordsServices.andWhereRecordIdIsNotNull(rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.BORROW_REQUEST_FOLDER, this.startDate, this.endDate));
         acceptedRequest.setValue((float) searchServices.getResultsCount(query));
         events.add(acceptedRequest);
 
         EventStatistics refusedRequest = new EventStatistics();
         refusedRequest.setLabel($("ListEventsView.returnRequestFolder"));
-        query = rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.RETURN_REQUEST_FOLDER, this.startDate, this.endDate);
+        query = rmSchemasRecordsServices.andWhereRecordIdIsNotNull(rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.RETURN_REQUEST_FOLDER, this.startDate, this.endDate));
         refusedRequest.setValue((float) searchServices.getResultsCount(query));
         events.add(refusedRequest);
 
         EventStatistics timeExtension = new EventStatistics();
         timeExtension.setLabel($("ListEventsView.reactivationRequestFolder"));
-        query = rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.REACTIVATION_REQUEST_FOLDER, this.startDate, this.endDate);
+        query = rmSchemasRecordsServices.andWhereRecordIdIsNotNull(rmSchemasRecordsServices.newFindEventByDateRangeQuery(currentUser, EventType.REACTIVATION_REQUEST_FOLDER, this.startDate, this.endDate));
         timeExtension.setValue((float) searchServices.getResultsCount(query));
         events.add(timeExtension);
 
         EventStatistics folderReactivation = new EventStatistics();
         folderReactivation.setLabel($("ListEventsView.borrowExtensionRequestFolder"));
-        query = rmSchemasRecordsServices
-                .newFindEventByDateRangeQuery(currentUser, EventType.BORROW_EXTENSION_REQUEST_FOLDER, startDate, endDate);
+        query = rmSchemasRecordsServices.andWhereRecordIdIsNotNull(rmSchemasRecordsServices
+                .newFindEventByDateRangeQuery(currentUser, EventType.BORROW_EXTENSION_REQUEST_FOLDER, startDate, endDate));
         folderReactivation.setValue((float) searchServices.getResultsCount(query));
         events.add(folderReactivation);
 
