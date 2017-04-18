@@ -19,6 +19,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
@@ -174,7 +175,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (createPDFAButtonVisible) {
 			ContextMenuItem createPDFAItem = addItem($("DocumentActionsComponent.createPDFA"));
-			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener() {
+			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.STOP) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmCreatePDFA");

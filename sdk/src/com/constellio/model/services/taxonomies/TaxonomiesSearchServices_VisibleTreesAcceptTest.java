@@ -11,9 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.common.params.SolrParams;
@@ -778,14 +776,14 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(50)).has(listSize(20))
+				.has(numFound(100)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(20).setFastContinueInfos(null))
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(50)).has(listSize(20))
+				.has(numFound(100)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
@@ -793,7 +791,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(60)).has(listSize(20))
+				.has(numFound(110)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
@@ -802,7 +800,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
 						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(60)).has(listSize(20))
+				.has(numFound(110)).has(listSize(20))
 				.has(fastContinuationInfos(false, 31));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -811,7 +809,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 						"category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(50)).has(listSize(30))
+				.has(numFound(100)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)

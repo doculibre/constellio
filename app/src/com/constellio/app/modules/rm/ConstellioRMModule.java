@@ -29,6 +29,7 @@ import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -287,13 +288,16 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				authsIterator.next();
 			}
 		}
-		cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(
-				rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-						.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
 
+		if (Toggle.CACHES_ENABLED.isEnabled()) {
+			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(
+					rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+							.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
+
+		}
 	}
 
 	@Override
