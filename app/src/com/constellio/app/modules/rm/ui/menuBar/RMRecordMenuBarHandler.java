@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.menuBar;
 
-import java.io.IOException;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.menuBar.DocumentMenuBarImpl;
@@ -19,6 +17,8 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.MenuBar;
+
+import java.io.IOException;
 
 public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 	
@@ -80,6 +80,9 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 				document = rm.getDocument(id);
 			} else {
 				Event event = rm.getEvent(id);
+				if(event.getRecordId() == null) {
+					return null;
+				}
 				Record eventRecord = rm.get(event.getRecordId());
 				String eventRecordSchemaType = SchemaUtils.getSchemaTypeCode(eventRecord.getSchemaCode());
 				if (Document.SCHEMA_TYPE.equals(eventRecordSchemaType)) {

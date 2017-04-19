@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -14,8 +8,17 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FolderRuleImportExtension extends RecordImportExtension {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(FolderRuleImportExtension.class);
 
 	RMSchemasRecordsServices rm;
 
@@ -35,6 +38,25 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 		ajustCreationModificationDates(fields, folder);
 		setEnteredMainCopyId(folder);
 		ajusteManualDepositAndDestructionDates(folder);
+		adjustContainer(folder);
+	}
+
+	private void adjustContainer(Folder folder) {
+//		if(folder.getContainer() != null) {
+//			ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(folder.getContainer());
+//			if(containerRecord == null) {
+//				try {
+//					containerRecord = rm.getContainerRecord(folder.getContainer());
+//				} catch (Exception e) {
+//					LOGGER.error("Could not find container " + folder.getContainer() + " for folder with legacy id " + folder.getLegacyId());
+//					containerRecord = null;
+//					folder.setContainer((String) null);
+//				}
+//			}
+//			if(containerRecord != null) {
+//				folder.setContainer(containerRecord.getId());
+//			}
+//		}
 	}
 
 	private void ajusteManualDepositAndDestructionDates(Folder folder) {

@@ -66,7 +66,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			protected RecordVO getRecordVOForTitleColumn(Item item) {
 				if (isRecordEvent) {
 					RecordVO eventVO = ((RecordVOItem) item).getRecord();
-					return presenter.getLinkedRecordVO(eventVO);
+					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(eventVO);
+					return linkedRecordVO == null? super.getRecordVOForTitleColumn(item): linkedRecordVO;
 				} else {
 					return super.getRecordVOForTitleColumn(item);
 				}

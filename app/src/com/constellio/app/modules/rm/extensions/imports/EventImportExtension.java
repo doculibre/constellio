@@ -10,12 +10,15 @@ import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 public class EventImportExtension extends RecordImportExtension {
 
 	public static final String TYPE_REQUIRED = "typeRequired";
+	private static final Logger LOGGER = LoggerFactory.getLogger(EventImportExtension.class);
 
 	RMSchemasRecordsServices rm;
 
@@ -48,6 +51,7 @@ public class EventImportExtension extends RecordImportExtension {
 					try {
 						folder = rm.getFolder(event.getRecordId());
 					} catch (Exception e) {
+						LOGGER.error("Could not find folder " + event.getRecordId() + " for event " + event.getLegacyId());
 						event.setRecordId(null);
 					}
 				}
@@ -63,6 +67,7 @@ public class EventImportExtension extends RecordImportExtension {
 					try {
 						document = rm.getDocument(event.getRecordId());
 					} catch (Exception e) {
+						LOGGER.error("Could not find document " + event.getRecordId() + " for event " + event.getLegacyId());
 						event.setRecordId(null);
 					}
 				}
@@ -78,6 +83,7 @@ public class EventImportExtension extends RecordImportExtension {
 					try {
 						containerRecord = rm.getContainerRecord(event.getRecordId());
 					} catch (Exception e) {
+						LOGGER.error("Could not find container " + event.getRecordId() + " for event " + event.getLegacyId());
 						event.setRecordId(null);
 					}
 				}
