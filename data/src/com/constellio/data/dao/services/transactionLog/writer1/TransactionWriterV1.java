@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.solr.common.SolrDocumentBase;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -84,7 +83,7 @@ public class TransactionWriterV1 {
 		}
 	}
 
-	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrDocumentBase document) {
+	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
 		String id = (String) document.getFieldValue("id");
 		Object version = document.getFieldValue("_version_");
 

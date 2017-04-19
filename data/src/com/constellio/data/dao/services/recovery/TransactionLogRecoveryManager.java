@@ -362,7 +362,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 			QueryResponse response = null;
 			try {
 				response = server.query(solrParams);
-			} catch (IOException | SolrServerException e) {
+			} catch (SolrServerException e) {
 				throw new RuntimeException(e);
 			}
 			SolrDocumentList result = response.getResults();
