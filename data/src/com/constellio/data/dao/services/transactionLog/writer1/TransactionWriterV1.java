@@ -104,9 +104,7 @@ public class TransactionWriterV1 {
 		stringBuilder.append(" ");
 		stringBuilder.append(version == null ? "-1" : version);
 		stringBuilder.append("\n");
-
-		Collection<String> fieldNames = document.getFieldNames();
-		for (String name : fieldNames) {
+		for (String name : document.getFieldNames()) {
 			if (!name.equals("id") && !name.equals("_version_") && isLogged(name, schema_s, collection_s)) {
 				Collection<Object> value = removeEmptyStrings(document.getFieldValues(name));
 
@@ -197,10 +195,10 @@ public class TransactionWriterV1 {
 
 		} else if (value instanceof Date) {
 			LocalDateTime dateTime = new LocalDateTime(value);
-			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement("")) + "Z";
+			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("")) + "Z";
+			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else {
 			return lineFeedPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("__LINEBREAK__"));
