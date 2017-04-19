@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.reports.model.decommissioning;
 
+import com.constellio.data.io.streamFactories.StreamFactory;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.constellio.data.io.streamFactories.StreamFactory;
 
 public class DocumentReportModel {
 
@@ -144,7 +144,9 @@ public class DocumentReportModel {
 	}
 
 	public static class DocumentTransfertModel_Identification {
-		private String sentDate;
+		private String sentDateTransfer;
+
+		private String sentDateDeposit;
 
 		private String boxNumber;
 
@@ -162,9 +164,7 @@ public class DocumentReportModel {
 
 		private String email;
 
-		public String getSentDate() {
-			return sentDate;
-		}
+		private String ministryName;
 
 		public String getBoxNumber() {
 			return boxNumber;
@@ -196,11 +196,6 @@ public class DocumentReportModel {
 
 		public String getEmail() {
 			return email;
-		}
-
-		public DocumentTransfertModel_Identification setSentDate(String sentDate) {
-			this.sentDate = sentDate;
-			return this;
 		}
 
 		public DocumentTransfertModel_Identification setBoxNumber(String boxNumber) {
@@ -240,6 +235,33 @@ public class DocumentReportModel {
 
 		public DocumentTransfertModel_Identification setEmail(String email) {
 			this.email = email;
+			return this;
+		}
+
+		public String getMinistryName() {
+			return ministryName;
+		}
+
+		public DocumentTransfertModel_Identification setMinistryName(String ministryName) {
+			this.ministryName = ministryName;
+			return this;
+		}
+
+		public String getSentDateTransfer() {
+			return sentDateTransfer;
+		}
+
+		public DocumentTransfertModel_Identification setSentDateTransfer(String sentDateTransfer) {
+			this.sentDateTransfer = sentDateTransfer;
+			return this;
+		}
+
+		public String getSentDateDeposit() {
+			return sentDateDeposit;
+		}
+
+		public DocumentTransfertModel_Identification setSentDateDeposit(String sentDateDeposit) {
+			this.sentDateDeposit = sentDateDeposit;
 			return this;
 		}
 	}

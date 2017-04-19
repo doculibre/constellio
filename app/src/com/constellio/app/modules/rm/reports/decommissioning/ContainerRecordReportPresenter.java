@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.reports.decommissioning;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.services.factories.AppLayerFactory;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -23,6 +16,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -30,12 +24,16 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContainerRecordReportPresenter {
 
@@ -231,7 +229,7 @@ public class ContainerRecordReportPresenter {
 				RetentionRule retentionRule = rm.getRetentionRule(uniformRuleId);
 
 				if (retentionRule != null) {
-					calendarNumber = retentionRule.getCode();
+					ruleNumber = retentionRule.getCode();
 				}
 			}
 
@@ -327,34 +325,45 @@ public class ContainerRecordReportPresenter {
 		String administrativeAddress = "";
 		String boxNumber = "";
 		String organisationName = "";
+		String ministryName = "";
 		String publicOrganisationNumber = "";
-		String sentDate = "";
+		String sentDateTransfer = "";
+		String sentDateDeposit = "";
 
 		if (container != null) {
 			String administrativeUnitId = container.getAdministrativeUnit();
 			AdministrativeUnit administrativeUnit = getAdministrativeUnitAddress(administrativeUnitId);
+
 			if (administrativeUnit != null) {
 				administrativeAddress = StringUtils.defaultString(administrativeUnit.getAdress());
+				ministryName += administrativeUnit.getCode() + "-" + administrativeUnit.getTitle();
 			}
 
-			boxNumber = container.getTitle();
+			boxNumber = container.getTemporaryIdentifier();
 
 			buildUserPart(container, identificationModel);
 
-			organisationName = EMPTY_FOR_NOW;
+			organisationName = rm.getCollection(collection).getTitle();
 			publicOrganisationNumber = EMPTY_FOR_NOW;
 
-			LocalDate realTransferDate = container.getRealTransferDate();
-			if (realTransferDate != null) {
-				sentDate = StringUtils.defaultString(realTransferDate.toString());
+			LocalDate firstTransferReportDate = container.getFirstTransferReportDate();
+			if (firstTransferReportDate != null) {
+				sentDateTransfer = StringUtils.defaultString(firstTransferReportDate.toString());
+			}
+
+			LocalDate firstDepositReportDate = container.getFirstDepositReportDate();
+			if (firstDepositReportDate != null) {
+				sentDateDeposit = StringUtils.defaultString(firstDepositReportDate.toString());
 			}
 		}
 
 		identificationModel.setAdministrationAddress(administrativeAddress);
 		identificationModel.setBoxNumber(boxNumber);
 		identificationModel.setOrganisationName(organisationName);
+		identificationModel.setMinistryName(ministryName);
 		identificationModel.setPublicOrganisationNumber(publicOrganisationNumber);
-		identificationModel.setSentDate(sentDate);
+		identificationModel.setSentDateTransfer(sentDateTransfer);
+		identificationModel.setSentDateTransfer(sentDateDeposit);
 
 		return identificationModel;
 	}

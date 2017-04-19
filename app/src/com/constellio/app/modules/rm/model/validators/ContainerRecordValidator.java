@@ -16,11 +16,15 @@ public class ContainerRecordValidator implements RecordValidator {
 
 	public static final String CONTAINER_CAPACITY_MUST_BE_GREATER_OR_EQUAL_TO_LINEAR_SIZE = "containerCapacityMustBeGreaterOrEqualToLinearSize";
 	public static final String STORAGE_SPACE_CANNOT_CONTAIN_THIS_TYPE_OF_CONTAINER = "storageSpaceCannotContainThisTypeOfContainer";
+	public static final String FIRST_TRANSFER_REPORT_DATE_CANNOT_BE_EDITED = "firstTransferReportDateCannotBeEdited";
+	public static final String FIRST_DEPOSIT_REPORT_DATE_CANNOT_BE_EDITED = "firstDepositReportDateCannotBeEdited";
 	public static final String CAPACITY = "capacity";
 	public static final String LINEAR_SIZE = "linearSize";
 	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";
 	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
 	public static final String STORAGE_SPACE = "storageSpace";
+	public static final String FIRST_TRANSFER_REPORT_DATE = "firstTransferReportDate";
+	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
 
 	@Override
 	public void validate(RecordValidatorParams params) {
@@ -49,6 +53,22 @@ public class ContainerRecordValidator implements RecordValidator {
 
 				params.getValidationErrors().add(ContainerRecordValidator.class, STORAGE_SPACE_CANNOT_CONTAIN_THIS_TYPE_OF_CONTAINER, parameters);
 			}
+		}
+
+		Object originalFirstTransferReportDate = container.getOriginal(ContainerRecord.FIRST_TRANSFER_REPORT_DATE);
+		if(originalFirstTransferReportDate != null && !originalFirstTransferReportDate.equals(container.getFirstTransferReportDate())) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(FIRST_TRANSFER_REPORT_DATE, formatToParameter(container.getFirstTransferReportDate()));
+
+			params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_TRANSFER_REPORT_DATE_CANNOT_BE_EDITED, parameters);
+		}
+
+		Object originalFirstDepositReportDate = container.getOriginal(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE);
+		if(originalFirstDepositReportDate != null && !originalFirstDepositReportDate.equals(container.getFirstDepositReportDate())) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(FIRST_DEPOSIT_REPORT_DATE, formatToParameter(container.getFirstDepositReportDate()));
+
+			params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_DEPOSIT_REPORT_DATE_CANNOT_BE_EDITED, parameters);
 		}
 	}
 
