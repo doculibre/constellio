@@ -236,8 +236,6 @@ public class ContainerRecordReportPresenter {
 				}
 			}
 
-			ruleNumber = EMPTY_FOR_NOW;
-
 			if (folders != null) {
 				quantity = Integer.toString(folders.size());
 			}
