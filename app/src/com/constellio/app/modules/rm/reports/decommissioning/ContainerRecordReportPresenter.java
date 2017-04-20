@@ -143,6 +143,7 @@ public class ContainerRecordReportPresenter {
 		DocumentTransfertModel_Document document = new DocumentTransfertModel_Document();
 
 		String categoryCode = "";
+		String adminUnitCode = "";
 		String delayNumber = "";
 		String startingYear = "";
 		String endingYear = "";
@@ -151,6 +152,7 @@ public class ContainerRecordReportPresenter {
 
 		if (folder != null) {
 			categoryCode = StringUtils.defaultString(folder.getCategoryCode());
+			adminUnitCode = StringUtils.defaultString(folder.getAdministrativeUnitCode());
 
 			String ruleId = folder.getRetentionRule();
 
@@ -178,6 +180,7 @@ public class ContainerRecordReportPresenter {
 		}
 
 		document.setCode(categoryCode);
+		document.setUnit(adminUnitCode);
 		document.setDelayNumber(delayNumber);
 		document.setStartingYear(startingYear);
 		document.setEndingYear(endingYear);

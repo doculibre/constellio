@@ -281,6 +281,8 @@ public class DocumentReportModel {
 
 		private String code;
 
+		private String unit;
+
 		private String delayNumber;
 
 		private String referenceId;
@@ -353,6 +355,15 @@ public class DocumentReportModel {
 
 		public DocumentTransfertModel_Document setRestrictionYear(String restrictionYear) {
 			this.restrictionYear = restrictionYear;
+			return this;
+		}
+
+		public String getUnit() {
+			return unit;
+		}
+
+		public DocumentTransfertModel_Document setUnit(String unit) {
+			this.unit = unit;
 			return this;
 		}
 	}
