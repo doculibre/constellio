@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
@@ -7,6 +8,7 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -364,23 +366,40 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 //		actionMenuButtons.add(addDocumentButton);
 //		actionMenuButtons.add(addSubFolderButton);
+
+		boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
+				&& ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+
 		actionMenuButtons.add(editFolderButton);
-		actionMenuButtons.add(moveInFolderButton);
-		actionMenuButtons.add(deleteFolderButton);
-		actionMenuButtons.add(duplicateFolderButton);
-		actionMenuButtons.add(linkToFolderButton);
-		actionMenuButtons.add(addAuthorizationButton);
-		actionMenuButtons.add(shareFolderButton);
-		if (presenter.hasCurrentUserPermissionToUseCart()) {
-			actionMenuButtons.add(addToCartButton);
+
+		if(!isAFolderAndDestroyed)
+		{
+			actionMenuButtons.add(moveInFolderButton);
+			actionMenuButtons.add(deleteFolderButton);
+			actionMenuButtons.add(duplicateFolderButton);
+			actionMenuButtons.add(linkToFolderButton);
+			actionMenuButtons.add(addAuthorizationButton);
+			actionMenuButtons.add(shareFolderButton);
+			if (presenter.hasCurrentUserPermissionToUseCart()) {
+				actionMenuButtons.add(addToCartButton);
+			}
 		}
+
 		actionMenuButtons.add(addToOrRemoveFromSelectionButton);
-		actionMenuButtons.add(printLabelButton);
-		actionMenuButtons.add(borrowButton);
-		actionMenuButtons.add(returnFolderButton);
-		actionMenuButtons.add(reminderReturnFolderButton);
-		actionMenuButtons.add(alertWhenAvailableButton);
-		if (presenter.hasPermissionToStartWorkflow()) {
+
+		if(!isAFolderAndDestroyed) {
+			actionMenuButtons.add(printLabelButton);
+			actionMenuButtons.add(borrowButton);
+		}
+			actionMenuButtons.add(returnFolderButton);
+		    actionMenuButtons.add(reminderReturnFolderButton);
+
+		if(!isAFolderAndDestroyed) {
+
+			actionMenuButtons.add(alertWhenAvailableButton);
+		}
+
+		if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
 			actionMenuButtons.add(startWorkflowButton);
 		}
 
@@ -458,7 +477,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
 		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
-		
+
 		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
 		container.addButton(new ContainerButton() {
 			@Override
