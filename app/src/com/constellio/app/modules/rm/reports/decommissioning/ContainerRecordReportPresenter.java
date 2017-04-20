@@ -341,7 +341,7 @@ public class ContainerRecordReportPresenter {
 			List<String> administrativeUnits = container.getAdministrativeUnits();
 			if (administrativeUnit != null && (administrativeUnits == null || administrativeUnits.isEmpty())) {
 				ministryName = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle();
-				administrativeAddress = StringUtils.defaultString(administrativeUnit.getAdress()) + "\n" + ministryName;
+				administrativeAddress = ministryName + "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
 			} else if(administrativeUnits != null && !administrativeUnits.isEmpty()) {
 				administrativeAddress = $("DocumentTransfertReport.multipleAdministrativeUnits");
 				ministryName= "";
