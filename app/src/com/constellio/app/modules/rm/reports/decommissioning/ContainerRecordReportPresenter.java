@@ -33,6 +33,8 @@ import org.joda.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ContainerRecordReportPresenter {
 
 	private String EMPTY_FOR_NOW = "";
@@ -335,9 +337,13 @@ public class ContainerRecordReportPresenter {
 			String administrativeUnitId = container.getAdministrativeUnit();
 			AdministrativeUnit administrativeUnit = getAdministrativeUnitAddress(administrativeUnitId);
 
-			if (administrativeUnit != null) {
+			List<String> administrativeUnits = container.getAdministrativeUnits();
+			if (administrativeUnit != null && (administrativeUnits == null || administrativeUnits.isEmpty())) {
 				administrativeAddress = StringUtils.defaultString(administrativeUnit.getAdress());
-				ministryName += administrativeUnit.getCode() + " - " + administrativeUnit.getTitle();
+				ministryName = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle();
+			} else if(administrativeUnits != null && !administrativeUnits.isEmpty()) {
+				administrativeAddress = $("DocumentTransfertReport.multipleAdministrativeUnits");
+				ministryName= "";
 			}
 
 			containerNumber = container.getIdentifier();
