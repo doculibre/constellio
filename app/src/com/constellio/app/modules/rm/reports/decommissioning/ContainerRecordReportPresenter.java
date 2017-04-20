@@ -324,6 +324,7 @@ public class ContainerRecordReportPresenter {
 
 		String administrativeAddress = "";
 		String boxNumber = "";
+		String containerNumber = "";
 		String organisationName = "";
 		String ministryName = "";
 		String publicOrganisationNumber = "";
@@ -336,9 +337,10 @@ public class ContainerRecordReportPresenter {
 
 			if (administrativeUnit != null) {
 				administrativeAddress = StringUtils.defaultString(administrativeUnit.getAdress());
-				ministryName += administrativeUnit.getCode() + "-" + administrativeUnit.getTitle();
+				ministryName += administrativeUnit.getCode() + " - " + administrativeUnit.getTitle();
 			}
 
+			containerNumber = container.getIdentifier();
 			boxNumber = container.getTemporaryIdentifier();
 
 			buildUserPart(container, identificationModel);
@@ -349,21 +351,26 @@ public class ContainerRecordReportPresenter {
 			LocalDate firstTransferReportDate = container.getFirstTransferReportDate();
 			if (firstTransferReportDate != null) {
 				sentDateTransfer = StringUtils.defaultString(firstTransferReportDate.toString());
+			} else {
+				sentDateTransfer = StringUtils.defaultString(LocalDate.now().toString());
 			}
 
 			LocalDate firstDepositReportDate = container.getFirstDepositReportDate();
 			if (firstDepositReportDate != null) {
 				sentDateDeposit = StringUtils.defaultString(firstDepositReportDate.toString());
+			} else {
+				sentDateDeposit = StringUtils.defaultString(LocalDate.now().toString());
 			}
 		}
 
 		identificationModel.setAdministrationAddress(administrativeAddress);
 		identificationModel.setBoxNumber(boxNumber);
+		identificationModel.setContainerNumber(containerNumber);
 		identificationModel.setOrganisationName(organisationName);
 		identificationModel.setMinistryName(ministryName);
 		identificationModel.setPublicOrganisationNumber(publicOrganisationNumber);
 		identificationModel.setSentDateTransfer(sentDateTransfer);
-		identificationModel.setSentDateTransfer(sentDateDeposit);
+		identificationModel.setSentDateDeposit(sentDateDeposit);
 
 		return identificationModel;
 	}

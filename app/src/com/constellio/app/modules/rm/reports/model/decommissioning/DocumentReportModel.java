@@ -150,6 +150,8 @@ public class DocumentReportModel {
 
 		private String boxNumber;
 
+		private String containerNumber;
+
 		private String organisationName;
 
 		private String publicOrganisationNumber;
@@ -262,6 +264,15 @@ public class DocumentReportModel {
 
 		public DocumentTransfertModel_Identification setSentDateDeposit(String sentDateDeposit) {
 			this.sentDateDeposit = sentDateDeposit;
+			return this;
+		}
+
+		public String getContainerNumber() {
+			return containerNumber;
+		}
+
+		public DocumentTransfertModel_Identification setContainerNumber(String containerNumber) {
+			this.containerNumber = containerNumber;
 			return this;
 		}
 	}

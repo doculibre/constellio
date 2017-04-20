@@ -55,20 +55,22 @@ public class ContainerRecordValidator implements RecordValidator {
 			}
 		}
 
-		Object originalFirstTransferReportDate = container.getOriginal(ContainerRecord.FIRST_TRANSFER_REPORT_DATE);
-		if(originalFirstTransferReportDate != null && !originalFirstTransferReportDate.equals(container.getFirstTransferReportDate())) {
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put(FIRST_TRANSFER_REPORT_DATE, formatToParameter(container.getFirstTransferReportDate()));
+		if(container.getWrappedRecord().isSaved()) {
+			Object originalFirstTransferReportDate = container.getOriginal(ContainerRecord.FIRST_TRANSFER_REPORT_DATE);
+			if(originalFirstTransferReportDate != null && !originalFirstTransferReportDate.equals(container.getFirstTransferReportDate())) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put(FIRST_TRANSFER_REPORT_DATE, formatToParameter(container.getFirstTransferReportDate()));
 
-			params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_TRANSFER_REPORT_DATE_CANNOT_BE_EDITED, parameters);
-		}
+				params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_TRANSFER_REPORT_DATE_CANNOT_BE_EDITED, parameters);
+			}
 
-		Object originalFirstDepositReportDate = container.getOriginal(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE);
-		if(originalFirstDepositReportDate != null && !originalFirstDepositReportDate.equals(container.getFirstDepositReportDate())) {
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put(FIRST_DEPOSIT_REPORT_DATE, formatToParameter(container.getFirstDepositReportDate()));
+			Object originalFirstDepositReportDate = container.getOriginal(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE);
+			if(originalFirstDepositReportDate != null && !originalFirstDepositReportDate.equals(container.getFirstDepositReportDate())) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put(FIRST_DEPOSIT_REPORT_DATE, formatToParameter(container.getFirstDepositReportDate()));
 
-			params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_DEPOSIT_REPORT_DATE_CANNOT_BE_EDITED, parameters);
+				params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_DEPOSIT_REPORT_DATE_CANNOT_BE_EDITED, parameters);
+			}
 		}
 	}
 
