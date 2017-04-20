@@ -1,9 +1,6 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -18,6 +15,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCollectionView {
 	public static final String CODE_FIELD_STYLE = "seleniumCodeFieldStyle";
 	public static final String NAME_FIELD_STYLE = "seleniumNameFieldStyle";
@@ -30,6 +31,10 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 	private TextField code;
 	@PropertyId("name")
 	private TextField name;
+	@PropertyId("conservationCalendarNumber")
+	private TextField conservationCalendarNumber;
+	@PropertyId("organizationNumber")
+	private TextField organizationNumber;
 	@PropertyId("modules")
 	private OptionGroup modules;
 	@PropertyId("supportedLanguages")
@@ -90,6 +95,16 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 		name.addStyleName("name");
 		name.addStyleName("name-" + collectionVO.getName());
 
+		organizationNumber = new TextField($("AddEditCollectionView.organizationNumber"));
+		organizationNumber.setNullRepresentation("");
+		organizationNumber.setId("organizationNumber");
+		organizationNumber.setVisible(collectionVO.getModules() != null && collectionVO.getModules().contains(ConstellioRMModule.ID));
+
+		conservationCalendarNumber = new TextField($("AddEditCollectionView.conservationCalendarNumber"));
+		conservationCalendarNumber.setNullRepresentation("");
+		conservationCalendarNumber.setId("conservationCalendarNumber");
+		conservationCalendarNumber.setVisible(collectionVO.getModules() != null && collectionVO.getModules().contains(ConstellioRMModule.ID));
+
 		supportedLanguages = new OptionGroup($("AddEditCollectionView.language"));
 		supportedLanguages.setMultiSelect(true);
 		supportedLanguages.setRequired(true);
@@ -109,8 +124,8 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 		}
 		//modules.setEnabled(!presenter.getActionEdit());
 
-		BaseForm<CollectionVO> baseFormComponent = new BaseForm<CollectionVO>(collectionVO, this, code, name, supportedLanguages,
-				modules) {
+		BaseForm<CollectionVO> baseFormComponent = new BaseForm<CollectionVO>(collectionVO, this, code, name, organizationNumber, conservationCalendarNumber,
+				supportedLanguages, modules) {
 			@Override
 			protected void saveButtonClick(CollectionVO viewObject)
 					throws ValidationException {

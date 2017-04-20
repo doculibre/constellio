@@ -11,15 +11,13 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentRepor
 import com.constellio.app.modules.rm.reports.model.decommissioning.ReportBooleanField;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -262,6 +260,8 @@ public class ContainerRecordReportPresenter {
 					}
 				}
 			}
+
+			calendarNumber = rm.getCollection(collection).getConservationCalendarNumber();
 		}
 
 		calendarModel.setCalendarNumber(calendarNumber);
@@ -345,8 +345,9 @@ public class ContainerRecordReportPresenter {
 
 			buildUserPart(container, identificationModel);
 
-			organisationName = rm.getCollection(collection).getTitle();
-			publicOrganisationNumber = EMPTY_FOR_NOW;
+			Collection collection = rm.getCollection(this.collection);
+			organisationName = collection.getTitle();
+			publicOrganisationNumber = collection.getOrganizationNumber();
 
 			LocalDate firstTransferReportDate = container.getFirstTransferReportDate();
 			if (firstTransferReportDate != null) {
