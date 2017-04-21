@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.reports.decommissioning;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -51,6 +52,7 @@ public class ContainerRecordReportPresenter {
 	private IOServices ioServices;
 	private DecommissioningType reportType;
 	private MetadataSchemaTypes types;
+	private RMConfigs rmConfigs;
 
 	public ContainerRecordReportPresenter(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -61,6 +63,7 @@ public class ContainerRecordReportPresenter {
 		schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		rmConfigs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 
 	}
 
@@ -325,6 +328,7 @@ public class ContainerRecordReportPresenter {
 	private DocumentTransfertModel_Identification buildIdentificationModel(ContainerRecord container) {
 		DocumentTransfertModel_Identification identificationModel = new DocumentTransfertModel_Identification();
 
+
 		String administrativeAddress = "";
 		String boxNumber = "";
 		String containerNumber = "";
@@ -340,8 +344,9 @@ public class ContainerRecordReportPresenter {
 
 			List<String> administrativeUnits = container.getAdministrativeUnits();
 			if (administrativeUnit != null && (administrativeUnits == null || administrativeUnits.isEmpty())) {
-				ministryName = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle();
-				administrativeAddress = ministryName + "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
+				ministryName = rmConfigs.isPopulateBordereauxWithAdministrativeUnit()? administrativeUnit.getCode() + " - " + administrativeUnit.getTitle(): "";
+				administrativeAddress = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle()
+						+ "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
 			} else if(administrativeUnits != null && !administrativeUnits.isEmpty()) {
 				administrativeAddress = $("DocumentTransfertReport.multipleAdministrativeUnits");
 				ministryName= "";
@@ -353,7 +358,7 @@ public class ContainerRecordReportPresenter {
 			buildUserPart(container, identificationModel);
 
 			Collection collection = rm.getCollection(this.collection);
-			organisationName = collection.getTitle();
+			organisationName = rmConfigs.isPopulateBordereauxWithCollection()? collection.getTitle():"";
 			publicOrganisationNumber = collection.getOrganizationNumber();
 
 			LocalDate firstTransferReportDate = container.getFirstTransferReportDate();
