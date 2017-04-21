@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.reports.decommissioning;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel;
@@ -12,7 +11,10 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentRepor
 import com.constellio.app.modules.rm.reports.model.decommissioning.ReportBooleanField;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
@@ -258,14 +260,10 @@ public class ContainerRecordReportPresenter {
 					CopyRetentionRule firstCopyRetentionRule = folder.getMainCopyRule();
 					if (firstCopyRetentionRule != null) {
 						conservationDispositions = getConservationDispositionFields(firstCopyRetentionRule);
-
-						RetentionPeriod retentionPeriod = firstCopyRetentionRule.getSemiActiveRetentionPeriod();
-						if (retentionPeriod != null) {
-							semiActiveRange = StringUtils.defaultString(retentionPeriod.toString());
-						}
 					}
 				}
 			}
+			semiActiveRange = decommissioningService.getSemiActiveInterval(container);
 
 			calendarNumber = rm.getCollection(collection).getConservationCalendarNumber();
 		}

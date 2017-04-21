@@ -61,6 +61,7 @@ public class RMConfigs {
 			COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS,
 			POPULATE_BORDEREAUX_WITH_COLLECTION,
 			POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT,
+			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
@@ -245,9 +246,11 @@ public class RMConfigs {
 
 		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
 
-		add(POPULATE_BORDEREAUX_WITH_COLLECTION = others.createBooleanTrueByDefault("populateBordereauxWithCollection"));
+		add(POPULATE_BORDEREAUX_WITH_COLLECTION = decommissioning.createBooleanTrueByDefault("populateBordereauxWithCollection"));
 
-		add(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT = others.createBooleanTrueByDefault("populateBordereauxWithAdministrativeUnit"));
+		add(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT = decommissioning.createBooleanTrueByDefault("populateBordereauxWithAdministrativeUnit"));
+
+		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
 
 		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
@@ -443,6 +446,10 @@ public class RMConfigs {
 
 	public boolean isPopulateBordereauxWithCollection() {
 		return manager.getValue(POPULATE_BORDEREAUX_WITH_COLLECTION);
+	}
+
+	public boolean isPopulateBordereauxWithLesserDispositionDate() {
+		return manager.getValue(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE);
 	}
 
 	public String getDefaultTabInFolderDisplay() {
