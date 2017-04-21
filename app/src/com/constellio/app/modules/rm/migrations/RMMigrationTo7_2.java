@@ -179,6 +179,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 				.withNewTableMetadatas(Event.DEFAULT_SCHEMA + "_" + Event.RECEIVER_NAME,
 						Event.DEFAULT_SCHEMA + "_" + Event.TASK,
 						Event.DEFAULT_SCHEMA + "_" + Event.DESCRIPTION));
+
+		displayManager.saveMetadata(displayManager.getMetadata(collection, AdministrativeUnit.DEFAULT_SCHEMA, AdministrativeUnit.ADRESS)
+				.withInputType(MetadataInputType.FIELD));
 	}
 
 	private void migrateRoles(String collection, ModelLayerFactory modelLayerFactory) {
