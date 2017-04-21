@@ -138,7 +138,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 
 		if (deleteDocumentButtonVisible) {
 			MenuItem deleteDocumentItem = rootItem.addItem($("DocumentContextMenu.deleteDocument"), null);
-			deleteDocumentItem.setCommand(new ConfirmDialogMenuBarItemCommand() {
+			deleteDocumentItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmDelete");
