@@ -1532,6 +1532,13 @@ $popup-view-z-index: 3;
 				width: 270px;
 			}
 			
+			.header-selection-button {
+				top: 0px;
+				right: 290px;
+			    z-index: 1000;
+			    margin: 0;
+			}
+			
 			.header-collection-menu {
 				top: 0px;
 				right: 220px;

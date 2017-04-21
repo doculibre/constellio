@@ -13656,6 +13656,13 @@ div.v-layout.v-horizontal.v-widget {
 	width: 270px;
 }
 
+.constellio .v-ui[width-range~="0-800px"] .header .header-selection-button {
+	top: 0px;
+	right: 290px;
+	z-index: 1000;
+	margin: 0;
+}
+
 .constellio .v-ui[width-range~="0-800px"] .header .header-collection-menu {
 	top: 0px;
 	right: 220px;
