@@ -111,7 +111,7 @@ public class LabelsButton extends WindowButton {
 
         formatField = new ComboBox($("LabelsButton.labelFormat"));
         formatField.setRequired(true);
-        
+        this.getWindow().setResizable(true);
         List<Object> formatOptions = new ArrayList<Object>(customTemplates);
         if (customTemplates.isEmpty()) {
         	List<PrintableLabel> printableLabels = getTemplates(type);
@@ -230,6 +230,7 @@ public class LabelsButton extends WindowButton {
                         Content c = ru.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
                         getWindow().setContent(new LabelViewer(c, ReportUtils.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf"));
                         Page.getCurrent().getJavaScript().execute("$('iframe').find('#print').remove()");
+                        getWindow().setHeight("450px");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
