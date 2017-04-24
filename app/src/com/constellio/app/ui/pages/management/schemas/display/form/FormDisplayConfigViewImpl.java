@@ -2,9 +2,10 @@ package com.constellio.app.ui.pages.management.schemas.display.form;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.schemas.display.SortFormMetadataVO;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -52,14 +53,18 @@ public class FormDisplayConfigViewImpl extends BaseViewImpl implements FormDispl
 		return viewLayout;
 	}
 
+
 	private Component buildTables() {
-		List<FormMetadataVO> metadataVOs = presenter.getMetadatas();
-		List<FormMetadataVO> valueMetadataVOs = presenter.getValueMetadatas();
+		final List<FormMetadataVO> metadataVOs = presenter.getMetadatas();
+		final List<FormMetadataVO> valueMetadataVOs = presenter.getValueMetadatas();
 
 		final ListBuilder select = new ListBuilder();
 		select.setColumns(30);
 		select.setRightColumnCaption($("FormDisplayConfigView.rightColumn"));
 		select.setLeftColumnCaption($("FormDisplayConfigView.leftColumn"));
+
+		// Ordre alphabétique
+		Collections.sort(metadataVOs, new SortFormMetadataVO(getSessionContext()));
 
 		for (FormMetadataVO form : metadataVOs) {
 			select.addItem(form);
