@@ -1,14 +1,7 @@
 package com.constellio.app.modules.rm.reports.decommissioning;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.services.factories.AppLayerFactory;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel;
@@ -23,19 +16,27 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContainerRecordReportPresenter {
 
@@ -53,6 +54,7 @@ public class ContainerRecordReportPresenter {
 	private IOServices ioServices;
 	private DecommissioningType reportType;
 	private MetadataSchemaTypes types;
+	private RMConfigs rmConfigs;
 
 	public ContainerRecordReportPresenter(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -63,6 +65,7 @@ public class ContainerRecordReportPresenter {
 		schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		rmConfigs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 
 	}
 
@@ -145,6 +148,7 @@ public class ContainerRecordReportPresenter {
 		DocumentTransfertModel_Document document = new DocumentTransfertModel_Document();
 
 		String categoryCode = "";
+		String adminUnitCode = "";
 		String delayNumber = "";
 		String startingYear = "";
 		String endingYear = "";
@@ -153,6 +157,7 @@ public class ContainerRecordReportPresenter {
 
 		if (folder != null) {
 			categoryCode = StringUtils.defaultString(folder.getCategoryCode());
+			adminUnitCode = StringUtils.defaultString(folder.getAdministrativeUnitCode());
 
 			String ruleId = folder.getRetentionRule();
 
@@ -180,6 +185,7 @@ public class ContainerRecordReportPresenter {
 		}
 
 		document.setCode(categoryCode);
+		document.setUnit(adminUnitCode);
 		document.setDelayNumber(delayNumber);
 		document.setStartingYear(startingYear);
 		document.setEndingYear(endingYear);
@@ -231,11 +237,9 @@ public class ContainerRecordReportPresenter {
 				RetentionRule retentionRule = rm.getRetentionRule(uniformRuleId);
 
 				if (retentionRule != null) {
-					calendarNumber = retentionRule.getCode();
+					ruleNumber = retentionRule.getCode();
 				}
 			}
-
-			ruleNumber = EMPTY_FOR_NOW;
 
 			if (folders != null) {
 				quantity = Integer.toString(folders.size());
@@ -256,14 +260,12 @@ public class ContainerRecordReportPresenter {
 					CopyRetentionRule firstCopyRetentionRule = folder.getMainCopyRule();
 					if (firstCopyRetentionRule != null) {
 						conservationDispositions = getConservationDispositionFields(firstCopyRetentionRule);
-
-						RetentionPeriod retentionPeriod = firstCopyRetentionRule.getSemiActiveRetentionPeriod();
-						if (retentionPeriod != null) {
-							semiActiveRange = StringUtils.defaultString(retentionPeriod.toString());
-						}
 					}
 				}
 			}
+			semiActiveRange = decommissioningService.getSemiActiveInterval(container);
+
+			calendarNumber = rm.getCollection(collection).getConservationCalendarNumber();
 		}
 
 		calendarModel.setCalendarNumber(calendarNumber);
@@ -324,37 +326,62 @@ public class ContainerRecordReportPresenter {
 	private DocumentTransfertModel_Identification buildIdentificationModel(ContainerRecord container) {
 		DocumentTransfertModel_Identification identificationModel = new DocumentTransfertModel_Identification();
 
+
 		String administrativeAddress = "";
 		String boxNumber = "";
+		String containerNumber = "";
 		String organisationName = "";
+		String ministryName = "";
 		String publicOrganisationNumber = "";
-		String sentDate = "";
+		String sentDateTransfer = "";
+		String sentDateDeposit = "";
 
 		if (container != null) {
 			String administrativeUnitId = container.getAdministrativeUnit();
 			AdministrativeUnit administrativeUnit = getAdministrativeUnitAddress(administrativeUnitId);
-			if (administrativeUnit != null) {
-				administrativeAddress = StringUtils.defaultString(administrativeUnit.getAdress());
+
+			List<String> administrativeUnits = container.getAdministrativeUnits();
+			if (administrativeUnit != null && (administrativeUnits == null || administrativeUnits.isEmpty())) {
+				ministryName = rmConfigs.isPopulateBordereauxWithAdministrativeUnit()? administrativeUnit.getCode() + " - " + administrativeUnit.getTitle(): "";
+				administrativeAddress = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle()
+						+ "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
+			} else if(administrativeUnits != null && !administrativeUnits.isEmpty()) {
+				administrativeAddress = $("DocumentTransfertReport.multipleAdministrativeUnits");
+				ministryName= "";
 			}
 
-			boxNumber = container.getTitle();
+			containerNumber = container.getIdentifier();
+			boxNumber = container.getTemporaryIdentifier();
 
 			buildUserPart(container, identificationModel);
 
-			organisationName = EMPTY_FOR_NOW;
-			publicOrganisationNumber = EMPTY_FOR_NOW;
+			Collection collection = rm.getCollection(this.collection);
+			organisationName = rmConfigs.isPopulateBordereauxWithCollection()? collection.getTitle():"";
+			publicOrganisationNumber = collection.getOrganizationNumber();
 
-			LocalDate realTransferDate = container.getRealTransferDate();
-			if (realTransferDate != null) {
-				sentDate = StringUtils.defaultString(realTransferDate.toString());
+			LocalDate firstTransferReportDate = container.getFirstTransferReportDate();
+			if (firstTransferReportDate != null) {
+				sentDateTransfer = StringUtils.defaultString(firstTransferReportDate.toString());
+			} else {
+				sentDateTransfer = StringUtils.defaultString(LocalDate.now().toString());
+			}
+
+			LocalDate firstDepositReportDate = container.getFirstDepositReportDate();
+			if (firstDepositReportDate != null) {
+				sentDateDeposit = StringUtils.defaultString(firstDepositReportDate.toString());
+			} else {
+				sentDateDeposit = StringUtils.defaultString(LocalDate.now().toString());
 			}
 		}
 
 		identificationModel.setAdministrationAddress(administrativeAddress);
 		identificationModel.setBoxNumber(boxNumber);
+		identificationModel.setContainerNumber(containerNumber);
 		identificationModel.setOrganisationName(organisationName);
+		identificationModel.setMinistryName(ministryName);
 		identificationModel.setPublicOrganisationNumber(publicOrganisationNumber);
-		identificationModel.setSentDate(sentDate);
+		identificationModel.setSentDateTransfer(sentDateTransfer);
+		identificationModel.setSentDateDeposit(sentDateDeposit);
 
 		return identificationModel;
 	}

@@ -42,6 +42,8 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String LINEAR_SIZE = "linearSize";
 	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
 	public static final String AVAILABLE_SIZE = "availableSize";
+	public static final String FIRST_TRANSFER_REPORT_DATE = "firstTransferReportDate";
+	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
 
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
@@ -333,6 +335,28 @@ public class ContainerRecord extends RecordWrapper {
 
 	public Double getAvailableSize() {
 		return get(AVAILABLE_SIZE);
+	}
+
+	public LocalDate getFirstTransferReportDate() {
+		return get(FIRST_TRANSFER_REPORT_DATE);
+	}
+
+	public ContainerRecord setFirstTransferReportDate(LocalDate firstTransferReportDate) {
+		if(getFirstTransferReportDate() == null) {
+			set(FIRST_TRANSFER_REPORT_DATE, firstTransferReportDate);
+		}
+		return this;
+	}
+
+	public LocalDate getFirstDepositReportDate() {
+		return get(FIRST_DEPOSIT_REPORT_DATE);
+	}
+
+	public ContainerRecord setFirstDepositReportDate(LocalDate firstDepositReportDate) {
+		if(getFirstDepositReportDate() == null) {
+			set(FIRST_DEPOSIT_REPORT_DATE, firstDepositReportDate);
+		}
+		return this;
 	}
 
 	public static ContainerRecord wrap(Record record, MetadataSchemaTypes types) {

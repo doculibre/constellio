@@ -1,18 +1,6 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.i18n.i18n;
@@ -32,6 +20,13 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionView> {
 	transient UserServices userServices;
@@ -71,7 +66,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		if (actionEdit) {
 			List<String> languages = collectionRecord.getLanguages();
 			return new CollectionVO(
-					code, collectionRecord.getName(), languages, getEnabledModules(code));
+					code, collectionRecord.getName(), languages, getEnabledModules(code), collectionRecord.getOrganizationNumber(), collectionRecord.getConservationCalendarNumber());
 		} else {
 			return new CollectionVO(null, null, Arrays.asList(getMainDataLanguage()));
 		}
@@ -149,7 +144,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		String collectionName = entity.getName();
 		try {
 			recordServices().update(collectionRecord.setName(collectionName).setTitle(collectionName));
-			return updateCollectionModules(collectionRecord.getWrappedRecord(), entity.getCode(), entity.getModules());
+			return updateCollectionModules(entity, collectionRecord.getWrappedRecord(), entity.getCode(), entity.getModules());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -166,10 +161,10 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
 				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
-		return updateCollectionModules(record, collectionCode, modules);
+		return updateCollectionModules(entity, record, collectionCode, modules);
 	}
 
-	Set<String> updateCollectionModules(Record collectionRecord, String collectionCode, Set<String> modules) {
+	Set<String> updateCollectionModules(CollectionVO entity, Record collectionRecord, String collectionCode, Set<String> modules) {
 		List<String> roles = new ArrayList<>();
 		Set<String> invalidModules = new HashSet<>();
 		for (String currentModule : modules) {
@@ -180,6 +175,17 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 			invalidModules.addAll(modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module));
 			roles.addAll(PluginUtil.getRolesForCreator(module));
 		}
+
+		boolean isRMCollection = modules.contains(ConstellioRMModule.ID);
+		String conservationCalendarNumber = isRMCollection? entity.getConservationCalendarNumber(): null;
+		String organizationNumber = isRMCollection? entity.getOrganizationNumber(): null;
+		try {
+			recordServices().update(coreSchemas().wrapCollection(collectionRecord)
+					.setConservationCalendarNumber(conservationCalendarNumber).setOrganizationNumber(organizationNumber));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential currentUser = userServices.getUser(getCurrentUser().getUsername());
 		userServices.addUserToCollection(currentUser, collectionRecord.getId());
