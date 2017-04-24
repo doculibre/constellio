@@ -30,6 +30,7 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.utils.Delayed;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
@@ -48,6 +49,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	private final ModelLayerFactory modelLayerFactory;
 	private final ConstellioPluginManager constellioPluginManager;
 	private Set<String> startedModulesInAnyCollections = new HashSet<>();
+	private KeySetMap<String, String> startedModulesInCollections = new KeySetMap<>();
 	private Set<String> initializedResources = new HashSet<>();
 
 	public ConstellioModulesManagerImpl(AppLayerFactory appLayerFactory,
@@ -350,22 +352,25 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public boolean startModule(String collection, Module module) {
 
-		try {
+		if (!startedModulesInCollections.get(collection).contains(module.getId())) {
+			startedModulesInCollections.add(collection, module.getId());
+			try {
 
-			if (!startedModulesInAnyCollections.contains(module.getId())) {
-				if (module instanceof InstallableSystemModule) {
-					((InstallableSystemModule) module).start(appLayerFactory);
+				if (!startedModulesInAnyCollections.contains(module.getId())) {
+					if (module instanceof InstallableSystemModule) {
+						((InstallableSystemModule) module).start(appLayerFactory);
+					}
+					startedModulesInAnyCollections.add(module.getId());
 				}
-				startedModulesInAnyCollections.add(module.getId());
-			}
 
-			((InstallableModule) module).start(collection, appLayerFactory);
-		} catch (Throwable e) {
-			if (isPluginModule(module)) {
-				constellioPluginManager.handleModuleNotStartedCorrectly(module, collection, e);
-				return false;
-			} else {
-				throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, collection, e);
+				((InstallableModule) module).start(collection, appLayerFactory);
+			} catch (Throwable e) {
+				if (isPluginModule(module)) {
+					constellioPluginManager.handleModuleNotStartedCorrectly(module, collection, e);
+					return false;
+				} else {
+					throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, collection, e);
+				}
 			}
 		}
 		return true;
@@ -376,6 +381,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public void stopModule(String collection, Module module) {
+		startedModulesInCollections.get(collection).remove(module.getId());
 		try {
 			((InstallableModule) module).stop(collection, appLayerFactory);
 		} catch (Throwable e) {
