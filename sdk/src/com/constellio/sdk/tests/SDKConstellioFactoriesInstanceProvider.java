@@ -29,6 +29,7 @@ public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactori
 		if (constellioFactories == null) {
 			constellioFactories = constellioFactoriesFactory.get();
 			instances.put(name, constellioFactories);
+			//constellioFactories.getAppLayerFactory().getPluginManager().configure();
 			constellioFactories.getAppLayerFactory().initialize();
 		}
 		return constellioFactories;

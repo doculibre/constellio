@@ -59,7 +59,6 @@ public class ConstellioFactories {
 			@Override
 			public ConstellioFactories get() {
 				ConstellioFactories instance = buildFor(propertyFile, decorator, null);
-				instance.appLayerFactory.initialize();
 				return instance;
 			}
 		});

@@ -12,6 +12,9 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 		if (instance == null) {
 			instance = constellioFactoriesFactory.get();
 			instance.getAppLayerFactory().initialize();
+			//instance.getAppLayerFactory().initialize();
+			//			((PluginManagerImpl) instance.getAppLayerFactory().getPluginManager()).getPluginConfiguration()
+			//					.setConfiguration(ConstellioPlugin.class, "singletonInitializeMode", "true");
 		}
 
 		return instance;
