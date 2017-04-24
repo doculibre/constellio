@@ -250,9 +250,9 @@ public class BatchProcessingPresenterService {
 			String username, String title)
 			throws RecordServicesException {
 
-		System.out.println("**************** EXECUTE ****************");
-		System.out.println("ACTION : ");
-		System.out.println(action);
+//		System.out.println("**************** EXECUTE ****************");
+//		System.out.println("ACTION : ");
+//		System.out.println(action);
 		Transaction transaction = prepareTransaction(request, true);
 		recordServices.validateTransaction(transaction);
 
@@ -366,9 +366,9 @@ public class BatchProcessingPresenterService {
 			String username, String title)
 			throws RecordServicesException {
 
-		System.out.println("**************** EXECUTE ****************");
-		System.out.println("ACTION : ");
-		System.out.println(action);
+//		System.out.println("**************** EXECUTE ****************");
+//		System.out.println("ACTION : ");
+//		System.out.println(action);
 		List<Transaction> transactionList = prepareTransactions(request, true);
 
 		for (Transaction transaction : transactionList) {

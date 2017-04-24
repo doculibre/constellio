@@ -52,17 +52,13 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 				@Override
 				protected void onSelectAll(ClickEvent event) {
 					SelectionTableAdapter.this.selectAll();
-					for (Object visibleItemId : SelectionTableAdapter.this.table.getVisibleItemIds()) {
-						setChecked(visibleItemId, isSelected(visibleItemId));
-					}
+					updateVisibleCheckBoxes();
 				}
 				
 				@Override
 				protected void onDeselectAll(ClickEvent event) {
 					SelectionTableAdapter.this.deselectAll();
-					for (Object visibleItemId : SelectionTableAdapter.this.table.getVisibleItemIds()) {
-						setChecked(visibleItemId, isSelected(visibleItemId));
-					}
+					updateVisibleCheckBoxes();
 				}
 			};
 			toggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
@@ -146,6 +142,12 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			addComponents(toggleButton, table);
 			setExpandRatio(table, 1);
 			setComponentAlignment(toggleButton, Alignment.TOP_LEFT);
+		}
+	}
+	
+	protected void updateVisibleCheckBoxes() {
+		for (Object visibleItemId : SelectionTableAdapter.this.table.getVisibleItemIds()) {
+			setChecked(visibleItemId, isSelected(visibleItemId));
 		}
 	}
 	

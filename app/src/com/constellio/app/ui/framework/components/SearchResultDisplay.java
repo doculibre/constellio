@@ -57,8 +57,12 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
-		Label highlights = new Label(formatHighlights(searchResultVO.getHighlights()), ContentMode.HTML);
+		String formattedHighlights = formatHighlights(searchResultVO.getHighlights());
+		Label highlights = new Label(formattedHighlights, ContentMode.HTML);
 		highlights.addStyleName(HIGHLIGHTS_STYLE);
+		if (StringUtils.isBlank(formattedHighlights)) {
+			highlights.setVisible(false);
+		}
 		return highlights;
 	}
 
