@@ -70,7 +70,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
             category.setDescription(null);
         }
 
-        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 1000);
+        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 50);
 
         while (batchIterator.hasNext()) {
             Transaction transaction = new Transaction();
@@ -91,7 +91,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
         categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
                 new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
-        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 1000);
+        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 50);
         for(Category category: categories) {
             category.setDescription(descriptions.get(category.getId()));
         }
