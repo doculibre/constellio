@@ -119,7 +119,7 @@ public class BatchProcessListWriter {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void markBatchProcessAsFinished(BatchProcess batchProcess, int erros) {
+	public void markBatchProcessAsFinished(BatchProcess batchProcess, int errors) {
 		boolean found = false;
 
 		Filter<Element> filters = Filters.element(BATCH_PROCESS);
@@ -128,7 +128,7 @@ public class BatchProcessListWriter {
 		List<Element> copyBatchProcesses = IteratorUtils.toList(batchProcesses);
 
 		for (Element nextBatchProcess : copyBatchProcesses) {
-			if (found = markBatchProcessAsFinished(batchProcess, erros, nextBatchProcess)) {
+			if (found = markBatchProcessAsFinished(batchProcess, errors, nextBatchProcess)) {
 				break;
 			}
 		}
@@ -204,12 +204,12 @@ public class BatchProcessListWriter {
 		}
 	}
 
-	private boolean markBatchProcessAsFinished(BatchProcess batchProcess, int erros, Element nextBatchProcess) {
+	private boolean markBatchProcessAsFinished(BatchProcess batchProcess, int errors, Element nextBatchProcess) {
 		if (nextBatchProcess.getAttributeValue(ID).equals(batchProcess.getId())
 				&& nextBatchProcess.getParentElement().getName().equals(PREVIOUS_BATCH_PROCESSES)) {
 			throw new BatchProcessListWriterRuntimeException.BatchProcessAlreadyFinished();
 		} else if (nextBatchProcess.getAttributeValue(ID).equals(batchProcess.getId())) {
-			Element errorsElement = setErrorsElementValue(erros, nextBatchProcess);
+			Element errorsElement = setErrorsElementValue(errors, nextBatchProcess);
 			nextBatchProcess.addContent(errorsElement);
 			nextBatchProcess.detach();
 			document.getRootElement().getChild(PREVIOUS_BATCH_PROCESSES).addContent(nextBatchProcess);
@@ -218,13 +218,13 @@ public class BatchProcessListWriter {
 		return false;
 	}
 
-	private Element setErrorsElementValue(int erros, Element nextBatchProcess) {
+	private Element setErrorsElementValue(int errors, Element nextBatchProcess) {
 		Element errorsElement = nextBatchProcess.getChild(ERRORS);
 		if (errorsElement == null) {
-			errorsElement = new Element(ERRORS).setText(String.valueOf(erros));
+			errorsElement = new Element(ERRORS).setText(String.valueOf(errors));
 		} else {
 			errorsElement = errorsElement.detach();
-			errorsElement.setText(String.valueOf(erros));
+			errorsElement.setText(String.valueOf(errors));
 		}
 		return errorsElement;
 	}

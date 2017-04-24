@@ -70,14 +70,14 @@ public class RMMigrationTo7_2 implements MigrationScript {
             category.setDescription(null);
         }
 
-        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 50);
+        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
 
         while (batchIterator.hasNext()) {
             Transaction transaction = new Transaction();
             transaction.addAll(batchIterator.next());
             transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
             try {
-                recordServices.execute(transaction);
+                recordServices.executeWithoutImpactHandling(transaction);
             } catch (RecordServicesException e) {
                 e.printStackTrace();
                 throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
@@ -91,7 +91,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
         categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
                 new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
-        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 50);
+        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
         for(Category category: categories) {
             category.setDescription(descriptions.get(category.getId()));
         }
@@ -101,7 +101,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
             transaction.addAll(batchIterator.next());
             transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
             try {
-                recordServices.execute(transaction);
+                recordServices.executeWithoutImpactHandling(transaction);
             } catch (RecordServicesException e) {
                 e.printStackTrace();
                 throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
