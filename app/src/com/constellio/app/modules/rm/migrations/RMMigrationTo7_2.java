@@ -70,19 +70,19 @@ public class RMMigrationTo7_2 implements MigrationScript {
             category.setDescription(null);
         }
 
-        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 1000);
+        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
 
-//        while (batchIterator.hasNext()) {
-//            Transaction transaction = new Transaction();
-//            transaction.addAll(batchIterator.next());
-//            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-//            try {
-//                recordServices.execute(transaction);
-//            } catch (RecordServicesException e) {
-//                e.printStackTrace();
-//                throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
-//            }
-//        }
+        while (batchIterator.hasNext()) {
+            Transaction transaction = new Transaction();
+            transaction.addAll(batchIterator.next());
+            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+            try {
+                recordServices.executeWithoutImpactHandling(transaction);
+            } catch (RecordServicesException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
+            }
+        }
 
         new SchemaAlterationFor7_2_step1(collection, migrationResourcesProvider, appLayerFactory).migrate();
         new SchemaAlterationFor7_2_step2(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -91,22 +91,22 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
         categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
                 new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
-        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 1000);
+        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
         for(Category category: categories) {
             category.setDescription(descriptions.get(category.getId()));
         }
 
-//        while (batchIterator.hasNext()) {
-//            Transaction transaction = new Transaction();
-//            transaction.addAll(batchIterator.next());
-//            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-//            try {
-//                recordServices.execute(transaction);
-//            } catch (RecordServicesException e) {
-//                e.printStackTrace();
-//                throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
-//            }
-//        }
+        while (batchIterator.hasNext()) {
+            Transaction transaction = new Transaction();
+            transaction.addAll(batchIterator.next());
+            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+            try {
+                recordServices.executeWithoutImpactHandling(transaction);
+            } catch (RecordServicesException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
+            }
+        }
 
         migrateSearchableSchemaTypes(collection, migrationResourcesProvider, appLayerFactory);
         updateNewPermissions(appLayerFactory, collection);
