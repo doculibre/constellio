@@ -601,7 +601,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
                         document.setContent(content);
 						String filename = contentVersionVO.getFileName();
 						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
-						if("eml".equals(extension)) {
+						if("eml".equals(extension) || "msg".equals(extension)) {
 							IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 							InputStream inputStream = null;
 							try {
