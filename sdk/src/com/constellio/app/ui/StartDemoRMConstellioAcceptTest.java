@@ -1,14 +1,5 @@
 package com.constellio.app.ui;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import java.io.File;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -32,6 +23,12 @@ import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 @UiTest
 @MainTest
@@ -51,13 +48,9 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
-				withCollection("LaCollectionDeRida").withConstellioRMModule()
-						.withAllTestUsers()
-						.withFoldersAndContainersOfEveryStatus()
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
-		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();

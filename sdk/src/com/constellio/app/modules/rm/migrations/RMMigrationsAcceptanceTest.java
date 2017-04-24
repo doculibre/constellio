@@ -194,6 +194,10 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_CREATED_ON,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_BY,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_ON,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_DATES,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS);
 
 		//		SchemaDisplayConfig categoryDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()

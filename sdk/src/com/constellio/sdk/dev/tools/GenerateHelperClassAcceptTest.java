@@ -109,6 +109,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(StorageSpace.DEFAULT_SCHEMA, StorageSpace.class);
 		wrappers.put(PrintableLabel.SCHEMA_NAME, PrintableLabel.class);
 		wrappers.put(RMUserFolder.DEFAULT_SCHEMA, RMUserFolder.class);
+		wrappers.put(RMTask.DEFAULT_SCHEMA, RMTask.class);
 
 		System.out.println(header());
 

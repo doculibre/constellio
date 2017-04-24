@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.events;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
@@ -12,6 +10,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EventCategoriesViewImpl extends BaseViewImpl implements EventCategoriesView {
 
@@ -30,6 +30,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String AGENT_EVENTS_LINK_BUTTON = "agentEventsLinkButton";
 	public static final String SYSTEM_OPERATION = "systemOperation";
 	public static final String REINDEX_AND_RESTART_BUTTON = "reindexAndRestartButton";
+	public static final String RECORDS_REQUEST_LINK_BUTTON = "recordRequestLinkButton";
 
 	private boolean agentEventsVisible;
 
@@ -67,6 +68,16 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		Button recordsDeletionLink = newRecordsDeletionLink();
 		recordsDeletionLink.addStyleName(RECORDS_DELETION_LINK_BUTTON);
 		layout.addComponent(recordsDeletionLink);
+
+		Button recordRequestLink = newDocumentRequestLink();
+		recordRequestLink.addStyleName(RECORDS_REQUEST_LINK_BUTTON);
+		layout.addComponents(recordRequestLink);
+
+		Button borrowedFoldersLink = newBorrowedOrReturnedFoldersEventsLink();
+		layout.addComponent(borrowedFoldersLink);
+
+		Button borrowedContainersLink = newBorrowedOrReturnedContainersEventsLink();
+		layout.addComponent(borrowedContainersLink);
 
 		Button currentlyBorrowedDocumentsLink = newCurrentlyBorrowedDocumentsLink();
 		currentlyBorrowedDocumentsLink.addStyleName(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);
@@ -199,6 +210,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	private Button newReIndexAndRestartLink() {
 		return createLink($("ListEventsView.reIndexAndRestart"), EventCategory.REINDEX_AND_RESTART,
 				"system-reboot-reindex");
+	}
+
+	private Button newDocumentRequestLink() {
+		return createLink($("ListEventsView.requestTask"), EventCategory.REQUEST_TASKS, "borrowing-audit");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {

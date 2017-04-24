@@ -205,7 +205,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 		recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 		new BorrowingServices(zeCollection, getModelLayerFactory()).borrowFolder(records.folder_A48, LocalDate.now(),
-				LocalDate.now().plusDays(1), records.getAdmin(), records.getAdmin(), BorrowingType.BORROW);
+				LocalDate.now().plusDays(1), records.getAdmin(), records.getAdmin(), BorrowingType.BORROW, true);
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));

@@ -19,4 +19,5 @@ public enum EventCategory {
 	AGENT_EVENTS,
 	TASKS_EVENTS,
 	REINDEX_AND_RESTART,
+	REQUEST_TASKS
 }

@@ -25,9 +25,11 @@ import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -117,7 +119,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_0_10_5(),
 				new RMMigrationTo7_1(),
 				new RMMigrationTo7_1_1(),
-				new RMMigrationTo7_1_3(),
+				new RMMigrationTo7_1_2(),
 				new RMMigrationTo7_2()
 		);
 	}
@@ -221,7 +223,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMCleanAdministrativeUnitButtonExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new RMRequestTaskButtonExtension(collection, appLayerFactory));
 		extensions.selectionPanelExtensions.add(new RMSelectionPanelExtension(appLayerFactory, collection));
+
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.RETURN_REQUEST);
+		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.REACTIVATION_REQUEST);
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -244,6 +252,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordImportExtensions.add(new DecommissioningListImportExtension(collection, modelLayerFactory));
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new RMRequestTaskApprovedExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
 
@@ -279,13 +288,16 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				authsIterator.next();
 			}
 		}
-		cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-		cache.configureCache(CacheConfig.volatileCache(
-				rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-						.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
 
+		if (Toggle.CACHES_ENABLED.isEnabled()) {
+			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
+			cache.configureCache(CacheConfig.volatileCache(
+					rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+							.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
+
+		}
 	}
 
 	@Override

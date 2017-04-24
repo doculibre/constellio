@@ -1,26 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
@@ -70,11 +49,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -335,7 +310,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	protected ComponentState getBorrowButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanBorrow(user, folder, null);
-			return ComponentState.visibleIf(user.has(RMPermissionsTo.BORROW_FOLDER).on(folder));
+			return ComponentState.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -344,7 +319,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState.visibleIf(user.has(RMPermissionsTo.BORROW_FOLDER).on(folder));
+			return ComponentState.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -697,7 +672,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			try {
 				borrowingServices
 						.borrowFolder(folderVO.getId(), borrowingDate, previewReturnDate, getCurrentUser(), borrowerEntered,
-								borrowingType);
+								borrowingType, true);
 				view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 				borrowed = true;
 			} catch (RecordServicesException e) {
@@ -725,7 +700,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			return false;
 		}
 		try {
-			borrowingServices.returnFolder(folderVO.getId(), getCurrentUser(), returnDate);
+			borrowingServices.returnFolder(folderVO.getId(), getCurrentUser(), returnDate, true);
 			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 			return true;
 		} catch (RecordServicesException e) {

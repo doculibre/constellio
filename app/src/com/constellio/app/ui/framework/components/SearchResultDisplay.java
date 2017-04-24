@@ -75,6 +75,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	private Layout buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.setSpacing(true);
 		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 			MetadataVO metadataVO = metadataValue.getMetadata();
 			if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
@@ -90,6 +91,7 @@ public class SearchResultDisplay extends VerticalLayout {
 			caption.addStyleName("metadata-caption");
 
 			HorizontalLayout item = new HorizontalLayout(caption, value);
+			item.setHeight("100%");
 			item.setSpacing(true);
 			item.addStyleName("metadata-caption-layout");
 

@@ -1,24 +1,8 @@
 package com.constellio.app.ui.pages.rm.document;
 
-import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.AUTHORIZATIONS;
-import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.DELETE;
-import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.MODIFY;
-import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.UPLOAD;
-import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.VIEW;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
@@ -35,6 +19,17 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
@@ -220,7 +215,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 		LocalDate previewReturnDate = nowDate.plusDays(15);
 		borrowingServices
 				.borrowFolder(folderId, nowDate, previewReturnDate, records.getChuckNorris(), records.getChuckNorris(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 	}
 
 	private void givenRemovedPermissionToModifyBorrowedFolder() {

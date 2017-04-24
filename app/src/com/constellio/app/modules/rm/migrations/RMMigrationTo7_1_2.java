@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -23,16 +22,16 @@ import java.util.List;
 /**
  * Created by Charles Blanchette on 2017-03-22.
  */
-public class RMMigrationTo7_1_3 implements MigrationScript {
+public class RMMigrationTo7_1_2 implements MigrationScript {
     @Override
     public String getVersion() {
-        return "7.1.3";
+        return "7.1.2";
     }
 
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
                         AppLayerFactory appLayerFactory) {
-        new SchemaAlterationFor7_1_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+        new SchemaAlterationFor7_1_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
         createMediumTypes(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
     }
 
@@ -75,15 +74,15 @@ public class RMMigrationTo7_1_3 implements MigrationScript {
 
     }
 
-    class SchemaAlterationFor7_1_3 extends MetadataSchemasAlterationHelper {
+    class SchemaAlterationFor7_1_2 extends MetadataSchemasAlterationHelper {
 
-        protected SchemaAlterationFor7_1_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
+        protected SchemaAlterationFor7_1_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
                                            AppLayerFactory appLayerFactory) {
             super(collection, migrationResourcesProvider, appLayerFactory);
         }
 
         public String getVersion() {
-            return "7.1.3";
+            return "7.1.2";
         }
 
         @Override

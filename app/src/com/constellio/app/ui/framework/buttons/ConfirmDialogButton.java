@@ -61,7 +61,23 @@ public abstract class ConfirmDialogButton extends IconButton {
 
 	@Override
 	protected final void buttonClick(ClickEvent event) {
-		String dialogMessage = getConfirmDialogMessage();
+		showDialog(dialogMode, 
+				getConfirmDialogTitle(),
+				getConfirmDialogMessage(),
+				getConfirmDialogOKCaption(),
+				getConfirmDialogCancelCaption(),
+				new ConfirmDialog.Listener() {
+					public void onClose(ConfirmDialog dialog) {
+						if (dialog.isConfirmed()) {
+							confirmButtonClick(dialog);
+						} else {
+							dialogClosedWitoutConfirm(dialog);
+						}
+					}
+				});
+	}
+	
+	public static void showDialog(DialogMode dialogMode, String title, String message, String okCaption, String cancelCaption, ConfirmDialog.Listener closeListener) {
 		String iconName;
 		switch (dialogMode) {
 		case INFO:
@@ -85,26 +101,18 @@ public abstract class ConfirmDialogButton extends IconButton {
 			StringBuilder html = new StringBuilder();
 			html.append("<span class=\"confirm-dialog-" + iconName + "\">");
 			html.append("<span class=\"confirm-dialog-message\">");
-			html.append(dialogMessage);
+			html.append(message);
 			html.append("</span>");
 			html.append("</span>");
-			dialogMessage = html.toString();
+			message = html.toString();
 		}
 		ConfirmDialog.show(
 				UI.getCurrent(),
-				getConfirmDialogTitle(),
-				dialogMessage,
-				getConfirmDialogOKCaption(),
-				getConfirmDialogCancelCaption(),
-				new ConfirmDialog.Listener() {
-					public void onClose(ConfirmDialog dialog) {
-						if (dialog.isConfirmed()) {
-							confirmButtonClick(dialog);
-						} else {
-							dialogClosedWitoutConfirm(dialog);
-						}
-					}
-				});
+				title,
+				message,
+				okCaption,
+				cancelCaption,
+				closeListener);
 	}
 
 	protected String getConfirmDialogTitle() {

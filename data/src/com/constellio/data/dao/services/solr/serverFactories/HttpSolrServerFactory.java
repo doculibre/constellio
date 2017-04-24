@@ -61,11 +61,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		for (AtomicFileSystem atomicFileSystem : atomicFileSystems)
 			atomicFileSystem.close();
 		for (SolrClient solrClient : solrClients)
-			try {
-				solrClient.close();
-			} catch (IOException ioe) {
-				LOGGER.error("Error while closing solr client", ioe);
-			}
+			solrClient.shutdown();
 	}
 
 	@Override

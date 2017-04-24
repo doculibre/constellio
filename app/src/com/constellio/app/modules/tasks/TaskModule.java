@@ -11,6 +11,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
@@ -19,6 +20,7 @@ import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
 import com.constellio.app.modules.tasks.migrations.*;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -59,6 +61,9 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		extensions.recordAppExtensions.add(new TaskRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension());
+
+
+
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -68,6 +73,9 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		extensions.recordExtensions.add(new TaskStatusSchemasExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new WorkflowRecordExtension(collection, appLayerFactory));
 		extensions.schemaExtensions.add(new TaskTrashSchemaExtension());
+
+		//TODO Francis : Move in Constellio core's init
+		extensions.recordExtensions.add(new LockedRecordsExtension(collection, appLayerFactory));
 
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 

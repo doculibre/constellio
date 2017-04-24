@@ -1,6 +1,8 @@
 package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskReminderField;
@@ -14,6 +16,7 @@ import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
+
 	@Override
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;
@@ -42,6 +45,12 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			break;
 		case DECISION:
 			field = new TaskDecisionFieldImpl();
+			break;
+		case BorrowRequest.ACCEPTED:
+			field = new TaskAcceptedFieldImpl();
+			break;
+		case BorrowRequest.REASON:
+			field = new TaskReasonFieldImpl();
 			break;
 		case LINKED_FOLDERS:
 			field = new TaskListAddRemoveLinkedFoldersLookupField();

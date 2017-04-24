@@ -76,7 +76,7 @@ public class SolrMain {
 		try {
 			QueryResponse response = client.query(params);
 			System.out.println(response.getResults().get(0).getFieldValues("items_ss"));
-		} catch (SolrServerException | IOException e) {
+		} catch (SolrServerException e) {
 			throw new RuntimeException(e);
 		}
 	}
