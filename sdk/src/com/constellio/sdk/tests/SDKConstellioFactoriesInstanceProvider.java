@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.factories.ConstellioFactoriesInstanceProvider;
+import com.constellio.app.services.factories.SingletonConstellioFactoriesInstanceProvider;
 import com.constellio.data.utils.Factory;
 
 public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactoriesInstanceProvider {
@@ -27,11 +28,30 @@ public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactori
 		ConstellioFactories constellioFactories = instances.get(name);
 
 		if (constellioFactories == null) {
-			constellioFactories = constellioFactoriesFactory.get();
-			instances.put(name, constellioFactories);
-			//constellioFactories.getAppLayerFactory().getPluginManager().configure();
-			constellioFactories.getAppLayerFactory().initialize();
+
+			boolean createdByThisThread = false;
+			synchronized (SingletonConstellioFactoriesInstanceProvider.class) {
+				if (constellioFactories == null) {
+					constellioFactories = constellioFactoriesFactory.get();
+					instances.put(name, constellioFactories);
+					constellioFactories.getAppLayerFactory().initialize();
+					createdByThisThread = true;
+				}
+			}
+			if (createdByThisThread) {
+				constellioFactories.getAppLayerFactory().postInitialization();
+			}
+			//instance.getAppLayerFactory().initialize();
+			//			((PluginManagerImpl) instance.getAppLayerFactory().getPluginManager()).getPluginConfiguration()
+			//					.setConfiguration(ConstellioPlugin.class, "singletonInitializeMode", "true");
 		}
+
+		//		if (constellioFactories == null) {
+		//			constellioFactories = constellioFactoriesFactory.get();
+		//			instances.put(name, constellioFactories);
+		//			//constellioFactories.getAppLayerFactory().getPluginManager().configure();
+		//			constellioFactories.getAppLayerFactory().initialize();
+		//		}
 		return constellioFactories;
 
 	}
