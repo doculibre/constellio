@@ -3,16 +3,21 @@ package com.constellio.app.modules.rm.model.validators;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
@@ -37,7 +42,7 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
         givenBackgroundThreadsEnabled();
         prepareSystem(
                 withZeCollection().withConstellioRMModule().withAllTestUsers()
-                        .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+                        .withRMTest(records)
         );
 
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -114,14 +119,46 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
         recordServices.add(buildChildStorageSpaces().setCapacity(5L).setContainerType(asList(containerRecordType)));
     }
 
+    @Test(expected = RecordServicesException.ValidationException.class)
+    public void givenContainerIsMultivalueAndStorageSpaceHasMoreThanOneContainerThenErrorIsThrown()
+            throws RecordServicesException, InterruptedException {
+        givenConfig(RMConfigs.IS_CONTAINER_MULTIVALUE, true);
+        recordServices.add(buildDefaultContainerType());
+        StorageSpace storageSpace = buildParentStorageSpaces();
+        recordServices.add(storageSpace.setCapacity(10L));
+        recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent"));
+        recordServices.add(buildDefaultContainer("secondContainer").setStorageSpace("storageSpaceParent"));
+        recordServices.recalculate(storageSpace);
+        recordServices.update(storageSpace.setTitle("test"));
+    }
+
+    @Test
+    public void givenContainerIsMultivalueAndStorageSpaceHasOneOrNoContainerThenNoErrorIsThrown()
+            throws RecordServicesException {
+        givenConfig(RMConfigs.IS_CONTAINER_MULTIVALUE, true);
+        recordServices.add(buildDefaultContainerType());
+        recordServices.add(buildParentStorageSpaces().setCapacity(10L));
+        recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent"));
+    }
+
+    @Test
+    public void givenContainerIsSingleValueThenNoErrorIsThrownForMultipleContainers()
+            throws RecordServicesException {
+        recordServices.add(buildDefaultContainerType());
+        recordServices.add(buildParentStorageSpaces().setCapacity(10L));
+        recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent"));
+        recordServices.add(buildDefaultContainer("secondContainer").setStorageSpace("storageSpaceParent"));
+    }
+
     @Test
     public void givenValidationExceptionThenParamsAreOK()
             throws RecordServicesException {
 
         ContainerRecordType containerRecordType = buildDefaultContainerType();
         recordServices.add(containerRecordType);
+        recordServices.add(buildDefaultContainerType("secondContainerType"));
 
-        recordServices.add(buildParentStorageSpaces().setCapacity(10L).setContainerType(asList(rm.getContainerRecordType(records.containerTypeId_boite22x22))));
+        recordServices.add(buildParentStorageSpaces().setCapacity(10L).setContainerType(asList(rm.getContainerRecordType("secondContainerType"))));
         try {
             recordServices.add(buildChildStorageSpaces().setCapacity(20L).setContainerType(asList(containerRecordType)));
             fail("No exception was thrown");
@@ -138,8 +175,8 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
             assertThat(params).containsOnly(
                     entry("schemaCode", "storageSpace_default"),
                     entry("containerType", "[containerTypeTest]"),
-                    entry("parentContainerType", "[boite22x22]"));
-            assertThat(TestUtils.frenchMessages(e.getErrors()).get(1)).isEqualTo("L''emplacement parent ne peut que contenir les contenants de type [boite22x22]. [containerTypeTest] est invalide");
+                    entry("parentContainerType", "[secondContainerType]"));
+            assertThat(TestUtils.frenchMessages(e.getErrors()).get(1)).isEqualTo("L''emplacement parent ne peut que contenir les contenants de type [secondContainerType]. [containerTypeTest] est invalide");
         }
     }
 
@@ -151,7 +188,23 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
         return rm.newStorageSpaceWithId("storageSpaceChild").setCode("CHILD").setTitle("Child").setParentStorageSpace("storageSpaceParent");
     }
 
+    public ContainerRecord buildDefaultContainer(String id) {
+        return rm.newContainerRecordWithId(id).setType("containerTypeTest")
+                .setTemporaryIdentifier("containerTestTemporary");
+    }
+
     public ContainerRecordType buildDefaultContainerType() {
         return rm.newContainerRecordTypeWithId("containerTypeTest").setTitle("containerTypeTest").setCode("containerTypeTest");
+    }
+
+    public ContainerRecordType buildDefaultContainerType(String id) {
+        return rm.newContainerRecordTypeWithId(id).setTitle(id).setCode(id);
+    }
+
+    private void removeAllContainers() {
+        List<ContainerRecord> containerRecords = rm.searchContainerRecords(LogicalSearchQueryOperators.returnAll());
+        for(ContainerRecord containerRecord: containerRecords) {
+            recordServices.physicallyDeleteNoMatterTheStatus(containerRecord.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+        }
     }
 }

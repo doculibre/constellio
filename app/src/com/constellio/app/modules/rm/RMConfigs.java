@@ -456,6 +456,10 @@ public class RMConfigs {
 		return manager.getValue(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE);
 	}
 
+	public boolean isContainerMultivalue() {
+		return manager.getValue(IS_CONTAINER_MULTIVALUE);
+	}
+
 	public String getDefaultTabInFolderDisplay() {
 		return manager.getValue(DEFAULT_TAB_IN_FOLDER_DISPLAY);
 	}
