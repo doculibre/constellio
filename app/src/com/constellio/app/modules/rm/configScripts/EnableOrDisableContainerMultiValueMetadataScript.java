@@ -1,13 +1,10 @@
 package com.constellio.app.modules.rm.configScripts;
 
-import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -56,7 +53,7 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
     }
 
     @Override
-    public void onValueChanged(final Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
+    public void onValueChanged(Boolean previousValue, final Boolean newValue, ModelLayerFactory modelLayerFactory) {
         AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
         List<String> listCollectionCode = appLayerFactory.getCollectionsManager().getCollectionCodes();
 
@@ -69,7 +66,7 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
                     @Override
                     public void alter(MetadataSchemaTypesBuilder types) {
                         MetadataSchemaBuilder metadataSchemaBuilder = types.getSchema(ContainerRecord.DEFAULT_SCHEMA);
-                        metadataSchemaBuilder.get(ContainerRecord.STORAGE_SPACE).setMultivalue(previousValue);
+                        metadataSchemaBuilder.get(ContainerRecord.STORAGE_SPACE).setMultivalue(newValue);
                     }
                 });
             }

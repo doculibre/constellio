@@ -1,17 +1,21 @@
 package com.constellio.app.modules.rm;
 
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.*;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
 
@@ -70,7 +74,7 @@ public class RMConfigs {
 
 	// Tree configs
 	public static final SystemConfiguration DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, DISPLAY_DEPOSITED_RECORDS_IN_TREES,
-			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES, IS_CONTAINER_MULTIVALUE;
+			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES;
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
@@ -189,7 +193,7 @@ public class RMConfigs {
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
 		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
-		
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -199,9 +203,6 @@ public class RMConfigs {
 		add(DISPLAY_DESTROYED_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displayDestroyedInTrees"));
 
 		add(DISPLAY_CONTAINERS_IN_TREES = trees.createBooleanFalseByDefault("displayContainersInTrees"));
-
-		add(IS_CONTAINER_MULTIVALUE = trees.createBooleanFalseByDefault("multiValue")
-		.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class));
 
 		SystemConfigurationGroup agent = new SystemConfigurationGroup(ID, "agent");
 
@@ -475,5 +476,5 @@ public class RMConfigs {
 	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
 		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
 	}
-	
+
 }
