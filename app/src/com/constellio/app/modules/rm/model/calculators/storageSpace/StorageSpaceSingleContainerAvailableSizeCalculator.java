@@ -22,7 +22,7 @@ public class StorageSpaceSingleContainerAvailableSizeCalculator implements Metad
         Double numberOfContainersParam = parameters.get(this.numberOfContainersParam);
         Double capacityParam = parameters.get(this.capacityParam);
 
-        if(numberOfContainersParam == null || numberOfContainersParam.equals(0)) {
+        if(numberOfContainersParam == null || numberOfContainersParam.equals(0.0D)) {
             return capacityParam;
         }
         return 0.0D;
