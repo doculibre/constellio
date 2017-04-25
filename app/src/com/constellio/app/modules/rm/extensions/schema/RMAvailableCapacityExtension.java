@@ -1,13 +1,6 @@
 package com.constellio.app.modules.rm.extensions.schema;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -21,6 +14,10 @@ import com.constellio.model.extensions.events.records.TransactionExecutionBefore
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class RMAvailableCapacityExtension extends RecordExtension {
 
 	public static final String INSUFFICIENT_CONTAINER_RECORD_CAPACITY_ERROR = "insufficientContainerRecordCapacityError";
@@ -28,10 +25,12 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 
 	SearchServices searchServices;
 	RMSchemasRecordsServices rm;
+	AppLayerFactory appLayerFactory;
 
 	public RMAvailableCapacityExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
@@ -58,9 +57,10 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 	private void validateContainerRecord(ValidationErrors errors, List<ContainerRecord> containerRecords) {
 
 		KeyListMap<String, ContainerRecord> containerRecordsInMap = new KeyListMap<>();
+		boolean containerMultipleValue = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).isContainerMultipleValue();
 
 		for (ContainerRecord containerRecord : containerRecords) {
-			if (containerRecord.getStorageSpace() != null) {
+			if (!containerMultipleValue && containerRecord.getStorageSpace() != null) {
 				containerRecordsInMap.add(containerRecord.getStorageSpace(), containerRecord);
 			}
 		}

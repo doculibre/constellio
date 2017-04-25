@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -199,5 +200,9 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public User getCurrentUser() {
 		return presenterService().getCurrentUser(getSessionContext());
+	}
+
+	public boolean isContainerWithMultipleStorageSpaces() {
+		return new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager()).isContainerMultipleValue();
 	}
 }

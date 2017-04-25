@@ -1,21 +1,17 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
+import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -461,6 +457,10 @@ public class RMConfigs {
 	
 	public boolean isLegacyIdInDecommisioningLists() {
 		return manager.getValue(LEGACY_ID_IN_DECOMMISSIONING_LISTS);
+	}
+
+	public boolean isContainerMultipleValue() {
+		return manager.getValue(IS_CONTAINER_MULTIVALUE);
 	}
 	
 }
