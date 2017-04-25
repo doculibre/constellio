@@ -6,23 +6,27 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Set;
 
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -31,9 +35,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.trash.TrashServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.Users;
 
-@InDevelopmentTest
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 	private static final String CUSTOM_TASK_SCHEMA_LOCAL_CODE = "zTaskSchema";
@@ -113,6 +117,56 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenTaxonomyConceptWithDocumentsWhenLogicallyThenPhysicallyDeletedThenError()
+			throws Exception {
+
+		ValueListServices valueListServices = new ValueListServices(getAppLayerFactory(), zeCollection);
+
+		Taxonomy taxonomy = valueListServices.createTaxonomy("Ze taxonomy");
+		Metadata metadata = valueListServices.createAMultivalueClassificationMetadataInGroup(
+				taxonomy, Document.SCHEMA_TYPE, "Ze taxonomy");
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		MetadataSchema schema = rm.getTypes().getDefaultSchema(taxonomy.getSchemaTypes().get(0));
+
+		Record rootConcept = new TestRecord(schema, "rootConcept")
+				.set(Schemas.CODE, "A").set(Schemas.TITLE, "Root concept");
+		Record childConcept = new TestRecord(schema, "childConcept").set(schema.get("parent"), "rootConcept")
+				.set(Schemas.CODE, "A1").set(Schemas.TITLE, "Child concept");
+		Document aDocument = rm.newDocument().setTitle("Ze doc")
+				.setFolder(records.getFolder_A03()).set(metadata, asList(childConcept));
+		Transaction transaction = new Transaction();
+		transaction.add(rootConcept);
+		transaction.add(childConcept);
+		transaction.add(aDocument);
+		recordServices.execute(transaction);
+
+		assertThat(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection))).isFalse();
+		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection))).isTrue();
+
+		//		newWebDriver();
+		//		waitUntilICloseTheBrowsers();
+
+		//
+		//		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
+		//		recordServices.refresh(parentFolderInCategory_A);
+		//		try {
+		//			deleteService.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
+		//					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+		//			fail("should find dependent references");
+		//		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
+		//			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
+		//			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
+		//					.doesNotContain(subFolder_B.getId(), category.getId());
+		//
+		//			recordServices.refresh(parentFolderInCategory_A);
+		//
+		//			//TODO Nouha, pourquoi la catégorie serait nulle, c'est un champ obligatoire??
+		//			assertThat(parentFolderInCategory_A.getCategory()).isNull();
+		//		}
+	}
+
+	//@Test
 	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
 			throws Exception {
 		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
@@ -133,7 +187,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk2()
 			throws Exception {
 
@@ -157,7 +211,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk3()
 			throws Exception {
 
