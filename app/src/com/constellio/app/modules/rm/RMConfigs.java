@@ -65,14 +65,15 @@ public class RMConfigs {
 			STORAGE_SPACE_TITLE_CALCULATOR_ENABLED,
 			COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION,
-			LEGACY_ID_IN_DECOMMISSIONING_LISTS;
+			LEGACY_ID_IN_DECOMMISSIONING_LISTS,
+			IS_CONTAINER_MULTIVALUE;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
 
 	// Tree configs
 	public static final SystemConfiguration DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, DISPLAY_DEPOSITED_RECORDS_IN_TREES,
-			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES, IS_CONTAINER_MULTIVALUE;
+			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES;
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
@@ -194,6 +195,9 @@ public class RMConfigs {
 		
 		add(LEGACY_ID_IN_DECOMMISSIONING_LISTS = decommissioning.createBooleanFalseByDefault("legacyIdInDecommisioningLists"));
 
+		add(IS_CONTAINER_MULTIVALUE = decommissioning.createBooleanFalseByDefault("multiValue")
+				.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class));
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -203,9 +207,6 @@ public class RMConfigs {
 		add(DISPLAY_DESTROYED_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displayDestroyedInTrees"));
 
 		add(DISPLAY_CONTAINERS_IN_TREES = trees.createBooleanFalseByDefault("displayContainersInTrees"));
-
-		add(IS_CONTAINER_MULTIVALUE = trees.createBooleanFalseByDefault("multiValue")
-		.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class));
 
 		SystemConfigurationGroup agent = new SystemConfigurationGroup(ID, "agent");
 
