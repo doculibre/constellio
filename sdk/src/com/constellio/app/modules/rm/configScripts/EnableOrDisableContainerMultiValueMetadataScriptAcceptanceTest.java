@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.configScripts;
 
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.apache.chemistry.opencmis.client.util.TypeUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,12 +15,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest extends ConstellioTest
 {
-    MetadataSchemasManager metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+    RMTestRecords records = new RMTestRecords(zeCollection);
+    MetadataSchemasManager metadataSchemasManager;
+
+    @Before
+    public void setUp()
+    {
+        metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+    }
 
     @Test
     public void whenValidateAndContainerIsPresentThenErrorIsPresent() {
         prepareSystem(
-                withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus()
+                withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+                        .withRMTest(records).withFoldersAndContainersOfEveryStatus()
         );
 
         EnableOrDisableContainerMultiValueMetadataScript enableOrDisableContainerMultiValueMetadataScript = new EnableOrDisableContainerMultiValueMetadataScript();
@@ -30,6 +38,8 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
         enableOrDisableContainerMultiValueMetadataScript.validate(true, validationError);
 
         assertThat(validationError.getValidationErrors().size()).isEqualTo(1);
+        assertThat(validationError.getValidationErrors().get(0).getCode())
+                .isEqualTo("com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript_containerExisit");
     }
 
     @Test
@@ -42,7 +52,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
 
         enableOrDisableContainerMultiValueMetadataScript.onValueChanged(false, true, getModelLayerFactory());
 
-        assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getMetadata(ContainerRecord.STORAGE_SPACE).isMultivalue()).isTrue();
+        assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.STORAGE_SPACE).isMultivalue()).isTrue();
     }
 
     @Test
@@ -55,6 +65,6 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
 
         enableOrDisableContainerMultiValueMetadataScript.onValueChanged(true, false, getModelLayerFactory());
 
-        assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getMetadata(ContainerRecord.STORAGE_SPACE).isMultivalue()).isFalse();
+        assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.STORAGE_SPACE).isMultivalue()).isFalse();
     }
 }

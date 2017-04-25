@@ -53,7 +53,7 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
     }
 
     @Override
-    public void onValueChanged(final Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
+    public void onValueChanged(Boolean previousValue, final Boolean newValue, ModelLayerFactory modelLayerFactory) {
         AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
         List<String> listCollectionCode = appLayerFactory.getCollectionsManager().getCollectionCodes();
 
@@ -66,7 +66,7 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
                     @Override
                     public void alter(MetadataSchemaTypesBuilder types) {
                         MetadataSchemaBuilder metadataSchemaBuilder = types.getSchema(ContainerRecord.DEFAULT_SCHEMA);
-                        metadataSchemaBuilder.get(ContainerRecord.STORAGE_SPACE).setMultivalue(previousValue);
+                        metadataSchemaBuilder.get(ContainerRecord.STORAGE_SPACE).setMultivalue(newValue);
                     }
                 });
             }
