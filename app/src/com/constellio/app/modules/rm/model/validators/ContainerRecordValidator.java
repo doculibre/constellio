@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model.validators;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -45,7 +46,7 @@ public class ContainerRecordValidator implements RecordValidator {
 			params.getValidationErrors().add(ContainerRecordValidator.class, CONTAINER_CAPACITY_MUST_BE_GREATER_OR_EQUAL_TO_LINEAR_SIZE, parameters);
 		}
 
-		if(container.getStorageSpace() != null) {
+		if(!Boolean.TRUE.equals(params.getConfigProvider().get(RMConfigs.IS_CONTAINER_MULTIVALUE)) && container.getStorageSpace() != null) {
 			StorageSpace storageSpace = new StorageSpace(params.getRecord(container.getStorageSpace()), params.getTypes());
 			if(!canContain(storageSpace, container.getType(), params.getRecordProvider(), params.getTypes())) {
 				Map<String, Object> parameters = new HashMap<>();

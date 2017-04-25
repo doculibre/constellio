@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -101,7 +102,7 @@ public class StorageSpaceSingleContainerAvailableSizeCalculatorAcceptanceTest ex
 		StorageSpace storageSpace = buildDefaultStorageSpace().setCapacity(new Long(10)).setLinearSizeEntered(6);
 		recordServices.add(storageSpace);
 		recordServices.add(buildDefaultContainerType());
-		recordServices.add(buildDefaultContainer("containerTest").setStorageSpace("storageTest"));
+		recordServices.add(buildDefaultContainer("containerTest").setStorageSpaces(asList("storageTest")));
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		Record record = searchServices

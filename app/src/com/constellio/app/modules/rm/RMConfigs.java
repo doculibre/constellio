@@ -1,21 +1,17 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
+import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -67,6 +63,7 @@ public class RMConfigs {
 			POPULATE_BORDEREAUX_WITH_COLLECTION,
 			POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT,
 			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
+			IS_CONTAINER_MULTIVALUE,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
@@ -256,6 +253,8 @@ public class RMConfigs {
 		add(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT = decommissioning.createBooleanTrueByDefault("populateBordereauxWithAdministrativeUnit"));
 
 		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
+
+		add(IS_CONTAINER_MULTIVALUE = decommissioning.createBooleanFalseByDefault("multiValue").scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class));
 
 		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",

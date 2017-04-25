@@ -147,6 +147,11 @@ public class ContainerRecord extends RecordWrapper {
 		return this;
 	}
 
+	public ContainerRecord setStorageSpaces(List<?> storageSpaces) {
+		set(STORAGE_SPACE, storageSpaces);
+		return this;
+	}
+
 	public String getBorrower() {
 		return get(BORROWER);
 	}
