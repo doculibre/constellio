@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
@@ -315,6 +310,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 				try {
 					presenter.folderPlacedInContainer(detail, view.getContainer((ContainerVO) container.getValue()));
 				} catch (Exception e) {
+					container.setValue(null);
 				}
 			}
 		});
