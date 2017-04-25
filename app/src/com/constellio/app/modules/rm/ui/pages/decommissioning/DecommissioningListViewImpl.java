@@ -607,6 +607,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				List<FolderDetailVO> selected = new ArrayList<>();
+				boolean areAllSelectedPackageable = true;
 				for (Object itemId : processableFolders.getItemIds()) {
 					FolderDetailVO folder = (FolderDetailVO) itemId;
 					if (folder.isSelected()) {
@@ -619,9 +620,14 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 						presenter.removeFromContainer(folder);
 						if(folder.isPackageable()) {
 							setPackageable(folder);
+						} else {
+							areAllSelectedPackageable = false;
 						}
 					} catch (Exception e) {
 					}
+				}
+				if(!areAllSelectedPackageable) {
+					showErrorMessage($("DecommissioningListView.someFoldersAreNotPackageable"));
 				}
 			}
 		};
