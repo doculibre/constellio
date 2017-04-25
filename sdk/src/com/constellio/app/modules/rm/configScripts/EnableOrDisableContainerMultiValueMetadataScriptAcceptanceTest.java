@@ -43,7 +43,22 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
     }
 
     @Test
-    public void whenOnValueChangedTrueThenSetMultivalueTrue() {
+    public void whenValidateAndContainerIsAbsentThenNoErrors() {
+        prepareSystem(
+                withZeCollection().withConstellioRMModule().withAllTestUsers()
+        );
+
+        EnableOrDisableContainerMultiValueMetadataScript enableOrDisableContainerMultiValueMetadataScript = new EnableOrDisableContainerMultiValueMetadataScript();
+
+        ValidationErrors validationError = new ValidationErrors();
+
+        enableOrDisableContainerMultiValueMetadataScript.validate(true, validationError);
+
+        assertThat(validationError.getValidationErrors().size()).isEqualTo(0);
+    }
+
+    @Test
+    public void whenOnValueChangedTrueThenSetMultivalueTrue() throws InterruptedException {
        prepareSystem(
                 withZeCollection().withConstellioRMModule().withAllTestUsers()
         );
@@ -56,7 +71,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
     }
 
     @Test
-    public void whenOnValueChangedFalseThenSetMultivalueFalse() {
+    public void whenOnValueChangedFalseThenSetMultivalueFalse() throws InterruptedException {
         prepareSystem(
                 withZeCollection().withConstellioRMModule()
         );
@@ -64,6 +79,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
         EnableOrDisableContainerMultiValueMetadataScript enableOrDisableContainerMultiValueMetadataScript = new EnableOrDisableContainerMultiValueMetadataScript();
 
         enableOrDisableContainerMultiValueMetadataScript.onValueChanged(true, false, getModelLayerFactory());
+
 
         assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.STORAGE_SPACE).isMultivalue()).isFalse();
     }
