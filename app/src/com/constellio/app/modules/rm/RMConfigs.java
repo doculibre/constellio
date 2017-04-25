@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm;
 
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -69,7 +70,7 @@ public class RMConfigs {
 
 	// Tree configs
 	public static final SystemConfiguration DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, DISPLAY_DEPOSITED_RECORDS_IN_TREES,
-			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES;
+			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES, IS_CONTAINER_MULTIVALUE;
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
@@ -198,6 +199,9 @@ public class RMConfigs {
 		add(DISPLAY_DESTROYED_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displayDestroyedInTrees"));
 
 		add(DISPLAY_CONTAINERS_IN_TREES = trees.createBooleanFalseByDefault("displayContainersInTrees"));
+
+		add(IS_CONTAINER_MULTIVALUE = trees.createBooleanFalseByDefault("multiValue")
+		.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class));
 
 		SystemConfigurationGroup agent = new SystemConfigurationGroup(ID, "agent");
 
