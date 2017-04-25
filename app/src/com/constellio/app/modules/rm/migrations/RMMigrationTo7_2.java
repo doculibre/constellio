@@ -179,6 +179,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 				.withNewTableMetadatas(Event.DEFAULT_SCHEMA + "_" + Event.RECEIVER_NAME,
 						Event.DEFAULT_SCHEMA + "_" + Event.TASK,
 						Event.DEFAULT_SCHEMA + "_" + Event.DESCRIPTION));
+
+		displayManager.saveMetadata(displayManager.getMetadata(collection, AdministrativeUnit.DEFAULT_SCHEMA, AdministrativeUnit.ADRESS)
+				.withInputType(MetadataInputType.FIELD));
 	}
 
 	private void migrateRoles(String collection, ModelLayerFactory modelLayerFactory) {
@@ -272,6 +275,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
             MetadataBuilder containerStorageSpace = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.STORAGE_SPACE);
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).createUndeletable(StorageSpace.NUMBER_OF_CONTAINERS)
                     .setType(MetadataValueType.NUMBER).defineDataEntry().asReferenceCount(containerStorageSpace).setSearchable(true);
+			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.FIRST_TRANSFER_REPORT_DATE).setType(MetadataValueType.DATE).setSystemReserved(true);
+			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE).setType(MetadataValueType.DATE).setSystemReserved(true);
+//			typesBuilder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE).createUndeletable(AdministrativeUnit.ADRESS).setType(MetadataValueType.DATE).setSystemReserved(true);
         }
     }
 

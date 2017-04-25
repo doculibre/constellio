@@ -27,9 +27,11 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
 
 import java.util.List;
 import java.util.Map;
@@ -215,5 +217,20 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
 		return getRmReportBuilderFactories().labelsBuilderFactory.getValue();
+	}
+
+	public void saveIfFirstTimeReportCreated() {
+		ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+		ContainerRecordReportParameters reportParameters = getReportParameters(null);
+		if(reportParameters.isTransfer()) {
+			containerRecord.setFirstTransferReportDate(LocalDate.now());
+		} else {
+			containerRecord.setFirstDepositReportDate(LocalDate.now());
+		}
+		try {
+			recordServices().update(containerRecord);
+		} catch (RecordServicesException e) {
+			view.showErrorMessage("Could not update report creation time");
+		}
 	}
 }
