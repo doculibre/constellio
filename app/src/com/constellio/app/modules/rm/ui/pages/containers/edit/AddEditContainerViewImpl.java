@@ -96,7 +96,10 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				String value = (String) event.getProperty().getValue();
-				if(value == null || value.matches("-?\\d+(\\.\\d+)?")) {
+				if(value == null) {
+					presenter.getContainerRecord().set(ContainerRecord.CAPACITY, null);
+					reloadWithContainer(container);
+				} else if(value.matches("-?\\d+(\\.\\d+)?")) {
 					presenter.getContainerRecord().set(ContainerRecord.CAPACITY, Double.parseDouble(value));
 					reloadWithContainer(container);
 				}
