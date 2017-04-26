@@ -991,6 +991,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void givenDisabledAfterTestValidations() {
 		getCurrentTestSession().getAfterTestValidationsTestFeature().disableInCurrentTest();
+		givenRollbackCheckDisabled();
 	}
 
 	protected String recordIdWithTitleInCollection(String title, String collection) {

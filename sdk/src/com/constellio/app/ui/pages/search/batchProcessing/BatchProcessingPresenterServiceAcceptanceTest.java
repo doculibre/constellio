@@ -78,6 +78,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	public void setUp()
 			throws Exception {
 		givenBackgroundThreadsEnabled();
+		givenRollbackCheckDisabled();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
 
@@ -112,6 +113,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulation()
 			throws Exception {
+		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A05, records.folder_A16))))
@@ -147,6 +149,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulationWithIds()
 			throws Exception {
+
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A05, records.folder_A16))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
@@ -181,6 +184,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void whenSetCopyRuleEnteredThenApplied()
 			throws Exception {
+		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A05, records.folder_A16))))
@@ -311,7 +315,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void whenModifyDocumentParentFolderInBatchOnlyHumanFriendlyMetadataAreShown()
 			throws Exception {
-
+		givenRollbackCheckDisabled();
 		List<Document> folderA04Documents = rm.searchDocuments(where(rm.document.folder()).isEqualTo(records.folder_A04));
 		Document document1 = folderA04Documents.get(0);
 		Document document2 = folderA04Documents.get(1);

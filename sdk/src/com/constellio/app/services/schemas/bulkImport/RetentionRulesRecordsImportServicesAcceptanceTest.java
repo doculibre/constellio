@@ -51,6 +51,7 @@ public class RetentionRulesRecordsImportServicesAcceptanceTest extends Constelli
 	@Test
 	public void whenImportingXLSXFileWithRetentionRulesThenValidate()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		importServices
 				.bulkImport(Excel2007ImportDataProvider.fromFile(getTestResourceFile("retentionRule.xlsx")), progressionListener,
 						admin);
