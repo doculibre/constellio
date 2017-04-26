@@ -196,12 +196,14 @@ public class RMMigrationTo7_2 implements MigrationScript {
 				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
 				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
 				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.DISPLAY_CONTAINERS,
 				RMPermissionsTo.BORROW_CONTAINER
 		)));
 		modelLayerFactory.getRolesManager().updateRole(admin.withNewPermissions(asList(
 				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
 				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
 				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.DISPLAY_CONTAINERS,
 				RMPermissionsTo.BORROW_CONTAINER
 		)));
 
