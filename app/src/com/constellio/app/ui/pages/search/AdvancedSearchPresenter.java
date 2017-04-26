@@ -451,7 +451,12 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
-		view.navigate().to().batchProcesses();
+		if(searchID != null) {
+			view.navigate().to().advancedSearchReplay(searchID);
+		} else {
+			view.navigate().to().advancedSearch();
+		}
+
 	}
 
 	@Override
