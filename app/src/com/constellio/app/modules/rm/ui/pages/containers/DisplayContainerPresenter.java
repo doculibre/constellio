@@ -56,7 +56,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasReadAccess().on(restrictedRecord);
+		return user.has(RMPermissionsTo.DISPLAY_CONTAINERS).globally();
 	}
 
 	@Override
