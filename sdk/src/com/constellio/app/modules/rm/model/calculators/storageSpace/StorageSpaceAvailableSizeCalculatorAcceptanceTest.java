@@ -56,6 +56,7 @@ public class StorageSpaceAvailableSizeCalculatorAcceptanceTest extends Constelli
 
 	@Test
 	public void givenParametersThenCalculatorReturnsGoodValue() {
+		givenDisabledAfterTestValidations();
 		when(parameters.get(calculator.linearSizeParam)).thenReturn(new Double(6));
 		when(parameters.get(calculator.capacityParam)).thenReturn(new Double(10));
 		assertThat(calculator.calculate(parameters)).isEqualTo(4);

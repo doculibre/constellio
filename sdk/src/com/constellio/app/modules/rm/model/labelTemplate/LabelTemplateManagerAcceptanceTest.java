@@ -111,9 +111,8 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		givenCustomTemplates();
 
 		List<LabelTemplate> labelTemplates = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE);
-		assertThat(labelTemplates).hasSize(2);
-		assertThat(labelTemplates.get(0).getKey()).isEqualTo("folderTemplate1");
-		assertThat(labelTemplates.get(1).getKey()).isEqualTo("folderTemplate2");
+		assertThat(labelTemplates).hasSize(10);
+		assertThat(labelTemplates).extracting("key").contains("folderTemplate1", "folderTemplate2");
 	}
 
 	@Test

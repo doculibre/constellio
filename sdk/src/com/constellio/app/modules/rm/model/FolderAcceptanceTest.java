@@ -125,6 +125,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenRollbackCheckDisabled();givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
 		);
@@ -779,7 +780,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	//Tested on IntelliGID 4!
 	public void givenActiveSecondaryFoldersWithPeriodsAndDecommissioningDelaysThenValidCalculatedDates()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
@@ -828,7 +829,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	//Tested on IntelliGID 4!
 	public void givenActiveSecondaryFoldersWithOpenPeriodsAndDecommissioningDelaysThenValidCalculatedDates()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");

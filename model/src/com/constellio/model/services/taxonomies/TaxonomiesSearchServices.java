@@ -789,11 +789,20 @@ public class TaxonomiesSearchServices {
 				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
 			}
 
+			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(ctx.getCollection());
 			while (visibleRecords.size() < ctx.options.getEndRow() + 1 && iterator.hasNext()) {
 
 				List<Record> batch = iterator.next();
+				boolean navigatingUsingPrincipalTaxonomy = principalTaxonomy != null
+						&& principalTaxonomy.getCode().equals(ctx.taxonomy.getCode());
 
-				LogicalSearchCondition condition = from(ctx.forSelectionOfSchemaType).returnAll();
+				List<String> schemaTypes = new ArrayList<>();
+				schemaTypes.add(ctx.forSelectionOfSchemaType.getCode());
+
+				if (ctx.options.isAlwaysReturnTaxonomyConceptsWithReadAccess() && navigatingUsingPrincipalTaxonomy) {
+					schemaTypes.addAll(ctx.taxonomy.getSchemaTypes());
+				}
+				LogicalSearchCondition condition = from(schemaTypes, ctx.getCollection()).returnAll();
 
 				if (!ctx.options.isShowInvisibleRecordsInLinkingMode()) {
 					condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
@@ -813,14 +822,24 @@ public class TaxonomiesSearchServices {
 					boolean hasVisibleChildren =
 							response.getQueryFacetCount(facetQueryFor(ctx.taxonomy, child)) > 0;
 
+					Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(child);
+					boolean visibleEvenIfEmpty = false;
+					if (taxonomy != null && ctx.options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
+						if (principalTaxonomy != null && taxonomy.getCode().equals(principalTaxonomy.getCode())) {
+							visibleEvenIfEmpty = ctx.hasRequiredAccessOn(child);
+						} else {
+							visibleEvenIfEmpty = true;
+						}
+					}
+
 					if (schemaType.equals(ctx.forSelectionOfSchemaType.getCode())) {
 						boolean hasAccess = ctx.user.hasRequiredAccess(ctx.options.getRequiredAccess()).on(child);
-						if (hasAccess || hasVisibleChildren) {
+						if (hasAccess || hasVisibleChildren || visibleEvenIfEmpty) {
 							visibleRecords.add(new TaxonomySearchRecord(child, hasAccess, hasVisibleChildren));
 						}
 
-					} else if (hasVisibleChildren) {
-						visibleRecords.add(new TaxonomySearchRecord(child, false, true));
+					} else if (hasVisibleChildren || visibleEvenIfEmpty) {
+						visibleRecords.add(new TaxonomySearchRecord(child, false, hasVisibleChildren));
 					}
 
 				}

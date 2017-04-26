@@ -191,6 +191,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	public void setUp()
 			throws Exception {
 
+		givenRollbackCheckDisabled();
+		givenDisabledAfterTestValidations();
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		notAUnitItest = true;
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
@@ -547,7 +549,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
     @Test
     public void givenClassifyingConnectorFoldersUsingClassificationPlanOtherCasesThenOk() throws Exception {
         notAUnitItest = true;
-
+		givenDisabledAfterTestValidations();
         givenFetchedFoldersAndDocumentsForRobots();
 
         ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
@@ -2394,6 +2396,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
     @Test
     public void givenFetchedFoldersAndDocumentsForRobots() throws RecordServicesException {
+
         Transaction transaction = new Transaction();
 
         transaction.add(rm.newAdministrativeUnitWithId(adminUnit1)).setCode("AU1").setTitle(adminUnit1);

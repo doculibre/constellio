@@ -90,6 +90,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExportingSpecificSchemaTypesThenExported()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
