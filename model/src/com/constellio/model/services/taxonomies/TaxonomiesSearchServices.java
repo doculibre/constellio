@@ -45,6 +45,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -549,7 +550,11 @@ public class TaxonomiesSearchServices {
 						if (index != -1) {
 							String pathAfterCurrentRecord = aPath.substring(index + context.record.getId().length() + 2);
 							String childLeadingToSecuredRecordId = StringUtils.substringBefore(pathAfterCurrentRecord, "/");
-							childRecordLeadingToSecuredRecord = recordServices.getDocumentById(childLeadingToSecuredRecordId);
+							try {
+								childRecordLeadingToSecuredRecord = recordServices.getDocumentById(childLeadingToSecuredRecordId);
+							} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+								e.printStackTrace();
+							}
 						}
 
 					}

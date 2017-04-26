@@ -106,7 +106,6 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas
 				.withAParentReferenceFromAnotherSchemaToZeSchema()
 				.withAParentReferenceFromZeSchemaToZeSchema());
-		givenTaxonomyOfZeSchema();
 		givenOtherTypeRecords();
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
@@ -194,7 +193,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas
 				.withAParentReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
-		givenTaxonomyOfZeSchema();
+		//		givenTaxonomyOfZeSchema();
 		givenOtherTypeRecords();
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
