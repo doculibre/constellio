@@ -10,13 +10,16 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -137,6 +140,75 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 
         connectWithBob();
         assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE));
+    }
+
+    @Test
+    public void givenAdvanceSearchWithTaxonomiesThenIsLimitedByPermission() throws RecordServicesException {
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                MetadataSchemaTypeBuilder justeadmin = types.createNewSchemaType("justeadmin");
+                justeadmin.getDefaultSchema().create("code").setType(MetadataValueType.STRING);
+            }
+        });
+
+        MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+        Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", "justeadmin", zeCollection,
+                "justeadmin").withUserIds(asList(rmRecords.getAdmin().getId()));
+        getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
+
+        recordServices.add(rm.newHierarchicalValueListItem("justeadmin_default").setCode("J01").set(Schemas.TITLE, "J01"));
+
+        connectWithAdmin();
+        List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getDefaultSchema(Folder.SCHEMA_TYPE).create("newSearchableMetadata")
+                        .setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin")).setSearchable(true);
+            }
+        });
+
+        SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+        metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_default_newSearchableMetadata")
+                .withVisibleInAdvancedSearchStatus(true));
+
+        List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+        newMetadatas.removeAll(baseMetadatas);
+        assertThat(newMetadatas.size()).isEqualTo(1);
+        assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_default_newSearchableMetadata");
+
+        connectWithBob();
+        assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE));
+    }
+
+    @Test
+    public void givenAdvanceSearchThenDoNotShowDisabledMetadatas() throws RecordServicesException {
+        connectWithAdmin();
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
+                        .setEnabled(false);
+            }
+        });
+
+        List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
+                        .setEnabled(true);
+            }
+        });
+
+        List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+        newMetadatas.removeAll(baseMetadatas);
+        assertThat(newMetadatas.size()).isEqualTo(1);
+        assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_default_" + Folder.BORROWED);
     }
 
     private void connectWithAlice() {

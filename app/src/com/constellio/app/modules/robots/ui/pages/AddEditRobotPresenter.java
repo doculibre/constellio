@@ -28,11 +28,14 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -202,12 +205,35 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if(!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch()) {
+				if (config.isVisibleInAdvancedSearch() && metadata.isEnabled() && isMetadataVisibleForUser(metadata, getCurrentUser())) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
 		}
 		return result;
+	}
+
+	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
+		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
+			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(collection, referencedSchemaType);
+			if(taxonomy != null) {
+				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
+				List<String> taxonomyUserIds = taxonomy.getUserIds();
+				List<String> userGroups = currentUser.getUserGroups();
+				for(String group: taxonomyGroupIds) {
+					for(String userGroup: userGroups) {
+						if(userGroup.equals(group)) {
+							return true;
+						}
+					}
+				}
+				return (taxonomyGroupIds.isEmpty() && taxonomyUserIds.isEmpty()) || taxonomyUserIds.contains(currentUser.getId());
+			} else {
+				return true;
+			}
+		}
+		return true;
 	}
 
 	@Override
