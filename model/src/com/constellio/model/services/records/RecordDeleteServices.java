@@ -66,6 +66,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -663,8 +664,9 @@ public class RecordDeleteServices {
 				}
 			}
 		} else {
-			LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection()).where(Schemas.ALL_REFERENCES)
-					.isEqualTo(record.getId());
+			LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
+					.where(Schemas.PATH_PARTS).isEqualTo(record.getId())
+					.andWhere(Schemas.SCHEMA).isNot(LogicalSearchQueryOperators.startingWithText(record.getTypeCode() + "_"));
 			hasReferences = searchServices.hasResults(new LogicalSearchQuery(condition));
 		}
 
