@@ -160,9 +160,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
-						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES)
-						.sortAsc(Schemas.TITLE);
+				if(getCurrentUser().hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+					return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+							.filteredByStatus(StatusFilter.ACTIVES)
+							.sortAsc(Schemas.TITLE);
+				} else {
+					return LogicalSearchQuery.returningNoResults();
+				}
 			}
 		};
 	}
@@ -417,7 +421,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean isBatchProcessingButtonVisible(String schemaType) {
-		return getRecordsIds(schemaType).size() != 0;
+		boolean hasRightToProcessSchemaType = true;
+		if(ContainerRecord.SCHEMA_TYPE.equals(schemaType) && !getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+			hasRightToProcessSchemaType = false;
+		}
+		return getRecordsIds(schemaType).size() != 0 && hasRightToProcessSchemaType;
 	}
 
 	public void shareWithUsersRequested(List<String> userids) {
@@ -573,9 +581,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
-						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
-						.sortAsc(Schemas.TITLE);
+				if(getCurrentUser().hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+					return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+							.filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
+							.sortAsc(Schemas.TITLE);
+				} else {
+					return LogicalSearchQuery.returningNoResults();
+				}
 			}
 		};
 	}
