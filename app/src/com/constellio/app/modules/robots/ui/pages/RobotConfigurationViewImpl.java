@@ -7,16 +7,19 @@ import java.util.List;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.robots.ui.components.breadcrumb.RobotBreadcrumbTrail;
-import com.constellio.app.modules.robots.ui.data.RobotLazyTreeDataProvider;
+import com.constellio.app.modules.robots.ui.data.RobotTreeNodesDataProvider;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
+import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -33,6 +36,7 @@ import com.vaadin.ui.TabSheet;
 public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotConfigurationView {
 	private final RobotConfigurationPresenter presenter;
 	private RecordVO robot;
+	private Resource resource;
 
 	public RobotConfigurationViewImpl() {
 		this.presenter = new RobotConfigurationPresenter(this);
@@ -50,7 +54,7 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new RobotBreadcrumbTrail(presenter.getRootRobotId());
+		return new RobotBreadcrumbTrail(presenter.getRootRobotId(), this);
 	}
 
 	@Override
@@ -58,11 +62,13 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 		TabSheet sheet = new TabSheet();
 		sheet.setWidth("100%");
 
-		RecordDisplay display = new RecordDisplay(robot);
+		RecordDisplay display = new RecordDisplay(robot, new LocalMetadataDisplayFactory());
 		sheet.addTab(display, $("RobotConfigurationView.metadata"));
 
-		RobotLazyTreeDataProvider provider = new RobotLazyTreeDataProvider(
-				getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId());
+		// LegacyRobotLazyTreeDataProvider provider = new LegacyRobotLazyTreeDataProvider(
+		// getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId());
+		RecordLazyTreeDataProvider provider = new RecordLazyTreeDataProvider(new RobotTreeNodesDataProvider(
+				getConstellioFactories().getAppLayerFactory(), getCollection(), presenter.getRootRobotId()));
 		RecordLazyTree tree = new RecordLazyTree(provider);
 		tree.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -76,6 +82,20 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 		sheet.addTab(tree, $("RobotConfigurationView.tree"));
 
 		return sheet;
+	}
+
+	private class LocalMetadataDisplayFactory extends MetadataDisplayFactory {
+		private static final String ROBOT_DEFAULT_ACTION = "robot_default_action";
+		private static final String ROBOT_DEFAULT_SCHEMA_FILTER = "robot_default_schemaFilter";
+
+		@Override
+		public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
+			if (ROBOT_DEFAULT_SCHEMA_FILTER.equals(metadata.getCode()) || ROBOT_DEFAULT_ACTION.equals(metadata.getCode())) {
+				displayValue = $(displayValue.toString());
+			}
+
+			return super.buildSingleValue(recordVO, metadata, displayValue);
+		}
 	}
 
 	@Override
@@ -139,10 +159,13 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 	}
 
 	private Button buildDownloadButton() {
-		final Resource resource = new DownloadStreamResource(presenter.getResource(), presenter.getReportTitle());
 		return new LinkButton($("RobotConfigurationView.download")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
+				if (resource == null) {
+					resource = new DownloadStreamResource(presenter.getResource(), presenter.getReportTitle());
+				}
+				
 				Page.getCurrent().open(resource, null, false);
 			}
 		};

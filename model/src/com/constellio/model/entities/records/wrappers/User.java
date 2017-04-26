@@ -13,7 +13,9 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.security.roles.Roles;
@@ -49,6 +51,9 @@ public class User extends RecordWrapper {
 	public static final String SIGNATURE = "signature";
 	public static final String LOGIN_LANGUAGE_CODE = "loginLanguageCode";
 	public static final String VISIBLE_TABLE_COLUMNS = "visibleTableColumns";
+	public static final String FAX = "fax";
+	public static final String ADDRESS = "address";
+	public static final String AGENT_ENABLED = "agentEnabled";
 
 	private transient Roles roles;
 
@@ -261,22 +266,40 @@ public class User extends RecordWrapper {
 		return get(GROUPS_AUTHORIZATIONS);
 	}
 
+	public List<String> getUserAuthorizations() {
+		return get(Schemas.AUTHORIZATIONS.getLocalCode());
+	}
+
 	public List<String> getAllUserAuthorizations() {
 		return get(ALL_USER_AUTHORIZATIONS);
 	}
 
 	public List<String> getUserTokens() {
-		List<String> recordTokens = getList(USER_TOKENS);
-		List<String> tokens = new ArrayList<String>(recordTokens);
-		tokens.add("r_" + getId());
-		tokens.add("w_" + getId());
-		tokens.add("d_" + getId());
+		//		List<String> recordTokens = getList(USER_TOKENS);
+		//		List<String> tokens = new ArrayList<String>(recordTokens);
+		//		tokens.add("r_" + getId());
+		//		tokens.add("w_" + getId());
+		//		tokens.add("d_" + getId());
+		//		for (String groupId : getUserGroups()) {
+		//			tokens.add("r_" + groupId);
+		//			tokens.add("w_" + groupId);
+		//			tokens.add("d_" + groupId);
+		//		}
+		//		return tokens;
+
+		List<String> activeAuthsTokens = new ArrayList<>();
+
+		activeAuthsTokens.add("r_" + getId());
+		activeAuthsTokens.add("w_" + getId());
+		activeAuthsTokens.add("d_" + getId());
+
 		for (String groupId : getUserGroups()) {
-			tokens.add("r_" + groupId);
-			tokens.add("w_" + groupId);
-			tokens.add("d_" + groupId);
+			activeAuthsTokens.add("r_" + groupId);
+			activeAuthsTokens.add("w_" + groupId);
+			activeAuthsTokens.add("d_" + groupId);
 		}
-		return tokens;
+
+		return activeAuthsTokens;
 	}
 
 	public String getCollection() {
@@ -462,4 +485,33 @@ public class User extends RecordWrapper {
 
 	}
 
+	public AuthorizationDetails getAuthorizationDetail(String id) {
+		return roles.getSchemasRecordsServices().getSolrAuthorizationDetails(id);
+	}
+
+	public Roles getRolesDetails() {
+		return roles;
+	}
+
+	public String getFax() {
+		return get(FAX);
+	}
+
+	public User setFax(String fax) {
+		set(FAX, fax);
+		return this;
+	}
+
+	public String getAddress() {
+		return get(ADDRESS);
+	}
+
+	public User setAddress(String address) {
+		set(ADDRESS, address);
+		return this;
+	}
+
+	public boolean isAgentEnabled() {
+		return get(AGENT_ENABLED);
+	}
 }

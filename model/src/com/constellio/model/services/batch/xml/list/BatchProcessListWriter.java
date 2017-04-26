@@ -1,8 +1,8 @@
 package com.constellio.model.services.batch.xml.list;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 import org.apache.commons.collections.IteratorUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -11,13 +11,13 @@ import org.jdom2.filter.Filters;
 import org.jdom2.util.IteratorIterable;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.utils.ParametrizedInstanceUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BatchProcessListWriter {
 
 	private static final String ID = "id";
+	private static final String RECORDS = "records";
 	private static final String QUERY = "query";
 	private static final String ERRORS = "errors";
 	private static final String REQUEST_DATE_TIME = "requestDateTime";
@@ -25,11 +25,14 @@ public class BatchProcessListWriter {
 	private static final String RECORDS_COUNT = "recordsCount";
 	private static final String PROGRESSION = "progression";
 	private static final String COLLECTION = "collection";
+	private static final String USERNAME = "username";
+	private static final String TITLE = "title";
 	private static final String BATCH_PROCESS = "batchProcess";
 	private static final String STANDBY_BATCH_PROCESSES = "standbyBatchProcesses";
 	private static final String PENDING_BATCH_PROCESSES = "pendingBatchProcesses";
 	private static final String CURRENT_BATCH_PROCESS = "currentBatchProcess";
 	private static final String PREVIOUS_BATCH_PROCESSES = "previousBatchProcesses";
+
 	private final Document document;
 
 	public BatchProcessListWriter(Document document) {
@@ -65,8 +68,58 @@ public class BatchProcessListWriter {
 		document.getRootElement().addContent(pendingBatchProcessesElement);
 	}
 
+	public void addBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
+								BatchProcessAction batchProcessAction, String username, String title) {
+		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
+
+		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
+		Element recordsCountElement = new Element(RECORDS_COUNT).setText(String.valueOf(recordsCount));
+		Element collectionElement = new Element(COLLECTION).setText(collection);
+		Element queryElement = new Element(QUERY).setText(query);
+		Element batchProcess = new Element(BATCH_PROCESS).setAttribute(ID, id);
+		Element usernameElement = new Element(USERNAME).setText(username);
+		Element titleElement = new Element(TITLE).setText(title);
+
+		batchProcess.addContent(requestDateTimeElement);
+		batchProcess.addContent(recordsCountElement);
+		batchProcess.addContent(actionElement);
+		batchProcess.addContent(queryElement);
+		batchProcess.addContent(collectionElement);
+		batchProcess.addContent(usernameElement);
+		batchProcess.addContent(titleElement);
+
+		Element pendingBatchProcessesElement = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES).detach();
+		pendingBatchProcessesElement.addContent(batchProcess);
+		document.getRootElement().addContent(pendingBatchProcessesElement);
+	}
+
+	public void addBatchProcess(String id, List<String> records, String collection, LocalDateTime requestDateTime, int recordsCount,
+								BatchProcessAction batchProcessAction, String username, String title) {
+		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
+
+		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
+		Element recordsCountElement = new Element(RECORDS_COUNT).setText(String.valueOf(recordsCount));
+		Element collectionElement = new Element(COLLECTION).setText(collection);
+		Element queryElement = new Element(RECORDS).setText(records.toString());
+		Element batchProcess = new Element(BATCH_PROCESS).setAttribute(ID, id);
+		Element usernameElement = new Element(USERNAME).setText(username);
+		Element titleElement = new Element(TITLE).setText(title);
+
+		batchProcess.addContent(requestDateTimeElement);
+		batchProcess.addContent(recordsCountElement);
+		batchProcess.addContent(actionElement);
+		batchProcess.addContent(queryElement);
+		batchProcess.addContent(collectionElement);
+		batchProcess.addContent(usernameElement);
+		batchProcess.addContent(titleElement);
+
+		Element pendingBatchProcessesElement = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES).detach();
+		pendingBatchProcessesElement.addContent(batchProcess);
+		document.getRootElement().addContent(pendingBatchProcessesElement);
+	}
+
 	@SuppressWarnings("unchecked")
-	public void markBatchProcessAsFinished(BatchProcess batchProcess, int erros) {
+	public void markBatchProcessAsFinished(BatchProcess batchProcess, int errors) {
 		boolean found = false;
 
 		Filter<Element> filters = Filters.element(BATCH_PROCESS);
@@ -75,7 +128,7 @@ public class BatchProcessListWriter {
 		List<Element> copyBatchProcesses = IteratorUtils.toList(batchProcesses);
 
 		for (Element nextBatchProcess : copyBatchProcesses) {
-			if (found = markBatchProcessAsFinished(batchProcess, erros, nextBatchProcess)) {
+			if (found = markBatchProcessAsFinished(batchProcess, errors, nextBatchProcess)) {
 				break;
 			}
 		}
@@ -151,12 +204,12 @@ public class BatchProcessListWriter {
 		}
 	}
 
-	private boolean markBatchProcessAsFinished(BatchProcess batchProcess, int erros, Element nextBatchProcess) {
+	private boolean markBatchProcessAsFinished(BatchProcess batchProcess, int errors, Element nextBatchProcess) {
 		if (nextBatchProcess.getAttributeValue(ID).equals(batchProcess.getId())
 				&& nextBatchProcess.getParentElement().getName().equals(PREVIOUS_BATCH_PROCESSES)) {
 			throw new BatchProcessListWriterRuntimeException.BatchProcessAlreadyFinished();
 		} else if (nextBatchProcess.getAttributeValue(ID).equals(batchProcess.getId())) {
-			Element errorsElement = setErrorsElementValue(erros, nextBatchProcess);
+			Element errorsElement = setErrorsElementValue(errors, nextBatchProcess);
 			nextBatchProcess.addContent(errorsElement);
 			nextBatchProcess.detach();
 			document.getRootElement().getChild(PREVIOUS_BATCH_PROCESSES).addContent(nextBatchProcess);
@@ -165,13 +218,13 @@ public class BatchProcessListWriter {
 		return false;
 	}
 
-	private Element setErrorsElementValue(int erros, Element nextBatchProcess) {
+	private Element setErrorsElementValue(int errors, Element nextBatchProcess) {
 		Element errorsElement = nextBatchProcess.getChild(ERRORS);
 		if (errorsElement == null) {
-			errorsElement = new Element(ERRORS).setText(String.valueOf(erros));
+			errorsElement = new Element(ERRORS).setText(String.valueOf(errors));
 		} else {
 			errorsElement = errorsElement.detach();
-			errorsElement.setText(String.valueOf(erros));
+			errorsElement.setText(String.valueOf(errors));
 		}
 		return errorsElement;
 	}

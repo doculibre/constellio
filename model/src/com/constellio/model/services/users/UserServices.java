@@ -4,9 +4,13 @@ import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ST
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
@@ -27,9 +31,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -45,6 +52,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
@@ -57,6 +65,8 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserPermissionDeniedToDelete;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 public class UserServices {
 
@@ -73,6 +83,7 @@ public class UserServices {
 	private final RolesManager rolesManager;
 	private final ModelLayerConfiguration modelLayerConfiguration;
 	private final UniqueIdGenerator secondaryUniqueIdGenerator;
+	private final AuthorizationsServices authorizationsServices;
 
 	public UserServices(ModelLayerFactory modelLayerFactory) {
 		this.userCredentialsManager = modelLayerFactory.getUserCredentialsManager();
@@ -86,6 +97,7 @@ public class UserServices {
 		this.ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
 		this.rolesManager = modelLayerFactory.getRolesManager();
 		this.secondaryUniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getSecondaryUniqueIdGenerator();
+		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
@@ -126,6 +138,17 @@ public class UserServices {
 				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
 				status, domain,
 				msExchDelegateListBL, dn);
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			List<String> personalEmails,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+			String dn, String jobTitle, String phone, String fax, String address) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
+				status, domain,
+				msExchDelegateListBL, dn, jobTitle, phone, fax, address);
 	}
 
 	public void addUpdateUserCredential(UserCredential userCredential) {
@@ -484,6 +507,14 @@ public class UserServices {
 		userInCollection.setLastName(user.getLastName());
 		userInCollection.setUsername(user.getUsername());
 		userInCollection.setSystemAdmin(user.isSystemAdmin());
+		try {
+			userInCollection.setPhone(user.getPhone());
+			userInCollection.setJobTitle(user.getJobTitle());
+			userInCollection.setAddress(user.getAddress());
+			userInCollection.setFax(user.getFax());
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			//Normal with versions before 6.2
+		}
 		setRoles(userInCollection);
 		changeUserStatus(userInCollection, user);
 		List<String> groupIds = getGroupIds(user.getGlobalGroups(), collection);
@@ -843,6 +874,156 @@ public class UserServices {
 			} catch (UserServicesRuntimeException_InvalidToken e) {
 				return false;
 			}
+		}
+	}
+
+	public List<GlobalGroup> safePhysicalDeleteAllUnusedGlobalGroups() {
+		return physicallyRemoveGlobalGroup(globalGroupsManager.getAllGroups().toArray(new GlobalGroup[0]));
+	}
+
+	public List<GlobalGroup> physicallyRemoveGlobalGroup(GlobalGroup... globalGroups) {
+		List<GlobalGroup> groupWithUserList = new ArrayList<>();
+		for (GlobalGroup group : globalGroups) {
+			List<UserCredential> userInGroup = this.getGlobalGroupActifUsers(group.getCode());
+			if ((group.getStatus().equals(GlobalGroupStatus.INACTIVE) && userInGroup.size() == 0)) {
+				globalGroupsManager.logicallyRemoveGroup(group);
+				recordServices.physicallyDelete(((SolrGlobalGroup) group).getWrappedRecord(), User.GOD);
+			} else if (userInGroup.size() != 0) {
+				groupWithUserList.add(group);
+			}
+		}
+		return groupWithUserList;
+	}
+
+	public List<Group> safePhysicalDeleteAllUnusedGroups(String collection) {
+		List<Group> nonDeletedGroups = new ArrayList<>();
+		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
+		LogicalSearchQuery query = new LogicalSearchQuery(allGroups(collectionTypes).returnAll());
+		query.filteredByStatus(StatusFilter.DELETED);
+
+		List<Group> deletedGroups = Group.wrap(searchServices.search(query), collectionTypes);
+		for (Group group : deletedGroups) {
+			LOGGER.info("safePhysicalDeleteAllUnusedGroups : " + group.getCode());
+			try {
+				physicallyRemoveGroup(group, collection);
+			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedGroups : " + group.getCode());
+				nonDeletedGroups.add(group);
+			}
+		}
+
+		return nonDeletedGroups;
+	}
+
+	public void physicallyRemoveGroup(Group group, String collection) {
+		LOGGER.info("physicallyRemoveGroup : " + group.getCode());
+
+		List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
+		if (userInGroup.size() != 0 ||
+				searchServices.hasResults(
+						from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
+								.isEqualTo(group.getId()))) {
+			LOGGER.warn("Exception on physicallyRemoveGroup : " + group.getCode());
+			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(group.getCode());
+		}
+
+		recordServices.logicallyDelete(group.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(group.getWrappedRecord(), User.GOD);
+	}
+
+	public List<UserCredential> safePhysicalDeleteAllUnusedUserCredentials() {
+		List<UserCredential> nonDeletedUsers = new ArrayList<>();
+		Predicate<UserCredential> filter = new Predicate<UserCredential>() {
+			@Override
+			public boolean apply(UserCredential input) {
+				return input.getStatus().equals(UserCredentialStatus.DELETED);
+			}
+		};
+		List<UserCredential> userCredentials = this.getAllUserCredentials();
+		LOGGER.info("safePhysicalDeleteAllUnusedUsers getAllUserCredentials  : " + userCredentials.size());
+		Collection<UserCredential> usersToDelete = Collections2.filter(userCredentials, filter);
+		LOGGER.info("safePhysicalDeleteAllUnusedUsers usersToDelete  : " + usersToDelete.size());
+		for (UserCredential credential : usersToDelete) {
+			try {
+				safePhysicalDeleteUserCredential(credential.getUsername());
+			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+				nonDeletedUsers.add(credential);
+			}
+		}
+		return nonDeletedUsers;
+	}
+
+	public void safePhysicalDeleteUserCredential(String username)
+			throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
+		LOGGER.info("safePhysicalDeleteUser : " + username);
+		UserCredential user = getUser(username);
+		for (String collection : user.getCollections()) {
+			String userId = this.getUserInCollection(user.getUsername(), collection).getId();
+			if (searchServices.hasResults(
+					from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
+							.isEqualTo(userId))) {
+				LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
+				throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
+			}
+		}
+		recordServices.logicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
+	}
+
+	public List<User> safePhysicalDeleteAllUnusedUsers(String collection) {
+		List<User> nonDeletedUsers = new ArrayList<>();
+		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(collectionTypes.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema()).returnAll());
+		query.filteredByStatus(StatusFilter.DELETED);
+
+		List<User> deletedUsers = new ArrayList<>();
+		for (Record record : searchServices.search(query)) {
+			deletedUsers.add(new User(record, collectionTypes, null));
+		}
+		for (User user : deletedUsers) {
+			LOGGER.info("safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+			try {
+				physicallyRemoveUser(user, collection);
+			} catch (UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically e) {
+				LOGGER.warn("Exception on safePhysicalDeleteAllUnusedUsers : " + user.getUsername());
+				nonDeletedUsers.add(user);
+			}
+		}
+
+		return nonDeletedUsers;
+	}
+
+	public void physicallyRemoveUser(User user, String collection) {
+		LOGGER.info("physicallyRemoveUser : " + user.getUsername());
+
+		if (searchServices.hasResults(
+				from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
+						.isEqualTo(user.getId()))) {
+			LOGGER.warn("Exception on physicallyRemoveUser : " + user.getUsername());
+			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(user.getUsername());
+		}
+
+		recordServices.logicallyDelete(user.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(user.getWrappedRecord(), User.GOD);
+	}
+
+	public void restoreDeletedGroup(String groupCode, String collection) {
+		GlobalGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
+		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
+			globalGroupsManager.addUpdate(globalGroup.withStatus(GlobalGroupStatus.ACTIVE));
+		}
+
+		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
+		MetadataSchema groupSchema = collectionTypes.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
+		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.filteredByStatus(StatusFilter.DELETED);
+
+		List<Group> groups = Group.wrap(searchServices.search(query), collectionTypes);
+		for (Group group : groups) {
+			LOGGER.info("restoreDeletedGroup : " + group.getCode());
+			recordServices.restore(group.getWrappedRecord(), User.GOD);
 		}
 	}
 }

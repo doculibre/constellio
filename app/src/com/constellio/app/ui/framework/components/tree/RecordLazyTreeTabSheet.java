@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCapti
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
@@ -18,9 +19,15 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 	private int bufferSize;
 	private List<RecordLazyTreeDataProvider> dataProviders;
 	private TaxonomyCodeToCaptionConverter captionConverter = new TaxonomyCodeToCaptionConverter();
+	
+	private static int getBufferSizeFromConfig() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		return modelLayerFactory.getSystemConfigs().getLazyTreeBufferSize();
+	}
 
 	public RecordLazyTreeTabSheet(String[] taxonomyCodes) {
-		this(taxonomyCodes, Integer.MAX_VALUE);
+		this(taxonomyCodes, getBufferSizeFromConfig());
 	}
 
 	public RecordLazyTreeTabSheet(String[] taxonomyCodes, int bufferSize) {
@@ -28,33 +35,41 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 	}
 
 	public RecordLazyTreeTabSheet(List<RecordLazyTreeDataProvider> dataProviders) {
-		this(dataProviders, 20);
+		this(dataProviders, getBufferSizeFromConfig());
 	}
 
 	public RecordLazyTreeTabSheet(List<RecordLazyTreeDataProvider> dataProviders, int bufferSize) {
 		this.dataProviders = dataProviders;
 		this.bufferSize = bufferSize;
-		int selectedTab = 0;
+		int selectedTab = -1;
+		int configDefaultTab = -1;
 
-		User currentUser = new PresenterService(ConstellioFactories.getInstance().getModelLayerFactory())
-				.getCurrentUser(ConstellioUI.getCurrentSessionContext());
+		PresenterService presenterService = new PresenterService(ConstellioFactories.getInstance().getModelLayerFactory());
+		User currentUser = presenterService.getCurrentUser(ConstellioUI.getCurrentSessionContext());
+		String userDefaultTaxonomy = currentUser.getDefaultTaxonomy();
+		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();
 
-		PlaceHolder firstPlaceHolder = null;
-
+//		PlaceHolder firstPlaceHolder = null;
 		for (int i = 0; i < dataProviders.size(); i++) {
 			RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
 			String taxonomyCode = dataProvider.getTaxonomyCode();
 			String lazyTreeCaption = getCaptionForTaxonomyCode(taxonomyCode);
 
-			if (taxonomyCode.equals(currentUser.getDefaultTaxonomy())) {
+			if (taxonomyCode.equals(userDefaultTaxonomy)) {
 				selectedTab = i;
 			}
-			PlaceHolder placeHolder = new PlaceHolder();
-			if (i == 0) {
-				firstPlaceHolder = placeHolder;
+			if (taxonomyCode.equals(configDefaultTaxonomy)) {
+				configDefaultTab = selectedTab;
 			}
+			PlaceHolder placeHolder = new PlaceHolder();
+//			if (i == 0) {
+//				firstPlaceHolder = placeHolder;
+//			}
 
 			addTab(placeHolder, lazyTreeCaption);
+		}
+		if (selectedTab == -1 && configDefaultTab != -1) {
+			selectedTab = configDefaultTab;
 		}
 
 		addSelectedTabChangeListener(new SelectedTabChangeListener() {
@@ -63,11 +78,6 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 				selectTab(getTab(getSelectedTab()));
 			}
 		});
-		if (selectedTab == 0) {
-			firstPlaceHolder.setCompositionRoot(newLazyTree(dataProviders.get(0), bufferSize));
-		} else {
-			setSelectedTab(getTab(selectedTab));
-		}
 	}
 
 	private void selectTab(Tab tab) {
@@ -77,12 +87,23 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 
 		int position = getTabPosition(tab);
 		setSelectedTab(position);
-
-		PlaceHolder tabComponent = (PlaceHolder) tab.getComponent();
+		
+		PlaceHolder tabComponent = (PlaceHolder) getSelectedTab();
 		if (tabComponent.getComponentCount() == 0) {
 			tabComponent.setCompositionRoot(newLazyTree(dataProviders.get(position), bufferSize));
 		}
+	}
 
+	@Override
+	public void attach() {
+		super.attach();
+		
+		PlaceHolder tabComponent = (PlaceHolder) getSelectedTab();
+		if (tabComponent.getComponentCount() == 0) {
+			Tab tab = getTab(tabComponent);
+			int position = getTabPosition(tab);
+			tabComponent.setCompositionRoot(newLazyTree(dataProviders.get(position), bufferSize));
+		}
 	}
 
 	private static List<RecordLazyTreeDataProvider> toDataProviders(String[] taxonomyCodes) {

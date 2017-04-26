@@ -22,6 +22,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordWrapper implements Serializable, CollectionObject {
@@ -83,7 +84,14 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	public boolean hasValue(String localCode) {
 		ensureConnected();
 		MetadataSchema schema = types.getSchema(wrappedRecord.getSchemaCode());
-		return schema.hasMetadataWithCode(localCode) && get(schema.get(localCode)) != null;
+
+		Metadata metadata = null;
+		if (!schema.hasMetadataWithCode(localCode)) {
+			return false;
+		}
+		metadata = schema.get(localCode);
+
+		return metadata.isMultivalue() ? !getList(metadata).isEmpty() : get(metadata) != null;
 	}
 
 	public <T> List<T> getList(Metadata metadata) {
@@ -115,6 +123,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return value == null ? defaultValue : value;
 	}
 
+	protected <T> T getEnumWithDefaultValue(String param, T defaultValue) {
+		T value = get(param);
+		return value == null ? defaultValue : value;
+	}
+
 	public String getId() {
 		return wrappedRecord.getId();
 	}
@@ -136,23 +149,19 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	}
 
 	public List<String> getParentPaths() {
-		return wrappedRecord.getList(Schemas.PARENT_PATH);
-	}
-
-	public List<String> getAuthorizations() {
-		return wrappedRecord.getList(Schemas.AUTHORIZATIONS);
+		return RecordUtils.parentPaths(wrappedRecord);
 	}
 
 	public List<String> getRemovedAuthorizations() {
 		return wrappedRecord.getList(Schemas.REMOVED_AUTHORIZATIONS);
 	}
 
-	public List<String> getInheritedAuthorizations() {
-		return wrappedRecord.getList(Schemas.INHERITED_AUTHORIZATIONS);
+	public List<String> getAllRemovedAuths() {
+		return wrappedRecord.getList(Schemas.ALL_REMOVED_AUTHS);
 	}
 
-	public List<String> getAllAuthorizations() {
-		return wrappedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
+	public List<String> getAttachedAncestors() {
+		return wrappedRecord.getList(Schemas.ATTACHED_ANCESTORS);
 	}
 
 	public List<String> getTokens() {

@@ -1,33 +1,25 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Property;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultDetailedTable extends BasePagedTable<SearchResultContainer> implements SearchResultTable{
 	public static final String TABLE_STYLE = "search-result-table";
 	public static final String CHECKBOX_PROPERTY = "checkbox";
 
 	private Set<Object> selected;
+	private Set<Object> deselected;
+	private boolean selectAll;
 	private Set<SelectionChangeListener> listeners;
 
 	public SearchResultDetailedTable(SearchResultContainer container) {
@@ -39,6 +31,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 		listeners = new HashSet<>();
 		selected = new HashSet<>();
+		deselected = new HashSet<>();
 		if (withCheckBoxes) {
 			addGeneratedColumn(CHECKBOX_PROPERTY, new ColumnGenerator() {
 				@Override
@@ -50,8 +43,10 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 						public void valueChange(Property.ValueChangeEvent event) {
 							if (checkBox.getValue()) {
 								selected.add(itemId);
+								deselected.remove(itemId);
 							} else {
 								selected.remove(itemId);
+								deselected.add(itemId);
 							}
 							fireSelectionChangeEvent();
 						}
@@ -74,7 +69,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	}
 
 	public List<String> getSelectedRecordIds() {
-		List<String> result = new ArrayList<>(selected.size());
+		List<String> result = new ArrayList<>();
 		for (Object itemId : selected) {
 			RecordVO record = container.getRecordVO((int) itemId);
 			result.add(record.getId());
@@ -82,14 +77,27 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		return result;
 	}
 
+	public List<String> getUnselectedRecordIds() {
+		List<String> result = new ArrayList<>();
+		for (Object itemId : deselected) {
+			RecordVO record = container.getRecordVO((int) itemId);
+			result.add(record.getId());
+		}
+		return result;
+	}
+
 	public void selectCurrentPage() {
+		selectAll = true;
 		selected.addAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
+		deselected.removeAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
 		refreshRowCache();
 		fireSelectionChangeEvent();
 	}
 
 	public void deselectCurrentPage() {
+		selectAll = false;
 		selected.removeAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
+		deselected.addAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
 		refreshRowCache();
 		fireSelectionChangeEvent();
 	}

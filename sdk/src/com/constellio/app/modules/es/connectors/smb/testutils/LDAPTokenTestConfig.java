@@ -1,8 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.testutils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.Duration;

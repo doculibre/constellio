@@ -2,7 +2,8 @@ package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
-import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,13 +12,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -27,16 +31,14 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -63,7 +65,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	MetadataSchemasManager manager;
 	RecordServices recordServices;
 	String document1InA16, document2InA16, document3InA16;
-	AuthorizationsServices authServices;
+	AuthorizationsServices authsServices;
 
 	@Before
 	public void setUp()
@@ -109,7 +111,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			recordServices.logicallyDelete(document, User.GOD);
 		}
 
-		authServices = getModelLayerFactory().newAuthorizationsServices();
+		authsServices = getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -117,26 +119,11 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.sortAsc(Schemas.TITLE).setCondition(from(rm.documentSchemaType()).where(rm.documentFolder()).isEqualTo(id)));
 	}
 
-	//	@Test
-	//	public void givenUserCreateNewTaxonomyAndAssignRecordsToItThenRecordsVisibleInTheTaxonomyTree()
-	//			throws Exception {
-	//
-	//		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
-	//
-	//		ValueListServices services = new ValueListServices(getModelLayerFactory(), zeCollection);
-	//		String type = services.createTaxonomy("ZE").getSchemaTypes().get(0);
-	//
-	//		MetadataSchemaTypesBuilder types = manager.modifyTo(zeCollection);
-	//		types.getSchema(Folder.SCHEMA_TYPE).create("ZeMetadata").defineTaxonomyRelationshipToType(types.getSchemaType(type));
-	//		manager.saveUpdateSchemaTypes(types);
-	//
-	//		HierarchicalValueListItem item = rm.newHierarchicalValueListItem(type + "_default");
-	//
-	//	}
-
 	@Test
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
@@ -269,12 +256,12 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
-		authServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
 
-		authServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
 		recordServices.refresh(robin);
 		recordServices.refresh(sasquatch);
 		waitForBatchProcess();
@@ -334,12 +321,12 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
-		authServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
 
-		authServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
-		authServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
 
 		recordServices.refresh(sasquatch);
 		recordServices.refresh(robin);
@@ -524,9 +511,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		for (int i = 0; i < rootCategories.size() - 25; i += 25) {
 			LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-					admin, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
+					admin, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(i).setRows(25), null);
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(rootCategories.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(rootCategories.size() + 2);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -534,7 +520,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, CLASSIFICATION_PLAN,
 					category42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childCategories.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(childCategories.size());
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -593,9 +578,9 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		for (int i = 0; i < rootAdministrativeUnits.size() - 25; i += 25) {
 			LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-					admin, zeCollection, ADMINISTRATIVE_UNITS, new TaxonomiesSearchOptions().setStartRow(2 + i).setRows(25));
+					admin, zeCollection, ADMINISTRATIVE_UNITS, new TaxonomiesSearchOptions().setStartRow(2 + i).setRows(25),
+					null);
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(rootAdministrativeUnits.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(rootAdministrativeUnits.size() + 2);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -603,7 +588,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(admin, ADMINISTRATIVE_UNITS,
 					unit42.getWrappedRecord(), new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(childAdministrativeUnits.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(childAdministrativeUnits.size());
+
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
@@ -615,6 +600,241 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
+	}
+
+	@Test
+	public void givenLogicallyDeletedRecordsInVisibleRecordsThenNotShownInTree()
+			throws Exception {
+
+		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder1.getWrappedRecord(), User.GOD);
+		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder2.getWrappedRecord(), User.GOD);
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder1.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder2.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void givenInvisibleInTreeRecordsInVisibleRecordThenNotShownInTree()
+			throws Exception {
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+
+		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
+		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now());
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder1.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder2.getId()).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void givenInvisibleInTreeRecordsThenNotShownInTree()
+			throws Exception {
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+
+		getModelLayerFactory().newRecordServices()
+				.execute(new Transaction().addAll(records.getFolder_A20().setActualTransferDate(LocalDate.now())));
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void givenLogicallyDeletedRecordsThenNotShownInTree()
+			throws Exception {
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_A20().getWrappedRecord(), User.GOD);
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0));
+
+	}
+
+	@Test
+	public void given10000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThem()
+			throws Exception {
+
+		Folder folderNearEnd = null;
+		Folder subFolderNearEnd = null;
+		List<Folder> addedRecords = new ArrayList<>();
+
+		int size = 4999;
+		for (int i = 0; i < size; i++) {
+			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
+			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
+					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+					.setAdministrativeUnitEntered(records.unitId_10a);
+			addedRecords.add(folder);
+			if (i == size - 2) {
+				folderNearEnd = folder;
+			}
+
+			if (i == size - 1) {
+				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				addedRecords.add(subFolderNearEnd);
+			}
+		}
+		recordServices.execute(new Transaction().addAll(addedRecords).setOptimisticLockingResolution(EXCEPTION));
+
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
+		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		final AtomicInteger queryCount = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(SolrParams solrParams, long qtime) {
+						queryCount.incrementAndGet();
+					}
+				});
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
+				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()));
+
+		assertThat(queryCount.get()).isEqualTo(3);
+	}
+
+	@Test
+	public void givenPlethoraOfRootCategoriesInARubricThenValidGetRootResponse()
+			throws Exception {
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+
+		Transaction transaction = new Transaction();
+		for (int i = 1; i <= 300; i++) {
+			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
+					.setTitle("Category #" + code);
+			transaction.add(rm.newFolder().setTitle("A folder")
+					.setCategoryEntered(category)
+					.setRetentionRuleEntered(records.ruleId_1)
+					.setAdministrativeUnitEntered(records.unitId_10a)
+					.setOpenDate(new LocalDate(2014, 11, 1)));
+		}
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		User alice = users.aliceIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(20).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
+				.has(numFound(100)).has(listSize(20))
+				.has(fastContinuationInfos(false, 20));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(20).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
+				.has(numFound(100)).has(listSize(20))
+				.has(fastContinuationInfos(false, 20));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
+				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
+				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(110)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30));
+
+		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
+				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
+				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
+						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
+						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
+				.has(numFound(110)).has(listSize(20))
+				.has(fastContinuationInfos(false, 31));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(30).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(100)).has(listSize(30))
+				.has(fastContinuationInfos(false, 30));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(null))
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300", "categoryId_X", "categoryId_Z"))
+				.has(numFound(302)).has(listSize(13))
+				.has(fastContinuationInfos(true, 302));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300", "categoryId_X", "categoryId_Z"))
+				.has(numFound(302)).has(listSize(13))
+				.has(fastContinuationInfos(true, 302));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
+				.has(recordsInOrder("category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300", "categoryId_X", "categoryId_Z"))
+				.has(numFound(301)).has(listSize(12))
+				.has(fastContinuationInfos(true, 302));
 	}
 
 	private Folder newFolderInCategory(Category category, String title) {
@@ -835,32 +1055,25 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	}
 
 	private void givenUserHasReadAccessTo(String... ids) {
-
-		Authorization authorization = new Authorization();
-		authorization.setDetail(AuthorizationDetails.create("zeAuthorization", asList(Role.READ), zeCollection));
-		authorization.setGrantedOnRecords(asList(ids));
-		authorization.setGrantedToPrincipals(asList(alice.getId()));
-		getModelLayerFactory().newAuthorizationsServices().add(
-				authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-
+		for (String id : ids) {
+			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingReadAccess());
+		}
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
-		System.out.println(alice.getTokens());
-		System.out.println(alice.getTokens());
 	}
 
 	private ConditionTemplate withoutFilters = null;
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
-		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, Integer.MAX_VALUE);
+		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, 10000);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user, int start,
 			int rows) {
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
+				user, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(start).setRows(rows), null);
 
-		if (rows == Integer.MAX_VALUE) {
+		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -869,9 +1082,9 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user,
 			TaxonomiesSearchOptions options) {
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, CLASSIFICATION_PLAN, options);
+				user, zeCollection, CLASSIFICATION_PLAN, options, null);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -880,9 +1093,9 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(User user,
 			TaxonomiesSearchOptions options) {
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options);
+				user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options, null);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -890,7 +1103,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
 			String category) {
-		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, Integer.MAX_VALUE);
+		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, 10000);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
@@ -901,7 +1114,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
 						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
 
-		if (rows == Integer.MAX_VALUE) {
+		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -913,7 +1126,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		LinkableTaxonomySearchResponse response = service
 				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
@@ -925,10 +1138,33 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		LinkableTaxonomySearchResponse response = service
 				.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
 
-		if (options.getRows() == Integer.MAX_VALUE) {
+		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
 		return assertThat(response);
+	}
+
+	private Condition<? super LinkableTaxonomySearchResponse> fastContinuationInfos(
+			final boolean expectedinishedIteratingOverConcepts,
+			final int expectedLastReturnRecordIndex, String... ids) {
+
+		final List<String> expectedIds = asList(ids);
+
+		return new Condition<LinkableTaxonomySearchResponse>() {
+			@Override
+			public boolean matches(LinkableTaxonomySearchResponse value) {
+
+				assertThat(value.getFastContinueInfos().getShownRecordsWithVisibleChildren())
+						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
+
+				assertThat(value.getFastContinueInfos().finishedConceptsIteration)
+						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedinishedIteratingOverConcepts);
+
+				assertThat(value.getFastContinueInfos().getLastReturnRecordIndex())
+						.describedAs("lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
+				return true;
+			}
+		};
 	}
 
 }

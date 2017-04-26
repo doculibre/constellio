@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -38,16 +28,25 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.logging.EventFactory;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -131,9 +130,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void copyContentButtonClicked() {
-		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
-		}
+		actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 	}
 
 	protected boolean isDeleteDocumentPossible() {
@@ -180,7 +177,19 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (isDeleteDocumentPossible()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
-			presenterUtils.delete(document.getWrappedRecord(), null);
+			try {
+				presenterUtils.delete(document.getWrappedRecord(), null);
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+				Content contentVersionVO = document.getContent();
+				String checkoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+
+				if (checkoutUserId != null) {
+					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleteBorrowedDocuments"));
+				} else {
+					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleted"));
+				}
+				return;
+			}
 			if (parentId != null) {
 				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
@@ -320,24 +329,28 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public synchronized void createPDFA() {
 		DocumentVO documentVO = getDocumentVO();
-		Record record = presenterUtils.getRecord(documentVO.getId());
-		Document document = new Document(record, presenterUtils.types());
-		Content content = document.getContent();
-		ContentConversionManager conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
-		if (content != null) {
-			try {
-				conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
-				conversionManager.convertContentToPDFA(getCurrentUser(), content);
-				presenterUtils.addOrUpdate(document.getWrappedRecord());
+		if(!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")){
+			Record record = presenterUtils.getRecord(documentVO.getId());
+			Document document = new Document(record, presenterUtils.types());
+			Content content = document.getContent();
+			ContentConversionManager conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+			if (content != null) {
+				try {
+					conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+					conversionManager.convertContentToPDFA(getCurrentUser(), content);
+					presenterUtils.addOrUpdate(document.getWrappedRecord());
 
-				decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
+					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-				actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
-			} catch (Exception e) {
-				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
-			} finally {
-				conversionManager.close();
+					actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+				} catch (Exception e) {
+					actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
+				} finally {
+					conversionManager.close();
+				}
 			}
+		} else {
+			actionsComponent.showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
 	}
 
@@ -357,6 +370,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				documentVO.setContent(currentVersionVO);
 
 				updateActionsComponent();
+				actionsComponent.refreshParent();
 				actionsComponent.showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
@@ -525,6 +539,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		updateBorrowedMessage();
 		actionsComponent.setEditDocumentButtonState(getEditButtonState());
 		// THIS IS WHERE I SHOULD USE THE ADD DOCUMENT PERMISSION INSTEAD
+		// OH MY GOD WHY ARE WE YELLING LIKE THAT ?
 		actionsComponent.setAddDocumentButtonState(getCreateDocumentState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
 		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());

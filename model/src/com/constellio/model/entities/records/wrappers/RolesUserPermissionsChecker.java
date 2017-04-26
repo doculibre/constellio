@@ -1,21 +1,20 @@
 package com.constellio.model.entities.records.wrappers;
 
-import static java.util.Arrays.asList;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.services.security.roles.Roles;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.utils.LangUtils;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.security.roles.Roles;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.constellio.model.entities.security.Role.*;
+import static java.util.Arrays.asList;
 
 public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
@@ -47,19 +46,13 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 	private Set<String> getUserPermissionsOnRecord(Record record) {
 		Set<String> permissions = new HashSet<>();
-		List<String> tokens = record.getList(Schemas.TOKENS);
-		List<String> userTokens = user.getUserTokens();
-		for (String token : tokens) {
 
-			if (userTokens.contains(token)) {
-				for (String authorizationRoleCode : token.split("_")[1].split(",")) {
-					Role role = roles.getRole(authorizationRoleCode);
-					if (role != null) {
-						permissions.addAll(role.getOperationPermissions());
-					}
-				}
-			}
+		Set<String> allRolesOnRecord = UserAuthorizationsUtils.getRolesOnRecord(user, record);
+
+		for (String role : allRolesOnRecord) {
+			permissions.addAll(roles.getRole(role).getOperationPermissions());
 		}
+
 		for (String userRoleCode : user.getAllRoles()) {
 			Role role = roles.getRole(userRoleCode);
 			permissions.addAll(role.getOperationPermissions());
@@ -99,16 +92,24 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 	@Override
 	public boolean onSomething() {
+
 		Set<String> allUserPermissions = new HashSet<>();
-		List<String> userTokens = user.getUserTokens();
-		for (String userToken : userTokens) {
-			for (String authorizationRoleCode : userToken.split("_")[1].split(",")) {
-				Role role = roles.getRole(authorizationRoleCode);
-				if (role != null) {
-					allUserPermissions.addAll(role.getOperationPermissions());
+		for (String authId : user.getAllUserAuthorizations()) {
+			try {
+				AuthorizationDetails details = user.getAuthorizationDetail(authId);
+				for (String roleOrAccess : details.getRoles()) {
+					if (!roleOrAccess.equals(READ) && !roleOrAccess.equals(WRITE) && !roleOrAccess.equals(DELETE)) {
+						Role role = roles.getRole(roleOrAccess);
+						if (role != null) {
+							allUserPermissions.addAll(role.getOperationPermissions());
+						}
+					}
 				}
+			} catch (Exception e) {
+				LOGGER.error(e.toString());
 			}
 		}
+
 		for (String userRoleCode : user.getAllRoles()) {
 			Role role = roles.getRole(userRoleCode);
 			allUserPermissions.addAll(role.getOperationPermissions());

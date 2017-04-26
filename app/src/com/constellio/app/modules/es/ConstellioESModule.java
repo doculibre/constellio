@@ -27,12 +27,7 @@ import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
 import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.migrations.ESMigrationCombo;
-import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
+import com.constellio.app.modules.es.migrations.*;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -44,6 +39,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
@@ -72,7 +68,8 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo6_1(),
 				new ESMigrationTo6_2(),
 				new ESMigrationTo6_4(),
-				new ESMigrationTo6_5_42()
+				new ESMigrationTo6_5_42(),
+				new ESMigrationTo7_1_3()
 		);
 	}
 
@@ -159,6 +156,10 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
 		recordsCache.configureCache(permanentCache(es.connectorInstance.schemaType()));
+
+		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));
+		}
 
 		extensions.recordExtensions.add(new ESRecordExtension(es));
 	}

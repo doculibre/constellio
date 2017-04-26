@@ -57,6 +57,11 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 			i18n.setLocale(mainDataLocale);
 			view.getSessionContext().setCurrentLocale(mainDataLocale);
 		}
+
+		String usernameCookieValue = view.getUsernameCookieValue();
+		if (usernameCookieValue != null) {
+			view.setUsername(usernameCookieValue);
+		}
 	}
 
 	@Override
@@ -64,26 +69,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		return true;
 	}
 
-	public void viewEntered() {
-
-	}
-
-	private void signOut() {
-		SessionContext sessionContext = view.getSessionContext();
-
-		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-		UserServices userServices = modelLayerFactory.newUserServices();
-
-		User user = userServices.getUserInCollection(
-				sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
-		modelLayerFactory.newLoggingServices().logout(user);
-
-		sessionContext.setCurrentCollection(null);
-		sessionContext.setCurrentUser(null);
-		sessionContext.setForcedSignOut(true);
-	}
-
-	public void signInAttempt(String enteredUsername, String password) {
+	public void signInAttempt(String enteredUsername, String password, boolean rememberMe) {
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
@@ -153,6 +139,11 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 				}
 			} else {
 				view.showUserHasNoCollectionMessage();
+			}
+			if (rememberMe) {
+				view.setUsernameCookie(username);
+			} else {
+				view.setUsernameCookie(null);
 			}
 		} else {
 			view.showBadLoginMessage();

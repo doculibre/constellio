@@ -4,6 +4,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class TaxonomiesSearchOptions {
 
@@ -16,6 +17,9 @@ public class TaxonomiesSearchOptions {
 	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
 	private boolean hasChildrenFlagCalculated = true;
+	private boolean showInvisibleRecordsInLinkingMode = true;
+	private FastContinueInfos fastContinueInfos;
+	private TaxonomiesSearchFilter filter;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -30,16 +34,40 @@ public class TaxonomiesSearchOptions {
 
 	public TaxonomiesSearchOptions(TaxonomiesSearchOptions cloned) {
 		super();
-		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
+		this.hasChildrenFlagCalculated = cloned.hasChildrenFlagCalculated;
+		this.alwaysReturnTaxonomyConceptsWithReadAccess = cloned.alwaysReturnTaxonomyConceptsWithReadAccess;
 		this.rows = cloned.rows;
 		this.startRow = cloned.startRow;
 		this.includeStatus = cloned.includeStatus;
+		this.requiredAccess = cloned.requiredAccess;
 		this.returnedMetadatasFilter = cloned.returnedMetadatasFilter;
+		this.showInvisibleRecordsInLinkingMode = cloned.showInvisibleRecordsInLinkingMode;
+		this.fastContinueInfos = cloned.fastContinueInfos;
+		this.filter = cloned.filter;
 	}
 
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
 		super();
 		this.includeStatus = includeLogicallyDeleted;
+	}
+
+	public FastContinueInfos getFastContinueInfos() {
+		return fastContinueInfos;
+	}
+
+	public TaxonomiesSearchOptions setFastContinueInfos(
+			FastContinueInfos fastContinueInfos) {
+		this.fastContinueInfos = fastContinueInfos;
+		return this;
+	}
+
+	public boolean isShowInvisibleRecordsInLinkingMode() {
+		return showInvisibleRecordsInLinkingMode;
+	}
+
+	public TaxonomiesSearchOptions setShowInvisibleRecordsInLinkingMode(boolean showInvisibleRecordsInLinkingMode) {
+		this.showInvisibleRecordsInLinkingMode = showInvisibleRecordsInLinkingMode;
+		return this;
 	}
 
 	public boolean isHasChildrenFlagCalculated() {
@@ -56,12 +84,19 @@ public class TaxonomiesSearchOptions {
 	}
 
 	public TaxonomiesSearchOptions setRows(int rows) {
+		if (rows > 10000) {
+			throw new IllegalArgumentException("Rows cannot be higher than 10000");
+		}
 		this.rows = rows;
 		return this;
 	}
 
 	public int getStartRow() {
 		return startRow;
+	}
+
+	public int getEndRow() {
+		return startRow + rows;
 	}
 
 	public TaxonomiesSearchOptions setStartRow(int startRow) {
@@ -112,12 +147,20 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions cloneAddingReturnedField(Metadata metadata) {
 		TaxonomiesSearchOptions clonedOptions = new TaxonomiesSearchOptions(this);
 		clonedOptions.setReturnedMetadatasFilter(returnedMetadatasFilter.withIncludedMetadata(metadata));
-		clonedOptions.setIncludeStatus(includeStatus);
-		clonedOptions.setRequiredAccess(requiredAccess);
-		clonedOptions.setRows(rows);
-		clonedOptions.setStartRow(startRow);
-		clonedOptions.setAlwaysReturnTaxonomyConceptsWithReadAccess(alwaysReturnTaxonomyConceptsWithReadAccess);
 		return clonedOptions;
 
+	}
+
+	public TaxonomiesSearchOptions(ReturnedMetadatasFilter returnedMetadatasFilter) {
+		this.returnedMetadatasFilter = returnedMetadatasFilter;
+	}
+
+	public TaxonomiesSearchFilter getFilter() {
+		return filter;
+	}
+
+	public TaxonomiesSearchOptions setFilter(TaxonomiesSearchFilter filter) {
+		this.filter = filter;
+		return this;
 	}
 }

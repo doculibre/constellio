@@ -17,7 +17,7 @@ import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 
 @SuppressWarnings("serial")
-public class GlobalGroupVODataProvider implements DataProvider {
+public class GlobalGroupVODataProvider extends AbstractDataProvider {
 
 	private transient UserServices userServices;
 	private transient GlobalGroupsManager globalGroupsManager;

@@ -4,6 +4,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
 
+import java.util.List;
+
 public class BatchProcess {
 
 	private final String id;
@@ -22,13 +24,19 @@ public class BatchProcess {
 
 	private final BatchProcessAction action;
 
+	private final String username;
+
+	private final String title;
+
 	private final String collection;
 
 	private final String query;
 
+	private final List<String> records;
+
 	public BatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
-			int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection,
-			String query) {
+						int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection,
+						String query, List<String> records, String username, String title) {
 		super();
 		this.id = id;
 		this.status = status;
@@ -40,6 +48,9 @@ public class BatchProcess {
 		this.action = action;
 		this.collection = collection;
 		this.query = query;
+		this.records = records;
+		this.username = username;
+		this.title = title;
 	}
 
 	public String getQuery() {
@@ -82,6 +93,18 @@ public class BatchProcess {
 		return collection;
 	}
 
+	public String getUsername() {
+		return username;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public List<String> getRecords() {
+		return records;
+	}
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this, "action");
@@ -94,6 +117,11 @@ public class BatchProcess {
 
 	public BatchProcess withQuery(String query) {
 		return new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount, totalRecordsCount, errors,
-				action, collection, query);
+				action, collection, query, records, username, title);
+	}
+
+	public BatchProcess withRecords(List<String> records) {
+		return new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount, totalRecordsCount, errors,
+				action, collection, query, records, username, title);
 	}
 }

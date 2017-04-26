@@ -1,13 +1,14 @@
 package com.constellio.app.modules.rm.navigation;
 
-import static com.constellio.app.ui.params.ParamUtils.addParams;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.vaadin.navigator.Navigator;
+import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class RMViews extends CoreViews {
 	public RMViews(Navigator navigator) {
@@ -61,12 +62,30 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
+	public void newDocument() {
+		Map<String, String> params = new HashMap<>();
+		params.put("newFile", "true");
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
+	public void newDocument(String folderId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("newFile", "true");
+		params.put("parentId", folderId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
 	public void addDocument() {
-		addDocument(null, null);
+		Map<String, String> params = new HashMap<>();
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
 	public void addDocument(String folderId) {
-		addDocument(folderId, null);
+		Map<String, String> params = new HashMap<>();
+		if (folderId != null) {
+			params.put("parentId", folderId);
+		}
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
 	public void addDocument(String folderId, String typeId) {
@@ -125,6 +144,10 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type);
 	}
 
+	public void editDecommissioningListBuilder(String decommissioningListID, String type) {
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type + "/id/" + decommissioningListID);
+	}
+
 	public void decommissioningListBuilderReplay(String type, String searchId) {
 		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type + "/s/" + searchId);
 	}
@@ -135,6 +158,10 @@ public class RMViews extends CoreViews {
 
 	public void displayDocumentDecommissioningList(String entityId) {
 		navigator.navigateTo(RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
+	}
+
+	public void orderDecommissioningList(String entityId, OrderDecommissioningListPresenter.TableType type) {
+		navigator.navigateTo(NavigatorConfigurationService.ORDER_DECOMMISSIONING_LIST_CONFIGURATION + "/" + entityId + "/" + type.name());
 	}
 
 	// USER DOCUMENTS
@@ -184,6 +211,10 @@ public class RMViews extends CoreViews {
     public void addContainer() {
         navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER);
     }
+
+	public void addMultipleContainers() {
+		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/m/t");
+	}
 
     public void editContainer(String containerId) {
         navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);

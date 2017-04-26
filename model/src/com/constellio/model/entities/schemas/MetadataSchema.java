@@ -77,6 +77,10 @@ public class MetadataSchema {
 		return labels;
 	}
 
+	public String getFrenchLabel() {
+		return labels.get(Language.French);
+	}
+
 	public String getLabel(Language language) {
 		return labels.get(language);
 	}
@@ -134,18 +138,34 @@ public class MetadataSchema {
 		return calculatedInfos.getAutomaticMetadatas();
 	}
 
+	public List<Metadata> getEagerTransientMetadatas() {
+		return calculatedInfos.getEagerTransientMetadatas();
+	}
+
+	public List<Metadata> getLazyTransientMetadatas() {
+		return calculatedInfos.getLazyTransientMetadatas();
+	}
+
 	public List<Metadata> getTaxonomyRelationshipReferences(List<Taxonomy> taxonomies) {
 		List<Metadata> returnedMetadata = new ArrayList<>();
 
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(code);
 		for (Taxonomy taxonomy : taxonomies) {
-			if (!taxonomy.getSchemaTypes().contains(schemaTypeCode)) {
-				for (Metadata metadata : metadatas) {
-					if (metadata.isTaxonomyRelationship() && metadata.getType() == MetadataValueType.REFERENCE) {
-						String referencedType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
-						if (taxonomy.getSchemaTypes().contains(referencedType) && metadata.isTaxonomyRelationship()) {
-							returnedMetadata.add(metadata);
-						}
+			returnedMetadata.addAll(getTaxonomyRelationshipReferences(taxonomy));
+		}
+
+		return returnedMetadata;
+	}
+
+	public List<Metadata> getTaxonomyRelationshipReferences(Taxonomy taxonomy) {
+		List<Metadata> returnedMetadata = new ArrayList<>();
+
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(code);
+		if (!taxonomy.getSchemaTypes().contains(schemaTypeCode)) {
+			for (Metadata metadata : metadatas) {
+				if (metadata.isTaxonomyRelationship() && metadata.getType() == MetadataValueType.REFERENCE) {
+					String referencedType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+					if (taxonomy.getSchemaTypes().contains(referencedType) && metadata.isTaxonomyRelationship()) {
+						returnedMetadata.add(metadata);
 					}
 				}
 			}

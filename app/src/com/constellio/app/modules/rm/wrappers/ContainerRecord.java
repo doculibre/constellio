@@ -1,25 +1,22 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+
+import java.util.List;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+	public static final String LOCALIZATION = "localization";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String ADMINISTRATIVE_UNITS = "administrativeUnits";
-	public static final String BORROW_DATE = "borrowDate";
-	public static final String BORROWER = "borrower";
 	public static final String COMPLETION_DATE = "completionDate";
 	public static final String DECOMMISSIONING_TYPE = "decommissioningType";
 	public static final String DESCRIPTION = "description";
@@ -36,8 +33,17 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String POSITION = "position";
 	public static final String COMMENTS = "comments";
 	public static final String BORROWED = "borrowed";
+	public static final String BORROW_DATE = "borrowDate";
+	public static final String BORROWER = "borrower";
+	public static final String BORROW_RETURN_DATE = "borrowReturnDate";
 	public static final String CAPACITY = "capacity";
 	public static final String FILL_RATIO_ENTRED = "fillRatioEntered";
+	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";
+	public static final String LINEAR_SIZE = "linearSize";
+	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
+	public static final String AVAILABLE_SIZE = "availableSize";
+	public static final String FIRST_TRANSFER_REPORT_DATE = "firstTransferReportDate";
+	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
 
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
@@ -58,8 +64,17 @@ public class ContainerRecord extends RecordWrapper {
 		return this;
 	}
 
+	public String getLocalization() {
+		return get(LOCALIZATION);
+	}
+
 	public Double getCapacity() {
 		return get(CAPACITY);
+	}
+
+	public ContainerRecord setCapacity(long capacity) {
+		set(CAPACITY, capacity);
+		return this;
 	}
 
 	public ContainerRecord setCapacity(Double capacity) {
@@ -299,5 +314,52 @@ public class ContainerRecord extends RecordWrapper {
 	public ContainerRecord setBorrowed(Boolean borrowed) {
 		set(BORROWED, borrowed);
 		return this;
+	}
+
+	public Double getLinearSizeEntered() {
+		return get(LINEAR_SIZE_ENTERED);
+	}
+
+	public ContainerRecord setLinearSizeEntered(double linearSizeEntered) {
+		set(LINEAR_SIZE_ENTERED, linearSizeEntered);
+		return this;
+	}
+
+	public Double getLinearSizeSum() {
+		return get(LINEAR_SIZE_SUM);
+	}
+
+	public Double getLinearSize() {
+		return get(LINEAR_SIZE);
+	}
+
+	public Double getAvailableSize() {
+		return get(AVAILABLE_SIZE);
+	}
+
+	public LocalDate getFirstTransferReportDate() {
+		return get(FIRST_TRANSFER_REPORT_DATE);
+	}
+
+	public ContainerRecord setFirstTransferReportDate(LocalDate firstTransferReportDate) {
+		if(getFirstTransferReportDate() == null) {
+			set(FIRST_TRANSFER_REPORT_DATE, firstTransferReportDate);
+		}
+		return this;
+	}
+
+	public LocalDate getFirstDepositReportDate() {
+		return get(FIRST_DEPOSIT_REPORT_DATE);
+	}
+
+	public ContainerRecord setFirstDepositReportDate(LocalDate firstDepositReportDate) {
+		if(getFirstDepositReportDate() == null) {
+			set(FIRST_DEPOSIT_REPORT_DATE, firstDepositReportDate);
+		}
+		return this;
+	}
+
+	public static ContainerRecord wrap(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new ContainerRecord(record, types);
 	}
 }

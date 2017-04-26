@@ -1,23 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
-import com.constellio.app.ui.framework.buttons.ReportButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -27,20 +16,24 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayContainerView, RecordSelector {
 	private final DisplayContainerPresenter presenter;
@@ -52,6 +45,10 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.forContainerId(event.getParameters());
+	}
+
+	public DisplayContainerPresenter getPresenter() {
+		return this.presenter;
 	}
 
 	@Override
@@ -92,7 +89,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(folders, "buttons");
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -129,14 +126,33 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		};
 		buttons.add(edit);
 
-		Button slip = new ReportButton("Reports.ContainerRecordReport", presenter);
+		Button slip = new ReportButton("Reports.ContainerRecordReport", presenter) {
+			@Override
+			protected Component buildWindowContent() {
+				presenter.saveIfFirstTimeReportCreated();
+				return super.buildWindowContent();
+			}
+		};
 		slip.setCaption($("DisplayContainerView.slip"));
 		slip.setStyleName(ValoTheme.BUTTON_LINK);
 		slip.setEnabled(presenter.canPrintReports());
 		buttons.add(slip);
 
-		Button labels = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-				presenter.getTemplates(), presenter.getLabelsReportFactory());
+
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getCustomTemplates();
+			}
+		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates();
+			}
+		};
+		Button labels = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection(), ContainerRecord.SCHEMA_TYPE, presenter.getContainerId(), getSessionContext().getCurrentUser().getUsername());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 

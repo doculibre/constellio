@@ -21,8 +21,16 @@ public class MetadataSchemaBuilderRuntimeException extends RuntimeException {
 	}
 
 	public static class NoSuchMetadata extends MetadataSchemaBuilderRuntimeException {
+
+		String metadataCode;
+
 		public NoSuchMetadata(String codeMetadata) {
 			super("No such metadata : '" + codeMetadata + "'");
+			this.metadataCode = codeMetadata;
+		}
+
+		public String getMetadataCode() {
+			return metadataCode;
 		}
 	}
 

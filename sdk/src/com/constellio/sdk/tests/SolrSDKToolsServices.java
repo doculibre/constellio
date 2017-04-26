@@ -1,26 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -30,6 +9,19 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.LangUtils.MapComparisonResults;
 import com.constellio.data.utils.LangUtils.ModifiedEntry;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class SolrSDKToolsServices {
 
@@ -231,8 +223,10 @@ public class SolrSDKToolsServices {
 			}
 
 			for (ModifiedEntry<String, Object> entry : results.getModifiedEntries()) {
-				sb.append("\n\t* The field '" + entry.getKey() + "' with value '" + entry.getValueBefore()
-						+ "' was modified to '" + entry.getValueAfter() + "'");
+				if(!entry.getKey().equals("jasperfile_s")) {
+					sb.append("\n\t* The field '" + entry.getKey() + "' with value '" + entry.getValueBefore()
+							+ "' was modified to '" + entry.getValueAfter() + "'");
+				}
 			}
 
 			if (sb.length() > 0) {

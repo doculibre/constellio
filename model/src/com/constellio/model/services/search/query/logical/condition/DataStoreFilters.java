@@ -4,6 +4,7 @@ import java.util.List;
 
 public interface DataStoreFilters {
 
-	List<String> getFilterQueries();
+	List<String> getFilterQueries(boolean hasSecurityFilters);
 
+	String getCollection();
 }

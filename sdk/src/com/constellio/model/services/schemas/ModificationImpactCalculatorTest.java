@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -68,6 +69,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 
 	@Mock List<String> transactionRecordsList;
 	@Mock SearchServices searchServices;
+	@Mock RecordServices recordServices;
 
 	String zeSchemaMetadataCode = aString();
 	String anotherSchemaReferenceToZeSchemaMetadataCode = aString();
@@ -116,7 +118,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 
 		when(taxonomiesManager.getEnabledTaxonomies("zeCollection")).thenReturn(taxonomies);
 
-		impactCalculator = spy(new ModificationImpactCalculator(schemaTypes, taxonomies, searchServices));
+		impactCalculator = spy(new ModificationImpactCalculator(schemaTypes, taxonomies, searchServices, recordServices));
 
 		when(schemaTypes.getMetadata("anotherType_default_title")).thenReturn(anotherSchemaTitle);
 
@@ -155,28 +157,24 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 				.thenReturn(asList(firstTypeWithImpact, secondTypeWithImpact, thirdTypeWithoutImpact));
 		doReturn(Arrays.asList(firstTypeImpact)).when(impactCalculator)
 				.findImpactsOfARecordsModificationInSchemaType(firstTypeWithImpact, recordsModification,
-						transactionRecordsList);
+						transactionRecordsList, "zeTitle");
 		doReturn(Arrays.asList(secondTypeImpact)).when(impactCalculator).findImpactsOfARecordsModificationInSchemaType(
-				secondTypeWithImpact,
-				recordsModification, transactionRecordsList);
+				secondTypeWithImpact, recordsModification, transactionRecordsList, "zeTitle");
 		doReturn(new ArrayList<>()).when(impactCalculator)
 				.findImpactsOfARecordsModificationInSchemaType(thirdTypeWithoutImpact, recordsModification,
-						transactionRecordsList);
+						transactionRecordsList, "zeTitle");
 
 		List<ModificationImpact> impacts = impactCalculator.findImpactOfARecordsModification(
-				recordsModification,
-				transactionRecordsList);
+				recordsModification, transactionRecordsList, "zeTitle");
 
 		assertThat(impacts).containsOnly(firstTypeImpact, secondTypeImpact);
 		verify(impactCalculator)
 				.findImpactsOfARecordsModificationInSchemaType(firstTypeWithImpact, recordsModification,
-						transactionRecordsList);
+						transactionRecordsList, "zeTitle");
 		verify(impactCalculator).findImpactsOfARecordsModificationInSchemaType(secondTypeWithImpact,
-				recordsModification,
-				transactionRecordsList);
+				recordsModification, transactionRecordsList, "zeTitle");
 		verify(impactCalculator).findImpactsOfARecordsModificationInSchemaType(thirdTypeWithoutImpact,
-				recordsModification,
-				transactionRecordsList);
+				recordsModification, transactionRecordsList, "zeTitle");
 	}
 
 	@Test
@@ -199,8 +197,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 		RecordsModification modification = new RecordsModification(Arrays.asList(record), Arrays.asList(modifiedMetadata),
 				schemaType);
 		List<ModificationImpact> modificationImpacts = impactCalculator.findImpactsOfARecordsModificationInSchemaType(
-				schemaType,
-				modification, Arrays.asList(recordId));
+				schemaType, modification, Arrays.asList(recordId), "zeTitle");
 
 		assertThat(modificationImpacts).hasSize(1);
 		assertThat(modificationImpacts.get(0).getMetadataToReindex()).containsOnly(firstAutomaticMetadata,
@@ -236,8 +233,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 		RecordsModification modification = new RecordsModification(Arrays.asList(record), Arrays.asList(modifiedMetadata),
 				schemaType);
 		List<ModificationImpact> modificationImpacts = impactCalculator.findImpactsOfARecordsModificationInSchemaType(
-				schemaType,
-				modification, Arrays.asList(recordId));
+				schemaType, modification, Arrays.asList(recordId), "zeTitle");
 
 		assertThat(modificationImpacts).hasSize(1);
 		assertThat(modificationImpacts.get(0).getMetadataToReindex()).containsOnly(firstAutomaticMetadata,
@@ -273,7 +269,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 		RecordsModification modification = new RecordsModification(Arrays.asList(record), Arrays.asList(modifiedMetadata),
 				schemaType);
 		List<ModificationImpact> modificationImpacts = impactCalculator.findImpactsOfARecordsModificationInSchemaType(
-				schemaType, modification, Arrays.asList(recordId));
+				schemaType, modification, Arrays.asList(recordId), "zeTitle");
 
 		assertThat(modificationImpacts).isEmpty();
 	}

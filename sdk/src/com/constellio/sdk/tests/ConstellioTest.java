@@ -6,10 +6,12 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.sdk.tests.annotations.PreserveState;
 
 public class ConstellioTest extends AbstractConstellioTest {
-
+	protected Transaction tx;
+	public static final String ANSI_RESET = "\u001B[0m";
 	private static boolean isCurrentPreservingState;
 
 	private static boolean IS_FIRST_EXECUTED_TEST = true;
@@ -39,10 +41,17 @@ public class ConstellioTest extends AbstractConstellioTest {
 			} catch (Exception e) {
 
 			}
+
 			testSession.close(true, false);
 			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
-			System.out.print("\t\t*** Exceptions displayed before this line are OK ***\n\n");
+			try {
+				Class.forName("com.constellio.sdk.SDKPluginsTestUtils").getMethod("init").invoke(null);
+			} catch (Exception e) {
+				//OK
+			}
+
+			System.out.print(ANSI_RESET + "\t\t*** Exceptions displayed before this line are OK ***\n\n");
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 			IS_FIRST_EXECUTED_TEST = false;
 		}
@@ -109,5 +118,9 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	public static void disableCleanStartup() {
 		IS_FIRST_EXECUTED_TEST = false;
+	}
+
+	public void startABrowserAndWaitUntilICloseIt() {
+
 	}
 }

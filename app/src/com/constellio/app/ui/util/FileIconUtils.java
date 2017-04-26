@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,8 +107,19 @@ public class FileIconUtils implements Serializable {
 		}
 	}
 
+	@Deprecated
 	public static Resource getIconForRecordId(String recordId) {
-		return getIconForRecordId(recordId, false);
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+		try {
+			return getIconForRecordId(recordServices.getDocumentById(recordId), false);
+
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public static Resource getIconForRecordVO(RecordVO recordVO) {
@@ -119,13 +133,9 @@ public class FileIconUtils implements Serializable {
 		}
 	}
 
-	public static Resource getIconForRecordId(String recordId, boolean expanded) {
+	public static Resource getIconForRecordId(Record record, boolean expanded) {
 		try {
-			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			Record record = recordServices.getDocumentById(recordId);
+			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 			String collection = record.getCollection();
 			String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecord(
 					new GetIconPathParams(record, expanded));
@@ -136,8 +146,15 @@ public class FileIconUtils implements Serializable {
 				return null;
 			}
 		} catch (Throwable t) {
-			LOGGER.warn("Error while retrieving icon for record id " + recordId, t);
+			LOGGER.warn("Error while retrieving icon for record id " + record.getId(), t);
 			return null;
 		}
+	}
+
+	public static String getIconPathForMimeType(String mimeType)
+			throws MimeTypeException {
+		MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+		MimeType currentMimeType = allTypes.forName(mimeType);
+		return currentMimeType.getExtension();
 	}
 }

@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.collection;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,9 +17,9 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 
@@ -127,7 +130,8 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 			}
 		} else {
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-			Authorization authorization = new AuthorizationBuilder(collection).forUsers(recordId).on(roleAuthVO.getTarget())
+			AuthorizationAddRequest authorization = authorizationInCollection(collection).forUsers(recordId)
+					.on(roleAuthVO.getTarget())
 					.giving(roleAuthVO.getRoles().toArray(new String[roleAuthVO.getRoles().size()]));
 			authorizationsServices.add(authorization, getCurrentUser());
 		}
@@ -143,7 +147,7 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 			AuthorizationDetails authorizationDetails = authorizationsServices.getAuthorization(collection, roleAuthVO.getId())
 					.getDetail();
-			authorizationsServices.delete(authorizationDetails, getCurrentUser());
+			authorizationsServices.execute(authorizationDeleteRequest(authorizationDetails).setExecutedBy(getCurrentUser()));
 		}
 		view.refreshTable();
 	}
@@ -166,8 +170,7 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 	}
 
 	public RoleAuthVO toRoleAuthVO(Authorization roleAuth) {
-		String firstRecord = roleAuth.getGrantedOnRecords().isEmpty() ? null : roleAuth.getGrantedOnRecords().get(0);
-		return new RoleAuthVO(roleAuth.getDetail().getId(), firstRecord, roleAuth.getDetail().getRoles());
+		return new RoleAuthVO(roleAuth.getDetail().getId(), roleAuth.getGrantedOnRecord(), roleAuth.getDetail().getRoles());
 	}
 
 	boolean isTargetFieldVisible() {

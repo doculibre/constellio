@@ -20,6 +20,7 @@ import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -111,24 +112,28 @@ public class ModelLayerFactory extends LayerFactory {
 	private final PasswordFileAuthenticationService passwordFileAuthenticationService;
 	private final EmailQueueManager emailQueueManager;
 	private final TrashQueueManager trashQueueManager;
-	private final RecordsCaches recordsCaches = new RecordsCaches();
+	private final RecordsCaches recordsCaches;
 	private final SecurityTokenManager securityTokenManager;
 	protected Key applicationEncryptionKey;
 	private final StoredBatchProcessProgressionServices storedBatchProcessProgressionServices;
 	private final SearchBoostManager searchBoostManager;
 	private final ModelLayerLogger modelLayerLogger;
 	private EncryptionServices encryptionServices;
+	private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
-			Delayed<ConstellioModulesManager> modulesManagerDelayed) {
+			Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
-		super(dataLayerFactory, statefullServiceDecorator);
+		super(dataLayerFactory, statefullServiceDecorator, instanceName);
 
 		systemCollectionListeners = new ArrayList<>();
 
+		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
+		this.recordsCaches = new RecordsCaches(this);
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
@@ -147,7 +152,6 @@ public class ModelLayerFactory extends LayerFactory {
 						recordsCaches));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
-
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
@@ -156,7 +160,7 @@ public class ModelLayerFactory extends LayerFactory {
 		//this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
 		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
-		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));
+		this.rolesManager = add(new RolesManager(this));
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
 
@@ -168,7 +172,7 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.workflowExecutor = new WorkflowExecutor(this);
 
-		securityTokenManager = add(new SecurityTokenManager());
+		securityTokenManager = add(new SecurityTokenManager(this));
 
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
@@ -242,6 +246,10 @@ public class ModelLayerFactory extends LayerFactory {
 		return batchProcessesManager;
 	}
 
+	public BatchProcessesManager newBatchProcessesManager() {
+		return new BatchProcessesManager(this);
+	}
+
 	public FoldersLocator getFoldersLocator() {
 		return foldersLocator;
 	}
@@ -259,7 +267,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public TaxonomiesSearchServices newTaxonomiesSearchService() {
-		return new TaxonomiesSearchServices(newSearchServices(), taxonomiesManager, schemasManager);
+		return new TaxonomiesSearchServices(this);
 	}
 
 	public RolesManager getRolesManager() {
@@ -271,9 +279,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public AuthorizationsServices newAuthorizationsServices() {
-		return new AuthorizationsServices(getAuthorizationDetailsManager(), getRolesManager(), getTaxonomiesManager(),
-				newRecordServices(), newSearchServices(), newUserServices(), schemasManager, newLoggingServices(),
-				dataLayerFactory.getUniqueIdGenerator());
+		return new AuthorizationsServices(this);
 	}
 
 	//After rename get...
@@ -405,6 +411,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public RecordPopulateServices newRecordPopulateServices() {
 		return new RecordPopulateServices(schemasManager, contentsManager, systemConfigurationsManager, modelLayerExtensions);
+	}
+
+	public Factory<ModelLayerFactory> getModelLayerFactoryFactory() {
+		return modelLayerFactoryFactory;
 	}
 
 	final void setEncryptionKey(Key key) {

@@ -71,8 +71,10 @@ public class TableColumnsManager implements Serializable {
 		Collection<?> propertyIds = table.getContainerPropertyIds();
 		for (Object propertyId : propertyIds) {
 			String columnId = toColumnId(propertyId);
-			boolean collapsed = !visibleColumnIdsForUser.contains(columnId); 
-			table.setColumnCollapsed(propertyId, collapsed);
+			boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
+			if (!collapsed || table.isColumnCollapsible(columnId)) {
+				table.setColumnCollapsed(propertyId, collapsed);
+			}
 		}
 		
 		table.addColumnCollapseListener(new ColumnCollapseListener() {

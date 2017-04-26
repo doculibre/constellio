@@ -12,11 +12,13 @@ import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
+import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
@@ -57,6 +59,9 @@ public class CommonMetadataBuilder {
 	public static final String ERROR_ON_PHYSICAL_DELETION = "errorOnPhysicalDeletion";
 	public static final String ALL_REFERENCES = "allReferences";
 	public static final String MARKED_FOR_REINDEXING = "markedForReindexing";
+	public static final String ATTACHED_ANCESTORS = "attachedAncestors";
+	public static final String ALL_REMOVED_AUTHS = "allRemovedAuths";
+	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -396,6 +401,43 @@ public class CommonMetadataBuilder {
 				}
 			}
 		});
+
+		metadata.put(ATTACHED_ANCESTORS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING)
+						.setMultivalue(true).setEssential(true)
+						.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(ALL_REMOVED_AUTHS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REMOVED_AUTHS).setType(STRING)
+						.setMultivalue(true).setEssential(true)
+						.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(SCHEMA_AUTOCOMPLETE_FIELD, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA_AUTOCOMPLETE_FIELD).setType(STRING)
+						.setMultivalue(true).setEssential(true)
+						.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
 	}
 
 	public void addCommonMetadataToAllExistingSchemas(MetadataSchemaTypesBuilder types) {

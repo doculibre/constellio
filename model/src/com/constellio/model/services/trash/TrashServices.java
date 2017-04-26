@@ -1,7 +1,6 @@
 package com.constellio.model.services.trash;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,10 +19,11 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
@@ -48,7 +48,7 @@ public class TrashServices {
 		MetadataSchemaType schema = modelLayerFactory
 				.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(selectedType);
 		LogicalSearchCondition condition = from(schema).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
-		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortAsc(Schemas.TITLE);
+		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollection(String collection, User currentUser) {
@@ -101,7 +101,13 @@ public class TrashServices {
 	public Set<String> deleteSelection(Set<String> selectedRecords, User currentUser) {
 		Set<String> returnSet = new HashSet<>();
 		for (String recordId : selectedRecords) {
-			Record record = recordServices().getDocumentById(recordId);
+			Record record;
+			try {
+				record = recordServices().getDocumentById(recordId);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				// Already deleted, ignore
+				continue;
+			}
 			try {
 				boolean deleted = handleRecordPhysicalDelete(record, currentUser);
 				if (!deleted) {

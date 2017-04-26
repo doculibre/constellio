@@ -1,29 +1,10 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -36,8 +17,9 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -47,9 +29,22 @@ import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.*;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.*;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static java.util.Arrays.asList;
 
 public class DemoTestRecords {
 
@@ -427,11 +422,8 @@ public class DemoTestRecords {
 
 	private void addAuthorization(List<String> roles, String target, List<String> principals) {
 		if (!principals.isEmpty()) {
-			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-			AuthorizationDetails authorizationDetails = AuthorizationDetails
-					.create(UUID.randomUUID().toString(), roles, collection);
-			Authorization authorization = new Authorization(authorizationDetails, principals, asList(target));
-			authorizationsServices.add(authorization, User.GOD);
+			modelLayerFactory.newAuthorizationsServices()
+					.add(authorizationInCollection(collection).forPrincipalsIds(principals).on(target).giving(roles));
 		}
 	}
 
@@ -811,7 +803,7 @@ public class DemoTestRecords {
 		roles.add(zRole);
 		LocalDate startDate = new LocalDate();
 		LocalDate endDate = new LocalDate();
-		AuthorizationDetails detail = new AuthorizationDetails(collection, "42", roles, startDate, endDate, false);
+		AuthorizationDetails detail = new XMLAuthorizationDetails(collection, "42", roles, startDate, endDate, false);
 		List<String> grantedToPrincipals = new ArrayList<>();
 		User dakota = users.gandalfLeblancIn(collection);
 		User bob = users.bobIn(collection);
@@ -821,97 +813,103 @@ public class DemoTestRecords {
 		/*AdministrativeUnit administrativeUnit = records.getUnit10();
 		Folder folder = createFolder(administrativeUnit);*/
 		grantedOnRecords.addAll(Arrays.asList(folder_A01));
-		Authorization authorization = new Authorization(detail, grantedToPrincipals, grantedOnRecords);
+		Authorization authorization = new Authorization(detail, grantedToPrincipals);
 
 		List<String> grantedOnRecordsBefore = new ArrayList<>();
 		grantedOnRecordsBefore.addAll(
 				Arrays.asList(folder_A01, folder_A02));
-		AuthorizationDetails detailBefore = new AuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
+		AuthorizationDetails detailBefore = new XMLAuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
 				false);
-		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals, grantedOnRecordsBefore);
+		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals);
 
 		User charles = users.charlesIn(collection);
-		loggingServices.modifyPermission(authorization, authorizationBefore, charles);
+		//loggingServices.modifyPermission(authorization, authorizationBefore, null, charles);
 	}
 
 	private void setupLists(Transaction transaction) {
 		transaction.add(schemas.newDecommissioningListWithId(list_01)).setTitle("Listes avec plusieurs supports à détruire")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
 				.setContainerDetailsFor(containerId_bac18, containerId_bac19)
-				.setFolderDetailsFor(asList(folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47));
+				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setFolderDetailsForIds(asList(folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_02)).setTitle("Liste analogique à détruire")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
-				.setFolderDetailsFor(asList(folder_A54, folder_A55, folder_A56));
+				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setFolderDetailsForIds(asList(folder_A54, folder_A55, folder_A56));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_03)).setTitle("Liste hybride à fermer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_CLOSE)
-				.setFolderDetailsFor(asList(folder_A01, folder_A02, folder_A03));
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setFolderDetailsForIds(asList(folder_A01, folder_A02, folder_A03));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_04)).setTitle("Liste analogique à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setContainerDetailsFor(containerId_bac14, containerId_bac15)
-				.setFolderDetailsFor(asList(folder_A22, folder_A23, folder_A24));
+				.setFolderDetailsForIds(asList(folder_A22, folder_A23, folder_A24));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_05)).setTitle("Liste hybride à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
-				.setFolderDetailsFor(asList(folder_A19, folder_A20, folder_A21));
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setFolderDetailsForIds(asList(folder_A19, folder_A20, folder_A21));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_06)).setTitle("Liste électronique à transférer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
-				.setFolderDetailsFor(asList(folder_A25, folder_A26, folder_A27));
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setFolderDetailsForIds(asList(folder_A25, folder_A26, folder_A27));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_07)).setTitle("Liste analogique à détruire")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DESTROY)
-				.setFolderDetailsFor(asList(folder_A54, folder_A55, folder_A56));
+				.setFolderDetailsForIds(asList(folder_A54, folder_A55, folder_A56));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_08)).setTitle("Liste hybride à déposer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
-				.setFolderDetailsFor(folder_B30, folder_B33, folder_B35);
+				.setFolderDetailsForIds(folder_B30, folder_B33, folder_B35);
 
 		transaction.add(schemas.newDecommissioningListWithId(list_09)).setTitle("Liste électronique à déposer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
-				.setFolderDetailsFor(asList(folder_A57, folder_A58, folder_A59));
+				.setFolderDetailsForIds(asList(folder_A57, folder_A58, folder_A59));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_10)).setTitle("Liste avec plusieurs supports à déposer")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
-				.setFolderDetailsFor(asList(folder_A42, folder_A43, folder_A44, folder_A48, folder_A49, folder_A50));
+				.setFolderDetailsForIds(asList(folder_A42, folder_A43, folder_A44, folder_A48, folder_A49, folder_A50));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_11)).setTitle("Liste de fermeture traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_CLOSE)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
-				.setFolderDetailsFor(asList(folder_A10, folder_A11, folder_A12, folder_A13, folder_A14, folder_A15));
+				.setFolderDetailsForIds(asList(folder_A10, folder_A11, folder_A12, folder_A13, folder_A14, folder_A15));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_12)).setTitle("Liste de transfert traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac10, containerId_bac11, containerId_bac12)
-				.setFolderDetailsFor(asList(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49, folder_A50, folder_A51,
+				.setFolderDetailsForIds(asList(folder_A45, folder_A46, folder_A47, folder_A48, folder_A49, folder_A50, folder_A51,
 						folder_A52, folder_A53, folder_A54, folder_A55, folder_A56, folder_A57, folder_A58, folder_A59));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_13)).setTitle("Liste de transfert uniforme traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac13)
-				.setFolderDetailsFor(asList(folder_A42, folder_A43, folder_A43));
+				.setFolderDetailsForIds(asList(folder_A42, folder_A43, folder_A43));
 
 		transaction.add(schemas.newDecommissioningListWithId(list_14)).setTitle("Liste de dépôt traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac05)
-				.setFolderDetailsFor(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83, folder_A84, folder_A85,
+				.setFolderDetailsForIds(folder_A79, folder_A80, folder_A81, folder_A82, folder_A83, folder_A84, folder_A85,
 						folder_A86, folder_A87, folder_A88, folder_A89, folder_A90, folder_A91, folder_A92, folder_A93);
 
 		transaction.add(schemas.newDecommissioningListWithId(list_15)).setTitle("Liste de dépôt uniforme traîtée")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setProcessingUser(dakota_managerInA_userInB).setProcessingDate(date(2012, 5, 5))
 				.setContainerDetailsFor(containerId_bac04)
-				.setFolderDetailsFor(asList(folder_A94, folder_A95, folder_A96));
+				.setFolderDetailsForIds(asList(folder_A94, folder_A95, folder_A96));
 
 		DecommissioningList zeList16 = schemas.newDecommissioningListWithId(list_16)
 				.setTitle("Liste analogique à transférer en contenants")
 				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
-				.setContainerDetailsFor(containerId_bac14).setFolderDetailsFor(asList(folder_A22, folder_A23, folder_A24));
+				.setContainerDetailsFor(containerId_bac14).setFolderDetailsForIds(asList(folder_A22, folder_A23, folder_A24));
 		for (DecomListFolderDetail detail : zeList16.getFolderDetails()) {
 			detail.setContainerRecordId(containerId_bac14);
 		}

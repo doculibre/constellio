@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class ContentManagerImportThreadServices {
+
+	private static final int DEFAULT_BATCH_SIZE = 1000;
+	private static final int THREADS = 3;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContentManagerImportThreadServices.class);
 	private static final String READ_FILE_INPUTSTREAM = "ContentManagerImportThreadServices-ReadFileInputStream";
@@ -47,7 +49,7 @@ public class ContentManagerImportThreadServices {
 	private boolean deleteUnusedContentEnabled;
 
 	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory) {
-		this(modelLayerFactory, 10000);
+		this(modelLayerFactory, DEFAULT_BATCH_SIZE);
 	}
 
 	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory, int batchSize) {
@@ -86,7 +88,7 @@ public class ContentManagerImportThreadServices {
 
 	private void importFiles(List<File> files) {
 		LOGGER.info("importing files " + files + "");
-		BulkUploader uploader = new BulkUploader(modelLayerFactory);
+		BulkUploader uploader = new BulkUploader(modelLayerFactory, THREADS);
 		uploader.setHandleDeletionOfUnreferencedHashes(false);
 
 		List<File> extractedBigFileFolders = new ArrayList<>();
@@ -316,11 +318,15 @@ public class ContentManagerImportThreadServices {
 	}
 
 	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index() {
-		if (!indexProperties.exists()) {
+		return readFileNameSHA1Index(indexProperties);
+	}
+
+	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index(File sha1Properties) {
+		if (!sha1Properties.exists()) {
 			return Collections.emptyMap();
 		}
 		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
-		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(indexProperties).entrySet()) {
+		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(sha1Properties).entrySet()) {
 			final String value = entry.getValue();
 			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
 				@Override

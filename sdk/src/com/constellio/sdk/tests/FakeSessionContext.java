@@ -1,22 +1,19 @@
 package com.constellio.sdk.tests;
 
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.pages.base.BaseSessionContext;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
-public class FakeSessionContext implements SessionContext {
+import java.security.Principal;
+import java.util.*;
+
+public class FakeSessionContext extends BaseSessionContext {
 
 	boolean fake;
 
@@ -25,6 +22,8 @@ public class FakeSessionContext implements SessionContext {
 	Locale locale;
 	Principal userPrincipal;
 	boolean forcedSignOut;
+	List<String> selectedRecordIds;
+	Map<String, Long> selectedRecordSchemaTypeCodes;
 
 	private static FakeSessionContext current;
 
@@ -32,6 +31,8 @@ public class FakeSessionContext implements SessionContext {
 		this.user = user;
 		this.collection = collection;
 		this.locale = Locale.FRENCH;
+		this.selectedRecordIds = new ArrayList<>();
+		this.selectedRecordSchemaTypeCodes = new HashMap<>();
 		FakeSessionContext.current = this;
 		this.fake = true;
 	}
@@ -221,4 +222,13 @@ public class FakeSessionContext implements SessionContext {
 		this.forcedSignOut = forcedSignOut;
 	}
 
+	@Override
+	protected List<String> ensureSelectedRecordIds() {
+		return selectedRecordIds;
+	}
+
+	@Override
+	protected Map<String, Long> ensureSelectedRecordSchemaTypeCodes() {
+		return selectedRecordSchemaTypeCodes;
+	}
 }

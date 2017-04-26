@@ -56,6 +56,44 @@ public class RecordServicesAgregatedMetadatasAcceptTestRecords {
 		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
 	}
 
+	public void setupWith(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory)
+			throws Exception {
+		initialize(schemas, modelLayerFactory);
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord1").set("ref", "anotherSchemaRecord1").set("number", 1));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord2").set("ref", "anotherSchemaRecord1").set("number", 2));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord3").set("ref", "anotherSchemaRecord2").set("number", 3));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord4").set("ref", "anotherSchemaRecord2").set("number", 4));
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1").set("ref", "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2").set("ref", "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord2"));
+
+		recordServices.execute(transaction);
+		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+	}
+
+	public void setupWithAgregratedReferenceCount(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory)
+			throws Exception {
+		initialize(schemas, modelLayerFactory);
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord1").set("ref", "anotherSchemaRecord1"));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord2").set("ref", "anotherSchemaRecord1"));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord3").set("ref", "anotherSchemaRecord2"));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord4").set("ref", "anotherSchemaRecord2"));
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1"));
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2"));
+
+		recordServices.execute(transaction);
+		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+	}
+
+	public void setupEmpty(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory) {
+		initialize(schemas, modelLayerFactory);
+	}
+
 	public void setupWithNothingComputed(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory)
 			throws Exception {
 		setupInOneTransaction(schemas, modelLayerFactory);

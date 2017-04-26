@@ -41,6 +41,7 @@ public class MetadataSchemaTypeBuilder {
 	private Set<MetadataSchemaBuilder> customSchemas = new HashSet<MetadataSchemaBuilder>();
 	private Boolean undeletable = false;
 	private ClassProvider classProvider;
+	private Set<String> flags = new HashSet<>();
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -157,7 +158,6 @@ public class MetadataSchemaTypeBuilder {
 		return newLabels;
 	}
 
-	@Deprecated
 	public MetadataSchemaBuilder createCustomSchema(String localCode) {
 		for (MetadataSchemaBuilder customSchema : customSchemas) {
 			if (localCode.equals(customSchema.getLocalCode())) {

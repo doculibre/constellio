@@ -1,20 +1,16 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
@@ -23,11 +19,21 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuIte
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -36,6 +42,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private ContentVersionVO contentVersionVO;
 	private UpdateContentVersionWindowImpl updateWindow;
 	private String borrowedMessage;
+	private boolean openDocumentButtonVisible;
 	private boolean downloadDocumentButtonVisible;
 	private boolean editDocumentButtonVisible;
 	private boolean deleteDocumentButtonVisible;
@@ -96,40 +103,43 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			addItem(borrowedMessage);
 		}
 
-		ContextMenuItem displayDocumentButton = addItem($("DocumentContextMenu.displayDocument"));
-		displayDocumentButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+		ContextMenuItem displayDocumentItem = addItem($("DocumentContextMenu.displayDocument"));
+		displayDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 			@Override
 			public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 				presenter.displayDocumentButtonClicked();
 			}
 		});
 
-		if (downloadDocumentButtonVisible) {
+		if (openDocumentButtonVisible) {
 			String fileName = contentVersionVO.getFileName();
 			Resource icon = FileIconUtils.getIcon(fileName);
-			ContextMenuItem downloadDocumentButton = addItem(contentVersionVO.toString(), icon);
-			downloadDocumentButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.openDocument"), icon);
+			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
+					openAgentURL(agentURL);
+				}
+			});
+		}
+
+		if (downloadDocumentButtonVisible) {
+			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.downloadDocument"));
+			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@SuppressWarnings("deprecation")
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					if (contentVersionVO != null) {
-						String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
-						if (agentURL != null) {
-//							Page.getCurrent().open(agentURL, null);
-							new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
-						} else {
-							ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
-							Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
-							Page.getCurrent().open(downloadedResource, null, false);
-						}
-					}
+					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
+					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
+					Page.getCurrent().open(downloadedResource, null, false);
 				}
 			});
 		}
 
 		if (editDocumentButtonVisible) {
-			ContextMenuItem editDocumentButton = addItem($("DocumentContextMenu.editDocument"));
-			editDocumentButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem editDocumentItem = addItem($("DocumentContextMenu.editDocument"));
+			editDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.editDocumentButtonClicked();
@@ -138,8 +148,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (deleteDocumentButtonVisible) {
-			ContextMenuItem deleteDocumentButton = addItem($("DocumentContextMenu.deleteDocument"));
-			deleteDocumentButton.addItemClickListener(new ConfirmDialogContextMenuItemClickListener() {
+			ContextMenuItem deleteDocumentItem = addItem($("DocumentContextMenu.deleteDocument"));
+			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmDelete");
@@ -153,8 +163,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (addAuthorizationButtonVisible) {
-			ContextMenuItem addAuthorizationButton = addItem($("DocumentActionsComponent.addAuthorization"));
-			addAuthorizationButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem addAuthorizationItem = addItem($("DocumentActionsComponent.addAuthorization"));
+			addAuthorizationItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.addAuthorizationButtonClicked();
@@ -163,18 +173,23 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (createPDFAButtonVisible) {
-			ContextMenuItem createPDFA = addItem($("DocumentActionsComponent.createPDFA"));
-			createPDFA.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem createPDFAItem = addItem($("DocumentActionsComponent.createPDFA"));
+			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.STOP) {
 				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+				protected String getConfirmDialogMessage() {
+					return $("ConfirmDialog.confirmCreatePDFA");
+				}
+
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.createPDFA();
 				}
 			});
 		}
 
 		if (shareDocumentButtonVisible) {
-			ContextMenuItem shareDocument = addItem($("DocumentActionsComponent.shareDocument"));
-			shareDocument.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem shareDocumentItem = addItem($("DocumentActionsComponent.shareDocument"));
+			shareDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.shareDocumentButtonClicked();
@@ -183,8 +198,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (uploadButtonVisible) {
-			ContextMenuItem uploadButton = addItem($("DocumentActionsComponent.upload"));
-			uploadButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem uploadItem = addItem($("DocumentActionsComponent.upload"));
+			uploadItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.uploadButtonClicked();
@@ -193,8 +208,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (checkInButtonVisible) {
-			ContextMenuItem checkInButton = addItem($("DocumentActionsComponent.checkIn"));
-			checkInButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem checkInItem = addItem($("DocumentActionsComponent.checkIn"));
+			checkInItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.checkInButtonClicked();
@@ -203,8 +218,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (alertWhenAvailableButtonVisible) {
-			ContextMenuItem alertWhenAvailableButton = addItem($("RMObject.alertWhenAvailable"));
-			alertWhenAvailableButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem alertWhenAvailableItem = addItem($("RMObject.alertWhenAvailable"));
+			alertWhenAvailableItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.alertWhenAvailable();
@@ -213,8 +228,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (checkOutButtonVisible) {
-			ContextMenuItem checkOutButton = addItem($("DocumentActionsComponent.checkOut"));
-			checkOutButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+			ContextMenuItem checkOutItem = addItem($("DocumentActionsComponent.checkOut"));
+			checkOutItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.checkOutButtonClicked(getSessionContext());
@@ -223,8 +238,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (finalizeButtonVisible) {
-			ContextMenuItem finalizeButton = addItem($("DocumentActionsComponent.finalize"));
-			finalizeButton.addItemClickListener(new ConfirmDialogContextMenuItemClickListener() {
+			ContextMenuItem finalizeItem = addItem($("DocumentActionsComponent.finalize"));
+			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("DocumentActionsComponent.finalize.confirm");
@@ -274,15 +289,20 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	private void initUploadWindow() {
-		if (updateWindow == null) {
-			updateWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
-				@Override
-				public void close() {
-					super.close();
-					presenter.updateWindowClosed();
-				}
-			};
-		}
+		Map<RecordVO, MetadataVO> record = new HashMap<>();
+		record.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+		updateWindow = new UpdateContentVersionWindowImpl(record) {
+			@Override
+			public void close() {
+				super.close();
+				presenter.updateWindowClosed();
+				postClose();
+			}
+		};
+	}
+
+	public void postClose() {
+		refreshParent();
 	}
 
 	@Override
@@ -371,10 +391,20 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void open(Component component) {
+		super.open(component);
+	}
+
+	@Override
 	public void open(int x, int y) {
 		if (visible) {
 			super.open(x, y);
 		}
+	}
+
+	@Override
+	public void setOpenDocumentButtonVisible(boolean visible) {
+		this.openDocumentButtonVisible = visible;
 	}
 
 	@Override
@@ -384,6 +414,15 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 	@Override
 	public void openAgentURL(String agentURL) {
-		Page.getCurrent().open(agentURL, null);
+		Page.getCurrent().open(agentURL, "_top");
 	}
+
+	@Override
+	public void refreshParent() {
+		View parentView = ConstellioUI.getCurrent().getCurrentView();
+		if (parentView instanceof HomeViewImpl) {
+			navigateTo().home("checkedOutDocuments");
+		}
+	}
+	
 }

@@ -42,13 +42,21 @@ public class UserCredentialVO implements Serializable {
 
 	String domain;
 
+	String phone;
+
+	String fax;
+
+	String address;
+
+	String jobTitle;
+
 	public UserCredentialVO() {
 		this.status = UserCredentialStatus.ACTIVE;
 	}
 
-	public UserCredentialVO(String username, String firstName, String lastName, String email, String personalEmails,
-			String serviceKey, boolean systemAdmin, List<String> globalGroups, Set<String> collections,
-			Map<String, LocalDateTime> tokens, String password, String confirmPassword, UserCredentialStatus status) {
+	public UserCredentialVO(String username, String firstName, String lastName, String email, String jobTitle, String phone, String fax, String address, String personalEmails,
+							String serviceKey, boolean systemAdmin, List<String> globalGroups, Set<String> collections,
+							Map<String, LocalDateTime> tokens, String password, String confirmPassword, UserCredentialStatus status) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -62,6 +70,10 @@ public class UserCredentialVO implements Serializable {
 		this.password = password;
 		this.confirmPassword = confirmPassword;
 		this.status = status;
+		this.fax = fax;
+		this.jobTitle = jobTitle;
+		this.address = address;
+		this.phone = phone;
 	}
 
 	public String getUsername() {
@@ -189,5 +201,37 @@ public class UserCredentialVO implements Serializable {
 
 	public void setDomain(String domain) {
 		this.domain = domain;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getFax() {
+		return fax;
+	}
+
+	public void setFax(String fax) {
+		this.fax = fax;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public String getJobTitle() {
+		return jobTitle;
+	}
+
+	public void setJobTitle(String jobTitle) {
+		this.jobTitle = jobTitle;
 	}
 }

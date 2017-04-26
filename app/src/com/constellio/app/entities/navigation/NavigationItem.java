@@ -7,9 +7,12 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.vaadin.server.FontAwesome;
 
 public interface NavigationItem extends CodedItem, Serializable, Comparable<NavigationItem> {
+	
+	FontAwesome getFontAwesome();
+	
 	String getCode();
 
 	String getIcon();
@@ -37,24 +40,34 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 	abstract class Active extends BaseNavigationItem implements NavigationItem {
 		private final String code;
 		private final String icon;
+		private final FontAwesome fontAwesome;
 		private final Class<? extends MenuViewGroup> viewGroup;
 
-		public Active(String code, String icon, Class<? extends MenuViewGroup> viewGroup) {
+		public Active(String code, String icon, FontAwesome fontAwesome, Class<? extends MenuViewGroup> viewGroup) {
 			this.code = code;
 			this.icon = icon;
+			this.fontAwesome = fontAwesome;
 			this.viewGroup = viewGroup;
 		}
 
+		public Active(String code, FontAwesome fontAwesome, Class<? extends MenuViewGroup> viewGroup) {
+			this(code, null, fontAwesome, viewGroup);
+		}
+
 		public Active(String code, Class<? extends MenuViewGroup> viewGroup) {
-			this(code, null, viewGroup);
+			this(code, null, null, viewGroup);
 		}
 
 		public Active(String code, String icon) {
-			this(code, icon, null);
+			this(code, icon, null, null);
+		}
+
+		public Active(String code, FontAwesome fontAwesome) {
+			this(code, null, fontAwesome, null);
 		}
 
 		public Active(String code) {
-			this(code, null, null);
+			this(code, null, null, null);
 		}
 
 		@Override
@@ -64,6 +77,10 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 
 		public String getIcon() {
 			return icon;
+		}
+		
+		public FontAwesome getFontAwesome() {
+			return fontAwesome;
 		}
 
 		public Class<? extends MenuViewGroup> getViewGroup() {
@@ -87,6 +104,11 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		public String getIcon() {
 			return item.getIcon();
 		}
+		
+		@Override
+		public FontAwesome getFontAwesome() {
+			return item.getFontAwesome();
+		}
 
 		@Override
 		public int getOrderValue() {
@@ -105,8 +127,13 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 	}
 
 	class Inactive extends Active {
+		
 		public Inactive(String code, String icon) {
 			super(code, icon);
+		}
+		
+		public Inactive(String code, FontAwesome fontAwesome) {
+			super(code, fontAwesome);
 		}
 
 		@Override

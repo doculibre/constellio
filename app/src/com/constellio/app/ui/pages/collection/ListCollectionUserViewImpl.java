@@ -231,7 +231,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		ButtonsContainer container = new ButtonsContainer<>(records, "buttons");
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -244,7 +244,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new AuthorizationsButton(true) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -257,7 +257,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new RolesButton(true) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -270,7 +270,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -289,7 +289,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		ButtonsContainer container = new ButtonsContainer<>(globalGroupsContainer, "buttons");
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button displayButton = new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -303,7 +303,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new AuthorizationsButton(true) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -316,7 +316,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new RolesButton(true) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -329,7 +329,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

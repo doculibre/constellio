@@ -32,11 +32,12 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 	Boolean configCalculatedClosingDate = true;
 
 	@Mock CalculatorParameters parameters;
-	FolderClosingDateCalculator calculator;
+	FolderClosingDateCalculator2 calculator;
 
 	int configRequiredDaysBeforeYearEnd = 0;
 	int configNumberOfYearWhenFixedDelay = 0;
 	int configNumberOfYearWhenVariableDelay = 0;
+	boolean addAYearIfYEarEnd = true;
 	String configYearEnd;
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
@@ -45,7 +46,7 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		calculator = spy(new FolderClosingDateCalculator());
+		calculator = spy(new FolderClosingDateCalculator2());
 
 	}
 
@@ -180,6 +181,38 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 		openingDate = new LocalDate(2014, 10, 11);
 		assertThat(calculateCopy(copy("888-2-C"))).isEqualTo(new LocalDate(2015, 3, 31));
 
+		configNumberOfYearWhenVariableDelay = 0;
+		openingDate = new LocalDate(2014, 3, 31);
+		assertThat(calculateCopy(copy("888-2-C"))).isEqualTo(new LocalDate(2015, 3, 31));
+
+	}
+
+	@Test
+	public void whenNotAddingAYearIfDateIsYearEndThenOK()
+			throws Exception {
+
+		configNumberOfYearWhenVariableDelay = 2;
+		configNumberOfYearWhenFixedDelay = 666;
+		configRequiredDaysBeforeYearEnd = 30;
+		addAYearIfYEarEnd = false;
+		configYearEnd = "03/31";
+
+		openingDate = new LocalDate(2013, 1, 1);
+		assertThat(calculateCopy(copy("888-2-C"))).isEqualTo(new LocalDate(2015, 3, 31));
+
+		openingDate = new LocalDate(2013, 1, 1);
+		assertThat(calculateCopy(copy("999-2-C"))).isEqualTo(new LocalDate(2015, 3, 31));
+
+		openingDate = new LocalDate(2015, 2, 3);
+		assertThat(calculateCopy(copy("888-2-C"))).isEqualTo(new LocalDate(2017, 3, 31));
+
+		openingDate = new LocalDate(2014, 10, 11);
+		assertThat(calculateCopy(copy("999-2-C"))).isEqualTo(new LocalDate(2017, 3, 31));
+
+		configNumberOfYearWhenVariableDelay = 0;
+		openingDate = new LocalDate(2014, 3, 31);
+		assertThat(calculateCopy(copy("888-2-C"))).isEqualTo(new LocalDate(2014, 3, 31));
+
 	}
 
 	@Test
@@ -215,11 +248,12 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 		when(parameters.get(calculator.enteredClosingDateParam)).thenReturn(enteredClosingDate);
 		when(parameters.get(calculator.copiesParam)).thenReturn(copies);
 		when(parameters.get(calculator.configCalculatedClosingDateParam)).thenReturn(configCalculatedClosingDate);
-		when(parameters.get(calculator.confiRequiredDaysBeforeYearEndParam))
+		when(parameters.get(calculator.configRequiredDaysBeforeYearEndParam))
 				.thenReturn(configRequiredDaysBeforeYearEnd);
 		when(parameters.get(calculator.configNumberOfYearWhenFixedDelayParam)).thenReturn(configNumberOfYearWhenFixedDelay);
 		when(parameters.get(calculator.configNumberOfYearWhenVariableDelayParam)).thenReturn(configNumberOfYearWhenVariableDelay);
 		when(parameters.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
+		when(parameters.get(calculator.configAddYEarIfDateIsEndOfYearParam)).thenReturn(addAYearIfYEarEnd);
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(parameters, calculator));
 	}

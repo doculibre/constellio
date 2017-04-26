@@ -4,7 +4,6 @@ import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,7 +81,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 
 		modelLayerFactory = spy(
 				new ModelLayerFactory(dataLayerFactory, foldersLocator, modelLayerConfiguration,
-						statefullServiceDecorator, new Delayed<>(constellioModulesManager)));
+						statefullServiceDecorator, new Delayed<>(constellioModulesManager), null, null));
 	}
 
 	@Test
@@ -194,8 +193,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Test
 	public void whenNewAuthorizationsServicesThenNotNull() {
 		assertThat(modelLayerFactory.newAuthorizationsServices()).isNotNull();
-		verify(modelLayerFactory).getAuthorizationDetailsManager();
-		verify(modelLayerFactory, times(2)).getRolesManager();
+		verify(modelLayerFactory).getRolesManager();
 		verify(modelLayerFactory).getTaxonomiesManager();
 	}
 

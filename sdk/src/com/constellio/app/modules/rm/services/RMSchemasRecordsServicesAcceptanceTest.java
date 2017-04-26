@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,5 +51,12 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 		folder.setType(rm.getFolderTypeWithCode("other"));
 		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_default");
 
+	}
+
+	@Test
+	@InDevelopmentTest
+	public void testRmUserFolder() {
+		assertThat(rm.newUserFolder()).isNotNull();
+		assertThat(rm.newUserFolderWithId("test1").getId()).isEqualTo("test1");
 	}
 }

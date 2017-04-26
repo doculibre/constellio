@@ -1,40 +1,20 @@
 package com.constellio.app.ui.framework.components;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.framework.components.fields.BasePasswordField;
-import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
+import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.fields.*;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveCommentField;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveDoubleField;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveEnumWithSmallCodeComboBox;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveIntegerField;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveJodaDateField;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveJodaDateTimeField;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRichTextArea;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTaxonomyComboBox;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextArea;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
+import com.constellio.app.ui.framework.components.fields.list.*;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.number.BaseDoubleField;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
@@ -43,6 +23,8 @@ import com.constellio.app.ui.framework.components.fields.record.RecordOptionGrou
 import com.constellio.app.ui.framework.components.fields.taxonomy.TaxonomyComboBox;
 import com.constellio.app.ui.framework.components.fields.taxonomy.TaxonomyOptionGroup;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -52,6 +34,11 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Field;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class MetadataFieldFactory implements Serializable {
@@ -184,6 +171,9 @@ public class MetadataFieldFactory implements Serializable {
 				default:
 					field = null;
 					break;
+				}
+				if(field != null && firstTaxonomyCode != null) {
+					field.setVisible(hasCurrentUserRightsOnTaxonomy(schemaTypeCode));
 				}
 				break;
 			case BOOLEAN:
@@ -338,6 +328,9 @@ public class MetadataFieldFactory implements Serializable {
 					field = null;
 					break;
 				}
+				if(field != null && firstTaxonomyCode != null) {
+					field.setVisible(hasCurrentUserRightsOnTaxonomy(schemaTypeCode));
+				}
 				break;
 			case DATE:
 				field = new ListAddRemoveJodaDateField();
@@ -398,4 +391,28 @@ public class MetadataFieldFactory implements Serializable {
 		return firstSchemaCode;
 	}
 
+	private boolean hasCurrentUserRightsOnTaxonomy(String taxonomyCode) {
+		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(currentSessionContext.getCurrentCollection(), taxonomyCode);
+		UserVO currentUser = currentSessionContext.getCurrentUser();
+		String userid = currentUser.getId();
+
+		if(taxonomy != null) {
+			RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(currentSessionContext.getCurrentCollection(), appLayerFactory);
+			List<String> taxonomyGroupIds = taxonomy.getGroupIds();
+			List<String> taxonomyUserIds = taxonomy.getUserIds();
+			List<String> userGroups = rmSchemasRecordsServices.getUser(currentUser.getId()).getUserGroups();
+			for(String group: taxonomyGroupIds) {
+				for(String userGroup: userGroups) {
+					if(userGroup.equals(group)) {
+						return true;
+					}
+				}
+			}
+			return (taxonomyGroupIds.isEmpty() && taxonomyUserIds.isEmpty()) || taxonomyUserIds.contains(userid);
+		} else {
+			return true;
+		}
+	}
 }

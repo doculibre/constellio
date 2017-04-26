@@ -1,12 +1,7 @@
 package com.constellio.model.services.contents;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -100,6 +95,19 @@ public class ContentImpl implements Content {
 		content.id = id;
 		content.currentVersion = currentVersion;
 		content.history = history;
+		return content;
+	}
+
+	public static ContentImpl createSystemContent(String filename, ContentVersionDataSummary newVersion) {
+		validateFilenameArgument(filename);
+		String fileName = correctFilename(filename);
+		String id = UUID.randomUUID().toString();
+		boolean major = true;
+		ContentImpl content = new ContentImpl();
+		content.id = id;
+		content.history = new ArrayList<>();
+		content.dirty = true;
+		content.setNewCurrentVersion(new ContentVersion(newVersion, fileName, "1.0", null, TimeProvider.getLocalDateTime(), null));
 		return content;
 	}
 

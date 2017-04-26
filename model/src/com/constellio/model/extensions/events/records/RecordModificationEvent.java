@@ -39,4 +39,5 @@ public class RecordModificationEvent implements RecordEvent {
 	public String getSchemaTypeCode() {
 		return new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 	}
+
 }

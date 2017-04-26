@@ -211,13 +211,4 @@ public class TaxonomyManagementSearchPresenterAcceptTest extends ConstellioTest 
 		return ParamUtils.addParams(NavigatorConfigurationService.TAXONOMY_SEARCH, params);
 	}
 
-	@Test
-	public void removeAuthorizationsFromChuckInUnit10AndHierarchy() {
-		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
-		List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(records.getChuckNorris());
-		authorizationsServices.removeMultipleAuthorizationsOnRecord(authorizations, records.getUnit10().getWrappedRecord(),
-				CustomizedAuthorizationsBehavior.DETACH);
-		System.out.println(authorizations);
-	}
-
 }

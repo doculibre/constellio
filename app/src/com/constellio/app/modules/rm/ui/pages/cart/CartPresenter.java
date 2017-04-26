@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
@@ -31,12 +19,9 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
-import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
@@ -52,10 +37,19 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, NewReportPresenter {
 	private transient RMSchemasRecordsServices rm;
 	private transient Cart cart;
 	private String cartId;
+	private String batchProcessSchemaType;
 
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 
@@ -66,15 +60,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public void itemRemovalRequested(RecordVO record) {
 		Cart cart = cart();
 		switch (record.getSchema().getTypeCode()) {
-		case Folder.SCHEMA_TYPE:
-			cart.removeFolder(record.getId());
-			break;
-		case Document.SCHEMA_TYPE:
-			cart.removeDocument(record.getId());
-			break;
-		case ContainerRecord.SCHEMA_TYPE:
-			cart.removeContainer(record.getId());
-			break;
+			case Folder.SCHEMA_TYPE:
+				cart.removeFolder(record.getId());
+				break;
+			case Document.SCHEMA_TYPE:
+				cart.removeDocument(record.getId());
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				cart.removeContainer(record.getId());
+				break;
 		}
 		addOrUpdate(cart.getWrappedRecord());
 		view.navigate().to(RMViews.class).cart(cart.getId());
@@ -108,11 +102,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			view.showErrorMessage($("CartView.cannotDuplicate"));
 			return;
 		}
-		DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
-		for (Folder folder : getCartFolders()) {
-			service.duplicateStructureAndSave(folder, getCurrentUser());
+		try {
+			DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
+			for (Folder folder : getCartFolders()) {
+				service.duplicateStructureAndSave(folder, getCurrentUser());
+			}
+			view.showMessage($("CartView.duplicated"));
+		} catch (RecordServicesException.ValidationException e) {
+			view.showErrorMessage($(e.getErrors()));
+		} catch (Exception e) {
+			view.showErrorMessage(e.getMessage());
 		}
-		view.showMessage($("CartView.duplicated"));
 	}
 
 	public boolean canDelete() {
@@ -200,17 +200,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return false;
 			}
 			switch (folder.getPermissionStatus()) {
-			case SEMI_ACTIVE:
-				if (!user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
-					return false;
-				}
-				break;
-			case INACTIVE_DEPOSITED:
-			case INACTIVE_DESTROYED:
-				if (!user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
-					return false;
-				}
-				break;
+				case SEMI_ACTIVE:
+					if (!user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
+						return false;
+					}
+					break;
+				case INACTIVE_DEPOSITED:
+				case INACTIVE_DESTROYED:
+					if (!user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
+						return false;
+					}
+					break;
 			}
 		}
 		return true;
@@ -222,17 +222,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return false;
 			}
 			switch (folder.getPermissionStatus()) {
-			case SEMI_ACTIVE:
-				if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder)) {
-					return false;
-				}
-				break;
-			case INACTIVE_DEPOSITED:
-			case INACTIVE_DESTROYED:
-				if (!user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder)) {
-					return false;
-				}
-				break;
+				case SEMI_ACTIVE:
+					if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder)) {
+						return false;
+					}
+					break;
+				case INACTIVE_DEPOSITED:
+				case INACTIVE_DESTROYED:
+					if (!user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder)) {
+						return false;
+					}
+					break;
 			}
 		}
 		return true;
@@ -244,16 +244,16 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return false;
 			}
 			switch (document.getArchivisticStatus()) {
-			case SEMI_ACTIVE:
-				if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(document)) {
-					return false;
-				}
-				break;
-			case INACTIVE_DEPOSITED:
-			case INACTIVE_DESTROYED:
-				if (!user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(document)) {
-					return false;
-				}
+				case SEMI_ACTIVE:
+					if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(document)) {
+						return false;
+					}
+					break;
+				case INACTIVE_DEPOSITED:
+				case INACTIVE_DESTROYED:
+					if (!user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(document)) {
+						return false;
+					}
 			}
 			if(document.isPublished() && !user.has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(document)) {
 				return false;
@@ -271,6 +271,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	List<Folder> getCartFolders() {
 		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
+	}
+
+	List<String> getCartFolderIds() {
+		return cart().getFolders();
 	}
 
 	private List<Document> getCartDocuments() {
@@ -295,28 +299,40 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public List<String> getRecordsIds(String schemaType) {
 		switch (schemaType) {
-		case Folder.SCHEMA_TYPE:
-			return cart().getFolders();
-		case Document.SCHEMA_TYPE:
-			return cart().getDocuments();
-		case ContainerRecord.SCHEMA_TYPE:
-			return cart().getContainers();
-		default:
-			throw new RuntimeException("Unsupported type : " + schemaType);
+			case Folder.SCHEMA_TYPE:
+				return cart().getFolders();
+			case Document.SCHEMA_TYPE:
+				return cart().getDocuments();
+			case ContainerRecord.SCHEMA_TYPE:
+				return cart().getContainers();
+			default:
+				throw new RuntimeException("Unsupported type : " + schemaType);
 		}
 	}
 
 	@Override
+	public String getOriginType() {
+		return batchProcessingPresenterService().getOriginType(getRecordsIds(batchProcessSchemaType));
+	}
+
 	public String getOriginType(List<String> selectedRecordIds) {
 		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
 	}
 
 	@Override
+	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+		return newRecordVO(getRecordsIds(batchProcessSchemaType), schema, sessionContext);
+	}
+
 	public RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext) {
 		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, selectedRecordIds);
 	}
 
 	@Override
+	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException {
+		return simulateButtonClicked(selectedType, getRecordsIds(batchProcessSchemaType), viewObject);
+	}
+
 	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
@@ -325,14 +341,27 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public void processBatchButtonClicked(String selectedType, RecordVO viewObject) throws RecordServicesException {
+		processBatchButtonClicked(selectedType, getRecordsIds(batchProcessSchemaType), viewObject);
+	}
+
+	public void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
 			throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService()
+		batchProcessingPresenterService()
 				.execute(selectedType, records, viewObject, getCurrentUser());
-		return batchProcessingPresenterService().formatBatchProcessingResults(results);
+		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
 	@Override
+	public boolean hasWriteAccessOnAllRecords() {
+		return hasWriteAccessOnAllRecords(getRecordsIds(batchProcessSchemaType));
+	}
+
+	@Override
+	public long getNumberOfRecords() {
+		return (long) getRecordsIds(batchProcessSchemaType).size();
+	}
+
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
 		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
 	}
@@ -358,23 +387,32 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
+		return newRecordFieldFactory(schemaType, selectedType, getRecordsIds(batchProcessSchemaType));
+	}
+
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
 		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, records);
 	}
 
-	public List<LabelTemplate> getTemplates(String schemaType) {
+	public List<LabelTemplate> getCustomTemplates(String schemaType) {
+		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
+		return labelTemplateManager.listExtensionTemplates(schemaType);
+	}
+
+	public List<LabelTemplate> getDefaultTemplates(String schemaType) {
 		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
 		return labelTemplateManager.listTemplates(schemaType);
 	}
 
 	public boolean isLabelsButtonVisible(String schemaType) {
 		switch (schemaType) {
-		case Folder.SCHEMA_TYPE:
-			return cart().getFolders().size() != 0;
-		case ContainerRecord.SCHEMA_TYPE:
-			return cart().getContainers().size() != 0;
-		default:
-			throw new RuntimeException("No labels for type : " + schemaType);
+			case Folder.SCHEMA_TYPE:
+				return cart().getFolders().size() != 0;
+			case ContainerRecord.SCHEMA_TYPE:
+				return cart().getContainers().size() != 0;
+			default:
+				throw new RuntimeException("No labels for type : " + schemaType);
 		}
 	}
 
@@ -472,7 +510,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
 		list.setDecommissioningListType(decomType);
-		list.setFolderDetailsFrom(getCartFolders());
+		list.setFolderDetailsFor(getCartFolders());
 
 		try {
 			recordServices().add(list);
@@ -563,5 +601,34 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 		return new SearchResultReportParameters(recordids, view.getCurrentSchemaType(),
 				collection, report, getCurrentUser(), query);
+	}
+
+	public void backButtonClicked() {
+		view.navigate().to(RMViews.class).listCarts();
+	}
+
+	public CartPresenter setBatchProcessSchemaType(String batchProcessSchemaType) {
+		this.batchProcessSchemaType = batchProcessSchemaType;
+		return this;
+	}
+
+	@Override
+	public void allSearchResultsButtonClicked() {
+		throw new RuntimeException("Should not have been called");
+	}
+
+	@Override
+	public void selectedSearchResultsButtonClicked() {
+		throw new RuntimeException("Should not have been called");
+	}
+
+	@Override
+	public boolean isSearchResultsSelectionForm() {
+		return false;
+	}
+
+	public boolean isAnyFolderBorrowed() {
+		return searchServices().getResultsCount(from(rm().folder.schemaType()).where(rm().folder.borrowed()).isTrue()
+				.andWhere(Schemas.IDENTIFIER).isIn(getCartFolderIds())) > 0;
 	}
 }

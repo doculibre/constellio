@@ -8,9 +8,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.application.ConstellioUI;
@@ -258,6 +255,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		addStyleName(STYLE_NAME);
 
 		mainLayout = new VerticalLayout();
+		mainLayout.addStyleName(STYLE_NAME + "-main-layout");
 		mainLayout.setHeightUndefined();
 		mainLayout.setSpacing(true);
 		setMainLayoutWidth(mainLayout);
@@ -305,7 +303,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		}
 		valuesAndButtonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -377,7 +375,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	protected ContainerButton addEditButton() {
 		return new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				EditButton editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {

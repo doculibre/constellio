@@ -67,7 +67,7 @@ public class ModifyProfilePresenterAcceptanceTest extends ConstellioTest {
         inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
         profileVO = new ProfileVO(users.bobIn(zeCollection).getUsername(), "bob", "Gratton", "bob@constellio.com", "bob@hotmail.com\nbob@gmail.com", "3333333",
-                RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null);
+                RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null, false);
         profileVO.setLoginLanguageCode("fr");
 
         sessionContext = FakeSessionContext.forRealUserIncollection(users.chuckNorrisIn(zeCollection));

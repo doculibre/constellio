@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -8,6 +9,7 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 public class DecomListContainerDetail implements ModifiableStructure {
 
 	String containerRecordId;
+	Double availableSize;
 	boolean full;
 	boolean dirty;
 
@@ -16,6 +18,13 @@ public class DecomListContainerDetail implements ModifiableStructure {
 
 	public DecomListContainerDetail(String containerRecordId) {
 		this.containerRecordId = containerRecordId;
+	}
+
+	public DecomListContainerDetail(ContainerRecord container) {
+		this.containerRecordId = container.getId();
+		this.availableSize = container.getAvailableSize();
+		this.full = Boolean.TRUE.equals(container.isFull());
+		this.dirty = false;
 	}
 
 	public String getContainerRecordId() {
@@ -35,6 +44,16 @@ public class DecomListContainerDetail implements ModifiableStructure {
 	public DecomListContainerDetail setFull(Boolean full) {
 		dirty = true;
 		this.full = Boolean.TRUE.equals(full);
+		return this;
+	}
+
+	public Double getAvailableSize() {
+		return availableSize;
+	}
+
+	public DecomListContainerDetail setAvailableSize(Double availableSize) {
+		dirty = true;
+		this.availableSize = availableSize;
 		return this;
 	}
 

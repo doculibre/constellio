@@ -1,11 +1,12 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.ui.pages.search.criteria.Criterion;
+
 import java.io.InputStream;
 import java.util.List;
 
-import com.constellio.app.ui.pages.search.criteria.Criterion;
-
 public interface AdvancedSearchView extends SearchView {
+	
 	String SEARCH_TYPE = "advancedSearch";
 
 	List<Criterion> getSearchCriteria();
@@ -21,4 +22,6 @@ public interface AdvancedSearchView extends SearchView {
 	void downloadBatchProcessingResults(InputStream inputStream);
 
 	void closeBatchProcessingWindow();
+
+	List<String> getUnselectedRecordIds();
 }

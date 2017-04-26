@@ -15,6 +15,13 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CustomComponent;
 
 public abstract class BaseBreadcrumbTrail extends CustomComponent implements BreadcrumbTrail {
+	
+	public static final String TAXONOMY_CODE = "taxonomyCode";
+	
+	public static final String SEARCH_ID = "searchId";
+	
+	public static final String ADVANCED_SEARCH = "advancedSearch";
+	
 	private Breadcrumb breadcrumb;
 	private List<BreadcrumbItem> items = new ArrayList<>();
 

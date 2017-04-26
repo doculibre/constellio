@@ -5,12 +5,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.Locale;
 
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
@@ -24,6 +22,7 @@ import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 
 /**
  * Created by Patrick on 2015-11-09.
@@ -57,6 +56,13 @@ public class SearchBoostByMetadataPresenterAcceptTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		searchBoostManager = getModelLayerFactory().getSearchBoostManager();
+
+		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollectionsExcludingSystem()) {
+			for (SearchBoost searchBoost : searchBoostManager.getAllSearchBoostsByMetadataType(collection)) {
+				searchBoostManager.delete(zeCollection, searchBoost);
+			}
+		}
+
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());

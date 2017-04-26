@@ -8,10 +8,15 @@ import java.util.List;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
-import com.constellio.app.modules.es.ui.pages.*;
+import com.constellio.app.modules.es.ui.pages.ConnectorReportViewImpl;
+import com.constellio.app.modules.es.ui.pages.DisplayConnectorInstanceViewImpl;
+import com.constellio.app.modules.es.ui.pages.EditConnectorInstanceViewImpl;
+import com.constellio.app.modules.es.ui.pages.ListConnectorInstancesViewImpl;
+import com.constellio.app.modules.es.ui.pages.WizardConnectorInstanceViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.AddEditMappingViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.DisplayConnectorMappingsViewImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -23,7 +28,6 @@ import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ESNavigationConfiguration implements Serializable {
 	public static final String CONNECTORS = "connectors";
@@ -31,7 +35,6 @@ public class ESNavigationConfiguration implements Serializable {
 	public static final String SEARCH_ENGINE = "searchEngine";
 	public static final String SEARCH_ENGINE_ICON = "images/icons/config/configuration-search.png";
 
-	public static final String TAXONOMIES = "taxonomies";
 	public static final String CONNECTOR_REPORT = "connectorReport";
 	public static final String DISPLAY_CONNECTOR_INSTANCE = "displayConnectorInstance";
 	public static final String ADD_CONNECTOR_MAPPING = "addConnectorMapping";
@@ -73,15 +76,16 @@ public class ESNavigationConfiguration implements Serializable {
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
-		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
-			config.add(HomeView.TABS, new RecordTree(TAXONOMIES) {
-				private int defaultTab;
-
+		if (!config.hasNavigationItem(HomeView.TABS, CoreNavigationConfiguration.TAXONOMIES)) {
+			config.add(HomeView.TABS, new RecordTree(CoreNavigationConfiguration.TAXONOMIES) {
 				@Override
 				public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
 						SessionContext sessionContext) {
 					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
-					defaultTab = tabSheet.getDefaultTab();
+					if (getDefaultDataProvider() == -1) {
+						int defaultTab = tabSheet.getDefaultTab();
+						setDefaultDataProvider(defaultTab);
+					}	
 					return tabSheet.getDataProviders();
 				}
 

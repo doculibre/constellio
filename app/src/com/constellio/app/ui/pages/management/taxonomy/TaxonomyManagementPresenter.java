@@ -1,24 +1,21 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childNodesQuery;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.services.RMRecordDeletionServices;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -33,7 +30,6 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -42,13 +38,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
@@ -127,16 +120,17 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 
 	void createDataProviderForSchema(List<RecordVODataProvider> dataProviders, MetadataSchema schema) {
 		final String schemaCode = schema.getCode();
+		final String collection = schema.getCollection();
 		Factory<LogicalSearchQuery> queryFactory = new Factory<LogicalSearchQuery>() {
 			@Override
 			public LogicalSearchQuery get() {
+				MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 				LogicalSearchQuery query;
 				if (conceptId != null) {
 					Record record = recordServices().getDocumentById(conceptId);
-					query = modelLayerFactory.newTaxonomiesSearchService()
-							.getChildConceptsQuery(record, new TaxonomiesSearchOptions());
+					query = childNodesQuery(record, new TaxonomiesSearchOptions(), types);
 				} else {
-					query = modelLayerFactory.newTaxonomiesSearchService()
+					query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
 							.getRootConceptsQuery(view.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
 									new TaxonomiesSearchOptions());
 				}
@@ -212,179 +206,6 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		view.navigate().to().addTaxonomyConcept(taxonomyCode, conceptId, schemaCode);
 	}
 
-	public void cleanAdministrativeUnitButtonClicked() {
-		if(hasCurrentUserRequiredRightsToCleanAdminUnitChilds()) {
-			RecordVO recordVO = getCurrentConcept();
-			RMRecordDeletionServices.cleanAdministrativeUnit(view.getCollection(), recordVO.getId(), appLayerFactory);
-		}
-	}
-
-	private boolean hasCurrentUserRequiredRightsToCleanAdminUnitChilds() {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-
-		AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(searchServices.
-				searchSingleResult(from(rm.administrativeUnit.schema()).where(Schemas.IDENTIFIER)
-						.isEqualTo(getCurrentConcept().getId())));
-
-		boolean hasAllRights = hasCurrentUserDeletionRightsToCleanTasks(administrativeUnit);
-		if(hasAllRights) {
-			hasAllRights = hasCurrentUserDeletionRightsToCleanFolders(administrativeUnit);
-		}
-		if(hasAllRights) {
-			hasAllRights = hasCurrentUserDeletionRightsToCleanContainers(administrativeUnit);
-		}
-		return hasAllRights;
-	}
-
-	private boolean hasCurrentUserDeletionRightsToCleanFolders(AdministrativeUnit administrativeUnit) {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-
-		SearchResponseIterator<Record> documentIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.document.schema())
-				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH));
-		SearchResponseIterator<Record> folderIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.folder.schema())
-				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH));
-		List<Record> taskList = searchServices.search(new LogicalSearchQuery().setCondition(from(taskSchemas.userTask.schema())
-				.where(Schemas.PRINCIPAL_PATH).isNot(containingText(administrativeUnit.getId()))).sortDesc(Schemas.PRINCIPAL_PATH));
-
-		while (documentIterator.hasNext()) {
-			Record document = documentIterator.next();
-			if(!hasCurrentUserWriteRightsToUnlinkDocumentFromDecommissioningLists(document)) {
-				return false;
-			}
-			if(!hasCurrentUserWriteRightsToUnlinkDocumentFromTask(document, taskList)) {
-				return false;
-			}
-			if(!getCurrentUser().hasDeleteAccess().on(document)) {
-				return false;
-			}
-		}
-		while (folderIterator.hasNext()) {
-			Record folder = folderIterator.next();
-			if(!hasCurrentUserWriteRightsToUnlinkFolderFromDecommissioningLists(folder)) {
-				return false;
-			}
-			if(!hasCurrentUserWriteRightsToUnlinkFolderFromTask(folder, taskList)) {
-				return false;
-			}
-			if(!getCurrentUser().hasDeleteAccess().on(folder)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private boolean hasCurrentUserDeletionRightsToCleanContainers(AdministrativeUnit administrativeUnit) {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-
-		SearchResponseIterator<Record> containerIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.containerRecord.schema())
-				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH));
-
-		while(containerIterator.hasNext()) {
-			Record container = containerIterator.next();
-			if(!hasCurrentUserWriteRightsToUnlinkContainerFromDecommissioningLists(container)) {
-				return false;
-			}
-			if(!getCurrentUser().hasDeleteAccess().on(container)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private boolean hasCurrentUserDeletionRightsToCleanTasks(AdministrativeUnit administrativeUnit) {
-
-		SearchServices searchServices = searchServices();
-		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(schemas.userTask.schema())
-				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH);
-
-		SearchResponseIterator<Record> userTaskIterator = searchServices.recordsIterator(query);
-		while(userTaskIterator.hasNext()) {
-			Record userTask = userTaskIterator.next();
-			if(!getCurrentUser().hasDeleteAccess().on(userTask)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private boolean hasCurrentUserWriteRightsToUnlinkDocumentFromDecommissioningLists(Record document) {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(
-				where(rm.decommissioningList.documents()).isContaining(asList(document.getId())));
-		for(DecommissioningList decommissioningList: decommissioningLists) {
-			if(!getCurrentUser().hasWriteAccess().on(decommissioningList)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private boolean hasCurrentUserWriteRightsToUnlinkFolderFromDecommissioningLists(Record folder) {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(
-				where(rm.decommissioningList.folders()).isContaining(asList(folder.getId())));
-		for(DecommissioningList decommissioningList: decommissioningLists) {
-			if(!getCurrentUser().hasWriteAccess().on(decommissioningList)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private boolean hasCurrentUserWriteRightsToUnlinkContainerFromDecommissioningLists(Record container) {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(
-				where(rm.decommissioningList.containers()).isContaining(asList(container.getId())));
-		for(DecommissioningList decommissioningList: decommissioningLists) {
-			if(!getCurrentUser().hasWriteAccess().on(decommissioningList)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private boolean hasCurrentUserWriteRightsToUnlinkDocumentFromTask(Record document, List<Record> taskList) {
-
-		for(Record task: taskList) {
-			MetadataSchema curTaskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-					.getSchemaTypes(collection).getSchema(task.getSchemaCode());
-			List<String> linkedDocumentsIDs = task.get(curTaskSchema.getMetadata(RMTask.LINKED_DOCUMENTS));
-			linkedDocumentsIDs = new ArrayList<>(linkedDocumentsIDs);
-			if(linkedDocumentsIDs.contains(document.getId())) {
-				if(!getCurrentUser().hasWriteAccess().on(task)) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	private boolean hasCurrentUserWriteRightsToUnlinkFolderFromTask(Record folder, List<Record> taskList) {
-
-		for(Record task: taskList) {
-			MetadataSchema curTaskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-					.getSchemaTypes(collection).getSchema(task.getSchemaCode());
-			List<String> linkedDocumentsIDs = task.get(curTaskSchema.getMetadata(RMTask.LINKED_DOCUMENTS));
-			linkedDocumentsIDs = new ArrayList<>(linkedDocumentsIDs);
-			if(linkedDocumentsIDs.contains(folder.getId())) {
-				if(!getCurrentUser().hasWriteAccess().on(task)) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
 	public void manageAccessAuthorizationsButtonClicked() {
 		if (conceptId != null) {
 			view.navigate().to().listObjectAccessAuthorizations(conceptId);
@@ -409,8 +230,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		} else {
 			SchemaPresenterUtils taxonomyPresenterUtils = new SchemaPresenterUtils(getCurrentConcept().getSchema().getCode(),
 					view.getConstellioFactories(), view.getSessionContext());
-			String[] pathParts = ((String) taxonomyPresenterUtils.getRecord(conceptId).getList(Schemas.PARENT_PATH).get(0))
-					.split("/");
+			String[] pathParts = ((String) parentPaths(taxonomyPresenterUtils.getRecord(conceptId)).get(0)).split("/");
 			String parentId = pathParts[pathParts.length - 1];
 			if (taxonomyCode.equals(parentId)) {
 				view.navigate().to().taxonomyManagement(taxonomyCode);

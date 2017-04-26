@@ -62,7 +62,13 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 			throws ValidationException {
 		ImportedSettings settings = services.exportSettings(asList(zeCollection));
 		assertThat(settings).isNotNull();
-			assertThat(settings.getConfigs()).isNotEmpty().hasSize(62);
+		assertThat(settings.getConfigs()).extracting("key").contains("requireApprovalForDepositOfSemiActive",
+				"deleteDocumentRecordsWithDestruction", "dateFormat", "calculatedInactiveDateNumberOfYearWhenOpenRule",
+				"yearEndDate", "calculatedCloseDateNumberOfYearWhenVariableRule", "backupRetentionPeriodInDays",
+				"displayDepositedInTrees", "inUpdateProcess", "metadataPopulatePriority", "documentRetentionRules",
+				"logoLink", "displaySemiActiveInTrees", "displayContainersInTrees", "PDFACreatedOn",
+				"borrowingDurationDays", "enforceCategoryAndRuleRelationshipInFolder", "decommissioningDateBasedOn",
+				"trashPurgeDelaiInDays", "calculatedMetadatasBasedOnFirstTimerangePart", "tokenDurationInHours");
 	}
 
 	//--------------------------------------------------------------------

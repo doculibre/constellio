@@ -6,6 +6,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,11 +25,13 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
-import com.constellio.app.ui.framework.data.DataProvider;
+import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -69,7 +73,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private WindowButton lookupWindowButton;
 	private Button clearButton;
 	private Converter<String, T> itemConverter;
-	private int treeBufferSize = 20;
+	private int treeBufferSize = 100;
 	/**
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */
@@ -109,10 +113,27 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 
+		final int autoCompleteBuffer = 100;
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				return suggestInputDataProvider.getData(text, 0, 10);
+				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, autoCompleteBuffer));
+				if (itemConverter != null) {
+					Collections.sort(values, new Comparator<T>() {
+						@Override
+						public int compare(T o1, T o2) {
+							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+							return s1.compareTo(s2);
+						}
+					});
+				}
+				return values;
+			}
+
+			@Override
+			public int getBufferSize() {
+				return autoCompleteBuffer;
 			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
@@ -172,6 +193,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			@Override
 			public String getItemCaption(T itemId) {
 				return LookupField.this.getCaption(itemId);
+			}
+
+			@Override
+			public void addItemClickListener(ItemClickListener listener) {
+				super.addItemClickListener(listener);
 			}
 		};
 	}
@@ -272,7 +298,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		suggestInputDataProvider.setOnlyLinkables(onlyLinkables);
 	}
 
-	private class LookupWindowContent extends VerticalLayout {
+	protected class LookupWindowContent extends VerticalLayout {
 
 		private HorizontalLayout searchFieldLayout;
 
@@ -287,7 +313,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		@SuppressWarnings("unchecked")
 		public LookupWindowContent(Window window) {
 			super();
-			
+
 			setSizeFull();
 
 			window.setWidth("80%");
@@ -321,11 +347,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				}
 			});
 
-			if (!lookupTreeDataProviders.isEmpty()) {
-				if (lookupTreeDataProviders.size() > 1) {
+			if (!getLookupTreeDataProviders().isEmpty()) {
+				if (getLookupTreeDataProviders().size() > 1) {
 					lookupTreeComponent = new TabSheet();
 				}
-				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : lookupTreeDataProviders) {
+				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : getLookupTreeDataProviders()) {
 					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, treeBufferSize);
 					lazyTree.setWidth("100%");
 					lazyTree.setItemCaptionMode(ItemCaptionMode.PROPERTY);
@@ -343,7 +369,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					Panel lazyTreePanel = new Panel(lazyTree);
 					lazyTreePanel.setWidth("100%");
 					lazyTreePanel.setHeight("100%");
-					
+
 					if (lookupTreeComponent == null) {
 						lookupTreeComponent = lazyTreePanel;
 					} else {
@@ -361,16 +387,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			searchResultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 
 			addComponent(searchFieldLayout);
-			if (!lookupTreeDataProviders.isEmpty()) {
+			if (!getLookupTreeDataProviders().isEmpty()) {
 				addComponent(lookupTreeComponent);
 			} else {
-				Container searchResultsContainer = new LookupSearchResultContainer(suggestInputDataProvider, searchField);
+				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);
 				searchResultsTable.setContainerDataSource(searchResultsContainer);
 				addComponent(searchResultsTable);
 			}
 			searchFieldLayout.addComponents(searchField, searchButton);
 
-			if (!lookupTreeDataProviders.isEmpty()) {
+			if (!getLookupTreeDataProviders().isEmpty()) {
 				setExpandRatio(lookupTreeComponent, 1);
 			} else {
 				setExpandRatio(searchResultsTable, 1);
@@ -389,6 +415,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			}
 			LazyTree<T> currentLazyTree = (LazyTree<T>) currentLazyTreePanel.getContent();
 			return (LookupTreeDataProvider<T>) currentLazyTree.getDataProvider();
+		}
+
+		public List<LookupTreeDataProvider<T>> getLookupTreeDataProviders() {
+			return lookupTreeDataProviders;
 		}
 
 		private void search() {
@@ -411,16 +441,28 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					setExpandRatio(lookupTreeComponent, 1);
 				}
 			} else {
-				Container searchResultsContainer = new LookupSearchResultContainer(suggestInputDataProvider, searchField);
+				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);
 				searchResultsTable.setContainerDataSource(searchResultsContainer);
 			}
+		}
+
+		public TextInputDataProvider geSuggestInputDataProvider() {
+			return suggestInputDataProvider;
 		}
 
 	}
 
 	private void selectDefaultUserTaxonomyTab(LazyTree<T> lazyTree, TabSheet tabSheet, Panel lazyTreePanel) {
 		User user = suggestInputDataProvider.getCurrentUser();
-		if (lazyTree.getDataProvider().getTaxonomyCode().equals(user.getDefaultTaxonomy())) {
+		String taxonomyCode = lazyTree.getDataProvider().getTaxonomyCode();
+		String userDefaultTaxonomy = user.getDefaultTaxonomy();
+		PresenterService presenterService = new PresenterService(suggestInputDataProvider.getModelLayerFactory());
+		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();
+		if (userDefaultTaxonomy != null) {
+			if (taxonomyCode.equals(userDefaultTaxonomy)) {
+				tabSheet.setSelectedTab(lazyTreePanel);
+			}
+		} else if (taxonomyCode.equals(configDefaultTaxonomy)) {
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}
@@ -432,15 +474,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		boolean isSelectable(T selection);
 	}
 
-	public interface TextInputDataProvider<T> extends DataProvider {
+	public static abstract class TextInputDataProvider<T> extends AbstractDataProvider {
 
-		List<T> getData(String text, int startIndex, int count);
+		public abstract List<T> getData(String text, int startIndex, int count);
 
-		int size(String text);
+		public abstract ModelLayerFactory getModelLayerFactory();
 
-		User getCurrentUser();
+		public abstract int size(String text);
 
-		void setOnlyLinkables(boolean onlyLinkables);
+		public abstract User getCurrentUser();
+
+		public abstract void setOnlyLinkables(boolean onlyLinkables);
 	}
 
 	private class LookupSearchResultContainer extends LazyQueryContainer {
@@ -563,5 +607,5 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private interface SerializableQuery extends Query, Serializable {
 
 	}
-	
+
 }

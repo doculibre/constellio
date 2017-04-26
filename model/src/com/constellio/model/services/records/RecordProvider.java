@@ -14,6 +14,8 @@ public class RecordProvider {
 
 	Map<String, Record> memoryList;
 
+	Transaction transaction;
+
 	public RecordProvider(RecordServices recordServices) {
 		this(recordServices, null, Collections.<Record>emptyList(), null);
 	}
@@ -21,6 +23,7 @@ public class RecordProvider {
 	public RecordProvider(RecordServices recordServices, RecordProvider recordProvider, List<Record> records,
 			Transaction transaction) {
 		this.recordServices = recordServices;
+		this.transaction = transaction;
 		this.memoryList = new HashMap<>();
 
 		if (transaction != null) {
@@ -40,6 +43,9 @@ public class RecordProvider {
 
 	public Record getRecord(String id) {
 		Record record = memoryList.get(id);
+		if (record == null && transaction != null) {
+			record = transaction.getRecord(id);
+		}
 		if (record == null) {
 			record = recordServices.getDocumentById(id);
 			memoryList.put(id, record);

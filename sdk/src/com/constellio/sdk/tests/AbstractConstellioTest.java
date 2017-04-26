@@ -2,6 +2,7 @@ package com.constellio.sdk.tests;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,6 +88,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
@@ -125,8 +128,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String businessCollection = "LaCollectionDeRida";
 	protected String admin = "admin";
 	protected String aliceWonderland = "alice";
+	protected String alice = "alice";
+	protected String bob = "bob";
 	protected String bobGratton = "bob";
 	protected String chuckNorris = "chuck";
+	protected String chuck = "chuck";
 	protected String charlesFrancoisXavier = "charles";
 	protected String charles = "charles";
 	protected String dakota = "dakota";
@@ -134,6 +140,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String gandalf = "gandalf";
 	protected String robin = "robin";
 	protected String sasquatch = "sasquatch";
+	protected String heroes = "heroes";
+	protected String legends = "legends";
+	protected String sidekicks = "sidekicks";
+	protected String rumors = "rumors";
 
 	private int printIndex = 0;
 	private long time;
@@ -496,27 +506,47 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected AppLayerFactory getAppLayerFactory() {
 		ensureNotUnitTest();
-		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory();
+		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(DEFAULT_NAME);
+	}
+
+	protected AppLayerFactory getAppLayerFactory(String name) {
+		ensureNotUnitTest();
+		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(name);
 	}
 
 	protected DataLayerFactory getDataLayerFactory() {
 		ensureNotUnitTest();
-		return getCurrentTestSession().getFactoriesTestFeatures().newDaosFactory();
+		return getCurrentTestSession().getFactoriesTestFeatures().newDaosFactory(DEFAULT_NAME);
+	}
+
+	protected DataLayerFactory getDataLayerFactory(String name) {
+		ensureNotUnitTest();
+		return getCurrentTestSession().getFactoriesTestFeatures().newDaosFactory(name);
 	}
 
 	protected IOServicesFactory getIOLayerFactory() {
 		ensureNotUnitTest();
-		return getCurrentTestSession().getFactoriesTestFeatures().newIOServicesFactory();
+		return getCurrentTestSession().getFactoriesTestFeatures().newIOServicesFactory(DEFAULT_NAME);
 	}
 
 	protected ConstellioFactories getConstellioFactories() {
 		ensureNotUnitTest();
-		return getCurrentTestSession().getFactoriesTestFeatures().getConstellioFactories();
+		return getCurrentTestSession().getFactoriesTestFeatures().getConstellioFactories(DEFAULT_NAME);
+	}
+
+	protected ConstellioFactories getConstellioFactories(String name) {
+		ensureNotUnitTest();
+		return getCurrentTestSession().getFactoriesTestFeatures().getConstellioFactories(name);
 	}
 
 	protected ModelLayerFactory getModelLayerFactory() {
 		ensureNotUnitTest();
-		return getCurrentTestSession().getFactoriesTestFeatures().newModelServicesFactory();
+		return getCurrentTestSession().getFactoriesTestFeatures().newModelServicesFactory(DEFAULT_NAME);
+	}
+
+	protected ModelLayerFactory getModelLayerFactory(String name) {
+		ensureNotUnitTest();
+		return getCurrentTestSession().getFactoriesTestFeatures().newModelServicesFactory(name);
 	}
 
 	protected void withSpiedServices(Class<?>... classes) {
@@ -525,7 +555,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected FoldersLocator getFoldersLocator() {
-		return getCurrentTestSession().getFactoriesTestFeatures().getFoldersLocator();
+		return getCurrentTestSession().getFactoriesTestFeatures().getFoldersLocator(DEFAULT_NAME);
 	}
 
 	protected File givenUnzipedResourceInFolder(String fileName) {
@@ -883,7 +913,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void givenConfig(SystemConfiguration config, Object value) {
 		ensureNotUnitTest();
-		getModelLayerFactory().getSystemConfigurationsManager().setValue(config, value);
+		if (getModelLayerFactory().getSystemConfigurationsManager().setValue(config, value)) {
+			getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
+		}
 	}
 
 	protected void waitUntilTrue(AtomicBoolean atomicBoolean) {
@@ -1386,6 +1418,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Session newCMISSessionAsUserInZeCollection(String username) {
 		ensureNotUnitTest();
 		return newCMISSessionAsUserInCollection(username, zeCollection);
+	}
+
+	protected void reindexIfRequired() {
+		ensureNotUnitTest();
+		if (getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()) {
+			ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		}
 	}
 
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {

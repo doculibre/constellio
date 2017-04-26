@@ -11,7 +11,8 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.security.AuthorizationDetailsManagerRuntimeException.AuthorizationDetailsAlreadyExists;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
@@ -46,7 +47,7 @@ public class AuthorizationDetailsManager
 
 	}
 
-	Map<String, AuthorizationDetails> getAuthorizationsDetails(String collection) {
+	public Map<String, AuthorizationDetails> getAuthorizationsDetails(String collection) {
 		return oneXMLConfigPerCollectionManager.get(collection);
 	}
 
@@ -55,13 +56,13 @@ public class AuthorizationDetailsManager
 		oneXMLConfigPerCollectionManager.createCollectionFile(collection, newCreateEmptyDocumentDocumentAlteration());
 	}
 
-	public void add(AuthorizationDetails authorizationDetails) {
-		if (getAuthorizationsDetails(authorizationDetails.getCollection()).containsKey(authorizationDetails.getId())) {
-			throw new AuthorizationDetailsAlreadyExists(authorizationDetails.getId());
+	public void add(AuthorizationDetails xmlAuthorizationDetails) {
+		if (getAuthorizationsDetails(xmlAuthorizationDetails.getCollection()).containsKey(xmlAuthorizationDetails.getId())) {
+			throw new AuthorizationDetailsAlreadyExists(xmlAuthorizationDetails.getId());
 		}
-		validateDates(authorizationDetails.getStartDate(), authorizationDetails.getEndDate());
-		String collection = authorizationDetails.getCollection();
-		oneXMLConfigPerCollectionManager.updateXML(collection, newAddAuthorizationDocumentAlteration(authorizationDetails));
+		validateDates(xmlAuthorizationDetails.getStartDate(), xmlAuthorizationDetails.getEndDate());
+		String collection = xmlAuthorizationDetails.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, newAddAuthorizationDocumentAlteration(xmlAuthorizationDetails));
 	}
 
 	void validateDates(LocalDate startDate, LocalDate endDate) {
@@ -69,48 +70,48 @@ public class AuthorizationDetailsManager
 		if ((startDate != null && endDate != null) && startDate.isAfter(endDate)) {
 			throw new AuthorizationDetailsManagerRuntimeException.StartDateGreaterThanEndDate(startDate, endDate);
 		}
-		if (endDate != null && !endDate.isAfter(now)) {
+		if (endDate != null && endDate.isBefore(now)) {
 			throw new AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate(endDate.toString());
 		}
 	}
 
-	public void remove(AuthorizationDetails authorizationDetails) {
-		String collection = authorizationDetails.getCollection();
-		oneXMLConfigPerCollectionManager.updateXML(collection, newRemoveAuthorizationDocumentAlteration(authorizationDetails));
+	public void remove(AuthorizationDetails xmlAuthorizationDetails) {
+		String collection = xmlAuthorizationDetails.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, newRemoveAuthorizationDocumentAlteration(xmlAuthorizationDetails));
 	}
 
-	public void modifyEndDate(AuthorizationDetails authorizationDetails, LocalDate endate) {
-		String collection = authorizationDetails.getCollection();
-		authorizationDetails = authorizationDetails.withNewEndDate(endate);
+	public void modifyEndDate(AuthorizationDetails xmlAuthorizationDetails, LocalDate endate) {
+		String collection = xmlAuthorizationDetails.getCollection();
+		xmlAuthorizationDetails = xmlAuthorizationDetails.withNewEndDate(endate);
 		oneXMLConfigPerCollectionManager
-				.updateXML(collection, newModifyEndDateAuthorizationDocumentAlteration(authorizationDetails));
+				.updateXML(collection, newModifyEndDateAuthorizationDocumentAlteration(xmlAuthorizationDetails));
 	}
 
 	public AuthorizationDetails get(String collection, String id) {
 		return getAuthorizationsDetails(collection).get(id);
 	}
 
-	public boolean isEnabled(AuthorizationDetails authorizationDetails) {
+	public boolean isEnabled(XMLAuthorizationDetails xmlAuthorizationDetails) {
 		LocalDate currentDate = TimeProvider.getLocalDate();
-		LocalDate startDate = authorizationDetails.getStartDate();
-		LocalDate endDate = authorizationDetails.getEndDate();
-		if (authorizationDetails.getStartDate() == null || authorizationDetails.getEndDate() == null) {
+		LocalDate startDate = xmlAuthorizationDetails.getStartDate();
+		LocalDate endDate = xmlAuthorizationDetails.getEndDate();
+		if (xmlAuthorizationDetails.getStartDate() == null || xmlAuthorizationDetails.getEndDate() == null) {
 			return true;
 		} else {
 			return !startDate.isAfter(currentDate) && !endDate.isBefore(currentDate);
 		}
 	}
 
-	public boolean isDisabled(AuthorizationDetails authorizationDetails) {
-		return !isEnabled(authorizationDetails);
+	public boolean isDisabled(XMLAuthorizationDetails xmlAuthorizationDetails) {
+		return !isEnabled(xmlAuthorizationDetails);
 	}
 
 	public List<String> getListOfFinishedAuthorizationsIds(String collection) {
 		List<String> finishedAuthorizations = new ArrayList<>();
-		for (AuthorizationDetails authorizationDetails : getAuthorizationsDetails(collection).values()) {
-			if (authorizationDetails.getEndDate() != null && authorizationDetails.getEndDate()
+		for (AuthorizationDetails xmlAuthorizationDetails : getAuthorizationsDetails(collection).values()) {
+			if (xmlAuthorizationDetails.getEndDate() != null && xmlAuthorizationDetails.getEndDate()
 					.isBefore(TimeProvider.getLocalDate())) {
-				finishedAuthorizations.add(authorizationDetails.getId());
+				finishedAuthorizations.add(xmlAuthorizationDetails.getId());
 			}
 		}
 		return finishedAuthorizations;
@@ -120,32 +121,33 @@ public class AuthorizationDetailsManager
 		return new AuthorizationDetailsWriter(document);
 	}
 
-	DocumentAlteration newAddAuthorizationDocumentAlteration(final AuthorizationDetails authorizationDetails) {
+	DocumentAlteration newAddAuthorizationDocumentAlteration(final AuthorizationDetails xmlAuthorizationDetails) {
 		return new DocumentAlteration() {
 
 			@Override
 			public void alter(Document document) {
-				newAuthorizationsWriter(document).add(authorizationDetails);
+				newAuthorizationsWriter(document).add(xmlAuthorizationDetails);
 			}
 		};
 	}
 
-	DocumentAlteration newRemoveAuthorizationDocumentAlteration(final AuthorizationDetails authorizationDetails) {
+	DocumentAlteration newRemoveAuthorizationDocumentAlteration(final AuthorizationDetails xmlAuthorizationDetails) {
 		return new DocumentAlteration() {
 
 			@Override
 			public void alter(Document document) {
-				newAuthorizationsWriter(document).remove(authorizationDetails.getId());
+				newAuthorizationsWriter(document).remove(xmlAuthorizationDetails.getId());
 			}
 		};
 	}
 
-	DocumentAlteration newModifyEndDateAuthorizationDocumentAlteration(final AuthorizationDetails authorizationDetails) {
+	DocumentAlteration newModifyEndDateAuthorizationDocumentAlteration(final AuthorizationDetails xmlAuthorizationDetails) {
 		return new DocumentAlteration() {
 
 			@Override
 			public void alter(Document document) {
-				newAuthorizationsWriter(document).modifyEndDate(authorizationDetails.getId(), authorizationDetails.getEndDate());
+				newAuthorizationsWriter(document)
+						.modifyEndDate(xmlAuthorizationDetails.getId(), xmlAuthorizationDetails.getEndDate());
 			}
 		};
 	}

@@ -1,6 +1,11 @@
 package com.constellio.model.conf.ldap.services;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -118,7 +123,7 @@ public class LDAPServicesImpl implements LDAPServices {
         filter.append("(").append("&").append("(objectclass=person)");
 
         // Construct disjunction groups filter
-        if (!userFilterGroups.isEmpty()) {
+        if (userFilterGroups != null && !userFilterGroups.isEmpty()) {
             final String userMembershipAttribute = LDAPDirectoryType.ACTIVE_DIRECTORY.equals(directoryType) ? ADUserBuilder.MEMBER_OF : EdirectoryUserBuilder.MEMBER_OF;
 
             filter.append("(").append("|").append(
@@ -425,20 +430,24 @@ public class LDAPServicesImpl implements LDAPServices {
 	@Override
 	public List<String> getTestSynchronisationGroups(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		List<String> returnGroups = new ArrayList<>();
+		Set<String> returnGroups = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-				ldapServerConfiguration.getFollowReferences(), activeDirectory);
-		if (ctx != null) {
-			Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
-					ldapUserSyncConfiguration.getGroupFilter());
-    		for (LDAPGroup group : groups) {
-				returnGroups.add(group.getSimpleName());
+		List<String> urls = ldapServerConfiguration.getUrls();
+		for(String url: urls) {
+			LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), url,
+					ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+					ldapServerConfiguration.getFollowReferences(), activeDirectory);
+			if (ctx != null) {
+				Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
+						ldapUserSyncConfiguration.getGroupFilter());
+				for (LDAPGroup group : groups) {
+					returnGroups.add(group.getSimpleName());
+				}
 			}
 		}
-		return returnGroups;
+
+		return new ArrayList<>(returnGroups);
 	}
 
 	@Override
@@ -458,11 +467,12 @@ public class LDAPServicesImpl implements LDAPServices {
         ldapGroups.addAll(acceptedGroups);
 
         // Get accepted users list using users search base, user groups filter and users regex search filter
-        final Set<LDAPUser> acceptedUsers = getAcceptedUsersNotLinkedToGroups(ldapContext, serverConfiguration, userSyncConfiguration);
+        final List<LDAPUser> acceptedUsers = getAcceptedUsersNotLinkedToGroups(ldapContext, serverConfiguration, userSyncConfiguration);
         ldapUsers.addAll(acceptedUsers);
 
         // Add groups of accepted users to accepted groups list
-        ldapGroups.addAll(getGroupsFromUser(acceptedUsers));
+		Set<LDAPGroup> groupsFromUsers = getGroupsFromUser(acceptedUsers);
+        ldapGroups.addAll(groupsFromUsers);
 
         //
         if (userSyncConfiguration.isMembershipAutomaticDerivationActivated()) {
@@ -480,28 +490,43 @@ public class LDAPServicesImpl implements LDAPServices {
 		} catch (NamingException e) {
 			e.printStackTrace();
 		}
-
 		return new LDAPUsersAndGroups(ldapUsers, ldapGroups);
 	}
 
 	@Override
 	public List<String> getTestSynchronisationUsersNames(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		List<String> returnUsers = new ArrayList<>();
+		Set<String> returnUsers = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-				ldapServerConfiguration.getFollowReferences(), activeDirectory);
-		if (ctx != null) {
+		List<String> urls = ldapServerConfiguration.getUrls();
+		for(String url: urls) {
+			LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), url,
+					ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+					ldapServerConfiguration.getFollowReferences(), activeDirectory);
+			if (ctx != null) {
+			    Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
+					ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getUserGroups());
 
-			Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
-					ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getUserFilterGroupsList());
-
-			returnUsers.addAll(users);
+				returnUsers.addAll(users);
+			}
 		}
 
-		return returnUsers;
+		return new ArrayList<>(returnUsers);
+	}
+
+
+	private Set<LDAPGroup> getAcceptedGroups(Set<LDAPGroup> ldapGroups, LDAPUserSyncConfiguration userSyncConfiguration) {
+		Set<LDAPGroup> returnList = new HashSet<>();
+		for (LDAPGroup ldapGroup : ldapGroups) {
+			String groupName = ldapGroup.getSimpleName();
+			if (userSyncConfiguration.isGroupAccepted(groupName)) {
+				if (!ldapGroup.getMembers().isEmpty()) {
+					returnList.add(ldapGroup);
+				}
+			}
+		}
+		return returnList;
 	}
 
 	public Set<LDAPUser> getAcceptedUsersFromGroups(Set<LDAPGroup> ldapGroups, LdapContext ldapContext,
@@ -528,9 +553,9 @@ public class LDAPServicesImpl implements LDAPServices {
 		return returnUsers;
 	}
 
-	private Set<LDAPUser> getAcceptedUsersNotLinkedToGroups(LdapContext ldapContext,
+	private List<LDAPUser> getAcceptedUsersNotLinkedToGroups(LdapContext ldapContext,
 			LDAPServerConfiguration serverConfiguration, LDAPUserSyncConfiguration userSyncConfiguration) {
-		Set<LDAPUser> returnUsers = new HashSet<>();
+		List<LDAPUser> returnUsers = new ArrayList<>();
 		if (userSyncConfiguration.getUsersWithoutGroupsBaseContextList() == null || userSyncConfiguration
 				.getUsersWithoutGroupsBaseContextList().isEmpty()) {
 			return returnUsers;
@@ -563,7 +588,6 @@ public class LDAPServicesImpl implements LDAPServices {
 			@Override
 			public boolean evaluate(Object object) {
 				LDAPGroup group = (LDAPGroup) object;
-
 				return userSyncConfiguration.isGroupAccepted(group.getSimpleName());
 			}
 		});

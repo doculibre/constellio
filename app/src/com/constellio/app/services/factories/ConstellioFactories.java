@@ -10,6 +10,7 @@ import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
@@ -19,7 +20,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ConstellioFactories {
 
-	private static ConstellioFactories instance;
+	public static ConstellioFactoriesInstanceProvider instanceProvider = new SingletonConstellioFactoriesInstanceProvider();
 
 	private File propertyFile;
 	private ConstellioFactoriesDecorator decorator;
@@ -41,37 +42,41 @@ public class ConstellioFactories {
 
 	}
 
-	public static synchronized ConstellioFactories getInstance() {
+	public static ConstellioFactories getInstance() {
 		File propertyFile = new FoldersLocator().getConstellioProperties();
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
 		return getInstance(propertyFile, constellioFactoriesDecorator);
 	}
 
-	public static synchronized ConstellioFactories getInstance(ConstellioFactoriesDecorator constellioFactoriesDecorator) {
+	public static ConstellioFactories getInstance(ConstellioFactoriesDecorator constellioFactoriesDecorator) {
 		File propertyFile = new FoldersLocator().getConstellioProperties();
 		return getInstance(propertyFile, constellioFactoriesDecorator);
 	}
 
-	public static synchronized ConstellioFactories getInstance(File propertyFile, ConstellioFactoriesDecorator decorator) {
-		if (instance == null) {
-			instance = buildFor(propertyFile, decorator);
-			start();
-		}
-
-		return instance;
+	public static ConstellioFactories getInstance(final File propertyFile,
+			final ConstellioFactoriesDecorator decorator) {
+		return instanceProvider.getInstance(new Factory<ConstellioFactories>() {
+			@Override
+			public ConstellioFactories get() {
+				ConstellioFactories instance = buildFor(propertyFile, decorator, null);
+				return instance;
+			}
+		});
 	}
 
 	public static void start() {
-		instance.appLayerFactory.initialize();
+		//getInstance().getAppLayerFactory().initialize();
+		//instance.appLayerFactory.initialize();
 	}
 
 	public static void clear() {
-		if (instance != null) {
-			instance.appLayerFactory.close();
-			instance = null;
-		}
+		instanceProvider.clear();
+		//		if (instance != null) {
+		//			instance.appLayerFactory.close();
+		//			instance = null;
+		//		}
 	}
-//
+	//
 	//	public static void restart() {
 	//		File propertyFile = getInstance().propertyFile;
 	//		ConstellioFactoriesDecorator decorator = getInstance().decorator;
@@ -79,7 +84,7 @@ public class ConstellioFactories {
 	//		getInstance(propertyFile, decorator);
 	//	}
 
-	private static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator) {
+	public static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator, String instanceName) {
 		ConstellioFactories factories = new ConstellioFactories();
 
 		factories.propertyFile = propertyFile;
@@ -88,24 +93,23 @@ public class ConstellioFactories {
 		factories.decorator = decorator;
 		factories.foldersLocator = decorator.decorateFoldersLocator(new FoldersLocator());
 		factories.buildConfiguration(propertyFile, configs);
-		factories.buildLayers();
+		factories.buildLayers(instanceName);
 		return factories;
 	}
 
-	private void buildLayers() {
+	private void buildLayers(String instanceName) {
 		Delayed<ConstellioModulesManager> modulesManager = new Delayed<>();
 		ioServicesFactory = new IOServicesFactory(dataLayerConfiguration.getTempFolder());
 
-		dataLayerFactory = decorator.decorateDataLayerFactory(
-				new DataLayerFactory(ioServicesFactory, dataLayerConfiguration, decorator.getStatefullServiceDecorator()));
+		dataLayerFactory = decorator.decorateDataLayerFactory(new DataLayerFactory(ioServicesFactory, dataLayerConfiguration,
+				decorator.getStatefullServiceDecorator(), instanceName));
 
-		modelLayerFactory = decorator
-				.decorateModelServicesFactory(new ModelLayerFactory(dataLayerFactory, foldersLocator, modelLayerConfiguration,
-						decorator.getStatefullServiceDecorator(), modulesManager));
+		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactory(dataLayerFactory, foldersLocator,
+				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName,
+				new ModelLayerFactoryFactory()));
 
-		appLayerFactory = decorator
-				.decorateAppServicesFactory(new AppLayerFactory(appLayerConfiguration, modelLayerFactory, dataLayerFactory,
-						decorator.getStatefullServiceDecorator()));
+		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactory(appLayerConfiguration, modelLayerFactory,
+				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName));
 
 		modulesManager.set(appLayerFactory.getModulesManager());
 

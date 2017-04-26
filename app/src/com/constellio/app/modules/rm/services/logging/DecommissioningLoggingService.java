@@ -73,6 +73,7 @@ public class DecommissioningLoggingService {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 		Event event = schemasRecords.newEvent();
 		event.setType(EventType.PDF_A_GENERATION);
+		event.setTitle(document.getTitle());
 
 		setDefaultMetadata(event, user);
 		setRecordMetadata(event, document.getWrappedRecord());

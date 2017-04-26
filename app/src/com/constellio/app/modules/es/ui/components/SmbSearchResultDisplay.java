@@ -27,8 +27,9 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 		Component titleComponent;
 
 		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
+		boolean agentRegistered = getAppLayerFactory ().getPluginManager().isRegistered("agent");;
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-		if (rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported() && new SchemaUtils().getSchemaTypeCode(schemaCode).equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
+		if (agentRegistered && rmConfigs.isAgentEnabled() && SchemaUtils.getSchemaTypeCode(schemaCode).equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
 			String smbPath = recordVO.get(ConnectorSmbDocument.URL);
 			String agentURL = ConstellioAgentUtils.getAgentSmbURL(smbPath);
 			if (agentURL != null) {

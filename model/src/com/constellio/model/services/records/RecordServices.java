@@ -38,6 +38,9 @@ public interface RecordServices {
 	void execute(Transaction transaction)
 			throws RecordServicesException;
 
+	void executeWithoutImpactHandling(Transaction transaction)
+			throws RecordServicesException;
+
 	void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
 			throws RecordServicesException;
 
@@ -143,4 +146,8 @@ public interface RecordServices {
 	void recalculate(RecordWrapper recordWrapper);
 
 	void recalculate(Record record);
+
+	void loadLazyTransientMetadatas(Record record);
+
+	void reloadEagerTransientMetadatas(Record record);
 }

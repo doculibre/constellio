@@ -45,7 +45,7 @@ public class IsFalseOrNullCriterionTest extends ConstellioTest {
 
 	@Test
 	public void givenBooleanMetadataWhenGetSolrQueryThenValidSolrQuery() {
-		String expectedQuery = "enabled_s:__FALSE__ OR (*:* -enabled_s:*)";
+		String expectedQuery = "(*:* -enabled_s:__TRUE__)";
 		String query = criterion.getSolrQuery(booleanMetadata);
 		assertThat(query).isEqualTo(expectedQuery);
 	}

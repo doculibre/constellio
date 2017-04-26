@@ -4,6 +4,7 @@ import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,6 +160,19 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return getSchemaTypes(record).getSchemaType(record.getTypeCode());
 	}
 
+	public List<MetadataSchemaType> getSchemaTypes(CollectionObject collectionObject, List<String> schemaTypeCodes) {
+		return getSchemaTypes(collectionObject.getCollection(), schemaTypeCodes);
+	}
+
+	public List<MetadataSchemaType> getSchemaTypes(String collection, List<String> schemaTypeCodes) {
+		MetadataSchemaTypes allTypes = getSchemaTypes(collection);
+		List<MetadataSchemaType> types = new ArrayList<>();
+		for (String schemaTypeCode : schemaTypeCodes) {
+			types.add(allTypes.getSchemaType(schemaTypeCode));
+		}
+		return Collections.unmodifiableList(types);
+	}
+
 	public MetadataSchemaTypes getSchemaTypes(CollectionObject collectionObject) {
 		return getSchemaTypes(collectionObject.getCollection());
 	}
@@ -275,7 +289,8 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		for (SchemaTypesAlterationImpact impact : impacts) {
 			LogicalSearchCondition condition = getBatchProcessCondition(impact, collection);
 			if (searchServices.hasResults(condition)) {
-				batchProcesses.add(batchProcessesManager.addBatchProcessInStandby(condition, impact.getAction()));
+				batchProcesses.add(batchProcessesManager
+						.addBatchProcessInStandby(condition, impact.getAction(), "reindex.schemasAlteration"));
 			}
 		}
 		return batchProcesses;

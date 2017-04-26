@@ -15,6 +15,7 @@ import java.util.Map;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.users.UserServices;
+
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -33,6 +34,7 @@ import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -45,6 +47,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -82,7 +85,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	SearchServices searchServices;
 	DisplayFolderPresenter presenter;
 	SessionContext sessionContext;
-	@Mock UIContext uiContext;	
+	@Mock UIContext uiContext;
 	LocalDate nowDate = new LocalDate();
 	RMEventsSearchServices rmEventsSearchServices;
 	RolesManager rolesManager;
@@ -350,7 +353,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenImportedFolderAndRemovedPermissionToShareImportedFolderAndGivenBackThenOk()
 			throws Exception {
-		recordServices.update(record("A16").set(Schemas.LEGACY_ID,"ChatLegacy"));
+		recordServices.update(record("A16").set(Schemas.LEGACY_ID, "ChatLegacy"));
 
 		Map<String, String> params = new HashMap<>();
 		params.put("id", "A16");
@@ -369,7 +372,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void whenGetTemplatesThenReturnFolderTemplates()
 			throws Exception {
 
-		List<LabelTemplate> labelTemplates = presenter.getTemplates();
+		List<LabelTemplate> labelTemplates = presenter.getDefaultTemplates();
 
 		assertThat(labelTemplates).hasSize(8);
 
@@ -637,20 +640,22 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTo()).hasSize(1);
 		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
 		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
-		final String subject = "Alerte lorsque le dossier est disponible: " + folderC30.getTitle();
+		final String subject = "Le dossier demandé est disponible: " + folderC30.getTitle();
 		assertThat(emailToSend.getSubject()).isEqualTo(subject);
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
 		assertThat(emailToSend.getParameters()).hasSize(6);
 		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
-		assertThat(emailToSend.getParameters().get(1)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock.toString("yyyy-MM-dd  HH:mm:ss"));
+		assertThat(emailToSend.getParameters().get(1))
+				.isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock.toString("yyyy-MM-dd  HH:mm:ss"));
 		assertThat(emailToSend.getParameters().get(2))
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + folderC30.getTitle());
 		assertThat(emailToSend.getParameters().get(3))
 				.isEqualTo("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/");
 		assertThat(emailToSend.getParameters().get(4))
-				.isEqualTo("recordURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/#!displayFolder/C30");
+				.isEqualTo(
+						"recordURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/#!displayFolder/C30");
 		assertThat(emailToSend.getParameters().get(5))
 				.isEqualTo("recordType" + EmailToSend.PARAMETER_SEPARATOR + "dossier");
 	}
@@ -675,15 +680,35 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEventsThenEventsDataProviderReturnValidEvents() throws Exception {
+	public void givenEventsThenEventsDataProviderReturnValidEvents()
+			throws Exception {
 		getDataLayerFactory().newEventsDao().flush();
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A01))).isEqualTo(2);
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A05))).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A01)))
+				.isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A05)))
+				.isEqualTo(1);
 
 		presenter.forParams(rmRecords.folder_A01);
 		RecordVODataProvider provider = presenter.getEventsDataProvider();
 		List<RecordVO> eventList = provider.listRecordVOs(0, 100);
-		assertThat(eventList).hasSize(2);
+		assertThat(eventList).hasSize(1);
+	}
+
+	@Test
+	public void givenFolderInDecommissioningListThenCannotBorrow()
+			throws Exception {
+
+		presenter.forParams(rmRecords.folder_A48);
+		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48())).isEqualTo(ComponentState.INVISIBLE);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+
+		presenter.forParams(rmRecords.folder_A48);
+		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48())).isEqualTo(ComponentState.ENABLED);
 	}
 
 	//
@@ -781,7 +806,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		displayFolderView.selectFolderContentTab();
-
 
 	}
 }

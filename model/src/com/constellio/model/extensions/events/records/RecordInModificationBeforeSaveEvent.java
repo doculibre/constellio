@@ -2,6 +2,7 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -12,10 +13,16 @@ public class RecordInModificationBeforeSaveEvent implements RecordEvent {
 
 	Record record;
 
+	boolean singleRecordTransaction;
+
+	ValidationErrors validationErrors;
+
 	public RecordInModificationBeforeSaveEvent(Record record,
-			MetadataList modifiedMetadatas) {
+			MetadataList modifiedMetadatas, boolean singleRecordTransaction, ValidationErrors validationErrors) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
+		this.singleRecordTransaction = singleRecordTransaction;
+		this.validationErrors = validationErrors;
 	}
 
 	public Record getRecord() {
@@ -24,6 +31,14 @@ public class RecordInModificationBeforeSaveEvent implements RecordEvent {
 
 	public MetadataList getModifiedMetadatas() {
 		return modifiedMetadatas;
+	}
+
+	public boolean isSingleRecordTransaction() {
+		return singleRecordTransaction;
+	}
+
+	public ValidationErrors getValidationErrors() {
+		return validationErrors;
 	}
 
 	public <T> T getPreviousValue(String metadataLocalCode) {

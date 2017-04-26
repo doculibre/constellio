@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -16,12 +7,20 @@ import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ListContentAccessAuthorizationsPresenterAcceptTest extends ConstellioTest {
 
@@ -43,6 +42,15 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 	ListContentRoleAuthorizationsPresenter rolePresenter;
 
 	RMSchemasRecordsServices rm;
+
+	@Test
+	public void givenDetachRequestedIsClickedThenDetachCorrectlyAndDoNotThrowException() {
+		accessPresenter.forRequestParams(records.folder_A01);
+		rolePresenter.forRequestParams(records.folder_A01);
+
+		accessPresenter.detachRequested();
+		rolePresenter.detachRequested();
+	}
 
 	@Test
 	public void givenFolderWithoutOwnAndInheritedAuthorizationsWhenGetAuthorizationsThenEmpty()
@@ -152,12 +160,12 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 				.usingElementComparatorIgnoringFields("authId", "userRolesTitles");
 	}
 
-	private void add(Authorization authorization) {
+	private void add(AuthorizationAddRequest authorization) {
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, User.GOD);
 	}
 
-	private AuthorizationBuilder givenAuthorizationFor(String principalId) {
-		return new AuthorizationBuilder(zeCollection).forPrincipalsIds(asList(principalId));
+	private AuthorizationAddRequest givenAuthorizationFor(String principalId) {
+		return authorizationInCollection(zeCollection).forPrincipalsIds(asList(principalId));
 	}
 
 	private void givenAliceIsInLegendsGroup() {

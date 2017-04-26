@@ -1,5 +1,8 @@
 package com.constellio.model.services.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,12 +20,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
 
 public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 
@@ -32,7 +37,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 
 	MetadataSchemasManager schemasManager;
 
-	ModificationImpactCalculator impactCalculator;
+	//ModificationImpactCalculator impactCalculator;
 
 	ModificationImpactCalculatorAcceptSetup schemas =
 			new ModificationImpactCalculatorAcceptSetup();
@@ -57,21 +62,21 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		alreadyReindexedMetadata = new ArrayList<>();
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = spy(getModelLayerFactory().newRecordServices());
+	}
 
-		defineSchemasManager().using(schemas.withStringAndDateMetadataUsedForCopyAndCalculationInOtherSchemas());
-
+	private ModificationImpactCalculator newImpactCalculator() {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		List<Taxonomy> taxonomies = getModelLayerFactory().getTaxonomiesManager().getEnabledTaxonomies(zeCollection);
-		impactCalculator = new ModificationImpactCalculator(types, taxonomies, searchServices);
+		return new ModificationImpactCalculator(types, taxonomies, searchServices, recordServices);
 	}
 
 	@Test
 	public void givenUnsavedRecordWhenCalculatingModificationImpactThenNothing()
 			throws Exception {
+		defineSchemasManager().using(schemas.withStringAndDateMetadataUsedForCopyAndCalculationInOtherSchemas());
 		Record newRecord = newRecordWithAStringAndADate();
 
-		List<ModificationImpact> impacts = impactCalculator
-				.findTransactionImpact(new Transaction(newRecord), false);
+		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(newRecord), false);
 
 		assertThat(impacts).isEmpty();
 	}
@@ -79,12 +84,12 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	@Test
 	public void givenSavedWithModificationsInMetadataNotUsedInOtherSchemasWhenCalculatingModificationImpactThenNothing()
 			throws Exception {
+		defineSchemasManager().using(schemas.withStringAndDateMetadataUsedForCopyAndCalculationInOtherSchemas());
 		Record record = newRecordWithAStringAndADate();
 		recordServices.update(record);
 		record.set(zeSchema.booleanMetadata(), true);
 
-		List<ModificationImpact> impacts = impactCalculator
-				.findTransactionImpact(new Transaction(record), false);
+		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(record), false);
 
 		assertThat(impacts).isEmpty();
 	}
@@ -92,6 +97,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	@Test
 	public void givenRecordWithModificationsInMetadatasUsedInOtherSchemasWhenCalculatingModificationImpactHandlingInSameTransactionThenRequireReindexations()
 			throws Exception {
+		defineSchemasManager().using(schemas.withStringAndDateMetadataUsedForCopyAndCalculationInOtherSchemas());
 		Record record = newRecordWithAStringAndADate();
 		Record anotherSchemaRecord = newAnotherSchemaRecordUsing(record);
 		Record thirdSchemaRecord = newThirdSchemaRecordUsing(record);
@@ -100,8 +106,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), aNewString);
 		record.set(zeSchema.dateTimeMetadata(), aNewDate);
 
-		List<ModificationImpact> impacts = impactCalculator
-				.findTransactionImpact(new Transaction(record), false);
+		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(record), false);
 
 		assertThat(impacts).hasSize(2);
 
@@ -122,7 +127,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isNotIn(asList(record.getId()));
 		assertThat(anotherSchemaImpact).isEqualTo(
 				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
-						anotherSchemaCondition, 1));
+						anotherSchemaCondition, 1, null));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record))
@@ -131,13 +136,14 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 
 		assertThat(thirdSchemaImpact).isEqualTo(
 				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
-						thirdSchemaCondition, 1));
+						thirdSchemaCondition, 1, null));
 
 	}
 
 	@Test
 	public void givenRecordWithModificationsInMetadatasUsedInOtherSchemasWhenCalculatingModificationImpactHandlingInFutureTransactionsThenRequireReindexations()
 			throws Exception {
+		defineSchemasManager().using(schemas.withStringAndDateMetadataUsedForCopyAndCalculationInOtherSchemas());
 		Record record = newRecordWithAStringAndADate();
 		Record anotherSchemaRecord = newAnotherSchemaRecordUsing(record);
 		Record thirdSchemaRecord = newThirdSchemaRecordUsing(record);
@@ -146,8 +152,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), aNewString);
 		record.set(zeSchema.dateTimeMetadata(), aNewDate);
 
-		List<ModificationImpact> impacts = impactCalculator
-				.findTransactionImpact(new Transaction(record), true);
+		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(record), true);
 
 		assertThat(impacts).hasSize(2);
 
@@ -167,15 +172,177 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isIn(asList(record));
 		assertThat(anotherSchemaImpact).isEqualTo(
 				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
-						anotherSchemaCondition, 1));
+						anotherSchemaCondition, 1, null));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
 				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
-						thirdSchemaCondition, 1));
+						thirdSchemaCondition, 1, null));
 
+	}
+
+	@Test
+	public void givenLazyTransientCalculatedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withComputedTitleSizeCalculatedInAnotherSchema(TRANSIENT_LAZY));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.referenceFromAnotherSchemaToZeSchema(), "chat"));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitleLengthPlusTwo())).isEqualTo(17.0);
+
+		recordServices.update(record("chat").set(TITLE, "Édouard"));
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitleLengthPlusTwo())).isEqualTo(9.0);
+	}
+
+	@Test
+	public void givenEagerTransientCalculatedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withComputedTitleSizeCalculatedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.referenceFromAnotherSchemaToZeSchema(), "chat"));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitleLengthPlusTwo())).isEqualTo(17.0);
+
+		recordServices.update(record("chat").set(TITLE, "Édouard"));
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitleLengthPlusTwo())).isEqualTo(9.0);
+	}
+
+	@Test
+	public void givenLazyTransientCopiedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(TRANSIENT_LAZY));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.referenceFromAnotherSchemaToZeSchema(), "chat"));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(15.0);
+
+		recordServices.update(record("chat").set(TITLE, "Édouard"));
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(7.0);
+	}
+
+	@Test
+	public void givenEagerTransientCopiedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.referenceFromAnotherSchemaToZeSchema(), "chat"));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(15.0);
+
+		recordServices.update(record("chat").set(TITLE, "Édouard"));
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(7.0);
+	}
+
+	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
+	public void givenLazyTransientReferenceMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(TRANSIENT_LAZY)
+				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(TRANSIENT_LAZY));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(zeSchema, "chat2").set(TITLE, "Édouard"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.metadata("aString"), "chat"));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(15.0);
+
+		recordServices.update(record("record").set(anotherSchemaType.metadata("aString"), "chat2"));
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(7.0);
+	}
+
+	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
+	public void givenEagerTransientReferenceMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER)
+				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(MetadataTransiency.TRANSIENT_EAGER));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(zeSchema, "chat2").set(TITLE, "Édouard"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.metadata("aString"), "chat"));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(15.0);
+
+		recordServices.update(record("record").set(anotherSchemaType.metadata("aString"), "chat2"));
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(7.0);
+	}
+
+	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
+	public void givenLazyTransientMultivalueReferenceMetadataUsedByCalculatedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCalculatedMetadata(TRANSIENT_LAZY));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(zeSchema, "chat2").set(TITLE, "Édouard"));
+		tx.add(new TestRecord(zeSchema, "chat3").set(TITLE, "Tomcat"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.metadata("aString"), asList("chat", "chat2")));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitlesLength())).isEqualTo(asList(15.0, 7.0));
+
+		recordServices.update(record("record").set(anotherSchemaType.metadata("aString"), asList("chat2", "chat3")));
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitlesLength())).isEqualTo(asList(7.0, 6.0));
+	}
+
+	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
+	public void givenEagerTransientMultivalueReferenceMetadataUsedByCalculatedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCalculatedMetadata(TRANSIENT_EAGER));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(zeSchema, "chat2").set(TITLE, "Édouard"));
+		tx.add(new TestRecord(zeSchema, "chat3").set(TITLE, "Tomcat"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.metadata("aString"), asList("chat", "chat2")));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitlesLength())).isEqualTo(asList(15.0, 7.0));
+
+		recordServices.update(record("record").set(anotherSchemaType.metadata("aString"), asList("chat2", "chat3")));
+		assertThat(record("record").get(anotherSchemaType.calculatedZeSchemaTitlesLength())).isEqualTo(asList(7.0, 6.0));
+	}
+
+	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
+	public void givenLazyTransientMultivalueReferenceMetadataUsedByCopiedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCopiedMetadata(TRANSIENT_LAZY));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(zeSchema, "chat2").set(TITLE, "Édouard"));
+		tx.add(new TestRecord(zeSchema, "chat3").set(TITLE, "Tomcat"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.metadata("aString"), asList("chat", "chat2")));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(asList(15.0, 7.0));
+
+		recordServices.update(record("record").set(anotherSchemaType.metadata("aString"), asList("chat2", "chat3")));
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(asList(7.0, 6.0));
+	}
+
+	//TODO Disabled test  since the impact modification do a search on the reference metadata @Test
+	public void givenEagerTransientMultivalueReferenceMetadataUsedByCopiedMetadataThenModificationPropagated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withTransientMultivalueReferenceUsedByCopiedMetadata(TRANSIENT_EAGER));
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
+		tx.add(new TestRecord(zeSchema, "chat2").set(TITLE, "Édouard"));
+		tx.add(new TestRecord(zeSchema, "chat3").set(TITLE, "Tomcat"));
+		tx.add(new TestRecord(anotherSchemaType, "record").set(anotherSchemaType.metadata("aString"), asList("chat", "chat2")));
+		recordServices.execute(tx);
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(asList(15.0, 7.0));
+
+		recordServices.update(record("record").set(anotherSchemaType.metadata("aString"), asList("chat2", "chat3")));
+		assertThat(record("record").get(anotherSchemaType.copiedZeSchemaTitleLength())).isEqualTo(asList(7.0, 6.0));
 	}
 
 	private Record newAnotherSchemaRecordUsing(Record record) {

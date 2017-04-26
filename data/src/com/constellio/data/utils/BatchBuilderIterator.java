@@ -20,7 +20,7 @@ public class BatchBuilderIterator<T> extends LazyIterator<List<T>> {
 	protected List<T> getNextOrNull() {
 		List<T> batch = new ArrayList<>();
 
-		while (nestedIterator.hasNext() && batch.size() < batchSize) {
+		while (batch.size() < batchSize && nestedIterator.hasNext()) {
 			batch.add(nestedIterator.next());
 		}
 
@@ -54,4 +54,6 @@ public class BatchBuilderIterator<T> extends LazyIterator<List<T>> {
 
 		return new BatchBuilderIterator<>(allElements, batchSize);
 	}
+
+
 }

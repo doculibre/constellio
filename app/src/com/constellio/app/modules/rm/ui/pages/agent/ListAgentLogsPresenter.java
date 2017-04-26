@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.entities.AgentLogVO;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -32,7 +33,7 @@ public class ListAgentLogsPresenter extends BasePresenter<ListAgentLogsView> {
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(CorePermissions.VIEW_EVENTS).globally();
+		return user.has(CorePermissions.VIEW_EVENTS).onSomething();
 	}
 	
 	void showLogsButtonClicked() {
@@ -66,6 +67,10 @@ public class ListAgentLogsPresenter extends BasePresenter<ListAgentLogsView> {
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		UserPhotosServices userPhotosServices = modelLayerFactory.newUserPhotosServices();
 		return userPhotosServices.newUserLogInputStream(username, filename, "ListAgentLogsPresenter.getInputStream");
+	}
+
+	public void backButtonClicked() {
+		view.navigate().to(RMViews.class).eventAudit();
 	}
 
 }

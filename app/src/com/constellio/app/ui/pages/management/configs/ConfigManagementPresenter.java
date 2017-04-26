@@ -11,24 +11,55 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class ConfigManagementPresenter extends BasePresenter<ConfigManagementView> {
+	
+	private SystemConfigurationGroupdataProvider dataProvider;
 
 	public ConfigManagementPresenter(ConfigManagementView view) {
 		super(view);
+		this.dataProvider = new SystemConfigurationGroupdataProvider();
+		view.setDataProvider(dataProvider);
 	}
 
-	public void saveButtonClicked(String groupCode, SystemConfigurationGroupdataProvider dataProvider) {
+	void saveButtonClicked() {
+		ValidationErrors errors = new ValidationErrors();
+		
+		List<String> groupCodes = dataProvider.getCodesList();
+		for (String groupCode : groupCodes) {
+			validateGroup(groupCode, errors);
+		}
+
+		if (errors.getValidationErrors().size() != 0) {
+			view.showErrorMessage(buildErrorMessage(errors));
+		} else {
+			boolean reindexingRequired = false;
+			for (String groupCode : groupCodes) {
+				boolean reindexingRequiredForGroup = saveGroup(groupCode);
+				if (reindexingRequiredForGroup) {
+					reindexingRequired = true;
+				}
+			}
+			if (reindexingRequired) {
+				view.showMessage($("ConfigManagementView.reindexationNeeded"));
+				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+			} else {
+				view.showMessage($("ConfigManagementView.saved"));
+			}
+			view.navigate().to().adminModule();
+		}
+		
+	}
+	
+	void validateGroup(String groupCode, ValidationErrors errors) {
 		SystemConfigurationGroupVO systemConfigurationGroup = dataProvider.getSystemConfigurationGroup(groupCode);
 		if (!systemConfigurationGroup.isUpdated()) {
 			return;
 		}
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(groupCode);
-		ValidationErrors errors = new ValidationErrors();
 		for (int i = 0; i < previousConfigs.size(); i++) {
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 			if (systemConfigurationVO.isUpdated()) {
@@ -39,33 +70,30 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 				}
 			}
 		}
-		if (errors.getValidationErrors().size() != 0) {
-			view.showErrorMessage(buildErrorMessage(errors.getValidationErrors()));
-		} else {
-			for (int i = 0; i < previousConfigs.size(); i++) {
-				SystemConfiguration systemConfiguration = previousConfigs.get(i);
-				SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
-				if (systemConfigurationVO.isUpdated()) {
-					systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue());
-					systemConfigurationVO.afterSetValue();
-					systemConfigurationGroup.valueSave(i);
-				}
+	}
+
+	public boolean saveGroup(String groupCode) {
+		boolean reindexingRequired = false;
+		SystemConfigurationGroupVO systemConfigurationGroup = dataProvider.getSystemConfigurationGroup(groupCode);
+		if (!systemConfigurationGroup.isUpdated()) {
+			return false;
+		}
+		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(groupCode);
+		for (int i = 0; i < previousConfigs.size(); i++) {
+			SystemConfiguration systemConfiguration = previousConfigs.get(i);
+			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
+			if (systemConfigurationVO.isUpdated()) {
+				reindexingRequired = reindexingRequired || systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue());
+				systemConfigurationVO.afterSetValue();
+				systemConfigurationGroup.valueSave(i);
 			}
-			view.showMessage($("ConfigManagementView.saved"));
-			view.navigate().to().adminModule();
 		}
+		return reindexingRequired;
 	}
 
-	private String buildErrorMessage(List<ValidationError> validationErrors) {
-		StringBuilder stringBuilder = new StringBuilder();
-		for (ValidationError validationError : validationErrors) {
-			stringBuilder.append(validationError.toString());
-		}
-		return stringBuilder.toString();
-	}
-
-	public SystemConfigurationGroupdataProvider systemConfigurationGroupDataProvider() {
-		return new SystemConfigurationGroupdataProvider();
+	private String buildErrorMessage(ValidationErrors validationErrors) {
+		return $(validationErrors);
 	}
 
 	public String getLabel(String groupCode, String code) {

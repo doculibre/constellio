@@ -10,7 +10,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException;
-import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException.MetadatasRequired;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.criteria.CompositeLogicalSearchValueOperator;
 
@@ -22,14 +21,17 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 
 	final LogicalSearchValueCondition valueCondition;
 
+	private Boolean preferAnalyzedField;
+
 	public DataStoreFieldLogicalSearchCondition(DataStoreFilters filters,
 			List<?> dataStoreFields, LogicalOperator metadataLogicalOperator,
 			LogicalSearchValueCondition valueCondition) {
 		super(filters);
 		if (dataStoreFields == null) {
-			throw new MetadatasRequired();
+			this.dataStoreFields = null;
+		} else {
+			this.dataStoreFields = Collections.unmodifiableList((List<DataStoreField>) dataStoreFields);
 		}
-		this.dataStoreFields = Collections.unmodifiableList((List<DataStoreField>) dataStoreFields);
 		this.metadataLogicalOperator = metadataLogicalOperator;
 		this.valueCondition = valueCondition;
 	}
@@ -129,6 +131,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		if (dataStoreFields == null) {
 			query += " *:*";
 		} else {
+
 			for (int i = 0; i < dataStoreFields.size() - 1; i++) {
 				query += " " + valueCondition.getSolrQuery(getSearchedField(params, dataStoreFields.get(i))) + " "
 						+ metadataLogicalOperator;

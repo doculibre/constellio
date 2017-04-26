@@ -1,5 +1,26 @@
 package com.constellio.model.services.search;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
+import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.StatsParams;
+
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -8,10 +29,10 @@ import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
@@ -28,12 +49,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery.Use
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.*;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 public class SearchServices {
 	RecordDao recordDao;
@@ -95,6 +110,14 @@ public class SearchServices {
 		return recordsBatchIterator(100, query);
 	}
 
+	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition) {
+		return recordsIterator(new LogicalSearchQuery(condition));
+	}
+
+	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition, int batchSize) {
+		return recordsIterator(new LogicalSearchQuery(condition), batchSize);
+	}
+
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query) {
 		return recordsIterator(query, 100);
 	}
@@ -115,6 +138,18 @@ public class SearchServices {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
 		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize) {
+
+			@Override
+			public Record convert(RecordDTO recordDTO) {
+				return recordServices.toRecord(recordDTO, fullyLoaded);
+			}
+		};
+	}
+
+	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize, int skipping) {
+		ModifiableSolrParams params = addSolrModifiableParams(query);
+		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -173,17 +208,21 @@ public class SearchServices {
 
 	public String getLanguage(LogicalSearchQuery query) {
 		if (query.getCondition().isCollectionSearch()) {
-			String collection = query.getCondition().getCollection();
-			String language;
-			try {
-				language = collectionsListManager.getCollectionLanguages(collection).get(0);
-			} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-				language = mainDataLanguage;
-			}
-			return language;
+			return getLanguageCode(query.getCondition().getCollection());
+
 		} else {
 			return mainDataLanguage;
 		}
+	}
+
+	public String getLanguageCode(String collection) {
+		String language;
+		try {
+			language = collectionsListManager.getCollectionLanguages(collection).get(0);
+		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+			language = mainDataLanguage;
+		}
+		return language;
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
@@ -201,7 +240,7 @@ public class SearchServices {
 		params.add(ShardParams.SHARDS_QT, "/spell");
 
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(query.getFieldBoosts());
+			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			params.add(DisMaxParams.MM, "1");
@@ -322,16 +361,32 @@ public class SearchServices {
 		return params;
 	}
 
-	private String getQfFor(List<SearchBoost> boosts) {
+	private String getQfFor(String collection, List<SearchBoost> boosts) {
 		StringBuilder sb = new StringBuilder();
+
+		Set<String> fieldsWithBoosts = new HashSet<>();
+
 		for (SearchBoost boost : boosts) {
 			sb.append(boost.getKey());
 			sb.append("^");
 			sb.append(boost.getValue());
 			sb.append(" ");
+			fieldsWithBoosts.add(boost.getKey());
 		}
-		sb.append("search_txt_");
-		sb.append(mainDataLanguage);
+		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
+			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+			if (!fieldsWithBoosts.contains(analyzedField)) {
+				sb.append(analyzedField + " ");
+			}
+		}
+
+		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+		if (!fieldsWithBoosts.contains(idAnalyzedField)) {
+			sb.append(idAnalyzedField + " ");
+		}
+
+		//		sb.append("search_txt_");
+		//		sb.append(mainDataLanguage);
 		return sb.toString();
 	}
 
@@ -428,7 +483,7 @@ public class SearchServices {
 			filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
 			break;
 		default:
-			throw new ImpossibleRuntimeException("Unknown access: " + userFilter.getAccess());
+			filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
 		}
 
 		params.add(CommonParams.FQ, filter);

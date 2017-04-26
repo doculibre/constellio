@@ -68,8 +68,7 @@ public class PathLookupField extends LookupField<String> {
 			@Override
 			public Resource getItemIcon(Object itemId) {
 				boolean expanded = isExpanded(itemId);
-				RecordIdToCaptionConverter itemsConverter = (RecordIdToCaptionConverter) PathLookupField.this.getItemConverter();
-				return itemsConverter.getIcon((String) itemId, expanded);
+				return getDataProvider().getIcon((String) itemId, expanded);
 			}
 		};
 	}
@@ -96,7 +95,8 @@ public class PathLookupField extends LookupField<String> {
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new PathLookupTreeDataProvider[dataProviders.size()]) : null;
 	}
 
-	public static class PathInputDataProvider implements TextInputDataProvider<String> {
+	public static class PathInputDataProvider extends TextInputDataProvider<String> {
+
 		private transient int lastStartIndex;
 		private transient String lastQuery;
 		private transient SPEQueryResponse response;
@@ -164,6 +164,11 @@ public class PathLookupField extends LookupField<String> {
 			stream.defaultReadObject();
 			modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 			sessionContext = ConstellioUI.getCurrentSessionContext();
+		}
+
+		@Override
+		public ModelLayerFactory getModelLayerFactory() {
+			return modelLayerFactory;
 		}
 	}
 

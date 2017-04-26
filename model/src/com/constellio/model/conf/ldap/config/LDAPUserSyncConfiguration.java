@@ -36,36 +36,33 @@ public class LDAPUserSyncConfiguration {
 
 	public LDAPUserSyncConfiguration(String user, String password,
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution, List<String> scheduleTime,
-            List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList, List<String> userFilterGroupsList, boolean membershipAutomaticDerivationActivated,
-            List<String> selectedCollectionsCodes) {
+			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList, List<String> userFilterGroupsList, boolean membershipAutomaticDerivationActivated,
+			List<String> selectedCollectionsCodes) {
 		this.nonAzureADUserSynchConfig.user = user;
 		this.nonAzureADUserSynchConfig.password = password;
-
+		this.userFilter = userFilter;
+		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
-        this.scheduleTime = scheduleTime;
-
-        this.selectedCollectionsCodes = selectedCollectionsCodes;
-
-        this.nonAzureADUserSynchConfig.groupBaseContextList = groupBaseContextList;
-        this.groupFilter = groupFilter;
-
-        this.nonAzureADUserSynchConfig.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
-        this.userFilter = userFilter;
-
-        this.membershipAutomaticDerivationActivated = membershipAutomaticDerivationActivated;
-        this.nonAzureADUserSynchConfig.userFilterGroupsList = userFilterGroupsList;
-    }
+		this.scheduleTime = scheduleTime;
+		this.nonAzureADUserSynchConfig.groupBaseContextList = groupBaseContextList;
+		this.nonAzureADUserSynchConfig.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
+		this.selectedCollectionsCodes = selectedCollectionsCodes;
+		this.nonAzureADUserSynchConfig.userFilterGroupsList = userFilterGroupsList;
+		this.membershipAutomaticDerivationActivated = membershipAutomaticDerivationActivated;
+	}
 
 	public LDAPUserSyncConfiguration(AzureADUserSynchConfig azurUserSynchConfig,
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
 			List<String> selectedCollectionsCodes) {
 		this.azurUserSynchConfig.applicationKey = azurUserSynchConfig.applicationKey;
 		this.azurUserSynchConfig.setClientId(azurUserSynchConfig.getClientId());
+        this.azurUserSynchConfig.setGroupsFilter(azurUserSynchConfig.getGroupsFilter());
+        this.azurUserSynchConfig.setUsersFilter(azurUserSynchConfig.getUsersFilter());
+        this.azurUserSynchConfig.setUserGroups(azurUserSynchConfig.getUserGroups());
+		this.userFilter = userFilter;
+		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
-
-        this.userFilter = userFilter;
-        this.groupFilter = groupFilter;
 	}
 
 	public String getUser() {
@@ -107,15 +104,15 @@ public class LDAPUserSyncConfiguration {
 		this.durationBetweenExecution = durationBetweenExecution;
 	}
 
-    public List<String> getScheduleTime() {
-        return scheduleTime;
-    }
+	public List<String> getScheduleTime() {
+		return scheduleTime;
+	}
 
-    public void setScheduleTime(List<String> scheduleTime) {
-        this.scheduleTime = scheduleTime;
-    }
+	public void setScheduleTime(List<String> scheduleTime) {
+		this.scheduleTime = scheduleTime;
+	}
 
-    public List<String> getGroupBaseContextList() {
+	public List<String> getGroupBaseContextList() {
 		return nonAzureADUserSynchConfig.groupBaseContextList;
 	}
 
@@ -171,12 +168,23 @@ public class LDAPUserSyncConfiguration {
 		return this.azurUserSynchConfig.getClientId();
 	}
 
-    public List<String> getUserFilterGroupsList() {
-        return nonAzureADUserSynchConfig.userFilterGroupsList;
+    public String getGroupsFilter() {
+        return this.azurUserSynchConfig.getGroupsFilter();
     }
 
-    public boolean isMembershipAutomaticDerivationActivated() {
-        return  membershipAutomaticDerivationActivated;
+    public String getUsersFilter() {
+        return this.azurUserSynchConfig.getUsersFilter();
     }
 
+	public boolean isMembershipAutomaticDerivationActivated() {
+		return  membershipAutomaticDerivationActivated;
+	}
+
+	public List<String> getUserGroups() {
+        return this.azurUserSynchConfig.getUserGroups();
+    }
+
+	public List<String> getUserFilterGroupsList() {
+		return nonAzureADUserSynchConfig.userFilterGroupsList;
+	}
 }

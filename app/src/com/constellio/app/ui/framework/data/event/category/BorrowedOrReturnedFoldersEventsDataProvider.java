@@ -10,6 +10,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -21,7 +22,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 /**
  * Created by Nouha on 2015-01-30.
  */
-public class BorrowedOrReturnedFoldersEventsDataProvider implements EventsCategoryDataProvider {
+public class BorrowedOrReturnedFoldersEventsDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
 
 	transient List<EventStatistics> events;
 

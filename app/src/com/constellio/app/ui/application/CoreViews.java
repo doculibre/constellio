@@ -9,6 +9,7 @@ import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
+import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptPresenter;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresenter;
@@ -34,6 +35,27 @@ public class CoreViews {
 
 	public void home() {
 		navigator.navigateTo(NavigatorConfigurationService.HOME);
+	}
+
+	public void home(String tab) {
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", tab);
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
+	}
+	
+	public void home(String taxonomyCode, String expandedRecordId, String taxonomyMetadata) {
+		Map<String, String> params = new HashMap<>();
+		params.put("tab", CoreNavigationConfiguration.TAXONOMIES);
+		params.put("taxonomyCode", taxonomyCode);
+		if (taxonomyMetadata != null) {
+			params.put("taxonomyMetadata", taxonomyMetadata);
+		}
+		if (expandedRecordId != null) {
+			params.put("expandedRecordId", expandedRecordId);
+		}
+		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
+		navigator.navigateTo("/" + fragment);
 	}
 
 	public void recordsManagement() {
@@ -69,7 +91,7 @@ public class CoreViews {
 	}
 
 	public void editTaxonomy(String taxonomyCode) {
-		Map<String, String> params = new java.util.HashMap<>();
+		Map<String, String> params = new HashMap<>();
 		params.put("taxonomyCode", taxonomyCode);
 		String fragment = ParamUtils.addParams(NavigatorConfigurationService.TAXONOMY_ADD_EDIT, params);
 		navigator.navigateTo(fragment);
@@ -325,6 +347,39 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void manageLabels() {
+		navigator.navigateTo(NavigatorConfigurationService.LABEL_CONFIG);
+	}
+
+	public void viewReport() {
+		navigator.navigateTo(NavigatorConfigurationService.REPORT_VIEW);
+	}
+
+	public void addLabel() {
+		navigator.navigateTo(NavigatorConfigurationService.LABEL_AJOUT);
+	}
+
+	public void editLabel(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.LABEL_AJOUT, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void viewLabel(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.LABEL_VIEW, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void declareUserFolder(String userDocumentId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("userFolderId", userDocumentId);
+		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_FOLDER, params);
+		navigator.navigateTo(viewPath);
+	}
+
 	public void manageCollections() {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_MANAGEMENT);
 	}
@@ -409,8 +464,6 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_BOOST_BY_QUERYS);
 	}
 
-
-
 	public void connectorIndexationReport(String connectorId) {
 		Map<String, String> params = new HashMap<>();
 		if (connectorId != null) {
@@ -479,6 +532,10 @@ public class CoreViews {
 
 	public void systemCheck() {
 		navigator.navigateTo(NavigatorConfigurationService.SYSTEM_CHECK);
+	}
+	
+	public void batchProcesses() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_BATCH_PROCESSES);
 	}
 	
 }

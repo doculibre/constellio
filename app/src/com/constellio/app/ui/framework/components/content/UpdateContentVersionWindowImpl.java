@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.components.content;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -22,12 +15,12 @@ import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UpdateContentVersionWindowImpl extends BaseWindow implements UpdateContentVersionWindow, DropHandler {
 	
@@ -47,8 +40,6 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	
 	private BaseForm<RecordVO> uploadForm;
 	
-	private Label titleLabel;
-	
 	private Label errorLabel;
 	
 	private ContentVersionUploadField uploadField;
@@ -57,10 +48,9 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	
 	private UpdateContentVersionPresenter presenter;
 	
-	public UpdateContentVersionWindowImpl(RecordVO recordVO, MetadataVO metadataVO) {
+	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records) {
 		setModal(true);
 		setWidth("70%");
-		setHeight("450px");
 		setZIndex(null);
 		
 		mainLayout = new VerticalLayout();
@@ -69,8 +59,6 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		
 		String title = $("UpdateContentVersionWindow.newVersionTitle"); 
 		setCaption(title);
-		titleLabel = new Label(title);
-		titleLabel.addStyleName(ValoTheme.LABEL_H1);
 		
 		errorLabel = new Label();
 		errorLabel.addStyleName("error-label");
@@ -103,73 +91,77 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(uploadField, "contentVersion"));
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(majorVersionField, "majorVersion"));
-		
-		uploadForm = new BaseForm<RecordVO>(recordVO, fieldsAndPropertyIds) {
-			@Override
-			protected Item newItem(RecordVO viewObject) {
-				return new Item() {
-					@SuppressWarnings("rawtypes")
-					@Override
-					public Property getItemProperty(Object id) {
-						Property property;
-						if ("contentVersion".equals(id)) {
-							property = contentVersionProperty;
-						} else if ("majorVersion".equals(id)) {
-							property = majorVersionProperty;
-						} else {
-							property = null;
+
+		if (records.keySet().iterator().hasNext()) {
+			uploadForm = new BaseForm<RecordVO>(records.keySet().iterator().next(), fieldsAndPropertyIds) {
+				@Override
+				protected Item newItem(RecordVO viewObject) {
+					return new Item() {
+						@SuppressWarnings("rawtypes")
+						@Override
+						public Property getItemProperty(Object id) {
+							Property property;
+							if ("contentVersion".equals(id)) {
+								property = contentVersionProperty;
+							} else if ("majorVersion".equals(id)) {
+								property = majorVersionProperty;
+							} else {
+								property = null;
+							}
+							return property;
 						}
-						return property;
-					}
 
-					@Override
-					public Collection<?> getItemPropertyIds() {
-						return Arrays.asList("contentVersion", "majorVersion");
-					}
+						@Override
+						public Collection<?> getItemPropertyIds() {
+							return Arrays.asList("contentVersion", "majorVersion");
+						}
 
-					@SuppressWarnings("rawtypes")
-					@Override
-					public boolean addItemProperty(Object id, Property property)
-							throws UnsupportedOperationException {
-						throw new UnsupportedOperationException("Read-only item");
-					}
+						@SuppressWarnings("rawtypes")
+						@Override
+						public boolean addItemProperty(Object id, Property property)
+								throws UnsupportedOperationException {
+							throw new UnsupportedOperationException("Read-only item");
+						}
 
-					@Override
-					public boolean removeItemProperty(Object id)
-							throws UnsupportedOperationException {
-						throw new UnsupportedOperationException("Read-only item");
-					}
-				};
-			}
-
-			@Override
-			protected void saveButtonClick(RecordVO viewObject)
-					throws ValidationException {
-				Boolean bMajorVersion;
-				if (nullValue.equals(majorVersion)) {
-					bMajorVersion = null;
-				} else {
-					bMajorVersion = (Boolean) majorVersion;
+						@Override
+						public boolean removeItemProperty(Object id)
+								throws UnsupportedOperationException {
+							throw new UnsupportedOperationException("Read-only item");
+						}
+					};
 				}
-				newVersionVO = (ContentVersionVO) uploadField.getValue();
-				presenter.contentVersionSaved(newVersionVO, bMajorVersion);
-			}
 
-			@Override
-			protected void cancelButtonClick(RecordVO viewObject) {
-				close();
-			}
-		};
+				@Override
+				protected void saveButtonClick(RecordVO viewObject)
+						throws ValidationException {
+					Boolean bMajorVersion;
+					if (nullValue.equals(majorVersion)) {
+						bMajorVersion = null;
+					} else {
+						bMajorVersion = (Boolean) majorVersion;
+					}
+					newVersionVO = (ContentVersionVO) uploadField.getValue();
+					presenter.contentVersionSaved(newVersionVO, bMajorVersion);
+					close();
+				}
+
+				@Override
+				protected void cancelButtonClick(RecordVO viewObject) {
+					close();
+				}
+			};
+		}
+
 		uploadForm.setSizeFull();
 		
-		mainLayout.addComponents(titleLabel, errorLabel, uploadForm);
+		mainLayout.addComponents(errorLabel, uploadForm);
 
 		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
 		setContent(dragAndDropWrapper);
 		dragAndDropWrapper.setDropHandler(uploadField);
 		
-		presenter = new UpdateContentVersionPresenter(this, recordVO, metadataVO);
+		presenter = new UpdateContentVersionPresenter(this, records);
 	}
 
 	@Override
@@ -230,8 +222,8 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 	private void initMajorVersionFieldOptions() {
 		majorVersionField.removeAllItems();
-		majorVersionField.addItem(true);
 		majorVersionField.addItem(false);
+		majorVersionField.addItem(true);
 	}
 
 	@Override
@@ -254,12 +246,13 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		this.checkingIn = checkingIn;
 		String updatedTitle;
 		if (checkingIn) {
+			setHeight("200px");
 			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
 		} else {
+			setHeight("300px");
 			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle"); 
 		}
 		setCaption(updatedTitle);
-		titleLabel.setValue(updatedTitle);
 		UI.getCurrent().addWindow(this);
 	}
 
@@ -270,5 +263,4 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		}
 		super.close();
 	}
-
 }

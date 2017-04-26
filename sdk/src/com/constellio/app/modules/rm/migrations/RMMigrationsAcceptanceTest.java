@@ -1,38 +1,36 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.sdk.tests.TestUtils.noDuplicates;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
+import static com.constellio.sdk.tests.TestUtils.noDuplicates;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
@@ -57,6 +55,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 						metadataSchemaTypes);
 				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
 				whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(metadataSchemaTypes);
+				whenMigratingToCurrentVersionThenValidateUserFolderWasAdded();
 			}
 		}
 	}
@@ -130,9 +129,9 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		if (testCase.contains("rm") && !testCase.contains("es")) {
 			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
+					AdministrativeUnit.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE, Printable.SCHEMA_TYPE);
 		} else {
-			assertThat(allSchemaTypesWithSecurity()).doesNotContain(Category.SCHEMA_TYPE);
+			assertThat(allSchemaTypesWithSecurity()).doesNotContain(ContainerRecord.SCHEMA_TYPE, Category.SCHEMA_TYPE);
 		}
 
 		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French))
@@ -144,6 +143,9 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchema retentionRuleSchema = metadataSchemaTypes.getSchema(RetentionRule.DEFAULT_SCHEMA);
 
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
+
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
+				.getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
 
 	}
 
@@ -192,6 +194,10 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_CREATED_ON,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_BY,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_ON,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_DATES,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.REACTIVATION_USERS,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_TRANSFER_DATES,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.PREVIOUS_DEPOSIT_DATES,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS);
 
 		//		SchemaDisplayConfig categoryDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
@@ -311,5 +317,23 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		} else {
 			return new SDKFoldersLocator().getInitialStatesFolder();
 		}
+	}
+
+	private void whenMigratingToCurrentVersionThenValidateUserFolderWasAdded() {
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		MetadataSchema defaultSchema = types.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
+		MetadataSchema userDocumentSchema = types.getSchemaType(UserDocument.SCHEMA_TYPE).getDefaultSchema();
+		assertThat(defaultSchema).isNotNull();
+		assertThat(defaultSchema.getMetadatas()).contains(
+				defaultSchema.getMetadata(UserFolder.USER),
+				defaultSchema.getMetadata(UserFolder.FORM_CREATED_ON),
+				defaultSchema.getMetadata(UserFolder.FORM_MODIFIED_ON),
+				defaultSchema.getMetadata(UserFolder.PARENT_USER_FOLDER),
+				defaultSchema.getMetadata(RMUserFolder.ADMINISTRATIVE_UNIT),
+				defaultSchema.getMetadata(RMUserFolder.CATEGORY),
+				defaultSchema.getMetadata(RMUserFolder.RETENTION_RULE));
+		assertThat(userDocumentSchema.getMetadatas()).contains(userDocumentSchema.getMetadata(UserDocument.USER_FOLDER));
+		assertThat(userDocumentSchema.getMetadatas()).contains(userDocumentSchema.getMetadata(UserDocument.FORM_CREATED_ON));
+		assertThat(userDocumentSchema.getMetadatas()).contains(userDocumentSchema.getMetadata(UserDocument.FORM_MODIFIED_ON));
 	}
 }

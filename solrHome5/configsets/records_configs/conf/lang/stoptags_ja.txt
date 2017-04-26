@@ -89,7 +89,7 @@
 #
 #  noun-affix-misc: Of adnominalizers, the case-marker の ("no"), and words that 
 #  attach to the base form of inflectional words, words that cannot be classified 
-#  into any of the other categories below. This category includes indefinite nouns.
+#  into any of the other childrenNodes below. This category includes indefinite nouns.
 #  e.g. あかつき, 暁, かい, 甲斐, 気, きらい, 嫌い, くせ, 癖, こと, 事, ごと, 毎, しだい, 次第, 
 #       順, せい, 所為, ついで, 序で, つもり, 積もり, 点, どころ, の, はず, 筈, はずみ, 弾み, 
 #       拍子, ふう, ふり, 振り, ほう, 方, 旨, もの, 物, 者, ゆえ, 故, ゆえん, 所以, わけ, 訳,
@@ -128,7 +128,7 @@
 #
 #  noun-suffix-misc: Of the nouns or stem forms of other parts of speech that connect 
 #  to ガル or タイ and can combine into compound nouns, words that cannot be classified into
-#  any of the other categories below. In general, this category is more inclusive than 
+#  any of the other childrenNodes below. In general, this category is more inclusive than
 #  接尾語 ("suffix") and is usually the last element in a compound noun.
 #  e.g. おき, かた, 方, 甲斐 (がい), がかり, ぎみ, 気味, ぐるみ, (～した) さ, 次第, 済 (ず) み,
 #       よう, (でき)っこ, 感, 観, 性, 学, 類, 面, 用
@@ -365,7 +365,7 @@
 #  symbol: unclassified Symbols.
 記号
 #
-#  symbol-misc: A general symbol not in one of the categories below.
+#  symbol-misc: A general symbol not in one of the childrenNodes below.
 #  e.g. [○◎@$〒→+]
 記号-一般
 #

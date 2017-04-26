@@ -26,7 +26,7 @@ public class DecomListFolderDetailTest extends ConstellioTest {
 		assertThat(detail.isDirty()).isTrue();
 
 		detail = new DecomListFolderDetail();
-		detail.setFolderIncluded(false);
+		detail.setFolderExcluded(true);
 		assertThat(detail.isDirty()).isTrue();
 
 		detail = new DecomListFolderDetail();
@@ -47,7 +47,7 @@ public class DecomListFolderDetailTest extends ConstellioTest {
 			throws Exception {
 		detail = new DecomListFolderDetail()
 				.setFolderId("01")
-				.setFolderIncluded(false)
+				.setFolderExcluded(true)
 				.setContainerRecordId("containerRecordId")
 				.setReversedSort(true)
 				.setFolderLinearSize(123.4d);

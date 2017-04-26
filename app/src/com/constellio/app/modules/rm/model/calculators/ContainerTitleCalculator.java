@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -11,15 +7,26 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
 public class ContainerTitleCalculator implements MetadataValueCalculator<String> {
 
-	LocalDependency<String> identifierParam = LocalDependency.toAString(ContainerRecord.IDENTIFIER);
-	LocalDependency<String> temporaryIdentifierParam = LocalDependency.toAString(ContainerRecord.TEMPORARY_IDENTIFIER);
+	public LocalDependency<String> identifierParam = LocalDependency.toAString(ContainerRecord.IDENTIFIER);
+	public LocalDependency<String> temporaryIdentifierParam = LocalDependency.toAString(ContainerRecord.TEMPORARY_IDENTIFIER);
 
 	@Override
 	public String calculate(CalculatorParameters parameters) {
 
 		String identifier = parameters.get(identifierParam);
+//		if(identifier != null) {
+//			StringBuilder sb = new StringBuilder(identifier);
+//			while (sb.length() < 5) {
+//				sb.insert(0,'0');
+//			}
+//			identifier = sb.toString();
+//		}
 		String temporaryIdentifier = parameters.get(temporaryIdentifierParam);
 
 		return identifier != null ? identifier : temporaryIdentifier;

@@ -61,7 +61,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private Map<String, String[]> overridedQueryParams = new HashMap<>();
 
 	public LogicalSearchQuery() {
-		numberOfRows = 10000000;
+		numberOfRows = 100000;
 		startRow = 0;
 		fieldFacetLimit = 0;
 	}
@@ -137,14 +137,14 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery filteredWithUser(User user, String access) {
+	public LogicalSearchQuery filteredWithUser(User user, String accessOrPermission) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
 		}
-		if (access == null) {
-			throw new IllegalArgumentException("access required");
+		if (accessOrPermission == null) {
+			throw new IllegalArgumentException("access/permission required");
 		}
-		userFilter = new UserFilter(user, access);
+		userFilter = new UserFilter(user, accessOrPermission);
 		return this;
 	}
 
@@ -337,7 +337,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		List<String> filterQueries = new ArrayList<>();
 
 		if (condition.getFilters() != null) {
-			for (String filterQuery : condition.getFilters().getFilterQueries()) {
+			for (String filterQuery : condition.getFilters().getFilterQueries(userFilter != null)) {
 				filterQueries.add(filterQuery);
 			}
 		}

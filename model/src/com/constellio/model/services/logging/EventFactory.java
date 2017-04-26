@@ -1,13 +1,5 @@
 package com.constellio.model.services.logging;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
@@ -20,13 +12,20 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class EventFactory {
 
@@ -145,6 +144,15 @@ public class EventFactory {
 		return event;
 	}
 
+	public String getBorrowDurationDelta(LocalDateTime oldValue, LocalDateTime newValue) {
+		StringBuilder delta = new StringBuilder();
+		if (!oldValue.toString().equals(newValue.toString())) {
+			delta.append("\tAvant : " + limitContentLength(oldValue.toString()) + "\n");
+			delta.append("\tAprès : " + limitContentLength(newValue.toString()));
+		}
+		return delta.toString();
+	}
+
 	private void setDeltaMetadata(Event event, Record record) {
 		//FIXME
 		StringBuilder delta = new StringBuilder();
@@ -201,42 +209,37 @@ public class EventFactory {
 		return false;
 	}
 
-	public List<Record> eventPermission(Authorization authorization, Authorization authorizationBefore, User user,
-			String eventPermissionType) {
+	public Event eventPermission(Authorization authorization, Authorization authorizationBefore, User user,
+			String recordId, String eventPermissionType) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
-		List<Record> returnRecords = new ArrayList<>();
-		List<String> recordsIds = authorization.getGrantedOnRecords();
+
+		if (recordId == null) {
+			recordId = authorization.getGrantedOnRecord();
+		}
 		String deltaString = compareAuthorizations(authorizationBefore, authorization);
 
 		SchemaUtils schemaUtils = new SchemaUtils();
 		String authorizationRolesString = StringUtils.join(authorization.getDetail().getRoles(), "; ");
 		String authorizationPrincipalsString = getAuthorizationPrincipals(authorization);
 		String dateRangeString = getAuthorizationDateRange(authorization);
-		for (String recordId : recordsIds) {
-			Event event = schemasRecords.newEvent();
-			setDefaultMetadata(event, user);
-			event.setPermissionUsers(authorizationPrincipalsString);
-			event.setPermissionDateRange(dateRangeString);
-			event.setPermissionRoles(authorizationRolesString);
-			event.setDelta(deltaString);
-			Record currentRecord = recordServices.getDocumentById(recordId);
-			String recordSchema = currentRecord.getSchemaCode();
+		Event event = schemasRecords.newEvent();
+		setDefaultMetadata(event, user);
+		event.setPermissionUsers(authorizationPrincipalsString);
+		event.setPermissionDateRange(dateRangeString);
+		event.setPermissionRoles(authorizationRolesString);
+		event.setDelta(deltaString);
+		Record currentRecord = recordServices.getDocumentById(recordId);
+		String recordSchema = currentRecord.getSchemaCode();
 
-			String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
-			setRecordMetadata(event, currentRecord);
-			event.setType(eventPermissionType + "_" + recordSchemaType);
-			returnRecords.add(event.getWrappedRecord());
-		}
-		return returnRecords;
+		String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
+		setRecordMetadata(event, currentRecord);
+		event.setType(eventPermissionType + "_" + recordSchemaType);
+		return event;
 	}
 
 	private String compareAuthorizations(Authorization authorizationBefore, Authorization authorization) {
 		StringBuilder deltaStringBuilder = new StringBuilder("");
 		if (authorizationBefore != null) {
-			String recordsDelta = getAuthorizationsRecordsDelta(authorizationBefore, authorization);
-			if (StringUtils.isNotBlank(recordsDelta)) {
-				deltaStringBuilder.append(recordsDelta);
-			}
 			String principalsDelta = getAuthorizationsPrincipalsDelta(authorizationBefore, authorization);
 			if (StringUtils.isNotBlank(principalsDelta)) {
 				deltaStringBuilder.append("\n" + principalsDelta);
@@ -284,21 +287,6 @@ public class EventFactory {
 		principalsDelta.append(StringUtils.join(addPrincipals, "; "));
 		principalsDelta.append("]\n");
 		return principalsDelta.toString();
-	}
-
-	private String getAuthorizationsRecordsDelta(Authorization authorizationBefore, Authorization authorization) {
-		ListComparisonResults<String> recordsComparisonResults = new LangUtils()
-				.compare(authorizationBefore.getGrantedOnRecords(), authorization.getGrantedOnRecords());
-		if (recordsComparisonResults.getRemovedItems().size() == 0 && recordsComparisonResults.getNewItems().size() == 0) {
-			return "";
-		}
-		//FIXME
-		StringBuilder recordsDelta = new StringBuilder(("Enregistrements :\n -["));
-		recordsDelta.append(StringUtils.join(recordsComparisonResults.getRemovedItems(), "; "));
-		recordsDelta.append("]\n+[");
-		recordsDelta.append(StringUtils.join(recordsComparisonResults.getNewItems(), "; "));
-		recordsDelta.append("]\n");
-		return recordsDelta.toString();
 	}
 
 	private String getAuthorizationDateRange(Authorization authorization) {

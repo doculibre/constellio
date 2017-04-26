@@ -1,18 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -36,12 +27,17 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
 	private transient RMSchemasRecordsServices rmRecordServices;
@@ -153,9 +149,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return containerId;
 	}
 
-	public List<LabelTemplate> getTemplates() {
-		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
+	public List<LabelTemplate> getCustomTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(ContainerRecord.SCHEMA_TYPE);
+	}
 
+	public List<LabelTemplate> getDefaultTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 	}
 
 	public Double getFillRatio(RecordVO container)
@@ -170,35 +169,17 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		if (capacity == null || capacity == 0.0) {
 			throw new ContainerWithoutCapacityException();
 		}
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Metadata containerMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
-		LogicalSearchCondition condition = from(schemas.folder.schemaType()).where(containerMetadata)
-				.isEqualTo(container.getId());
-		DataStoreField linearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata);
-		SPEQueryResponse result = modelLayerFactory.newSearchServices().query(query);
-		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata);
-		if (linearSizeStats == null) {
-			if (result.getNumFound() > 0) {
-				//no folder with linearSize
-				throw new RecordInContainerWithoutLinearMeasure();
-			} else {
-				//No folder in container
-				return 0d;
-			}
 
-		}
-		if (includesMissing(linearSizeStats)) {
-			throw new RecordInContainerWithoutLinearMeasure();
-		}
-		Double sum = getSum(linearSizeStats);
-		return sum * 100 / capacity;
+		MetadataVO linearSizeMetadata = container.getMetadata(ContainerRecord.LINEAR_SIZE);
+		Double linearSize = container.get(linearSizeMetadata) == null ? 0.0:(Double) container.get(linearSizeMetadata);
+
+		return (Double) Math.rint(100.0*linearSize/capacity);
 	}
 
 	private LogicalSearchQuery getFoldersQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
 				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
-		return new LogicalSearchQuery(condition);
+		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser());
 	}
 
 	private boolean isContainerRecyclingAllowed() {
@@ -236,5 +217,20 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
 		return getRmReportBuilderFactories().labelsBuilderFactory.getValue();
+	}
+
+	public void saveIfFirstTimeReportCreated() {
+		ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+		ContainerRecordReportParameters reportParameters = getReportParameters(null);
+		if(reportParameters.isTransfer()) {
+			containerRecord.setFirstTransferReportDate(LocalDate.now());
+		} else {
+			containerRecord.setFirstDepositReportDate(LocalDate.now());
+		}
+		try {
+			recordServices().update(containerRecord);
+		} catch (RecordServicesException e) {
+			view.showErrorMessage("Could not update report creation time");
+		}
 	}
 }

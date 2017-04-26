@@ -15,10 +15,11 @@ import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 
 @InternetTest
-public class LDAPServicesAcceptanceTest {
+public class LDAPServicesAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenValidLdapConnexionInfoThenConnectToServer() {

@@ -1,17 +1,16 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
+import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -29,7 +28,9 @@ public class RMConfigs {
 			DECOMMISSIONING_DATE_BASED_ON,
 			CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE,
 			CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE,
-			YEAR_END_DATE, REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR,
+			YEAR_END_DATE,
+			REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR,
+			ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR,
 			CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD,
 			CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD,
 			COPY_RULE_TYPE_ALWAYS_MODIFIABLE,
@@ -53,8 +54,15 @@ public class RMConfigs {
 			WORKFLOWS_ENABLED,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
-			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART;
-	;
+			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
+			DEFAULT_TAB_IN_FOLDER_DISPLAY,
+			UNIFORM_SUBDIVISION_ENABLED,
+			STORAGE_SPACE_TITLE_CALCULATOR_ENABLED,
+			COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS,
+			POPULATE_BORDEREAUX_WITH_COLLECTION,
+			POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT,
+			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
+			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -65,7 +73,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -76,14 +84,15 @@ public class RMConfigs {
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
 		// Allow to enter retention rules for documents
-		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules"));
+		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
+				.withReIndexionRequired());
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
 				.createBooleanTrueByDefault("enforceCategoryAndRuleRelationshipInFolder"));
 
 		// Is the closing date calculated or manual?
-		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate"));
+		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate").withReIndexionRequired());
 
 		// Years before closing for a fixed delay (if -1, then the same as the active delay)
 		add(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE = decommissioning
@@ -103,12 +112,12 @@ public class RMConfigs {
 		// Years before final disposition for a semi-active open delay (if -1, then not automatically calculated)
 		add(CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD = decommissioning
 				.createInteger("calculatedInactiveDateNumberOfYearWhenOpenRule")
-				.withDefaultValue(1));
+				.withDefaultValue(1).withReIndexionRequired());
 
 		// Delays are computed from the opening date (if true), or the closing date (if false)
 		add(DECOMMISSIONING_DATE_BASED_ON = decommissioning
 				.createEnum("decommissioningDateBasedOn", DecommissioningDateBasedOn.class)
-				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE));
+				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexionRequired());
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
 		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31"));
@@ -117,6 +126,9 @@ public class RMConfigs {
 		add(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR = decommissioning
 				.createInteger("closeDateRequiredDaysBeforeYearEnd")
 				.withDefaultValue(90));
+
+		add(ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR = decommissioning
+				.createBooleanTrueByDefault("addYearIfCalculationDateIsEndOfYear"));
 
 		// Delete (if true) or keep (if false) folder records upon destruction via decommissioning
 		add(DELETE_FOLDER_RECORDS_WITH_DESTRUCTION = decommissioning
@@ -175,6 +187,8 @@ public class RMConfigs {
 
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
+		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
+		
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -201,6 +215,8 @@ public class RMConfigs {
 
 		add(AGENT_READ_ONLY_WARNING = agent.createBooleanTrueByDefault("readOnlyWarning"));
 
+		add(AGENT_DISABLED_UNTIL_FIRST_CONNECTION = agent.createBooleanFalseByDefault("agentDisabledUntilFirstConnection"));
+
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
@@ -220,6 +236,26 @@ public class RMConfigs {
 
 		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
 				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
+
+		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = others
+				.createBooleanFalseByDefault("enableStorageSpaceTitleCalculator")
+				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
+
+		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
+				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
+
+		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
+
+		add(POPULATE_BORDEREAUX_WITH_COLLECTION = decommissioning.createBooleanTrueByDefault("populateBordereauxWithCollection"));
+
+		add(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT = decommissioning.createBooleanTrueByDefault("populateBordereauxWithAdministrativeUnit"));
+
+		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
+
+		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
+				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
+						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
+						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -376,6 +412,10 @@ public class RMConfigs {
 		return manager.getValue(AGENT_READ_ONLY_WARNING);
 	}
 
+	public boolean isAgentDisabledUntilFirstConnection() {
+		return manager.getValue(AGENT_DISABLED_UNTIL_FIRST_CONNECTION);
+	}
+
 	public int getBorrowingDurationDays() {
 		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	}
@@ -388,6 +428,10 @@ public class RMConfigs {
 		return manager.getValue(WORKFLOWS_ENABLED);
 	}
 
+	public boolean areUniformSubdivisionEnabled() {
+		return manager.getValue(UNIFORM_SUBDIVISION_ENABLED);
+	}
+
 	public DocumentsTypeChoice getDocumentsTypesChoice() {
 		return manager.getValue(DOCUMENTS_TYPES_CHOICE);
 	}
@@ -395,4 +439,33 @@ public class RMConfigs {
 	public boolean isCalculateOpenDateBasedOnFirstTimerangePart() {
 		return manager.getValue(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART);
 	}
+
+	public boolean isPopulateBordereauxWithAdministrativeUnit() {
+		return manager.getValue(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT);
+	}
+
+	public boolean isPopulateBordereauxWithCollection() {
+		return manager.getValue(POPULATE_BORDEREAUX_WITH_COLLECTION);
+	}
+
+	public boolean isPopulateBordereauxWithLesserDispositionDate() {
+		return manager.getValue(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE);
+	}
+
+	public String getDefaultTabInFolderDisplay() {
+		return manager.getValue(DEFAULT_TAB_IN_FOLDER_DISPLAY);
+	}
+
+	public boolean areDocumentCheckedOutAfterCreation() {
+		return manager.getValue(CHECK_OUT_DOCUMENT_AFTER_CREATION);
+	}
+
+	public CompleteDatesWhenAddingFolderWithManualStatusChoice getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() {
+		return manager.getValue(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS);
+	}
+
+	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
+		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
+	}
+	
 }

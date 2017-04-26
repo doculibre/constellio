@@ -10,6 +10,8 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.RoleValidator;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException.RolesManagerRuntimeException_Validation;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
@@ -22,10 +24,12 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	private OneXMLConfigPerCollectionManager<List<Role>> oneXMLConfigPerCollectionManager;
 	private ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;
+	private ModelLayerFactory modelLayerFactory;
 
-	public RolesManager(ConfigManager configManager, CollectionsListManager collectionsListManager) {
-		this.configManager = configManager;
-		this.collectionsListManager = collectionsListManager;
+	public RolesManager(ModelLayerFactory modelLayerFactory) {
+		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
+		this.modelLayerFactory = modelLayerFactory;
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 	}
 
 	@Override
@@ -91,7 +95,7 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	}
 
 	public Roles getCollectionRoles(String collection) {
-		return new Roles(getAllRoles(collection));
+		return new Roles(getAllRoles(collection), new SchemasRecordsServices(collection, modelLayerFactory));
 	}
 
 	public Role getRole(String collection, String code)

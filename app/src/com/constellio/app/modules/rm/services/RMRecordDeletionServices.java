@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.services;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -46,6 +45,7 @@ public class RMRecordDeletionServices {
         cleanTaskInAdministrativeUnitRecursively(collection, administrativeUnit, appLayerFactory);
         cleanFoldersInAdministrativeUnitRecursively(collection, administrativeUnit, appLayerFactory);
         cleanContainersInAdministrativeUnitRecursively(collection, administrativeUnit, appLayerFactory);
+        cleanDecommissioningListInAdministrativeUnit(collection, administrativeUnit, appLayerFactory);
     }
 
     static public void cleanAdministrativeUnit(String collection, String administrativeUnitID,
@@ -149,6 +149,31 @@ public class RMRecordDeletionServices {
                     recordServices.physicallyDeleteNoMatterTheStatus(userTask, User.GOD, new RecordPhysicalDeleteOptions());
                 } catch (Exception e) {
                     LOGGER.info("Could not delete task " + userTask.getId());
+                }
+            }
+        }
+    }
+
+    static private void cleanDecommissioningListInAdministrativeUnit(String collection,
+                                                                 AdministrativeUnit administrativeUnit,
+                                                                 AppLayerFactory appLayerFactory) {
+
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+        SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+        RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+        LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(rm.decommissioningList.schemaType())
+                .where(rm.decommissioningList.administrativeUnit()).isEqualTo(administrativeUnit.getId()));
+
+        SearchResponseIterator<Record> decommissioningListIterator = searchServices.recordsIterator(query);
+        Set<String> recordIDs = new HashSet<>();
+
+        while(decommissioningListIterator.hasNext()) {
+            Record decommissioningList = decommissioningListIterator.next();
+            if(recordIDs.add(decommissioningList.getId())) {
+                try {
+                    recordServices.physicallyDeleteNoMatterTheStatus(decommissioningList, User.GOD, new RecordPhysicalDeleteOptions());
+                } catch (Exception e) {
+                    LOGGER.info("Could not delete decommissioningList " + decommissioningList.getId());
                 }
             }
         }

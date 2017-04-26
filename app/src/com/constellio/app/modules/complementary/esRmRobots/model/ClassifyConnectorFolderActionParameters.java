@@ -20,6 +20,8 @@ public interface ClassifyConnectorFolderActionParameters {
 
 	String getDefaultAdminUnit();
 
+	String getDefaultUniformSubdivision();
+
 	String getDefaultParentFolder();
 
 	String getDefaultCategory();

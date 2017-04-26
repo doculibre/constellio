@@ -28,8 +28,6 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEven
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -181,16 +179,20 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordModifiedArgs.getAllValues().get(0).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
 		assertThat(recordModifiedArgs.getAllValues().get(0).getModifiedMetadatas().toMetadatasCodesList())
-				.containsOnly("anotherSchemaType_default_title", "anotherSchemaType_default_modifiedOn");
+				.containsOnly("anotherSchemaType_default_title", "anotherSchemaType_default_autocomplete",
+						"anotherSchemaType_default_modifiedOn");
 		assertThat(recordModifiedArgs.getAllValues().get(1).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
 		assertThat(recordModifiedArgs.getAllValues().get(1).getModifiedMetadatas().toMetadatasCodesList())
-				.containsOnly("anotherSchemaType_default_title", "anotherSchemaType_default_modifiedOn");
+				.containsOnly("anotherSchemaType_default_title", "anotherSchemaType_default_autocomplete",
+						"anotherSchemaType_default_modifiedOn");
 		assertThat(recordModifiedArgs.getAllValues().get(2).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
 		assertThat(recordModifiedArgs.getAllValues().get(2).getModifiedMetadatas().toMetadatasCodesList())
-				.containsOnly("zeSchemaType_default_title", "zeSchemaType_default_modifiedOn");
+				.containsOnly("zeSchemaType_default_title", "zeSchemaType_default_autocomplete",
+						"zeSchemaType_default_modifiedOn");
 		assertThat(recordModifiedArgs.getAllValues().get(3).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
 		assertThat(recordModifiedArgs.getAllValues().get(3).getModifiedMetadatas().toMetadatasCodesList())
-				.containsOnly("zeSchemaType_default_title", "zeSchemaType_default_modifiedOn");
+				.containsOnly("zeSchemaType_default_title", "zeSchemaType_default_autocomplete",
+						"zeSchemaType_default_modifiedOn");
 	}
 
 	@Test
@@ -216,7 +218,7 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 	public void whenLogicallyDeletingARecordThenListenersCalled()
 			throws Exception {
 
-//		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
+		//		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
 		//		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		ArgumentCaptor<RecordLogicalDeletionEvent> argumentCaptor = ArgumentCaptor.forClass(RecordLogicalDeletionEvent.class);

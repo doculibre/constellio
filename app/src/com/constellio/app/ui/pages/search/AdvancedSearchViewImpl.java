@@ -45,11 +45,12 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView, BatchProcessingView {
+	
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
 	private final ConstellioHeader header;
-	private WindowButton batchProcess;
+	private WindowButton batchProcessingButton;
 
 	public AdvancedSearchViewImpl() {
 		presenter = new AdvancedSearchPresenter(this);
@@ -67,6 +68,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		header.setAdvancedSearchCriteria(criteria);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void downloadBatchProcessingResults(final InputStream stream) {
 		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
@@ -80,7 +82,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	public void closeBatchProcessingWindow() {
-		batchProcess.getWindow().close();
+		batchProcessingButton.getWindow().close();
 	}
 
 	@Override
@@ -110,25 +112,39 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		String schemaType = getSchemaType();
 		List<Component> selectionActions = new ArrayList<>();
 
-		batchProcess = newBatchProcessingButton();
-		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
-		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		selectionActions.add(batchProcess);
+		batchProcessingButton = newBatchProcessingButton();
+		batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
+		batchProcessingButton.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
+		selectionActions.add(batchProcessingButton);
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 				@Override
 				public List<LabelTemplate> get() {
-					return presenter.getTemplates();
+					return presenter.getCustomTemplates();
 				}
 			};
-			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
+			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getDefaultTemplates();
+				}
+			};
+			final LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
 					$("SearchView.printLabels"),
-					this,
-					labelTemplatesFactory,
-					presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
+					customLabelTemplatesFactory,
+					defaultLabelTemplatesFactory,
+					getConstellioFactories().getAppLayerFactory(),
+					getSessionContext().getCurrentCollection(),
+					schemaType, getSelectedRecordIds(), getSessionContext().getCurrentUser().getUsername());
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
+			labelsButton.addClickListener(new Button.ClickListener() {
+				@Override
+				public void buttonClick(Button.ClickEvent event) {
+					labelsButton.setIds(getSelectedRecordIds());
+				}
+			});
 			selectionActions.add(labelsButton);
 		}
 
@@ -141,7 +157,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
 				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			if(presenter.hasCurrentUserPermissionToUseCart()) {
+			if (presenter.hasCurrentUserPermissionToUseCart()) {
 				Button addToCart = buildAddToCartButton();
 				selectionActions.add(addToCart);
 			}
@@ -153,7 +169,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 //		List<Component> actions = Arrays.asList(
 //				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter),switchViewMode);
+				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter),switchViewMode);
 
 		return results.createSummary(actions, selectionActions);
 	}
@@ -187,7 +203,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	protected SearchResultTable buildResultTable() {
-		// TODO Table should take all space, since facets and sort are hidden.
 		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
 			return buildSimpleResultsTable();
 		} else {
@@ -196,9 +211,8 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	private SearchResultTable buildSimpleResultsTable() {
-		int maxSelectableResults = presenter.getMaxSelectableResults();
 		final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-		SearchResultSimpleTable table = new SearchResultSimpleTable(container, maxSelectableResults);
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
 		table.setWidth("100%");
 		return table;
 	}
@@ -261,11 +275,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	private WindowButton newBatchProcessingButton() {
 		BatchProcessingMode mode = presenter.getBatchProcessingMode();
-		if(mode.equals(ALL_METADATA_OF_SCHEMA)){
+		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
 			return new BatchProcessingButton(presenter, this);
-		}else if (mode.equals(ONE_METADATA)){
+		} else if (mode.equals(ONE_METADATA)) {
 			return new BatchProcessingModifyingOneMetadataButton(presenter, this);
-		}else{
+		} else {
 			throw new RuntimeException("Unsupported mode " + mode);
 		}
 	}
@@ -273,6 +287,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	@Override
 	public Boolean computeStatistics() {
 		return presenter.computeStatistics();
+	}
+
+	@Override
+	protected String getTitle() {
+		return $("searchResults");
 	}
 
 }

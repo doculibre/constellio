@@ -1,15 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.Arrays;
-import java.util.List;
-
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -24,6 +21,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresenter<DocumentDecommissioningListView> {
 	private transient RMSchemasRecordsServices rmRecordsServices;
@@ -56,6 +58,14 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	public boolean isProcessed() {
 		return decommissioningList().isProcessed();
+	}
+
+	public boolean isApproved() {
+		return decommissioningList().isApproved();
+	}
+
+	public boolean isInValidation() {
+		return decommissioningList().getStatus() == DecomListStatus.IN_VALIDATION;
 	}
 
 	public boolean isEditable() {
@@ -143,7 +153,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 		return rmRecordsServices;
 	}
 
-	private DecommissioningList decommissioningList() {
+	public DecommissioningList decommissioningList() {
 		if (decommissioningList == null) {
 			decommissioningList = rmRecordsServices().getDecommissioningList(recordId);
 		}
@@ -152,5 +162,59 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	private DecommissioningSecurityService securityService() {
 		return new DecommissioningSecurityService(collection, appLayerFactory);
+	}
+
+	public void refreshView() {
+		view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
+	}
+
+	public void addDocumentsButtonClicked() {
+		if(calculateSearchType() != null) {
+			view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, calculateSearchType().toString());
+		}
+	}
+
+	public SearchType calculateSearchType() {
+		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.activeToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.activeToDestroy;
+				case FOLDERS_TO_TRANSFER:
+					return SearchType.transfer;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentActiveToDestroy;
+				case DOCUMENTS_TO_TRANSFER:
+					return SearchType.documentTransfer;
+			}
+		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+			switch (decommissioningList().getDecommissioningListType()) {
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.semiActiveToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.semiActiveToDestroy;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentSemiActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentSemiActiveToDestroy;
+			}
+		}
+		return null;
+	}
+
+	public void removeDocumentsButtonClicked(HashMap<Integer, Boolean> selected) {
+		Set<String> idsToRemove = new HashSet<>();
+		for(Map.Entry<Integer, Boolean> entry: selected.entrySet()) {
+			if(Boolean.TRUE.equals(entry.getValue())) {
+				RecordVO recordVO = getDocuments().getRecordVO(entry.getKey());
+				idsToRemove.add(recordVO.getId());
+			}
+		}
+		decommissioningList().removeDocuments(idsToRemove.toArray(new String[idsToRemove.size()]));
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		refreshView();
 	}
 }

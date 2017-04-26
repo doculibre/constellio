@@ -231,6 +231,9 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		button.setVisible(state.isVisible());
 		button.setEnabled(state.isEnabled());
 		button.addStyleName(item.getCode());
+		if (item.getFontAwesome() != null) {
+			button.setIcon(item.getFontAwesome());
+		}
 		button.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {

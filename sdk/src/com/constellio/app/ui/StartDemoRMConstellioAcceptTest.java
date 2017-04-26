@@ -1,39 +1,15 @@
 package com.constellio.app.ui;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.extensions.AppLayerExtensions;
-import com.constellio.app.extensions.AppLayerSystemExtensions;
-import com.constellio.app.extensions.sequence.AvailableSequence;
-import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
-import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
-import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
-import com.constellio.app.extensions.sequence.SystemSequenceExtension;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.dev.DevUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -47,6 +23,12 @@ import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 @UiTest
 @MainTest
@@ -66,13 +48,9 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
-				withCollection("LaCollectionDeRida").withConstellioRMModule()
-						.withAllTestUsers()
-						.withFoldersAndContainersOfEveryStatus()
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
-		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -102,46 +80,6 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 			}
 		});
 
-		setupSequences();
-
-		DevUtils.addMetadataListingReferencesInAllSchemaTypes(getAppLayerFactory());
-
-	}
-
-	private void setupSequences() {
-		final AvailableSequence sequence1 = new AvailableSequence("sequenceRubrique1", asMap(Language.French, "Séquence 1"));
-		final AvailableSequence sequence2 = new AvailableSequence("sequenceRubrique2", asMap(Language.French, "Séquence 2"));
-		final AvailableSequence sequence3 = new AvailableSequence("seqTypeContenant1", asMap(Language.French, "Séquence 3"));
-		final AvailableSequence sequence4 = new AvailableSequence("seqTypeContenant2", asMap(Language.French, "Séquence 4"));
-		final AvailableSequence sequence5 = new AvailableSequence("sequence1", asMap(Language.French, "Ze séquence"));
-		final AvailableSequence sequence6 = new AvailableSequence("sequence2", asMap(Language.French, "Autre séquence"));
-
-		AppLayerExtensions extensions = getAppLayerFactory().getExtensions();
-		AppLayerSystemExtensions systemExtensions = extensions.getSystemWideExtensions();
-		AppLayerCollectionExtensions zeCollectionExtensions = extensions.forCollection(zeCollection);
-		AppLayerCollectionExtensions anotherCollectionExtensions = extensions.forCollection("anotherCollection");
-
-		systemExtensions.systemSequenceExtensions.add(new SystemSequenceExtension() {
-			@Override
-			public List<AvailableSequence> getAvailableSequences(AvailableSequenceForSystemParams params) {
-				return asList(sequence5, sequence6);
-			}
-		});
-
-		zeCollectionExtensions.collectionSequenceExtensions.add(new CollectionSequenceExtension() {
-			@Override
-			public List<AvailableSequence> getAvailableSequencesForRecord(AvailableSequenceForRecordParams params) {
-				if (params.isSchemaType(Category.SCHEMA_TYPE)) {
-					return asList(sequence1, sequence2);
-
-				} else if (params.isSchemaType(ContainerRecordType.SCHEMA_TYPE)) {
-					return asList(sequence3, sequence4);
-
-				} else {
-					return new ArrayList<AvailableSequence>();
-				}
-			}
-		});
 	}
 
 	@Test

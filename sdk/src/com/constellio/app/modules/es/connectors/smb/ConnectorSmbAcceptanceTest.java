@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import jcifs.smb.NtlmPasswordAuthentication;
-
-import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -40,6 +38,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+
+import jcifs.smb.NtlmPasswordAuthentication;
 
 @InDevelopmentTest
 //TODO Activate test

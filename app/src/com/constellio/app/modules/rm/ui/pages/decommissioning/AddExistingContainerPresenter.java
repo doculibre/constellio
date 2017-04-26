@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -30,7 +31,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AddExistingContainerPresenter extends SearchPresenter<AddExistingContainerView>
@@ -100,7 +101,10 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(restrictedRecord);
+		DecommissioningList decommissioningList = rmRecordServices().wrapDecommissioningList(restrictedRecord);
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(restrictedRecord) ||
+				new DecommissioningSecurityService(view.getCollection(), appLayerFactory)
+						.hasPermissionToCreateTransferOnList(decommissioningList, user);
 	}
 
 	@Override
@@ -181,6 +185,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		return getMetadataAllowedInSort(ContainerRecord.SCHEMA_TYPE);
 	}
 
+	@Override
+	public boolean isPreferAnalyzedFields() {
+		return false;
+	}
+
 	public void containerAdditionRequested(List<String> selectedRecordIds) {
 		DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(recordId);
 		List<ContainerRecord> containers = rmRecordServices().wrapContainerRecords(
@@ -229,7 +238,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
-		return new ConditionBuilder(rmRecordServices().containerRecord.schemaType()).build(criteria);
+		String languageCode = searchServices().getLanguageCode(view.getCollection());
+		return new ConditionBuilder(rmRecordServices().containerRecord.schemaType(), languageCode).build(criteria);
 	}
 
 	private RMSchemasRecordsServices rmRecordServices() {
@@ -246,7 +256,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		return rmConfigs;
 	}
 
-	protected void saveTemporarySearch(boolean refreshPage) {
+	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -262,14 +272,13 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.setPageNumber(pageNumber)
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
-		try {
-			recordServices().update(search);
-			if (refreshPage) {
-				view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
-			}
-		} catch (RecordServicesException e) {
-			LOGGER.info("TEMPORARY SAVE ERROR", e);
+		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
+		//recordServices().update(search);
+		if (refreshPage) {
+			view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
 		}
+		return search;
 	}
 
 	@Override

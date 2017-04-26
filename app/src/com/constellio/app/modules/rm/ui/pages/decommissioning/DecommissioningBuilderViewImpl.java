@@ -10,7 +10,6 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -22,6 +21,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -41,6 +41,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 	private AdvancedSearchCriteriaComponent criteria;
 	private Button searchButton;
+	private Button addToListButton;
 	private LookupRecordField adminUnit;
 
 	public DecommissioningBuilderViewImpl() {
@@ -48,8 +49,19 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		presenter.resetFacetAndOrder();
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
 
-		adminUnit = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
+		adminUnit = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE) {
+			@Override
+			public boolean isEnabled() {
+				return presenter.isAddMode();
+			}
+		};
 		addStyleName("search-decommissioning");
+	}
+
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
+		presenter.forParams(event.getParameters());
+		super.initBeforeCreateComponents(event);
 	}
 
 	@Override
@@ -63,7 +75,13 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				navigate().to(RMViews.class).decommissioning();
+				if(presenter.isAddMode()) {
+					navigate().to(RMViews.class).decommissioning();
+				} else if (presenter.getDecommissioningList().getDecommissioningListType().isFolderList()) {
+					navigate().to(RMViews.class).displayDecommissioningList(presenter.getDecommissioningList().getId());
+				} else {
+					navigate().to(RMViews.class).displayDocumentDecommissioningList(presenter.getDecommissioningList().getId());
+				}
 			}
 		};
 	}
@@ -134,7 +152,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		Button createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
 		createList.addStyleName(ValoTheme.BUTTON_LINK);
 		createList.addStyleName(CREATE_LIST);
-		return results.createSummary(buildSelectAllButton(), createList);
+		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), createList, buildAddToListButton());
 	}
 
 	private Component buildAdministrativeUnitComponent() {
@@ -197,5 +215,26 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 				}
 			};
 		}
+
+		@Override
+		public boolean isVisible(){
+			return presenter.isAddMode();
+		}
+	}
+
+	private Button buildAddToListButton() {
+		addToListButton = new Button($("DecommissioningBuilderView.addToList")) {
+			@Override
+			public boolean isVisible() {
+				return !presenter.isAddMode();
+			}
+		};
+		addToListButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.addToListButtonClicked(getSelectedRecordIds());
+			}
+		});
+		return addToListButton;
 	}
 }

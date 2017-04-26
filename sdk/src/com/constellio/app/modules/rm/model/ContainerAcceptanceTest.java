@@ -45,7 +45,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		storage42.setCode("Ze42");
 		storage42.setTitle("Ze storage");
 		storage42.setDescription("Ze description");
-		storage42.setCapacity(42L);
+		storage42.setCapacity(666L);
 
 		StorageSpace storage666 = rm.newStorageSpaceWithId("666");
 		storage666.setCode("Ze666");

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +78,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 		Factory<LogicalSearchQuery> queryFactory = new Factory<LogicalSearchQuery>() {
 			@Override
 			public LogicalSearchQuery get() {
-				LogicalSearchCondition condition = taxonomiesSearchServices
-						.getAllConceptHierarchyOfCondition(retrievedTaxonomy, null);
+				LogicalSearchCondition condition = fromTypeIn(retrievedTaxonomy).returnAll();
 				LogicalSearchQuery query = getLogicalSearchQueryForSchema(schema(schemaCode),
 						new LogicalSearchQuery().setCondition(condition));
 				query.setFreeTextQuery(queryExpression);
@@ -113,7 +113,8 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	}
 
 	private LogicalSearchQuery getLogicalSearchQueryForSchema(MetadataSchema schema, LogicalSearchQuery query) {
-		return new LogicalSearchQuery(query.getCondition().withFilters(new SchemaFilters(schema)));
+		return new LogicalSearchQuery(
+				query.getCondition().andWhere(Schemas.IDENTIFIER).isNotNull().withFilters(new SchemaFilters(schema)));
 	}
 
 	Taxonomy fetchTaxonomy(String taxonomyCode) {

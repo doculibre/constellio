@@ -3,7 +3,10 @@ package com.constellio.app.services.schemas.bulkImport;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,7 +14,6 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -27,17 +29,23 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -112,6 +120,58 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenImportingZipOfXMLFilesDecommissioningListThenImportedCorrectly()
+			throws Exception {
+
+		File zipFile = buildZipWith("administrativeUnit.xml", "category.xml", "containerRecord.xml", "ddvContainerRecordType.xml",
+				"folder.xml", "document.xml",
+				"retentionRule.xml", "ddvDocumentType.xml", "decommissioningList.xml");
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+
+		DecommissioningList decomList;
+
+		decomList = rm.getDecommissioningListWithLegacyId("40");
+		List<DecomListFolderDetail> decomListFolderDetails = decomList.getFolderDetails();
+		assertThat(decomList.getDescription()).isNull();
+		assertThat(decomList.getTitle()).isEqualTo("test");
+		assertThat(decomListFolderDetails.get(0).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("660").getId());
+		assertThat(decomListFolderDetails.get(0).getContainerRecordId())
+				.isEqualTo(rm.getContainerRecordWithLegacyId("412903").getId());
+		assertThat(decomListFolderDetails.get(0).isFolderExcluded()).isTrue();
+		assertThat(decomListFolderDetails.get(0).isReversedSort()).isTrue();
+		assertThat(decomListFolderDetails.get(0).getFolderLinearSize()).isEqualTo(42.0);
+
+		assertThat(decomListFolderDetails.get(1).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("670").getId());
+		assertThat(decomListFolderDetails.get(1).getContainerRecordId())
+				.isEqualTo(rm.getContainerRecordWithLegacyId("412904").getId());
+		assertThat(decomListFolderDetails.get(1).isFolderExcluded()).isFalse();
+		assertThat(decomListFolderDetails.get(1).isReversedSort()).isFalse();
+		assertThat(decomListFolderDetails.get(1).getFolderLinearSize()).isEqualTo(0.0);
+
+		decomList = rm.getDecommissioningListWithLegacyId("41");
+		decomListFolderDetails = decomList.getFolderDetails();
+		List<DecomListContainerDetail> decomListContainerDetails = decomList.getContainerDetails();
+		assertThat(decomList.getDescription()).isNull();
+		assertThat(decomList.getTitle()).isEqualTo("test41");
+		assertThat(decomListFolderDetails.size()).isEqualTo(0);
+
+		assertThat(decomListContainerDetails.get(0).getContainerRecordId())
+				.isEqualTo(rm.getContainerRecordWithLegacyId("412903").getId());
+		assertThat(decomListContainerDetails.get(0).isFull()).isTrue();
+
+		decomList = rm.getDecommissioningListWithLegacyId("42");
+		List<Comment> decomListComments = decomList.getComments();
+		assertThat(decomList.getTitle()).isEqualTo("test42");
+		assertThat(decomListComments.get(0).getMessage()).isEqualTo("message test");
+		assertThat(decomListComments.get(0).getUserId()).isEqualTo("007");
+		assertThat(decomListComments.get(0).getUsername()).isEqualTo("charlocool");
+		assertThat(decomListComments.get(0).getDateTime()).isInstanceOf(LocalDateTime.class);
+
+		assertThat(decomListComments.get(1).getMessage()).isEqualTo("super message");
+	}
+
 	@Test(expected = RecordServicesRuntimeException.IdAlreadyExisting.class)
 	public void givenRecordsWithIdAlreadyExistingWhenImportingZipOfXMLFilesWithRealIdsThenException()
 			throws Exception {
@@ -132,7 +192,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		File zipFile = buildZipWith("administrativeUnit.xml", "category.xml", "folder.xml", "document.xml",
-				"retentionRule.xml", "ddvDocumentType.xml");
+				"retentionRule.xml", "ddvDocumentType.xml", "event.xml", "containerRecord.xml", "ddvContainerRecordType.xml");
 
 		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
 
@@ -140,6 +200,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		importAndValidateWithRetentionRules();
 		importAndValidateDocumentType();
 		importAndValidateDocumentWithVersions();
+		importAndValidateEvents();
 	}
 
 	@Test
@@ -313,6 +374,35 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenImportingActiveFoldersWithManualDepositOrDestructionDateBeforeExpectedTransferDateThenInactiveDatesNotSetted()
+			throws Exception {
+
+		File excelFile = getTestResourceFile("dataWithInvalidManuallyEnteredDates.xls");
+
+		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+
+		assertThatRecords(rm.searchFolders(ALL))
+				.extractingMetadatas(LEGACY_ID.getLocalCode(), Folder.EXPECTED_TRANSFER_DATE, Folder.MANUAL_EXPECTED_DEPOSIT_DATE,
+						Folder.MANUAL_EXPECTED_DESTRUCTION_DATE).containsOnly(
+				tuple("1", date(2017, 12, 31), date(2012, 5, 29), date(2012, 5, 29)),
+				tuple("2", date(2017, 12, 31), date(2012, 5, 29), date(2012, 5, 29)),
+				tuple("3", null, date(2012, 5, 29), date(2012, 5, 29)),
+				tuple("4", null, date(2012, 5, 29), date(2012, 5, 29)),
+
+				tuple("5", date(2017, 12, 31), null, null),
+				tuple("6", date(2017, 12, 31), null, null),
+				tuple("7", null, null, null),
+				tuple("8", null, null, null),
+
+				tuple("9", date(2017, 12, 31), date(2010, 5, 29), date(2010, 5, 29)),
+				tuple("10", date(2017, 12, 31), date(2010, 5, 29), date(2010, 5, 29)),
+				tuple("11", null, date(2010, 5, 29), date(2010, 5, 29)),
+				tuple("12", null, date(2010, 5, 29), date(2010, 5, 29))
+		);
+
+	}
+
+	@Test
 	public void whenImportingAnExcelFileThenImportedCorrectly()
 			throws Exception {
 
@@ -406,6 +496,29 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	private void importAndValidateEvents() {
+		Folder folder660 = rm.getFolderWithLegacyId("660");
+		Folder folder670 = rm.getFolderWithLegacyId("670");
+		ContainerRecord containerRecord412903 = rm.getContainerRecordWithLegacyId("412903");
+		Event event1 = rm.wrapEvent(expectedRecordWithLegacyId("event1"));
+		assertThat(event1.getType()).isEqualTo(EventType.CREATE_FOLDER);
+		assertThat(event1.getRecordId()).isEqualTo(folder660.getId());
+		assertThat(event1.getTitle()).isEqualTo("A Wonderful and Cold Folder");
+		assertThat(event1.getCreatedOn()).isEqualTo(dateTime(2002, 2, 2, 2, 2, 2));
+
+		Event event2 = rm.wrapEvent(expectedRecordWithLegacyId("event2"));
+		assertThat(event2.getType()).isEqualTo(EventType.MODIFY_FOLDER);
+		assertThat(event2.getRecordId()).isEqualTo(folder670.getId());
+		assertThat(event2.getTitle()).isEqualTo("A Wonderful |#!/$%?*()_+ Folder");
+		assertThat(event2.getCreatedOn()).isEqualTo(dateTime(2003, 3, 3, 3, 3, 3));
+
+		Event event3 = rm.wrapEvent(expectedRecordWithLegacyId("event3"));
+		assertThat(event3.getType()).isEqualTo(EventType.BORROW_CONTAINER);
+		assertThat(event3.getRecordId()).isEqualTo(containerRecord412903.getId());
+		assertThat(event3.getTitle()).isEqualTo("00001");
+		assertThat(event3.getCreatedOn()).isEqualTo(dateTime(2004, 4, 4, 4, 4, 4));
+	}
+
 	private void importAndValidateDocumentWithVersions() {
 		String testResourceHash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
 		String testSecondResourceHash = "I_9qXqJxoU3dKHeM8bM_S4j8eIE=";
@@ -434,11 +547,11 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(document3.getFolder()).isEqualTo(folder4.getId());
 		assertThat(content3).isNotNull();
 
-		assertThat(content3.getVersions()).extracting("filename", "version", "comment", "lastModificationDateTime")
+		assertThat(content3.getVersions()).extracting("filename", "version", "comment")
 				.isEqualTo(asList(
-						tuple("The Kings Return1", "1.0", "DVD #1", new LocalDateTime(2014, 6, 9, 23, 38, 45)),
-						tuple("The Kings Return2", "1.1", "DVD #2", new LocalDateTime(2015, 6, 9, 23, 38, 45)),
-						tuple("The Kings Return3", "2.0", "DVD #3 : extras", now)
+						tuple("The Kings Return1", "1.0", "DVD #1"),
+						tuple("The Kings Return2", "1.1", "DVD #2"),
+						tuple("The Kings Return3", "2.0", "DVD #3 : extras")
 				));
 
 		assertThat(content3.getCurrentVersion().getHash()).isEqualTo(testSecondResourceHash);
@@ -665,7 +778,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	private Record recordWithLegacyId(String legacyId) {
 		return getModelLayerFactory().newSearchServices().searchSingleResult(
-				fromAllSchemasIn(zeCollection).where(Schemas.LEGACY_ID).isEqualTo(legacyId));
+				fromAllSchemasIn(zeCollection).where(LEGACY_ID).isEqualTo(legacyId));
 	}
 
 	private List<String> retentionRulesFromCategory(String code) {

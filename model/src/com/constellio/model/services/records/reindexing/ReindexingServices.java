@@ -3,6 +3,7 @@ package com.constellio.model.services.records.reindexing;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG;
 import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -165,11 +166,13 @@ public class ReindexingServices {
 		}
 
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
-		transactionOptions.setValidationsEnabled(false);
+		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
+				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true);
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
 		transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
+
 		reindexCollection(collection, params, transactionOptions);
 
 	}
@@ -186,46 +189,57 @@ public class ReindexingServices {
 	}
 
 	private void reindexCollection(String collection, ReindexationParams params, RecordUpdateOptions transactionOptions) {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
 		if (params.getReindexationMode().isFullRewrite()) {
 			recreateIndexes(collection);
 		}
 
-		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
-				.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
-				.setTransactionOptions(transactionOptions)
-				.withRecordsPerBatch(params.getBatchSize());
+		int level = 0;
+		while (isReindexingLevel(level, types)) {
 
-		BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
-				modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
+			BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
+					.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
+					.setTransactionOptions(transactionOptions)
+					.withRecordsPerBatch(params.getBatchSize());
 
-		try {
-			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
+					modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
 
-			for (String typeCode : types.getSchemaTypesSortedByDependency()) {
-				LOGGER.info("Indexing '" + typeCode + "'");
-				reindexCollectionType(bulkTransactionHandler, types, typeCode);
+			try {
+
+				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
+
+					if (isReindexingOfTypeRequired(level, types, typeCode)) {
+						if (level == 0) {
+							LOGGER.info("Indexing '" + typeCode + "'");
+						} else {
+							LOGGER.info("Indexing '" + typeCode + "' (Dependency level " + level + ")");
+						}
+						reindexCollectionType(bulkTransactionHandler, types, typeCode);
+					}
+				}
+
+			} finally {
+				bulkTransactionHandler.closeAndJoin();
 			}
-
-//			int currentLevel = 1;
-			//			boolean reindexedSomething = true;
-			//			while (reindexedSomething) {
-			//				modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
-			//				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
-			//					reindexedSomething = false;
-			//					if (types.getMetadataNetwork().getMaxLevelOf(typeCode) >= currentLevel) {
-			//						LOGGER.info("Level " + currentLevel + " Indexing '" + typeCode + "'");
-			//						reindexCollectionType(bulkTransactionHandler, types, typeCode);
-			//						reindexedSomething = false;
-			//					}
-			//				}
-			//				currentLevel++;
-			//			}
-
-		} finally {
-			bulkTransactionHandler.closeAndJoin();
+			modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
+			level++;
 		}
-		modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
+	}
+
+	private boolean isReindexingOfTypeRequired(int level, MetadataSchemaTypes types, String typeCode) {
+		MetadataSchemaType type = types.getSchemaType(typeCode);
+		return types.getMetadataNetwork().getMaxLevelOf(type.getCode()) >= level;
+	}
+
+	private boolean isReindexingLevel(int level, MetadataSchemaTypes types) {
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			if (types.getMetadataNetwork().getMaxLevelOf(type.getCode()) >= level) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void recreateIndexes(String collection) {
@@ -233,7 +247,7 @@ public class ReindexingServices {
 
 		LogicalSearchQuery query = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(collection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PARENT_PATH));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PATH));
 
 		Iterator<Record> idsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 50000);
 		recordDao.recreateZeroCounterIndexesIn(collection, new RecordDTOIterator(idsIterator));
@@ -244,43 +258,47 @@ public class ReindexingServices {
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemaType type = types.getSchemaType(typeCode);
-		List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(typeCode);
-		List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
-		Set<String> ids = new HashSet<>();
+		boolean writeZZrecords = modelLayerFactory.getSystemConfigurationsManager().getValue(WRITE_ZZRECORDS_IN_TLOG);
+		if (type.isInTransactionLog() || writeZZrecords) {
 
-		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
-		long current = 0;
-		while (true) {
-			Set<String> idsInCurrentBatch = new HashSet<>();
-			Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), 1000);
-			while (records.hasNext()) {
-				Record record = records.next();
-				for (Metadata metadata : metadatasMarkedForDeletion) {
-					if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {
-						record.set(metadata, null);
-					}
-				}
-				if (metadatas.isEmpty() || (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId()))) {
-					if (metadatas.isEmpty()) {
-						current++;
-						LOGGER.info("Indexing '" + typeCode + "' : " + current + "/" + counter);
-						bulkTransactionHandler.append(record);
-					} else {
-						String parentId = getParentIdOfSameType(metadatas, record);
+			List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(typeCode);
+			List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
+			Set<String> ids = new HashSet<>();
 
-						if (parentId == null || ids.contains(parentId)) {
-							bulkTransactionHandler.append(record);
-							idsInCurrentBatch.add(record.getId());
+			long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
+			long current = 0;
+			while (true) {
+				Set<String> idsInCurrentBatch = new HashSet<>();
+				Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), 1000);
+				while (records.hasNext()) {
+					Record record = records.next();
+					for (Metadata metadata : metadatasMarkedForDeletion) {
+						if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {
+							record.set(metadata, null);
 						}
 					}
+					if (metadatas.isEmpty() || (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId()))) {
+						if (metadatas.isEmpty()) {
+							current++;
+							LOGGER.info("Indexing '" + typeCode + "' : " + current + "/" + counter);
+							bulkTransactionHandler.append(record);
+						} else {
+							String parentId = getParentIdOfSameType(metadatas, record);
 
+							if (parentId == null || ids.contains(parentId)) {
+								bulkTransactionHandler.append(record);
+								idsInCurrentBatch.add(record.getId());
+							}
+						}
+
+					}
 				}
-			}
-			bulkTransactionHandler.barrier();
-			modelLayerFactory.newRecordServices().flush();
-			ids.addAll(idsInCurrentBatch);
-			if (metadatas.isEmpty() || ids.size() == counter) {
-				break;
+				bulkTransactionHandler.barrier();
+				modelLayerFactory.newRecordServices().flush();
+				ids.addAll(idsInCurrentBatch);
+				if (metadatas.isEmpty() || ids.size() == counter) {
+					break;
+				}
 			}
 		}
 

@@ -72,6 +72,11 @@ public class SPEQueryResponse {
 		return this.statisticsValues.get(field.getDataStoreCode());
 	}
 
+	public boolean hasQueryFacetResults(String query) {
+		Integer result = getQueryFacetCount(query);
+		return result != null && result > 0;
+	}
+
 	public Integer getQueryFacetCount(String query) {
 		return queryFacetsValues.get(query);
 	}

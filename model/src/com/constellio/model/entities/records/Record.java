@@ -63,6 +63,10 @@ public interface Record extends Serializable, CollectionObject {
 
 	void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
 
+	<T> void addValueToList(Metadata metadata, T value);
+
+	<T> void removeValueFromList(Metadata metadata, T value);
+
 	boolean isOfSchemaType(String type);
 
 }

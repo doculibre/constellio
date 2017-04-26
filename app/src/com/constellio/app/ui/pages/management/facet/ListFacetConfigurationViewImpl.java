@@ -82,7 +82,7 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 		ButtonsContainer buttonsContainer = new ButtonsContainer(recordsContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -96,7 +96,7 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -110,7 +110,7 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Integer index = (Integer) itemId;
 				final RecordVO entity = dataProvider.getRecordVO(index);
 				Button activateButton = new EnableButton() {
@@ -126,7 +126,7 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Integer index = (Integer) itemId;
 				final RecordVO entity = dataProvider.getRecordVO(index);
 				Button deactivateButton = new DisableButton() {
@@ -143,7 +143,7 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -180,5 +180,15 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 		RecordVOTable newListFacet = valuesTable();
 		mainLayout.replaceComponent(listFacet, newListFacet);
 		listFacet = newListFacet;
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
 	}
 }

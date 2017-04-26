@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
@@ -33,6 +35,15 @@ public class RecordUtils {
 
 	public RecordUtils() {
 		schemaUtils = newSchemaUtils();
+	}
+
+	public Set<String> toIdSet(List<Record> records) {
+		Set<String> idList = new HashSet<>();
+
+		for (Record record : records) {
+			idList.add(record.getId());
+		}
+		return idList;
 	}
 
 	public List<String> toIdList(List<Record> records) {
@@ -213,17 +224,6 @@ public class RecordUtils {
 		}
 
 		return false;
-	}
-
-	public List<String> getModifiedMetadatasDataStoreCodes(List<Record> records) {
-		Set<String> modifiedMetadatasCodes = new HashSet<>();
-		for (Record record : records) {
-			RecordImpl recordImpl = (RecordImpl) record;
-			Map<String, Object> modifiedValues = recordImpl.getModifiedValues();
-			modifiedMetadatasCodes.addAll(modifiedValues.keySet());
-		}
-
-		return new ArrayList<>(modifiedMetadatasCodes);
 	}
 
 	SchemaUtils newSchemaUtils() {
@@ -437,5 +437,18 @@ public class RecordUtils {
 			return records;
 		}
 
+	}
+
+	public static List<String> parentPaths(Record record) {
+		List<String> paths = record.<String>getList(Schemas.PATH);
+		List<String> parentPaths = new ArrayList<>();
+
+		for (String path : paths) {
+			String parentPath = StringUtils.substringBeforeLast(path, "/");
+			if (!parentPath.isEmpty()) {
+				parentPaths.add(parentPath);
+			}
+		}
+		return parentPaths;
 	}
 }

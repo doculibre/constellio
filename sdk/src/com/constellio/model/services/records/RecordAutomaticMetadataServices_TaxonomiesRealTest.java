@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +23,7 @@ import com.constellio.model.entities.calculators.dependencies.HierarchyDependenc
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -40,6 +42,7 @@ import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocuments
 
 public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends ConstellioTest {
 
+	RecordUpdateOptions options = new RecordUpdateOptions();
 	TwoTaxonomiesContainingFolderAndDocumentsSetup schemas =
 			new TwoTaxonomiesContainingFolderAndDocumentsSetup(zeCollection);
 	FolderSchema folderSchema = schemas.new FolderSchema();
@@ -155,7 +158,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		when(recordProvider.getRecord(records.taxo1_firstTypeItem1.getId())).thenReturn(records.taxo1_firstTypeItem1);
 
 		services.calculateValueInRecord((RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
-				recordProvider, schemas.getTypes());
+				recordProvider, schemas.getTypes(), options);
 
 		assertThat(records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");
 	}
@@ -172,7 +175,8 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
 				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1));
 		String expectedTaxonomyCode = null;
-		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, new ArrayList<String>(),
+				expectedTaxonomyCode);
 	}
 
 	@Test
@@ -187,7 +191,8 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
 				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1));
 		String expectedTaxonomyCode = null;
-		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, new ArrayList<String>(),
+				expectedTaxonomyCode);
 	}
 
 	@Test
@@ -206,7 +211,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
 				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2));
 		String expectedTaxonomyCode = null;
-		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, Arrays.asList("a", "b", "c"),
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, Arrays.asList("rootFolderWithTaxonomy"),
 				expectedTaxonomyCode);
 
 	}
@@ -225,8 +230,8 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
 				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2, subFolderWithTaxonomy));
 		String expectedTaxonomyCode = null;
-		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations,
-				expectedTaxonomyCode);
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths,
+				asList("subFolderWithTaxonomy", "rootFolderWithTaxonomy"), expectedTaxonomyCode);
 
 	}
 
@@ -240,7 +245,8 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 
 		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2));
 		String expectedTaxonomyCode = "taxo1";
-		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths,
+				asList("zeCollection_taxo1_firstTypeItem2"), expectedTaxonomyCode);
 
 	}
 
@@ -255,7 +261,9 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 
 		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2));
 		String expectedTaxonomyCode = "taxo1";
-		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths,
+				asList("zeCollection_taxo1_firstTypeItem2_firstTypeItem2", "zeCollection_taxo1_firstTypeItem2"),
+				expectedTaxonomyCode);
 
 	}
 
@@ -271,7 +279,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 	}
 
 	private void assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(List<String> expectedPaths,
-			List<String> expectedParentAuthorizations, String expectedTaxonomyCode) {
+			List<String> expectedAttachedAncestors, String expectedTaxonomyCode) {
 
 		assertThat(values).containsKey(SpecialDependencies.HIERARCHY).hasSize(1);
 		HierarchyDependencyValue hierarchyDependencyValue = (HierarchyDependencyValue) values.get(SpecialDependencies.HIERARCHY);
@@ -284,8 +292,8 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		}
 
 		assertThat(hierarchyDependencyValue.getPaths()).containsAll(expectedPaths).hasSize(expectedPaths.size());
-		assertThat(hierarchyDependencyValue.getParentAuthorizations()).containsAll(expectedParentAuthorizations)
-				.hasSize(expectedParentAuthorizations.size());
+		assertThat(hierarchyDependencyValue.getAttachedAncestors())
+				.containsOnly(expectedAttachedAncestors.toArray(new String[0]));
 	}
 
 	private void assertThatPathIsEqualTo(Record record, String path) {

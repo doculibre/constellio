@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -14,12 +8,8 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.ReportSelector;
+import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
-import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
@@ -32,26 +22,19 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseViewImpl implements SearchView, RecordSelector {
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, RecordSelector {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -66,6 +49,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	private VerticalLayout facetsArea;
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
+	private Button addToSelectionButton;
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -86,6 +70,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
+		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
 			refreshSearchResultsAndFacets(false);
@@ -149,11 +134,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return results.getSelectedRecordIds();
 	}
 
+	@Override
+	public List<String> getUnselectedRecordIds() {
+		return results.getUnselectedRecordIds();
+	}
+
 	protected abstract Component buildSearchUI();
 
 	protected Component buildSummary(SearchResultTable results) {
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -165,8 +155,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		suggestions.addStyleName("spell-checker");
 
 		summary = new VerticalLayout();
+		summary.addStyleName("search-result-summary");
 
 		resultsArea = new VerticalLayout();
+		resultsArea.addStyleName("search-result-area");
+//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
 		facetsArea = new VerticalLayout();
@@ -175,6 +168,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		facetsArea.setSpacing(true);
 
 		HorizontalLayout body = new HorizontalLayout(resultsArea, facetsArea);
+		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
@@ -271,12 +265,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		criterion.setWidth("100%");
 
-		@SuppressWarnings("unchecked") List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
+		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
 		for (MetadataVO metadata : sortableMetadata) {
 			criterion.addItem(metadata.getCode());
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
-		criterion.setPageLength(criterion.size());
+//		criterion.setPageLength(criterion.size());
 		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();
@@ -400,19 +394,28 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		});
 
 		layout.addComponent(table);
-		layout.setVisible(!facet.getValues().isEmpty() && isDetailedView());
+		layout.setVisible(!facet.getValues().isEmpty());
 		layout.addStyleName(FACET_BOX_STYLE);
 		return layout;
 	}
 
 	protected Button buildSelectAllButton() {
-		selectDeselectAllButton = new SelectDeselectAllButton() {
+		String selectAllCaption;
+		String deselectAllCaption;
+		if (isDetailedView()) {
+			selectAllCaption = $("SearchView.selectCurrentPage");
+			deselectAllCaption = $("SearchView.deselectCurrentPage");
+		} else {
+			selectAllCaption = $("SearchView.selectRange");
+			deselectAllCaption = $("SearchView.selectRange");
+		}
+		selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {
 					((SearchResultDetailedTable) results).selectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).selectAll();
+					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
 
@@ -421,12 +424,23 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 				if (isDetailedView()) {
 					((SearchResultDetailedTable) results).deselectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).deselectAll();
+					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return selectDeselectAllButton;
+	}
+
+	protected Button buildAddToSelectionButton() {
+		addToSelectionButton = new BaseButton($("SearchView.addToSelection")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addToSelectionButtonClicked();
+			}
+		};
+		addToSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return addToSelectionButton;
 	}
 
 	protected Button buildSavedSearchButton() {
@@ -478,5 +492,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		button.addStyleName(SAVE_SEARCH);
 		return button;
+	}
+
+	public boolean isSelectAllMode() {
+		return selectDeselectAllButton == null? null:selectDeselectAllButton.isSelectAllMode();
 	}
 }

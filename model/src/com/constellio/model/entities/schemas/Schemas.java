@@ -6,7 +6,6 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class Schemas {
 
@@ -35,15 +33,11 @@ public class Schemas {
 	public static final Metadata PRINCIPAL_PATH = add(new Metadata("principalpath_s", STRING, false));
 	public static final Metadata PARENT_PATH = add(new Metadata("parentpath_ss", STRING, true));
 	public static final Metadata AUTHORIZATIONS = add(new Metadata("authorizations_ss", STRING, true));
-	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING,
-			true));
-	public static final Metadata INHERITED_AUTHORIZATIONS = add(
-			new Metadata("inheritedauthorizations_ss", STRING,
-					true));
+	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
+	public static final Metadata INHERITED_AUTHORIZATIONS = add(new Metadata("inheritedauthorizations_ss", STRING, true));
 	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
-	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(
-			new Metadata("detachedauthorizations_s", STRING,
-					false));
+	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata("allRemovedAuths_ss", STRING, true));
+	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata("detachedauthorizations_s", STRING, false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", STRING, true));
 	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", STRING, true));
 	public static final Metadata DENY_TOKENS = add(new Metadata("denyTokens_ss", STRING, true));
@@ -85,6 +79,8 @@ public class Schemas {
 	public static final Metadata LINKED_SCHEMA = new Metadata("linkedSchema_s", STRING, false);
 	public static final Metadata ALL_REFERENCES = add(new Metadata("allReferences_ss", STRING, true));
 	public static final Metadata MARKED_FOR_REINDEXING = add(new Metadata("markedForReindexing_s", BOOLEAN, false));
+	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
+	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
@@ -94,8 +90,6 @@ public class Schemas {
 		allGlobalMetadatas.add(metadata);
 		return metadata;
 	}
-
-	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = new Metadata("autocomplete_ss", STRING, false);
 
 	public static Metadata getGlobalMetadata(String code) {
 		//folder_default_createdOn_dt
@@ -116,18 +110,6 @@ public class Schemas {
 
 	public static List<Metadata> getAllGlobalMetadatas() {
 		return Collections.unmodifiableList(allGlobalMetadatas);
-	}
-
-	public static Metadata getSearchFieldForLanguage(String languageCode) {
-		if (languageCode.equals("fr")) {
-			return FRENCH_SEARCH_FIELD;
-		} else {
-			return ENGLISH_SEARCH_FIELD;
-		}
-	}
-
-	public static List<Metadata> getAllSearchFields() {
-		return Arrays.asList(FRENCH_SEARCH_FIELD, ENGLISH_SEARCH_FIELD);
 	}
 
 	public static Metadata dummyMultiValueMetadata(Metadata metadata) {
@@ -155,6 +137,10 @@ public class Schemas {
 		if (metadata.isMultivalue()) {
 			dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
 			dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+
+		} else if (metadata.getLocalCode().equals("id")) {
+			dataStoreCode = "id_txt_" + languageCode;
+
 		} else {
 			dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
 			if (metadata.getType() == MetadataValueType.CONTENT) {

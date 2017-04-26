@@ -11,19 +11,14 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
@@ -32,32 +27,17 @@ public class ConstellioMenuPresenter implements Serializable {
 
 	private static final String SHOW_PICTURE_STREAM = "ConstellioMenuPresenter-ShowPicture";
 
-	private UserToVOBuilder voBuilder = new UserToVOBuilder();
-
 	private ConstellioMenu constellioMenu;
-
-	private SessionContext sessionContext;
-
-	private String username;
 
 	private transient ConstellioFactories constellioFactories;
 
 	private transient ModelLayerFactory modelLayerFactory;
 
-	private transient UserServices userServices;
-
 	public ConstellioMenuPresenter(ConstellioMenu constellioMenu) {
 		this.constellioMenu = constellioMenu;
 
 		constellioFactories = constellioMenu.getConstellioFactories();
-		sessionContext = constellioMenu.getSessionContext();
-		UserVO userVO = sessionContext.getCurrentUser();
-		username = userVO.getUsername();
-
 		initTransientObjects();
-
-		List<String> collections = userServices.getUser(userVO.getUsername()).getCollections();
-		constellioMenu.setCollections(collections);
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -71,36 +51,10 @@ public class ConstellioMenuPresenter implements Serializable {
 			constellioFactories = ConstellioFactories.getInstance();
 		}
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
-		userServices = modelLayerFactory.newUserServices();
 	}
 
 	public void homeButtonClicked() {
 		constellioMenu.navigateTo().home();
-	}
-
-	public void collectionClicked(String newCollection) {
-		SessionContext sessionContext = constellioMenu.getSessionContext();
-		String currentCollection = sessionContext.getCurrentCollection();
-		if (!currentCollection.equals(newCollection)) {
-			User newUser = userServices.getUserInCollection(username, newCollection);
-			try {
-				modelLayerFactory.newRecordServices().update(newUser
-						.setLastLogin(TimeProvider.getLocalDateTime())
-						.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
-				Locale userLanguage = getSessionLanguage(newUser);
-				sessionContext.setCurrentLocale(userLanguage);
-				i18n.setLocale(userLanguage);
-
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
-			UserVO newUserVO = voBuilder.build(newUser.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
-			sessionContext.setCurrentCollection(newCollection);
-			sessionContext.setCurrentUser(newUserVO);
-
-			constellioMenu.updateUIContent();
-			constellioMenu.navigateTo().home();
-		}
 	}
 
 
@@ -180,6 +134,7 @@ public class ConstellioMenuPresenter implements Serializable {
 		sessionContext.setCurrentCollection(null);
 		sessionContext.setCurrentUser(null);
 		sessionContext.setForcedSignOut(true);
+		sessionContext.clearSelectedRecordIds();
 		constellioMenu.updateUIContent();
 	}
 
@@ -213,7 +168,8 @@ public class ConstellioMenuPresenter implements Serializable {
 			if ($("Language." + code).equals(languageText)) {
 				Locale locale = new Locale(code);
 				i18n.setLocale(locale);
-				ConstellioUI.getCurrentSessionContext().setCurrentLocale(locale);
+				constellioMenu.setLocale(locale);
+				constellioMenu.updateUIContent();
 			}	
 	}
 

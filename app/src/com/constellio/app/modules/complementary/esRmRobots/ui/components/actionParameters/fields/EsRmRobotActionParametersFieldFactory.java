@@ -1,27 +1,40 @@
 package com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields;
 
-import java.util.Arrays;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.category.ActionParametersCategoryField;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.category.ActionParametersCategoryFieldImpl;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleField;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleFieldImpl;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.schemas.Metadata;
 import com.vaadin.ui.Field;
 
+import java.util.Arrays;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION;
+
 public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory implements EsRmRobotActionParametersFields {
-	
+	private static final String DEFAULT_RETENTION_RULE = "defaultRetentionRule";
+	private static final String DEFAULT_CATEGORY = "defaultCategory";
+	private static final String DEFAULT_PARENT_FOLDER = "defaultParentFolder";
+	private static final String IN_TAXONOMY = "inTaxonomy";
+	private static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
+	private static final String PATH_PREFIX = "pathPrefix";
+
 	private ActionParametersCategoryFieldImpl categoryField;
 
 	private ActionParametersRetentionRuleFieldImpl retentionRuleField;
-	
+
+	private LookupRecordField uniformSubdivisionField;
+
 	private EsRmRobotActionParametersPresenter presenter;
 	
 	private static final String[] CUSTOM_FIELDS = {
@@ -38,6 +51,30 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 	@Override
 	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
 		Field<?> field;
+		if(DEFAULT_UNIFORM_SUBDIVISION.equals(metadataVO.getLocalCode()) && !presenter.areUniformSubdivisionsEnabled()) {
+			return null;
+		}
+		
+		if(DEFAULT_COPY_STATUS.equals(metadataVO.getLocalCode())) {
+			return null;
+		}
+		
+		if(IN_TAXONOMY.equals(metadataVO.getLocalCode())) {
+			return null;
+		}
+		
+		if(DEFAULT_CATEGORY.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+			return null;
+		}
+
+		if(DEFAULT_RETENTION_RULE.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+			return null;
+		}
+
+		if(PATH_PREFIX.equals(metadataVO.getLocalCode())) {
+			return null;
+		}
+
 		String code = MetadataVO.getCodeWithoutPrefix(metadataVO.getCode());
 		if (Arrays.asList(CUSTOM_FIELDS).contains(code)) {
 			if (categoryField == null) {
@@ -53,8 +90,14 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 			}
 			super.postBuild(field, recordVO, metadataVO);
 		} else {
+			if(code.equals(DEFAULT_UNIFORM_SUBDIVISION)) {
+				uniformSubdivisionField = (LookupRecordField) super.build(recordVO, metadataVO);
+				presenter.subdivisionFieldCreated();
+				return uniformSubdivisionField;
+			}
 			field = super.build(recordVO, metadataVO);
 		}
+
 		return field;
 	}
 
@@ -76,6 +119,11 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 	@Override
 	public ActionParametersRetentionRuleField getRetentionRuleField() {
 		return retentionRuleField;
+	}
+
+	@Override
+	public LookupRecordField getUniformSubdivision() {
+		return uniformSubdivisionField;
 	}
 
 }

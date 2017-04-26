@@ -1,21 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.services.contents.icap.IcapException;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -23,13 +7,9 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
+import com.constellio.app.modules.rm.ui.components.document.fields.*;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.NewFileClickListener;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentCopyRuleField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderField;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -45,6 +25,8 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -57,7 +39,22 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -71,10 +68,14 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private boolean newFile;
+	private boolean newFileAtStart;
+	ConstellioEIMConfigs eimConfigs;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
 		initTransientObjects();
+		eimConfigs = modelLayerFactory.getSystemConfigs();
+
 	}
 
 	@Override
@@ -103,6 +104,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String idCopy = paramsMap.get("idCopy");
 		String parentId = paramsMap.get("parentId");
 		userDocumentId = paramsMap.get("userDocumentId");
+		newFile = false;
+		newFileAtStart = "true".equals(paramsMap.get("newFile"));
 
 		Document document;
 		if (StringUtils.isNotBlank(id)) {
@@ -297,7 +300,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (addViewWithCopy) {
 			setRecordContent(record, documentVO);
 		}
-		if (newFile) {
+		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
 			document.getContent().checkOut(getCurrentUser());
 		}
 		LocalDateTime time = TimeProvider.getLocalDateTime();
@@ -314,8 +318,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				document.getContent().renameCurrentVersion(currentTitle);
 			}
 		}
-
-		addOrUpdate(record);
+		addOrUpdate(record, RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
 		if (userDocumentId != null) {
 			UserServices userServices = modelLayerFactory.newUserServices();
 			Record userDocumentRecord = userDocumentPresenterUtils.getRecord(userDocumentId);
@@ -549,6 +552,36 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	public void viewAssembled() {
 		addContentFieldListeners();
+		DocumentContentField contentField = getContentField();
+		if (addView && newFileAtStart && !contentField.getNewFileWindow().isOpened()) {
+			contentField.getNewFileWindow().open();
+		}
+	}
+
+	private void addNewFileCreatedListener() {
+		final DocumentContentField contentField = getContentField();
+		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
+			@Override
+			public void newFileCreated(Content content) {
+				view.getForm().commit();
+				contentField.setNewFileButtonVisible(false);
+				contentField.setMajorVersionFieldVisible(false);
+				contentField.getNewFileWindow().close();
+				ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content);
+				contentVersionVO.setMajorVersion(false);
+				contentVersionVO.setHash(null);
+				documentVO.setContent(contentVersionVO);
+				String filename = contentVersionVO.getFileName();
+				if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+					filename = FilenameUtils.removeExtension(filename);
+				}
+				documentVO.setTitle(filename);
+				newFile = true;
+				view.getForm().reload();
+				// Will have been lost after reloading the form
+				addContentFieldListeners();
+			}
+		});
 	}
 
 	private void addContentFieldListeners() {
@@ -566,10 +599,38 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
                     try {
                         Content content = toContent(contentVersionVO);
                         document.setContent(content);
+						String filename = contentVersionVO.getFileName();
+						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
+						if("eml".equals(extension) || "msg".equals(extension)) {
+							IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+							InputStream inputStream = null;
+							try {
+								inputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromEML");
+								Email email = rmSchemasRecordsServices.newEmail(filename, inputStream);
+								document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
+
+								((Email) document).setSubject(email.getSubject());
+								((Email) document).setEmailObject(email.getEmailObject());
+								((Email) document).setEmailSentOn(email.getEmailSentOn());
+								((Email) document).setEmailReceivedOn(email.getEmailReceivedOn());
+								((Email) document).setEmailFrom(email.getEmailFrom());
+								((Email) document).setEmailTo(email.getEmailTo());
+								((Email) document).setEmailCCTo(email.getEmailCCTo());
+								((Email) document).setEmailBCCTo(email.getEmailBCCTo());
+								((Email) document).setEmailContent(email.getEmailContent());
+								((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
+							} finally {
+								ioServices.closeQuietly(inputStream);
+							}
+						}
                         modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
                         documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
                         documentVO.getContent().setMajorVersion(null);
                         documentVO.getContent().setHash(null);
+                        if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+                            filename = FilenameUtils.removeExtension(filename);
+                        }
+                        documentVO.setTitle(filename);
                         view.setRecord(documentVO);
                         view.getForm().reload();
                     } catch (final IcapException e) {
@@ -593,24 +654,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		});
 		contentField.setMajorVersionFieldVisible(!newFile);
-		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
-			@Override
-			public void newFileCreated(Content content) {
-				view.getForm().commit();
-				contentField.setNewFileButtonVisible(false);
-				contentField.setMajorVersionFieldVisible(false);
-				contentField.getNewFileWindow().close();
-				ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content);
-				contentVersionVO.setMajorVersion(false);
-				contentVersionVO.setHash(null);
-				documentVO.setContent(contentVersionVO);
-				documentVO.setTitle(contentVersionVO.getFileName());
-				newFile = true;
-				view.getForm().reload();
-				// Will have been lost after reloading the form
-				addContentFieldListeners();
-			}
-		});
+		addNewFileCreatedListener();
 
 		DocumentCopyRuleField copyRuleField = getCopyRuleField();
 		if (copyRuleField != null) {

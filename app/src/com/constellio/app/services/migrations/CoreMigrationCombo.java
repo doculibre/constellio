@@ -1,48 +1,18 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType.VERTICAL;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_5;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_6_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_7;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_1_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_7;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_4_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_14;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_19;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_21;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_22;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_42;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_50;
+import com.constellio.app.services.migrations.scripts.*;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -50,8 +20,13 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
-import com.constellio.model.services.users.UserCredentialAndGlobalGroupsMigration;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType.VERTICAL;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class CoreMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -80,9 +55,12 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_6_5_14());
 		scripts.add(new CoreMigrationTo_6_5_19());
 		scripts.add(new CoreMigrationTo_6_5_21());
-		scripts.add(new CoreMigrationTo_6_5_50());
 		scripts.add(new CoreMigrationTo_6_5_22());
 		scripts.add(new CoreMigrationTo_6_5_42());
+		scripts.add(new CoreMigrationTo_6_5_50());
+		scripts.add(new CoreMigrationTo_6_6());
+		scripts.add(new CoreMigrationTo_7_0());
+		scripts.add(new CoreMigrationTo_7_1());
 
 		return scripts;
 	}
@@ -116,7 +94,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection,
-				new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", $("title"), 20.0));
+				new SearchBoost(SearchBoost.METADATA_TYPE, "title_s", $("title"), 20.0));
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
@@ -133,6 +111,8 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
 				.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
+
+
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
@@ -176,7 +156,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		transaction.add(rm.newFacetQuery().setOrder(1)
 				.setTitle(migrationResourcesProvider.get("init.facet.createModification"))
-				.setActive(true)
+				.setActive(false)
 				.setOpenByDefault(true)
 				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
 				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
@@ -200,7 +180,10 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 			} else {
 				generatedFastCoreMigration.applyGeneratedSchemaAlteration(typesBuilder);
 			}
-
+//
+//
+//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).get(User.ADDRESS).addLabel(Language.French, "Adresse");
+//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).get(User.FAX).addLabel(Language.French, "Télécopieur");
 		}
 
 	}

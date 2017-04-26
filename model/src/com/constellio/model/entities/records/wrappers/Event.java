@@ -18,7 +18,11 @@ public class Event extends RecordWrapper {
 	public static final String PERMISSION_USERS = "permissionUsers";
 	public static final String REASON = "reason";
 	public static final String RECORD_VERSION = "recordVersion";
-	
+	public static final String RECEIVER_NAME = "receiverName";
+	public static final String TASK = "task";
+	public static final String DESCRIPTION = "description";
+	public static final String ACCEPTED = "accepted";
+
 	public Event(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
 	}
@@ -129,6 +133,42 @@ public class Event extends RecordWrapper {
 
 	public Event setRecordVersion(String recordVersion) {
 		set(RECORD_VERSION, recordVersion);
+		return this;
+	}
+
+	public String getReceiver() {
+		return get(RECEIVER_NAME);
+	}
+
+	public Event setReceiver(User user) {
+		set(RECEIVER_NAME, user);
+		return this;
+	}
+
+	public String getDescription() {
+		return get(DESCRIPTION);
+	}
+
+	public Event setDescription(String description) {
+		set(DESCRIPTION, description);
+		return this;
+	}
+
+	public String getTask() {
+		return get(TASK);
+	}
+
+	public Event setTask(String taskID) {
+		set(TASK, taskID);
+		return this;
+	}
+
+	public Boolean getAccepted() {
+		return get(ACCEPTED);
+	}
+
+	public Event setAccepted(Boolean isAccepted) {
+		set(ACCEPTED, isAccepted);
 		return this;
 	}
 }

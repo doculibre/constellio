@@ -1,10 +1,11 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -16,8 +17,6 @@ import org.junit.runners.MethodSorters;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -26,7 +25,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.Records;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
@@ -374,14 +372,11 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 			throws Exception {
 		taxonomiesManager.setPrincipalTaxonomy(setup.getTaxonomy1(), schemasManager);
 
-		List<String> roles = Arrays.asList(Role.READ, Role.WRITE, Role.DELETE);
+		List<String> roles = asList(Role.READ, Role.WRITE, Role.DELETE);
 
-		addAuthorizationWithoutDetaching(roles, Arrays.asList(users.legendsIn(zeCollection).getId()),
-				Arrays.asList(records.folder4().getId()));
-		addAuthorizationWithoutDetaching(roles, Arrays.asList(users.heroesIn(zeCollection).getId()),
-				Arrays.asList(records.folder2().getId()));
-		addAuthorizationWithoutDetaching(roles, Arrays.asList(users.gandalfIn(zeCollection).getId()),
-				Arrays.asList(records.taxo1_category1().getId()));
+		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), records.folder4().getId());
+		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), records.folder2().getId());
+		addAuthorizationWithoutDetaching(roles, asList(users.gandalfIn(zeCollection).getId()), records.taxo1_category1().getId());
 
 		waitForBatchProcess();
 
@@ -390,24 +385,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 		assertThat(foundRecords).containsOnly(records.folder1().getId(), records.folder2().getId(), records.folder2_1().getId(),
 				records.folder2_2().getId(), records.folder1_doc1().getId(), records.folder2_2_doc1().getId(),
 				records.folder2_2_doc2().getId(), records.folder4().getId(), records.folder4_1().getId(),
-				records.folder4_2().getId(),
-				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
-	}
-
-	private void addZeUltimateAuthorization()
-			throws RolesManagerRuntimeException {
-		// This authorization is only valid for Taxo1.
-		// This problem will fix itself when the collections are added.
-
-		List<String> roles = Arrays.asList(Role.READ, Role.WRITE, Role.DELETE);
-
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, null, null, zeCollection);
-		List<String> grantedToPrincipals = Arrays.asList(users.chuckNorrisIn(zeCollection).getId());
-		List<String> grantedOnRecords = Arrays.asList(records.taxo1_fond1().getId());
-
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+				records.folder4_2().getId(), records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
 	}
 
 	private List<Record> findRecords(LogicalSearchCondition condition, User user) {
@@ -444,35 +422,16 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, null, null, zeCollection);
-
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-		return authorization;
+			String grantedOnRecord) {
+		String id = authorizationsServices.add(authorizationInCollection(zeCollection)
+				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecord).giving(roles));
+		return authorizationsServices.getAuthorization(zeCollection, id);
 	}
 
-	private Authorization addAuthorizationDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.DETACH, null);
-		return authorization;
-	}
-
-	private void addAuthorizationForDates(List<String> roles, List<String> grantedToPrincipals, List<String> grantedOnRecords,
+	private void addAuthorizationForDates(List<String> roles, List<String> grantedToPrincipals, String grantedOnRecord,
 			LocalDate startDate, LocalDate endDate) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, startDate, endDate, zeCollection);
-
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-	}
-
-	private void modifyAuthorizationWithoutDetaching(Authorization authorization) {
-		authorizationsServices.modify(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+		authorizationsServices.add(authorizationInCollection(zeCollection).forPrincipalsIds(grantedToPrincipals)
+				.on(grantedOnRecord).giving(roles).startingOn(startDate).endingOn(endDate));
 	}
 
 }

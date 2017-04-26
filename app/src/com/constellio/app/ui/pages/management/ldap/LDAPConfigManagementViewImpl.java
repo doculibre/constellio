@@ -2,14 +2,17 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -29,8 +32,6 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		layout = new VerticalLayout();
 		layout.setSizeFull();
 		layout.setSpacing(true);
-		buildLDAPActiveCheckBox();
-		layout.addComponent(super.ldapAuthenticationActive);
 		buildDirectoryTypeField();
 		layout.addComponent(super.directoryTypeField);
 
@@ -175,7 +176,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			AzureADServerConfig serverConfig = new AzureADServerConfig()
 					.setAuthorityTenantId(azurAuthenticationTab.getAuthorityTenantId())
 					.setClientId(azurAuthenticationTab.getClientId());
-			return new LDAPServerConfiguration(serverConfig, ldapAuthenticationActive.getValue());
+			return new LDAPServerConfiguration(serverConfig, presenter.isLDAPActive());
 		}
 	}
 
@@ -187,13 +188,13 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			setSpacing(true);
 			setSizeFull();
 
-            buildSynchronizationScheduleFields(ldapUserSyncConfiguration);
+			buildSynchronizationScheduleFields(ldapUserSyncConfiguration);
 			addComponent(scheduleComponentField);
 
 			buildCollectionsPanel();
 			addComponent(collectionsComponent);
 
-			clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
+            clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
 			clientId.setCaption($("LDAPConfigManagementView.clientId"));
 			addComponent(clientId);
 
@@ -210,7 +211,6 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			addComponent(groupsAcceptanceRegexField);
 			buildGroupsRejectRegex(ldapUserSyncConfiguration);
 			addComponent(groupsRejectionRegexField);
-
 		}
 
 		public String getApplicationKey() {
@@ -266,7 +266,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		}
 		public LDAPServerConfiguration getLDAPServerConfiguration() {
 			return new LDAPServerConfiguration(urlsField.getValues(),
-					domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue(),
+					domainsField.getValues(), getDirectoryType(), presenter.isLDAPActive(),
 					followReferences.getValue());
 		}
 	}
@@ -288,58 +288,52 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 		private void buildLdapUserSyncConfigComponent(VerticalLayout layout) {
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
+			buildSynchronizationScheduleFields(ldapUserSyncConfiguration);
+			layout.addComponent(scheduleComponentField);
+			layout.addComponent(new Label("<hr />", ContentMode.HTML));
 
-            buildSynchronizationScheduleFields(ldapUserSyncConfiguration);
-            layout.addComponent(scheduleComponentField);
+			buildCollectionsPanel();
 
-            layout.addComponent(new Label("<hr />", ContentMode.HTML));
-
-            buildCollectionsPanel();
 			layout.addComponent(collectionsComponent);
 
-            String user = ldapUserSyncConfiguration.getUser();
-            userField = createStringField(user, true);
-            userField.setCaption($("ldap.syncConfiguration.user.login"));
-            layout.addComponent(userField);
+			String user = ldapUserSyncConfiguration.getUser();
+			userField = createStringField(user, true);
+			userField.setCaption($("ldap.syncConfiguration.user.login"));
+			layout.addComponent(userField);
+			String password = ldapUserSyncConfiguration.getPassword();
+			passwordField = new PasswordField(
+					$("ldap.syncConfiguration.user.password"));//PasswordField($("ldap.syncConfiguration.user.password"));
+			passwordField.setValue(password);
+			passwordField.setRequired(true);
+			layout.addComponent(passwordField);
 
-            String password = ldapUserSyncConfiguration.getPassword();
-            passwordField = new PasswordField($("ldap.syncConfiguration.user.password"));
-            passwordField.setValue(password);
-            passwordField.setRequired(true);
-            layout.addComponent(passwordField);
+			layout.addComponent(new Label("<hr />", ContentMode.HTML));
 
-            layout.addComponent(new Label("<hr />", ContentMode.HTML));
-
-            List<String> groups = ldapUserSyncConfiguration.getGroupBaseContextList();
+			List<String> groups = ldapUserSyncConfiguration.getGroupBaseContextList();
 			groupsField = new StringListComponent();
 			groupsField.setCaption($("ldap.syncConfiguration.groupsBaseContextList"));
 			groupsField.setValues(groups);
 			layout.addComponent(groupsField);
 
-            buildGroupsAcceptRegex(ldapUserSyncConfiguration);
-            layout.addComponent(groupsAcceptanceRegexField);
+			buildGroupsAcceptRegex(ldapUserSyncConfiguration);
+			layout.addComponent(groupsAcceptanceRegexField);
+			buildGroupsRejectRegex(ldapUserSyncConfiguration);
+			layout.addComponent(groupsRejectionRegexField);
+			layout.addComponent(new Label("<hr />", ContentMode.HTML));
 
-            buildGroupsRejectRegex(ldapUserSyncConfiguration);
-            layout.addComponent(groupsRejectionRegexField);
-
-            layout.addComponent(new Label("<hr />", ContentMode.HTML));
-
-            List<String> users = ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList();
-            usersField = new StringListComponent();
-            usersField.setCaption($("ldap.syncConfiguration.usersWithoutGroupsBaseContextList"));
-            usersField.setValues(users);
-            layout.addComponent(usersField);
-
-            userFilterGroupsField = new StringListComponent();
-            userFilterGroupsField.setCaption($("ldap.syncConfiguration.userFilterGroupsList"));
-            userFilterGroupsField.setValues(ldapUserSyncConfiguration.getUserFilterGroupsList());
-            layout.addComponent(userFilterGroupsField);
-
-            buildUsersAcceptRegex(ldapUserSyncConfiguration);
-            layout.addComponent(usersAcceptanceRegexField);
-
-            buildUsersRejectRegex(ldapUserSyncConfiguration);
-            layout.addComponent(usersRejectionRegexField);
+			List<String> users = ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList();
+			usersField = new StringListComponent();
+			usersField.setCaption($("ldap.syncConfiguration.usersWithoutGroupsBaseContextList"));
+			usersField.setValues(users);
+			layout.addComponent(usersField);
+			userFilterGroupsField = new StringListComponent();
+			userFilterGroupsField.setCaption($("ldap.syncConfiguration.userFilterGroupsList"));
+			userFilterGroupsField.setValues(ldapUserSyncConfiguration.getUserFilterGroupsList());
+			layout.addComponent(userFilterGroupsField);
+			buildUsersAcceptRegex(ldapUserSyncConfiguration);
+			layout.addComponent(usersAcceptanceRegexField);
+			buildUsersRejectRegex(ldapUserSyncConfiguration);
+			layout.addComponent(usersRejectionRegexField);
 
             final boolean membershipAutomaticDerivationActivated = ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated();
             membershipAutomaticDerivationActivatedCheckbox = new CheckBox($("ldap.syncConfiguration.membershipAutomaticDerivationActivated"));
@@ -359,8 +353,8 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			return new LDAPUserSyncConfiguration(
 					notNull(userField), notNull(passwordField),
 					getUserFilter(), getGroupsFilter(),
-                    scheduleComponentField.getPeriod(), scheduleComponentField.getTimeList(), groupsField.getValues(), usersField.getValues(), userFilterGroupsField.getValues(),
-                    membershipAutomaticDerivationActivatedCheckbox.getValue(), selectedCollections());
+					scheduleComponentField.getPeriod(), scheduleComponentField.getTimeList(), groupsField.getValues(), usersField.getValues(),
+					userFilterGroupsField.getValues(),	membershipAutomaticDerivationActivatedCheckbox.getValue(), selectedCollections());
 		}
 	}
 

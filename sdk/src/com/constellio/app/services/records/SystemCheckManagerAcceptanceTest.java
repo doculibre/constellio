@@ -8,9 +8,9 @@ import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTe
 import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage4;
 import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage5;
 import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage6;
-import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
@@ -20,27 +20,40 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.joda.time.LocalDate.now;
 
-import com.constellio.app.modules.rm.DemoTestRecords;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
+import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -236,7 +249,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-
 		givenDisabledAfterTestValidations();
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -250,6 +262,43 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(frenchMessages(systemCheckResults.errors)).contains(
 				"La valeur «Framboise» de la métadonnée «Titre» ne respecte pas le format «AAAA-AAAA»"
 		);
+	}
+
+	@Test
+	public void givenAuthorizationWithInvalidTargetThenDetectedAndFixed()
+			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		User dakotaInZeCollection = userServices.getUserInCollection(dakota, zeCollection);
+
+		Transaction tx = new Transaction();
+		tx.add(schemas.newSolrAuthorizationDetailsWithId("zeInvalidAuth").setTarget("anInvalidRecord").setRoles(asList("R")));
+		tx.add(dakotaInZeCollection.set(Schemas.AUTHORIZATIONS, asList("zeInvalidAuth")));
+		getModelLayerFactory().newRecordServices().execute(tx);
+		assertThat(dakotaInZeCollection.getUserAuthorizations()).containsOnly("zeInvalidAuth");
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(0);
+
+		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
+		assertThat(dakotaInZeCollection.getUserAuthorizations()).isEmpty();
 	}
 
 	@Test
@@ -311,6 +360,148 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
 		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).isEmpty();
+	}
+
+	@Test
+	public void givenDecommissioningListWithInvalidFolderWhenRepairThenFixed()
+			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+		givenDisabledAfterTestValidations();
+
+		DecommissioningList list = records.getList01();
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		Folder zeFolder = rm.newFolderWithId("zeFolder").setTitle("ze title").setOpenDate(date(2016, 1, 1))
+				.setParentFolder(records.folder_A03);
+		getModelLayerFactory().newRecordServices().add(zeFolder);
+		List<DecomListFolderDetail> details = new ArrayList<>(list.getFolderDetails());
+		details.add(new DecomListFolderDetail().setFolderId(zeFolder.getId()));
+		list.setFolderDetails(details);
+		getModelLayerFactory().newRecordServices().update(list);
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(zeFolder.getWrappedRecord(), User.GOD);
+		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById(zeFolder.getId());
+		getModelLayerFactory().newRecordServices().flush();
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 référence un enregistrement inexistant : zeFolder"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"La métadonnée decommissioningList_default_folders de l'enregistrement list01 référence un enregistrement inexistant : zeFolder"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+	}
+
+	@Test
+	public void givenDestructionOrDepositDateIsAfterTransferDateThenProblemFoundAndFixed()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
+
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
+		Transaction transaction = new Transaction();
+
+		//Probleme
+		transaction.add(records.getFolder_A01().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
+				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
+
+		//Probleme
+		transaction.add(records.getFolder_A02().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
+				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
+
+		//OK
+		transaction.add(records.getFolder_A03().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
+				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
+
+		//Probleme
+		transaction.add(records.getFolder_A04().setManualArchivisticStatus(FolderStatus.ACTIVE)
+				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
+
+		//Probleme
+		transaction.add(records.getFolder_A05().setManualArchivisticStatus(FolderStatus.ACTIVE)
+				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
+
+		//OK
+		transaction.add(records.getFolder_A06().setManualArchivisticStatus(FolderStatus.ACTIVE)
+				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"Dossier A01-Abeille : Date de destruction avant la date de transfert",
+				"Dossier A02-Aigle : Date de versement avant la date de transfert",
+				"Dossier A04-Baleine : Date de destruction avant la date de transfert",
+				"Dossier A05-Belette : Date de versement avant la date de transfert"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"Dossier A01-Abeille : Date de destruction avant la date de transfert",
+				"Dossier A02-Aigle : Date de versement avant la date de transfert",
+				"Dossier A04-Baleine : Date de destruction avant la date de transfert",
+				"Dossier A05-Belette : Date de versement avant la date de transfert"
+		);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+	}
+
+	@Test
+	public void givenOldFloatingRobotActionsWhenDiagnoseAndRepairThenRemoved()
+			throws Exception {
+
+		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule()
+				.withAllTestUsers().withRMTest(records).withFoldersAndContainersOfEveryStatus());
+
+		RobotSchemaRecordServices robotsSchemas = new RobotSchemaRecordServices(zeCollection, getAppLayerFactory());
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Robot robot = robotsSchemas.newRobot().setCode("Term").setTitle("Inator");
+		Transaction tx = new Transaction();
+		tx.add(robot.setSchemaFilter(es.connectorSmbFolder.schemaType().getCode()));
+		tx.add(robotsSchemas.newActionParameters());
+		tx.add(robotsSchemas.newActionParameters());
+		String parameter = tx.add(robotsSchemas.newActionParameters()).getId();
+		robot.setActionParameters(parameter);
+		robot.setSearchCriterion(new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+				.where(es.connectorSmbFolder.url()).isContainingText("sharepoint://"));
+
+		getModelLayerFactory().newRecordServices().execute(tx);
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(robotsSchemas.actionParameters.schemaType()).returnAll());
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(3);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(3);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
+
+		systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
+
 	}
 
 	private static enum RecordStatus {ACTIVE, LOGICALLY_DELETED, DELETED}

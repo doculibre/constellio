@@ -1,7 +1,7 @@
 package com.constellio.app.ui.framework.data;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 
-public class RecordTextInputDataProvider implements TextInputDataProvider<String> {
+public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 	private transient int lastStartIndex;
 	private transient String lastQuery;
@@ -67,8 +67,7 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCode);
 			typesByCode.add(type);
 		} else {
-			SchemaUtils schemaUtils = new SchemaUtils();
-			String schemaTypeCodeFromSchema = schemaUtils.getSchemaTypeCode(schemaCode);
+			String schemaTypeCodeFromSchema = SchemaUtils.getSchemaTypeCode(schemaCode);
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCodeFromSchema);
 			typesByCode.add(type);
 		}
@@ -125,6 +124,8 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 		LogicalSearchCondition condition;
 
+		Metadata sort = null;
+
 		if (schemaTypeCode != null) {
 
 			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
@@ -133,7 +134,14 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
 			} else {
+				String caption = $("caption." + type.getCode() + ".record");
+
 				condition = from(type).returnAll();
+				if (caption != null && caption.startsWith("{code}")) {
+					sort = Schemas.CODE;
+				} else {
+					sort = Schemas.TITLE;
+				}
 			}
 		} else {
 
@@ -156,6 +164,11 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);
+
+		if (sort != null) {
+			query.sortAsc(sort);
+		}
+
 		if (security) {
 			if (writeAccess) {
 				query.filteredWithUserWrite(user);

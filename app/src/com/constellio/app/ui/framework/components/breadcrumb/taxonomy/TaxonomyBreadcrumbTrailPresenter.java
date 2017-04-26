@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.components.breadcrumb.taxonomy;
 
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -15,7 +17,6 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyPresentersService;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -50,8 +51,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 		breadcrumbItems.add(new TaxonomyRootBreadcrumbItem());
 
-		String[] pathParts = ((String) taxonomyPresenterUtils.getRecord(conceptId).getList(Schemas.PARENT_PATH).get(0))
-				.split("/");
+		String[] pathParts = ((String) parentPaths(taxonomyPresenterUtils.getRecord(conceptId)).get(0)).split("/");
 		for (int i = 0; i < pathParts.length; i++) {
 			String pathPart = pathParts[i];
 			if (!taxonomyCode.equals(pathPart) && StringUtils.isNotBlank(pathPart)) {
@@ -59,6 +59,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 			}
 		}
 		breadcrumbItems.add(new TaxonomyBreadcrumbItem(conceptId));
+
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}
@@ -80,15 +81,19 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 		taxonomyPresenterUtils = new SchemaPresenterUtils(schema, constellioFactories, sessionContext);
 	}
 
-	public void itemClicked(BreadcrumbItem item) {
+	public boolean itemClicked(BreadcrumbItem item) {
+		boolean handled;
 		if (item instanceof TaxonomyBreadcrumbItem) {
+			handled = true;
 			String conceptId = ((TaxonomyBreadcrumbItem) item).getConceptId();
-			breadcrumbTrail.navigateTo().taxonomyManagement(taxonomyCode, conceptId);
+			breadcrumbTrail.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 		} else if (item instanceof TaxonomyRootBreadcrumbItem) {
-			breadcrumbTrail.navigateTo().taxonomyManagement(taxonomyCode);
+			handled = true;
+			breadcrumbTrail.navigate().to().taxonomyManagement(taxonomyCode);
 		} else {
-			throw new IllegalArgumentException("Unrecognized item type : " + item.getClass());
+			handled = false;
 		}
+		return handled;
 	}
 
 	class TaxonomyBreadcrumbItem implements BreadcrumbItem {

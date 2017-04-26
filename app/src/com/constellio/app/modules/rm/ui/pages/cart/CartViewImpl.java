@@ -1,29 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.components.ReportSelector;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -39,10 +25,22 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.data.Container;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.ui.*;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 	private final CartPresenter presenter;
@@ -105,18 +103,29 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildLabelsButton(final String schemaType) {
-		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
-				return presenter.getTemplates(schemaType);
+				return presenter.getCustomTemplates(schemaType);
+			}
+		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates(schemaType);
 			}
 		};
 		LabelsButton labelsButton = new LabelsButton(
 				$("SearchView.labels"),
 				$("SearchView.printLabels"),
-				new LabelsRecordSelectorImpl(schemaType),
-				labelTemplatesFactory,
-				presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
+				customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory,
+				getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection(),
+				Folder.SCHEMA_TYPE,
+				presenter.getRecordsIds(Folder.SCHEMA_TYPE),
+				getSessionContext().getCurrentUser().getUsername()
+		);
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
 		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
 		return labelsButton;
@@ -128,8 +137,14 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return batchProcessingButton;
 	}
 
-	private Button buildBatchProcessingButton(String schemaType) {
-		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
+	private Button buildBatchProcessingButton(final String schemaType) {
+		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType)) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.setBatchProcessSchemaType(schemaType);
+				super.buttonClick(event);
+			}
+		};
 		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
 		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
 		return button;
@@ -224,6 +239,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 						showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
 					} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
 						showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
+					} else if (presenter.isAnyFolderBorrowed()) {
+						showErrorMessage($("CartView.aFolderIsBorrowed"));
 					} else {
 						super.buttonClick(event);
 					}
@@ -436,7 +453,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -454,6 +471,16 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return currentSchemaType;
 	}
 
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
+	}
+
 	private class BatchProcessingViewImpl implements BatchProcessingView {
 		private final String schemaType;
 
@@ -464,6 +491,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		@Override
 		public List<String> getSelectedRecordIds() {
 			return presenter.getRecordsIds(schemaType);
+		}
+
+		@Override
+		public List<String> getUnselectedRecordIds() {
+			return null;
 		}
 
 		@Override
@@ -499,4 +531,5 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			return presenter.getRecordsIds(schemaType);
 		}
 	}
+	
 }

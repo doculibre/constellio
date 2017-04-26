@@ -1,26 +1,22 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedFactories;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "schemaType_default_zeField";

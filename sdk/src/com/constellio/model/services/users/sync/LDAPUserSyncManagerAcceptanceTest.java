@@ -329,7 +329,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 		List<String> usersAutomaticallyAddedToCollections = Collections.emptyList();
 		userServices.addUpdateGlobalGroup(userServices.createGlobalGroup(
-				groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE, true));
+				groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE, false));
 		bfay = bfay.withGlobalGroups(asList(groupA, groupB));
 		userServices.addUpdateUserCredential(bfay);
 		currentGroups = bfay.getGlobalGroups();

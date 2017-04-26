@@ -5,12 +5,14 @@ import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARS
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.join;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hwpf.HWPFDocument;
@@ -49,6 +51,36 @@ import com.constellio.model.services.parser.FileParserException.FileParserExcept
 import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
 
 public class FileParser {
+
+	enum StringCompressor {
+		;
+
+		public static byte[] compress(String text) {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try {
+				OutputStream out = new DeflaterOutputStream(baos);
+				out.write(text.getBytes("UTF-8"));
+				out.close();
+			} catch (IOException e) {
+				throw new AssertionError(e);
+			}
+			return baos.toByteArray();
+		}
+
+		public static String decompress(byte[] bytes) {
+			InputStream in = new InflaterInputStream(new ByteArrayInputStream(bytes));
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try {
+				byte[] buffer = new byte[8192];
+				int len;
+				while ((len = in.read(buffer)) > 0)
+					baos.write(buffer, 0, len);
+				return new String(baos.toByteArray(), "UTF-8");
+			} catch (IOException e) {
+				throw new AssertionError(e);
+			}
+		}
+	}
 
 	private static final String MS_DOC_MIMETYPE = "application/msword";
 	private static final String MS_DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -92,12 +124,96 @@ public class FileParser {
 		}
 	}
 
-	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
-			throws FileParserException {
+	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage) throws FileParserException {
+
+		Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
+		Pattern patternForSpaceAndReturn = Pattern.compile("((\\n{3,})|( ){2,})|(\\t)");
+		Pattern patternForCharWeDontWant = Pattern.compile("[\\[\\]\\(\\)]");
+		Pattern patternForSingleCharLine = Pattern.compile("^([\\w]){1}\\n$");
 
 		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
 				.getValue(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS);
-		if (length > 1024 * 1024 * contentMaxLengthForParsingInMegaoctets) {
+		if (length > 1024L * 1024 * contentMaxLengthForParsingInMegaoctets) {
+			String detectedMimeType = null;
+			if (inputStreamFactory instanceof StreamFactoryWithFilename) {
+				String filename = ((StreamFactoryWithFilename) inputStreamFactory).getFilename();
+				if (filename != null) {
+					detectedMimeType = new Tika().detect(filename);
+				}
+			}
+
+			throw new FileParserException_FileSizeExceedLimitForParsing(contentMaxLengthForParsingInMegaoctets, detectedMimeType);
+		}
+
+		int maxParsedContentLengthInKO = systemConfigurationsManager.getValue(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS);
+		BodyContentHandler handler = new BodyContentHandler(maxParsedContentLengthInKO * 1000);
+		Metadata metadata = new Metadata();
+
+		InputStream inputStream = null;
+		try {
+			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
+			if (forkParserEnabled) {
+				ForkParser forkParser = parsers.getForkParser();
+				forkParser.parse(inputStream, handler, metadata, new ParseContext());
+			} else {
+
+				AutoDetectParser parser = autoDetectParsers.get();
+
+				if (parser == null) {
+					autoDetectParsers.set(parser = newAutoDetectParser());
+				}
+				parser.parse(inputStream, handler, metadata);
+			}
+
+		} catch (Throwable t) {
+			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException")) {
+				String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
+				throw new FileParserException_CannotParse(t, detectedMimetype);
+			}
+
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
+
+		String type = metadata.get(Metadata.CONTENT_TYPE);
+		String parsedContent = handler.toString().trim();
+		parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
+		parsedContent = patternForSpaceAndReturn.matcher(parsedContent).replaceAll("");
+		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
+		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
+		Map<String, List<String>> styles = null;
+		try {
+			styles = getStylesDoc(inputStreamFactory, type);
+		} catch (Throwable t) {
+			throw new FileParserException_CannotExtractStyles(t, type);
+		}
+		return new ParsedContent(parsedContent, language, type, length, properties, styles);
+
+	}
+
+	public ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length)
+			throws FileParserException {
+		return parseWithoutBeautifying(inputStreamFactory, length, true);
+	}
+
+	public ParsedContent parseWithoutBeautifying(InputStream inputStream, boolean detectLanguage)
+			throws FileParserException {
+
+		CopyInputStreamFactory inputStreamFactory = null;
+		try {
+			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream, null);
+			return parseWithoutBeautifying(inputStreamFactory, inputStreamFactory.length(), detectLanguage);
+		} finally {
+			ioServices.closeQuietly(inputStream);
+			ioServices.closeQuietly(inputStreamFactory);
+		}
+	}
+
+	public ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage) throws FileParserException {
+
+		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
+				.getValue(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS);
+		if (length > 1024L * 1024 * contentMaxLengthForParsingInMegaoctets) {
 			String detectedMimeType = null;
 			if (inputStreamFactory instanceof StreamFactoryWithFilename) {
 				String filename = ((StreamFactoryWithFilename) inputStreamFactory).getFilename();
@@ -149,7 +265,6 @@ public class FileParser {
 			throw new FileParserException_CannotExtractStyles(t, type);
 		}
 		return new ParsedContent(parsedContent, language, type, length, properties, styles);
-
 	}
 
 	Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {

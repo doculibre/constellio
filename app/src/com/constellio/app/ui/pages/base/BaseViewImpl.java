@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -18,6 +8,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -25,16 +16,19 @@ import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView, PollListener {
@@ -53,6 +47,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private Component mainComponent;
 	private Component actionMenu;
+	private List<Button> actionMenuButtons;
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
 	
@@ -117,7 +112,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		titleBackButtonLayout.setWidth("100%");
 
 		String title = getTitle();
-		if (title != null) {
+		if (breadcrumbTrail == null && title != null) {
+			breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
+		} else if (title != null) {
 			titleLabel = new Label(title);
 			titleLabel.addStyleName(ValoTheme.LABEL_H1);
 		}
@@ -143,9 +140,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		mainComponent = buildMainComponent(event);
 		mainComponent.addStyleName("main-component");
 
-		if (titleLabel != null || backButton.isVisible()) {
+//		if (titleLabel != null || backButton.isVisible()) {
 			addComponent(titleBackButtonLayout);
-		}
+//		}
 
 		if (breadcrumbTrail != null) {
 			addComponent(breadcrumbTrail);
@@ -279,7 +276,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	 */
 	protected Component buildActionMenu(ViewChangeEvent event) {
 		VerticalLayout actionMenuLayout;
-		List<Button> actionMenuButtons = buildActionMenuButtons(event);
+		actionMenuButtons = buildActionMenuButtons(event);
 		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
 			actionMenuLayout = null;
 		} else {
@@ -373,4 +370,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	protected abstract Component buildMainComponent(ViewChangeEvent event);
 
+	public List<Button> getActionMenuButtons() {
+		return actionMenuButtons;
+	}
 }

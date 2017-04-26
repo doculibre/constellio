@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.vaadin.server.Resource;
 
 public class DownloadContentVersionLink extends DownloadLink {
+	
 	public static final String STYLE_NAME = "download-content-version-link";
 
 	public DownloadContentVersionLink(ContentVersionVO contentVersionVO) {

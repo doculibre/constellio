@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +23,6 @@ import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -157,8 +157,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 				.withPaths("/taxo_taxo1", "/taxo_taxo2");
 	}
 
-	//Security is broken, so CMIS services are restricted
-	//@Test
+	@Test
 	public void whenGettingChildrenThenOnlyAllowedChildrenReturned()
 			throws Exception {
 
@@ -169,11 +168,11 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 		cmisSession = givenBobSessionOnZeCollection();
 		Authorization bobAuth = addAuthorizationWithoutDetaching(asList(Role.READ),
 				asList(users.bobIn(zeCollection).getId()),
-				asList(zeCollectionRecords.folder2.getId()));
+				zeCollectionRecords.folder2.getId());
 
 		waitForBatchProcess();
 		recordServices.refresh(folder2_2);
-		authorizationsServices.removeAuthorizationOnRecord(bobAuth, folder2_2, KEEP_ATTACHED);
+		authorizationsServices.execute(modifyAuthorizationOnRecord(bobAuth, folder2_2).removingItOnRecord());
 		waitForBatchProcess();
 
 		recordServices.refresh(folder2_2);
@@ -234,13 +233,11 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+			String grantedOnRecord) {
 
-		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
-
-		authorizationsServices.add(authorization, KEEP_ATTACHED, null);
-		return authorization;
+		String id = getModelLayerFactory().newAuthorizationsServices().add(authorizationInCollection(zeCollection)
+				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecord).giving(roles));
+		return getModelLayerFactory().newAuthorizationsServices().getAuthorization(zeCollection, id);
 	}
 
 }

@@ -174,4 +174,9 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	public String generateToken(String username, String unitTime, int duration) {
 		return userServices.generateToken(username, unitTime, duration);
 	}
+
+	public boolean userNotLDAPSynced(String username) {
+		UserCredential userCredential = userServices.getUserCredential(username);
+		return userCredential.getDn() == null && userServices.has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
+	}
 }

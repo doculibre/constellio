@@ -25,11 +25,20 @@ public class RobotBreadcrumbTrailPresenter implements Serializable {
 			boolean current = robotId.equals(id);
 			trail.addItem(new RobotBreadcrumbItem(id, caption, !current));
 		}
+		
 		return this;
 	}
 
-	public void itemClicked(RobotBreadcrumbItem item) {
-		trail.navigate().to(RobotViews.class).robotConfiguration(item.getId());
+	public boolean itemClicked(BreadcrumbItem item) {
+		boolean handled;
+		if (item instanceof RobotBreadcrumbItem) {
+			handled = true;
+			RobotBreadcrumbItem robotBreadcrumbItem = (RobotBreadcrumbItem) item;
+			trail.navigate().to(RobotViews.class).robotConfiguration(robotBreadcrumbItem.getId());
+		} else {
+			handled = false;
+		}
+		return handled;
 	}
 
 	private RobotsService service() {

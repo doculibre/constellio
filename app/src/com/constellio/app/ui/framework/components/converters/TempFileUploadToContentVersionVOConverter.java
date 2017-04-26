@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +13,8 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.vaadin.data.util.converter.Converter;
 
 public class TempFileUploadToContentVersionVOConverter implements Converter<Object, Object> {
@@ -62,26 +65,38 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 		String fileName = tempFileUpload.getFileName();
 		String mimeType = tempFileUpload.getMimeType();
 		long length = tempFileUpload.getLength();
-		InputStreamProvider inputStreamProvider = new InputStreamProvider() {
-			@Override
-			public InputStream getInputStream(String streamName) {
-				IOServices ioServices = ConstellioFactories.getInstance().getIoServicesFactory().newIOServices();
-				try {
-					return ioServices.newFileInputStream(tempFileUpload.getTempFile(), streamName);
-				} catch (FileNotFoundException e) {
-					return null;
+		
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		IOServices ioServices = constellioFactories.getIoServicesFactory().newIOServices();
+		ContentManager contentManager = constellioFactories.getModelLayerFactory().getContentManager();
+		
+		File tempFile = tempFileUpload.getTempFile();
+		try {
+			InputStream tempFileIn = ioServices.newFileInputStream(tempFile, "TempFileUploadToContentVersionVOConverter.toContentVO");
+			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(tempFileIn, fileName);
+			ioServices.closeQuietly(tempFileIn);
+			final String hash = contentVersionDataSummary.getHash();
+			InputStreamProvider inputStreamProvider = new InputStreamProvider() {
+				@Override
+				public InputStream getInputStream(String streamName) {
+					ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+					ContentManager contentManager = constellioFactories.getModelLayerFactory().getContentManager();
+					return contentManager.getContentInputStream(hash, streamName);
 				}
-			}
 
-			@Override
-			public void deleteTemp() {
-				tempFileUpload.delete();
-			}
-		};
-		return tempFileUpload != null ?
-				new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, null,
-						inputStreamProvider) :
-				null;
+				@Override
+				public void deleteTemp() {
+				}
+			};
+			return tempFileUpload != null ?
+					new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, null,
+							inputStreamProvider) :
+					null;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			tempFileUpload.delete();
+		}
 	}
 
 }

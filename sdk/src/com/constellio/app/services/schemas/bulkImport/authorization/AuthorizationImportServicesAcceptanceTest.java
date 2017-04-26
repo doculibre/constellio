@@ -8,7 +8,7 @@ import static com.constellio.app.services.schemas.bulkImport.authorization.Autho
 import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_TARGET_TYPE;
 import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.USE_ROLE_OR_ACCESS;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -29,8 +29,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -74,18 +72,9 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 		importServices = new AuthorizationImportServices();
 
 		initTestData();
-		initExistingAuthorizations();
-
-	}
-
-	private void initExistingAuthorizations() {
 		existingAuthorizationToUpdate = grantReadForAliceOnFolderA01(existingAuthorizationToUpdateId);
-		authorizationsServices.add(existingAuthorizationToUpdate, null);
-		authorizationsServices.getAuthorization(zeCollection, existingAuthorizationToUpdate.getDetail().getId());
-
 		existingAuthorizationToDelete = grantReadForAliceOnFolderA01(existingAuthorizationToDeleteId);
-		authorizationsServices.add(existingAuthorizationToDelete, null);
-		authorizationsServices.getAuthorization(zeCollection, existingAuthorizationToDelete.getDetail().getId());
+
 	}
 
 	private void initTestData()
@@ -104,10 +93,11 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private Authorization grantReadForAliceOnFolderA01(String authorizationId) {
-		User alice = users.aliceIn(zeCollection);
-		Folder folderA01 = records.getFolder_A01();
-		return new Authorization(AuthorizationDetails.create(authorizationId, asList(Role.READ), zeCollection),
-				asList(alice.getId()), asList(folderA01.getId()));
+
+		authorizationId = authorizationsServices.add(authorizationInCollectionWithId(zeCollection, authorizationId)
+				.forUsers(users.aliceIn(zeCollection)).on(records.getFolder_A01()).givingReadAccess());
+
+		return authorizationsServices.getAuthorization(zeCollection, authorizationId);
 	}
 
 	@Test
@@ -152,16 +142,6 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 				.get("newInvalidAuthorizationWithInvalidRole");
 		assertThat(newInvalidAuthorizationWithInvalidRole.getErrorMessage()).isEqualTo($(INVALID_ROLE));
 
-		validateNewAuthorization();
-	}
-
-	private void validateNewAuthorization() {
-		String newValidAuthorizationId = authorizationsServices.getAuthorizationIdByIdWithoutPrefix(zeCollection,
-				"newValidAuthorization");
-		Authorization newValidAuthorization = authorizationsServices.getAuthorization(zeCollection, newValidAuthorizationId);
-		assertThat(newValidAuthorization.getDetail().getRoles()).containsExactly("u", "m", "rgd");
-		assertThat(newValidAuthorization.getGrantedToPrincipals()).containsOnly(alice.getId(), heroes.getId());
-		assertThat(newValidAuthorization.getGrantedOnRecords()).containsOnly(documentHavingLegacyId.getId());
 	}
 
 	private Map<String, ImportError> getErrorsMap(List<ImportError> importErrors) {

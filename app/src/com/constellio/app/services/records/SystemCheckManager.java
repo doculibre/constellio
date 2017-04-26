@@ -2,20 +2,23 @@ package com.constellio.app.services.records;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.records.SystemCheckManagerRuntimeException.SystemCheckManagerRuntimeException_AlreadyRunning;
 import com.constellio.data.dao.managers.StatefulService;
@@ -28,6 +31,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -42,22 +46,27 @@ public class SystemCheckManager implements StatefulService {
 	private SystemCheckResults lastSystemCheckResults;
 
 	private AppLayerFactory appLayerFactory;
+	private ModelLayerFactory modelLayerFactory;
 	private CollectionsListManager collectionsListManager;
 	private MetadataSchemasManager schemasManager;
 	private SearchServices searchServices;
 	private UserServices userServices;
 	private RecordServices recordServices;
+	private AuthorizationsServices authServices;
 
 	static final String CHECKED_REFERENCES_METRIC = "core.checkedReferences";
 	static final String BROKEN_REFERENCES_METRIC = "core.brokenReferences";
+	static final String BROKEN_AUTHS_METRIC = "core.brokenAuths";
 
 	public SystemCheckManager(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
-		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-		this.collectionsListManager = appLayerFactory.getModelLayerFactory().getCollectionsListManager();
-		this.schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
-		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.userServices = modelLayerFactory.newUserServices();
+		this.recordServices = modelLayerFactory.newRecordServices();
+		this.authServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public synchronized void startSystemCheck(final boolean repair) {
@@ -96,6 +105,10 @@ public class SystemCheckManager implements StatefulService {
 		Language language = Language.withCode(appLayerFactory.getModelLayerFactory().getConfiguration().getMainDataLanguage());
 		SystemCheckResultsBuilder builder = new SystemCheckResultsBuilder(language, appLayerFactory, lastSystemCheckResults);
 
+		Set<String> allRecordIds = new HashSet<>();
+
+		Map<String, String> allAuthsIdsWithTarget = getAllAuthsIds();
+
 		for (String collection : collectionsListManager.getCollections()) {
 			for (MetadataSchemaType type : schemasManager.getSchemaTypes(collection).getSchemaTypes()) {
 				List<Metadata> references = type.getAllMetadatas().onlyWithType(REFERENCE);
@@ -103,6 +116,7 @@ public class SystemCheckManager implements StatefulService {
 				Iterator<Record> allRecords = searchServices.recordsIterator(query, 10000);
 				while (allRecords.hasNext()) {
 					Record record = allRecords.next();
+					allRecordIds.add(record.getId());
 					boolean recordsRepaired = findBrokenLinksInRecord(ids, references, record, repair, builder);
 					try {
 						recordServices.validateRecord(record);
@@ -133,13 +147,39 @@ public class SystemCheckManager implements StatefulService {
 			}
 		}
 
-		for (String collection : appLayerFactory.getModelLayerFactory().getCollectionsListManager()
-				.getCollectionsExcludingSystem()) {
+		for(Map.Entry<String, String> entry : allAuthsIdsWithTarget.entrySet()) {
+			if (!allRecordIds.contains(entry.getValue())) {
+				builder.incrementMetric(BROKEN_AUTHS_METRIC);
+				if (repair) {
+
+					Record record = recordServices.getDocumentById(entry.getKey());
+					authServices.execute(authorizationDeleteRequest(entry.getKey(), record.getCollection()));
+				}
+			}
+		}
+
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			CollectionSystemCheckParams params = new CollectionSystemCheckParams(collection, builder, repair);
 			appLayerFactory.getExtensions().forCollection(collection).checkCollection(params);
 		}
 
 		return getLastSystemCheckResults();
+	}
+
+	private Map<String, String> getAllAuthsIds() {
+		Map<String, String> authsIds = new HashMap<>();
+
+		for(String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+			Iterator<Record> authsIterator = searchServices.recordsIterator(new LogicalSearchQuery(
+					from(schemas.authorizationDetails.schemaType()).returnAll()), 10000);
+			while(authsIterator.hasNext()) {
+				SolrAuthorizationDetails auth = schemas.wrapSolrAuthorizationDetails(authsIterator.next());
+				authsIds.put(auth.getId(), auth.getTarget());
+			}
+		}
+
+		return authsIds;
 	}
 
 	private boolean findBrokenLinksInRecord(Map<String, String> ids, List<Metadata> references,
@@ -162,6 +202,14 @@ public class SystemCheckManager implements StatefulService {
 				if (repair && reference.getDataEntry().getType() == MANUAL && values.size() != modifiedValues.size()) {
 					record.set(reference, modifiedValues);
 					recordRepaired = true;
+				}
+
+				if (repair && reference.getDataEntry().getType() != MANUAL && values.size() != modifiedValues.size()) {
+					List<String> valuesToRemove = new ArrayList<>(values);
+					valuesToRemove.removeAll(modifiedValues);
+
+					recordRepaired = appLayerFactory.getExtensions().forCollectionOf(record).tryRepairAutomaticValue(
+							new TryRepairAutomaticValueParams(record, reference, values, valuesToRemove));
 				}
 
 			} else {

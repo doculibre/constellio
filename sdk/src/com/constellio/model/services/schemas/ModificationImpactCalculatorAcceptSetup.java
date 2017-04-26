@@ -1,9 +1,13 @@
 package com.constellio.model.services.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.sdk.tests.TestUtils.asList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,10 +15,14 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 
 public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
@@ -39,7 +47,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 				"referenceToZeSchema").defineReferencesTo(zeSchemaTypeBuilder);
 
 		anOtherDefaultSchemaBuilder.create("calculatedNumberMetadata")
-				.setType(MetadataValueType.NUMBER).defineDataEntry()
+				.setType(NUMBER).defineDataEntry()
 				.asCalculated(CalculatorUsingZeSchemaStringMetadata.class);
 
 		aThirdSchemaTypeBuilder.getDefaultSchema().create("copiedDate")
@@ -53,6 +61,34 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 		anOtherDefaultSchemaBuilder.create("copiedDateMetadata").setType(DATE_TIME).defineDataEntry()
 				.asCopied(anotherSchemaReference2ToZeSchema, dateMetadata);
+
+		return this;
+	}
+
+	public ModificationImpactCalculatorAcceptSetup withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency mode)
+			throws Exception {
+
+		withAReferenceFromAnotherSchemaToZeSchema();
+
+		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(mode)
+				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
+
+		anOtherSchemaTypeBuilder.getDefaultSchema().create("copiedTitleLength").setType(NUMBER).defineDataEntry().asCopied(
+				anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema"), titleLength);
+
+		return this;
+	}
+
+	public ModificationImpactCalculatorAcceptSetup withComputedTitleSizeCalculatedInAnotherSchema(MetadataTransiency mode)
+			throws Exception {
+
+		withAReferenceFromAnotherSchemaToZeSchema();
+
+		zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).defineDataEntry().asCalculated(TitleLengthCalculator.class)
+				.setTransiency(mode);
+
+		anOtherSchemaTypeBuilder.getDefaultSchema().create("calculatedTitleLength").setType(NUMBER).defineDataEntry()
+				.asCalculated(CalculatorCopyingZeSchemaTitleLengthPlusTwo.class);
 
 		return this;
 	}
@@ -72,6 +108,76 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		Taxonomy taxonomy = Taxonomy.createPublic("myTaxonomy", "myTaxonomy", "zeCollection", taxonomySchemaTypes);
 		taxonomies = Arrays.asList(taxonomy);
 		return this;
+
+	}
+
+	public static class CalculatorCopyingZeSchemaTitleLengthPlusTwo implements MetadataValueCalculator<Double>
+
+	{
+
+		ReferenceDependency<Double> reference = ReferenceDependency
+				.toANumber("referenceFromAnotherSchemaToZeSchema", "titleLength").whichIsRequired();
+
+		@Override
+		public Double calculate(CalculatorParameters parameters) {
+			Double parameter = parameters.get(reference);
+			return parameter + 2;
+		}
+
+		@Override
+		public Double getDefaultValue() {
+			return 2.0;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return NUMBER;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(reference);
+		}
+
+	}
+
+	public static class CalculatorCopyingZeSchemaTitleLengths implements MetadataValueCalculator<List<Double>>
+
+	{
+
+		ReferenceDependency<List<Double>> reference = ReferenceDependency
+				.toANumber("referenceFromAnotherSchemaToZeSchema", "titleLength").whichIsRequired().whichIsMultivalue();
+
+		@Override
+		public List<Double> calculate(CalculatorParameters parameters) {
+			List<Double> parameter = parameters.get(reference);
+			return parameter;
+		}
+
+		@Override
+		public List<Double> getDefaultValue() {
+			return new ArrayList<>();
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return NUMBER;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return true;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(reference);
+		}
 
 	}
 
@@ -95,7 +201,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 		@Override
 		public MetadataValueType getReturnType() {
-			return MetadataValueType.NUMBER;
+			return NUMBER;
 		}
 
 		@Override
@@ -110,6 +216,56 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
+	public SchemasSetup withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(
+			MetadataTransiency transiency) {
+
+		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING);
+		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setTransiency(TRANSIENT_LAZY)
+				.defineDataEntry().asCalculated(ZeReferenceToZeSchemaCalculator.class);
+
+		return this;
+	}
+
+	public SchemasSetup withTransientMultivalueReferenceUsedByCopiedMetadata(
+			MetadataTransiency transiency)
+			throws Exception {
+
+		withAReferenceFromAnotherSchemaToZeSchema();
+
+		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(transiency)
+				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
+
+		anOtherSchemaTypeBuilder.getDefaultSchema().create("copiedTitleLength").setType(NUMBER).setMultivalue(true)
+				.defineDataEntry()
+				.asCopied(anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema"), titleLength);
+
+		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING).setMultivalue(true);
+		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setMultivalue(true)
+				.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
+
+		return this;
+	}
+
+	public SchemasSetup withTransientMultivalueReferenceUsedByCalculatedMetadata(
+			MetadataTransiency transiency)
+			throws Exception {
+
+		withAReferenceFromAnotherSchemaToZeSchema();
+
+		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(transiency)
+				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
+
+		anOtherSchemaTypeBuilder.getDefaultSchema().create("calculatedTitleLength").setType(NUMBER).setMultivalue(true)
+				.defineDataEntry()
+				.asCalculated(CalculatorCopyingZeSchemaTitleLengths.class);
+
+		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING).setMultivalue(true);
+		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setMultivalue(true)
+				.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
+
+		return this;
+	}
+
 	public class ZeSchemaMetadatas extends TestsSchemasSetup.ZeSchemaMetadatas {
 
 		public Metadata zeSchemaParent() {
@@ -119,6 +275,18 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 	}
 
 	public class AnotherSchemaMetadatas extends TestsSchemasSetup.AnotherSchemaMetadatas {
+
+		public Metadata copiedZeSchemaTitleLength() {
+			return getMetadata(code() + "_copiedTitleLength");
+		}
+
+		public Metadata calculatedZeSchemaTitleLengthPlusTwo() {
+			return getMetadata(code() + "_calculatedTitleLength");
+		}
+
+		public Metadata calculatedZeSchemaTitlesLength() {
+			return getMetadata(code() + "_calculatedTitleLength");
+		}
 
 		public Metadata anotherSchemaParent() {
 			return getMetadata(code() + "_anotherSchemaAnotherSchemaParent");
@@ -161,4 +329,99 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		}
 
 	}
+
+	public static class ZeReferenceToZeSchemaCalculator implements MetadataValueCalculator<String> {
+
+		LocalDependency<String> aStringDependency = LocalDependency.toAString("aString").whichIsRequired();
+
+		@Override
+		public String calculate(CalculatorParameters parameters) {
+			String aString = parameters.get(aStringDependency);
+			return aString;
+		}
+
+		@Override
+		public String getDefaultValue() {
+			return null;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return REFERENCE;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(aStringDependency);
+		}
+	}
+
+	public static class MultivalueZeReferenceToZeSchemaCalculator implements MetadataValueCalculator<List<String>> {
+
+		LocalDependency<List<String>> aStringDependency = LocalDependency.toAString("aString").whichIsRequired()
+				.whichIsMultivalue();
+
+		@Override
+		public List<String> calculate(CalculatorParameters parameters) {
+			List<String> aString = parameters.get(aStringDependency);
+			return aString;
+		}
+
+		@Override
+		public List<String> getDefaultValue() {
+			return null;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return REFERENCE;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return true;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(aStringDependency);
+		}
+	}
+
+	public static class TitleLengthCalculator implements MetadataValueCalculator<Double> {
+
+		LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE_CODE).whichIsRequired();
+
+		@Override
+		public Double calculate(CalculatorParameters parameters) {
+			String title = parameters.get(titleDependency);
+			return Double.valueOf(title.length());
+		}
+
+		@Override
+		public Double getDefaultValue() {
+			return 0.0;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return NUMBER;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(titleDependency);
+		}
+	}
+
 }

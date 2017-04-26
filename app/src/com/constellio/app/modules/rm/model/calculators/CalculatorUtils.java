@@ -14,7 +14,7 @@ public class CalculatorUtils {
 		if (isEndOfYear(date, yearEndStr)) {
 			return date;
 		} else {
-			return toNextEndOfYearDate(date, yearEndStr, requiredDaysBeforeYearEnd);
+			return toNextEndOfYearDate(date, yearEndStr, requiredDaysBeforeYearEnd, false);
 		}
 	}
 
@@ -25,8 +25,8 @@ public class CalculatorUtils {
 		return new LocalDate(year, yearEndMonth, yearEndDay);
 	}
 
-	//FIXME make it private?
-	static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd) {
+	static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd,
+			boolean addDayIfEndOfYear) {
 		if (date == null) {
 			return null;
 		}
@@ -40,7 +40,10 @@ public class CalculatorUtils {
 
 		int daysBetweenDateAndYearEndDate = daysBetween(date, yearEndDate).getDays();
 
-		if (daysBetweenDateAndYearEndDate < requiredDaysBeforeYearEnd) {
+		if (!addDayIfEndOfYear && daysBetweenDateAndYearEndDate == 0) {
+			//Nothing
+
+		} else if (daysBetweenDateAndYearEndDate < requiredDaysBeforeYearEnd) {
 			yearEndDate = yearEndDate.plusYears(1);
 		}
 		return yearEndDate;
@@ -73,7 +76,11 @@ public class CalculatorUtils {
 
 		int numberOfYearWhenVariableDelay = defaultNumberOfYearWhenVariableDelay;
 		if (copyRule.getOpenActiveRetentionPeriod() != null && copyRule.getOpenActiveRetentionPeriod() >= 0) {
-			numberOfYearWhenVariableDelay = copyRule.getOpenActiveRetentionPeriod();
+			if (defaultNumberOfYearWhenVariableDelay == -1) {
+				numberOfYearWhenVariableDelay = copyRule.getOpenActiveRetentionPeriod();
+			} else {
+				numberOfYearWhenVariableDelay = defaultNumberOfYearWhenVariableDelay + copyRule.getOpenActiveRetentionPeriod();
+			}
 		}
 
 		if (adjustedDecommissioningDate == null) {

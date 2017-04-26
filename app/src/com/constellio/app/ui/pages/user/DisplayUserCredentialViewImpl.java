@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.vaadin.shared.ui.label.ContentMode;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -32,6 +31,7 @@ import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -70,6 +70,18 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	private Label emailCaptionLabel;
 	private Label emailDisplayComponent;
+
+	private Label jobTitleCaptionLabel;
+	private Label jobTitleDisplayComponent;
+
+	private Label phoneCaptionLabel;
+	private Label phoneDisplayComponent;
+
+	private Label faxCaptionLabel;
+	private Label faxDisplayComponent;
+
+	private Label addressCaptionLabel;
+	private Label addressDisplayComponent;
 
 	private Label personalEmailsCaptionLabel;
 	private Label personalEmailsDisplayComponent;
@@ -141,10 +153,25 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		emailCaptionLabel.addStyleName("email");
 		emailDisplayComponent = new Label(userCredentialVO.getEmail());
 
-		emailCaptionLabel = new Label($("UserCredentialView.email"));
-		emailCaptionLabel.setId("email");
-		emailCaptionLabel.addStyleName("email");
-		emailDisplayComponent = new Label(userCredentialVO.getEmail());
+		jobTitleCaptionLabel = new Label($("UserCredentialView.jobTitle"));
+		jobTitleCaptionLabel.setId("jobTitle");
+		jobTitleCaptionLabel.addStyleName("jobTitle");
+		jobTitleDisplayComponent = new Label(userCredentialVO.getJobTitle());
+
+		phoneCaptionLabel = new Label($("UserCredentialView.phone"));
+		phoneCaptionLabel.setId("jobTitle");
+		phoneCaptionLabel.addStyleName("jobTitle");
+		phoneDisplayComponent = new Label(userCredentialVO.getPhone());
+
+		faxCaptionLabel = new Label($("UserCredentialView.fax"));
+		faxCaptionLabel.setId("jobTitle");
+		faxCaptionLabel.addStyleName("jobTitle");
+		faxDisplayComponent = new Label(userCredentialVO.getFax());
+
+		addressCaptionLabel = new Label($("UserCredentialView.fax"));
+		addressCaptionLabel.setId("jobTitle");
+		addressCaptionLabel.addStyleName("jobTitle");
+		addressDisplayComponent = new Label(userCredentialVO.getAddress());
 
 		personalEmailsCaptionLabel = new Label($("UserCredentialView.personalEmails"));
 		personalEmailsCaptionLabel.setId("personalEmails");
@@ -167,6 +194,10 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		captionsAndComponents.add(new CaptionAndComponent(firstNameCaptionLabel, firstNameDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(lastNameCaptionLabel, lastNameDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(emailCaptionLabel, emailDisplayComponent));
+		captionsAndComponents.add(new CaptionAndComponent(jobTitleCaptionLabel, jobTitleDisplayComponent));
+		captionsAndComponents.add(new CaptionAndComponent(phoneCaptionLabel, phoneDisplayComponent));
+		captionsAndComponents.add(new CaptionAndComponent(faxCaptionLabel, faxDisplayComponent));
+		captionsAndComponents.add(new CaptionAndComponent(addressCaptionLabel, addressDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(personalEmailsCaptionLabel, personalEmailsDisplayComponent));
 		captionsAndComponents.add(new CaptionAndComponent(collectionsCaptionLabel, collectionsDisplayComponent));
 		userCredentialDisplay = new BaseDisplay(captionsAndComponents);
@@ -215,7 +246,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button addButton = new AddButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -239,7 +270,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 			ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button displayButton = new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -254,7 +285,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -271,7 +302,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				Button deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -309,7 +340,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 			}
 		};
 		actionMenuButtons.add(editButton);
-		if (ADMIN.equals(userCredentialVO.getUsername())) {
+		if (ADMIN.equals(userCredentialVO.getUsername()) || presenter.userNotLDAPSynced(userCredentialVO.getUsername())) {
 			editButton.setEnabled(presenter.canModifyPassword(userCredentialVO.getUsername()));
 		} else {
 			editButton.setEnabled(presenter.canAddOrModify());

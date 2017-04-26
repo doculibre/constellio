@@ -164,6 +164,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
+	public boolean isDeleteButtonVisible(RecordVO entity) {
+		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(entity), getCurrentUser());
+	}
+
+	@Override
 	public void displayWorkflowInstanceRequested(RecordVO recordVO) {
 		view.navigate().to(TaskViews.class).displayWorkflowInstance(recordVO.getId());
 	}
@@ -284,5 +289,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	public boolean areWorkflowsEnabled() {
 		RMConfigs configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		return configs.areWorkflowsEnabled();
+	}
+
+	public boolean hasPermissionToStartWorkflow() {
+		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
 	}
 }

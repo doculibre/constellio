@@ -1,14 +1,5 @@
 package com.constellio.model.services.records.populators;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -20,11 +11,14 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.records.FieldsPopulator;
 import com.constellio.model.services.records.RecordUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -88,8 +82,22 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				List<Content> values = asNotNullList(value);
 				return populateCopyFieldsOfMultivalueSearchableContentMetadata(values, metadata.getLocalCode());
 
+			} else if (metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.DATE)) {
+				List<String> values = asNotNullList(value);
+				return populateCopyFieldsOfMultivalueSearchableDateMetadata(values, metadata.getLocalCode());
+
+			} else if (metadata.isMultivalue() && metadata.getType().isIntegerOrFloatingPoint()) {
+				List<String> values = asNotNullList(value);
+				return populateCopyFieldsOfMultivalueSearchableNumberMetadata(values, metadata.getLocalCode());
+
 			} else if (!metadata.isMultivalue() && metadata.getType().isStringOrText()) {
 				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, copiedMetadataCodePrefix);
+
+			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.DATE)) {
+				return populateCopyFieldsOfSinglevalueSearchableDateMetadata(value, copiedMetadataCodePrefix);
+
+			} else if (!metadata.isMultivalue() && metadata.getType().isIntegerOrFloatingPoint()) {
+				return populateCopyFieldsOfSinglevalueSearchableNumberMetadata("" + value, copiedMetadataCodePrefix);
 
 			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.CONTENT)) {
 				return populateCopyFieldsOfSinglevalueSearchableContentMetadata((Content) value, metadata.getLocalCode());
@@ -176,6 +184,126 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		}
 
 		return copyfields;
+	}
+
+	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableNumberMetadata(String value,
+																					  String copiedMetadataCodePrefix) {
+
+		String prefix = copiedMetadataCodePrefix;
+		String valueLanguage = collectionLanguages.get(0);
+		if(!prefix.endsWith("_")) {
+			prefix += "_";
+		}
+		int index = prefix.lastIndexOf("d_");
+		if(prefix.endsWith("d_")) {
+			prefix = new StringBuilder(prefix).replace(index, index+2,"t_").toString();
+		}
+
+		Map<String, Object> copyfields = new HashMap<>();
+		for (String collectionLanguage : collectionLanguages) {
+			String fieldCode = prefix + collectionLanguage;
+			if (collectionLanguage.equals(valueLanguage) && value != null && !"null".equals(value)) {
+				copyfields.put(fieldCode, Double.parseDouble(value));
+			} else {
+				copyfields.put(fieldCode, "");
+			}
+		}
+
+		return copyfields;
+	}
+
+	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableDateMetadata(Object value,
+																						String copiedMetadataCodePrefix) {
+
+		String prefix = copiedMetadataCodePrefix;
+		String valueLanguage = collectionLanguages.get(0);
+		if(!prefix.endsWith("_")) {
+			prefix += "_";
+		}
+		int index = prefix.lastIndexOf("da_");
+		if(prefix.endsWith("da_")) {
+			prefix = new StringBuilder(prefix).replace(index, index+3,"t_").toString();
+		}
+
+		Map<String, Object> copyfields = new HashMap<>();
+		for (String collectionLanguage : collectionLanguages) {
+			String fieldCode = prefix + collectionLanguage;
+			if (collectionLanguage.equals(valueLanguage) && value != null) {
+				copyfields.put(fieldCode, value);
+			} else {
+				copyfields.put(fieldCode, "");
+			}
+		}
+
+		return copyfields;
+	}
+
+	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableDateMetadata(List<String> values,
+																					   String copiedMetadataCodePrefix) {
+
+		String prefix = copiedMetadataCodePrefix;
+		String valueLanguage = collectionLanguages.get(0);
+		if(!prefix.contains("_")) {
+			prefix += "_txt_";
+		}
+		if(!prefix.endsWith("_")) {
+			prefix += "_";
+		}
+		int index = prefix.lastIndexOf("da_");
+		if(prefix.endsWith("da_")) {
+			prefix = new StringBuilder(prefix).replace(index, index+3,"txt_").toString();
+		}
+
+		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
+		for (Object value : values) {
+			String language = collectionLanguages.get(0);
+			if (language != null && collectionLanguages.contains(language)) {
+				String fieldCode = prefix + language;
+				keyListMap.add(fieldCode, value);
+			}
+		}
+
+		for (String collectionLanguage : collectionLanguages) {
+			String fieldCode = prefix + collectionLanguage;
+			if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
+				keyListMap.add(fieldCode, "");
+			}
+		}
+		return (Map) keyListMap.getNestedMap();
+	}
+
+	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableNumberMetadata(List<String> values,
+																					 String copiedMetadataCodePrefix) {
+
+		String prefix = copiedMetadataCodePrefix;
+		String valueLanguage = collectionLanguages.get(0);
+		if(!prefix.contains("_")) {
+			prefix += "_txt_";
+		}
+		if(!prefix.endsWith("_")) {
+			prefix += "_";
+		}
+		int index = prefix.lastIndexOf("d_");
+		if(prefix.endsWith("d_")) {
+			prefix = new StringBuilder(prefix).replace(index, index+2,"txt_").toString();
+		}
+
+		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
+		for (Object value : values) {
+			String language = collectionLanguages.get(0);
+			if (language != null && collectionLanguages.contains(language)) {
+				String fieldCode = prefix + language;
+				keyListMap.add(fieldCode, Double.parseDouble(String.valueOf(value)));
+			}
+		}
+
+		for (String collectionLanguage : collectionLanguages) {
+			String fieldCode = prefix + collectionLanguage;
+			if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
+				keyListMap.add(fieldCode, "");
+			}
+		}
+		return (Map) keyListMap.getNestedMap();
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableTextMetadata(List<String> values,

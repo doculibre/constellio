@@ -21,6 +21,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -60,6 +61,7 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 	RecordImpl aRecordOfType3WithoutModifiedMetadata;
 	RecordImpl aRecordOfType4WithModifiedMetadataM1;
 
+	@Mock RecordServices recordServices;
 	@Mock Record aRecordOfType5WithoutModifiedMetadata;
 	List<Record> records;
 
@@ -67,7 +69,7 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		builder = new RecordsModificationBuilder();
+		builder = new RecordsModificationBuilder(recordServices);
 
 		defineSchemaTypes();
 

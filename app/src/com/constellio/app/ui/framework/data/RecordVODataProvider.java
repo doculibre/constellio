@@ -25,7 +25,7 @@ import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 @SuppressWarnings("serial")
-public abstract class RecordVODataProvider implements DataProvider {
+public abstract class RecordVODataProvider extends AbstractDataProvider {
 	
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	transient LogicalSearchQuery query;
@@ -34,8 +34,8 @@ public abstract class RecordVODataProvider implements DataProvider {
 	transient MetadataSchemaVO schema;
 	protected transient ModelLayerFactory modelLayerFactory;
 	RecordToVOBuilder voBuilder;
-	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 	SessionContext sessionContext;
+	private int batchSize = 20;
 
 	@Deprecated
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
@@ -74,26 +74,13 @@ public abstract class RecordVODataProvider implements DataProvider {
 		cache = new HashMap<>();
 	}
 
-	public void addDataRefreshListener(DataRefreshListener dataRefreshListener) {
-		this.dataRefreshListeners.add(dataRefreshListener);
-	}
-
-	public List<DataRefreshListener> getDataRefreshListeners() {
-		return dataRefreshListeners;
-	}
-
-	public void removeDataRefreshListener(DataRefreshListener dataRefreshListener) {
-		dataRefreshListeners.remove(dataRefreshListener);
-	}
-
+	@Override
 	public void fireDataRefreshEvent() {
 		query = getQuery();
 		size = null;
 		cache.clear();
 		queryCache.clear();
-		for (DataRefreshListener dataRefreshListener : dataRefreshListeners) {
-			dataRefreshListener.dataRefresh();
-		}
+		super.fireDataRefreshEvent();
 	}
 
 	public MetadataSchemaVO getSchema() {
@@ -104,7 +91,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 		Record record = cache.get(index);
 		if (record == null) {
 			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
-			List<Record> recordList = searchServices.search(query);
+			List<Record> recordList = searchServices.search(query, batchSize);
 			if (!recordList.isEmpty()) {
 				record = recordList.get(index);
 				cache.put(index, record);
@@ -118,7 +105,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	public int size() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 		if (size == null) {
-			size = searchServices.search(query).size();
+			size = searchServices.search(query, batchSize).size();
 		}
 		return size;
 	}
@@ -126,7 +113,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
 		List<RecordVO> recordVOs = new ArrayList<>();
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
-		List<Record> recordList = searchServices.search(query);
+		List<Record> recordList = searchServices.search(query, batchSize);
 		for (int i = startIndex; i < startIndex + numberOfItems && i < recordList.size(); i++) {
 			Record record = recordList.get(i);
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext);
@@ -154,4 +141,8 @@ public abstract class RecordVODataProvider implements DataProvider {
 	}
 
 	protected abstract LogicalSearchQuery getQuery();
+
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
 }

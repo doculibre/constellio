@@ -9,7 +9,7 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class Taxonomy {
+public class Taxonomy implements CollectionObject {
 
 	private final String code;
 
@@ -25,17 +25,19 @@ public class Taxonomy {
 
 	private final String collection;
 
+	private final boolean showParentsInSearchResults;
+
 	public Taxonomy(String code, String title, String collection, String taxonomySchemaType) {
-		this(code, title, collection, false, new ArrayList<String>(), new ArrayList<String>(), asList(taxonomySchemaType));
+		this(code, title, collection, false, new ArrayList<String>(), new ArrayList<String>(), asList(taxonomySchemaType), false);
 	}
 
 	public Taxonomy(String code, String title, String collection, boolean visibleInHomePage,
 			List<String> userIds, List<String> groupIds, String taxonomySchemaType) {
-		this(code, title, collection, visibleInHomePage, userIds, groupIds, asList(taxonomySchemaType));
+		this(code, title, collection, visibleInHomePage, userIds, groupIds, asList(taxonomySchemaType), false);
 	}
 
 	public Taxonomy(String code, String title, String collection, boolean visibleInHomePage,
-			List<String> userIds, List<String> groupIds, List<String> taxonomySchemaTypes) {
+			List<String> userIds, List<String> groupIds, List<String> taxonomySchemaTypes, boolean showParentsInSearchResults) {
 		this.code = code;
 		this.title = title;
 		this.collection = collection;
@@ -43,6 +45,7 @@ public class Taxonomy {
 		this.userIds = Collections.unmodifiableList(userIds);
 		this.groupIds = Collections.unmodifiableList(groupIds);
 		this.schemaTypes = Collections.unmodifiableList(taxonomySchemaTypes);
+		this.showParentsInSearchResults = showParentsInSearchResults;
 
 	}
 
@@ -74,6 +77,10 @@ public class Taxonomy {
 		return groupIds;
 	}
 
+	public boolean isShowParentsInSearchResults() {
+		return showParentsInSearchResults;
+	}
+
 	@Override
 	public String toString() {
 		return code;
@@ -90,50 +97,60 @@ public class Taxonomy {
 	}
 
 	public Taxonomy withTitle(String title) {
-		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes);
+		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes,
+				showParentsInSearchResults);
 	}
 
 	public Taxonomy withVisibleInHomeFlag(boolean visibleInHomePage) {
-		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes);
+		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes,
+				showParentsInSearchResults);
 	}
 
 	public Taxonomy withUserIds(List<String> userIds) {
-		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes);
+		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes,
+				showParentsInSearchResults);
 	}
 
 	public Taxonomy withGroupIds(List<String> groupIds) {
-		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes);
+		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes,
+				showParentsInSearchResults);
+	}
+
+	public Taxonomy withShownParentsInSearchResults(boolean shownParentsInSearchResults) {
+		return new Taxonomy(code, title, collection, visibleInHomePage, userIds, groupIds, schemaTypes,
+				shownParentsInSearchResults);
 	}
 
 	public static Taxonomy createHiddenInHomePage(String code, String title, String collection,
 			String taxonomySchemaType) {
 		return new Taxonomy(code, title, collection, false, new ArrayList<String>(), new ArrayList<String>(),
-				asList(taxonomySchemaType));
+				asList(taxonomySchemaType), false);
 	}
 
 	public static Taxonomy createHiddenInHomePage(String code, String title, String collection,
 			List<String> taxonomySchemaTypes) {
 		return new Taxonomy(code, title, collection, false, new ArrayList<String>(), new ArrayList<String>(),
-				taxonomySchemaTypes);
+				taxonomySchemaTypes, false);
 	}
 
 	public static Taxonomy createPublic(String code, String title, String collection, List<String> taxonomySchemaTypes) {
-		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), new ArrayList<String>(), taxonomySchemaTypes);
+		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), new ArrayList<String>(), taxonomySchemaTypes,
+				false);
 	}
 
 	public static Taxonomy createPublic(String code, String title, String collection, String taxonomySchemaType) {
 		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), new ArrayList<String>(),
-				asList(taxonomySchemaType));
+				asList(taxonomySchemaType), false);
 	}
 
 	public static Taxonomy createHomeTaxonomyForGroups(String code, String title, String collection, String taxonomySchemaType,
 			List<String> groupIds) {
-		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), groupIds, asList(taxonomySchemaType));
+		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), groupIds, asList(taxonomySchemaType), false);
 	}
 
 	public static Taxonomy createPublic(String code, String title, String collection, List<String> userIds, List<String> groupIds,
 			List<String> taxonomySchemaTypes, boolean isVisibleInHomePage) {
-		return new Taxonomy(code, title, collection, isVisibleInHomePage, userIds, groupIds, taxonomySchemaTypes);
+		return new Taxonomy(code, title, collection, isVisibleInHomePage, userIds, groupIds, taxonomySchemaTypes, false);
 	}
 
 	public boolean hasSameCode(Taxonomy taxonomy) {

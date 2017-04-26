@@ -1,5 +1,19 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -26,14 +40,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataDisplayFactory implements Serializable {
@@ -55,7 +61,9 @@ public class MetadataDisplayFactory implements Serializable {
 
 		MetadataValueType metadataValueType = metadataVO.getType();
 
-		if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
+		if (!metadataVO.isEnabled()) {
+			displayComponent = null;
+		} else if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
 			displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
 			displayComponent.setWidthUndefined();
 		} else if (displayValue == null) {
@@ -68,16 +76,19 @@ public class MetadataDisplayFactory implements Serializable {
 				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
+				boolean hasAVisibleComponent = false;
 				for (Object elementDisplayValue : collectionDisplayValue) {
 					Component elementDisplayComponent = buildSingleValue(recordVO,
 							metadataValue.getMetadata(), elementDisplayValue);
 					if (elementDisplayComponent != null) {
 						elementDisplayComponent.setSizeFull();
 						elementDisplayComponents.add(elementDisplayComponent);
+						hasAVisibleComponent = hasAVisibleComponent || elementDisplayComponent.isVisible();
 					}
 				}
 				if (!elementDisplayComponents.isEmpty()) {
 					displayComponent = newCollectionValueDisplayComponent(elementDisplayComponents);
+					displayComponent.setVisible(hasAVisibleComponent);
 				} else {
 					displayComponent = null;
 				}
@@ -139,7 +150,10 @@ public class MetadataDisplayFactory implements Serializable {
 				}
 				break;
 			case NUMBER:
-				String strDisplayValue = displayValue.toString();
+				NumberFormat numberFormat = NumberFormat.getInstance();
+				numberFormat.setGroupingUsed(false);
+
+				String strDisplayValue = numberFormat.format(displayValue);
 				if (strDisplayValue.endsWith(".0")) {
 					strDisplayValue = StringUtils.substringBefore(strDisplayValue, ".");
 				}
@@ -147,7 +161,9 @@ public class MetadataDisplayFactory implements Serializable {
 				((Label) displayComponent).setConverter(new StringToDoubleConverter());
 				break;
 			case INTEGER:
-				displayComponent = new Label(displayValue.toString());
+				NumberFormat intFormat = NumberFormat.getInstance();
+				intFormat.setGroupingUsed(false);
+				displayComponent = new Label(intFormat.format(displayValue));
 				((Label) displayComponent).setConverter(new StringToIntegerConverter());
 				break;
 			case STRING:
@@ -155,7 +171,7 @@ public class MetadataDisplayFactory implements Serializable {
 					displayComponent = null;
 				} else if (MetadataInputType.URL.equals(metadataInputType)) {
 					String url = displayValue.toString();
-					if(!url.startsWith("http://")) {
+					if (!url.startsWith("http://")) {
 						url = "http://" + url;
 					}
 					Link link = new Link(url, new ExternalResource(url));
@@ -216,7 +232,7 @@ public class MetadataDisplayFactory implements Serializable {
 		}
 		return displayComponent;
 	}
-	
+
 	protected Component newStringCollectionValueDisplayComponent(Collection<String> stringCollectionValue) {
 		StringBuilder sb = new StringBuilder();
 		for (String stringValue : stringCollectionValue) {

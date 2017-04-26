@@ -104,6 +104,10 @@ public class ContentManager implements StatefulService {
 	private final IcapService icapService;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
+		this(modelLayerFactory, new IcapService(modelLayerFactory));
+	}
+
+	public ContentManager(ModelLayerFactory modelLayerFactory, IcapService icapService) {
 		super();
 		this.modelLayerFactory = modelLayerFactory;
 		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
@@ -119,7 +123,7 @@ public class ContentManager implements StatefulService {
 		this.configuration = modelLayerFactory.getConfiguration();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-		icapService = new IcapService(modelLayerFactory);
+		this.icapService = icapService;
 	}
 
 	@Override
@@ -182,6 +186,10 @@ public class ContentManager implements StatefulService {
 	public Content createEmptyMinor(User user, String filename, ContentVersionDataSummary newVersion) {
 		String uniqueId = uniqueIdGenerator.next();
 		return ContentImpl.create(uniqueId, user, filename, newVersion, false, true);
+	}
+
+	public Content createFileSystem(String filename, ContentVersionDataSummary version) {
+		return ContentImpl.createSystemContent(filename, version);
 	}
 
 	public boolean hasContentPreview(String hash) {
@@ -260,6 +268,12 @@ public class ContentManager implements StatefulService {
 
 		try {
 			String hash = hashingService.getHashFromStream(closeableInputStreamFactory);
+			try (final InputStream icapInputStream = closeableInputStreamFactory.create(hash + ".icapscan")) {
+				if (closeableInputStreamFactory instanceof CopyInputStreamFactory) {
+					icapService.scan(fileName, icapInputStream);
+				}
+			}
+			
 			if (handleDeletionOfUnreferencedHashes) {
 				markForDeletionIfNotReferenced(hash);
 			}
@@ -318,14 +332,6 @@ public class ContentManager implements StatefulService {
 
 	private ParsedContent parseAndSave(String hash, CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
-		//
-		try (final InputStream inputStream = inputStreamFactory.create(hash + ".icapscan")) {
-			if (inputStreamFactory instanceof CopyInputStreamFactory) {
-				final String filename = ((CopyInputStreamFactory) inputStreamFactory).getFilename();
-				icapService.scan(filename, inputStream);
-			}
-		}
-
 		ParsedContent parsedContent = tryToParse(inputStreamFactory);
 		saveParsedContent(hash, parsedContent);
 		return parsedContent;
@@ -341,7 +347,6 @@ public class ContentManager implements StatefulService {
 
 	ParsedContent tryToParse(CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
-
 		try {
 			return fileParser.parse(inputStreamFactory, inputStreamFactory.length());
 

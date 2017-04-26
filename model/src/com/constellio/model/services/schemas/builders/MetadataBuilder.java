@@ -1,5 +1,8 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +26,7 @@ import com.constellio.model.entities.schemas.InheritedMetadataBehaviors;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -61,6 +65,7 @@ public class MetadataBuilder {
 	private boolean childOfRelationship = false;
 	private boolean taxonomyRelationship = false;
 	private boolean searchable = false;
+	private MetadataTransiency transiency = PERSISTED;
 	private boolean schemaAutocomplete = false;
 	private boolean sortable = false;
 	private boolean encrypted = false;
@@ -173,6 +178,7 @@ public class MetadataBuilder {
 		builder.defaultRequirement = metadata.isDefaultRequirement();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
+		builder.transiency = metadata.getTransiency();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -217,6 +223,7 @@ public class MetadataBuilder {
 		builder.undeletable = metadata.isUndeletable();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
+		builder.transiency = metadata.getTransiency();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -392,6 +399,16 @@ public class MetadataBuilder {
 	public MetadataBuilder setSearchable(boolean searchable) {
 		ensureCanModify("searchable");
 		this.searchable = searchable;
+		return this;
+	}
+
+	public MetadataTransiency getTransiency() {
+		return inheritance == null ? transiency : inheritance.getTransiency();
+	}
+
+	public MetadataBuilder setTransiency(MetadataTransiency transiency) {
+		ensureCanModify("transiency");
+		this.transiency = transiency;
 		return this;
 	}
 
@@ -714,14 +731,15 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel);
+				increasedDependencyLevel, transiency);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
+		final Factory<ModelLayerFactory> modelLayerFactoryFactory = modelLayerFactory.getModelLayerFactoryFactory();
 		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 			@Override
 			public EncryptionServices get() {
-				return modelLayerFactory.newEncryptionServices();
+				return modelLayerFactoryFactory.get().newEncryptionServices();
 			}
 		};
 
@@ -885,6 +903,14 @@ public class MetadataBuilder {
 		}
 		if (Boolean.FALSE == builder.getEnabled() && builder.isEssentialInSummary()) {
 			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
+		}
+
+		if ((transiency != null && transiency != PERSISTED) && builder.getDataEntry().getType() == MANUAL) {
+			throw new MetadataBuilderRuntimeException.MetadataEnteredManuallyCannotBeTransient(code);
+		}
+
+		if ((transiency != null && transiency != PERSISTED) && builder.getType() == MetadataValueType.REFERENCE) {
+			throw new MetadataBuilderRuntimeException.ReferenceCannotBeTransient(code);
 		}
 	}
 

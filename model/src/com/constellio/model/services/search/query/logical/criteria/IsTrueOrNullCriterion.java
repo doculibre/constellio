@@ -20,8 +20,7 @@ public class IsTrueOrNullCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public String getSolrQuery(DataStoreField dataStoreField) {
-		return dataStoreField.getDataStoreCode() + ":" + CriteriaUtils.getBooleanStringValue(true) +
-				" OR (*:* -" + dataStoreField.getDataStoreCode() + ":*)";
+		return "(*:* -" + dataStoreField.getDataStoreCode() + ":" + CriteriaUtils.getBooleanStringValue(false) + ")";
 	}
 
 	@Override

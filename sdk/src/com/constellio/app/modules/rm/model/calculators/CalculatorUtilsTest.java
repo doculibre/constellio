@@ -14,39 +14,56 @@ public class CalculatorUtilsTest {
 	public void whenGetNextEndOfYearDateThenBasedOnYearEndAndRequiredPeriod()
 			throws Exception {
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30, false)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 1)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 1, false)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 1, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 0)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 0, false)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 0, true)).isEqualTo(new LocalDate(2012, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2013, 4, 1), "04/30", 30)).isEqualTo(new LocalDate(2014, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2013, 4, 1), "04/30", 30, false)).isEqualTo(new LocalDate(2014, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2013, 4, 1), "04/30", 30, true)).isEqualTo(new LocalDate(2014, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 3, 30), "04/30", 30)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 3, 30), "04/30", 30, false)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 3, 30), "04/30", 30, true)).isEqualTo(new LocalDate(2012, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 3, 31), "04/30", 30)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 3, 31), "04/30", 30, false)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 3, 31), "04/30", 30, true)).isEqualTo(new LocalDate(2012, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30, false)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 29), "04/30", 30)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 29), "04/30", 30, false)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 29), "04/30", 30, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 30)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 30, false)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 30, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 1), "04/30", 30)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 1), "04/30", 30, false)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 1), "04/30", 30, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 29)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 29, false)).isEqualTo(new LocalDate(2012, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 29, true)).isEqualTo(new LocalDate(2012, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 2), "04/30", 29)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 2), "04/30", 29, false)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 2), "04/30", 29, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30, false)).isEqualTo(new LocalDate(2013, 4, 30));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30, true)).isEqualTo(new LocalDate(2013, 4, 30));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "05/31", 30)).isEqualTo(new LocalDate(2012, 5, 31));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "05/31", 30, false)).isEqualTo(new LocalDate(2012, 5, 31));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "05/31", 30, true)).isEqualTo(new LocalDate(2012, 5, 31));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 1), "05/31", 30)).isEqualTo(new LocalDate(2012, 5, 31));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 1), "05/31", 30, false)).isEqualTo(new LocalDate(2012, 5, 31));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 1), "05/31", 30, true)).isEqualTo(new LocalDate(2012, 5, 31));
 
-		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 2), "05/31", 30)).isEqualTo(new LocalDate(2013, 5, 31));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 2), "05/31", 30, false)).isEqualTo(new LocalDate(2013, 5, 31));
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 5, 2), "05/31", 30, true)).isEqualTo(new LocalDate(2013, 5, 31));
 
-		assertThat(toNextEndOfYearDate(null, "05/31", 30)).isNull();
+		assertThat(toNextEndOfYearDate(null, "05/31", 30, false)).isNull();
+		assertThat(toNextEndOfYearDate(null, "05/31", 30, true)).isNull();
 
 	}
 

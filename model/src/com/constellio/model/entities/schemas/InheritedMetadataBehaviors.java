@@ -25,12 +25,14 @@ public class InheritedMetadataBehaviors {
 	final boolean multiLingual;
 	final boolean markedForDeletion;
 	final boolean reverseDependency;
+	final MetadataTransiency volatility;
 	final Set<String> customAttributes;
 
 	public InheritedMetadataBehaviors(boolean undeletable, boolean multivalue, boolean systemReserved, boolean unmodifiable,
 			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
 			boolean searchable, boolean schemaAutocomplete, boolean essential, boolean encrypted, boolean essentialInSummary,
-			boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes, boolean reverseDependency) {
+			boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes, boolean reverseDependency,
+			MetadataTransiency volatility) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -48,6 +50,7 @@ public class InheritedMetadataBehaviors {
 		this.markedForDeletion = markedForDeletion;
 		this.customAttributes = Collections.unmodifiableSet(customAttributes);
 		this.reverseDependency = reverseDependency;
+		this.volatility = volatility == null ? MetadataTransiency.PERSISTED : volatility;
 	}
 
 	public boolean isReverseDependency() {
@@ -102,6 +105,10 @@ public class InheritedMetadataBehaviors {
 
 	public boolean isSearchable() {
 		return searchable;
+	}
+
+	public MetadataTransiency getTransiency() {
+		return volatility;
 	}
 
 	public boolean isSchemaAutocomplete() {

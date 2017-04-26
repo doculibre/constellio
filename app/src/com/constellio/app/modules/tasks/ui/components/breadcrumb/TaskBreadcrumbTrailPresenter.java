@@ -40,6 +40,7 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 			Task task = tasksSchemasRecordsServices.getTask(currentRecordId);
 			currentRecordId = task.getParentTask();
 		}
+		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}
@@ -60,9 +61,16 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, constellioFactories.getAppLayerFactory());
 	}
 
-	public void itemClicked(BreadcrumbItem item) {
-		String taskId = ((TaskBreadcrumbItem) item).getTaskId();
-		breadcrumbTrail.navigate().to(TaskViews.class).displayTask(taskId);
+	public boolean itemClicked(BreadcrumbItem item) {
+		boolean handled;
+		if (item instanceof TaskBreadcrumbItem) {
+			handled = true;
+			String taskId = ((TaskBreadcrumbItem) item).getTaskId();
+			breadcrumbTrail.navigate().to(TaskViews.class).displayTask(taskId);
+		} else {
+			handled = false;
+		}
+		return handled;
 	}
 
 	class TaskBreadcrumbItem implements BreadcrumbItem {

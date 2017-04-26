@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -69,7 +70,7 @@ public class DecommissioningEmailService {
 	private List<User> filterUserWithoutEmail(List<User> users) {
 		List<User> returnedUsers = new ArrayList<>();
 		for (User user : users) {
-			if (StringUtils.isNotBlank(user.getEmail())) {
+			if (StringUtils.isNotBlank(user.getEmail()) && user.getStatus() == UserCredentialStatus.ACTIVE) {
 				returnedUsers.add(user);
 			}
 		}
