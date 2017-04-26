@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -45,8 +33,20 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -177,7 +177,19 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (isDeleteDocumentPossible()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
-			presenterUtils.delete(document.getWrappedRecord(), null);
+			try {
+				presenterUtils.delete(document.getWrappedRecord(), null);
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+				Content contentVersionVO = document.getContent();
+				String checkoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+
+				if (checkoutUserId != null) {
+					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleteBorrowedDocuments"));
+				} else {
+					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleted"));
+				}
+				return;
+			}
 			if (parentId != null) {
 				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
