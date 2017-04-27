@@ -8,13 +8,10 @@ import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
 
 public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
@@ -76,19 +73,22 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 	private boolean hasDeleteAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, DELETE)
-				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.DELETE_ACCESS);
+				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
+				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.DELETE);
 	}
 
 	private boolean hasWriteAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, WRITE)
-				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.WRITE_ACCESS);
+				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.WRITE_ACCESS)
+				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.WRITE);
 	}
 
 	private boolean hasReadAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, READ)
 				|| record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
 				|| UserAuthorizationsUtils.containsAUserToken(user, record)
-				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.READ_ACCESS);
+				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.READ_ACCESS)
+				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ);
 	}
 
 	@Override
