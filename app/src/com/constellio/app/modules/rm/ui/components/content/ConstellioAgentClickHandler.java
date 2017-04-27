@@ -25,7 +25,7 @@ public class ConstellioAgentClickHandler implements Serializable {
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		if (recordVO != null) {
 			String schemaCode = recordVO.getSchema().getCode();
-			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 			if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				String checkoutUserId = contentVersionVO.getCheckoutUserId();
 				String currentUserId = sessionContext.getCurrentUser().getId();
