@@ -218,10 +218,16 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	}
 
 	public RecordVO getLinkedRecordVO(RecordVO eventVO) {
-		String recordId = eventVO.get(Event.RECORD_ID);
-		Record linkedRecord = recordServices().getDocumentById(recordId);
-		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-		return voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
+		RecordVO result;
+		try {
+			String recordId = eventVO.get(Event.RECORD_ID);
+			Record linkedRecord = recordServices().getDocumentById(recordId);
+			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+			result = voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
+		} catch (Throwable t) {
+			result = null;
+		} 
+		return result;
 	}
 
 	public void recordLinkClicked(RecordVO eventVO) {
@@ -311,9 +317,13 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 								.andWhere(eventMetaData).isGreaterOrEqualThan(
 								eventTime).andWhere(recordIdMetadata).isEqualTo(recordId));
 				SearchServices searchServices = modelLayerFactory.newSearchServices();
-				Record eventRecord = searchServices.search(query).get(0);
-
-				return super.build(eventRecord, viewMode, schemaVO, sessionContext);
+				List<Record> eventRecords = searchServices.search(query); 
+				if (!eventRecords.isEmpty()) {
+					Record eventRecord = eventRecords.get(0);
+					return super.build(eventRecord, viewMode, schemaVO, sessionContext);
+				} else {
+					return new RecordVO("-1", new ArrayList<MetadataValueVO>(), VIEW_MODE.TABLE);
+				}
 			}
 
 			private RMSchemasRecordsServices schemas() {

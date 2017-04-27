@@ -92,6 +92,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
                 final LookupFolderField field = new LookupFolderField();
+                field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
                 BaseButton saveButton = new BaseButton($("save")) {
@@ -143,6 +144,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.setSpacing(true);
                 final LookupFolderField field = new LookupFolderField();
+                field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
                 BaseButton saveButton = new BaseButton($("save")) {
@@ -191,6 +193,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 folderField.setVisible(true);
                 folderField.setRequired(true);
+                folderField.focus();
                 
                 final FolderCategoryFieldImpl categoryField = new FolderCategoryFieldImpl();
                 categoryField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
@@ -219,6 +222,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     						adjustRetentionRuleField(categoryId, retentionRuleField);
                         } else {
                         	retentionRuleField.setVisible(false);
+                        }
+                        if (categoryClassification) {
+                        	categoryField.focus();
+                        } else {
+                        	folderField.focus();
                         }
                     }
                 });
