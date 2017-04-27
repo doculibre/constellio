@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -69,7 +70,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public boolean canEditAdministrativeUnit() {
-		return !editMode;
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
 	public boolean canEditDecommissioningType() {
