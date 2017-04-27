@@ -162,7 +162,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 
 		if (createPDFAButtonVisible) {
 			MenuItem createPDFAItem = rootItem.addItem($("DocumentActionsComponent.createPDFA"), null);
-			createPDFAItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.STOP) {
+			createPDFAItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmCreatePDFA");
