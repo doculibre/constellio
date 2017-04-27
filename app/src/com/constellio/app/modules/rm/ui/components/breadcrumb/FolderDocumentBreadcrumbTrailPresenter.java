@@ -22,9 +22,13 @@ import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
 
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
@@ -131,7 +135,26 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 					currentCategoryId = currentCategory.getParent();
 				}
 			} else {
-				selectedTaxonomy = null;
+				try {
+					selectedTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
+					MetadataSchemaTypes types = rmSchemasRecordsServices.getTypes();
+					MetadataSchema schema = types.getSchema(record.getSchemaCode());
+					List<Metadata> taxonomyRelationshipReferences = schema.getTaxonomyRelationshipReferences(selectedTaxonomy);
+					if (!taxonomyRelationshipReferences.isEmpty()) {
+						Metadata firstTaxonomyRelationshipReference = taxonomyRelationshipReferences.get(0);
+						List<String> taxonomyItemReferences = record.get(firstTaxonomyRelationshipReference);
+						if (taxonomyItemReferences != null && !taxonomyItemReferences.isEmpty()) {
+							String taxonomyItemReference = taxonomyItemReferences.get(0);
+							while (taxonomyItemReference != null) {
+								Record taxonomyItem = rmSchemasRecordsServices.get(taxonomyItemReference);
+								breadcrumbItems.add(0, new TaxonomyElementBreadcrumbItem(taxonomyItem.getId()));
+								taxonomyItemReference = taxonomyItem.getParentId();
+							}
+						}
+					}
+				} catch (TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound e) {
+					selectedTaxonomy = null;
+				}
 			}
 			if (selectedTaxonomy != null) {
 				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle()));
