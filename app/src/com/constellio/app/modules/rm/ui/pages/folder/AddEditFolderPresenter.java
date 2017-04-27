@@ -855,18 +855,26 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
         LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
         visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
 		String defaultAdministrativeUnit = getCurrentUser().get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
-		if (StringUtils.isNotBlank(defaultAdministrativeUnit)) {
-			try {
-				Record defaultAdministrativeUnitRecord = recordServices().getDocumentById(defaultAdministrativeUnit);
-				if(getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
-					folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
-				} else {
-					LOGGER.error("User " + getCurrentUser().getUsername() + " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
+		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		if(rmConfigs.isFolderAdministrativeUnitEnteredAutomatically()) {
+			if (StringUtils.isNotBlank(defaultAdministrativeUnit)) {
+				try {
+					Record defaultAdministrativeUnitRecord = recordServices().getDocumentById(defaultAdministrativeUnit);
+					if(getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
+						folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+					} else {
+						LOGGER.error("User " + getCurrentUser().getUsername() + " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
+					}
+				} catch (Exception e) {
+					LOGGER.error("Default administrative unit for user " + getCurrentUser().getUsername() + " is invalid: " + defaultAdministrativeUnit);
 				}
-			} catch (Exception e) {
-				LOGGER.error("Default administrative unit for user " + getCurrentUser().getUsername() + " is invalid: " + defaultAdministrativeUnit);
+			} else {
+				if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
+					Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
+					folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+				}
 			}
-        }
+		}
 		return record;
 	}
 }

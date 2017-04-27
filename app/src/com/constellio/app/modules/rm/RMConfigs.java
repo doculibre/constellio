@@ -62,6 +62,7 @@ public class RMConfigs {
 			POPULATE_BORDEREAUX_WITH_COLLECTION,
 			POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT,
 			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
+			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
 	// Category configs
@@ -236,6 +237,9 @@ public class RMConfigs {
 
 		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
 				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
+
+		add(FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY = others
+				.createBooleanTrueByDefault("folderAdministrativeUnitEnteredAutomatically"));
 
 		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = others
 				.createBooleanFalseByDefault("enableStorageSpaceTitleCalculator")
@@ -458,6 +462,10 @@ public class RMConfigs {
 
 	public boolean areDocumentCheckedOutAfterCreation() {
 		return manager.getValue(CHECK_OUT_DOCUMENT_AFTER_CREATION);
+	}
+
+	public boolean isFolderAdministrativeUnitEnteredAutomatically() {
+		return manager.getValue(FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY);
 	}
 
 	public CompleteDatesWhenAddingFolderWithManualStatusChoice getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() {

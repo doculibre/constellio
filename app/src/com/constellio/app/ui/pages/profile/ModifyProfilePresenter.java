@@ -154,6 +154,11 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         String defaultAdministrativeUnit = null;
         if(isRMModuleActivated()) {
             defaultAdministrativeUnit = user.get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
+            try {
+                recordServices().getDocumentById(defaultAdministrativeUnit);
+            } catch (Exception e) {
+                defaultAdministrativeUnit = null;
+            }
         }
         if (loginLanguage == null || loginLanguage.isEmpty()) {
             loginLanguage = view.getSessionContext().getCurrentLocale().getLanguage();
