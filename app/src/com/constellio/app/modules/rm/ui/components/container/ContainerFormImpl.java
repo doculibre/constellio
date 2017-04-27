@@ -1,20 +1,25 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
-import com.vaadin.ui.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.VerticalLayout;
 
 /**
  * Created by Constellio on 2017-01-11.
@@ -100,6 +105,7 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
         ContainerStorageSpaceLookupField newField = ((ContainerFieldFactory) getFormFieldFactory())
                 .rebuildContainerStorageSpaceLookupField(containerVo, presenter);
         newField.setPropertyDataSource(storageSpaceField.getPropertyDataSource());
+        newField.addStyleName(BaseForm.STYLE_FIELD);
         newField.addStyleName(STYLE_FIELD);
         MetadataVO metadata = containerVo.getMetadata(ContainerRecord.STORAGE_SPACE);
         newField.addStyleName(STYLE_FIELD + "-" +  metadata.getCode());
