@@ -85,6 +85,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				}
 				return super.getTitleForRecordVO(titleRecordVO, prefix, title);
 			}
+
+			@Override
+			public boolean isContextMenuPossible() {
+				return false;
+			}
 		};
 		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {

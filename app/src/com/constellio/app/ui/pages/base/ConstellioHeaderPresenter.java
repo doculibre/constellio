@@ -141,6 +141,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+				.setNumberOfRows(0)
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
 		Set<String> metadataLocalCodes = new HashSet<>();
