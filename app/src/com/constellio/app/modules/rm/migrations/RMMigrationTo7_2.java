@@ -129,11 +129,18 @@ public class RMMigrationTo7_2 implements MigrationScript {
     }
 
     private void migrateSearchableSchemaTypes(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
-        SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-        manager.saveType(manager.getType(collection, ContainerRecord.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
-        manager.saveType(manager.getType(collection, StorageSpace.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+		manager.saveType(manager.getType(collection, ContainerRecord.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
+		manager.saveType(manager.getType(collection, StorageSpace.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
-        manager.saveMetadata(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.NUMBER_OF_CONTAINERS).withVisibleInAdvancedSearchStatus(true));
+		manager.saveMetadata(manager.getMetadata(collection,  Document.DEFAULT_SCHEMA + "_" + RMObject.FORM_CREATED_ON).withVisibleInAdvancedSearchStatus(true));
+		manager.saveMetadata(manager.getMetadata(collection, Document.DEFAULT_SCHEMA + "_" + RMObject.FORM_MODIFIED_ON).withVisibleInAdvancedSearchStatus(true));
+
+		manager.saveMetadata(manager.getMetadata(collection,  Folder.DEFAULT_SCHEMA + "_" + RMObject.FORM_CREATED_ON).withVisibleInAdvancedSearchStatus(true));
+		manager.saveMetadata(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + RMObject.FORM_MODIFIED_ON).withVisibleInAdvancedSearchStatus(true));
+
+
+		manager.saveMetadata(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.NUMBER_OF_CONTAINERS).withVisibleInAdvancedSearchStatus(true));
     }
 
 	private void createNewTaskTypes(AppLayerFactory appLayerFactory, TasksSchemasRecordsServices taskSchemas) throws RecordServicesException {

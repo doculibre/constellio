@@ -41,28 +41,31 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getSchema(User.DEFAULT_SCHEMA).create(User.AGENT_ENABLED).setType(MetadataValueType.BOOLEAN)
-					.setDefaultValue(true);
-			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(UserFolder.SCHEMA_TYPE);
-			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
-			type.setSecurity(false);
-			defaultSchema.create(UserFolder.USER).setType(MetadataValueType.REFERENCE).setEssential(true)
-					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
-			defaultSchema.create(UserFolder.FORM_CREATED_ON).setType(MetadataValueType.DATE_TIME).setEssential(false);
-			defaultSchema.create(UserFolder.FORM_MODIFIED_ON).setType(MetadataValueType.DATE_TIME).setEssential(false);
-			defaultSchema.create(UserFolder.PARENT_USER_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false)
-					.defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
+			if(!typesBuilder.getSchema(User.DEFAULT_SCHEMA).hasMetadata(User.AGENT_ENABLED)) {
+				typesBuilder.getSchema(User.DEFAULT_SCHEMA).create(User.AGENT_ENABLED).setType(MetadataValueType.BOOLEAN)
+						.setDefaultValue(true);
 
-			typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.USER_FOLDER).setEssential(false)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
-			typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_CREATED_ON).setEssential(false)
-					.setType(MetadataValueType.DATE_TIME);
-			typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_MODIFIED_ON).setEssential(false)
-					.setType(MetadataValueType.DATE_TIME);
+				MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(UserFolder.SCHEMA_TYPE);
+				MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
+				type.setSecurity(false);
+				defaultSchema.create(UserFolder.USER).setType(MetadataValueType.REFERENCE).setEssential(true)
+						.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+				defaultSchema.create(UserFolder.FORM_CREATED_ON).setType(MetadataValueType.DATE_TIME).setEssential(false);
+				defaultSchema.create(UserFolder.FORM_MODIFIED_ON).setType(MetadataValueType.DATE_TIME).setEssential(false);
+				defaultSchema.create(UserFolder.PARENT_USER_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false)
+						.defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
 
-			if (Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
-				MetadataSchemaBuilder userCredentialSchema = typesBuilder.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
-				userCredentialSchema.create(SolrUserCredential.AGENT_STATUS).setType(ENUM).defineAsEnum(AgentStatus.class);
+				typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.USER_FOLDER).setEssential(false)
+						.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
+				typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_CREATED_ON).setEssential(false)
+						.setType(MetadataValueType.DATE_TIME);
+				typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_MODIFIED_ON).setEssential(false)
+						.setType(MetadataValueType.DATE_TIME);
+
+				if (Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
+					MetadataSchemaBuilder userCredentialSchema = typesBuilder.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
+					userCredentialSchema.create(SolrUserCredential.AGENT_STATUS).setType(ENUM).defineAsEnum(AgentStatus.class);
+				}
 			}
 		}
 	}

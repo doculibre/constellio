@@ -13,10 +13,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.folder.fields.*;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -857,9 +854,18 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
         visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
         LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
         visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
-        if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
-        	Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
-        	folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+		String defaultAdministrativeUnit = getCurrentUser().get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
+		if (StringUtils.isNotBlank(defaultAdministrativeUnit)) {
+			try {
+				Record defaultAdministrativeUnitRecord = recordServices().getDocumentById(defaultAdministrativeUnit);
+				if(getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
+					folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+				} else {
+					LOGGER.error("User " + getCurrentUser().getUsername() + " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
+				}
+			} catch (Exception e) {
+				LOGGER.error("Default administrative unit for user " + getCurrentUser().getUsername() + " is invalid: " + defaultAdministrativeUnit);
+			}
         }
 		return record;
 	}
