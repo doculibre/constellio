@@ -287,7 +287,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.FIRST_TRANSFER_REPORT_DATE).setType(MetadataValueType.DATE).setSystemReserved(true);
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE).setType(MetadataValueType.DATE).setSystemReserved(true);
 //			typesBuilder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE).createUndeletable(AdministrativeUnit.ADRESS).setType(MetadataValueType.DATE).setSystemReserved(true);
-        }
+		}
     }
 
     class SchemaAlterationFor7_2_step2 extends MetadataSchemasAlterationHelper {
@@ -307,7 +307,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			migrateMetadatasForRequestEvents(typesBuilder);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.TITLE).setSortable(true);
             typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT);
-        }
+			typesBuilder.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE).setEssential(false);
+		}
 
         private void migrateLabel(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_TRANSFER_DATE).addLabel(Language.French, "Date de transfert prévue");

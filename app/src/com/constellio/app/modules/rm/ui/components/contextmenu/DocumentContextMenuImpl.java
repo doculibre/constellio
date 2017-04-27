@@ -174,7 +174,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (createPDFAButtonVisible) {
 			ContextMenuItem createPDFAItem = addItem($("DocumentActionsComponent.createPDFA"));
-			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.STOP) {
+			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmCreatePDFA");
