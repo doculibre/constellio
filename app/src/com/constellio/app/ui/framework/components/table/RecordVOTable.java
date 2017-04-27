@@ -149,15 +149,19 @@ public class RecordVOTable extends BaseTable {
 	
 	protected String getTitleColumnStyle(RecordVO recordVO) {
 		String style;
-		try {
-			String extension = FileIconUtils.getExtension(recordVO);
-			if (extension != null && !isDecomList(recordVO)) {
-				style = "file-icon-" + extension;
-			} else {
+		if (recordVO != null) {
+			try {
+				String extension = FileIconUtils.getExtension(recordVO);
+				if (extension != null && !isDecomList(recordVO)) {
+					style = "file-icon-" + extension;
+				} else {
+					style = null;
+				}
+			} catch (Exception e) {
+				// Do Nothing;
 				style = null;
 			}
-		} catch (Exception e) {
-			// Do Nothing;
+		} else {
 			style = null;
 		}
 		return style;
@@ -223,11 +227,13 @@ public class RecordVOTable extends BaseTable {
 			boolean matchCode = metadataVO.codeMatches(Schemas.TITLE_CODE);
 			if (instance && matchCode) {
 				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
-				MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
-				String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
-				Label titleLabel = (Label) metadataDisplay;
-				String titleForRecordVO = getTitleForRecordVO(titleRecordVO, prefix, titleLabel.getValue());
-				titleLabel.setValue(titleForRecordVO);
+				if (titleRecordVO != null) {
+					MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
+					String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
+					Label titleLabel = (Label) metadataDisplay;
+					String titleForRecordVO = getTitleForRecordVO(titleRecordVO, prefix, titleLabel.getValue());
+					titleLabel.setValue(titleForRecordVO);
+				}
 			}
 			containerProperty = new ObjectProperty<>(metadataDisplay, Component.class);
 		} else {
@@ -337,11 +343,13 @@ public class RecordVOTable extends BaseTable {
 						RecordVO recordVO = getRecordVOForTitleColumn(item);
 
 						MenuBar menuBar = null;
-						List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
-						for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-							menuBar = recordMenuBarHandler.get(recordVO);
-							if (menuBar != null) {
-								break;
+						if (recordVO != null) {
+							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+								menuBar = recordMenuBarHandler.get(recordVO);
+								if (menuBar != null) {
+									break;
+								}
 							}
 						}
 						return menuBar != null ? menuBar : new Label("");
