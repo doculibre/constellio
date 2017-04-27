@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
+import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -66,7 +67,7 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
         }
     }
 
-    public ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
+    private ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
         super(recordVO, buildFields(recordVO, formFieldFactory), formFieldFactory);
     }
 
@@ -81,6 +82,33 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
             }
         }
         return fieldsAndPropertyIds;
+    }
+
+    private ContainerStorageSpaceLookupField storageSpaceField;
+    private VerticalLayout storageSpaceLayout;
+
+    @Override
+    protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
+        super.addFieldToLayout(field, fieldLayout);
+        if (field instanceof ContainerStorageSpaceLookupField) {
+            storageSpaceField = (ContainerStorageSpaceLookupField) field;
+            storageSpaceLayout = fieldLayout;
+        }
+    }
+
+    public void replaceStorageSpaceField(RecordVO containerVo, AddEditContainerPresenter presenter) {
+        ContainerStorageSpaceLookupField newField = ((ContainerFieldFactory) getFormFieldFactory())
+                .rebuildContainerStorageSpaceLookupField(containerVo, presenter);
+        newField.setPropertyDataSource(storageSpaceField.getPropertyDataSource());
+        newField.addStyleName(STYLE_FIELD);
+        MetadataVO metadata = containerVo.getMetadata(ContainerRecord.STORAGE_SPACE);
+        newField.addStyleName(STYLE_FIELD + "-" +  metadata.getCode());
+        storageSpaceLayout.replaceComponent(storageSpaceField, newField);
+        fields.remove(storageSpaceField);
+        fieldGroup.unbind(storageSpaceField);
+        storageSpaceField = newField;
+        fields.add(storageSpaceField);
+        fieldGroup.bind(storageSpaceField, metadata);
     }
 
     @SuppressWarnings("unchecked")
