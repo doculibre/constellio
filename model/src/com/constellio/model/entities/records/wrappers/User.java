@@ -514,4 +514,9 @@ public class User extends RecordWrapper {
 	public boolean isAgentEnabled() {
 		return get(AGENT_ENABLED);
 	}
+
+	public boolean hasGlobalTypeAccess(String typeCode, String access) {
+		return roles.getSchemasRecordsServices().getModelLayerFactory().getSecurityTokenManager()
+				.hasGlobalTypeAccess(this, typeCode, access);
+	}
 }

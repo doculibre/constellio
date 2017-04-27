@@ -270,6 +270,19 @@ public class AppLayerFactory extends LayerFactory {
 
 		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
 		getModulesManager().enableComplementaryModules();
+
+		if (!invalidPlugins.isEmpty()) {
+			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
+			try {
+				restart();
+			} catch (AppManagementServiceException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public void postInitialization() {
+		pluginManager.configure();
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
 			try {
 				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
@@ -285,15 +298,6 @@ public class AppLayerFactory extends LayerFactory {
 
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
-
-		if (!invalidPlugins.isEmpty()) {
-			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
-			try {
-				restart();
-			} catch (AppManagementServiceException e) {
-				throw new RuntimeException(e);
-			}
-		}
 	}
 
 	void restart()

@@ -70,14 +70,14 @@ public class RMMigrationTo7_2 implements MigrationScript {
             category.setDescription(null);
         }
 
-        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 1000);
+        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
 
         while (batchIterator.hasNext()) {
             Transaction transaction = new Transaction();
             transaction.addAll(batchIterator.next());
             transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
             try {
-                recordServices.execute(transaction);
+                recordServices.executeWithoutImpactHandling(transaction);
             } catch (RecordServicesException e) {
                 e.printStackTrace();
                 throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
@@ -91,7 +91,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
         categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
                 new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
-        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 1000);
+        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
         for(Category category: categories) {
             category.setDescription(descriptions.get(category.getId()));
         }
@@ -101,7 +101,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
             transaction.addAll(batchIterator.next());
             transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
             try {
-                recordServices.execute(transaction);
+                recordServices.executeWithoutImpactHandling(transaction);
             } catch (RecordServicesException e) {
                 e.printStackTrace();
                 throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
@@ -186,6 +186,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 				.withNewTableMetadatas(Event.DEFAULT_SCHEMA + "_" + Event.RECEIVER_NAME,
 						Event.DEFAULT_SCHEMA + "_" + Event.TASK,
 						Event.DEFAULT_SCHEMA + "_" + Event.DESCRIPTION));
+
+		displayManager.saveMetadata(displayManager.getMetadata(collection, AdministrativeUnit.DEFAULT_SCHEMA, AdministrativeUnit.ADRESS)
+				.withInputType(MetadataInputType.FIELD));
 	}
 
 	private void migrateRoles(String collection, ModelLayerFactory modelLayerFactory) {
@@ -200,12 +203,14 @@ public class RMMigrationTo7_2 implements MigrationScript {
 				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
 				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
 				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.DISPLAY_CONTAINERS,
 				RMPermissionsTo.BORROW_CONTAINER
 		)));
 		modelLayerFactory.getRolesManager().updateRole(admin.withNewPermissions(asList(
 				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
 				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
 				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.DISPLAY_CONTAINERS,
 				RMPermissionsTo.BORROW_CONTAINER
 		)));
 
@@ -279,6 +284,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
             MetadataBuilder containerStorageSpace = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.STORAGE_SPACE);
             typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).createUndeletable(StorageSpace.NUMBER_OF_CONTAINERS)
                     .setType(MetadataValueType.NUMBER).defineDataEntry().asReferenceCount(containerStorageSpace).setSearchable(true);
+			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.FIRST_TRANSFER_REPORT_DATE).setType(MetadataValueType.DATE).setSystemReserved(true);
+			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE).setType(MetadataValueType.DATE).setSystemReserved(true);
+//			typesBuilder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE).createUndeletable(AdministrativeUnit.ADRESS).setType(MetadataValueType.DATE).setSystemReserved(true);
         }
     }
 

@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -30,7 +31,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ReferenceDisplay extends Button {
-	
+
 	public static final String STYLE_NAME = "reference-display";
 	private RecordVO recordVO;
 	private String recordId;
@@ -100,8 +101,12 @@ public class ReferenceDisplay extends Button {
 			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-			String niceTitle = getNiceTitle(recordServices.getDocumentById(recordId), types);
-			addExtension(new NiceTitle(this, niceTitle));
+			try {
+				String niceTitle = getNiceTitle(recordServices.getDocumentById(recordId), types);
+				addExtension(new NiceTitle(this, niceTitle));
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				e.printStackTrace();
+			}
 		}
 
 	}
@@ -130,10 +135,14 @@ public class ReferenceDisplay extends Button {
 			navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(),
 					this);
 		} else if (recordId != null) {
-			Record record = recordServices.getDocumentById(recordId);
-			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
-			navigationParams = new NavigationParams(ui.navigate(), recordId, schemaTypeCode, Page.getCurrent(),
-					this);
+			try {
+				Record record = recordServices.getDocumentById(recordId);
+				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
+				navigationParams = new NavigationParams(ui.navigate(), recordId, schemaTypeCode, Page.getCurrent(),
+						this);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				e.printStackTrace();
+			}
 		}
 		if (navigationParams != null) {
 			for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {

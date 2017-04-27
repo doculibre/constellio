@@ -244,7 +244,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	public void cancelButtonClicked() {
-		if (addView) {
+		if(userDocumentId != null) {
+			view.navigate().to(RMViews.class).listUserDocuments();
+		}else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
@@ -601,7 +603,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
                         document.setContent(content);
 						String filename = contentVersionVO.getFileName();
 						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
-						if("eml".equals(extension)) {
+						if("eml".equals(extension) || "msg".equals(extension)) {
 							IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 							InputStream inputStream = null;
 							try {

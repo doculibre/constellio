@@ -135,17 +135,31 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
 		importSettings();
 
-		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly("Ze template #1");
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1");
 
 		settings = new ImportedSettings();
 		settings.addImportedLabelTemplate(getTestResourceContent("template1b.xml"));
 		settings.addImportedLabelTemplate(getTestResourceContent("template2.xml"));
 		importSettings();
-		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name")
-				.containsOnly("Ze template #1b", "Ze template #2");
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1b", "Ze template #2");
 
-		assertThat(new LabelTemplateManager(getDataLayerFactory().getConfigManager(), appLayerFactory).listTemplates(Folder.SCHEMA_TYPE))
-				.extracting("name").containsOnly("Ze template #1b", "Ze template #2");
+		assertThat(new LabelTemplateManager(getDataLayerFactory().getConfigManager(), appLayerFactory)
+				.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1b", "Ze template #2");
 
 		runTwice = false;
 	}

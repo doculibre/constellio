@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -18,8 +10,8 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
@@ -34,6 +26,13 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	
@@ -228,7 +227,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 
 		if (finalizeButtonVisible) {
 			MenuItem finalizeItem = rootItem.addItem($("DocumentActionsComponent.finalize"), null);
-			finalizeItem.setCommand(new ConfirmDialogMenuBarItemCommand() {
+			finalizeItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("DocumentActionsComponent.finalize.confirm");

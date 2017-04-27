@@ -1,23 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
@@ -26,21 +8,13 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -53,13 +27,11 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -75,6 +47,14 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
@@ -139,7 +119,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
-		if (ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_CONTAINERS)
+		if (ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS)
 				.globally()) {
 			return false;
 		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
@@ -179,14 +159,38 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
+				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch()) {
+				if (config.isVisibleInAdvancedSearch() && metadata.isEnabled() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString || isTextOrString && metadata.isSearchable())) {
 					result.add(builder.build(metadata, header.getSessionContext()));
 				}
 			}
 		}
 		sort(result);
 		return result;
+	}
+
+	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
+		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
+			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(header.getCollection(), referencedSchemaType);
+			if(taxonomy != null) {
+				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
+				List<String> taxonomyUserIds = taxonomy.getUserIds();
+				List<String> userGroups = currentUser.getUserGroups();
+				for(String group: taxonomyGroupIds) {
+					for(String userGroup: userGroups) {
+						if(userGroup.equals(group)) {
+							return true;
+						}
+					}
+				}
+				return (taxonomyGroupIds.isEmpty() && taxonomyUserIds.isEmpty()) || taxonomyUserIds.contains(currentUser.getId());
+			} else {
+				return true;
+			}
+		}
+		return true;
 	}
 
 	protected void sort(List<MetadataVO> metadataVOs) {
@@ -541,7 +545,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		Cart cart = rm.getOrCreateUserCart(getCurrentUser());
+		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		for (String record : recordIds) {
 			switch (recordServices.getDocumentById(record).getTypeCode()) {

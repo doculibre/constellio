@@ -42,24 +42,23 @@ public class ConstellioFactories {
 
 	}
 
-	public static synchronized ConstellioFactories getInstance() {
+	public static ConstellioFactories getInstance() {
 		File propertyFile = new FoldersLocator().getConstellioProperties();
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();
 		return getInstance(propertyFile, constellioFactoriesDecorator);
 	}
 
-	public static synchronized ConstellioFactories getInstance(ConstellioFactoriesDecorator constellioFactoriesDecorator) {
+	public static ConstellioFactories getInstance(ConstellioFactoriesDecorator constellioFactoriesDecorator) {
 		File propertyFile = new FoldersLocator().getConstellioProperties();
 		return getInstance(propertyFile, constellioFactoriesDecorator);
 	}
 
-	public static synchronized ConstellioFactories getInstance(final File propertyFile,
+	public static ConstellioFactories getInstance(final File propertyFile,
 			final ConstellioFactoriesDecorator decorator) {
 		return instanceProvider.getInstance(new Factory<ConstellioFactories>() {
 			@Override
 			public ConstellioFactories get() {
 				ConstellioFactories instance = buildFor(propertyFile, decorator, null);
-				instance.appLayerFactory.initialize();
 				return instance;
 			}
 		});

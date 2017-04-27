@@ -116,7 +116,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void createACategoriesAndFoldersInside()
+	public void  createACategoriesAndFoldersInside()
 			throws Exception {
 		//		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
 		ObjectId planTaxonomyObjectId = new ObjectIdImpl(cmisSession.getObject("taxo_plan").getId());

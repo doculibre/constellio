@@ -13,7 +13,9 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MultiMapSolrParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.servlet.SolrRequestParsers;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
@@ -196,20 +198,14 @@ public class SolrUtils {
 	}
 
 	public static String toSingleQueryString(ModifiableSolrParams params) {
-		StringBuilder queryBuilder = new StringBuilder();
-		queryBuilder.append("(");
-		queryBuilder.append(params.get("q"));
-		queryBuilder.append(")");
-
-		String[] fqs = params.getParams("fq");
-		if (fqs != null) {
-			for (String fq : fqs) {
-				queryBuilder.append(" AND (");
-				queryBuilder.append(fq);
-				queryBuilder.append(")");
-			}
-		}
-
-		return queryBuilder.toString();
+		params = new ModifiableSolrParams(params);
+		params.remove("bq");
+		return params.toString();
 	}
+	
+	public static ModifiableSolrParams parseQueryString(String queryString) {
+		MultiMapSolrParams multiMapSolrParams = SolrRequestParsers.parseQueryString(queryString);
+		return new ModifiableSolrParams(multiMapSolrParams);
+	}
+	
 }

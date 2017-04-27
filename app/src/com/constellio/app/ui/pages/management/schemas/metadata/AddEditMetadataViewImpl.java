@@ -113,6 +113,25 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				multivalue = false;
 			}
 
+			if(value == MetadataValueType.STRING || value == MetadataValueType.TEXT) {
+				searchableField.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if(!searchableField.getValue()) {
+							advancedSearchField.setValue(false);
+						}
+
+						advancedSearchField.setEnabled(searchableField.getValue());
+					}
+				});
+
+				advancedSearchField.setEnabled(searchableField.getValue());
+
+				if(!searchableField.getValue()) {
+					advancedSearchField.setValue(false);
+				}
+			}
+
 			inputType.setEnabled(false);
 			inputType.removeAllItems();
 			inputType.setEnabled(true);
@@ -354,12 +373,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		enabledField.addStyleName("enabled");
 		enabledField.setEnabled(presenter.isMetadataEnableStatusModifiable());
 
-		searchableField = new CheckBox();
-		searchableField.setCaption($("AddEditMetadataView.searchable"));
-		searchableField.setRequired(false);
-		searchableField.setId("searchable");
-		searchableField.addStyleName("searchable");
-		searchableField.setEnabled(!inherited);
 
 		sortableField = new CheckBox();
 		sortableField.setCaption($("AddEditMetadataView.sortable"));
@@ -374,6 +387,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		advancedSearchField.setId("advancedSearch");
 		advancedSearchField.addStyleName("advancedSearch");
 		advancedSearchField.setEnabled(!inherited);
+
+		searchableField = new CheckBox();
+		searchableField.setCaption($("AddEditMetadataView.searchable"));
+		searchableField.setRequired(false);
+		searchableField.setId("searchable");
+		searchableField.addStyleName("searchable");
+		searchableField.setEnabled(!inherited);
 
 		highlight = new CheckBox();
 		highlight.setCaption($("AddEditMetadataView.highlight"));

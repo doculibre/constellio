@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
@@ -20,6 +23,9 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
+import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
+import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -384,7 +390,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			});
 			
-			addMenuBarColumn(recentItems);
+			addContextMenuAndMenuBarColumn(recentItems);
 		}
 
 		@Override
@@ -405,12 +411,13 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return recordVO;
 		}
 		
-		protected void addMenuBarColumn(List<RecentItem> recentItems) {
+		protected void addContextMenuAndMenuBarColumn(List<RecentItem> recentItems) {
 			boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null; 
 			if (!menuBarColumnGenerated) {
 				boolean menuBarRequired = false;
+				String schemaCode = null;
 				for (RecentItem recentItem : recentItems) {
-					String schemaCode = recentItem.getRecord().getSchema().getCode();
+					schemaCode = recentItem.getRecord().getSchema().getCode();
 					List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
 					for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
 						if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
@@ -420,6 +427,36 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					}
 				}
 				if (menuBarRequired) {
+					RecordContextMenu contextMenu = null;
+					List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
+					for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
+						if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
+							contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
+							break;
+						}
+					}
+					if (contextMenu != null) {
+						contextMenu.setAsContextMenuOf(this);
+						final RecordContextMenu finalContextMenu = contextMenu;
+						BaseContextMenuTableListener contextMenuTableListener = new BaseContextMenuTableListener() {
+							@Override
+							public void onContextMenuOpenFromFooter(ContextMenuOpenedOnTableFooterEvent event) {
+							}
+
+							@Override
+							public void onContextMenuOpenFromHeader(ContextMenuOpenedOnTableHeaderEvent event) {
+							}
+
+							@Override
+							public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
+								Object itemId = event.getItemId();
+								RecordVO recordVO = getRecordVO(itemId);
+								finalContextMenu.openFor(recordVO);
+							}
+						};
+						contextMenu.addContextMenuTableListener(contextMenuTableListener);
+					}
+					
 					addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
 						@Override
 						public Object generateCell(Table source, Object itemId, Object columnId) {
