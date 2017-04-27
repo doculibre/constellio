@@ -457,7 +457,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	ComponentState getUploadButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-		if (isUploadPossible()) {
+		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument())) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
