@@ -241,6 +241,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 						showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
 					} else if (presenter.isAnyFolderBorrowed()) {
 						showErrorMessage($("CartView.aFolderIsBorrowed"));
+					} else if (presenter.isAnyFolderInDecommissioningList()) {
+						showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
 					} else {
 						super.buttonClick(event);
 					}
