@@ -250,6 +250,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
+			} else if (userDocumentId != null) {
+				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().home();
 			}
