@@ -1,19 +1,11 @@
 package com.constellio.app.ui.pages.profile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.collections.CollectionUtils;
-
 import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -33,6 +25,11 @@ import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
 import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
     public static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
@@ -78,6 +75,10 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         }
         user.setDefaultTaxonomy(profileVO.getDefaultTaxonomy());
         user.setLoginLanguageCode(profileVO.getLoginLanguageCode());
+
+        if(isRMModuleActivated()) {
+            user.set(RMUser.DEFAULT_ADMINISTRATIVE_UNIT, profileVO.getDefaultAdministrativeUnit());
+        }
 
         try {
             if (profileVO.getPassword() != null && profileVO.getPassword().equals(profileVO.getConfirmPassword())) {
@@ -150,6 +151,10 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         String jobTitle = user.getJobTitle();
         String address = user.getAddress();
         String loginLanguage = user.getLoginLanguageCode();
+        String defaultAdministrativeUnit = null;
+        if(isRMModuleActivated()) {
+            defaultAdministrativeUnit = user.get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
+        }
         if (loginLanguage == null || loginLanguage.isEmpty()) {
             loginLanguage = view.getSessionContext().getCurrentLocale().getLanguage();
         }
@@ -192,20 +197,20 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         boolean agentManuallyDisabled = agentStatus == AgentStatus.MANUALLY_DISABLED;
 
         ProfileVO profileVO = newProfileVO(username, firstName, lastName, email, personalEmails, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
-                defaultTaxonomy, agentManuallyDisabled);
+                defaultTaxonomy, agentManuallyDisabled, defaultAdministrativeUnit);
         profileVO.setLoginLanguageCode(loginLanguage);
         return profileVO;
     }
 
     ProfileVO newProfileVO(String username, String firstName, String lastName, String email, List<String> personalEmails, String phone,
-                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled) {
+                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled, String defaultAdministrativeUnit) {
         String personalEmailsPresentation = null;
         if (!CollectionUtils.isEmpty(personalEmails)) {
             personalEmailsPresentation = Joiner.on("\n").join(personalEmails);
         }
 
         return new ProfileVO(username, firstName, lastName, email, personalEmailsPresentation, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
-                defaultTaxonomy, null, null, null, agentManuallyDisabled);
+                defaultTaxonomy, null, null, null, agentManuallyDisabled, defaultAdministrativeUnit);
     }
 
     public void cancelButtonClicked() {
@@ -314,5 +319,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
     public List<String> getCurrentCollectionLanguagesCodes() {
         return modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
+    }
+
+    public boolean isRMModuleActivated() {
+        return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
     }
 }
