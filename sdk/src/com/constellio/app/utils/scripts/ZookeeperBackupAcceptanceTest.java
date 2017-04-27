@@ -1,19 +1,22 @@
 package com.constellio.app.utils.scripts;
 
-import static org.junit.Assume.assumeTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Rule;
 import org.junit.Test;
 
-import com.constellio.app.utils.scripts.ZookeeperBackup;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.junit.rules.TemporaryFolder;
 
 public class ZookeeperBackupAcceptanceTest extends ConstellioTest {
 	private String zkHost;
@@ -21,17 +24,24 @@ public class ZookeeperBackupAcceptanceTest extends ConstellioTest {
 
 	private ZookeeperBackup backup;
 
+	private File backupDir;
+
+	@Rule
+	public TemporaryFolder folder= new TemporaryFolder();
+
 	public ZookeeperBackupAcceptanceTest() {
 	}
 
 	@Before
-	public void setUp() {
+	public void setUp() throws IOException {
 		props = loadProps();
 
 		zkHost = props.getRecordsDaoCloudSolrServerZKHost();
-		assumeTrue("zkHost seems not to be declared", StringUtils.isNotBlank(zkHost));
+		assertThat(StringUtils.isNotBlank(zkHost)).isTrue();
 
 		backup = new ZookeeperBackup();
+
+		backupDir = folder.newFolder("zookeeperBackup");
 	}
 
 	private PropertiesDataLayerConfiguration loadProps() {
@@ -43,11 +53,9 @@ public class ZookeeperBackupAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void testExportOption() throws Exception {
-		//backup.exportOption(new File("D:/testZookeeper"), zkHost);
-	}
+		backup.exportOption(backupDir, zkHost);
+		assertThat(backupDir.listFiles()).isNotEmpty();
 
-	@Test
-	public void testImportOption() throws Exception {
-		//backup.exportOption(new File("D:/testZookeeper"), zkHost);
+		backup.importOption(backupDir, zkHost);
 	}
 }
