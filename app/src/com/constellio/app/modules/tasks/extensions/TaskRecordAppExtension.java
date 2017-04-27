@@ -30,7 +30,7 @@ public class TaskRecordAppExtension extends RecordAppExtension {
 		RecordVO recordVO = params.getBuiltRecordVO();
 
 		String schemaCode = recordVO.getSchema().getCode();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		if (schemaTypeCode.equals(Task.SCHEMA_TYPE)) {
 			resourceKey = getTaskIconPath();
 			extension = "task";
@@ -59,7 +59,7 @@ public class TaskRecordAppExtension extends RecordAppExtension {
 	public String getIconPathForRecord(GetIconPathParams params) {
 		String fileName = null;
 		String schemaCode = params.getRecord().getSchemaCode();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		if (schemaTypeCode.equals(Task.SCHEMA_TYPE)) {
 			fileName = getTaskIconPath();
 		}

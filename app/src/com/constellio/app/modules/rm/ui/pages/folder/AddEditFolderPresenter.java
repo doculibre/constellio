@@ -847,7 +847,6 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
         
         // If the current user is only attached to one administrative unit, set it as the field value.
         User currentUser = getCurrentUser();
-        SearchServices searchServices = searchServices();
         MetadataSchemaTypes types = types();
         MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
         LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
@@ -858,7 +857,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (StringUtils.isNotBlank(defaultAdministrativeUnit)) {
 			try {
 				Record defaultAdministrativeUnitRecord = recordServices().getDocumentById(defaultAdministrativeUnit);
-				if(getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
+				if (getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
 					folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
 				} else {
 					LOGGER.error("User " + getCurrentUser().getUsername() + " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
