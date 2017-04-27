@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.ui.components.userDocument;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
@@ -7,18 +12,20 @@ import com.constellio.app.ui.entities.UserFolderVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DeclareUserContentContainerButton extends ContainerButton {
 
@@ -101,7 +108,7 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 	}
 
 	protected Button newDefaultClassifyUserDocumentButton(Resource icon, final UserDocumentVO userDocumentVO) {
-		return new BaseButton($("ListUserDocumentsView.declareDocument"), icon, true) {
+		BaseButton button = new BaseButton($("ListUserDocumentsView.declareDocument"), icon, true) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				String userDocumentId = userDocumentVO.getId();
@@ -111,10 +118,12 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				}
 			}
 		};
+		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareDocument")));
+		return button;
 	}
 
 	protected Button newDefaultClassifyUserFolderButton(Resource icon, final UserFolderVO userFolderVO) {
-		return new BaseButton($("ListUserDocumentsView.declareFolder"), icon, true) {
+		BaseButton button = new BaseButton($("ListUserDocumentsView.declareFolder"), icon, true) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				String userFolderId = userFolderVO.getId();
@@ -124,6 +133,8 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				}
 			}
 		};
+		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareFolder")));
+		return button;
 	}
 	
 }

@@ -190,10 +190,12 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 final LookupFolderField folderField = new LookupFolderField();
                 folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 folderField.setVisible(true);
+                folderField.setRequired(true);
                 
                 final FolderCategoryFieldImpl categoryField = new FolderCategoryFieldImpl();
                 categoryField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 categoryField.setVisible(false);
+                categoryField.setRequired(false);
                 
                 final FolderRetentionRuleFieldImpl retentionRuleField = new FolderRetentionRuleFieldImpl(collection);
                 retentionRuleField.setVisible(false);
@@ -209,7 +211,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     public void valueChange(Property.ValueChangeEvent event) {
                     	boolean categoryClassification = Boolean.TRUE.equals(event.getProperty().getValue());
                         folderField.setVisible(!categoryClassification);
+                        folderField.setRequired(!categoryClassification);
                         categoryField.setVisible(categoryClassification);
+                        categoryField.setRequired(categoryClassification);
                         if (categoryClassification) {
                         	String categoryId = categoryField.getValue();
     						adjustRetentionRuleField(categoryId, retentionRuleField);
@@ -235,6 +239,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         String parentId = folderField.getValue();
                         String categoryId = categoryField.getValue();
                         String retentionRuleId = retentionRuleField.getValue();
+                        if(parentId == null && categoryId == null) {
+                            if(folderField.isVisible()) {
+                                showErrorMessage($("ConstellioHeader.noParentFolderSelectedForClassification"));
+                                return;
+                            } else {
+                                showErrorMessage($("ConstellioHeader.noCategorySelectedForClassification"));
+                                return;
+                            }
+                        }
                         boolean isClassifiedInFolder = !Boolean.TRUE.equals(classificationOption.getValue());
                         try {
                             classifyButtonClicked(parentId, categoryId, retentionRuleId, isClassifiedInFolder, param);
