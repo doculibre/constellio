@@ -34,9 +34,9 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public class LoginViewImpl extends BaseViewImpl implements LoginView {
-	
+
 	private static final String USERNAME_COOKIE = "Constellio.username";
-	
+
 	private String initialUsername;
 
 	private VerticalLayout loginFormLayout;
@@ -89,7 +89,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		welcomeLabel.setSizeUndefined();
 		welcomeLabel.addStyleName(ValoTheme.LABEL_H2);
 		welcomeLabel.addStyleName(ValoTheme.LABEL_COLORED);
-//		hLayout.addComponent(welcomeLabel);
+		//		hLayout.addComponent(welcomeLabel);
 
 		String linkTarget = presenter.getLogoTarget();
 		Link logo = new Link(null, new ExternalResource(linkTarget));
@@ -110,6 +110,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 
 		usernameField = new TextField($("LoginView.username"));
 		usernameField.setIcon(FontAwesome.USER);
+		usernameField.setMaxLength(100);
 		usernameField.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
 		if (initialUsername != null) {
 			usernameField.setValue(initialUsername);
@@ -119,6 +120,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 
 		passwordField = new PasswordField($("LoginView.password"));
 		passwordField.setIcon(FontAwesome.LOCK);
+		passwordField.setMaxLength(100);
 		passwordField.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
 		if (initialUsername != null) {
 			passwordField.focus();
@@ -218,5 +220,5 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		// Save cookie
 		VaadinService.getCurrentResponse().addCookie(usernameCookie);
 	}
-	
+
 }
