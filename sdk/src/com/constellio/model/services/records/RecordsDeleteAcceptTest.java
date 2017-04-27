@@ -401,6 +401,22 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenRecordIsDefaultValueThenNotLogicallyDeletable()
+			throws Exception {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(records.folder3().getSchemaCode()).get("valueListRef")
+						.setDefaultValue(asList(valueListItem1.getId()));
+			}
+		});
+		assertThat(valueListItem1).isNot(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(valueListItem1).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+
+	}
+
+	@Test
 	public void givenReferencedValueListItemThenRestorable()
 			throws Exception {
 		given(records.folder3()).hasAValueListReferenceTo(valueListItem1);
