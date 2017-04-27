@@ -90,36 +90,38 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 			return;
 		}
 
-		UserCredential authentifiedUser = userServices.getUserCredential(username);
-
-		UserCredential tokenForUser = authentifiedUser;
-		if (asUser != null) {
-			if (authentifiedUser.isSystemAdmin()) {
-				try {
-					tokenForUser = userServices.getUserCredential(asUser);
-					if (tokenForUser == null) {
-						throw new UserServicesRuntimeException_NoSuchUser(asUser);
+		String token;
+		UserCredential userCredential;
+		synchronized (username.intern()) {
+			userCredential = userServices.getUserCredential(username);
+			if (asUser != null) {
+				if (userCredential.isSystemAdmin()) {
+					try {
+						userCredential = userServices.getUserCredential(asUser);
+						if (userCredential == null) {
+							throw new UserServicesRuntimeException_NoSuchUser(asUser);
+						}
+					} catch (UserServicesRuntimeException_NoSuchUser e) {
+						resp.getWriter().write(BAD_ASUSER);
+						return;
 					}
-				} catch (UserServicesRuntimeException_NoSuchUser e) {
-					resp.getWriter().write(BAD_ASUSER);
+				} else {
+					resp.getWriter().write(REQUIRE_ADMIN_RIGHTS);
 					return;
 				}
-			} else {
-				resp.getWriter().write(REQUIRE_ADMIN_RIGHTS);
-				return;
 			}
-		}
 
-		if (tokenForUser.getServiceKey() == null) {
-			tokenForUser = tokenForUser.withServiceKey("agent_" + tokenForUser.getUsername());
-			userServices.addUpdateUserCredential(tokenForUser);
-		}
+			if (userCredential.getServiceKey() == null) {
+				userCredential = userCredential.withServiceKey("agent_" + userCredential.getUsername());
+				userServices.addUpdateUserCredential(userCredential);
+			}
 
-		String token = userServices.generateToken(tokenForUser.getUsername(), Duration.standardHours(tokenDurationInHours));
+			token = userServices.generateToken(userCredential.getUsername(), Duration.standardHours(tokenDurationInHours));
+		}
 
 		StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		sb.append("<response><serviceKey>");
-		sb.append(tokenForUser.getServiceKey());
+		sb.append(userCredential.getServiceKey());
 		sb.append("</serviceKey>");
 		sb.append("<token>");
 		sb.append(token);
