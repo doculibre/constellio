@@ -646,7 +646,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 try {
                     Document document = rmSchemasRecordsServices.wrapDocument(record);
                     if (document.getContent() != null) {
-                        EmailServices.MessageAttachment contentFile = createAttachment(document.getContent());
+                        EmailServices.MessageAttachment contentFile = createAttachment(document);
                         returnList.add(contentFile);
                     }
                 } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -657,13 +657,14 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         return returnList;
     }
 
-    private EmailServices.MessageAttachment createAttachment(Content content)
+    private EmailServices.MessageAttachment createAttachment(Document document)
             throws IOException {
+        Content content = document.getContent();
         String hash = content.getCurrentVersion().getHash();
         ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
         InputStream inputStream = contentManager.getContentInputStream(hash, content.getCurrentVersion().getFilename());
         String mimeType = content.getCurrentVersion().getMimetype();
-        String attachmentName = content.getCurrentVersion().getFilename();
+        String attachmentName = document.getTitle();
         return new EmailServices.MessageAttachment().setMimeType(mimeType).setAttachmentName(attachmentName).setInputStream(inputStream);
     }
 
