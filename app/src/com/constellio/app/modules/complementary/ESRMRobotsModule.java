@@ -73,14 +73,6 @@ public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigra
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
-		RobotSchemaRecordServices robotSchemas = new RobotSchemaRecordServices(collection, appLayerFactory);
-		RobotsManager robotsManager = robotSchemas.getRobotsManager();
-
-		ClassifyConnectorDocumentInFolderActionExecutor.registerIn(robotsManager);
-		ClassifyConnectorFolderInTaxonomyActionExecutor.registerIn(robotsManager);
-		ClassifyConnectorFolderInParentFolderActionExecutor.registerIn(robotsManager);
-		ClassifyConnectorFolderDirectlyInThePlanActionExecutor.registerIn(robotsManager);
-
 		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 

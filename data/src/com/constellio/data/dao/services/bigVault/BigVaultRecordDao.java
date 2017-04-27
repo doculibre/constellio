@@ -11,6 +11,7 @@ import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isSingleV
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -708,12 +709,13 @@ public class BigVaultRecordDao implements RecordDao {
 	private void incrementReferenceCounterForNewReferencesInMultivalueField(RecordDeltaDTO modifiedRecord,
 			Entry<String, Object> field, TransactionDTO transaction, Map<String, Double> recordsInTransactionRefCounts,
 			Map<String, Double> recordsOutOfTransactionRefCounts) {
+		List initialList = ensureList(modifiedRecord.getInitialFields().get(field.getKey()));
+		List currentList = ensureList(field.getValue());
 		List<String> newReferences;
-		if (modifiedRecord.getInitialFields().get(field.getKey()) != null) {
-			newReferences = LangUtils.compare((List) modifiedRecord.getInitialFields().get(
-					field.getKey()), (List) field.getValue()).getNewItems();
+		if (initialList != null) {
+			newReferences = LangUtils.compare(initialList, currentList).getNewItems();
 		} else {
-			newReferences = (List) field.getValue();
+			newReferences = currentList;
 		}
 		for (String referenceId : newReferences) {
 			if (!referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
@@ -723,8 +725,9 @@ public class BigVaultRecordDao implements RecordDao {
 			}
 		}
 		if (modifiedRecord.getInitialFields().get(field.getKey()) != null) {
-			List<String> removedReferences = LangUtils.compare((List) modifiedRecord.getInitialFields().get(field.getKey()),
-					(List) field.getValue()).getRemovedItems();
+			initialList = ensureList(modifiedRecord.getInitialFields().get(field.getKey()));
+			currentList = ensureList(field.getValue());
+			List<String> removedReferences = LangUtils.compare(initialList, currentList).getRemovedItems();
 			for (String referenceId : removedReferences) {
 				if (!referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
 					addReferenceToRecordMapToDecrement(referenceId, recordsOutOfTransactionRefCounts, modifiedRecord);
@@ -746,9 +749,11 @@ public class BigVaultRecordDao implements RecordDao {
 		Object collection = modifiedRecord.getInitialFields().get(COLLECTION_FIELD);
 		Object initialValue = modifiedRecord.getInitialFields().get(field.getKey());
 		if (initialValue != null) {
-			List newReferences = LangUtils
-					.compare((List) modifiedRecord.getInitialFields().get(field.getKey()), (List) field.getValue())
-					.getNewItems();
+			Object currentValue = field.getValue();
+			List initialList = ensureList(initialValue);
+			List currentList = ensureList(currentValue);
+			List newReferences = LangUtils.compare(initialList, currentList).getNewItems();
+			
 			for (Object referenceId : newReferences) {
 				if (!recordsInTransactionRefCounts.containsKey(referenceId)) {
 					if (referenceId != null && !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
@@ -763,6 +768,18 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 			}
 		}
+	}
+
+	private List ensureList(Object object) {
+		List list;
+		if (object instanceof List) {
+			list = (List) object;
+		} else if (StringUtils.isNotBlank((String) object)) {
+			list = null;
+		} else {
+			list = Arrays.asList(object);
+		}
+		return list;
 	}
 
 	private SolrInputDocument setVersion1ToDocument(String referenceId, Object collection) {

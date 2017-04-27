@@ -1,5 +1,9 @@
 package com.constellio.app.ui.pages.events;
 
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -11,6 +15,7 @@ import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
@@ -21,9 +26,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Map;
 
 public class EventViewImpl extends BaseViewImpl implements EventView {
 	public static final String EVENT_TABLE_STYLE = "selenium-event-table";
@@ -52,7 +54,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 		String title = EventTypeUtils.getEventTypeCaption(eventType) + " (" + container.size() + ")";
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
-		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent){
+		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent) {
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (presenter.isDeltaMetadata(metadataValue)) {
@@ -64,10 +66,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 			@Override
 			protected RecordVO getRecordVOForTitleColumn(Item item) {
-				if (isRecordEvent) {
-					RecordVO eventVO = ((RecordVOItem) item).getRecord();
-					return presenter.getLinkedRecordVO(eventVO);
-				} else {
+				try {
+					if (isRecordEvent) {
+						RecordVO eventVO = ((RecordVOItem) item).getRecord();
+						return presenter.getLinkedRecordVO(eventVO);
+					} else {
+						return super.getRecordVOForTitleColumn(item);
+					}
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					return super.getRecordVOForTitleColumn(item);
 				}
 			}
@@ -75,12 +81,12 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			@Override
 			protected String getTitleForRecordVO(RecordVO titleRecordVO, String prefix, String title) {
 				if (isRecordEvent) {
-					title += " (" + titleRecordVO.getId() + ")"; 
+					title += " (" + titleRecordVO.getId() + ")";
 				}
 				return super.getTitleForRecordVO(titleRecordVO, prefix, title);
 			}
 		};
-		if (isRecordEvent){
+		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {
 				@Override
 				public void itemClick(ItemClickEvent event) {
@@ -98,7 +104,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {
-		final String delta = (metadataValue.getValue() != null)? metadataValue.getValue().toString(): "";
+		final String delta = (metadataValue.getValue() != null) ? metadataValue.getValue().toString() : "";
 		DisplayWindowButton displayButton = new DisplayWindowButton("", delta) {
 			@Override
 			public boolean isVisible() {
@@ -113,11 +119,12 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		return parameters;
 	}
 
-
 	@Override
-	protected String getTitle(){
-		return  EventTypeUtils.getEventTypeCaption(presenter.getEventType());
-	};
+	protected String getTitle() {
+		return EventTypeUtils.getEventTypeCaption(presenter.getEventType());
+	}
+
+	;
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
