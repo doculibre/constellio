@@ -124,7 +124,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 		Taxonomy taxonomy = valueListServices.createTaxonomy("Ze taxonomy");
 		Metadata metadata = valueListServices.createAMultivalueClassificationMetadataInGroup(
-				taxonomy, Document.SCHEMA_TYPE, "Ze taxonomy");
+				taxonomy, Document.SCHEMA_TYPE, "Ze taxonomy", "Ze taxonomy tab label");
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		MetadataSchema schema = rm.getTypes().getDefaultSchema(taxonomy.getSchemaTypes().get(0));
