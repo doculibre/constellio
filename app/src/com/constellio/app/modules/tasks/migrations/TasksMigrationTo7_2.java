@@ -7,12 +7,13 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class TasksMigrationTo7_2 implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "7.0";
+		return "7.2";
 	}
 
 	@Override
@@ -26,7 +27,9 @@ public class TasksMigrationTo7_2 implements MigrationScript {
 				.modify(collection, new MetadataSchemaTypesAlteration() {
 					@Override
 					public void alter(MetadataSchemaTypesBuilder types) {
-						types.getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).setDefaultValue(status.getId());
+						for (MetadataSchemaBuilder schema : types.getSchemaType(Task.SCHEMA_TYPE).getAllSchemas()) {
+							schema.getMetadata(Task.STATUS).setDefaultValue(status.getId());
+						}
 					}
 				});
 

@@ -1,5 +1,21 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
@@ -9,26 +25,23 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 public class RMSystemCheckExtension extends SystemCheckExtension {
 
@@ -39,9 +52,11 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	String collection;
 
 	AppLayerFactory appLayerFactory;
-
+	ContentDao contentDao;
+	ContentManager contentManager;
 	SearchServices searchServices;
 	RecordServices recordServices;
+	IOServices ioServices;
 
 	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
 	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
@@ -60,7 +75,10 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.contentDao = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getContentsDao();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		this.configs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 	}
 
@@ -209,5 +227,91 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		if (markedForReindexing) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		}
+
+		if (params.isRepair()) {
+			for (PrintableLabel printableLabel : rm.searchPrintableLabels(LogicalSearchQueryOperators.ALL)) {
+				Content content = printableLabel.getJasperfile();
+				String hash = content.getCurrentVersion().getHash();
+
+				try {
+					contentDao.getContentInputStreamFactory(hash);
+				} catch (ContentDaoException_NoSuchContent e) {
+
+					switch (printableLabel.getTitle()) {
+					case "Code de plan justifié de dossier à droite (Avery 5161)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5161/Avery_5161_D_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de dossier à droite (Avery 5163)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5163/Avery_5163_D_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de dossier à gauche (Avery 5163)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5163/Avery_5163_G_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de dossier à droite (Avery 5159)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5159/Avery_5159_D_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de dossier à droite (Avery 5162)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5162/Avery_5162_D_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de dossier à gauche (Avery 5162)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5162/Avery_5162_G_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de dossier à gauche (Avery 5161)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5161/Avery_5161_G_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de dossier à gauche (Avery 5159)":
+						installLabel(printableLabel, "Etiquettes Dossiers/5159/Avery_5159_G_Dossier.jasper");
+						break;
+
+					case "Code de plan justifié de conteneur (Avery 5161)":
+						installLabel(printableLabel, "Etiquettes Contenants/5161/Avery_5161_Container.jasper");
+						break;
+
+					case "Code de plan justifié de conteneur (Avery 5159)":
+						installLabel(printableLabel, "Etiquettes Contenants/5159/Avery_5159_Container.jasper");
+						break;
+
+					case "Code de plan justifié de conteneur (Avery 5163)":
+						installLabel(printableLabel, "Etiquettes Contenants/5163/Avery_5163_Container.jasper");
+						break;
+
+					case "Code de plan justifié de conteneur (Avery 5162)":
+						installLabel(printableLabel, "Etiquettes Contenants/5162/Avery_5162_Container.jasper");
+						break;
+
+					}
+				}
+			}
+		}
+	}
+
+	private void installLabel(PrintableLabel printableLabel, String subPath) {
+		Content content = printableLabel.getJasperfile();
+		File resources_i18n = new FoldersLocator().getI18nFolder();
+		subPath = ("migrations/rm/combo/defaultJasperFiles/" + subPath).replace("/", File.separator);
+		File jasperFile = new File(resources_i18n, subPath);
+
+		InputStream inputStream = null;
+		try {
+			inputStream = ioServices.newFileInputStream(jasperFile, "installLabel");
+			ContentVersionDataSummary summary = contentManager.upload(inputStream, false, false, "jasperFile.jasper");
+			Content newContent = contentManager.createFileSystem(content.getCurrentVersion().getFilename(), summary);
+			printableLabel.setJasperFile(newContent);
+			try {
+				recordServices.update(printableLabel);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		} catch (FileNotFoundException e) {
+			ioServices.closeQuietly(inputStream);
+		}
+
 	}
 }
