@@ -19,10 +19,7 @@ import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickH
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
@@ -290,7 +287,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	String getBorrowMessageState(Folder folder) {
-		String borrowedMessage;
+		String borrowedMessage = null;
 		if (folder.getBorrowed() != null && folder.getBorrowed()) {
 			String borrowUserEntered = folder.getBorrowUserEntered();
 			if (borrowUserEntered != null) {
@@ -301,8 +298,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} else {
 				borrowedMessage = $("DisplayFolderview.borrowedByNullUserFolder");
 			}
-		} else {
-			borrowedMessage = null;
+		} else if(folder.getContainer() != null) {
+			try {
+				ContainerRecord containerRecord = rmSchemasRecordsServices.getContainerRecord(folder.getContainer());
+				boolean borrowed = Boolean.TRUE.equals(containerRecord.getBorrowed());
+				String borrower = containerRecord.getBorrower();
+				if(borrowed && borrower != null) {
+					String userTitle = rmSchemasRecordsServices.getUser(borrower).getTitle();
+					LocalDate borrowDate =containerRecord.getBorrowDate();
+					borrowedMessage = $("DisplayFolderview.borrowedContainer", userTitle, borrowDate);
+				} else if(borrowed) {
+					borrowedMessage = $("DisplayFolderview.borrowedByNullUserContainer");
+				}
+			} catch (Exception e) {
+				LOGGER.error("Could not find linked container");
+			}
 		}
 		return borrowedMessage;
 	}

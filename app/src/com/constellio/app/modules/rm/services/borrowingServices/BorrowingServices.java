@@ -350,6 +350,9 @@ public class BorrowingServices {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
 			} else if(isInDecommissioningList(folder)) {
 				throw new BorrowingServicesRunTimeException_FolderIsInDecommissioningList(folder.getId());
+			} else if(folder.getContainer() != null) {
+				ContainerRecord containerRecord = rm.getContainerRecord(folder.getContainer());
+				validateCanBorrow(currentUser, containerRecord, borrowingDate);
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder(currentUser.getUsername(), folder.getId());

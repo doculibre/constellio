@@ -347,7 +347,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestBorrowExtensionButton(final BaseViewImpl view) {
-        WindowButton borrowExtensionRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowExtensionRequest"), $("RMRequestTaskButtonExtension.borrowExtensionRequest")) {
+        WindowButton borrowExtensionRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowExtensionRequest"), $("RMRequestTaskButtonExtension.borrowExtensionRequestTitle")) {
             @PropertyId("value")
             private InlineDateField datefield;
 
