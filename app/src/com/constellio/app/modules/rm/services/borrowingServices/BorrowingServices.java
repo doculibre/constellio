@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.*;
@@ -345,9 +344,7 @@ public class BorrowingServices {
 	public void validateCanBorrow(User currentUser, Folder folder, LocalDate borrowingDate) {
 
 		if (currentUser.hasReadAccess().on(folder)) {
-			if (FolderStatus.ACTIVE == folder.getArchivisticStatus()) {
-				throw new BorrowingServicesRunTimeException_CannotBorrowActiveFolder(folder.getId());
-			} else if (folder.getBorrowed() != null && folder.getBorrowed()) {
+			if (folder.getBorrowed() != null && folder.getBorrowed()) {
 				throw new BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed(folder.getId());
 			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
