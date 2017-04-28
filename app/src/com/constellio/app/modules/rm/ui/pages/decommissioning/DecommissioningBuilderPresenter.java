@@ -273,7 +273,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return condition;
 	}
 
-	void buildSearchCondition()
+	protected LogicalSearchCondition buildSearchCondition()
 			throws ConditionException {
 		List<Criterion> criteria = view.getSearchCriteria();
 		if (criteria.isEmpty()) {
@@ -283,9 +283,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 		if(searchType.isFolderSearch()) {
 			condition = condition.andWhere(rmRecordServices().folder.borrowed()).isFalseOrNull();
-			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(getFoldersAlreadyInNonProcessedDecommissioningLists());
+			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(foldersToExclude);
 		} else {
-			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(getDocumentsAlreadyInNonProcessedDecommissioningLists());
+			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(documentsToExclude);
 		}
 
 		if (!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
@@ -294,6 +294,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				condition = condition.andWhere(rmRecordServices().folder.mediaType()).isEqualTo(FolderMediaType.ANALOG);
 			}
 		}
+		return condition;
 	}
 
 	protected List<String> getFoldersAlreadyInNonProcessedDecommissioningLists() {
