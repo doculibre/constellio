@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -642,5 +643,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public boolean isAnyFolderBorrowed() {
 		return searchServices().getResultsCount(from(rm().folder.schemaType()).where(rm().folder.borrowed()).isTrue()
 				.andWhere(Schemas.IDENTIFIER).isIn(getCartFolderIds())) > 0;
+	}
+
+	public boolean isAnyFolderInDecommissioningList() {
+		return searchServices().getResultsCount(from(rm().decommissioningList.schemaType()).where(rm().decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
+				.andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
 	}
 }
