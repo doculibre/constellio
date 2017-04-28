@@ -237,7 +237,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				result = voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
 			} catch (Throwable t) {
 				result = null;
-			} 
+			}
 		} else {
 			result = eventOrRecordVO;
 		}
@@ -335,5 +335,5 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		};
 		return voBuilder;
 	}
-	
+
 }
