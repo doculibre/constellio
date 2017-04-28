@@ -296,7 +296,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 	}
 
-	private List<String> getFoldersAlreadyInNonProcessedDecommissioningLists() {
+	protected List<String> getFoldersAlreadyInNonProcessedDecommissioningLists() {
 		RMSchemasRecordsServices rm = rmRecordServices();
 		Set<String> foldersToHide = new HashSet<>();
 		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
@@ -307,7 +307,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return new ArrayList<>(foldersToHide);
 	}
 
-	private List<String> getDocumentsAlreadyInNonProcessedDecommissioningLists() {
+	protected List<String> getDocumentsAlreadyInNonProcessedDecommissioningLists() {
 		RMSchemasRecordsServices rm = rmRecordServices();
 		Set<String> documentsToHide = new HashSet<>();
 		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
