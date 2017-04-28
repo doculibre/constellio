@@ -60,9 +60,9 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			if(borrowed && borrower != null) {
 				String userTitle = rmRecordServices.getUser(borrower).getTitle();
 				LocalDate borrowDate = containerRecord.get(ContainerRecord.BORROW_DATE);
-				borrowedMessage = $("DisplayFolderview.borrowedContainer", userTitle, borrowDate);
+				borrowedMessage = $("DisplayContainerView.borrowedContainer", userTitle, borrowDate);
 			} else if(borrowed) {
-				borrowedMessage = $("DisplayFolderview.borrowedByNullUserContainer");
+				borrowedMessage = $("DisplayContainerView.borrowedByNullUserContainer");
 			}
 		}
 		return borrowedMessage;

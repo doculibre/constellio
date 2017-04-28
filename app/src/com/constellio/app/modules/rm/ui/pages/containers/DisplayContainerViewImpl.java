@@ -64,7 +64,11 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		layout.setSpacing(true);
 
 		RecordVO container = presenter.getContainer();
-		layout.addComponent(new RecordDisplay(container));
+		borrowedLabel = new Label();
+		borrowedLabel.setVisible(false);
+		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
+		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
+		layout.addComponents(borrowedLabel, new RecordDisplay(container));
 
 		try {
 			Double fillRatio = presenter.getFillRatio(container);
@@ -75,12 +79,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			layout.addComponent(new ContainerRatioPanel($("RecordInContainerWithoutLinearMeasure")));
 		}
 
-		borrowedLabel = new Label();
-		borrowedLabel.setVisible(false);
-		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
-		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
-
-		layout.addComponents(borrowedLabel, buildFoldersTable(presenter.getFolders()));
+		layout.addComponent(buildFoldersTable(presenter.getFolders()));
 
 		return layout;
 	}
