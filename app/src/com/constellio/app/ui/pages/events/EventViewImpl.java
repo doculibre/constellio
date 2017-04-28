@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.events;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -9,6 +10,8 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayWindowButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
@@ -32,6 +35,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private EventPresenter presenter;
 	private Table table;
 	private Map<String, String> parameters;
+	public static final String OPEN_SESSION = "open_session";
 
 	public EventViewImpl() {
 		this.presenter = new EventPresenter(this);
@@ -90,6 +94,27 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			public boolean isContextMenuPossible() {
 				return false;
 			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				if (OPEN_SESSION.equalsIgnoreCase(presenter.getEventType())) {
+					return new RecordVOTableColumnsManager() {
+						@Override
+						protected List<String> getDefaultVisibleColumnIds(Table table) {
+							List<String> defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
+							String usernameColumnId = "event_default_username";
+							String titleColumnId = "event_default_title";
+							if (!defaultVisibleColumnIds.contains(usernameColumnId)) {
+								defaultVisibleColumnIds.add(usernameColumnId);
+								defaultVisibleColumnIds.remove(titleColumnId);
+							}
+							return defaultVisibleColumnIds;
+						}
+					};
+				} else {
+					return super.newColumnsManager();
+				}
+			}
 		};
 		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {
@@ -129,7 +154,10 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		return EventTypeUtils.getEventTypeCaption(presenter.getEventType());
 	}
 
-	;
+	public Table getTable()
+	{
+		return table;
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {

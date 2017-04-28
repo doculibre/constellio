@@ -234,6 +234,10 @@ public class DecommissioningService {
 				(isFolderProcessable(folder) && !isFolderRepackable(decommissioningList, folder));
 	}
 
+	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isFolderRepackable(decommissioningList, folder);
+	}
+
 	public boolean isApproved(DecommissioningList decommissioningList) {
 		return decommissioningList.isApproved();
 	}

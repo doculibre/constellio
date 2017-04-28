@@ -54,18 +54,18 @@ public class FolderValidatorAcceptanceTest extends ConstellioTest {
         recordServices.add(folder.getWrappedRecord());
     }
 
-    @Test
-    public void testGreaterOpingDateThanEndingDateThenOk() throws RecordServicesException {
-        Folder folder = buildDefaultFolder().setCloseDateEntered(DEFAULT_OPENING_DATE);
-
-        recordServices.add(folder.getWrappedRecord());
-        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-        Record record = searchServices.searchSingleResult(from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(FOLDER_ID));
-
-        assertThat(rm.wrapFolder(record).getCloseDateEntered()).isEqualTo(DEFAULT_OPENING_DATE);
-        assertThat(rm.wrapFolder(record).getOpeningDate()).isEqualTo(DEFAULT_OPENING_DATE);
-        assertThat(rm.wrapFolder(record).getTitle()).isEqualTo(FOLDER_TITLE);
-    }
+//    @Test
+//    public void testGreaterOpingDateThanEndingDateThenOk() throws RecordServicesException {
+//        Folder folder = buildDefaultFolder().setCloseDateEntered(DEFAULT_OPENING_DATE);
+//
+//        recordServices.add(folder.getWrappedRecord());
+//        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+//        Record record = searchServices.searchSingleResult(from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(FOLDER_ID));
+//
+//        assertThat(rm.wrapFolder(record).getCloseDateEntered()).isEqualTo(DEFAULT_OPENING_DATE);
+//        assertThat(rm.wrapFolder(record).getOpeningDate()).isEqualTo(DEFAULT_OPENING_DATE);
+//        assertThat(rm.wrapFolder(record).getTitle()).isEqualTo(FOLDER_TITLE);
+//    }
 
     public Folder buildDefaultFolder() {
         return rm.newFolderWithId(FOLDER_ID).setTitle(FOLDER_TITLE).setAdministrativeUnitEntered(records.getUnit10())
