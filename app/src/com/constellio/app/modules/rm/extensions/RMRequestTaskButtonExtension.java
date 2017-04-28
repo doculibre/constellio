@@ -4,8 +4,9 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -57,6 +58,9 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     ModelLayerFactory modelLayerFactory;
     TasksSchemasRecordsServices taskSchemas;
     RMSchemasRecordsServices rmSchemas;
+    BorrowingServices borrowingServices;
+    DecommissioningService decommissioningService;
+
 
     public RMRequestTaskButtonExtension(String collection, AppLayerFactory appLayerFactory) {
         this.collection = collection;
@@ -64,6 +68,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
         this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
         this.taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
         this.rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+        this.borrowingServices = new BorrowingServices(collection, modelLayerFactory);
+        this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
     }
 
     @Override
@@ -135,12 +141,27 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private boolean isFolderBorrowable(Folder folder, ContainerRecord container, User currentUser) {
-        return folder != null && !Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER).on(folder)
+        if(folder != null) {
+            try {
+                this.borrowingServices.validateCanBorrow(currentUser, folder, LocalDate.now());
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER).on(folder)
                 && !(container != null && Boolean.TRUE.equals(container.getBorrowed()));
     }
 
     private boolean isContainerBorrowable(ContainerRecord container, User currentUser) {
-        return container != null && !Boolean.TRUE.equals(container.getBorrowed()) && currentUser.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
+        if(container != null) {
+            try {
+                this.borrowingServices.validateCanBorrow(currentUser, container, LocalDate.now());
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return container != null && currentUser.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
     }
 
     private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser) {
@@ -160,8 +181,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private boolean isFolderReactivable(Folder folder, User currentUser) {
-        return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().equals(FolderMediaType.ANALOG)
-                && currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
+        return decommissioningService.isFolderReactivable(folder, currentUser);
     }
 
     @Override
@@ -327,7 +347,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private Button buildRequestBorrowExtensionButton(final BaseViewImpl view) {
-        WindowButton borrowExtensionRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowExtensionRequest"), $("RMRequestTaskButtonExtension.borrowExtensionRequest")) {
+        WindowButton borrowExtensionRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowExtensionRequest"), $("RMRequestTaskButtonExtension.borrowExtensionRequestTitle")) {
             @PropertyId("value")
             private InlineDateField datefield;
 
