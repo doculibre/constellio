@@ -1,5 +1,17 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -36,17 +48,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -140,13 +141,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
-			if(documentVO != null) {
+			if (documentVO != null) {
 				Document document = new Document(currentDocument(), presenterUtils.types());
-				if(document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(currentDocument())) {
+				if (document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT)
+						.on(currentDocument())) {
 					return ComponentState.INVISIBLE;
 				}
 
-				if(getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(currentDocument())) {
+				if (getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT)
+						.on(currentDocument())) {
 					return ComponentState.INVISIBLE;
 				}
 			}
@@ -309,11 +312,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	private void createVersionDeletionEvent(Record record, String version) {
-		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(getCurrentUser().getCollection(), getModelLayerFactory());
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(getCurrentUser().getCollection(),
+				getModelLayerFactory());
 		Event event = schemasRecords.newEvent();
 		event.setType(EventType.DELETE_DOCUMENT);
 		event.setUsername(getCurrentUser().getUsername());
-		if(documentVO != null) {
+		if (documentVO != null) {
 			event.setUserRoles(StringUtils.join(getCurrentUser().getUserRoles().toArray(), "; "));
 			event.setTitle(record.getTitle());
 			event.setRecordId(documentVO.getId());
@@ -329,7 +333,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public synchronized void createPDFA() {
 		DocumentVO documentVO = getDocumentVO();
-		if(!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")){
+		if (!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
 			Content content = document.getContent();
@@ -343,8 +347,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
 					actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+					actionsComponent.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 				} catch (Exception e) {
-					actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
+					actionsComponent.showErrorMessage(
+							$("DocumentActionsComponent.createPDFAFailure") + " : " + MessageUtils.toMessage(e));
 				} finally {
 					conversionManager.close();
 				}
