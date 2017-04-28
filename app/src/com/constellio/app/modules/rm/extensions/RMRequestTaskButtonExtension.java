@@ -4,9 +4,9 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -59,6 +59,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     TasksSchemasRecordsServices taskSchemas;
     RMSchemasRecordsServices rmSchemas;
     BorrowingServices borrowingServices;
+    DecommissioningService decommissioningService;
 
 
     public RMRequestTaskButtonExtension(String collection, AppLayerFactory appLayerFactory) {
@@ -68,6 +69,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
         this.taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
         this.rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
         this.borrowingServices = new BorrowingServices(collection, modelLayerFactory);
+        this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
     }
 
     @Override
@@ -179,8 +181,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
     }
 
     private boolean isFolderReactivable(Folder folder, User currentUser) {
-        return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().equals(FolderMediaType.ANALOG)
-                && currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
+        return decommissioningService.isFolderReactivable(folder, currentUser);
     }
 
     @Override
