@@ -51,8 +51,6 @@ public class RecordVOTable extends BaseTable {
 	private List<MetadataSchemaVO> schemaVOs = new ArrayList<>();
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
 
-	private boolean contextMenuPossible = true;
-
 	public RecordVOTable() {
 		super(null);
 		init();
@@ -186,12 +184,8 @@ public class RecordVOTable extends BaseTable {
 		return null;
 	}
 
-	public final boolean isContextMenuPossible() {
-		return contextMenuPossible;
-	}
-
-	public final void setContextMenuPossible(boolean contextMenuPossible) {
-		this.contextMenuPossible = contextMenuPossible;
+	public boolean isContextMenuPossible() {
+		return true;
 	}
 
 	public final List<MetadataSchemaVO> getSchemas() {

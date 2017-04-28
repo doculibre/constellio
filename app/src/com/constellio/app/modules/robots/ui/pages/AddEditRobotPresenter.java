@@ -189,7 +189,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		MetadataSchemaType schemaType = schemaType(schemaFilter);
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser())).getFieldFacetValues("schema_s");
+				.setNumberOfRows(0).setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser())).getFieldFacetValues("schema_s");
 		Set<String> metadataLocalCodes = new HashSet<>();
 		if(schema_s != null) {
 			for(FacetValue facetValue: schema_s) {

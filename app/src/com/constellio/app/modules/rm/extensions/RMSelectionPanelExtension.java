@@ -91,7 +91,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField();
+                final LookupFolderField field = new LookupFolderField(true);
                 field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
@@ -143,7 +143,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField();
+                final LookupFolderField field = new LookupFolderField(true);
                 field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
@@ -189,7 +189,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
                 
-                final LookupFolderField folderField = new LookupFolderField();
+                final LookupFolderField folderField = new LookupFolderField(true);
                 folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 folderField.setVisible(true);
                 folderField.setRequired(true);

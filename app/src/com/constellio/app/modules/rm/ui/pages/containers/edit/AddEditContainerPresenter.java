@@ -122,7 +122,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		Record container = recordServices().newRecordWithSchema(schema, record.getId());
 		boolean hasOverriddenAMetadata = false;
 		for (MetadataVO metadataVO : record.getMetadatas()) {
-			String localCode = metadataVO.getLocalCode();			
+			String localCode = metadataVO.getLocalCode();
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
 				if (metadata.getDataEntry().getType() == DataEntryType.MANUAL && !metadata.isSystemReserved()) {
@@ -212,7 +212,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public void setStorageSpaceTo(String storageSpaceId) {
-		getContainerRecord().set(ContainerRecord.STORAGE_SPACE, storageSpaceId);
-		view.reloadWithContainer(getContainerRecord());
+		container = view.getUpdatedContainer();
+		view.reloadWithContainer(container);
 	}
 }

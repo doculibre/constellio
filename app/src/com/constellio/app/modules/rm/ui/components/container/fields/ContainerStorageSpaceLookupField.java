@@ -64,11 +64,11 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
     @Override
     protected Component initContent() {
         HorizontalLayout horizontalLayout = ((HorizontalLayout) super.initContent());
-        horizontalLayout.addComponent(buildNewLookupButton2(), 2);
+        horizontalLayout.addComponent(buildSuggestedButton(), 2);
         return horizontalLayout;
     }
 
-    private Component buildNewLookupButton2() {
+    private Component buildSuggestedButton() {
         final Button suggestedButton = new Button($("ContainerStorageLookupField.suggested"));
         suggestedButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
 
