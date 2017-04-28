@@ -25,7 +25,6 @@ import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -69,6 +68,18 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		MetadataSchemaVO schemaVO = null;
 		if (EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory)) {
 			voBuilder = getRecordToVOBuilderToBorrowedDocuments();
+			MetadataSchema documentDefaultSchema = schemaType(Document.SCHEMA_TYPE).getDefaultSchema();
+
+			Metadata folderIdentifierMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
+			Metadata titleMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.TITLE);
+
+			metadataCodes = new ArrayList<>();
+			metadataCodes.add(folderIdentifierMetadata.getCode());
+			metadataCodes.add(titleMetadata.getCode());
+
+			schemaVO = new MetadataSchemaToVOBuilder()
+					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+
 		} else if (EventCategory.CURRENTLY_BORROWED_FOLDERS.equals(eventCategory) || getEventType()
 				.equals(EventType.CURRENTLY_BORROWED_FOLDERS) || getEventType()
 				.equals(EventType.LATE_BORROWED_FOLDERS)) {
@@ -231,24 +242,38 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	}
 
 	public void recordLinkClicked(RecordVO eventVO) {
-		String eventId = eventVO.get(Event.RECORD_ID);
-		try {
-			Record linkedRecord = recordServices().getDocumentById(eventId);
-			String linkedRecordId = linkedRecord.getId();
-			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
-				view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
-			} else if (getEventType().contains("folder")) {
-				view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
-			} else if (getEventType().contains("document") || EventType.PDF_A_GENERATION.equals(getEventType())) {
-				view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
-			} else if (getEventType().contains("container")) {
-				view.navigate().to(RMViews.class).displayContainer(linkedRecordId);
-			} else {
-				view.navigate().to(TaskViews.class).displayTask(linkedRecordId);
+
+		if(EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory))
+		{
+			try {
+			view.navigate().to(RMViews.class).displayDocument(eventVO.getId());
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				return;
 			}
-		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-			return;
 		}
+		else
+		{
+			String eventId = eventVO.get(Event.RECORD_ID);
+			try {
+				Record linkedRecord = recordServices().getDocumentById(eventId);
+				String linkedRecordId = linkedRecord.getId();
+				if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
+					view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
+				} else if (getEventType().contains("folder")) {
+					view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
+				} else if (getEventType().contains("document") || EventType.PDF_A_GENERATION.equals(getEventType())) {
+					view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
+				} else if (getEventType().contains("container")) {
+					view.navigate().to(RMViews.class).displayContainer(linkedRecordId);
+				} else {
+					view.navigate().to(TaskViews.class).displayTask(linkedRecordId);
+				}
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				return;
+			}
+		}
+
+
 	}
 
 	private RecordToVOBuilder getRecordToVOBuilderToBorrowedFolders() {
@@ -297,34 +322,6 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		RecordToVOBuilder voBuilder;
 		voBuilder = new RecordToVOBuilder() {
 			transient RMSchemasRecordsServices schemas;
-
-			@Override
-			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
-					SessionContext sessionContext) {
-				MetadataSchema documentSchema = schemas().defaultDocumentSchema();
-				Metadata contentMetadata = documentSchema.getMetadata(Document.CONTENT);
-				Content content = record.get(contentMetadata);
-				LocalDateTime eventTime = content.getCheckoutDateTime().minusSeconds(1);
-
-				Metadata eventTypeMetadata = schema().getMetadata(Event.TYPE);
-				Metadata eventMetaData = Schemas.CREATED_ON;
-				Metadata recordIdMetadata = schema().getMetadata(Event.RECORD_ID);
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				String recordId = record.getId();
-				query.setCondition(
-						LogicalSearchQueryOperators.from(schema()).where(eventTypeMetadata).isEqualTo(
-								EventType.BORROW_DOCUMENT)
-								.andWhere(eventMetaData).isGreaterOrEqualThan(
-								eventTime).andWhere(recordIdMetadata).isEqualTo(recordId));
-				SearchServices searchServices = modelLayerFactory.newSearchServices();
-				List<Record> eventRecords = searchServices.search(query); 
-				if (!eventRecords.isEmpty()) {
-					Record eventRecord = eventRecords.get(0);
-					return super.build(eventRecord, viewMode, schemaVO, sessionContext);
-				} else {
-					return new RecordVO("-1", new ArrayList<MetadataValueVO>(), VIEW_MODE.TABLE);
-				}
-			}
 
 			private RMSchemasRecordsServices schemas() {
 				if (schemas == null) {
