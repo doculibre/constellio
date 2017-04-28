@@ -138,7 +138,8 @@ public class ValueListServices {
 
 	//FIXME label multilingual
 	//TODO Patrick
-	public Metadata createAMultivalueClassificationMetadataInGroup(Taxonomy taxonomy, String schemaTypeCode, String groupLabel) {
+	public Metadata createAMultivalueClassificationMetadataInGroup(Taxonomy taxonomy, String schemaTypeCode, String groupCode,
+			String groupLabel) {
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
 
@@ -160,12 +161,12 @@ public class ValueListServices {
 
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(taxonomy.getCollection(), schemaTypeCode);
-		if (!typeDisplayConfig.getMetadataGroup().keySet().contains(groupLabel)) {
+		if (!typeDisplayConfig.getMetadataGroup().keySet().contains(groupCode)) {
 			Map<String, Map<Language, String>> groups = new HashMap<>();
 			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
 				Map<Language, String> labels = new HashMap<>();
 				labels.put(language, groupLabel);
-				groups.put(groupLabel, labels);
+				groups.put(groupCode, labels);
 
 			}
 			transaction.add(typeDisplayConfig.withNewMetadataGroup(groups));
@@ -179,7 +180,7 @@ public class ValueListServices {
 					metadataCode);
 			transaction.add(metadataDisplayConfig
 					.withInputType(MetadataInputType.LOOKUP)
-					.withMetadataGroup(groupLabel)
+					.withMetadataGroup(groupCode)
 					.withVisibleInAdvancedSearchStatus(true));
 
 			String comments = schema.getCode() + "_" + Folder.COMMENTS;

@@ -725,7 +725,8 @@ public class SettingsImportServices {
 
 							if (!found) {
 								valueListServices
-										.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
+										.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel,
+												groupLabel);
 							}
 						}
 
@@ -751,7 +752,8 @@ public class SettingsImportServices {
 
 			String groupLabel = CLASSIFIED_IN_GROUP_LABEL;
 			for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
-				valueListServices.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
+				valueListServices
+						.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel, groupLabel);
 			}
 		}
 	}
