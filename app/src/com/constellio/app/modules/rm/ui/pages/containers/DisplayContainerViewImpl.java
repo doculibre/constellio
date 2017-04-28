@@ -37,6 +37,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayContainerView, RecordSelector {
 	private final DisplayContainerPresenter presenter;
+	private Label borrowedLabel;
 
 	public DisplayContainerViewImpl() {
 		presenter = new DisplayContainerPresenter(this);
@@ -49,6 +50,11 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	public DisplayContainerPresenter getPresenter() {
 		return this.presenter;
+	}
+
+	@Override
+	protected void afterViewAssembled(ViewChangeEvent event) {
+		setBorrowedMessage(presenter.getBorrowMessageState(presenter.getContainer()));
 	}
 
 	@Override
@@ -69,7 +75,12 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			layout.addComponent(new ContainerRatioPanel($("RecordInContainerWithoutLinearMeasure")));
 		}
 
-		layout.addComponent(buildFoldersTable(presenter.getFolders()));
+		borrowedLabel = new Label();
+		borrowedLabel.setVisible(false);
+		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
+		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		layout.addComponents(borrowedLabel, buildFoldersTable(presenter.getFolders()));
 
 		return layout;
 	}
@@ -257,6 +268,17 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 					getWindow().close();
 				}
 			};
+		}
+	}
+
+	@Override
+	public void setBorrowedMessage(String borrowedMessage) {
+		if (borrowedMessage != null) {
+			borrowedLabel.setVisible(true);
+			borrowedLabel.setValue($(borrowedMessage));
+		} else {
+			borrowedLabel.setVisible(false);
+			borrowedLabel.setValue(null);
 		}
 	}
 }
