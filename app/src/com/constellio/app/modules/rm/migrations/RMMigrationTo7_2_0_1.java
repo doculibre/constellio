@@ -1,122 +1,233 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
-import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.RMUser;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 /**
  * Created by Charles Blanchette on 2017-03-22.
  */
 public class RMMigrationTo7_2_0_1 implements MigrationScript {
-    @Override
-    public String getVersion() {
-        return "7.2.0.1";
-    }
+	@Override
+	public String getVersion() {
+		return "7.2.0.1";
+	}
 
-    @Override
-    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                        AppLayerFactory appLayerFactory) {
-        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-        RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-        List<UniformSubdivision> uniformSubdivisions = rm.wrapUniformSubdivisions(appLayerFactory.getModelLayerFactory().newSearchServices().search(
-                new LogicalSearchQuery().setCondition(from(rm.uniformSubdivision.schemaType()).returnAll())));
-        Map<String, String> descriptions = new HashMap<>();
-        for(UniformSubdivision uniformSubdivision: uniformSubdivisions) {
-            descriptions.put(uniformSubdivision.getId(), uniformSubdivision.getDescription());
-            uniformSubdivision.setDescription(null);
-        }
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+			AppLayerFactory appLayerFactory) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		List<UniformSubdivision> uniformSubdivisions = rm
+				.wrapUniformSubdivisions(appLayerFactory.getModelLayerFactory().newSearchServices().search(
+						new LogicalSearchQuery().setCondition(from(rm.uniformSubdivision.schemaType()).returnAll())));
+		Map<String, String> descriptions = new HashMap<>();
+		for (UniformSubdivision uniformSubdivision : uniformSubdivisions) {
+			descriptions.put(uniformSubdivision.getId(), uniformSubdivision.getDescription());
+			uniformSubdivision.setDescription(null);
+		}
 
-        BatchBuilderIterator<UniformSubdivision> batchIterator = new BatchBuilderIterator<>(uniformSubdivisions.iterator(), 100);
+		BatchBuilderIterator<UniformSubdivision> batchIterator = new BatchBuilderIterator<>(uniformSubdivisions.iterator(), 100);
 
-        while (batchIterator.hasNext()) {
-            Transaction transaction = new Transaction();
-            transaction.addAll(batchIterator.next());
-            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-            try {
-                recordServices.executeWithoutImpactHandling(transaction);
-            } catch (RecordServicesException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to set uniformSubdivision descriptions to null in RMMigration7_2_0_1");
-            }
-        }
+		while (batchIterator.hasNext()) {
+			Transaction transaction = new Transaction();
+			transaction.addAll(batchIterator.next());
+			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			try {
+				recordServices.executeWithoutImpactHandling(transaction);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Failed to set uniformSubdivision descriptions to null in RMMigration7_2_0_1");
+			}
+		}
 
-        new SchemaAlterationFor7_2_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
-        new SchemaAlterationFor7_2_0_1_step2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor7_2_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor7_2_0_1_step2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
-        uniformSubdivisions = rm.wrapUniformSubdivisions(appLayerFactory.getModelLayerFactory().newSearchServices().search(
-                new LogicalSearchQuery().setCondition(from(rm.uniformSubdivision.schemaType()).returnAll())));
-        for(UniformSubdivision uniformSubdivision: uniformSubdivisions) {
-            uniformSubdivision.setDescription(descriptions.get(uniformSubdivision.getId()));
-        }
+		uniformSubdivisions = rm.wrapUniformSubdivisions(appLayerFactory.getModelLayerFactory().newSearchServices().search(
+				new LogicalSearchQuery().setCondition(from(rm.uniformSubdivision.schemaType()).returnAll())));
+		for (UniformSubdivision uniformSubdivision : uniformSubdivisions) {
+			uniformSubdivision.setDescription(descriptions.get(uniformSubdivision.getId()));
+		}
 
-        batchIterator = new BatchBuilderIterator<>(uniformSubdivisions.iterator(), 100);
+		batchIterator = new BatchBuilderIterator<>(uniformSubdivisions.iterator(), 100);
 
-        while (batchIterator.hasNext()) {
-            Transaction transaction = new Transaction();
-            transaction.addAll(batchIterator.next());
-            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-            try {
-                recordServices.executeWithoutImpactHandling(transaction);
-            } catch (RecordServicesException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to set uniformSubdivision descriptions to null in RMMigration7_2_0_1");
-            }
-        }
+		while (batchIterator.hasNext()) {
+			Transaction transaction = new Transaction();
+			transaction.addAll(batchIterator.next());
+			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			try {
+				recordServices.executeWithoutImpactHandling(transaction);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Failed to set uniformSubdivision descriptions to null in RMMigration7_2_0_1");
+			}
+		}
 
-    }
+		fixTemplates(collection, migrationResourcesProvider, appLayerFactory);
 
-    class SchemaAlterationFor7_2_0_1 extends MetadataSchemasAlterationHelper {
+	}
 
-        protected SchemaAlterationFor7_2_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                                               AppLayerFactory appLayerFactory) {
-            super(collection, migrationResourcesProvider, appLayerFactory);
-        }
+	private void fixTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
+			AppLayerFactory appLayerFactory) {
 
-        public String getVersion() {
-            return "7.2.0.1";
-        }
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-        @Override
-        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            typesBuilder.getDefaultSchema(RMUser.SCHEMA_TYPE).createUndeletable(RMUser.DEFAULT_ADMINISTRATIVE_UNIT)
-                    .setType(MetadataValueType.STRING).setSystemReserved(true);
-            typesBuilder.getDefaultSchema(UniformSubdivision.SCHEMA_TYPE)
-                    .deleteMetadataWithoutValidation(typesBuilder.getMetadata(UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.DESCRIPTION));
-        }
-    }
+		for (PrintableLabel printableLabel : rm.searchPrintableLabels(LogicalSearchQueryOperators.ALL)) {
+			switch (printableLabel.getTitle()) {
+			case "Code de plan justifié de dossier à droite (Avery 5161)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5161/Avery_5161_D_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
 
-    class SchemaAlterationFor7_2_0_1_step2 extends MetadataSchemasAlterationHelper {
+			case "Code de plan justifié de dossier à droite (Avery 5163)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5163/Avery_5163_D_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
 
-        protected SchemaAlterationFor7_2_0_1_step2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                                             AppLayerFactory appLayerFactory) {
-            super(collection, migrationResourcesProvider, appLayerFactory);
-        }
+			case "Code de plan justifié de dossier à gauche (Avery 5163)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5163/Avery_5163_G_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
 
-        public String getVersion() {
-            return "7.2.0.1";
-        }
+			case "Code de plan justifié de dossier à droite (Avery 5159)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5159/Avery_5159_D_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
 
-        @Override
-        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            typesBuilder.getDefaultSchema(UniformSubdivision.SCHEMA_TYPE).create(UniformSubdivision.DESCRIPTION).setType(MetadataValueType.TEXT);
-        }
-    }
+			case "Code de plan justifié de dossier à droite (Avery 5162)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5162/Avery_5162_D_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			case "Code de plan justifié de dossier à gauche (Avery 5162)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5162/Avery_5162_G_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			case "Code de plan justifié de dossier à gauche (Avery 5161)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5161/Avery_5161_G_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			case "Code de plan justifié de dossier à gauche (Avery 5159)":
+				installLabel(printableLabel, "Etiquettes Dossiers/5159/Avery_5159_G_Dossier.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			case "Code de plan justifié de conteneur (Avery 5161)":
+				installLabel(printableLabel, "Etiquettes Contenants/5161/Avery_5161_Container.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			case "Code de plan justifié de conteneur (Avery 5159)":
+				installLabel(printableLabel, "Etiquettes Contenants/5159/Avery_5159_Container.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			case "Code de plan justifié de conteneur (Avery 5163)":
+				installLabel(printableLabel, "Etiquettes Contenants/5163/Avery_5163_Container.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			case "Code de plan justifié de conteneur (Avery 5162)":
+				installLabel(printableLabel, "Etiquettes Contenants/5162/Avery_5162_Container.jasper", appLayerFactory,
+						migrationResourcesProvider);
+				break;
+
+			}
+		}
+
+	}
+
+	private void installLabel(PrintableLabel printableLabel, String subPath, AppLayerFactory appLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+		IOServices ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
+		Content content = printableLabel.getJasperfile();
+		File jasperFile = migrationResourcesProvider.getFile(("defaultJasperFiles/" + subPath).replace("/", File.separator));
+
+		InputStream inputStream = null;
+		try {
+			inputStream = ioServices.newFileInputStream(jasperFile, "installLabel");
+			ContentVersionDataSummary summary = contentManager.upload(inputStream, false, false, "jasperFile.jasper");
+			Content newContent = contentManager.createFileSystem(content.getCurrentVersion().getFilename(), summary);
+			printableLabel.setJasperFile(newContent);
+			try {
+				recordServices.update(printableLabel);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		} catch (FileNotFoundException e) {
+			ioServices.closeQuietly(inputStream);
+		}
+
+	}
+
+	class SchemaAlterationFor7_2_0_1 extends MetadataSchemasAlterationHelper {
+
+		protected SchemaAlterationFor7_2_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		public String getVersion() {
+			return "7.2.0.1";
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			typesBuilder.getDefaultSchema(RMUser.SCHEMA_TYPE).createUndeletable(RMUser.DEFAULT_ADMINISTRATIVE_UNIT)
+					.setType(MetadataValueType.STRING).setSystemReserved(true);
+			typesBuilder.getDefaultSchema(UniformSubdivision.SCHEMA_TYPE)
+					.deleteMetadataWithoutValidation(
+							typesBuilder.getMetadata(UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.DESCRIPTION));
+		}
+	}
+
+	class SchemaAlterationFor7_2_0_1_step2 extends MetadataSchemasAlterationHelper {
+
+		protected SchemaAlterationFor7_2_0_1_step2(String collection, MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		public String getVersion() {
+			return "7.2.0.1";
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			typesBuilder.getDefaultSchema(UniformSubdivision.SCHEMA_TYPE).create(UniformSubdivision.DESCRIPTION)
+					.setType(MetadataValueType.TEXT);
+		}
+	}
 }
