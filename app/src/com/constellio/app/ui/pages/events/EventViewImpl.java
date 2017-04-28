@@ -102,7 +102,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				}
 			});
 		}
-		table.setPageLength(table.getItemIds().size());
+//		table.setPageLength(table.getItemIds().size());
 		table.setWidth("100%");
 		table.addStyleName(EVENT_TABLE_STYLE);
 		return table;
@@ -146,6 +146,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		String paramString = event.getParameters();
 		String viewNameAndParameters = NavigatorConfigurationService.EVENT_DISPLAY + "/" + paramString;
 		parameters = ParamUtils.getParamsMap(viewNameAndParameters);
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 
 }

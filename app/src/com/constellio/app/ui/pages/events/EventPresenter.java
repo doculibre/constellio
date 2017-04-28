@@ -61,7 +61,6 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	public RecordVODataProvider getDataProvider() {
 		initParameters(view.getParameters());
 
-		MetadataSchema schema = schema();
 		RecordToVOBuilder voBuilder;
 
 		List<String> metadataCodes = null;
@@ -70,15 +69,15 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			voBuilder = getRecordToVOBuilderToBorrowedDocuments();
 			MetadataSchema documentDefaultSchema = schemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 
-			Metadata folderIdentifierMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
+			Metadata documentIdentifierMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
 			Metadata titleMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.TITLE);
 
 			metadataCodes = new ArrayList<>();
-			metadataCodes.add(folderIdentifierMetadata.getCode());
+			metadataCodes.add(documentIdentifierMetadata.getCode());
 			metadataCodes.add(titleMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
 
 		} else if (EventCategory.CURRENTLY_BORROWED_FOLDERS.equals(eventCategory) || getEventType()
 				.equals(EventType.CURRENTLY_BORROWED_FOLDERS) || getEventType()
@@ -101,7 +100,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			metadataCodes.add(titleMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
 
 		} else {
 			voBuilder = new RecordToVOBuilder();
@@ -228,16 +227,20 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return eventCategory;
 	}
 
-	public RecordVO getLinkedRecordVO(RecordVO eventVO) {
+	public RecordVO getLinkedRecordVO(RecordVO eventOrRecordVO) {
 		RecordVO result;
-		try {
-			String recordId = eventVO.get(Event.RECORD_ID);
-			Record linkedRecord = recordServices().getDocumentById(recordId);
-			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-			result = voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
-		} catch (Throwable t) {
-			result = null;
-		} 
+		if (eventOrRecordVO.getSchema().getTypeCode().equals(Event.SCHEMA_TYPE)) {
+			try {
+				String recordId = eventOrRecordVO.get(Event.RECORD_ID);
+				Record linkedRecord = recordServices().getDocumentById(recordId);
+				RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+				result = voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
+			} catch (Throwable t) {
+				result = null;
+			} 
+		} else {
+			result = eventOrRecordVO;
+		}
 		return result;
 	}
 
