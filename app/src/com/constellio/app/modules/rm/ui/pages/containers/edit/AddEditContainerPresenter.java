@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Iterator;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -29,6 +23,11 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataList;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Iterator;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEditContainerView> {
 	protected RecordVO container;
@@ -213,7 +212,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public void setStorageSpaceTo(String storageSpaceId) {
-		getContainerRecord().set(ContainerRecord.STORAGE_SPACE, storageSpaceId);
-		view.reloadWithContainer(getContainerRecord());
+		container = view.getUpdatedContainer();
+		view.reloadWithContainer(container);
 	}
 }

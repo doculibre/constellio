@@ -394,7 +394,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
                 borrowRequest = taskSchemas.newBorrowFolderRequestTask(currentUser.getId(), getAssignees(recordId), recordId, numberOfDays, folder.getTitle());
             }
             modelLayerFactory.newRecordServices().add(borrowRequest);
-            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
+            view.showMessage($("RMRequestTaskButtonExtension.borrowSuccess"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
             view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
@@ -418,7 +418,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
             } else {
                 view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
             }
-            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
+            view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
             view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
@@ -443,7 +443,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
             } else {
                 view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
             }
-            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
+            view.showMessage($("RMRequestTaskButtonExtension.reactivationSuccess"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
             view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
@@ -467,7 +467,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
             } else {
                 view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
             }
-            view.showMessage($("RMRequestTaskButtonExtension.taskCreated"));
+            view.showMessage($("RMRequestTaskButtonExtension.borrowExtensionSuccess"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
             view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
