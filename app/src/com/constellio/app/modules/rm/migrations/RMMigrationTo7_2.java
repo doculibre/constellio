@@ -1,5 +1,17 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -9,7 +21,15 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMObject;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RMTaskType;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
@@ -36,80 +56,70 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 /**
  * Created by Charles Blanchette on 2017-03-22.
  */
 public class RMMigrationTo7_2 implements MigrationScript {
-    @Override
-    public String getVersion() {
-        return "7.2";
-    }
+	@Override
+	public String getVersion() {
+		return "7.2";
+	}
 
-    @Override
-    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                        AppLayerFactory appLayerFactory) {
-        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-        RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-        List<Category> categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
-                new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
-        Map<String, String> descriptions = new HashMap<>();
-        for(Category category: categories) {
-            descriptions.put(category.getId(), category.getDescription());
-            category.setDescription(null);
-        }
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+			AppLayerFactory appLayerFactory) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		List<Category> categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
+				new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
+		Map<String, String> descriptions = new HashMap<>();
+		for (Category category : categories) {
+			descriptions.put(category.getId(), category.getDescription());
+			category.setDescription(null);
+		}
 
-        BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
+		BatchBuilderIterator<Category> batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
 
-        while (batchIterator.hasNext()) {
-            Transaction transaction = new Transaction();
-            transaction.addAll(batchIterator.next());
-            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-            try {
-                recordServices.executeWithoutImpactHandling(transaction);
-            } catch (RecordServicesException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
-            }
-        }
+		while (batchIterator.hasNext()) {
+			Transaction transaction = new Transaction();
+			transaction.addAll(batchIterator.next());
+			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			try {
+				recordServices.executeWithoutImpactHandling(transaction);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Failed to set categories descriptions to null in RMMigration7_2");
+			}
+		}
 
-        new SchemaAlterationFor7_2_step1(collection, migrationResourcesProvider, appLayerFactory).migrate();
-        new SchemaAlterationFor7_2_step2(collection, migrationResourcesProvider, appLayerFactory).migrate();
-        SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-        displayManager.saveMetadata(displayManager.getMetadata(collection, Category.DEFAULT_SCHEMA + "_" + Category.DESCRIPTION).withInputType(MetadataInputType.RICHTEXT));
+		new SchemaAlterationFor7_2_step1(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor7_2_step2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		displayManager.saveMetadata(displayManager.getMetadata(collection, Category.DEFAULT_SCHEMA + "_" + Category.DESCRIPTION)
+				.withInputType(MetadataInputType.RICHTEXT));
 
-        categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
-                new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
-        batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
-        for(Category category: categories) {
-            category.setDescription(descriptions.get(category.getId()));
-        }
+		categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
+				new LogicalSearchQuery().setCondition(from(rm.category.schemaType()).returnAll())));
+		batchIterator = new BatchBuilderIterator<>(categories.iterator(), 100);
+		for (Category category : categories) {
+			category.setDescription(descriptions.get(category.getId()));
+		}
 
-        while (batchIterator.hasNext()) {
-            Transaction transaction = new Transaction();
-            transaction.addAll(batchIterator.next());
-            transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-            try {
-                recordServices.executeWithoutImpactHandling(transaction);
-            } catch (RecordServicesException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
-            }
-        }
+		while (batchIterator.hasNext()) {
+			Transaction transaction = new Transaction();
+			transaction.addAll(batchIterator.next());
+			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			try {
+				recordServices.executeWithoutImpactHandling(transaction);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Failed to migrate categories descriptions in RMMigration7_2");
+			}
+		}
 
-        migrateSearchableSchemaTypes(collection, migrationResourcesProvider, appLayerFactory);
-        updateNewPermissions(appLayerFactory, collection);
+		migrateSearchableSchemaTypes(collection, migrationResourcesProvider, appLayerFactory);
+		updateNewPermissions(appLayerFactory, collection);
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		try {
 			createNewTaskTypes(appLayerFactory, taskSchemas);
@@ -119,24 +129,38 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		adjustSchemaDisplay(appLayerFactory, migrationResourcesProvider, collection);
 		migrateRoles(collection, appLayerFactory.getModelLayerFactory());
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
-    }
+	}
 
-    private void updateNewPermissions(AppLayerFactory appLayerFactory, String collection) {
-        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+	private void updateNewPermissions(AppLayerFactory appLayerFactory, String collection) {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
-        Role admRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
-        modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.MANAGE_SEARCH_BOOST)));
-    }
+		Role admRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+		modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.MANAGE_SEARCH_BOOST)));
+	}
 
-    private void migrateSearchableSchemaTypes(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
-        SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-        manager.saveType(manager.getType(collection, ContainerRecord.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
-        manager.saveType(manager.getType(collection, StorageSpace.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
+	private void migrateSearchableSchemaTypes(String collection, MigrationResourcesProvider migrationResourcesProvider,
+			AppLayerFactory appLayerFactory) {
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+		manager.saveType(manager.getType(collection, ContainerRecord.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
+		manager.saveType(manager.getType(collection, StorageSpace.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
-        manager.saveMetadata(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.NUMBER_OF_CONTAINERS).withVisibleInAdvancedSearchStatus(true));
-    }
+		manager.saveMetadata(manager.getMetadata(collection, Document.DEFAULT_SCHEMA + "_" + RMObject.FORM_CREATED_ON)
+				.withVisibleInAdvancedSearchStatus(true));
+		manager.saveMetadata(manager.getMetadata(collection, Document.DEFAULT_SCHEMA + "_" + RMObject.FORM_MODIFIED_ON)
+				.withVisibleInAdvancedSearchStatus(true));
 
-	private void createNewTaskTypes(AppLayerFactory appLayerFactory, TasksSchemasRecordsServices taskSchemas) throws RecordServicesException {
+		manager.saveMetadata(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + RMObject.FORM_CREATED_ON)
+				.withVisibleInAdvancedSearchStatus(true));
+		manager.saveMetadata(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + RMObject.FORM_MODIFIED_ON)
+				.withVisibleInAdvancedSearchStatus(true));
+
+		manager.saveMetadata(
+				manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.NUMBER_OF_CONTAINERS)
+						.withVisibleInAdvancedSearchStatus(true));
+	}
+
+	private void createNewTaskTypes(AppLayerFactory appLayerFactory, TasksSchemasRecordsServices taskSchemas)
+			throws RecordServicesException {
 		Transaction transaction = new Transaction();
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST).setTitle("Demande d'emprunt")
@@ -151,7 +175,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
-	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider, String collection) {
+	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
+			String collection) {
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Folder.DEFAULT_SCHEMA)
@@ -179,6 +204,10 @@ public class RMMigrationTo7_2 implements MigrationScript {
 				.withNewTableMetadatas(Event.DEFAULT_SCHEMA + "_" + Event.RECEIVER_NAME,
 						Event.DEFAULT_SCHEMA + "_" + Event.TASK,
 						Event.DEFAULT_SCHEMA + "_" + Event.DESCRIPTION));
+
+		displayManager
+				.saveMetadata(displayManager.getMetadata(collection, AdministrativeUnit.DEFAULT_SCHEMA, AdministrativeUnit.ADRESS)
+						.withInputType(MetadataInputType.FIELD));
 	}
 
 	private void migrateRoles(String collection, ModelLayerFactory modelLayerFactory) {
@@ -193,12 +222,17 @@ public class RMMigrationTo7_2 implements MigrationScript {
 				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
 				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
 				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.DISPLAY_CONTAINERS,
 				RMPermissionsTo.BORROW_CONTAINER
 		)));
 		modelLayerFactory.getRolesManager().updateRole(admin.withNewPermissions(asList(
+				RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
+				RMPermissionsTo.BORROWING_FOLDER_DIRECTLY,
 				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
 				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
 				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+				RMPermissionsTo.DISPLAY_CONTAINERS,
 				RMPermissionsTo.BORROW_CONTAINER
 		)));
 
@@ -217,31 +251,51 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		)));
 	}
 
-	private void reloadEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider, String collection) {
+	private void reloadEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
+			String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("en")) {
-			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReturnedTemplate_en.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReactivatedTemplate_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertBorrowingExtendedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertBorrowedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReturnedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReactivatedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplate_en.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplate_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplate_en.html",
+					RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED, appLayerFactory, migrationResourcesProvider,
+					collection);
+			reloadEmailTemplate("alertBorrowedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplateDenied_en.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied_en.html",
+					RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED, appLayerFactory, migrationResourcesProvider,
+					collection);
 		} else {
-			reloadEmailTemplate("alertBorrowedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReturnedTemplate.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReactivatedTemplate.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertBorrowingExtendedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertBorrowedTemplateDenied.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReturnedTemplateDenied.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertReactivatedTemplateDenied.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
-			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED, appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED, appLayerFactory,
+					migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplate.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED, appLayerFactory,
+					migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplate.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplate.html", RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowedTemplateDenied.html", RMEmailTemplateConstants.ALERT_BORROWED_DENIED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReturnedTemplateDenied.html", RMEmailTemplateConstants.ALERT_RETURNED_DENIED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertReactivatedTemplateDenied.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED,
+					appLayerFactory, migrationResourcesProvider, collection);
+			reloadEmailTemplate("alertBorrowingExtendedTemplateDenied.html",
+					RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED, appLayerFactory, migrationResourcesProvider,
+					collection);
 		}
 	}
 
 	private void reloadEmailTemplate(final String templateFileName, final String templateId, AppLayerFactory appLayerFactory,
-									 MigrationResourcesProvider migrationResourcesProvider, String collection) {
+			MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
@@ -254,52 +308,66 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		}
 	}
 
-    class SchemaAlterationFor7_2_step1 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor7_2_step1 extends MetadataSchemasAlterationHelper {
 
-        protected SchemaAlterationFor7_2_step1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                                               AppLayerFactory appLayerFactory) {
-            super(collection, migrationResourcesProvider, appLayerFactory);
-        }
+		protected SchemaAlterationFor7_2_step1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
 
-        public String getVersion() {
-            return "7.2";
-        }
+		public String getVersion() {
+			return "7.2";
+		}
 
-        @Override
-        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).deleteMetadataWithoutValidation(typesBuilder.getMetadata(Category.DEFAULT_SCHEMA + "_" + Category.DESCRIPTION));
-            typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).setSecurity(false);
-            MetadataBuilder containerStorageSpace = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.STORAGE_SPACE);
-            typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).createUndeletable(StorageSpace.NUMBER_OF_CONTAINERS)
-                    .setType(MetadataValueType.NUMBER).defineDataEntry().asReferenceCount(containerStorageSpace).setSearchable(true);
-        }
-    }
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).deleteMetadataWithoutValidation(
+					typesBuilder.getMetadata(Category.DEFAULT_SCHEMA + "_" + Category.DESCRIPTION));
+			typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).setSecurity(false);
+			MetadataBuilder containerStorageSpace = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)
+					.get(ContainerRecord.STORAGE_SPACE);
+			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).createUndeletable(StorageSpace.NUMBER_OF_CONTAINERS)
+					.setType(MetadataValueType.NUMBER).defineDataEntry().asReferenceCount(containerStorageSpace)
+					.setSearchable(true);
+			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)
+					.createUndeletable(ContainerRecord.FIRST_TRANSFER_REPORT_DATE).setType(MetadataValueType.DATE)
+					.setSystemReserved(true);
+			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)
+					.createUndeletable(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE).setType(MetadataValueType.DATE)
+					.setSystemReserved(true);
+			//			typesBuilder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE).createUndeletable(AdministrativeUnit.ADRESS).setType(MetadataValueType.DATE).setSystemReserved(true);
+		}
+	}
 
-    class SchemaAlterationFor7_2_step2 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor7_2_step2 extends MetadataSchemasAlterationHelper {
 
-        protected SchemaAlterationFor7_2_step2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                                               AppLayerFactory appLayerFactory) {
-            super(collection, migrationResourcesProvider, appLayerFactory);
-        }
+		protected SchemaAlterationFor7_2_step2(String collection, MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
 
-        public String getVersion() {
-            return "7.2";
-        }
+		public String getVersion() {
+			return "7.2";
+		}
 
-        @Override
-        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            migrateLabel(typesBuilder);
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			migrateLabel(typesBuilder);
 			migrateMetadatasForRequestEvents(typesBuilder);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.TITLE).setSortable(true);
-            typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT);
-        }
+			typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT);
+			typesBuilder.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE).setEssential(false);
+		}
 
-        private void migrateLabel(MetadataSchemaTypesBuilder typesBuilder) {
-            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_TRANSFER_DATE).addLabel(Language.French, "Date de transfert prévue");
-            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DEPOSIT_DATE).addLabel(Language.French, "Date de versement prévue");
-            typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DESTRUCTION_DATE).addLabel(Language.French, "Date de destruction prévue");
+		private void migrateLabel(MetadataSchemaTypesBuilder typesBuilder) {
+			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_TRANSFER_DATE)
+					.addLabel(Language.French, "Date de transfert prévue");
+			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DEPOSIT_DATE)
+					.addLabel(Language.French, "Date de versement prévue");
+			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.EXPECTED_DESTRUCTION_DATE)
+					.addLabel(Language.French, "Date de destruction prévue");
 
-        }
+		}
 
 		public void migrateMetadatasForRequestEvents(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.REACTIVATION_DECOMMISSIONING_DATE)
@@ -377,5 +445,5 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			eventSchemaType.getDefaultSchema().create(Event.DESCRIPTION).setType(MetadataValueType.TEXT);
 			eventSchemaType.getDefaultSchema().create(Event.ACCEPTED).setType(MetadataValueType.BOOLEAN);
 		}
-    }
+	}
 }

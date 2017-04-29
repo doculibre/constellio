@@ -121,12 +121,18 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			titre += " (" + etiquetteName + " " + format + ")";
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
 			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), false);
-			ContentVersionDataSummary upload = contentManager
-					.upload(new FileInputStream(fi), etiquetteName + " " + format + " " + type);
+			FileInputStream fileInputStream = new FileInputStream(fi);
+			try {
+				ContentVersionDataSummary upload = contentManager
+						.upload(fileInputStream, etiquetteName + " " + format + " " + type);
+
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
 			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
 					contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
 			trans.add(record);
+			} finally {
+				fileInputStream.close();
+			}
 		}
 		rs.execute(trans);
 	}

@@ -300,7 +300,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				return $("ConfirmDialog.confirmCreatePDFA");
 			}
 		};
-		((ConfirmDialogButton) createPDFAButton).setDialogMode(DialogMode.STOP);
+		((ConfirmDialogButton) createPDFAButton).setDialogMode(DialogMode.WARNING);
 
 		shareDocumentButton = new LinkButton($("DocumentActionsComponent.shareDocument")) {
 			@Override

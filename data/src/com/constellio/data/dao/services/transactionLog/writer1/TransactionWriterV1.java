@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.solr.common.SolrDocumentBase;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -84,7 +83,7 @@ public class TransactionWriterV1 {
 		}
 	}
 
-	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrDocumentBase document) {
+	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
 		String id = (String) document.getFieldValue("id");
 		Object version = document.getFieldValue("_version_");
 
@@ -105,9 +104,7 @@ public class TransactionWriterV1 {
 		stringBuilder.append(" ");
 		stringBuilder.append(version == null ? "-1" : version);
 		stringBuilder.append("\n");
-
-		Collection<String> fieldNames = document.getFieldNames();
-		for (String name : fieldNames) {
+		for (String name : document.getFieldNames()) {
 			if (!name.equals("id") && !name.equals("_version_") && isLogged(name, schema_s, collection_s)) {
 				Collection<Object> value = removeEmptyStrings(document.getFieldValues(name));
 
@@ -198,10 +195,10 @@ public class TransactionWriterV1 {
 
 		} else if (value instanceof Date) {
 			LocalDateTime dateTime = new LocalDateTime(value);
-			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement("")) + "Z";
+			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("")) + "Z";
+			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else {
 			return lineFeedPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("__LINEBREAK__"));

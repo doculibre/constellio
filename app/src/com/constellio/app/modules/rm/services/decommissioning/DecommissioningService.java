@@ -5,15 +5,11 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DecomListStatus;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-import com.constellio.app.modules.rm.model.enums.OriginStatus;
+import com.constellio.app.modules.rm.model.RetentionPeriod;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
@@ -50,19 +46,6 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.taxonomies.*;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import com.constellio.model.services.taxonomies.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -249,6 +232,10 @@ public class DecommissioningService {
 	public boolean isFolderProcessable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
 		return decommissioningList.isProcessed() || folder.getDecommissioningType().isClosureOrDestroyal() ||
 				(isFolderProcessable(folder) && !isFolderRepackable(decommissioningList, folder));
+	}
+
+	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isRemovableFromContainer(decommissioningList, folder);
 	}
 
 	public boolean isApproved(DecommissioningList decommissioningList) {
@@ -446,7 +433,11 @@ public class DecommissioningService {
 	}
 
 	private boolean isFolderRepackable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
-		return decommissioningList.isFromSemiActive() && folder.getType().potentiallyHasAnalogMedium();
+		return folder.getType().potentiallyHasAnalogMedium();
+	}
+
+	private boolean isRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+		return folder.getType().potentiallyHasAnalogMedium();
 	}
 
 	private boolean isFolderProcessable(FolderDetailWithType folder) {
@@ -630,13 +621,50 @@ public class DecommissioningService {
 	}
 
 	public LocalDate getDispositionDate(ContainerRecord container) {
-		LocalDate minimumDate = null;
+		LocalDate comparedDate = null;
 		List<Record> records = getFoldersInContainer(container, rm.folder.expectedDepositDate(),
 				rm.folder.expectedDestructionDate());
-		for (Record record : records) {
-			minimumDate = getMinimumLocalDate(minimumDate, record);
+
+		if(getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
+			for (Record record : records) {
+				comparedDate = getMinimumLocalDate(comparedDate, record);
+			}
+		} else {
+			for (Record record : records) {
+				comparedDate = getMaximalLocalDate(comparedDate, record);
+			}
 		}
-		return minimumDate;
+
+		return comparedDate;
+	}
+
+	public String getSemiActiveInterval(ContainerRecord container) {
+		Map<String, String> maximalIntervals = new HashMap<>();
+		maximalIntervals.put("fixed", null);
+		maximalIntervals.put("888", null);
+		maximalIntervals.put("999", null);
+		List<Record> records = getFoldersInContainer(container, rm.folder.mainCopyRule());
+		for (Record record : records) {
+			getMaximalSemiActiveInterval(maximalIntervals, record);
+		}
+
+		String interval = "";
+		String separator = "";
+		String fixed = maximalIntervals.get("fixed");
+		String variable888 = maximalIntervals.get("888");
+		String variable999 = maximalIntervals.get("999");
+		if(fixed != null) {
+			interval += fixed + " an(s)";
+			separator = " / ";
+		}
+		if(variable888 != null) {
+			interval += separator + variable888;
+			separator = " / ";
+		}
+		if(variable999 != null) {
+			interval += separator + variable999;
+		}
+		return interval;
 	}
 
 	public List<String> getMediumTypesOf(ContainerRecord container) {
@@ -963,6 +991,71 @@ public class DecommissioningService {
 		return minimumDate;
 	}
 
+	private LocalDate getMaximalLocalDate(LocalDate maximalDate, Record record) {
+		Folder folder = rm.wrapFolder(record);
+		if (folder.getExpectedDepositDate() != null && folder.getExpectedDestructionDate() != null) {
+			if (folder.getExpectedDepositDate().isAfter(folder.getExpectedDestructionDate())) {
+				if (maximalDate != null) {
+					if (folder.getExpectedDepositDate().isAfter(maximalDate)) {
+						maximalDate = folder.getExpectedDepositDate();
+					}
+				} else {
+					maximalDate = folder.getExpectedDepositDate();
+				}
+			} else {
+				if (maximalDate != null) {
+					if (folder.getExpectedDestructionDate().isAfter(maximalDate)) {
+						maximalDate = folder.getExpectedDestructionDate();
+					}
+				} else {
+					maximalDate = folder.getExpectedDestructionDate();
+				}
+			}
+		} else if (folder.getExpectedDepositDate() != null) {
+			if (maximalDate != null) {
+				if (folder.getExpectedDepositDate().isAfter(maximalDate)) {
+					maximalDate = folder.getExpectedDepositDate();
+				}
+			} else {
+				maximalDate = folder.getExpectedDepositDate();
+			}
+
+		} else if (folder.getExpectedDestructionDate() != null) {
+			if (maximalDate != null) {
+				if (folder.getExpectedDestructionDate().isAfter(maximalDate)) {
+					maximalDate = folder.getExpectedDestructionDate();
+				}
+			} else {
+				maximalDate = folder.getExpectedDestructionDate();
+			}
+		}
+		return maximalDate;
+	}
+
+	private void getMaximalSemiActiveInterval(Map<String, String> maximalIntervals, Record record) {
+		Folder folder = rm.wrapFolder(record);
+		if (folder != null) {
+			CopyRetentionRule firstCopyRetentionRule = folder.getMainCopyRule();
+			if (firstCopyRetentionRule != null) {
+
+				RetentionPeriod retentionPeriod = firstCopyRetentionRule.getSemiActiveRetentionPeriod();
+				if (retentionPeriod != null) {
+					String interval = org.apache.commons.lang.StringUtils.defaultString(retentionPeriod.toString());
+					String intervalType = "fixed";
+					if(retentionPeriod.is888()) {
+						intervalType = "888";
+					} else if(retentionPeriod.is999()) {
+						intervalType = "999";
+					}
+					String maximalInterval = maximalIntervals.get(intervalType);
+					if(maximalInterval == null || interval.compareToIgnoreCase(maximalInterval) > 1) {
+						maximalIntervals.put(intervalType, interval);
+					}
+				}
+			}
+		}
+	}
+
 	private DecommissioningSecurityService securityService() {
 		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
@@ -1015,8 +1108,8 @@ public class DecommissioningService {
 		}
 	}
 
-	private boolean isFolderReactivable(Folder folder, User currentUser) {
-		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().equals(FolderMediaType.ANALOG)
+	public boolean isFolderReactivable(Folder folder, User currentUser) {
+		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().potentiallyHasAnalogMedium()
 				&& currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
 	}
 

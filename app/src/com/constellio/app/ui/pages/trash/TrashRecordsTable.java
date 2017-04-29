@@ -48,11 +48,15 @@ public class TrashRecordsTable extends SelectionTableAdapter {
 					}
 				};
 			}
+
+			@Override
+			public boolean isContextMenuPossible() {
+				return false;
+			}
 		};
 
 		ButtonsContainer<?> dataSource = new ButtonsContainer(new RecordVOLazyContainer(dataProvider), "buttons");
 		table.setColumnCollapsingAllowed(true);
-		table.setContextMenuPossible(false);
 		table.setContainerDataSource(dataSource);
 
 		dataSource.addButton(new ContainerButton() {

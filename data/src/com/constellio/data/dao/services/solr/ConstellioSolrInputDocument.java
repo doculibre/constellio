@@ -1,8 +1,8 @@
 package com.constellio.data.dao.services.solr;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -11,7 +11,7 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 
 	@Override
 	public void setField(String name, Object value) {
-		value = convertEmptyToNull(value);
+		value = convertEmptyListToNull(value);
 		if (value == null) {
 			super.remove(name);
 		} else {
@@ -22,7 +22,7 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 
 	@Override
 	public void setField(String name, Object value, float boost) {
-		value = convertEmptyToNull(value);
+		value = convertEmptyListToNull(value);
 		if (value == null) {
 			super.remove(name);
 		} else {
@@ -34,7 +34,7 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 	@Override
 	public void addField(String name, Object value, float boost) {
 
-		value = convertEmptyToNull(value);
+		value = convertEmptyListToNull(value);
 
 		if (value == null) {
 			super.remove(name);
@@ -44,30 +44,17 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 		}
 	}
 
-	private Object convertEmptyToNull(Object value) {
+	private Object convertEmptyListToNull(Object value) {
 		if (value instanceof List) {
-			List newValue = new ArrayList((List) value);
-			Iterator valueIterator = newValue.iterator();
-			while (valueIterator.hasNext()) {
-				Object currentValue = valueIterator.next();
-				if (currentValue instanceof String && StringUtils.isEmpty(currentValue.toString())) {
-					valueIterator.remove();
+			List list = (List) value;
+			boolean hasNonNullValue = false;
+			for (Object o : list) {
+				if (o != null) {
+					hasNonNullValue = true;
 				}
 			}
-			return newValue;
-		} else if (value instanceof Map) {
-			Map newValueMap = new HashMap((Map) value);
-			Set<Entry> valueList = ((Map) value).entrySet();
-			Iterator<Map.Entry> valueIterator = valueList.iterator();
-			while (valueIterator.hasNext()) {
-				Map.Entry currentValue = valueIterator.next();
-				if (currentValue.getValue() instanceof String && StringUtils.isEmpty(currentValue.getValue().toString())) {
-					newValueMap.put(currentValue.getKey(), null);
-				}
-			}
-			return newValueMap;
-		} else if (value instanceof String && StringUtils.isEmpty(value.toString())) {
-			return null;
+
+			return hasNonNullValue ? value : null;
 		} else {
 			return value;
 		}

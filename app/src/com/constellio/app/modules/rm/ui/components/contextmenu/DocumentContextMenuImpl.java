@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -18,8 +10,8 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
@@ -35,6 +27,13 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -150,7 +149,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (deleteDocumentButtonVisible) {
 			ContextMenuItem deleteDocumentItem = addItem($("DocumentContextMenu.deleteDocument"));
-			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener() {
+			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmDelete");
@@ -175,7 +174,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (createPDFAButtonVisible) {
 			ContextMenuItem createPDFAItem = addItem($("DocumentActionsComponent.createPDFA"));
-			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.STOP) {
+			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmCreatePDFA");
@@ -240,7 +239,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (finalizeButtonVisible) {
 			ContextMenuItem finalizeItem = addItem($("DocumentActionsComponent.finalize"));
-			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener() {
+			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("DocumentActionsComponent.finalize.confirm");

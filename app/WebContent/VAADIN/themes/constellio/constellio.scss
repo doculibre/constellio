@@ -1258,6 +1258,8 @@ $popup-view-z-index: 3;
 								border-radius: 0;
 								text-align: left;
 								border: none;
+								min-height: 37px;
+								height: auto;
 
 							    background-color: #414B56;
 								//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
@@ -1526,6 +1528,13 @@ $popup-view-z-index: 3;
 
 			.header-search {
 				width: 270px;
+			}
+			
+			.header-selection-button {
+				top: 0px;
+				right: 290px;
+			    z-index: 1000;
+			    margin: 0;
 			}
 			
 			.header-collection-menu {

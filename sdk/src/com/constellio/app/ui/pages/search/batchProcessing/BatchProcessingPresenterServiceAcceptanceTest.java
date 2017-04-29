@@ -1,5 +1,33 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
@@ -31,27 +59,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
 
 public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTest {
 
@@ -78,6 +85,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	public void setUp()
 			throws Exception {
 		givenBackgroundThreadsEnabled();
+		givenRollbackCheckDisabled();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
 
@@ -112,6 +120,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulation()
 			throws Exception {
+		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A05, records.folder_A16))))
@@ -147,6 +156,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulationWithIds()
 			throws Exception {
+
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A05, records.folder_A16))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
@@ -181,6 +191,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void whenSetCopyRuleEnteredThenApplied()
 			throws Exception {
+		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A05, records.folder_A16))))
@@ -311,7 +322,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void whenModifyDocumentParentFolderInBatchOnlyHumanFriendlyMetadataAreShown()
 			throws Exception {
-
+		givenRollbackCheckDisabled();
 		List<Document> folderA04Documents = rm.searchDocuments(where(rm.document.folder()).isEqualTo(records.folder_A04));
 		Document document1 = folderA04Documents.get(0);
 		Document document2 = folderA04Documents.get(1);
@@ -755,14 +766,16 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
-				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null)
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
 				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
-				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null)
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
 		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");

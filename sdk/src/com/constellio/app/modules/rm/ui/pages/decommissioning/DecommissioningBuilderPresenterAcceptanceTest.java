@@ -10,8 +10,6 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -120,17 +118,42 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
         SearchServices searchServices = getModelLayerFactory().newSearchServices();
         LogicalSearchCondition searchCondition = presenter.getSearchCondition();
         List<String> recordIds = searchServices.searchRecordIds(searchCondition);
-        assertThat(recordIds).contains(records.folder_A48);
+        assertThat(recordIds).contains(records.folder_A51);
 
-
-        RecordServices recordServices = getModelLayerFactory().newRecordServices();
-        recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
-        recordServices.physicallyDeleteNoMatterTheStatus(records.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
-        new BorrowingServices(zeCollection, getModelLayerFactory()).borrowFolder(records.folder_A48, LocalDate.now(),
+        new BorrowingServices(zeCollection, getModelLayerFactory()).borrowFolder(records.folder_A51, LocalDate.now(),
                 LocalDate.now().plusDays(1), records.getAdmin(), records.getAdmin(), BorrowingType.BORROW, true);
 
         recordIds = searchServices.searchRecordIds(searchCondition);
-        assertThat(recordIds).doesNotContain(records.folder_A48);
+        assertThat(recordIds).doesNotContain(records.folder_A51);
+    }
+
+    @Test
+    public void givenBuilderThenCannotAddFoldersThatAreAlreadyInProccessedDecommissioningLists() throws Exception {
+        presenter.forParams("semiActiveToDeposit");
+        presenter.forRequestParameters("semiActiveToDeposit");
+        presenter.adminUnitId = records.unitId_10a;
+
+
+        SearchServices searchServices = getModelLayerFactory().newSearchServices();
+        LogicalSearchCondition searchCondition = presenter.getSearchCondition();
+        List<String> recordIds = searchServices.searchRecordIds(searchCondition);
+        assertThat(recordIds).contains(records.folder_A51);
+
+        recordServices.add(records.getList12().addFolderDetailsFor(records.getFolder_A51()));
+        presenter.forParams("semiActiveToDeposit");
+        presenter.forRequestParameters("semiActiveToDeposit");
+        presenter.adminUnitId = records.unitId_10a;
+        searchCondition = presenter.buildSearchCondition();
+        recordIds = searchServices.searchRecordIds(searchCondition);
+        assertThat(recordIds).contains(records.folder_A51);
+
+        recordServices.add(records.getList17().addFolderDetailsFor(records.getFolder_A51()));
+        presenter.forParams("semiActiveToDeposit");
+        presenter.forRequestParameters("semiActiveToDeposit");
+        presenter.adminUnitId = records.unitId_10a;
+        searchCondition = presenter.buildSearchCondition();
+        recordIds = searchServices.searchRecordIds(searchCondition);
+        assertThat(recordIds).doesNotContain(records.folder_A51);
     }
 
     private DecommissioningList buildDefaultFolderDecommissioningList() {

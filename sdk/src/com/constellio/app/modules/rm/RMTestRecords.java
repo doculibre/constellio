@@ -731,10 +731,10 @@ public class RMTestRecords {
 	}
 
 	private void setupUniformSubdivisions(Transaction transaction) {
-		transaction.add(rm.newUniformSubdivisionWithId(subdivId_1).setCode("sub1").setTitle("Subdiv. 1")
+		transaction.add(rm.newUniformSubdivisionWithId(subdivId_1).setCode("sub1").setTitle("Subdiv. 1").setDescription("description1")
 				.setRetentionRules(asList(ruleId_2)));
-		transaction.add(rm.newUniformSubdivisionWithId(subdivId_2).setCode("sub2").setTitle("Subdiv. 2"));
-		transaction.add(rm.newUniformSubdivisionWithId(subdivId_3).setCode("sub3").setTitle("Subdiv. 3"));
+		transaction.add(rm.newUniformSubdivisionWithId(subdivId_2).setCode("sub2").setTitle("Subdiv. 2").setDescription("description2"));
+		transaction.add(rm.newUniformSubdivisionWithId(subdivId_3).setCode("sub3").setTitle("Subdiv. 3").setDescription("description3"));
 	}
 
 	private void setupRetentionRules(Transaction transaction) {

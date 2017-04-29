@@ -14,7 +14,7 @@ public abstract class ConfirmDialogMenuBarItemCommand implements Command {
 	private DialogMode dialogMode;
 	
 	public ConfirmDialogMenuBarItemCommand() {
-		this(null);
+		this(DialogMode.TEXT);
 	}
 	
 	public ConfirmDialogMenuBarItemCommand(DialogMode dialogMode) {

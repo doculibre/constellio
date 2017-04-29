@@ -44,4 +44,11 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 		return field;
 	}
 
+	public ContainerStorageSpaceLookupField rebuildContainerStorageSpaceLookupField(RecordVO containerVo, AddEditContainerPresenter presenter) {
+		ContainerStorageSpaceLookupField field = new ContainerStorageSpaceLookupField(
+				(String) containerVo.get(ContainerRecord.TYPE), (Double) containerVo.get(ContainerRecord.CAPACITY), presenter);
+		postBuild(field, containerVo, containerVo.getMetadata(ContainerRecord.STORAGE_SPACE));
+		return field;
+	}
+
 }

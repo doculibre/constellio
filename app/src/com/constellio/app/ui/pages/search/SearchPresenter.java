@@ -28,13 +28,16 @@ import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -459,12 +462,35 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if(!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch()) {
+				if (config.isVisibleInAdvancedSearch() && metadata.isEnabled() && isMetadataVisibleForUser(metadata, getCurrentUser())) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
 		}
 		return result;
+	}
+
+	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
+		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
+			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(collection, referencedSchemaType);
+			if(taxonomy != null) {
+				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
+				List<String> taxonomyUserIds = taxonomy.getUserIds();
+				List<String> userGroups = currentUser.getUserGroups();
+				for(String group: taxonomyGroupIds) {
+					for(String userGroup: userGroups) {
+						if(userGroup.equals(group)) {
+							return true;
+						}
+					}
+				}
+				return (taxonomyGroupIds.isEmpty() && taxonomyUserIds.isEmpty()) || taxonomyUserIds.contains(currentUser.getId());
+			} else {
+				return true;
+			}
+		}
+		return true;
 	}
 
 	protected MetadataVO getMetadataVO(String metadataCode) {

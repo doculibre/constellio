@@ -52,83 +52,85 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	}
 
 	public HomePresenter forParams(String params) {
-		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-		String tabParam = paramsMap.get("tab");
-		String taxonomyCodeParam = paramsMap.get("taxonomyCode");
-		String taxonomyMetadataParam = paramsMap.get("taxonomyMetadata");
-		String expandedRecordIdParam = paramsMap.get("expandedRecordId");
-		
-		if (tabParam == null) {
-			currentTab = getDefaultTab();
-		} else {
-			currentTab = tabParam;
-		}
-		
-		SessionContext sessionContext = view.getSessionContext();
-		if (taxonomyCodeParam != null) {
-			// Looking for a tree tab matching current tab 
-			loop1 : for (PageItem tabItem : tabItems) {
-				if ((tabItem instanceof RecordTree) && currentTab.equals(tabItem.getCode())) {
-					RecordTree recordTree = (RecordTree) tabItem;
-					List<RecordLazyTreeDataProvider> dataProviders = recordTree.getDataProviders(appLayerFactory, sessionContext);
-					for (int i = 0; i < dataProviders.size(); i++) {
-						RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
-						String dataProviderTaxonomyCode = dataProvider.getTaxonomyCode();
-						if (taxonomyCodeParam.equals(dataProviderTaxonomyCode)) {
-							recordTree.setDefaultDataProvider(i);
+		if (getCurrentUser() != null) {
+			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+			String tabParam = paramsMap.get("tab");
+			String taxonomyCodeParam = paramsMap.get("taxonomyCode");
+			String taxonomyMetadataParam = paramsMap.get("taxonomyMetadata");
+			String expandedRecordIdParam = paramsMap.get("expandedRecordId");
+			
+			if (tabParam == null) {
+				currentTab = getDefaultTab();
+			} else {
+				currentTab = tabParam;
+			}
+			
+			SessionContext sessionContext = view.getSessionContext();
+			if (taxonomyCodeParam != null) {
+				// Looking for a tree tab matching current tab 
+				loop1 : for (PageItem tabItem : tabItems) {
+					if ((tabItem instanceof RecordTree) && currentTab.equals(tabItem.getCode())) {
+						RecordTree recordTree = (RecordTree) tabItem;
+						List<RecordLazyTreeDataProvider> dataProviders = recordTree.getDataProviders(appLayerFactory, sessionContext);
+						for (int i = 0; i < dataProviders.size(); i++) {
+							RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
+							String dataProviderTaxonomyCode = dataProvider.getTaxonomyCode();
+							if (taxonomyCodeParam.equals(dataProviderTaxonomyCode)) {
+								recordTree.setDefaultDataProvider(i);
 
-							if (expandedRecordIdParam != null) {
-								Record expandedRecord = getRecord(expandedRecordIdParam);
-								
-								List<String> expandedRecordIds = new ArrayList<>();
-								expandedRecordIds.add(0, expandedRecordIdParam);
-								
-								Record lastAddedParent = null;
-								String currentParentId = expandedRecord.getParentId();
-								while (currentParentId != null) {
-									lastAddedParent = getRecord(currentParentId);
-									expandedRecordIds.add(0, currentParentId);
-									currentParentId = lastAddedParent.getParentId();
-								}
-								
-								String taxonomyRecordId;
-								if (taxonomyMetadataParam != null) {
-									Record recordWithTaxonomyMetadata;
-									if (lastAddedParent != null) {
-										recordWithTaxonomyMetadata = lastAddedParent;
-									} else {
-										recordWithTaxonomyMetadata = expandedRecord;
+								if (expandedRecordIdParam != null) {
+									Record expandedRecord = getRecord(expandedRecordIdParam);
+									
+									List<String> expandedRecordIds = new ArrayList<>();
+									expandedRecordIds.add(0, expandedRecordIdParam);
+									
+									Record lastAddedParent = null;
+									String currentParentId = expandedRecord.getParentId();
+									while (currentParentId != null) {
+										lastAddedParent = getRecord(currentParentId);
+										expandedRecordIds.add(0, currentParentId);
+										currentParentId = lastAddedParent.getParentId();
 									}
-									MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-									MetadataSchema expandedRecordSchema = schemasManager.getSchemaOf(recordWithTaxonomyMetadata);
-									Metadata taxonomyMetadata = expandedRecordSchema.get(taxonomyMetadataParam);
-									taxonomyRecordId = expandedRecord.get(taxonomyMetadata);
-								} else {
-									taxonomyRecordId = expandedRecordIdParam;
-								}
-								if (!expandedRecordIds.contains(taxonomyRecordId)) {
-									expandedRecordIds.add(0, taxonomyRecordId);
+									
+									String taxonomyRecordId;
+									if (taxonomyMetadataParam != null) {
+										Record recordWithTaxonomyMetadata;
+										if (lastAddedParent != null) {
+											recordWithTaxonomyMetadata = lastAddedParent;
+										} else {
+											recordWithTaxonomyMetadata = expandedRecord;
+										}
+										MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+										MetadataSchema expandedRecordSchema = schemasManager.getSchemaOf(recordWithTaxonomyMetadata);
+										Metadata taxonomyMetadata = expandedRecordSchema.get(taxonomyMetadataParam);
+										taxonomyRecordId = expandedRecord.get(taxonomyMetadata);
+									} else {
+										taxonomyRecordId = expandedRecordIdParam;
+									}
+									if (!expandedRecordIds.contains(taxonomyRecordId)) {
+										expandedRecordIds.add(0, taxonomyRecordId);
+									}
+									
+									Record taxonomyRecord = getRecord(taxonomyRecordId);
+									String currentTaxonomyRecordParentId = taxonomyRecord.getParentId();
+									while (currentTaxonomyRecordParentId != null) {
+										Record taxonomyRecordParent = getRecord(currentTaxonomyRecordParentId);
+										expandedRecordIds.add(0, currentTaxonomyRecordParentId);
+										currentTaxonomyRecordParentId = taxonomyRecordParent.getParentId();
+									}
+									
+									recordTree.setExpandedRecordIds(expandedRecordIds);
 								}
 								
-								Record taxonomyRecord = getRecord(taxonomyRecordId);
-								String currentTaxonomyRecordParentId = taxonomyRecord.getParentId();
-								while (currentTaxonomyRecordParentId != null) {
-									Record taxonomyRecordParent = getRecord(currentTaxonomyRecordParentId);
-									expandedRecordIds.add(0, currentTaxonomyRecordParentId);
-									currentTaxonomyRecordParentId = taxonomyRecordParent.getParentId();
-								}
-								
-								recordTree.setExpandedRecordIds(expandedRecordIds);
+								break loop1;
 							}
-							
-							break loop1;
 						}
 					}
 				}
 			}
+		} else {
+			view.updateUI();
 		}
-
-		
 		return this;
 	}
 

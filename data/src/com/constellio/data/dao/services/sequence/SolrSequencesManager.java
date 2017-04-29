@@ -132,7 +132,7 @@ public class SolrSequencesManager implements SequencesManager {
 				sequences.put(id, value.longValue());
 			}
 
-		} catch (SolrServerException | IOException e) {
+		} catch (SolrServerException e) {
 			throw new RuntimeException(e);
 		}
 
@@ -234,7 +234,7 @@ public class SolrSequencesManager implements SequencesManager {
 		QueryResponse response = null;
 		try {
 			response = client.query(q);
-		} catch (IOException | SolrServerException e) {
+		} catch (SolrServerException e) {
 			throw new RuntimeException(e);
 		}
 		return (SolrDocument) response.getResponse().get("doc");
