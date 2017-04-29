@@ -433,7 +433,7 @@ public class DecommissioningService {
 	}
 
 	private boolean isFolderRepackable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
-		return decommissioningList.isFromSemiActive() && folder.getType().potentiallyHasAnalogMedium();
+		return folder.getType().potentiallyHasAnalogMedium();
 	}
 
 	private boolean isRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
