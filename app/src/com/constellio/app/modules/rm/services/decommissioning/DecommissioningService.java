@@ -235,7 +235,7 @@ public class DecommissioningService {
 	}
 
 	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
-		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isFolderRepackable(decommissioningList, folder);
+		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isRemovableFromContainer(decommissioningList, folder);
 	}
 
 	public boolean isApproved(DecommissioningList decommissioningList) {
@@ -434,6 +434,10 @@ public class DecommissioningService {
 
 	private boolean isFolderRepackable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
 		return decommissioningList.isFromSemiActive() && folder.getType().potentiallyHasAnalogMedium();
+	}
+
+	private boolean isRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+		return folder.getType().potentiallyHasAnalogMedium();
 	}
 
 	private boolean isFolderProcessable(FolderDetailWithType folder) {
