@@ -32,6 +32,7 @@ import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -739,10 +740,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Button buildBorrowButton() {
 		return new WindowButton($("DisplayFolderView.borrow"),
-				$("DisplayFolderView.borrow")) {
+				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "460px")) {
 			@Override
 			protected Component buildWindowContent() {
-
 				final JodaDateField borrowDatefield = new JodaDateField();
 				borrowDatefield.setCaption($("DisplayFolderView.borrowDate"));
 				borrowDatefield.setRequired(true);
@@ -841,6 +841,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,
 								horizontalLayout);
 				verticalLayout.setSpacing(true);
+				verticalLayout.addStyleName("no-scroll");
 
 				return verticalLayout;
 			}

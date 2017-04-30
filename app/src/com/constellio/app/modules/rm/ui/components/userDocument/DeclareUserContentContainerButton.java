@@ -54,13 +54,15 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				};
 			} else {
 				declareUserContentButton = newDefaultClassifyUserDocumentButton(icon, userDocumentVO);
-				declareUserContentButton.setEnabled(!view.getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
+				boolean enabled = !view.getSessionContext().getSelectedRecordIds().contains(recordVO.getId());
+				declareUserContentButton.setEnabled(enabled);
 			}
 		} else if (recordVO instanceof UserFolderVO) {
 			UserFolderVO userFolderVO = (UserFolderVO) recordVO;
 			Resource icon = new ThemeResource("images/icons/folder/folder_into.png");
 			declareUserContentButton = newDefaultClassifyUserFolderButton(icon, userFolderVO);
-			declareUserContentButton.setEnabled(!view.getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
+			boolean enabled = !view.getSessionContext().getSelectedRecordIds().contains(recordVO.getId());
+			declareUserContentButton.setEnabled(enabled);
 		} else {
 			declareUserContentButton = new Button();
 			declareUserContentButton.setVisible(false);
@@ -118,7 +120,7 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				}
 			}
 		};
-		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareDocument")));
+		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareDocument"), false));
 		return button;
 	}
 
@@ -133,7 +135,7 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				}
 			}
 		};
-		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareFolder")));
+		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareFolder"), false));
 		return button;
 	}
 	
