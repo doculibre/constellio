@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.configScripts;
 
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
+import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
+import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordMultipleStorageSpacesLocalizationCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceSingleContainerAvailableSizeCalculator;
@@ -43,12 +45,12 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
 
         for(String code : listCollectionCode)
         {
-                if(metadataSchemasManager.getSchemaTypes(code).hasType(ContainerRecord.SCHEMA_TYPE))
-                {
-                    rm = new RMSchemasRecordsServices(code, appLayerFactory);
+            if(metadataSchemasManager.getSchemaTypes(code).hasType(ContainerRecord.SCHEMA_TYPE))
+            {
+                rm = new RMSchemasRecordsServices(code, appLayerFactory);
                 LogicalSearchQuery query = new LogicalSearchQuery(from(rm.containerRecord.schemaType()).returnAll());
 
-                    hasContainer = searchServices.hasResults(query);
+                hasContainer = searchServices.hasResults(query);
                 if(hasContainer)
                 {
                     errors.add(getClass(), CONTAINER_EXIST);
@@ -124,6 +126,41 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
                         .asCalculated(StorageSpaceSingleContainerAvailableSizeCalculator.class);
                 types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
                         .asCalculated(ContainerRecordMultipleStorageSpacesLocalizationCalculator.class);
+            }
+        });
+    }
+
+    private void disableContainerMultivalueMetadata(ModelLayerFactory modelLayerFactory, String collection) {
+        MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+
+        metadataSchemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
+                        .asCalculated(StorageSpaceAvailableSizeCalculator.class);
+                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.LINEAR_SIZE_SUM).defineDataEntry()
+                        .asSum(
+                                types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.STORAGE_SPACE),
+                                types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.CAPACITY)
+                        );;
+                types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
+                        .asCalculated(ContainerRecordLocalizationCalculator.class);
+            }
+        });
+    }
+
+    private void enableContainerMultivalueMetadata(ModelLayerFactory modelLayerFactory, String collection) {
+        MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+
+        metadataSchemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
+                        .asManual();
+                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.LINEAR_SIZE_SUM).defineDataEntry()
+                        .asManual();
+                types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
+                        .asManual();
             }
         });
     }
