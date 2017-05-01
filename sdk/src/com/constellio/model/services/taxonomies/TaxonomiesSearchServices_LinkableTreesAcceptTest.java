@@ -62,9 +62,11 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends ConstellioTest {
 
+	Users users = new Users();
 	User alice;
 	User zeSasquatch;
 	DecommissioningService decommissioningService;
@@ -78,9 +80,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void setUp()
 			throws Exception {
 
-		prepareSystem(
-				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+		prepareSystem(withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
+				.withFoldersAndContainersOfEveryStatus()
 		);
 
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
@@ -1773,7 +1774,176 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 	}
 
+	@Test
+	public void whenAdminIsSelectingAFolderAlwaysDisplayingConceptsWithReadAccessThenSeesRecordsAndAllConcepts()
+			throws Exception {
+
+		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setShowInvisibleRecordsInLinkingMode(false);
+
+		assertThatRootWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), options)
+				.has(resultsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(numFoundAndListSize(3));
+
+		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
+				.has(resultsInOrder(records.categoryId_X13, records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
+				.has(resultsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(itemsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(numFoundAndListSize(9));
+
+		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(numFoundAndListSize(4));
+
+		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
+				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
+				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
+				.has(itemsWithChildren(records.categoryId_Z112))
+				.has(numFoundAndListSize(2));
+
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyAlwaysDisplayingConceptsWithReadAccessThenOnlySeeConceptsContainingAccessibleRecordsAndThoseWithReadAccess()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		User sasquatch = users.sasquatchIn(zeCollection);
+		User robin = users.robinIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+
+		authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+
+		recordServices.refresh(sasquatch);
+		recordServices.refresh(robin);
+		waitForBatchProcess();
+		//Sasquatch
+		assertThatRootWhenSelectingFolderUsingAdministrativeUnitsTaxonomy(sasquatch, options)
+				.has(resultsInOrder(records.unitId_10, records.unitId_20))
+				.has(itemsWithChildren(records.unitId_10, records.unitId_20))
+						.has(numFoundAndListSize(2));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
+				.has(resultsInOrder(records.unitId_12))
+				.has(itemsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12, options)
+				.has(resultsInOrder(records.unitId_12b))
+				.has(itemsWithChildren(records.unitId_12b))
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12b, options)
+				.has(resultsInOrder("B06"))
+				.has(noItemsWithChildren())
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12c, options)
+				.has(numFoundAndListSize(0));
+
+		//Robin
+		assertThatRootWhenSelectingFolderUsingAdministrativeUnitsTaxonomy(robin, options)
+				.has(resultsInOrder(records.unitId_10, records.unitId_30))
+				.has(itemsWithChildren(records.unitId_10, records.unitId_30))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(robin, records.unitId_10, options)
+				.has(resultsInOrder(records.unitId_12))
+				.has(itemsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(robin, records.unitId_12, options)
+				.has(resultsInOrder(records.unitId_12b, records.unitId_12c))
+				.has(itemsWithChildren(records.unitId_12b))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(robin, records.unitId_30, options)
+				.has(resultsInOrder(records.unitId_30c))
+				.has(itemsWithChildren(records.unitId_30c))
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(robin, records.unitId_12b, options)
+				.has(resultsInOrder("B06"))
+				.has(noItemsWithChildren())
+				.has(numFoundAndListSize(1));
+	}
+
 	// -------
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(User user,
+			String category, TaxonomiesSearchOptions options) {
+		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+		LinkableTaxonomySearchResponse response = service
+				.getLinkableChildConceptResponse(user, inRecord, RMTaxonomies.ADMINISTRATIVE_UNITS, Folder.SCHEMA_TYPE, options);
+
+		if (options.getRows() == 10000) {
+			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+		}
+		return assertThat(response);
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingFolderUsingAdministrativeUnitsTaxonomy(
+			User user,
+			TaxonomiesSearchOptions options) {
+		LinkableTaxonomySearchResponse response = service.getLinkableRootConceptResponse(
+				user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, Folder.SCHEMA_TYPE, options);
+
+		if (options.getRows() == 10000) {
+			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+		}
+		return assertThat(response);
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingFolderUsingPlanTaxonomy(User user,
+			TaxonomiesSearchOptions options) {
+		LinkableTaxonomySearchResponse response = service.getLinkableRootConceptResponse(
+				user, zeCollection, CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, options);
+
+		options.setHasChildrenFlagCalculated(false);
+		if (options.getRows() == 10000) {
+			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+		}
+		return assertThat(response);
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenSelectingFolderUsingPlanTaxonomy(User user,
+			String category, TaxonomiesSearchOptions options) {
+		return assertThatChildWhenSelectingFolderUsingPlanTaxonomy(user, category, options, 0, 10000);
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenSelectingFolderUsingPlanTaxonomy(User user,
+			String category, TaxonomiesSearchOptions options, int start, int rows) {
+
+		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+		LinkableTaxonomySearchResponse response = service.getLinkableChildConceptResponse(
+				user, inRecord, CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE,
+				new TaxonomiesSearchOptions(options).setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false));
+
+		if (rows == 10000) {
+			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+		}
+		return assertThat(response);
+	}
 
 	private Condition<? super LinkableTaxonomySearchResponse> empty() {
 		return numFound(0);

@@ -32,6 +32,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	public void setUp()
 			throws Exception {
 
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
@@ -249,6 +250,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenDisabledAfterTestValidations();
 		waitForBatchProcess();
 		reindexIfRequired();
 
@@ -273,7 +275,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
-
+		givenDisabledAfterTestValidations();
 		assertThat(getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()).isTrue();
 		//TODO Gabriel : Le changement de la config CALCULATED_CLOSING_DATE devrait demander une réindexation plutôt que partir un traîtement en lot
 		reindexIfRequired();
@@ -311,6 +313,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenDisabledAfterTestValidations();
 		waitForBatchProcess();
 		reindexIfRequired();
 
@@ -373,7 +376,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
-
+		givenDisabledAfterTestValidations();
 		assertThat(getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()).isTrue();
 		//TODO Gabriel : Le changement de la config CALCULATED_CLOSING_DATE devrait demander une réindexation plutôt que partir un traîtement en lot
 		reindexIfRequired();

@@ -206,7 +206,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		Taxonomy zeTaxo = services.createTaxonomy("Ze ultimate taxo!", new ArrayList<String>(), new ArrayList<String>(), true);
 
-		services.createAMultivalueClassificationMetadataInGroup(zeTaxo, Folder.SCHEMA_TYPE, "ZeMagicGroup");
+		services.createAMultivalueClassificationMetadataInGroup(zeTaxo, Folder.SCHEMA_TYPE, "ZeMagicGroup", "Ze Magic Group");
 
 		String metadataCode = "folder_default_" + zeTaxo.getCode() + "Ref";
 		Metadata metadata = schemasManager.getSchemaTypes(zeCollection).getMetadata(metadataCode);

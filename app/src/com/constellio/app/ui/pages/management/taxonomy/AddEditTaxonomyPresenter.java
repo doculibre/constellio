@@ -102,7 +102,8 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		if (!getClassifiedObjects(taxonomy).contains(schemaType)) {
 			//TODO Patrick - code instead label
 			String groupLabel = $("classifiedInGroupLabel");
-			valueListServices().createAMultivalueClassificationMetadataInGroup(taxonomy, schemaType, groupLabel);
+			valueListServices()
+					.createAMultivalueClassificationMetadataInGroup(taxonomy, schemaType, "classifiedInGroupLabel", groupLabel);
 		}
 	}
 

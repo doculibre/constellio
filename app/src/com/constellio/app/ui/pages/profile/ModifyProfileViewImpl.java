@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.profile;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -8,6 +9,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -70,6 +72,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
+	@PropertyId("defaultAdministrativeUnit")
+	private Field defaultAdministrativeUnitField;
 	@PropertyId("agentManuallyDisabled")
 	private CheckBox agentManuallyDisabledField;
 
@@ -309,6 +313,16 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
 		}
 
+
+		if(presenter.isRMModuleActivated()) {
+			defaultAdministrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE, true);
+			defaultAdministrativeUnitField.setCaption($("ModifyProfileView.defaultAdministrativeUnit"));
+		} else {
+			defaultAdministrativeUnitField = new TextField();
+			defaultAdministrativeUnitField.setVisible(false);
+			defaultAdministrativeUnitField.setEnabled(false);
+		}
+
 		agentManuallyDisabledField = new CheckBox($("ModifyProfileView.agentManuallyDisabled"));
 		agentManuallyDisabledField.setId("agentManuallyDisabled");
 		agentManuallyDisabledField.addStyleName("agentManuallyDisabled");
@@ -316,7 +330,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
         form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
                 phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-                taxonomyField, agentManuallyDisabledField) {
+                taxonomyField, defaultAdministrativeUnitField, agentManuallyDisabledField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {

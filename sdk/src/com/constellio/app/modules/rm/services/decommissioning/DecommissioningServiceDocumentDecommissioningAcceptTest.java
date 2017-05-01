@@ -238,7 +238,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	@SlowTest
 	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(records.getList31(), records.getChuckNorris());
 		for (Document document : getListDocuments(records.getList31())) {
 			if (document.getContent() != null) {
@@ -251,7 +251,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	@SlowTest
 	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(records.getList34(), records.getChuckNorris());
 		for (Document document : getListDocuments(records.getList34())) {
 			if (document.getContent() != null) {
@@ -264,7 +264,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	@SlowTest
 	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(records.getList33(), records.getChuckNorris());
 		for (Document document : getListDocuments(records.getList33())) {
 			if (document.getContent() != null) {

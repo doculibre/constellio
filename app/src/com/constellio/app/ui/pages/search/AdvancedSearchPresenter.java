@@ -9,10 +9,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -528,10 +525,18 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
 		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
-		if (!batchProcessOnAllSearchResults) {
-			return buildLogicalSearchQueryWithSelectedIds();
+		if(ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			if (!batchProcessOnAllSearchResults) {
+				return buildUnsecuredLogicalSearchQueryWithSelectedIds();
+			} else {
+				return buildUnsecuredLogicalSearchQueryWithUnselectedIds();
+			}
 		} else {
-			return buildLogicalSearchQueryWithUnselectedIds();
+			if (!batchProcessOnAllSearchResults) {
+				return buildLogicalSearchQueryWithSelectedIds();
+			} else {
+				return buildLogicalSearchQueryWithUnselectedIds();
+			}
 		}
 	}
 
@@ -550,6 +555,26 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = new LogicalSearchQuery()
 				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
+	}
+
+	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithSelectedIds() {
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
+	}
+
+	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithUnselectedIds() {
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
@@ -587,6 +612,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public boolean isSearchResultsSelectionForm() {
 		return true;
+	}
+
+	public User getUser() {
+		return getCurrentUser();
 	}
 
 }

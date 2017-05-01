@@ -125,6 +125,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenRollbackCheckDisabled();
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
 		);
@@ -779,7 +781,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	//Tested on IntelliGID 4!
 	public void givenActiveSecondaryFoldersWithPeriodsAndDecommissioningDelaysThenValidCalculatedDates()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
@@ -828,7 +830,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	//Tested on IntelliGID 4!
 	public void givenActiveSecondaryFoldersWithOpenPeriodsAndDecommissioningDelaysThenValidCalculatedDates()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
@@ -2848,6 +2850,53 @@ public class FolderAcceptanceTest extends ConstellioTest {
 				.setOpenDate(february2_2015).setMainCopyRuleEntered(principal55D.getId()));
 
 		assertThat(folder.getCloseDate()).isEqualTo(march31_2021);
+
+	}
+
+	@Test
+	public void givenFolderHasBeenReactivatedWithoutACustomCalculationDateThenTranferedAgainThenFirstReactivationUsedForCalculation()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setOpenDate(february2_2015);
+		folder.setCloseDateEntered(february11_2015);
+		folder.setMediumTypes(MD, PA);
+		folder.setActualTransferDate(date(2018, 2, 11));
+		folder.addReactivation(users.gandalfIn(zeCollection), date(2017, 2, 11));
+		getModelLayerFactory().newRecordServices().add(folder);
+
+		//42-5-C
+		//assertThat(folder.getMainCopyRule().toString()).isEqualTo("todo");
+
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(date(2023, 12, 31));
+
+	}
+
+	@Test
+	public void givenFolderHasBeenReactivatedWithACustomCalculationDateThenTranferedAgainThenCustomDateUsedForCalculation()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setOpenDate(february2_2015);
+		folder.setCloseDateEntered(february11_2015);
+		folder.setMediumTypes(MD, PA);
+		folder.setActualTransferDate(date(2018, 2, 11));
+		folder.addReactivation(users.gandalfIn(zeCollection), date(2017, 2, 11));
+		getModelLayerFactory().newRecordServices().add(folder);
+
+		assertThat(folder.getExpectedTransferDate()).isNull();
+		assertThat(folder.getExpectedDestructionDate()).isNull();
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(date(2023, 12, 31));
 
 	}
 

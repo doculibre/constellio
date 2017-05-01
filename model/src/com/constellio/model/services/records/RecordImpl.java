@@ -628,7 +628,7 @@ public class RecordImpl implements Record {
 					}
 				}
 			} catch (NoSuchMetadata e) {
-				convertedValues.put(entry.getKey(), "");
+				convertedValues.put(entry.getKey(), null);
 			}
 
 		}

@@ -1,5 +1,18 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
@@ -10,25 +23,16 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class RMSystemCheckExtension extends SystemCheckExtension {
 
@@ -39,9 +43,11 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	String collection;
 
 	AppLayerFactory appLayerFactory;
-
+	ContentDao contentDao;
+	ContentManager contentManager;
 	SearchServices searchServices;
 	RecordServices recordServices;
+	IOServices ioServices;
 
 	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
 	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
@@ -60,7 +66,10 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.contentDao = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getContentsDao();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		this.configs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 	}
 
@@ -209,5 +218,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		if (markedForReindexing) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		}
+
 	}
+
 }

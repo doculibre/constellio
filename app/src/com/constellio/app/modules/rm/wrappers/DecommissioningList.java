@@ -319,7 +319,7 @@ public class DecommissioningList extends RecordWrapper {
 		details.addAll(getFolderDetails());
 		List<String> existingDetails = getFolders();
 		for (Folder folder : folders) {
-			if(!existingDetails.contains(folder)) {
+			if(!existingDetails.contains(folder.getId())) {
 				details.add(new DecomListFolderDetail(folder));
 			}
 		}

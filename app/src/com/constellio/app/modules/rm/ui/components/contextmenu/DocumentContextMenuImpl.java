@@ -1,5 +1,15 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -27,13 +37,6 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -174,7 +177,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (createPDFAButtonVisible) {
 			ContextMenuItem createPDFAItem = addItem($("DocumentActionsComponent.createPDFA"));
-			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.STOP) {
+			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmCreatePDFA");
@@ -233,6 +236,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.checkOutButtonClicked(getSessionContext());
+					refreshParent();
 				}
 			});
 		}
@@ -421,7 +425,13 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	public void refreshParent() {
 		View parentView = ConstellioUI.getCurrent().getCurrentView();
 		if (parentView instanceof HomeViewImpl) {
-			navigateTo().home("checkedOutDocuments");
+			HomeViewImpl homeView = (HomeViewImpl) parentView;
+			String selectedTabCode = homeView.getSelectedTabCode();
+			if (Arrays.asList(
+					RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS, 
+					RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS).contains(selectedTabCode)) {
+				navigateTo().home(selectedTabCode);
+			}
 		}
 	}
 	

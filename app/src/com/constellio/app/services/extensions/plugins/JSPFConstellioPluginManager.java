@@ -96,7 +96,6 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public void detectPlugins() {
 		initialize();
 		this.pluginManager = PluginManagerFactory.createPluginManager();
-		configure();
 		if (pluginsDirectory != null && pluginsDirectory.isDirectory()) {
 			try {
 				newPluginServices().replaceOldPluginVersionsByNewOnes(pluginsDirectory,
@@ -505,7 +504,9 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 	@Override
 	public void configure() {
-		pluginManager.getPluginConfiguration().setConfiguration(ConstellioPlugin.class, "singletonInitializeMode", "true");
+		if (pluginManager != null) {
+			pluginManager.getPluginConfiguration().setConfiguration(ConstellioPlugin.class, "singletonInitializeMode", "true");
+		}
 	}
 
 	private void ensureStarted() {

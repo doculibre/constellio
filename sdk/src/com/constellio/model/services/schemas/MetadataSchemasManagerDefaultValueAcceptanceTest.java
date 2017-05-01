@@ -78,7 +78,8 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 
 	}
 
-	@Test
+	//@Test
+	//No longer working that way, logically delete is not blocked when there is a default value
 	public void givenReferenceMetadataWithDefaultValueWhenDeletingRecordThenRemoveDefaultValue()
 			throws Exception {
 		defineSchemasManager().using(schemas
@@ -106,7 +107,6 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas
 				.withAParentReferenceFromAnotherSchemaToZeSchema()
 				.withAParentReferenceFromZeSchemaToZeSchema());
-		givenTaxonomyOfZeSchema();
 		givenOtherTypeRecords();
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
@@ -161,7 +161,8 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 
 	}
 
-	@Test
+	//@Test
+	//No longer working that way, logically delete is not blocked when there is a default value
 	public void givenMultivalueReferenceMetadataWithDefaultValueWhenDeletingRecordThenRemoveDefaultValue()
 			throws Exception {
 		defineSchemasManager().using(schemas
@@ -194,7 +195,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		defineSchemasManager().using(schemas
 				.withAParentReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
-		givenTaxonomyOfZeSchema();
+		//		givenTaxonomyOfZeSchema();
 		givenOtherTypeRecords();
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {

@@ -259,7 +259,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getAllRoles(zeCollection)).hasSize(3).extracting("code").doesNotContain(validRole.getCode());
 	}
 
-	@Test
+	//@Test
 	public void givenMultipleInstancesWhenAddingRoleThenAvailableInAllInstances()
 			throws RolesManagerRuntimeException {
 		OpenedResourcesWatcher.enabled = false;

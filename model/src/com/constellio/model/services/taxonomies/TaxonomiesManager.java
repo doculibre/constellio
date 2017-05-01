@@ -1,18 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -33,15 +20,18 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager.TaxonomiesManagerCache;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.PrincipalTaxonomyCannotBeDisabled;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.PrincipalTaxonomyIsAlreadyDefined;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyMustBeAddedBeforeSettingItHasPrincipal;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaIsReferencedInMultivalueReference;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaTypesHaveRecords;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.*;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<TaxonomiesManagerCache> {
 
@@ -384,7 +374,10 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 			for (Metadata metadatas : type.getAllMetadatas().onlyTaxonomyReferences()) {
 				String referenceTypeCode = metadatas.getAllowedReferences().getTypeWithAllowedSchemas();
-				taxonomies.add(getTaxonomyFor(user.getCollection(), referenceTypeCode));
+				Taxonomy taxonomy = getTaxonomyFor(user.getCollection(), referenceTypeCode);
+				if(hasCurrentUserRightsOnTaxonomy(taxonomy, user)) {
+					taxonomies.add(taxonomy);
+				}
 			}
 
 			for (Metadata metadatas : type.getAllMetadatas().onlyParentReferences()) {
@@ -397,6 +390,26 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			return new ArrayList<>(taxonomies);
 		}
 
+	}
+
+	private boolean hasCurrentUserRightsOnTaxonomy(Taxonomy taxonomy, User currentUser) {
+		String userid = currentUser.getId();
+
+		if(taxonomy != null) {
+			List<String> taxonomyGroupIds = taxonomy.getGroupIds();
+			List<String> taxonomyUserIds = taxonomy.getUserIds();
+			List<String> userGroups = currentUser.getUserGroups();
+			for(String group: taxonomyGroupIds) {
+				for(String userGroup: userGroups) {
+					if(userGroup.equals(group)) {
+						return true;
+					}
+				}
+			}
+			return (taxonomyGroupIds.isEmpty() && taxonomyUserIds.isEmpty()) || taxonomyUserIds.contains(userid);
+		} else {
+			return true;
+		}
 	}
 
 	public boolean isTypeInPrincipalTaxonomy(MetadataSchemaType type) {

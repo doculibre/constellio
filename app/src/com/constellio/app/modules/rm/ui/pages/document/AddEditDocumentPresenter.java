@@ -244,10 +244,14 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	public void cancelButtonClicked() {
-		if (addView) {
+		if(userDocumentId != null) {
+			view.navigate().to(RMViews.class).listUserDocuments();
+		}else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
+			} else if (userDocumentId != null) {
+				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().home();
 			}

@@ -438,6 +438,19 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenModuleEnabledTwiceThenOnlyStartedOnce()
+			throws Exception {
+		givenCollection(zeCollection);
+		migrationServices.setCurrentDataVersion(zeCollection, "1.1.2");
+
+		manager.installValidModuleAndGetInvalidOnes(moduleA, collectionsListManager);
+		manager.enableValidModuleAndGetInvalidOnes(zeCollection, moduleA);
+		manager.enableValidModuleAndGetInvalidOnes(zeCollection, moduleA);
+
+		verify(moduleA, times(1)).start(eq(zeCollection), any(AppLayerFactory.class));
+	}
+
+	@Test
 	public void givenModulewhenGetPermissionGroupsThenReturnCoreAndModulePermissions()
 			throws Exception {
 		givenCollection(zeCollection);

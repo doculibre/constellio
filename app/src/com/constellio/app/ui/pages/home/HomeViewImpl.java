@@ -112,6 +112,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		return tabSheet;
 	}
 
+	@Override
+	public String getSelectedTabCode() {
+		return presenter.getCurrentTab();
+	}
+
 	private void selectTab(Tab tab) {
 		if (tab == null) {
 			return;

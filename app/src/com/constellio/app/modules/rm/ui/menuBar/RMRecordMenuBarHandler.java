@@ -17,13 +17,14 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.MenuBar;
 
 public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
-	
+
 	private DocumentToVOBuilder documentToVOBuilder;
-	
+
 	public RMRecordMenuBarHandler(ConstellioFactories constellioFactories) {
 		super(constellioFactories);
 		initTransientObjects();
@@ -61,10 +62,10 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 			return null;
 		}
 	}
-	
+
 	public DocumentVO getDocumentVO(RecordVO recordVO) {
-		DocumentVO documentVO;
-		
+		DocumentVO documentVO = null;
+
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (recordVO instanceof DocumentVO) {
 			documentVO = (DocumentVO) recordVO;
@@ -80,12 +81,18 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 				document = rm.getDocument(id);
 			} else {
 				Event event = rm.getEvent(id);
-				Record eventRecord = rm.get(event.getRecordId());
-				String eventRecordSchemaType = SchemaUtils.getSchemaTypeCode(eventRecord.getSchemaCode());
-				if (Document.SCHEMA_TYPE.equals(eventRecordSchemaType)) {
-					document = rm.getDocument(event.getRecordId());
-				} else {
+				try {
+					Record eventRecord = rm.get(event.getRecordId());
+					String eventRecordSchemaType = SchemaUtils.getSchemaTypeCode(eventRecord.getSchemaCode());
+					if (Document.SCHEMA_TYPE.equals(eventRecordSchemaType)) {
+						document = rm.getDocument(event.getRecordId());
+
+					} else {
+						document = null;
+					}
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					document = null;
+					//Event of a deleted record, normal
 				}
 			}
 			if (document != null) {
@@ -94,6 +101,7 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 				documentVO = null;
 			}
 		}
+
 		return documentVO;
 	}
 

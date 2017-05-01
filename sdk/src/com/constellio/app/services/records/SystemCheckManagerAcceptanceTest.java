@@ -240,9 +240,78 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRecordWithInvalidMetadataThenValidationErrorMessageIsSent()
+	public void givenSystemWithReferenceMetadatasReferencingALogicallyDeletedRecordThenRepairable()
 			throws Exception {
 		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+		defineSchemasManager().using(setup.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "recordA").set(TITLE, "A").set(Schemas.LOGICALLY_DELETED_STATUS, true));
+		transaction.add(new TestRecord(zeSchema, "recordB").set(TITLE, "B"));
+		transaction.add(new TestRecord(zeSchema, "recordC").set(TITLE, "C"));
+		recordServices.execute(transaction);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(anotherSchema.referenceFromAnotherSchemaToZeSchema().getCode())
+						.setDefaultValue(asList("recordA", "recordD", "recordC"));
+			}
+		});
+
+		//params.put("metadataCode", referenceMetadata.getCode());
+		//params.put("record", recordId);
+		//params.put("brokenLinkRecordId
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(2);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(3);
+		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "metadataCode", "brokenLinkRecordId"))
+				.containsOnly(
+						tuple("SystemCheckResultsBuilder_brokenLinkInDefaultValues",
+								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordA"),
+						tuple("SystemCheckResultsBuilder_brokenLinkInDefaultValues",
+								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordD")
+				);
+		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordA",
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordD"
+		);
+
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getMetadata("anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema").getDefaultValue())
+				.isEqualTo(asList("recordA", "recordD", "recordC"));
+
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(2);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(3);
+		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
+
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "metadataCode", "brokenLinkRecordId"))
+				.containsOnly(
+						tuple("SystemCheckResultsBuilder_brokenLinkInDefaultValues",
+								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordA"),
+						tuple("SystemCheckResultsBuilder_brokenLinkInDefaultValues",
+								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordD")
+				);
+		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordA",
+				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordD"
+		);
+
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getMetadata("anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema").getDefaultValue())
+				.isEqualTo(asList("recordC"));
+
+	}
+
+	@Test
+	public void givenRecordWithInvalidMetadataThenValidationErrorMessageIsSent()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
@@ -267,7 +336,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenAuthorizationWithInvalidTargetThenDetectedAndFixed()
 			throws Exception {
-		//TODO AFTER-TEST-VALIDATION-SEQ
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
@@ -365,7 +433,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenDecommissioningListWithInvalidFolderWhenRepairThenFixed()
 			throws Exception {
-		//TODO AFTER-TEST-VALIDATION-SEQ
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
@@ -504,7 +571,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private static enum RecordStatus {ACTIVE, LOGICALLY_DELETED, DELETED}
+	private enum RecordStatus {ACTIVE, LOGICALLY_DELETED, DELETED}
 
 	private RecordStatus statusOf(String id) {
 		try {

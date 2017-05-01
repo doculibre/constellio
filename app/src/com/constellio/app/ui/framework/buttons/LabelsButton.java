@@ -111,7 +111,7 @@ public class LabelsButton extends WindowButton {
 
         formatField = new ComboBox($("LabelsButton.labelFormat"));
         formatField.setRequired(true);
-        
+        this.getWindow().setResizable(true);
         List<Object> formatOptions = new ArrayList<Object>(customTemplates);
     	List<PrintableLabel> printableLabels = getTemplates(type);
         if (!printableLabels.isEmpty()) {

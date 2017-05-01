@@ -234,6 +234,10 @@ public class DecommissioningService {
 				(isFolderProcessable(folder) && !isFolderRepackable(decommissioningList, folder));
 	}
 
+	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isRemovableFromContainer(decommissioningList, folder);
+	}
+
 	public boolean isApproved(DecommissioningList decommissioningList) {
 		return decommissioningList.isApproved();
 	}
@@ -429,7 +433,11 @@ public class DecommissioningService {
 	}
 
 	private boolean isFolderRepackable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
-		return decommissioningList.isFromSemiActive() && folder.getType().potentiallyHasAnalogMedium();
+		return folder.getType().potentiallyHasAnalogMedium();
+	}
+
+	private boolean isRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+		return folder.getType().potentiallyHasAnalogMedium();
 	}
 
 	private boolean isFolderProcessable(FolderDetailWithType folder) {
@@ -1100,8 +1108,8 @@ public class DecommissioningService {
 		}
 	}
 
-	private boolean isFolderReactivable(Folder folder, User currentUser) {
-		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().equals(FolderMediaType.ANALOG)
+	public boolean isFolderReactivable(Folder folder, User currentUser) {
+		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().potentiallyHasAnalogMedium()
 				&& currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
 	}
 

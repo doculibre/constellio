@@ -592,7 +592,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	public void givenListToTransferWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A19().getContent().getHistoryVersions()).isEmpty();
 	}
@@ -601,7 +601,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@SlowTest
 	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A19().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
@@ -625,7 +625,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	public void givenListToDepositWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A19().getContent().getHistoryVersions()).isEmpty();
 	}
@@ -633,7 +633,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	public void givenListToDepositWhenPurgeMinorVersionsOnDepositThenMinorVersionsArePurged() {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList17()), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A49().getContent().getHistoryVersions()).isEmpty();
 	}
@@ -642,7 +642,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@SlowTest
 	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A19().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
@@ -652,7 +652,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@SlowTest
 	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList17()), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A49().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
@@ -673,6 +673,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 	@Test
 	public void givenListToDestroyThenDocumentsContentsAreDestroyed() {
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList21()), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
 	}
@@ -680,7 +681,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	public void givenListToDestroyWhenDocumentDeletionIsEnabledThenDocumentsAreDeleted() {
 		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
-
+		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList21()), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A19().isLogicallyDeletedStatus()).isTrue();
 		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();

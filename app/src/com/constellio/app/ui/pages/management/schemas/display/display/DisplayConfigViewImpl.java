@@ -2,9 +2,11 @@ package com.constellio.app.ui.pages.management.schemas.display.display;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.pages.management.schemas.display.SortFormMetadataVO;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -58,6 +60,8 @@ public class DisplayConfigViewImpl extends BaseViewImpl implements DisplayConfig
 	private Component buildTables() {
 		List<FormMetadataVO> metadataVOs = presenter.getValueMetadatas();
 		List<FormMetadataVO> valueMetadataVOs = presenter.getMetadatas();
+
+		Collections.sort(metadataVOs, new SortFormMetadataVO(getSessionContext()));
 
 		final ListBuilder select = new ListBuilder();
 		select.setColumns(30);

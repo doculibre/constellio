@@ -725,7 +725,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
-		detail.setPackageable(!decommissioningService().isFolderProcessable(decommissioningList, decommissioningList.getFolderDetailWithType(detail.getFolderId())));
+		detail.setPackageable(decommissioningService().isFolderRemovableFromContainer(decommissioningList, decommissioningList.getFolderDetailWithType(detail.getFolderId())));
 	}
 
 	public DecommissioningListFolderTableExtension getFolderDetailTableExtension() {
