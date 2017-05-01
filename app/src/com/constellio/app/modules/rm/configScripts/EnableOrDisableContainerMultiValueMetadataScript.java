@@ -2,10 +2,6 @@ package com.constellio.app.modules.rm.configScripts;
 
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
-import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
-import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordMultipleStorageSpacesLocalizationCalculator;
-import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
-import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceSingleContainerAvailableSizeCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -63,7 +59,6 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
     @Override
     public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
         AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-        List<String> listCollectionCode = appLayerFactory.getCollectionsManager().getCollectionCodes();
 
         if (newValue == null) {
             newValue = Boolean.FALSE;
@@ -93,41 +88,13 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
                     metadataSchemaBuilder.get(ContainerRecord.STORAGE_SPACE).setMultivalue(newValue);
                 }
             });
-        }
 
-        if(Boolean.TRUE.equals(newValue)) {
-            enableContainerMultivalueMetadata(modelLayerFactory, collection);
-        } else {
-            disableContainerMultivalueMetadata(modelLayerFactory, collection);
-        }
-    }
-
-    private void disableContainerMultivalueMetadata(ModelLayerFactory modelLayerFactory, String collection) {
-        MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-
-        metadataSchemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
-            @Override
-            public void alter(MetadataSchemaTypesBuilder types) {
-                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
-                        .asCalculated(StorageSpaceAvailableSizeCalculator.class);
-                types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
-                        .asCalculated(ContainerRecordLocalizationCalculator.class);
+            if(Boolean.TRUE.equals(newValue)) {
+                enableContainerMultivalueMetadata(modelLayerFactory, collection);
+            } else {
+                disableContainerMultivalueMetadata(modelLayerFactory, collection);
             }
-        });
-    }
-
-    private void enableContainerMultivalueMetadata(ModelLayerFactory modelLayerFactory, String collection) {
-        MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-
-        metadataSchemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
-            @Override
-            public void alter(MetadataSchemaTypesBuilder types) {
-                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
-                        .asCalculated(StorageSpaceSingleContainerAvailableSizeCalculator.class);
-                types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
-                        .asCalculated(ContainerRecordMultipleStorageSpacesLocalizationCalculator.class);
-            }
-        });
+        }
     }
 
     private void disableContainerMultivalueMetadata(ModelLayerFactory modelLayerFactory, String collection) {
