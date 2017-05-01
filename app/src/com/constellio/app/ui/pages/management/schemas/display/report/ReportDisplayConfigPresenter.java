@@ -31,6 +31,8 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 	private Map<String, String> parameters;
 
+	private boolean isAddMode = true;
+
 	public ReportDisplayConfigPresenter(ReportConfigurationView view) {
 		super(view);
 	}
@@ -156,5 +158,13 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		int index = metadataCode.lastIndexOf("_");
 		return metadataSchemasManager.getSchemaTypes(collection).getSchema(metadataCode.substring(0, index))
 				.getLabel(language);
+	}
+
+	public boolean isAddMode() {
+		return isAddMode;
+	}
+
+	public void setAddMode(boolean addMode) {
+		isAddMode = addMode;
 	}
 }

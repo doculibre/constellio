@@ -29,9 +29,12 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 	public static final String BUTTONS_LAYOUT = "base-form-buttons-layout";
 	public static final String SAVE_BUTTON = "base-form-save";
 	public static final String CANCEL_BUTTON = "base-form_cancel";
+	public static final String DELETE_BUTTON = "base-form_delete";
 	private ComboBox selectedReportField;
 	private Field newReportTitle;
 	private Component tables;
+	Button deleteButton;
+
 
 	public ReportConfigurationViewImpl() {
 		this.presenter = new ReportDisplayConfigPresenter(this);
@@ -61,8 +64,12 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 			public void valueChange(Property.ValueChangeEvent event) {
 				if (selectedReportField.getValue() != null){
 					newReportTitle.setVisible(false);
+					presenter.setAddMode(false);
+					deleteButton.setVisible(true);
 				}else{
-					newReportTitle.setVisible(true);
+					presenter.setAddMode(true);
+					deleteButton.setVisible(true);
+					newReportTitle.setVisible(false);
 				}
 				Component newTable = buildTables();
 				viewLayout.replaceComponent(tables, newTable);
@@ -133,11 +140,23 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 			}
 		});
 
+		deleteButton = new Button($("delete"));
+		deleteButton.addStyleName(DELETE_BUTTON);
+		deleteButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+
+			}
+		});
+
+		deleteButton.setVisible(false);
+
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 		buttonsLayout.addComponent(saveButton);
 		buttonsLayout.addComponent(cancelButton);
+		buttonsLayout.addComponent(deleteButton);
 
 		VerticalLayout viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
