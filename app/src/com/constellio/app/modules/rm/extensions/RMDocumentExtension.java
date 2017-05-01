@@ -135,7 +135,7 @@ public class RMDocumentExtension extends RecordExtension {
 			Content content = document.getContent();
 			String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
 
-			if (checkoutUserId != null && !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)) {
+			if (checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document))) {
 				return ExtensionBooleanResult.FALSE;
 			}
 		}
