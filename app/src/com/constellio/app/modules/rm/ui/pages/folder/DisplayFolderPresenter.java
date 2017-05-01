@@ -310,9 +310,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				String userTitle = rmSchemasRecordsServices.getUser(borrowUserEntered).getTitle();
 				LocalDateTime borrowDateTime = folder.getBorrowDate();
 				LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-				borrowedMessage = $("DisplayFolderview.borrowedFolder", userTitle, borrowDate);
+				borrowedMessage = $("DisplayFolderView.borrowedFolder", userTitle, borrowDate);
 			} else {
-				borrowedMessage = $("DisplayFolderview.borrowedByNullUserFolder");
+				borrowedMessage = $("DisplayFolderView.borrowedByNullUserFolder");
 			}
 		} else if (folder.getContainer() != null) {
 			try {
@@ -322,9 +322,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				if (borrowed && borrower != null) {
 					String userTitle = rmSchemasRecordsServices.getUser(borrower).getTitle();
 					LocalDate borrowDate = containerRecord.getBorrowDate();
-					borrowedMessage = $("DisplayFolderview.borrowedContainer", userTitle, borrowDate);
+					borrowedMessage = $("DisplayFolderView.borrowedContainer", userTitle, borrowDate);
 				} else if (borrowed) {
-					borrowedMessage = $("DisplayFolderview.borrowedByNullUserContainer");
+					borrowedMessage = $("DisplayFolderView.borrowedByNullUserContainer");
 				}
 			} catch (Exception e) {
 				LOGGER.error("Could not find linked container");
