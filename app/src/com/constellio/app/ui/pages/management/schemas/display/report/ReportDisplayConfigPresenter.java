@@ -109,6 +109,17 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		return returnList;
 	}
 
+	public void deleteButtonClicked()
+	{
+		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+		String schemaTypeCode = getSchemaTypeCode();
+		String reportTile = getSelectedReport();
+		Report report = reportServices.getReport(schemaTypeCode, reportTile);
+		reportServices.deleteReport(getCurrentUser(), report);
+
+		view.navigate().to().listSchemaTypes();
+	}
+
 	public void cancelButtonClicked() {
 		view.navigate().to().listSchemaTypes();
 	}

@@ -145,11 +145,11 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		deleteButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-
+				presenter.deleteButtonClicked();
 			}
 		});
 
-		deleteButton.setVisible(false);
+		deleteButton.setVisible(true);
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
