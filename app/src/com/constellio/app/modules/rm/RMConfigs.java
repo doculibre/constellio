@@ -483,10 +483,6 @@ public class RMConfigs {
 	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
 		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
 	}
-	
-	public boolean isLegacyIdInDecommisioningLists() {
-		return manager.getValue(LEGACY_ID_IN_DECOMMISSIONING_LISTS);
-	}
 
 	public boolean isContainerMultipleValue() {
 		return manager.getValue(IS_CONTAINER_MULTIVALUE);

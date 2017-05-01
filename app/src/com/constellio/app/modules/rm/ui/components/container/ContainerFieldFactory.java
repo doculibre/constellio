@@ -28,7 +28,7 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 		switch (metadataVO.getLocalCode()) {
 			case ContainerRecord.STORAGE_SPACE:
 				if(!presenter.isContainerWithMultipleStorageSpaces()) {
-					field = new ContainerStorageSpaceLookupField(containerRecordType, presenter);
+					field = new ContainerStorageSpaceLookupField(containerRecordType, containerCapacity, presenter);
 					if(!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
 						field.setVisible(false);
 						field.setEnabled(false);

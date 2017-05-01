@@ -105,11 +105,11 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
             public void alter(MetadataSchemaTypesBuilder types) {
                 types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
                         .asCalculated(StorageSpaceAvailableSizeCalculator.class);
-                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.LINEAR_SIZE_SUM).defineDataEntry()
-                        .asSum(
-                                types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.STORAGE_SPACE),
-                                types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.CAPACITY)
-                        );;
+//                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.LINEAR_SIZE_SUM).defineDataEntry()
+//                        .asSum(
+//                                types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.STORAGE_SPACE),
+//                                types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.CAPACITY)
+//                        );;
                 types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
                         .asCalculated(ContainerRecordLocalizationCalculator.class);
             }
@@ -124,8 +124,8 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
             public void alter(MetadataSchemaTypesBuilder types) {
                 types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
                         .asManual();
-                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.LINEAR_SIZE_SUM).defineDataEntry()
-                        .asManual();
+//                types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.LINEAR_SIZE_SUM).defineDataEntry()
+//                        .asManual();
                 types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
                         .asManual();
             }
