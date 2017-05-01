@@ -28,7 +28,7 @@ public class RMMigrationTo7_2_0_2 implements MigrationScript {
 			AppLayerFactory appLayerFactory) {
 
 		fixTemplates(collection, migrationResourcesProvider, appLayerFactory);
-
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	private void fixTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
