@@ -33,7 +33,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 	private ComboBox selectedReportField;
 	private Field newReportTitle;
 	private Component tables;
-	Button deleteButton;
+	private Button deleteButton;
 
 
 	public ReportConfigurationViewImpl() {
@@ -62,18 +62,16 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		selectedReportField.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				if (selectedReportField.getValue() != null){
-					newReportTitle.setVisible(false);
-					presenter.setAddMode(false);
-					deleteButton.setVisible(true);
-				}else{
-					presenter.setAddMode(true);
-					deleteButton.setVisible(true);
-					newReportTitle.setVisible(true);
-				}
 				Component newTable = buildTables();
 				viewLayout.replaceComponent(tables, newTable);
 				tables = newTable;
+				if (selectedReportField.getValue() != null){
+					newReportTitle.setVisible(false);
+					deleteButton.setVisible(true);
+				} else{
+					deleteButton.setVisible(false);
+					newReportTitle.setVisible(true);
+				}
 			}
 		});
 		viewLayout.addComponent(selectedReportField);
@@ -141,6 +139,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		});
 
 		deleteButton = new Button($("delete"));
+
 		deleteButton.addStyleName(DELETE_BUTTON);
 		deleteButton.addClickListener(new ClickListener() {
 			@Override
@@ -149,7 +148,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 			}
 		});
 
-		deleteButton.setVisible(true);
+		deleteButton.setVisible(false);
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
