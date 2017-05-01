@@ -69,7 +69,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 				}else{
 					presenter.setAddMode(true);
 					deleteButton.setVisible(true);
-					newReportTitle.setVisible(false);
+					newReportTitle.setVisible(true);
 				}
 				Component newTable = buildTables();
 				viewLayout.replaceComponent(tables, newTable);
@@ -177,7 +177,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		if(newReportTitle != null && newReportTitle.isVisible()){
 			return (String) newReportTitle.getValue();
 		}
-		if(selectedReportField != null){
+		if(selectedReportField != null && selectedReportField.getValue() != null){
 			return ((ReportVO) selectedReportField.getValue()).getTitle();
 		}else{
 			return null;
