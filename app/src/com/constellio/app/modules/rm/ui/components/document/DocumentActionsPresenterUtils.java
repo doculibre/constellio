@@ -183,8 +183,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			try {
 				presenterUtils.delete(document.getWrappedRecord(), null);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-				Content contentVersionVO = document.getContent();
-				String checkoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+				Content content = document.getContent();
+				String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
 
 				if (checkoutUserId != null) {
 					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleteBorrowedDocuments"));
@@ -196,7 +196,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (parentId != null) {
 				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
-				actionsComponent.navigateTo().recordsManagement();
+				actionsComponent.navigate().to().recordsManagement();
 			}
 		}
 	}
