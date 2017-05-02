@@ -78,4 +78,10 @@ public interface DataLayerConfiguration {
 	String createRandomUniqueKey();
 
 	void setHashingEncoding(HashingEncoding encoding);
+	
+	String getKafkaServers();
+	
+	String getSecondTransactionLogClass();
+	
+	String getKafkaTopic();
 }

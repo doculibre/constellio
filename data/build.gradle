@@ -2,6 +2,7 @@ dependencies {
     compile "jodconverter-core:jodconverter-core:3.0-beta-4"
     compile "org.apache.solr:solr-solrj:6.4.2"
     compile "org.apache.solr:solr-core:6.4.2"
+    compile 'org.apache.kafka:kafka-clients:0.10.2.1'
 }
 
 sourceSets {

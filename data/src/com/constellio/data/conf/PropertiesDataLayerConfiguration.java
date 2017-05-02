@@ -68,8 +68,20 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setFile("secondTransactionLog.folder", value);
 		}
 
+		public void setSecondTransactionLogClass(String value) {
+			setString("secondTransactionLog.class", value);
+		}
+
 		public void setSecondTransactionLogEnabled(boolean value) {
 			setBoolean("secondTransactionLog.enabled", value);
+		}
+		
+		public void setKafkaServers(String value) {
+			setString("kafka.servers", value);
+		}
+		
+		public void setKafkaTopic(String value) {
+			setString("kafka.topic", value);
 		}
 
 		public void setSecondTransactionLogReplayFilter(SecondTransactionLogReplayFilter filter) {
@@ -202,6 +214,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRequiredFile("secondTransactionLog.folder");
 	}
 
+	@Override
+	public String getSecondTransactionLogClass() {
+		return getString("secondTransactionLog.class", null);
+	}
+
 	public ConfigManagerType getSettingsConfigType() {
 		return (ConfigManagerType) getRequiredEnum("dao.settings.type", ConfigManagerType.class);
 	}
@@ -294,4 +311,13 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		setString("hashing.encoding", encoding == null ? null : encoding.name());
 	}
 
+	@Override
+	public String getKafkaServers() {
+		return getString("kafka.servers", null);
+	}
+	
+	@Override
+	public String getKafkaTopic() {
+		return getString("kafka.topic", null);
+	}
 }
