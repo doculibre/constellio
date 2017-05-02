@@ -188,7 +188,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		}
 
 		KafkaConsumer<String, String> consumer = getConsumer();
-		ConsumerRecordPoller<String, String> poller = new ConsumerRecordPoller<String, String>(consumer);
+		ConsumerRecordPoller<String, String> poller = getConsumerRecordPoller(consumer);
 		poller.poll(new ConsumerRecordCallback<String, String>() {
 			@Override
 			public void onConsumerRecord(long offset, String topic, String key, String value) {
@@ -196,6 +196,10 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 			}
 		});
 		consumer.close();
+	}
+
+	protected ConsumerRecordPoller<String, String> getConsumerRecordPoller(KafkaConsumer<String, String> consumer) {
+		return new ConsumerRecordPoller<String, String>(consumer);
 	}
 
 	protected KafkaConsumer<String, String> getConsumer() {
