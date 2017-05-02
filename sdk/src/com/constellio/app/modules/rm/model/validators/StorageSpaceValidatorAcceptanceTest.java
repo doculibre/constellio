@@ -133,12 +133,20 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void givenContainerIsMultivalueAndStorageSpaceHasOneOrNoContainerThenNoErrorIsThrown()
+    public void givenContainerIsMultivalueThenOnlyOneContainerPerStorageSpace()
             throws RecordServicesException {
         givenConfig(RMConfigs.IS_CONTAINER_MULTIVALUE, true);
         recordServices.add(buildDefaultContainerType());
-        recordServices.add(buildParentStorageSpaces().setCapacity(10L));
+        StorageSpace storageSpace = buildParentStorageSpaces();
+        recordServices.add(storageSpace.setCapacity(10L));
         recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent"));
+        recordServices.recalculate(storageSpace);
+        recordServices.update(storageSpace);
+        try {
+            recordServices.add(buildDefaultContainer("secondContainer").setStorageSpace("storageSpaceParent"));
+            fail("Should have thrown an exception when adding second container to storage space");
+        } catch (Exception e) {
+        }
     }
 
     @Test
