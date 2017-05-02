@@ -24,13 +24,17 @@ public abstract class ScriptWithLogOutput extends Script {
 	@Override
 	public void execute(ScriptActionLogger outputLogger, ScriptParameterValues parameterValues)
 			throws Exception {
-		outputLogger.info("Starting execution of " + getClass().getSimpleName());
+		if (outputLogger != null) {
+			outputLogger.info("Starting execution of " + getClass().getSimpleName());
+		}
 
 		this.outputLogger = outputLogger;
 		this.parameterValues = parameterValues;
 		execute();
 
-		outputLogger.info("Execution of " + getClass().getSimpleName() + " finished successfully");
+		if (outputLogger != null) {
+			outputLogger.info("Execution of " + getClass().getSimpleName() + " finished successfully");
+		}
 	}
 
 	protected abstract void execute()
