@@ -20,10 +20,15 @@ public class ContentVersionUploadField extends BaseUploadField {
 	private boolean majorVersionFieldVisible = true;
 
 	public ContentVersionUploadField() {
-		this(false);
+		this(false, true);
 	}
 
 	public ContentVersionUploadField(boolean multiValue) {
+		this(multiValue, true);
+	}
+
+	public ContentVersionUploadField(boolean multiValue, boolean haveDeleteButton) {
+		super(haveDeleteButton);
 		setConverter(new TempFileUploadToContentVersionVOConverter());
 		setMultiValue(multiValue);
 	}
