@@ -389,9 +389,13 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
+		String userSearchExpression = getUserSearchExpression();
+		if(modelLayerFactory.getSystemConfigs().isReplaceSpacesInSimpleSearchForAnds()) {
+			userSearchExpression = userSearchExpression.replaceAll("( )+", " AND ");
+		}
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
-				.setFreeTextQuery(getUserSearchExpression())
+				.setFreeTextQuery(userSearchExpression)
 				.filteredWithUser(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
