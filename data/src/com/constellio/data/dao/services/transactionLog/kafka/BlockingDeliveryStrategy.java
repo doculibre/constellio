@@ -32,9 +32,9 @@ public class BlockingDeliveryStrategy implements DeliveryStrategy {
 			} else {
 				throw new RuntimeException(e);
 			}
-		} finally {
-			return false;
-		}
+		} 
+		
+		return false;
 	}
 
 	public long getTimeout() {
