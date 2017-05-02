@@ -390,7 +390,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected LogicalSearchQuery getSearchQuery() {
 		String userSearchExpression = getUserSearchExpression();
-		if(modelLayerFactory.getSystemConfigs().isReplaceSpacesInSimpleSearchForAnds()) {
+		if(modelLayerFactory.getSystemConfigs().isReplaceSpacesInSimpleSearchForAnds() && userSearchExpression != null) {
 			userSearchExpression = userSearchExpression.replaceAll("( )+", " AND ");
 		}
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
