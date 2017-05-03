@@ -507,7 +507,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		}
 
-		new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+		if (!transaction.getRecordUpdateOptions().isSkipFindingRecordsToReindex()) {
+			new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+		}
 
 		ValidationErrors errors = new ValidationErrors();
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
