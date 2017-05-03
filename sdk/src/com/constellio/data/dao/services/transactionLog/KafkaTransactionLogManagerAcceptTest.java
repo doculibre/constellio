@@ -100,8 +100,8 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void whenMultipleThreadsAreAdding5000RecordsThenAllRecordsAreLogged()
 			throws Exception {
-		//runAdding(500);
-		//assertThat(log.isLastFlushFailed()).isFalse();
+		runAdding(500);
+		assertThat(log.isLastFlushFailed()).isFalse();
 		
 		log.destroyAndRebuildSolrCollection();
 	}
