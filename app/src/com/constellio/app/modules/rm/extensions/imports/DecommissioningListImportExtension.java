@@ -12,6 +12,8 @@ import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.Map;
  * Created by Charles Blanchette on 2017-02-17.
  */
 public class DecommissioningListImportExtension extends RecordImportExtension {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DecommissioningListImportExtension.class);
 
     public static final String FOLDER_ID = "folderId";
     public static final String FOLDER_EXCLUDED = "folderExcluded";
@@ -91,8 +95,13 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 
         if (mapDecomListFolderDetail.containsKey(CONTAINER_RECORD_ID) && StringUtils
                 .isNotEmpty(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID))) {
-            ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
-            decomListFolderDetail.setContainerRecordId(containerRecord.getId());
+            try {
+                ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
+                decomListFolderDetail.setContainerRecordId(containerRecord.getId());
+            } catch (Exception e) {
+                LOGGER.error("Could not find container " + mapDecomListFolderDetail.get(CONTAINER_RECORD_ID) + " for folderDetail " + mapDecomListFolderDetail.get(FOLDER_ID));
+            }
+
         }
 
         if (mapDecomListFolderDetail.get(FOLDER_LINEAR_SIZE) == null) {
@@ -110,8 +119,13 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 
          if (mapDecomListContainerDetail.containsKey(CONTAINER_RECORD_ID) && StringUtils
                 .isNotEmpty(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID))) {
-            ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
-            decomListContainerDetail = containerRecord != null ? new DecomListContainerDetail(containerRecord.getId()) : new DecomListContainerDetail();
+             try {
+                 ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+                 decomListContainerDetail = containerRecord != null ? new DecomListContainerDetail(containerRecord.getId()) : new DecomListContainerDetail();
+             } catch (Exception e) {
+                 LOGGER.error("Could not find containerDetail " + mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+                 decomListContainerDetail = new DecomListContainerDetail();
+             }
         } else {
             decomListContainerDetail = new DecomListContainerDetail();
         }
