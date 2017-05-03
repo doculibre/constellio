@@ -24,7 +24,7 @@ import com.constellio.data.utils.LazyIterator;
 
 public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTransaction> {
 
-	String fileName;
+	protected String fileName;
 	Iterator<List<String>> transactionLinesIterator;
 	DataLayerConfiguration configuration;
 
@@ -45,24 +45,23 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 		List<String> currentAddUpdateLines = new ArrayList<>();
 		for (String line : transactionLinesIterator.next()) {
 			if (isFirstLineOfOperation(line) && !currentAddUpdateLines.isEmpty()) {
-				addOperationToTransaction(fileName, transaction, currentAddUpdateLines);
+				addOperationToTransaction(transaction, currentAddUpdateLines);
 				currentAddUpdateLines.clear();
 			}
 			currentAddUpdateLines.add(line);
 		}
 
 		if (!currentAddUpdateLines.isEmpty()) {
-			addOperationToTransaction(fileName, transaction, currentAddUpdateLines);
+			addOperationToTransaction(transaction, currentAddUpdateLines);
 		}
 
 		return transaction;
 	}
 
-	private void addOperationToTransaction(String fileName, BigVaultServerTransaction transaction,
-			List<String> currentAddUpdateLines) {
+	private void addOperationToTransaction(BigVaultServerTransaction transaction, List<String> currentAddUpdateLines) {
 		String firstLine = currentAddUpdateLines.get(0);
 		if (firstLine.startsWith("addUpdate ")) {
-			handleAddUpdateLine(fileName, transaction, currentAddUpdateLines, firstLine);
+			handleAddUpdateLine(transaction, currentAddUpdateLines, firstLine);
 
 		} else if (firstLine.startsWith("delete ")) {
 			handleDeleteOperation(transaction, firstLine);
@@ -104,8 +103,7 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 		transaction.getDeletedRecords().addAll(ids);
 	}
 
-	protected void handleAddUpdateLine(String fileName, BigVaultServerTransaction transaction, List<String> currentAddUpdateLines,
-			String firstLine) {
+	protected void handleAddUpdateLine(BigVaultServerTransaction transaction, List<String> currentAddUpdateLines, String firstLine) {
 		String[] firstLineParts = firstLine.split(" ");
 		if (firstLineParts.length != 3) {
 			throw new ImpossibleRuntimeException("Unsupported first line '" + firstLine + "'");
@@ -113,11 +111,11 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 
 		String id = firstLineParts[1];
 		String version = firstLineParts[2];
-		SolrInputDocument document = buildAddUpdateDocument(fileName, currentAddUpdateLines, id);
+		SolrInputDocument document = buildAddUpdateDocument(currentAddUpdateLines, id);
 		addUpdate(transaction, document, version);
 	}
 
-	private SolrInputDocument buildAddUpdateDocument(String fileName, List<String> currentAddUpdateLines, String id) {
+	private SolrInputDocument buildAddUpdateDocument(List<String> currentAddUpdateLines, String id) {
 		KeyListMap<String, Object> fieldValues = new KeyListMap<>();
 
 		try {

@@ -137,8 +137,8 @@ public class DataLayerFactory extends LayerFactory {
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
 			if ("com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager"
 					.equals(dataLayerConfiguration.getSecondTransactionLogClass())) {
-				secondTransactionLogManager = add(
-						new KafkaTransactionLogManager(dataLayerConfiguration, dataLayerExtensions.getSystemWideExtensions()));
+				secondTransactionLogManager = add(new KafkaTransactionLogManager(dataLayerConfiguration,
+						dataLayerExtensions.getSystemWideExtensions(), newRecordDao(), dataLayerLogger));
 			} else {
 				secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 						ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
