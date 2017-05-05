@@ -9,14 +9,13 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.*;
-import com.constellio.model.services.factories.ModelLayerFactory;
-
-import java.util.List;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
+import com.constellio.model.extensions.events.records.RecordModificationEvent;
+import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 
 public class RMDocumentExtension extends RecordExtension {
 
@@ -127,20 +126,20 @@ public class RMDocumentExtension extends RecordExtension {
 	public void recordModified(RecordModificationEvent event) {
 	}
 
-
 	@Override
 	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+			Document document = rm.wrapDocument(event.getRecord());
+			User user = event.getUser();
 
-			if (event.isSchemaType(Document.SCHEMA_TYPE)) {
-				Document document = rm.wrapDocument(event.getRecord());
+			Content content = document.getContent();
+			String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
 
-				Content contentVersionVO = document.getContent();
-				String checkoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
-
-				if (checkoutUserId != null) {
-					return ExtensionBooleanResult.FALSE;
-				}
+			if (checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document))) {
+				return ExtensionBooleanResult.FALSE;
 			}
-				return super.isLogicallyDeletable(event);
 		}
+		return super.isLogicallyDeletable(event);
+	}
+	
 }
