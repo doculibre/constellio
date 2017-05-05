@@ -42,7 +42,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.StatusFilter;
@@ -444,25 +446,38 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	protected List<MetadataVO> getMetadataAllowedInAdvancedSearch(String schemaTypeCode) {
-		MetadataToVOBuilder builder = new MetadataToVOBuilder();
-		MetadataSchemaType schemaType = schemaType(schemaTypeCode);
+		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser())).getFieldFacetValues("schema_s");
-		Set<String> metadataLocalCodes = new HashSet<>();
-		if(schema_s != null) {
-			for(FacetValue facetValue: schema_s) {
-				if(facetValue.getQuantity() > 0) {
+				.setNumberOfRows(0)
+				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+				.getFieldFacetValues("schema_s");
+		Set<String> metadataCodes = new HashSet<>();
+		if (schema_s != null) {
+			for (FacetValue facetValue : schema_s) {
+				if (facetValue.getQuantity() > 0) {
 					String schema = facetValue.getValue();
-					metadataLocalCodes.addAll(types().getSchema(schema).getMetadatas().toLocalCodesList());
+					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+						if(metadata.getInheritance() != null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getInheritance().getCode());
+						}
+						else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getCode());
+						}
+					}
 				}
 			}
 		}
 
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+
 		List<MetadataVO> result = new ArrayList<>();
-		for (Metadata metadata : schemaType.getAllMetadatas()) {
-			if(!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
+		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
+		MetadataList allMetadatas = schemaType.getAllMetadatas();
+		for (Metadata metadata : allMetadatas) {
+			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
+				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() && metadata.isEnabled() && isMetadataVisibleForUser(metadata, getCurrentUser())) {
+				if (config.isVisibleInAdvancedSearch()  && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString || isTextOrString && metadata.isSearchable())) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}

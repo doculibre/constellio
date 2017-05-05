@@ -189,6 +189,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 		HorizontalLayout hLayout = new HorizontalLayout(testButton, forceUsersSynchronization, saveButton);
+		hLayout.setSpacing(true);
 		hLayout.addComponent(saveButton);
 		buttonsPanel.setContent(hLayout);
 		layout.addComponent(buttonsPanel);
