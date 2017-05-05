@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +142,11 @@ public class SystemCheckManager implements StatefulService {
 						e.printStackTrace();
 						//TODO
 					}
-					if (recordsRepaired) {
+
+					ValidateRecordsCheckParams validateRecordsCheckParams = new ValidateRecordsCheckParams(record,repair,builder);
+					boolean recordsRepaired2 = appLayerFactory.getExtensions().forCollection(collection).validateRecord(validateRecordsCheckParams);
+
+					if (recordsRepaired || recordsRepaired2) {
 
 						try {
 							Transaction transaction = new Transaction();

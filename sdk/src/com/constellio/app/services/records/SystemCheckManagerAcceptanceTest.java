@@ -23,6 +23,11 @@ import static org.joda.time.LocalDate.now;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.records.RecordServicesException;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
@@ -67,12 +72,57 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rm;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
 
+	}
+
+	@Test
+	public void givenSystemWithCheckoutedEmailThenCheckIntheseEmail() throws RecordServicesException {
+		final String ID = "000001";
+		final String TITLE = "TITLE";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Email email = rm.newEmailWithId(ID);
+		email.setTitle(TITLE);
+		email.setFolder(records.folder_A01);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary newDocumentsVersions = contentManager.upload(getTestResourceInputStream("testMessage.msg"));
+		Content documentContent = contentManager.createMajor(records.getAdmin(), "testMessage.msg", newDocumentsVersions);
+
+
+		email.setContent(documentContent);
+		email.getContent().checkOut(records.getAdmin());
+
+		Transaction transaction = new Transaction();
+		transaction.add(email);
+
+		recordServices.execute(transaction);
+
+		Email emailCheckouted = rm.getEmail(ID);
+
+		// Still checkouted
+		assertThat(emailCheckouted.getContent().getCurrentCheckedOutVersion() == null).isFalse();
+
+		systemCheckManager.runSystemCheck(true);
+
+		Email emailCheckinByRepairService = rm.getEmail(ID);
+
+		// Not checkouted anymore.
+		assertThat(emailCheckinByRepairService.getContent().getCurrentCheckedOutVersion() == null).isTrue();
 	}
 
 	@Test

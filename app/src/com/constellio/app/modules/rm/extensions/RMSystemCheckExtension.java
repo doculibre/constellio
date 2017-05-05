@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
+import com.constellio.app.modules.rm.wrappers.*;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +20,6 @@ import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
@@ -49,6 +47,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	RecordServices recordServices;
 	IOServices ioServices;
 
+	public final String METRIC_EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckouted";
 	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
 	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
 
@@ -83,6 +82,34 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 			return true;
 		}
+		return false;
+	}
+
+	@Override
+	public boolean validateRecord(ValidateRecordsCheckParams validateRecordsCheckParams) {
+
+		Record record =  validateRecordsCheckParams.getRecord();
+
+		if(record.getSchemaCode().equals(Email.SCHEMA)) // Vérifier qu'il est checkouter.
+		{
+
+			Email email = rm.wrapEmail(record);
+
+			if(email.getContent() != null && email.getContent().getCurrentCheckedOutVersion() != null)
+			{
+				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_EMAIL_CHECKOUTED);
+
+				if(validateRecordsCheckParams.isRepair())
+				{
+					if (email.getContent() != null) {
+						email.getContent().checkIn();
+
+						return true;
+					}
+				}
+			}
+		}
+
 		return false;
 	}
 
