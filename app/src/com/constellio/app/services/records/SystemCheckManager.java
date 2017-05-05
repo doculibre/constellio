@@ -164,7 +164,6 @@ public class SystemCheckManager implements StatefulService {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-
 					}
 				}
 			}

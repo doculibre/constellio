@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.*;
 import org.joda.time.LocalDate;
+import org.restlet.Uniform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +52,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	public final String METRIC_EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckouted";
 	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
 	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
+	public final String METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL = "rm.recordValidation.subFolderWithNullFieldsNotNulls";
 
 	public final String DELETED_ADM_UNITS = "rm.admUnit.deleted";
 	public final String RESTORED_ADM_UNITS = "rm.admUnit.restored";
@@ -89,6 +92,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	public boolean validateRecord(ValidateRecordsCheckParams validateRecordsCheckParams) {
 
 		Record record =  validateRecordsCheckParams.getRecord();
+		boolean isRepair = validateRecordsCheckParams.isRepair();
+		boolean isToBeSaved = false;
 
 		if(record.getSchemaCode().equals(Email.SCHEMA)) // Vérifier qu'il est checkouter.
 		{
@@ -104,14 +109,82 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 					if (email.getContent() != null) {
 						email.getContent().checkIn();
 
-						return true;
+						isToBeSaved = true;
 					}
 				}
 			}
 		}
+		else if (record.getSchemaCode().equals(Folder.DEFAULT_SCHEMA))
+		{
+			Folder folder = rm.wrapFolder(record);
+			boolean incrementMetric = false;
 
-		return false;
+			if(folder.getParentFolder() != null)
+			{
+				if(folder.getMainCopyRuleIdEntered() != null)
+				{
+					if(isRepair) {
+						folder.setMainCopyRuleEntered(null);
+						incrementMetric =  true;
+						isToBeSaved = true;
+					}
+				}
+
+				if(folder.getUniformSubdivisionEntered() != null)
+				{
+					if(isRepair) {
+						folder.setUniformSubdivisionEntered((UniformSubdivision) null);
+						incrementMetric =  true;
+						isToBeSaved = true;
+					}
+				}
+
+				if(folder.getAdministrativeUnitEntered() != null)
+				{
+					if(isRepair) {
+						folder.setAdministrativeUnitEntered((AdministrativeUnit) null);
+						incrementMetric =  true;
+						isToBeSaved = true;
+					}
+				}
+
+				if(folder.getCategoryEntered() != null)
+				{
+					if(isRepair) {
+						folder.setCategoryEntered((Category) null);
+						incrementMetric =  true;
+						isToBeSaved = true;
+					}
+				}
+
+				if(folder.getRetentionRuleEntered() != null)
+				{
+					if(isRepair) {
+						folder.setRetentionRuleEntered((RetentionRule) null);
+						incrementMetric =  true;
+						isToBeSaved = true;
+					}
+				}
+
+				if(folder.getCopyStatusEntered() != null)
+				{
+					if(isRepair) {
+						folder.setCopyStatusEntered(null);
+						incrementMetric =  true;
+						isToBeSaved = true;
+					}
+				}
+
+				if(incrementMetric)
+				{
+					validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL);
+				}
+			}
+		}
+
+		return isToBeSaved;
 	}
+
 
 	@Override
 	public void checkCollection(CollectionSystemCheckParams params) {

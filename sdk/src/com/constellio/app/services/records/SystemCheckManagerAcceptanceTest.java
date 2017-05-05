@@ -21,9 +21,18 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.joda.time.LocalDate.now;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -79,6 +88,60 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
 
+	}
+
+	@Test
+	public void givenSystemWithSubfolderWithShouldBeNullMetadataThenRepair() throws RecordServicesException, InterruptedException, RecordDaoException.NoSuchRecordWithId, RecordDaoException.OptimisticLocking {
+		final String ID = "MonDossier";
+		final String TITLE = "TITLE";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Folder folder = rm.newFolderWithId(ID);
+		folder.setTitle(TITLE);
+
+		folder.setOpenDate(new LocalDate());
+		folder.setMainCopyRuleEntered(records.principal42_5_CId);
+		folder.setUniformSubdivisionEntered(records.getUniformSubdivision1());
+		folder.setAdministrativeUnitEntered(records.getUnit10());
+		folder.setCategoryEntered(records.getCategory_X());
+		folder.setRetentionRuleEntered(records.getRule1());
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+
+		Transaction transaction = new Transaction();
+		transaction.add(folder);
+
+		recordServices.execute(transaction);
+
+		RecordDao recordDao = getDataLayerFactory().newRecordDao();
+
+		Map<String, Object> modifiedValues = new HashMap<>();
+		modifiedValues.put("parentFolderPId_s", records.folder_A01);
+
+
+		RecordDTO record = recordDao.get(ID);
+		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
+		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
+
+		waitForBatchProcess();
+
+		systemCheckManager.runSystemCheck(true);
+
+		Folder folder2 = rm.getFolder(ID);
+
+		assertThat(folder2.getMainCopyRuleIdEntered()).isNull();
+		assertThat(folder2.getUniformSubdivisionEntered()).isNull();
+		assertThat(folder2.getAdministrativeUnitEntered()).isNull();
+		assertThat(folder2.getCategoryEntered()).isNull();
+		assertThat(folder2.getRetentionRuleEntered()).isNull();
+		assertThat(folder2.getCopyStatusEntered()).isNull();
 	}
 
 	@Test
