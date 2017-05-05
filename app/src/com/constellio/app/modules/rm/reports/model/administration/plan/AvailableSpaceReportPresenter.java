@@ -105,7 +105,7 @@ public class AvailableSpaceReportPresenter {
     private void createContainerRecordRow(AvailableSpaceReportModelNode parent, List<ContainerRecord> containerRecords) {
         for (ContainerRecord boite : containerRecords) {
             AvailableSpaceReportModelNode childBox = new AvailableSpaceReportModelNode();
-            childBox.setTitle(boite.getTitle()).setCode(boite.getId()).setImage("boite")
+            childBox.setTitle(boite.getTitle()).setCode(boite.getTitle()).setImage("boite")
                     .setCapacity(boite.getCapacity() != null ? boite.getCapacity() : 0)
                     .setAvailableSpace(boite.getAvailableSize() != null ? boite.getAvailableSize() : 0);
 
