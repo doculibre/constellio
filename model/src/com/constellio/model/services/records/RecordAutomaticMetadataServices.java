@@ -218,7 +218,7 @@ public class RecordAutomaticMetadataServices {
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
 			calculatedValue = calculator.calculate(
 					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
-							record.getCollection()));
+							types.getSchemaType(record.getTypeCode()), record.getCollection()));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
@@ -359,12 +359,16 @@ public class RecordAutomaticMetadataServices {
 				}
 				for (String referenceValue : referencesValues) {
 					if (referenceValue != null) {
-						Record referencedRecord = recordProvider.getRecord(referenceValue);
-						List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
-						paths.addAll(parentPaths);
-						removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
-						if (aTaxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
-							attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+						try {
+							Record referencedRecord = recordProvider.getRecord(referenceValue);
+							List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+							paths.addAll(parentPaths);
+							removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
+							if (aTaxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
+								attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+							}
+						} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+							e.printStackTrace();
 						}
 					}
 				}

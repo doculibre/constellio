@@ -19,7 +19,7 @@ public class ReportButton extends WindowButton {
 	private final NewReportPresenter newPresenter;
 
 	public ReportButton(String report, ReportPresenter presenter) {
-		super($(report), $(report), WindowConfiguration.modalDialog("75%", "75%"));
+		super($(report), $(report), new WindowConfiguration(true, true, "75%", "90%"));
 		this.report = report;
 		this.presenter = presenter;
 		this.newPresenter = null;
@@ -34,7 +34,7 @@ public class ReportButton extends WindowButton {
 	}
 
 	public ReportButton(String report, NewReportPresenter presenter) {
-		super($(report), $(report), WindowConfiguration.modalDialog("75%", "75%"));
+		super($(report), $(report), new WindowConfiguration(true, true, "75%", "90%"));
 		this.report = report;
 		this.presenter = null;
 		this.newPresenter = presenter;

@@ -133,6 +133,11 @@ public class IcapService {
 						return;
 					}
 
+					String threatDescription = icapResponse.getThreatDescription();
+					if (StringUtils.isEmpty(threatDescription)) {
+						return;
+					}
+
 					final IcapException.ThreatFoundException threatFoundException = new IcapException.ThreatFoundException(
 							icapResponse.getThreatDescription(), filename);
 					LOGGER.info(threatFoundException.getMessage() + " " + threatFoundException.getThreatName() + " - " + filename);

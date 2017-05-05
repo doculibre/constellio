@@ -8,20 +8,28 @@ import com.constellio.model.entities.calculators.dependencies.DynamicLocalDepend
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class CalculatorParameters {
 
 	final Map<Dependency, Object> values;
 	final String collection;
+	final MetadataSchemaType schemaType;
 	final String id;
 	final String legacyId;
 
-	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId, String collection) {
+	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId, MetadataSchemaType schemaType,
+			String collection) {
 		super();
 		this.values = values;
 		this.id = id;
+		this.schemaType = schemaType;
 		this.legacyId = legacyId;
 		this.collection = collection;
+	}
+
+	public MetadataSchemaType getSchemaType() {
+		return schemaType;
 	}
 
 	@SuppressWarnings("unchecked")

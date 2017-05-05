@@ -2,15 +2,10 @@ package com.constellio.model.services.schemas.calculators;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.PRINCIPAL_PATH;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.substringAfter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
 
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -20,8 +15,6 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class AttachedAncestorsCalculator implements MetadataValueCalculator<List<String>> {
 
@@ -33,11 +26,15 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
 		boolean isDetachedAuths = Boolean.TRUE == parameters.get(isDetachedAuthsParams);
 
+		boolean hasSecurity = parameters.getSchemaType().hasSecurity();
+
 		List<String> ancestors = new ArrayList<>();
-		if (hierarchyDependencyValue != null && !isDetachedAuths) {
-			ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
+		if (hasSecurity) {
+			if (hierarchyDependencyValue != null && !isDetachedAuths) {
+				ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
+			}
+			ancestors.add(parameters.getId());
 		}
-		ancestors.add(parameters.getId());
 		return ancestors;
 	}
 

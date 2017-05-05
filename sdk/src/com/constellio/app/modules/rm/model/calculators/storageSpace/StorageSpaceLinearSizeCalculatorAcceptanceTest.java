@@ -54,6 +54,7 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
 
     @Test
     public void givenParametersThenCalculatorReturnsGoodValue() {
+        givenDisabledAfterTestValidations();
         when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(5));
 
         assertThat(calculator.calculate(parameters)).isEqualTo(5);

@@ -188,7 +188,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forParams(event.getParameters());
+		String parameters = event != null ? event.getParameters() : null;
+		presenter.forParams(parameters);
 	}
 
 	@Override

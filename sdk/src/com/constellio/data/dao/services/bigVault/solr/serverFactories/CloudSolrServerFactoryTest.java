@@ -10,8 +10,6 @@ import org.junit.Test;
 import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
-import java.io.IOException;
-
 public class CloudSolrServerFactoryTest extends ConstellioTest {
 
 	String coreName = "core";
@@ -30,12 +28,12 @@ public class CloudSolrServerFactoryTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGettingNewSolrServerThenSolrServerCreatedForCoreUrl() throws IOException {
+	public void whenGettingNewSolrServerThenSolrServerCreatedForCoreUrl() {
 		CloudSolrClient returnedSolrServer = (CloudSolrClient) factory.newSolrServer(coreName);
 
 		assertEquals(coreName, returnedSolrServer.getDefaultCollection());
 
-		returnedSolrServer.close();
+		returnedSolrServer.shutdown();
 	}
 
 }

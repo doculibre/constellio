@@ -11,6 +11,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -53,12 +54,12 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 	@Override
 	public void execute() {
-		try {
-			while (!isStopRequested()) {
+		while (!isStopRequested()) {
+			try {
 				process();
+			} catch (Throwable t) {
+				LOGGER.error("Error while batch processing", t);
 			}
-		} catch (Throwable t) {
-			LOGGER.error("Error while batch processing", t);
 		}
 	}
 
@@ -67,18 +68,22 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 		BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 		if (batchProcess != null) {
-			if (batchProcess.getRecords() != null) {
-				processFromIds(batchProcess);
-			} else {
-				processFromQuery(batchProcess);
+			try {
+				if (batchProcess.getRecords() != null) {
+					processFromIds(batchProcess);
+				} else {
+					processFromQuery(batchProcess);
+				}
+			} catch (Exception e) {
+				batchProcessesManager.markAsFinished(batchProcess, 1);
+				throw e;
 			}
 		}
 		//newEventSemaphore.release();
 		waitUntilNotified();
 	}
 
-	private void processFromIds(BatchProcess batchProcess)
-			throws Exception {
+	private void processFromIds(BatchProcess batchProcess) throws Exception{
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
 		RecordFromIdListIterator iterator = new RecordFromIdListIterator(batchProcess.getRecords(), modelLayerFactory);
@@ -122,8 +127,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("q", batchProcess.getQuery());
+		ModifiableSolrParams params = SolrUtils.parseQueryString(batchProcess.getQuery());
 		params.set("sort", "principalPath_s asc, id asc");
 
 		RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 100, true);

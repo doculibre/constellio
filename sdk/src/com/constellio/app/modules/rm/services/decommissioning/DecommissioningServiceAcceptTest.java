@@ -1,5 +1,16 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -12,15 +23,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningServiceAcceptTest extends ConstellioTest {
 	DecommissioningService service;
@@ -61,7 +63,11 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 
 	@Test
 	public void whenGetDispositionYearThenOk() {
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, true);
 		assertThat(service.getDispositionDate(records.getContainerBac10())).isEqualTo(new LocalDate(2007, 10, 31));
+
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, false);
+		assertThat(service.getDispositionDate(records.getContainerBac10())).isEqualTo(new LocalDate(2009, 10, 31));
 	}
 
 	@Test
@@ -139,7 +145,8 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenDecomissioningTypeTryingToGetLabel() throws Exception {
+	public void givenDecomissioningTypeTryingToGetLabel()
+			throws Exception {
 		ContainerRecord containerRecordDesctruction = rm.newContainerRecord();
 		containerRecordDesctruction.setDecommissioningType(DecommissioningType.DESTRUCTION);
 		containerRecordDesctruction.setIdentifier("D1");
@@ -167,7 +174,7 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenUnusedContainersThenRemoveFromListWhenProcessed() {
-//		getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from()))
-//		service.decommission(list01, records.getAdmin());
+		//		getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from()))
+		//		service.decommission(list01, records.getAdmin());
 	}
 }

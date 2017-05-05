@@ -1,5 +1,13 @@
 package com.constellio.app.ui.pages.events;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -17,7 +25,6 @@ import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -31,13 +38,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -61,13 +61,24 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	public RecordVODataProvider getDataProvider() {
 		initParameters(view.getParameters());
 
-		MetadataSchema schema = schema();
 		RecordToVOBuilder voBuilder;
 
 		List<String> metadataCodes = null;
 		MetadataSchemaVO schemaVO = null;
 		if (EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory)) {
 			voBuilder = getRecordToVOBuilderToBorrowedDocuments();
+			MetadataSchema documentDefaultSchema = schemaType(Document.SCHEMA_TYPE).getDefaultSchema();
+
+			Metadata documentIdentifierMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
+			Metadata titleMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.TITLE);
+
+			metadataCodes = new ArrayList<>();
+			metadataCodes.add(documentIdentifierMetadata.getCode());
+			metadataCodes.add(titleMetadata.getCode());
+
+			schemaVO = new MetadataSchemaToVOBuilder()
+					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
+
 		} else if (EventCategory.CURRENTLY_BORROWED_FOLDERS.equals(eventCategory) || getEventType()
 				.equals(EventType.CURRENTLY_BORROWED_FOLDERS) || getEventType()
 				.equals(EventType.LATE_BORROWED_FOLDERS)) {
@@ -89,7 +100,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			metadataCodes.add(titleMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
 
 		} else {
 			voBuilder = new RecordToVOBuilder();
@@ -216,32 +227,56 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return eventCategory;
 	}
 
-	public RecordVO getLinkedRecordVO(RecordVO eventVO) {
-		String recordId = eventVO.get(Event.RECORD_ID);
-		Record linkedRecord = recordServices().getDocumentById(recordId);
-		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-		return voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
+	public RecordVO getLinkedRecordVO(RecordVO eventOrRecordVO) {
+		RecordVO result;
+		if (eventOrRecordVO.getSchema().getTypeCode().equals(Event.SCHEMA_TYPE)) {
+			try {
+				String recordId = eventOrRecordVO.get(Event.RECORD_ID);
+				Record linkedRecord = recordServices().getDocumentById(recordId);
+				RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+				result = voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
+			} catch (Throwable t) {
+				result = null;
+			}
+		} else {
+			result = eventOrRecordVO;
+		}
+		return result;
 	}
 
 	public void recordLinkClicked(RecordVO eventVO) {
-		String eventId = eventVO.get(Event.RECORD_ID);
-		Record linkedRecord = recordServices().getDocumentById(eventId);
-		String linkedRecordId = linkedRecord.getId();
-		try {
-			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
-				view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
-			} else if (getEventType().contains("folder")) {
-				view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
-			} else if (getEventType().contains("document") || EventType.PDF_A_GENERATION.equals(getEventType())) {
-				view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
-			} else if (getEventType().contains("container")) {
-				view.navigate().to(RMViews.class).displayContainer(linkedRecordId);
-			} else {
-				view.navigate().to(TaskViews.class).displayTask(linkedRecordId);
+
+		if(EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory))
+		{
+			try {
+			view.navigate().to(RMViews.class).displayDocument(eventVO.getId());
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				return;
 			}
-		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-			return;
 		}
+		else
+		{
+			String eventId = eventVO.get(Event.RECORD_ID);
+			try {
+				Record linkedRecord = recordServices().getDocumentById(eventId);
+				String linkedRecordId = linkedRecord.getId();
+				if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
+					view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
+				} else if (getEventType().contains("folder")) {
+					view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
+				} else if (getEventType().contains("document") || EventType.PDF_A_GENERATION.equals(getEventType())) {
+					view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
+				} else if (getEventType().contains("container")) {
+					view.navigate().to(RMViews.class).displayContainer(linkedRecordId);
+				} else {
+					view.navigate().to(TaskViews.class).displayTask(linkedRecordId);
+				}
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				return;
+			}
+		}
+
+
 	}
 
 	private RecordToVOBuilder getRecordToVOBuilderToBorrowedFolders() {
@@ -291,30 +326,6 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		voBuilder = new RecordToVOBuilder() {
 			transient RMSchemasRecordsServices schemas;
 
-			@Override
-			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
-					SessionContext sessionContext) {
-				MetadataSchema documentSchema = schemas().defaultDocumentSchema();
-				Metadata contentMetadata = documentSchema.getMetadata(Document.CONTENT);
-				Content content = record.get(contentMetadata);
-				LocalDateTime eventTime = content.getCheckoutDateTime().minusSeconds(1);
-
-				Metadata eventTypeMetadata = schema().getMetadata(Event.TYPE);
-				Metadata eventMetaData = Schemas.CREATED_ON;
-				Metadata recordIdMetadata = schema().getMetadata(Event.RECORD_ID);
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				String recordId = record.getId();
-				query.setCondition(
-						LogicalSearchQueryOperators.from(schema()).where(eventTypeMetadata).isEqualTo(
-								EventType.BORROW_DOCUMENT)
-								.andWhere(eventMetaData).isGreaterOrEqualThan(
-								eventTime).andWhere(recordIdMetadata).isEqualTo(recordId));
-				SearchServices searchServices = modelLayerFactory.newSearchServices();
-				Record eventRecord = searchServices.search(query).get(0);
-
-				return super.build(eventRecord, viewMode, schemaVO, sessionContext);
-			}
-
 			private RMSchemasRecordsServices schemas() {
 				if (schemas == null) {
 					schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -324,5 +335,5 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		};
 		return voBuilder;
 	}
-	
+
 }

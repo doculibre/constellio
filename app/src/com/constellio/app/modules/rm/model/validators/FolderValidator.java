@@ -51,7 +51,9 @@ public class FolderValidator implements RecordValidator {
 
 				params.getValidationErrors().add(FolderValidator.class, FOLDER_CATEGORY_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 			 }
-		} else if (folder != null  && folder.getCloseDateEntered() != null && folder.getOpeningDate().compareTo(folder.getCloseDateEntered()) > 0) {
+		}
+
+		if (folder != null  && folder.getCloseDateEntered() != null && folder.getOpeningDate().compareTo(folder.getCloseDateEntered()) > 0) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(OPENING_DATE, folder.getOpeningDate());
 			parameters.put(CLOSING_DATE, folder.getCloseDate());

@@ -1,27 +1,26 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-
-import java.util.HashSet;
-
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.framework.data.CollectionVODataProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashSet;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends ConstellioTest {
 	@Mock
@@ -30,6 +29,8 @@ public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends Cons
 	AddEditCollectionPresenter presenter;
 	Record zeCollectionRecord;
 	private ConstellioModulesManager moduleManager;
+	@Mock
+	CollectionVODataProvider.CollectionVO collectionVO;
 
 	@Before
 	public void setUp()
@@ -48,13 +49,15 @@ public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends Cons
 		presenter = new AddEditCollectionPresenter(view, null);
 		moduleManager = getAppLayerFactory().getModulesManager();
 		zeCollectionRecord = getAppLayerFactory().getCollectionsManager().getCollection(zeCollection).getWrappedRecord();
+		doReturn(null).when(collectionVO).getConservationCalendarNumber();
+		doReturn(null).when(collectionVO).getOrganizationNumber();
 
 	}
 
 	@Test
 	public void whenActivatingRMThenOk()
 			throws Exception {
-		presenter.updateCollectionModules(zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioRMModule.ID)));
+		presenter.updateCollectionModules(collectionVO, zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioRMModule.ID)));
 		assertThat(moduleManager.getEnabledModules(zeCollection)).extracting("id")
 				.containsOnly(ConstellioRMModule.ID, TaskModule.ID);
 	}
@@ -62,7 +65,7 @@ public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends Cons
 	@Test
 	public void whenActivatingRobotThenOk()
 			throws Exception {
-		presenter.updateCollectionModules(zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioRobotsModule.ID)));
+		presenter.updateCollectionModules(collectionVO, zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioRobotsModule.ID)));
 		assertThat(moduleManager.getEnabledModules(zeCollection)).extracting("id")
 				.containsOnly(TaskModule.ID, ConstellioRobotsModule.ID);
 	}
@@ -70,7 +73,7 @@ public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends Cons
 	@Test
 	public void whenActivatingESThenOk()
 			throws Exception {
-		presenter.updateCollectionModules(zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioESModule.ID)));
+		presenter.updateCollectionModules(collectionVO, zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioESModule.ID)));
 		assertThat(moduleManager.getEnabledModules(zeCollection)).extracting("id")
 				.containsOnly(TaskModule.ID, ConstellioESModule.ID);
 	}

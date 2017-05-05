@@ -36,6 +36,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -66,6 +67,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -128,6 +130,11 @@ public class RecordDeleteServices {
 		}
 
 		Transaction transaction = new Transaction();
+		transaction.getRecordUpdateOptions().setValidationsEnabled(false);
+		transaction.getRecordUpdateOptions().setSkipMaskedMetadataValidations(true);
+		transaction.getRecordUpdateOptions().setSkippingRequiredValuesValidation(true);
+		transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true);
+		transaction.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
 
 		for (Record hierarchyRecord : getAllRecordsInHierarchy(record)) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
@@ -195,7 +202,12 @@ public class RecordDeleteServices {
 
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record);
+		boolean referencesInConfigs = isReferencedByConfigs(record);
 		boolean referencesUnhandled = isReferencedByOtherRecords(record) && !options.isSetMostReferencesToNull();
+
+		if (referencesInConfigs) {
+			LOGGER.info("Not physically deletable : Record is used in configs");
+		}
 
 		if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
@@ -205,7 +217,7 @@ public class RecordDeleteServices {
 			LOGGER.info("Not physically deletable : A record in the hierarchy is referenced outside of the hierarchy");
 		}
 
-		boolean physicallyDeletable = hasPermissions && !referencesUnhandled;
+		boolean physicallyDeletable = hasPermissions && !referencesUnhandled && !referencesInConfigs;
 
 		Factory<Boolean> referenced = new Factory<Boolean>() {
 			@Override
@@ -437,6 +449,10 @@ public class RecordDeleteServices {
 		boolean logicallyDeletable =
 				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchy(user, record);
 
+		if (isReferencedByConfigs(record)) {
+			logicallyDeletable = false;
+		}
+
 		if (logicallyDeletable) {
 			Factory<Boolean> referenced = new Factory<Boolean>() {
 				@Override
@@ -632,12 +648,32 @@ public class RecordDeleteServices {
 		return recordDao.getReferencedRecordsInHierarchy(record.getId());
 	}
 
+	public boolean isReferencedByConfigs(Record record) {
+		for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
+			for (MetadataSchema schema : schemaType.getAllSchemas()) {
+				for (Metadata metadata : schema.getMetadatas()) {
+					if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getDefaultValue() != null) {
+						if (metadata.getDefaultValue() instanceof List) {
+							if (((List) metadata.getDefaultValue()).contains(record.getId())) {
+								return true;
+							}
+						} else if (metadata.getDefaultValue().equals(record.getId())) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	public boolean isReferencedByOtherRecords(Record record) {
+
 		List<String> references = recordDao.getReferencedRecordsInHierarchy(record.getId());
 		//		List<Record> hierarchyRecords = recordServices.getRecordsById(record.getCollection(), references);
-		if (references.isEmpty()) {
-			return false;
-		}
+		//		if (references.isEmpty()) {
+		//			return false;
+		//		}
 		boolean hasReferences = false;
 		List<String> paths = record.getList(Schemas.PARENT_PATH);
 
@@ -645,18 +681,30 @@ public class RecordDeleteServices {
 		//				.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId())
 		//				.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId()));
 
-		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
-			List<Metadata> typeReferencesMetadata = type.getAllNonParentReferences();
-			if (!typeReferencesMetadata.isEmpty()) {
-				LogicalSearchCondition condition = from(type).whereAny(typeReferencesMetadata).isIn(references);
+		Taxonomy taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+		boolean isPrincipalTaxonomy = taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode());
+		boolean isTaxonomy = taxonomiesManager.getTaxonomyOf(record) != null;
 
-				//if (!paths.isEmpty()) {
-				condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId());
-				//}
-				boolean referencedByMetadatasOfType = searchServices.hasResults(new LogicalSearchQuery(condition));
-				hasReferences |= referencedByMetadatasOfType;
+		if (isPrincipalTaxonomy || !isTaxonomy) {
+			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
+				List<Metadata> typeReferencesMetadata = type.getAllNonParentReferences();
+				if (!typeReferencesMetadata.isEmpty()) {
+					LogicalSearchCondition condition = from(type).whereAny(typeReferencesMetadata).isIn(references);
+
+					//if (!paths.isEmpty()) {
+					condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId());
+					//}
+					boolean referencedByMetadatasOfType = searchServices.hasResults(new LogicalSearchQuery(condition));
+					hasReferences |= referencedByMetadatasOfType;
+				}
 			}
+		} else {
+			LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
+					.where(Schemas.PATH_PARTS).isEqualTo(record.getId())
+					.andWhere(Schemas.SCHEMA).isNot(LogicalSearchQueryOperators.startingWithText(record.getTypeCode() + "_"));
+			hasReferences = searchServices.hasResults(new LogicalSearchQuery(condition));
 		}
+
 		return hasReferences;
 	}
 

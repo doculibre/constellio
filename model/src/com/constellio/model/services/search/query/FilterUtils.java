@@ -60,6 +60,14 @@ public class FilterUtils {
 		stringBuilder.append(":w_");
 		stringBuilder.append(user.getId());
 
+		for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.WRITE)) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(schemaType);
+			stringBuilder.append("_*");
+		}
+
 		for (String aGroup : user.getUserGroups()) {
 			stringBuilder.append(" OR ");
 			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
@@ -90,6 +98,14 @@ public class FilterUtils {
 		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
 		stringBuilder.append(":r_");
 		stringBuilder.append(user.getId());
+
+		for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(schemaType);
+			stringBuilder.append("_*");
+		}
 
 		for (String aGroup : user.getUserGroups()) {
 			stringBuilder.append(" OR ");
@@ -137,6 +153,14 @@ public class FilterUtils {
 		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
 		stringBuilder.append(":d_");
 		stringBuilder.append(user.getId());
+
+		for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.DELETE)) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(schemaType);
+			stringBuilder.append("_*");
+		}
 
 		for (String aGroup : user.getUserGroups()) {
 			stringBuilder.append(" OR ");

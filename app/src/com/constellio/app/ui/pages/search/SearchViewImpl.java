@@ -406,8 +406,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			selectAllCaption = $("SearchView.selectCurrentPage");
 			deselectAllCaption = $("SearchView.deselectCurrentPage");
 		} else {
-			selectAllCaption = $("selectAll");
-			deselectAllCaption = $("deselectAll");
+			selectAllCaption = $("SearchView.selectRange");
+			deselectAllCaption = $("SearchView.selectRange");
 		}
 		selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
 			@Override
@@ -415,7 +415,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				if (isDetailedView()) {
 					((SearchResultDetailedTable) results).selectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).selectAll();
+					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
 
@@ -424,7 +424,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				if (isDetailedView()) {
 					((SearchResultDetailedTable) results).deselectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).deselectAll();
+					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
 		};

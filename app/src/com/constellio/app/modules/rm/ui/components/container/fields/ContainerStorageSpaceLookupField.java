@@ -64,11 +64,11 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
     @Override
     protected Component initContent() {
         HorizontalLayout horizontalLayout = ((HorizontalLayout) super.initContent());
-        horizontalLayout.addComponent(buildNewLookupButton2(), 2);
+        horizontalLayout.addComponent(buildSuggestedButton(), 2);
         return horizontalLayout;
     }
 
-    private Component buildNewLookupButton2() {
+    private Component buildSuggestedButton() {
         final Button suggestedButton = new Button($("ContainerStorageLookupField.suggested"));
         suggestedButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
 
@@ -96,7 +96,10 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
         Double containerCapacity = this.containerCapacity == null? 0.0:this.containerCapacity;
         return new LogicalSearchQuery().setCondition(from(storageSpaceType).whereAllConditions(
                 where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
-                where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(containerCapacity),
+                anyConditions(
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(containerCapacity),
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isNull()
+                ),
                 anyConditions(
                         where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isContaining(asList(containerRecordType)),
                         where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
@@ -153,7 +156,10 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
         containerCapacity = containerCapacity == null? 0.0:containerCapacity;
         LogicalSearchCondition searchCondition = from(storageSpaceType).whereAllConditions(
                 where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
-                where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(containerCapacity),
+                anyConditions(
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isGreaterOrEqualThan(containerCapacity),
+                        where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isNull()
+                ),
                 anyConditions(
                         where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isContaining(asList(containerRecordType)),
                         where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()

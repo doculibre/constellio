@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.reports.model.search.ReportTestUtils;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -29,6 +30,7 @@ public class ReportServicesAcceptanceTest extends ConstellioTest {
     private final String folderSchemaType = Folder.SCHEMA_TYPE;
 
     final String reportTitle = "zReportTitle";
+    final String reportDeletableTitle = "deletableReportTitle";
     private ReportTestUtils reportTestUtils;
 
     @Before
@@ -48,6 +50,28 @@ public class ReportServicesAcceptanceTest extends ConstellioTest {
         userServices.addUserToCollection(userServices.getUserCredential(chuckNorris), zeCollection);
 
         reportTestUtils = new ReportTestUtils(getModelLayerFactory(), zeCollection, records);
+    }
+
+    @Test
+    public void whenDeleteReportThenReportDeleted() {
+        reportTestUtils.addUserReport(reportDeletableTitle, chuckNorris);
+        MetadataSchema reportSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchema(Report.DEFAULT_SCHEMA);
+        Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
+        SearchServices searchServices = getModelLayerFactory().newSearchServices();
+        LogicalSearchQuery query = new LogicalSearchQuery();
+        query.setCondition(from(reportSchema)
+                .where(schemaTypeCodeMetadata).isEqualTo(folderSchemaType));
+        List<Record> results = searchServices.search(query);
+        assertThat(results.size()).isEqualTo(1);
+        Report chuckReport = new Report(results.get(0), types);
+        reportTestUtils.validateUserReport(chuckReport, chuckNorris);
+        assertThat(chuckReport.getTitle()).isEqualTo(reportDeletableTitle);
+
+        // Validate
+        reportServices.deleteReport(records.getChuckNorris(), chuckReport);
+
+        results = searchServices.search(query);
+        assertThat(results.size()).isEqualTo(0);
     }
 
     @Test

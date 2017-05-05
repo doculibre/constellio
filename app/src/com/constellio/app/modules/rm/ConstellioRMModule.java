@@ -23,24 +23,25 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.RMTaskType;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -120,7 +121,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_1(),
 				new RMMigrationTo7_1_1(),
 				new RMMigrationTo7_1_2(),
-				new RMMigrationTo7_2()
+				new RMMigrationTo7_2(),
+				new RMMigrationTo7_2_0_1(),
+				new RMMigrationTo7_2_0_2(),
+				new RMMigrationTo7_3()
 		);
 	}
 
@@ -230,6 +234,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.RETURN_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.REACTIVATION_REQUEST);
+
+		extensions.lockedRecords.add(TaskStatus.SCHEMA_TYPE, TaskStatus.CLOSED_CODE);
+		extensions.lockedRecords.add(TaskStatus.SCHEMA_TYPE, TaskStatus.STANDBY_CODE);
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -303,6 +310,29 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	@Override
 	public void start(AppLayerFactory appLayerFactory) {
 		RMNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
+				ContainerRecord.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+					@Override
+					public boolean hasGlobalAccess(User user, String access) {
+						if (Role.READ.equals(access)) {
+							return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally();
+						} else if (Role.WRITE.equals(access) || Role.DELETE.equals(access)) {
+							return user.hasAny(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+						}
+						return false;
+					}
+				});
+
+		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
+				StorageSpace.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+					@Override
+					public boolean hasGlobalAccess(User user, String access) {
+						if (Role.READ.equals(access) || Role.WRITE.equals(access) || Role.DELETE.equals(access)) {
+							return user.hasAny(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally();
+						}
+						return false;
+					}
+				});
 	}
 
 	@Override

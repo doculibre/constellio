@@ -1,23 +1,18 @@
 package com.constellio.model.services.security;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
-import org.joda.time.LocalDate;
+import java.util.Set;
 
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.utils.Provider;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.calculators.TokensCalculator2;
-import com.constellio.model.services.schemas.calculators.UserTokensCalculator2;
 
 public class SecurityTokenManager implements StatefulService {
 	List<TokenProvider> providers = new ArrayList<>();
 	List<String> schemaTypesWithoutSecurity = new ArrayList<>();
+	List<PublicTypeWithCondition> globalPermissionSecurizedSchemaTypes = new ArrayList<>();
 	ModelLayerFactory modelLayerFactory;
 
 	public SecurityTokenManager(ModelLayerFactory modelLayerFactory) {
@@ -47,6 +42,15 @@ public class SecurityTokenManager implements StatefulService {
 		providers.add(provider);
 	}
 
+	public void registerPublicTypeWithCondition(String schemaType, GlobalSecurizedTypeCondition condition) {
+
+		PublicTypeWithCondition publicTypeWithCondition = new PublicTypeWithCondition();
+		publicTypeWithCondition.condition = condition;
+		publicTypeWithCondition.schemaType = schemaType;
+
+		this.globalPermissionSecurizedSchemaTypes.add(publicTypeWithCondition);
+	}
+
 	public void registerPublicType(String publicType) {
 		schemaTypesWithoutSecurity.add(publicType);
 	}
@@ -57,6 +61,26 @@ public class SecurityTokenManager implements StatefulService {
 
 	public List<String> getSchemaTypesWithoutSecurity() {
 		return schemaTypesWithoutSecurity;
+	}
+
+	public Set<String> getGlobalPermissionSecurizedSchemaTypesVisibleBy(User user, String access) {
+		Set<String> types = new HashSet<>();
+		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurizedSchemaTypes) {
+			if (publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
+				types.add(publicTypeWithCondition.schemaType);
+			}
+		}
+		return types;
+	}
+
+	public boolean hasGlobalTypeAccess(User user, String typeCode, String access) {
+		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurizedSchemaTypes) {
+			if (publicTypeWithCondition.schemaType.equals(typeCode)
+					&& publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static class UserTokens {
@@ -107,5 +131,10 @@ public class SecurityTokenManager implements StatefulService {
 
 	public interface TokenProvider {
 		UserTokens getTokensFor(String username, String collection);
+	}
+
+	private static class PublicTypeWithCondition {
+		String schemaType;
+		GlobalSecurizedTypeCondition condition;
 	}
 }

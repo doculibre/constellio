@@ -78,7 +78,7 @@ public class LabelsButton extends WindowButton {
     }
 
     public LabelsButton(String caption, String windowsCaption, Factory<List<LabelTemplate>> customLabelTemplatesFactory, Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory, String collection, String type, List<String> idObject, String user) {
-        super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "250px"));
+        super(caption, windowsCaption, new WindowConfiguration(true, true, "75%", "250px"));
         this.customLabelTemplatesFactory = customLabelTemplatesFactory;
         this.defaultLabelTemplatesFactory = defaultLabelTemplatesFactory;
         this.model = factory.getModelLayerFactory();
@@ -111,31 +111,29 @@ public class LabelsButton extends WindowButton {
 
         formatField = new ComboBox($("LabelsButton.labelFormat"));
         formatField.setRequired(true);
-        
+        this.getWindow().setResizable(true);
         List<Object> formatOptions = new ArrayList<Object>(customTemplates);
-        if (customTemplates.isEmpty()) {
-        	List<PrintableLabel> printableLabels = getTemplates(type);
-            if (!printableLabels.isEmpty()) {
-            	PrintableLabel firstPrintableLabel = printableLabels.get(0);
-                this.size = (Double) firstPrintableLabel.get(PrintableLabel.LIGNE) * (Double) firstPrintableLabel.get(PrintableLabel.COLONNE);
+    	List<PrintableLabel> printableLabels = getTemplates(type);
+        if (!printableLabels.isEmpty()) {
+        	PrintableLabel firstPrintableLabel = printableLabels.get(0);
+            this.size = (Double) firstPrintableLabel.get(PrintableLabel.LIGNE) * (Double) firstPrintableLabel.get(PrintableLabel.COLONNE);
+            startPositionField.clear();
+            for (int i = 1; i <= size; i++) {
+                startPositionField.addItem(i);
+            }
+            formatOptions.addAll(printableLabels);
+        } else {
+        	List<LabelTemplate> defaultTemplates = getDefaultTemplates();
+            if (defaultTemplates.size() > 0) {
+            	LabelTemplate firstLabelTemplate = defaultTemplates.get(0);
+                this.size = firstLabelTemplate.getLines() * firstLabelTemplate.getColumns();
                 startPositionField.clear();
                 for (int i = 1; i <= size; i++) {
                     startPositionField.addItem(i);
                 }
-                formatOptions.addAll(printableLabels);
-            } else {
-            	List<LabelTemplate> defaultTemplates = getDefaultTemplates();
-                if (defaultTemplates.size() > 0) {
-                	LabelTemplate firstLabelTemplate = defaultTemplates.get(0);
-                    this.size = firstLabelTemplate.getLines() * firstLabelTemplate.getColumns();
-                    startPositionField.clear();
-                    for (int i = 1; i <= size; i++) {
-                        startPositionField.addItem(i);
-                    }
-                }
-                formatOptions.addAll(defaultTemplates);
             }
-        }    
+            formatOptions.addAll(defaultTemplates);
+        }
         for (Object formatOption : formatOptions) {
             formatField.addItem(formatOption);
             String itemCaption;
@@ -230,6 +228,8 @@ public class LabelsButton extends WindowButton {
                         Content c = ru.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
                         getWindow().setContent(new LabelViewer(c, ReportUtils.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf"));
                         Page.getCurrent().getJavaScript().execute("$('iframe').find('#print').remove()");
+                        getWindow().setHeight("90%");
+                        getWindow().center();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -240,6 +240,8 @@ public class LabelsButton extends WindowButton {
                             parameters.getStartPosition(), parameters.getNumberOfCopies());
                     ReportWriter writer = getLabelsReportFactory().getReportBuilder(params);
                     getWindow().setContent(new ReportViewer(writer, getLabelsReportFactory().getFilename(params)));
+                    getWindow().setHeight("90%");
+                    getWindow().center();
                 } else throw new UnsupportedOperationException();
             }
             

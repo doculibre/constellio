@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.navigation;
 
-import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.List;
-
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -29,13 +20,7 @@ import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrat
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissioningListViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.*;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
@@ -84,6 +69,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
+
+import java.io.Serializable;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -386,7 +379,7 @@ public class RMNavigationConfiguration implements Serializable {
 						DecommissioningSecurityService service = new DecommissioningSecurityService(
 								user.getCollection(), appLayerFactory);
 						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
-								user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething() ||
+								user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
 								user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
