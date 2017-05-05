@@ -1,5 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -31,15 +41,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
@@ -54,14 +55,14 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	String getBorrowMessageState(RecordVO containerRecord) {
 		String borrowedMessage = null;
-		if(containerRecord != null) {
+		if (containerRecord != null) {
 			boolean borrowed = Boolean.TRUE.equals(containerRecord.get(ContainerRecord.BORROWED));
 			String borrower = containerRecord.get(ContainerRecord.BORROWER);
-			if(borrowed && borrower != null) {
+			if (borrowed && borrower != null) {
 				String userTitle = rmRecordServices.getUser(borrower).getTitle();
 				LocalDate borrowDate = containerRecord.get(ContainerRecord.BORROW_DATE);
 				borrowedMessage = $("DisplayContainerView.borrowedContainer", userTitle, borrowDate);
-			} else if(borrowed) {
+			} else if (borrowed) {
 				borrowedMessage = $("DisplayContainerView.borrowedByNullUserContainer");
 			}
 		}
@@ -190,9 +191,9 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		}
 
 		MetadataVO linearSizeMetadata = container.getMetadata(ContainerRecord.LINEAR_SIZE);
-		Double linearSize = container.get(linearSizeMetadata) == null ? 0.0:(Double) container.get(linearSizeMetadata);
+		Double linearSize = container.get(linearSizeMetadata) == null ? 0.0 : (Double) container.get(linearSizeMetadata);
 
-		return (Double) Math.rint(100.0*linearSize/capacity);
+		return (Double) Math.rint(100.0 * linearSize / capacity);
 	}
 
 	private LogicalSearchQuery getFoldersQuery() {
@@ -241,7 +242,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public void saveIfFirstTimeReportCreated() {
 		ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
 		ContainerRecordReportParameters reportParameters = getReportParameters(null);
-		if(reportParameters.isTransfer()) {
+		if (reportParameters.isTransfer()) {
 			containerRecord.setFirstTransferReportDate(LocalDate.now());
 		} else {
 			containerRecord.setFirstDepositReportDate(LocalDate.now());
@@ -251,5 +252,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		} catch (RecordServicesException e) {
 			view.showErrorMessage("Could not update report creation time");
 		}
+	}
+
+	public boolean isEditButtonVisible() {
+		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
+		return getCurrentUser().hasWriteAccess().on(record);
 	}
 }

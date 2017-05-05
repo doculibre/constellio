@@ -201,22 +201,24 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustDecisionField() {
 		TaskDecisionField field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
-		try {
-			Task task = loadTask();
+		if (field != null) {
+			try {
+				Task task = loadTask();
 
-			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
+				if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
+					field.setVisible(false);
+					return;
+				}
+
+				field.setRequired(true);
+				field.setVisible(true);
+				for (String code : task.getNextTasksDecisionsCodes()) {
+					field.addItem(code);
+				}
+
+			} catch (NoSuchRecordWithId e) {
 				field.setVisible(false);
-				return;
 			}
-
-			field.setRequired(true);
-			field.setVisible(true);
-			for (String code : task.getNextTasksDecisionsCodes()) {
-				field.addItem(code);
-			}
-
-		} catch (NoSuchRecordWithId e) {
-			field.setVisible(false);
 		}
 	}
 
