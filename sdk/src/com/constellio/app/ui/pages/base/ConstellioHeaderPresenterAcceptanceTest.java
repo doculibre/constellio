@@ -8,12 +8,14 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -179,6 +181,51 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
         newMetadatas.removeAll(baseMetadatas);
         assertThat(newMetadatas.size()).isEqualTo(1);
         assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_default_" + Folder.BORROWED);
+    }
+
+    @Test
+    public void givenMetadataIsEnabledInCustomSchemaButNotInDefaultSchemaThenDoShow() throws RecordServicesException {
+        connectWithAdmin();
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getDefaultSchema(Folder.SCHEMA_TYPE).create("myMetadata").setType(MetadataValueType.STRING).setSearchable(true);
+            }
+        });
+        SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+        manager.saveMetadata(manager.getMetadata(zeCollection, "folder_default_myMetadata").withVisibleInAdvancedSearchStatus(true));
+        List<MetadataVO> allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+        assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
+
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getDefaultSchema(Folder.SCHEMA_TYPE).get("myMetadata").setEnabled(false);
+            }
+        });
+        allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+        assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_default_myMetadata");
+
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                MetadataSchemaBuilder mySchema = types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("mySchema");
+                mySchema.get("myMetadata").setEnabled(true);
+            }
+        });
+        allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+        assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_default_myMetadata");
+
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+        Transaction transaction = new Transaction();
+        transaction.add(rm.newFolderType().setCode("newType").setTitle("newType")
+                .setLinkedSchema("folder_mySchema"));
+        recordServices.execute(transaction);
+        recordServices.add(rm.newFolderWithType(rm.getFolderTypeWithCode("newType")).setTitle("test")
+                .setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X).setOpenDate(LocalDate.now())
+                .setRetentionRuleEntered(rmRecords.ruleId_1));
+        allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+        assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
     }
 
     private void connectWithAdmin() {
