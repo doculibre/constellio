@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public abstract class ScriptWithLogOutput extends Script {
 
@@ -39,4 +41,8 @@ public abstract class ScriptWithLogOutput extends Script {
 
 	protected abstract void execute()
 			throws Exception;
+
+	public ConditionnedActionExecutorInBatchBuilder onCondition(LogicalSearchCondition condition) {
+		return new ConditionnedActionExecutorInBatchBuilder(modelLayerFactory, condition);
+	}
 }

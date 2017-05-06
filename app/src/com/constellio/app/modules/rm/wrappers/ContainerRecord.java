@@ -1,5 +1,12 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -7,12 +14,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
@@ -137,11 +138,11 @@ public class ContainerRecord extends RecordWrapper {
 
 	public List<String> getStorageSpaceList() {
 		boolean isMultivalue = getMetadataSchemaTypes().getDefaultSchema(SCHEMA_TYPE).get(STORAGE_SPACE).isMultivalue();
-		if(isMultivalue) {
+		if (isMultivalue) {
 			return get(STORAGE_SPACE);
 		} else {
 			String storageSpaceId = get(STORAGE_SPACE);
-			if(storageSpaceId != null) {
+			if (storageSpaceId != null) {
 				return asList(storageSpaceId);
 			} else {
 				return new ArrayList<>();
@@ -156,7 +157,7 @@ public class ContainerRecord extends RecordWrapper {
 
 	public ContainerRecord setStorageSpace(String storageSpace) {
 		boolean isMultivalue = getMetadataSchemaTypes().getDefaultSchema(SCHEMA_TYPE).get(STORAGE_SPACE).isMultivalue();
-		if(isMultivalue) {
+		if (isMultivalue) {
 			set(STORAGE_SPACE, asList(storageSpace));
 		} else {
 			set(STORAGE_SPACE, storageSpace);
@@ -166,7 +167,7 @@ public class ContainerRecord extends RecordWrapper {
 
 	public ContainerRecord setStorageSpace(StorageSpace storageSpace) {
 		boolean isMultivalue = getMetadataSchemaTypes().getDefaultSchema(SCHEMA_TYPE).get(STORAGE_SPACE).isMultivalue();
-		if(isMultivalue) {
+		if (isMultivalue) {
 			set(STORAGE_SPACE, asList(storageSpace));
 		} else {
 			set(STORAGE_SPACE, storageSpace);
@@ -347,7 +348,7 @@ public class ContainerRecord extends RecordWrapper {
 		return get(LINEAR_SIZE_ENTERED);
 	}
 
-	public ContainerRecord setLinearSizeEntered(double linearSizeEntered) {
+	public ContainerRecord setLinearSizeEntered(Double linearSizeEntered) {
 		set(LINEAR_SIZE_ENTERED, linearSizeEntered);
 		return this;
 	}
@@ -369,7 +370,7 @@ public class ContainerRecord extends RecordWrapper {
 	}
 
 	public ContainerRecord setFirstTransferReportDate(LocalDate firstTransferReportDate) {
-		if(getFirstTransferReportDate() == null) {
+		if (getFirstTransferReportDate() == null) {
 			set(FIRST_TRANSFER_REPORT_DATE, firstTransferReportDate);
 		}
 		return this;
@@ -380,7 +381,7 @@ public class ContainerRecord extends RecordWrapper {
 	}
 
 	public ContainerRecord setFirstDepositReportDate(LocalDate firstDepositReportDate) {
-		if(getFirstDepositReportDate() == null) {
+		if (getFirstDepositReportDate() == null) {
 			set(FIRST_DEPOSIT_REPORT_DATE, firstDepositReportDate);
 		}
 		return this;

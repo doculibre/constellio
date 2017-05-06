@@ -1,9 +1,14 @@
 package com.constellio.app.extensions.api.scripts;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
@@ -52,6 +57,35 @@ public abstract class Script {
 
 	public List<String> getCollectionCodesExcludingSystem() {
 		return appLayerFactory.getCollectionsManager().getCollectionCodesExcludingSystem();
+	}
+
+	public List<String> getCollectionCodesWithSchemaType(String schemaType) {
+
+		List<String> returnedCollections = new ArrayList<>();
+
+		for (String collection : appLayerFactory.getCollectionsManager().getCollectionCodesExcludingSystem()) {
+			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			if (types.hasType(schemaType)) {
+				returnedCollections.add(collection);
+			}
+		}
+		return returnedCollections;
+	}
+
+	public MetadataSchemaTypes types(String collection) {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+	}
+
+	public MetadataSchemaType type(String collection, String schemaType) {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(schemaType);
+	}
+
+	public RMSchemasRecordsServices rm(String collection) {
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
+	}
+
+	public ESSchemasRecordsServices es(String collection) {
+		return new ESSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 }
