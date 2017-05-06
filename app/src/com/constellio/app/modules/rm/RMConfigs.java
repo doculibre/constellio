@@ -258,7 +258,9 @@ public class RMConfigs {
 
 		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
 
-		add(IS_CONTAINER_MULTIVALUE = decommissioning.createBooleanFalseByDefault("multiValue").scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class));
+		add(IS_CONTAINER_MULTIVALUE = decommissioning.createBooleanFalseByDefault("multipleContainerStorageSpaces")
+				.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class)
+				.whichIsHidden());
 
 		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
