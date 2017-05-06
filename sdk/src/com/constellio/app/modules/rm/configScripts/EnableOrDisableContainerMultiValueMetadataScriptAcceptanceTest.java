@@ -18,11 +18,6 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
     RMTestRecords records = new RMTestRecords(zeCollection);
     MetadataSchemasManager metadataSchemasManager;
 
-    @Before
-    public void setUp()
-    {
-        metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
-    }
 
     @Test
     public void whenValidateAndContainerIsPresentThenErrorIsPresent() {
@@ -30,6 +25,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
                 withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
                         .withRMTest(records).withFoldersAndContainersOfEveryStatus()
         );
+        metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 
         EnableOrDisableContainerMultiValueMetadataScript enableOrDisableContainerMultiValueMetadataScript = new EnableOrDisableContainerMultiValueMetadataScript();
 
@@ -39,7 +35,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
 
         assertThat(validationError.getValidationErrors().size()).isEqualTo(1);
         assertThat(validationError.getValidationErrors().get(0).getCode())
-                .isEqualTo("com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript_containerExisit");
+                .isEqualTo("com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript_containerExist");
     }
 
     @Test
@@ -47,6 +43,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
         prepareSystem(
                 withZeCollection().withConstellioRMModule().withAllTestUsers()
         );
+        metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 
         EnableOrDisableContainerMultiValueMetadataScript enableOrDisableContainerMultiValueMetadataScript = new EnableOrDisableContainerMultiValueMetadataScript();
 
@@ -59,9 +56,10 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
 
     @Test
     public void whenOnValueChangedTrueThenSetMultivalueTrue() throws InterruptedException {
-       prepareSystem(
+        prepareSystem(
                 withZeCollection().withConstellioRMModule().withAllTestUsers()
         );
+        metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 
         EnableOrDisableContainerMultiValueMetadataScript enableOrDisableContainerMultiValueMetadataScript = new EnableOrDisableContainerMultiValueMetadataScript();
 
