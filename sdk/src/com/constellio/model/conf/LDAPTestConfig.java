@@ -73,15 +73,15 @@ public class LDAPTestConfig {
 	}
 
 	public static LDAPServerConfiguration getLDAPServerConfiguration() {
-		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, false);
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, false, true);
 	}
 
 	public static LDAPServerConfiguration getSharepointLDAPServerConfiguration() {
-		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, true);
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, true, true);
 	}
 
 	public static LDAPServerConfiguration getLDAPServerConfigurationInactive() {
-		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false, false);
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false, false, true);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(
@@ -130,7 +130,7 @@ public class LDAPTestConfig {
 	}
 
 	public static LDAPServerConfiguration getExchangeLDAPServerConfiguration() {
-		return new LDAPServerConfiguration(getExchangeLDAPDevServerUrl(), getDomains(), getDirectoryType(), true, false);
+		return new LDAPServerConfiguration(getExchangeLDAPDevServerUrl(), getDomains(), getDirectoryType(), true, false, true);
 	}
 
 	public static LDAPUserSyncConfiguration getExchangeLDAPUserSyncConfiguration() {
@@ -148,7 +148,7 @@ public class LDAPTestConfig {
 	}
 
 	public static LDAPServerConfiguration getLDAPSServerConfiguration() {
-		return new LDAPServerConfiguration(getLDAPSUrls(), getDomains(), getDirectoryType(), true, false);
+		return new LDAPServerConfiguration(getLDAPSUrls(), getDomains(), getDirectoryType(), true, false, true);
 	}
 
 	private static List<String> getLDAPSUrls() {

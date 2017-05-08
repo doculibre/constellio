@@ -66,11 +66,11 @@ public class LDAPTokenTestConfig {
 	}
 
 	public static LDAPServerConfiguration getLDAPServerConfiguration() {
-		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, true);
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, true, true);
 	}
 
 	public static LDAPServerConfiguration getLDAPServerConfigurationInactive() {
-		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false, true);
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false, true, false);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(List<String> selectedCollectionsCodes){

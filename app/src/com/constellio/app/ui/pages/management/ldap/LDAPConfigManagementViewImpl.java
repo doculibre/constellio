@@ -2,20 +2,28 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 
 public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements LDAPConfigManagementView {
 	private AzurAuthenticationTab azurAuthenticationTab;
@@ -134,11 +142,22 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		private Field clientId, authorityTenantId;
 		private Field userField;
 		private Field passwordField;
+		private Field activateAuthentication;
 
 		private AzurAuthenticationTab() {
 			LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
 			setSpacing(true);
 			setSizeFull();
+
+			activateAuthentication = createCheckmarkField(ldapServerConfiguration.getLdapAuthenticationActive(), true);
+			activateAuthentication.setCaption($("ldap.authentication.active"));
+			activateAuthentication.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					presenter.setLDAPActive(!presenter.isLDAPActive());
+				}
+			});
+			addComponent(activateAuthentication);
 
 			clientId = createStringField(ldapServerConfiguration.getClientId(), true);
 			clientId.setCaption($("LDAPConfigManagementView.clientId"));
@@ -176,17 +195,27 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			AzureADServerConfig serverConfig = new AzureADServerConfig()
 					.setAuthorityTenantId(azurAuthenticationTab.getAuthorityTenantId())
 					.setClientId(azurAuthenticationTab.getClientId());
-			return new LDAPServerConfiguration(serverConfig, presenter.isLDAPActive());
+			return new LDAPServerConfiguration(serverConfig, presenter.isLDAPActive(), presenter.isLDAPSyncActive());
 		}
 	}
 
 	private class AzurSynchTab extends VerticalLayout {
-		Field applicationKey, clientId;
+		Field applicationKey, clientId, activateSynch;
 
 		private AzurSynchTab() {
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
 			setSpacing(true);
 			setSizeFull();
+
+			activateSynch = createCheckmarkField(getLDAPServerConfiguration().getLdapSyncActive(), true);
+			activateSynch.setCaption($("LDAPConfigManagementView.synchronization"));
+			activateSynch.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					presenter.setLDAPSyncActive(!presenter.isLDAPSyncActive());
+				}
+			});
+			addComponent(activateSynch);
 
 			buildSynchronizationScheduleFields(ldapUserSyncConfiguration);
 			addComponent(scheduleComponentField);
@@ -232,6 +261,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 	private class DefaultAuthenticationTab extends VerticalLayout {
 		private CheckBox followReferences;
+		private Field activateAuthentication;
 
 		private StringListComponent urlsField;
 		private StringListComponent domainsField;
@@ -245,6 +275,16 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 		private void buildLdapServerConfigComponent(VerticalLayout layout) {
 			LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
+
+			activateAuthentication = createCheckmarkField(ldapServerConfiguration.getLdapAuthenticationActive(), true);
+			activateAuthentication.setCaption($("ldap.authentication.active"));
+			activateAuthentication.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					presenter.setLDAPActive(!presenter.isLDAPActive());
+				}
+			});
+			layout.addComponent(activateAuthentication);
 
 			followReferences = new CheckBox($("ldap.authentication.followReferences"));
 			followReferences.setValue(ldapServerConfiguration.getFollowReferences());
@@ -267,7 +307,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		public LDAPServerConfiguration getLDAPServerConfiguration() {
 			return new LDAPServerConfiguration(urlsField.getValues(),
 					domainsField.getValues(), getDirectoryType(), presenter.isLDAPActive(),
-					followReferences.getValue());
+					followReferences.getValue(), presenter.isLDAPSyncActive());
 		}
 	}
 
@@ -278,6 +318,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
         private StringListComponent userFilterGroupsField;
 		private Field userField;
 		private Field passwordField;
+		private Field activateSynch;
 
 		private DefaultSynchTab() {
 			setSizeFull();
@@ -288,6 +329,17 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 		private void buildLdapUserSyncConfigComponent(VerticalLayout layout) {
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
+
+			activateSynch = createCheckmarkField(getLDAPServerConfiguration().getLdapSyncActive(), true);
+			activateSynch.setCaption($("LDAPConfigManagementView.synchronization"));
+			activateSynch.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					presenter.setLDAPSyncActive(!presenter.isLDAPSyncActive());
+				}
+			});
+			addComponent(activateSynch);
+
 			buildSynchronizationScheduleFields(ldapUserSyncConfiguration);
 			layout.addComponent(scheduleComponentField);
 			layout.addComponent(new Label("<hr />", ContentMode.HTML));

@@ -4,8 +4,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import com.constellio.model.entities.security.global.UserCredential;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +23,7 @@ import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotCon
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
 
 public class LDAPConfigManagementPresenter extends
@@ -32,10 +31,12 @@ public class LDAPConfigManagementPresenter extends
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigManagementPresenter.class);
 
 	private boolean isLDAPActive = false;
+	private boolean isLDAPSyncActive = false;
 
 	public LDAPConfigManagementPresenter(LDAPConfigManagementView view) {
 		super(view);
 		this.setLDAPActive(getLDAPServerConfiguration().getLdapAuthenticationActive());
+		this.setLDAPSyncActive(getLDAPServerConfiguration().getLdapSyncActive());
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
@@ -156,8 +157,7 @@ public class LDAPConfigManagementPresenter extends
 
 	public boolean isForceSynchVisible() {
 		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
-				.getLdapAuthenticationActive()
-				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || CollectionUtils.isNotEmpty(getLDAPUserSyncConfiguration().getScheduleTime());
+				.getLdapAuthenticationActive() && getLDAPServerConfiguration().getLdapSyncActive();
 	}
 
 	public void deleteUsedUserButtonClick() {
@@ -178,6 +178,14 @@ public class LDAPConfigManagementPresenter extends
 
 	public boolean isLDAPActive() {
 		return isLDAPActive;
+	}
+
+	public void setLDAPSyncActive(boolean isLDAPSynchActive) {
+		this.isLDAPSyncActive = isLDAPSynchActive;
+	}
+
+	public boolean isLDAPSyncActive() {
+		return isLDAPSyncActive;
 	}
 
 	private class ForceSynchThread implements Runnable {

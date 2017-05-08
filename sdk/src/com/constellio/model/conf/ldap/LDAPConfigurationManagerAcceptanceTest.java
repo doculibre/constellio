@@ -45,7 +45,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 
 	private void saveValidAzurConfig() {
 		AzureADServerConfig serverConfig = new AzureADServerConfig().setClientId("zclientId").setAuthorityTenantId("zTanentId");
-		LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(serverConfig, false);
+		LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(serverConfig, false, true);
 		AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey("zApplicationKey").setClientId("synchClientId");
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(azurConf, azurUsersRegex,
 				azurGroupsRegex, azurDuration, azurCollections);

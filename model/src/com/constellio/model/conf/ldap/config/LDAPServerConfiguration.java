@@ -8,26 +8,28 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 
 public class LDAPServerConfiguration implements Serializable {
 	private Boolean ldapAuthenticationActive;
-
+	private Boolean ldapSyncActive;
 	private LDAPDirectoryType directoryType;
 
 	NonAzureAdServerConfig nonAzureAdServerConfig = new NonAzureAdServerConfig();
 	AzureADServerConfig azurServerConfig = new AzureADServerConfig();
 
 	public LDAPServerConfiguration(List<String> urls, List<String> domains, LDAPDirectoryType directoryType,
-			Boolean ldapAuthenticationActive, Boolean followReferences) {
+			Boolean ldapAuthenticationActive, Boolean followReferences, Boolean ldapSyncActive) {
 		this.nonAzureAdServerConfig.urls = Collections.unmodifiableList(urls);
 		this.nonAzureAdServerConfig.domains = Collections.unmodifiableList(domains);
 		this.directoryType = directoryType;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
+		this.ldapSyncActive = ldapSyncActive;
 		this.nonAzureAdServerConfig.followReferences = followReferences;
 	}
 
-	public LDAPServerConfiguration(AzureADServerConfig serverConfig, Boolean ldapAuthenticationActive) {
+	public LDAPServerConfiguration(AzureADServerConfig serverConfig, Boolean ldapAuthenticationActive, Boolean ldapSyncActive) {
 		this.directoryType = LDAPDirectoryType.AZURE_AD;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
 		this.azurServerConfig.authorityTenantId = serverConfig.authorityTenantId;
 		this.azurServerConfig.clientId = serverConfig.clientId;
+		this.ldapSyncActive = ldapSyncActive;
 	}
 
 	public List<String> getUrls() {
@@ -44,6 +46,10 @@ public class LDAPServerConfiguration implements Serializable {
 
 	public Boolean getLdapAuthenticationActive() {
 		return ldapAuthenticationActive;
+	}
+
+	public Boolean getLdapSyncActive() {
+		return ldapSyncActive;
 	}
 
 	public Boolean getFollowReferences() {
