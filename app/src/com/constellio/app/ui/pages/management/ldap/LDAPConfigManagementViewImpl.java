@@ -208,7 +208,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			setSizeFull();
 
 			activateSynch = createCheckmarkField(getLDAPServerConfiguration().getLdapSyncActive(), true);
-			activateSynch.setCaption($("LDAPConfigManagementView.synchronization"));
+			activateSynch.setCaption($("ldap.synchronization.active"));
 			activateSynch.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
@@ -331,7 +331,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
 
 			activateSynch = createCheckmarkField(getLDAPServerConfiguration().getLdapSyncActive(), true);
-			activateSynch.setCaption($("LDAPConfigManagementView.synchronization"));
+			activateSynch.setCaption($("ldap.synchronization.active"));
 			activateSynch.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
