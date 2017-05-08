@@ -1,15 +1,10 @@
 package com.constellio.data.dao.services.transactionLog;
 
-import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.DEFAULT_MAX_TRANSACTION_SIZE;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,22 +17,20 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
 import com.constellio.data.dao.services.transactionLog.kafka.BlockingDeliveryStrategy;
-import com.constellio.data.dao.services.transactionLog.kafka.ConsumerRecordCallback;
 import com.constellio.data.dao.services.transactionLog.kafka.ConsumerRecordPoller;
 import com.constellio.data.dao.services.transactionLog.kafka.DeliveryStrategy;
 import com.constellio.data.dao.services.transactionLog.kafka.FailedDeliveryCallback;
-import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransactionLinesIteratorV1;
-import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransactionsIteratorV1;
-import com.constellio.data.dao.services.transactionLog.replay.TransactionsLogImportHandler;
+import com.constellio.data.dao.services.transactionLog.kafka.Transaction;
+import com.constellio.data.dao.services.transactionLog.kafka.TransactionReplayer;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 
 public class KafkaTransactionLogManager implements SecondTransactionLogManager {
@@ -49,7 +42,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	private RecordDao recordDao;
 	private DataLayerLogger dataLayerLogger;
 
-	private Producer<String, String> producer;
+	private Producer<String, Transaction> producer;
 	private DeliveryStrategy deliveryStrategy;
 
 	private boolean lastFlushFailed;
@@ -96,7 +89,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	}
 
 	@Override
-	public void flush(final String transactionId) {
+	public void flush(final String transactionId, TransactionResponseDTO transactionInfo) {
 		if (isLastFlushFailed()) {
 			throw new SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException();
 		}
@@ -107,29 +100,35 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 			return;
 		}
 
+		sendTransaction(transactionInfo, data);
+	}
+
+	private void sendTransaction(TransactionResponseDTO transactionInfo, final String data) {
 		FailedDeliveryCallback callback = new FailedDeliveryCallback() {
 			@Override
 			public void onFailedDelivery(Throwable e) {
 				// FIXME : do we need to stop constellio?
-				addTransactionData(transactionId, data);
-
 				e.printStackTrace();
 			}
 		};
 
-		setLastFlushFailed(!getDeliveryStrategy().<String, String> send(getProducer(), getRecord(data), callback));
+		Transaction transaction = new Transaction();
+		transaction.setVersions(transactionInfo.getNewDocumentVersions());
+		transaction.setTransaction(data);
+
+		setLastFlushFailed(!getDeliveryStrategy().<String, Transaction> send(getProducer(), getRecord(transaction), callback));
 	}
 
-	private ProducerRecord<String, String> getRecord(String data) {
-		return new ProducerRecord<String, String>(configuration.getKafkaTopic(), getHostname(), data);
+	private ProducerRecord<String, Transaction> getRecord(Transaction data) {
+		return new ProducerRecord<String, Transaction>(configuration.getKafkaTopic(), getHostname(), data);
 	}
 
-	private Producer<String, String> getProducer() {
+	private Producer<String, Transaction> getProducer() {
 		if (producer == null) {
 			HashMap<String, Object> configs = new HashMap<>();
 			configs.put("bootstrap.servers", configuration.getKafkaServers());
-			configs.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-			configs.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+			configs.put("key.serializer",
+					"org.apache.kafka.comcom.constellio.data.dao.services.transactionLog.kafka.TransactionSerializerer");
 
 			producer = new KafkaProducer<>(configs);
 		}
@@ -157,17 +156,15 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	}
 
 	@Override
-	public void setSequence(String sequenceId, long value) {
-		String transactionId = UUIDV1Generator.newRandomId();
+	public void setSequence(String sequenceId, long value, TransactionResponseDTO transactionInfo) {
 		String data = getTransactionLogReadWriteServices().toSetSequenceLogEntry(sequenceId, value);
-		addTransactionData(transactionId, data);
+		sendTransaction(transactionInfo, data);
 	}
 
 	@Override
-	public void nextSequence(String sequenceId) {
-		String transactionId = UUIDV1Generator.newRandomId();
+	public void nextSequence(String sequenceId, TransactionResponseDTO transactionInfo) {
 		String data = getTransactionLogReadWriteServices().toNextSequenceLogEntry(sequenceId);
-		addTransactionData(transactionId, data);
+		sendTransaction(transactionInfo, data);
 	}
 
 	@Override
@@ -193,32 +190,13 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	public void destroyAndRebuildSolrCollection() {
 		clearSolrCollection();
 
-		if (transactions.isEmpty()) {
-			Set<String> keySet = transactions.keySet();
-			for (Iterator<String> iterator = keySet.iterator(); iterator.hasNext();) {
-				// FIXME : should be tested as a valid solr transaction before flush
-				flush(iterator.next());
-			}
-		}
+		TransactionReplayer replayer = new TransactionReplayer(configuration, recordDao.getBigVaultServer(), dataLayerLogger);
 
-		TransactionsLogImportHandler transactionsLogImportHandler = new TransactionsLogImportHandler(
-				recordDao.getBigVaultServer(), dataLayerLogger, 2);
-		transactionsLogImportHandler.start();
+		KafkaConsumer<String, Transaction> consumer = getConsumer();
+		ConsumerRecordPoller<String, Transaction> poller = getConsumerRecordPoller(consumer);
+		poller.poll(replayer);
 
-		final BigVaultLogAddUpdater addUpdater = new BigVaultLogAddUpdater(transactionsLogImportHandler);
-
-		KafkaConsumer<String, String> consumer = getConsumer();
-		ConsumerRecordPoller<String, String> poller = getConsumerRecordPoller(consumer);
-		poller.poll(new ConsumerRecordCallback<String, String>() {
-			@Override
-			public void onConsumerRecord(long offset, String topic, String key, String value) {
-				System.out.printf("offset = %d, key = %s, value = %s\n", offset, key, value);
-				replayTransactionLog(value, addUpdater);
-			}
-		});
-
-		addUpdater.close();
-		transactionsLogImportHandler.join();
+		replayer.replayAllAndClose();
 		consumer.close();
 	}
 
@@ -233,63 +211,22 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		}
 	}
 
-	protected void replayTransactionLog(String value, BigVaultLogAddUpdater addUpdater) {
-		Iterator<BigVaultServerTransaction> iteratorTransaction = toIteratorTransaction(value);
-		while (iteratorTransaction.hasNext()) {
-			addUpdater.add(iteratorTransaction.next());
-		}
+	protected ConsumerRecordPoller<String, Transaction> getConsumerRecordPoller(KafkaConsumer<String, Transaction> consumer) {
+		return new ConsumerRecordPoller<String, Transaction>(consumer);
 	}
 
-	private static class BigVaultLogAddUpdater {
-
-		TransactionsLogImportHandler replayHandler;
-		BigVaultServerTransactionCombinator combinator;
-
-		private BigVaultLogAddUpdater(TransactionsLogImportHandler replayHandler) {
-			this.replayHandler = replayHandler;
-			this.combinator = new BigVaultServerTransactionCombinator(DEFAULT_MAX_TRANSACTION_SIZE);
-		}
-
-		private void add(BigVaultServerTransaction newTransaction) {
-			if (combinator.canCombineWith(newTransaction)) {
-				combinator.combineWith(newTransaction);
-
-			} else {
-				replayHandler.pushTransaction(combinator.combineAndClean());
-				combinator.combineWith(newTransaction);
-			}
-		}
-
-		public void close() {
-
-			if (combinator.hasData()) {
-				replayHandler.pushTransaction(combinator.combineAndClean());
-			}
-		}
-	}
-
-	protected Iterator<BigVaultServerTransaction> toIteratorTransaction(String transaction) {
-		List<String> lines = Arrays.asList(StringUtils.split(transaction, "\n"));
-		Iterator<List<String>> transactionLinesIterator = new ReaderTransactionLinesIteratorV1(lines.iterator());
-		return new ReaderTransactionsIteratorV1("Kafka", transactionLinesIterator, configuration);
-	}
-
-	protected ConsumerRecordPoller<String, String> getConsumerRecordPoller(KafkaConsumer<String, String> consumer) {
-		return new ConsumerRecordPoller<String, String>(consumer);
-	}
-
-	protected KafkaConsumer<String, String> getConsumer() {
+	protected KafkaConsumer<String, Transaction> getConsumer() {
 		Properties props = new Properties();
 		props.put("bootstrap.servers", configuration.getKafkaServers());
 		props.put("group.id", UUID.randomUUID().toString());
 		// props.put("enable.auto.commit", "true");
 		// props.put("auto.commit.interval.ms", "1000");
 		props.put("session.timeout.ms", "30000");
-		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		props.put("key.deserializer",
+				"org.apache.kafka.commcom.constellio.data.dao.services.transactionLog.kafka.TransactionDeserializer");
 		props.put("auto.offset.reset", "earliest");
 
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+		KafkaConsumer<String, Transaction> consumer = new KafkaConsumer<>(props);
 
 		consumer.subscribe(Arrays.asList(configuration.getKafkaTopic()));
 

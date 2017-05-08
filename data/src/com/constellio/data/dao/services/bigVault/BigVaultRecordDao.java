@@ -135,7 +135,7 @@ public class BigVaultRecordDao implements RecordDao {
 				TransactionResponseDTO response = bigVaultServer.addAll(bigVaultServerTransaction);
 				dataLayerLogger.logTransaction(transaction);
 				if (secondTransactionLogManager != null) {
-					secondTransactionLogManager.flush(transaction.getTransactionId());
+					secondTransactionLogManager.flush(transaction.getTransactionId(), response);
 				}
 				return response;
 			} catch (BigVaultException.OptimisticLocking e) {
@@ -359,10 +359,10 @@ public class BigVaultRecordDao implements RecordDao {
 				secondTransactionLogManager.prepare(transactionId, transaction);
 			}
 
-			bigVaultServer.addAll(transaction);
+			TransactionResponseDTO response = bigVaultServer.addAll(transaction);
 
 			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.flush(transactionId);
+				secondTransactionLogManager.flush(transactionId, response);
 			}
 
 		} catch (BigVaultException e) {
@@ -395,7 +395,7 @@ public class BigVaultRecordDao implements RecordDao {
 				bigVaultServer.addAll(batchTransaction);
 
 				if (secondTransactionLogManager != null) {
-					secondTransactionLogManager.flush(batchTransactionId);
+					secondTransactionLogManager.flush(batchTransactionId, null);
 				}
 
 			} catch (BigVaultException e) {

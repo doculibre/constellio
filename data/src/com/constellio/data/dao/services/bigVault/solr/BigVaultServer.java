@@ -10,12 +10,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
-import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -27,7 +25,6 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.params.UpdateParams;
-import org.apache.solr.common.util.NamedList;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -430,44 +427,7 @@ public class BigVaultServer implements Cloneable {
 		req.setDeleteQuery(deletedQueriesAndLocks);
 		UpdateResponse updateResponse = req.process(server);
 
-		return new TransactionResponseDTO(retrieveQTime(updateResponse), retrieveNewDocumentVersions(updateResponse));
-	}
-
-	private int retrieveQTime(UpdateResponse updateResponse) {
-		NamedList header = updateResponse.getResponseHeader();
-		if (header != null) {
-			return ((Number) header.get("QTime")).intValue();
-		} else {
-			return 0;
-		}
-
-	}
-
-	private Map<String, Long> retrieveNewDocumentVersions(UpdateResponse updateResponse) {
-		Map<String, Long> newVersions = new HashMap<>();
-		NamedList responseNamedlist = updateResponse.getResponse();
-		if (updateResponse.getResponse() instanceof RouteResponse) {
-			RouteResponse routeResponses = (RouteResponse) responseNamedlist;
-			NamedList<NamedList<Object>> routeResponsesNamedlist = routeResponses.getRouteResponses();
-
-			for (Entry<String, NamedList<Object>> routeResponseNamedlistEntry : routeResponsesNamedlist) {
-				retrieveVersionsFromNamedlist(routeResponseNamedlistEntry.getValue(), newVersions);
-			}
-
-		} else {
-			retrieveVersionsFromNamedlist(responseNamedlist, newVersions);
-		}
-		return newVersions;
-	}
-
-	private void retrieveVersionsFromNamedlist(NamedList<Object> response, Map<String, Long> newVersions) {
-		NamedList<Long> idNewVersionPairs = (NamedList<Long>) response.get("adds");
-
-		if (idNewVersionPairs != null) {
-			for (Entry<String, Long> entry : idNewVersionPairs) {
-				newVersions.put(entry.getKey(), entry.getValue());
-			}
-		}
+		return SolrUtils.createTransactionResponseDTO(updateResponse);
 	}
 
 	private List<SolrInputDocument> withoutIndexes(List<SolrInputDocument> newDocuments) {

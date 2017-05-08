@@ -16,11 +16,13 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
@@ -42,26 +44,26 @@ public class SolrSequencesManager implements SequencesManager {
 		if (StringUtils.isBlank(sequenceId)) {
 			throw new IllegalArgumentException("sequenceId is blank");
 		}
+		
+		UpdateResponse response;
 		try {
 			SolrInputDocument document = newSequenceUpdateInputDocument(sequenceId);
 			document.addField("counter_d", new Long(value).doubleValue());
 
-			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.setSequence(sequenceId, value);
-			}
-
-			client.add(document);
-
+			response = client.add(document);
 		} catch (Exception e) {
 			//The document does not exist
 
 			try {
-				createSequenceDocument(sequenceId, null);
-
+				response = createSequenceDocument(sequenceId, null);
 			} catch (SolrServerException | IOException e1) {
 				throw new RuntimeException(e1);
 			}
 			set(sequenceId, value);
+		}
+
+		if (secondTransactionLogManager != null) {
+			secondTransactionLogManager.setSequence(sequenceId, value, SolrUtils.createTransactionResponseDTO(response));
 		}
 
 	}
@@ -79,22 +81,21 @@ public class SolrSequencesManager implements SequencesManager {
 
 		SolrInputDocument solrInputDocument = prepareSolrInputDocumentForAtomicIncrement(sequenceId, uuid);
 
-		if (secondTransactionLogManager != null) {
-			secondTransactionLogManager.nextSequence(sequenceId);
-		}
-
+		UpdateResponse response;
 		try {
-			client.add(solrInputDocument);
-
+			response = client.add(solrInputDocument);
 		} catch (Exception e) {
 			//The document does not exist
-
 			try {
-				createSequenceDocument(sequenceId, uuid);
+				response = createSequenceDocument(sequenceId, uuid);
 			} catch (Exception e2) {
 				//The document has probably been created by an other thread, retrying to increment the counter...
 				return next(sequenceId);
 			}
+		}
+		
+		if (secondTransactionLogManager != null) {
+			secondTransactionLogManager.nextSequence(sequenceId, SolrUtils.createTransactionResponseDTO(response));
 		}
 
 		SolrDocument document = getSequenceDocumentUsingRealtimeGet(sequenceId);
@@ -208,7 +209,7 @@ public class SolrSequencesManager implements SequencesManager {
 		return toRemove;
 	}
 
-	void createSequenceDocument(String sequenceId, String uuid)
+	UpdateResponse createSequenceDocument(String sequenceId, String uuid)
 			throws SolrServerException, IOException {
 		SolrInputDocument solrInputDocument;
 		solrInputDocument = new SolrInputDocument();
@@ -224,7 +225,7 @@ public class SolrSequencesManager implements SequencesManager {
 		UpdateRequest request = new UpdateRequest();
 		request.add(solrInputDocument);
 		request.setCommitWithin(-1);
-		request.process(client);
+		return request.process(client);
 	}
 
 	private SolrDocument getSequenceDocumentUsingRealtimeGet(String sequenceId) {
