@@ -47,7 +47,7 @@ public class RMMigrationTo7_3 implements MigrationScript {
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.COPY_STATUS_ENTERED).setDefaultValue(CopyType.PRINCIPAL);
-            typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.ACTIVATED).setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
+            typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.ACTIVATED).setType(MetadataValueType.BOOLEAN).setDefaultValue(true);
         }
     }
 
