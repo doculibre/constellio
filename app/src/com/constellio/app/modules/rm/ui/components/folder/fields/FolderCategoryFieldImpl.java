@@ -1,8 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -29,28 +27,15 @@ import static com.constellio.app.services.factories.ConstellioFactories.getInsta
 import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
 
 public class FolderCategoryFieldImpl extends LookupRecordField implements FolderCategoryField {
 
+
 	public FolderCategoryFieldImpl() {
-		super(Category.SCHEMA_TYPE);
-		setOnlyLinkables(true);
+		this(Category.SCHEMA_TYPE, null, false);
 	}
 
-	@Override
-	public String getFieldValue() {
-		return (String) getConvertedValue();
-	}
-
-	@Override
-	public void setFieldValue(Object value) {
-		setInternalValue((String) value);
-	}
-
-
-	private FolderContainerFieldImpl(String schemaTypeCode, String schemaCode, boolean writeAccess) {
+	private FolderCategoryFieldImpl(String schemaTypeCode, String schemaCode, boolean writeAccess) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess), getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
 	}
 
@@ -96,10 +81,10 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		MetadataSchemaType categoryType = constellioFactories.getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(Category.SCHEMA_TYPE);
-		LogicalSearchCondition searchCondition = from(categoryType).where(categoryType.getDefaultSchema().get(Category.ACTIVATED)).isEqualTo(true);
+		LogicalSearchCondition searchCondition = from(categoryType).where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
 		taxonomiesSearchFilter.setLinkableConceptsCondition(searchCondition);
 
-		return new LinkableRecordTreeNodesDataProvider(taxonomyCode, Category.SCHEMA_TYPE, true, taxonomiesSearchFilter);
+		return new LinkableRecordTreeNodesDataProvider(taxonomyCode, Category.SCHEMA_TYPE, false, taxonomiesSearchFilter);
 	}
 }

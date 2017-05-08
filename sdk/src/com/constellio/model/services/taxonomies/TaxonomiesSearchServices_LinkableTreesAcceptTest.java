@@ -19,6 +19,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
@@ -102,6 +104,46 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
+	}
+
+	@Test
+	public void whenGetListOfCategoriesThenReturnNotDeactivatedTaxonomie() throws Exception {
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction transaction = new Transaction();
+		transaction.update(records.getCategory_X().set(Category.DEACTIVATE, true).getWrappedRecord());
+
+		recordServices.execute(transaction);
+
+		waitForBatchProcess();
+
+		MetadataSchemaType categoryType = getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(zeCollection).getSchemaType(Category.SCHEMA_TYPE);
+		LogicalSearchCondition searchCondition = from(categoryType).where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
+		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
+		taxonomiesSearchFilter.setLinkableConceptsCondition(searchCondition);
+
+		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(taxonomiesSearchFilter)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X))
+				.has(unlinkable(records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_X100, records.categoryId_X13))
+				.has(resultsInOrder(records.categoryId_X13, records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X100)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_X110, records.categoryId_X120))
+				.has(resultsInOrder(records.categoryId_X110, records.categoryId_X120))
+				.has(noItemsWithChildren());
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X110)
+				.is(empty());
 	}
 
 	@Test
@@ -2209,6 +2251,10 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingACategoryUsingPlanTaxonomy() {
 		return assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(new TaxonomiesSearchOptions());
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(TaxonomiesSearchFilter taxonomiesSearchFilter) {
+		return assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter));
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingAUnitUsingAdministrativeUnitTaxonomy() {

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -32,11 +33,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class FolderContainerFieldImpl extends LookupRecordField implements FolderContainerField {
 
 	public FolderContainerFieldImpl() {
-		this(Category.SCHEMA_TYPE, null, true);
-	}
-
-	private FolderContainerFieldImpl(String schemaTypeCode, String schemaCode, boolean writeAccess) {
-		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess), getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
+		super(ContainerRecord.SCHEMA_TYPE);
 	}
 
 	@Override
@@ -47,45 +44,6 @@ public class FolderContainerFieldImpl extends LookupRecordField implements Folde
 	@Override
 	public void setFieldValue(Object value) {
 		setInternalValue((String) value);
-	}
-
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(final String schemaTypeCode, final String schemaCode,
-																		boolean writeAccess) {
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-		final String collection = sessionContext.getCurrentCollection();
-		UserVO currentUserVO = sessionContext.getCurrentUser();
-
-		ConstellioFactories constellioFactories = getInstance();
-		final ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		UserServices userServices = modelLayerFactory.newUserServices();
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
-
-		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
-		List<Taxonomy> taxonomies;
-		if (schemaTypeCode != null) {
-			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
-		} else {
-			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSchema(schemaCode, currentUser, metadataSchemasManager);
-		}
-		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();
-		for (Taxonomy taxonomy : taxonomies) {
-			String taxonomyCode = taxonomy.getCode();
-			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, writeAccess, getDataProvider(taxonomyCode,constellioFactories, sessionContext)));
-			}
-		}
-		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
-	}
-
-	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, ConstellioFactories constellioFactories, SessionContext sessionContext) {
-		MetadataSchemaType categoryType = constellioFactories.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(Category.SCHEMA_TYPE);
-		LogicalSearchCondition searchCondition = from(categoryType).where(categoryType.getDefaultSchema().get(Category.ACTIVATED)).isEqualTo(true);
-		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
-		taxonomiesSearchFilter.setLinkableConceptsCondition(searchCondition);
-
-		return new LinkableRecordTreeNodesDataProvider(taxonomyCode, Category.SCHEMA_TYPE, true, taxonomiesSearchFilter);
 	}
 
 }
