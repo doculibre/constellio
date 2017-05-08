@@ -92,7 +92,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenSystemWithSubfolderWithShouldBeNullMetadataThenRepair() throws RecordServicesException, InterruptedException, RecordDaoException.NoSuchRecordWithId, RecordDaoException.OptimisticLocking {
+	public void givenSystemWithSubfolderWithShouldBeNullMetadataThenRepair()
+			throws RecordServicesException, InterruptedException, RecordDaoException.NoSuchRecordWithId, RecordDaoException.OptimisticLocking {
 		final String ID = "MonDossier";
 		final String TITLE = "TITLE";
 
@@ -126,7 +127,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		Map<String, Object> modifiedValues = new HashMap<>();
 		modifiedValues.put("parentFolderPId_s", records.folder_A01);
 
-
 		RecordDTO record = recordDao.get(ID);
 		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
 		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
@@ -144,10 +144,12 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(folder2.getRetentionRuleEntered()).isNull();
 		assertThat(folder2.getCopyStatusEntered()).isNull();
 		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL)).isEqualTo(1);
+
 	}
 
 	@Test
-	public void givenSystemWithCheckoutedEmailThenCheckIntheseEmail() throws RecordServicesException {
+	public void givenSystemWithCheckoutedEmailThenCheckIntheseEmail()
+			throws RecordServicesException {
 		final String ID = "000001";
 		final String TITLE = "TITLE";
 
@@ -168,7 +170,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		ContentVersionDataSummary newDocumentsVersions = contentManager.upload(getTestResourceInputStream("testMessage.msg"));
 		Content documentContent = contentManager.createMajor(records.getAdmin(), "testMessage.msg", newDocumentsVersions);
 
-
 		email.setContent(documentContent);
 		email.getContent().checkOut(records.getAdmin());
 
@@ -188,6 +189,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		// Not checkouted anymore.
 		assertThat(emailCheckinByRepairService.getContent().getCurrentCheckedOutVersion() == null).isTrue();
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).contains("000001");
 	}
 
 	@Test
