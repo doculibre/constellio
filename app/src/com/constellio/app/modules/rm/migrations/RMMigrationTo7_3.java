@@ -4,9 +4,12 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.framework.components.BooleanLabel;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 /**
@@ -23,6 +26,11 @@ public class RMMigrationTo7_3 implements MigrationScript {
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
         new SchemaAlterationFor7_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
+        SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+
+        manager.saveSchema(manager.getSchema(collection,Category.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(Category.DEFAULT_SCHEMA + "_" +Category.ACTIVATED));
+
     }
 
     class SchemaAlterationFor7_3 extends MetadataSchemasAlterationHelper {
@@ -39,6 +47,7 @@ public class RMMigrationTo7_3 implements MigrationScript {
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.COPY_STATUS_ENTERED).setDefaultValue(CopyType.PRINCIPAL);
+            typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.ACTIVATED).setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
         }
     }
 
