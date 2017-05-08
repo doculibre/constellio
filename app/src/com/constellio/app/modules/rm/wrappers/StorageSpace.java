@@ -180,4 +180,8 @@ public class StorageSpace extends RecordWrapper {
 	public Double getNumberOfChild() {
 		return get(NUMBER_OF_CHILD);
 	}
+
+	public Double getNumberOfContainers() {
+		return get(NUMBER_OF_CONTAINERS);
+	}
 }
