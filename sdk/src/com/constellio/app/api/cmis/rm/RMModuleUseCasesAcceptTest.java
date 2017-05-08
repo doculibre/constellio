@@ -109,7 +109,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(newFolder.getPropertyValue("title")).isEqualTo("My folder");
 		assertThat(newFolder.getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_ZE42);
 		assertThat(newFolder.getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
-		assertThat(newFolder.getPropertyValue("copyStatusEntered")).isNull();
+		assertThat(newFolder.getPropertyValue("copyStatusEntered")).isEqualTo("P");
 		assertThat(newFolder.getPropertyValue("copyStatus")).isEqualTo("P");
 		assertThat(newFolder.getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
 		assertThat(newFolder.getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
@@ -175,7 +175,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(folder.getPropertyValue("title")).isEqualTo("My folder");
 		assertThat(folder.getPropertyValue("categoryEntered")).isEqualTo(newChildCategoryId.getId());
 		assertThat(folder.getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
-		assertThat(folder.getPropertyValue("copyStatusEntered")).isNull();
+		assertThat(folder.getPropertyValue("copyStatusEntered")).isEqualTo("P");
 		assertThat(folder.getPropertyValue("copyStatus")).isEqualTo("P");
 		assertThat(folder.getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
 		assertThat(folder.getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
@@ -229,7 +229,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(folder.getPropertyValue("title")).isEqualTo("My folder");
 		assertThat(folder.getPropertyValue("categoryEntered")).isEqualTo(records.categoryId_X100);
 		assertThat(folder.getPropertyValue("retentionRuleEntered")).isEqualTo(records.ruleId_1);
-		assertThat(folder.getPropertyValue("copyStatusEntered")).isNull();
+		assertThat(folder.getPropertyValue("copyStatusEntered")).isEqualTo("P");
 		assertThat(folder.getPropertyValue("copyStatus")).isEqualTo("P");
 		assertThat(folder.getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
 		assertThat(folder.getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
