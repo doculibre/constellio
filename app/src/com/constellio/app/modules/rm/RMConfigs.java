@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm;
 
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -62,6 +63,7 @@ public class RMConfigs {
 			POPULATE_BORDEREAUX_WITH_COLLECTION,
 			POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT,
 			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
+			IS_CONTAINER_MULTIVALUE,
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION;
 
@@ -189,7 +191,7 @@ public class RMConfigs {
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
 		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
-		
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -255,6 +257,10 @@ public class RMConfigs {
 		add(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT = decommissioning.createBooleanTrueByDefault("populateBordereauxWithAdministrativeUnit"));
 
 		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
+
+		add(IS_CONTAINER_MULTIVALUE = decommissioning.createBooleanFalseByDefault("multipleContainerStorageSpaces")
+				.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class)
+				.whichIsHidden());
 
 		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
@@ -456,6 +462,10 @@ public class RMConfigs {
 		return manager.getValue(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE);
 	}
 
+	public boolean isContainerMultivalue() {
+		return manager.getValue(IS_CONTAINER_MULTIVALUE);
+	}
+
 	public String getDefaultTabInFolderDisplay() {
 		return manager.getValue(DEFAULT_TAB_IN_FOLDER_DISPLAY);
 	}
@@ -475,5 +485,9 @@ public class RMConfigs {
 	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice getAllowModificationOfArchivisticStatusAndExpectedDates() {
 		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
 	}
-	
+
+	public boolean isContainerMultipleValue() {
+		return manager.getValue(IS_CONTAINER_MULTIVALUE);
+	}
+
 }
