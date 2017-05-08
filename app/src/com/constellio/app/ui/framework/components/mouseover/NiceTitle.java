@@ -15,14 +15,23 @@ import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 @com.vaadin.annotations.JavaScript("theme://nicetitle/nicetitle.js")
 @com.vaadin.annotations.StyleSheet("theme://nicetitle/nicetitle.css")
 public class NiceTitle extends AbstractExtension {
+	
+	public static final String DISABLED_STYLE = "nicetitle-link-disabled";
 
 	private Component component;
 
 	private String title;
+	
+	private boolean visibleWhenDisabled;
 
 	public NiceTitle(Component component, String title) {
+		this(component, title, true);
+	}
+
+	public NiceTitle(Component component, String title, boolean visibleWhenDisabled) {
 		this.component = component;
 		this.title = title;
+		this.visibleWhenDisabled = visibleWhenDisabled;
 	}
 
 	@Override
@@ -55,8 +64,10 @@ public class NiceTitle extends AbstractExtension {
 		StringBuilder js = new StringBuilder();
 		String getById = "document.getElementById(\"" + componentId + "\")";
 		js.append("if (" + getById + ") {");
-		js.append(getById + ".className = " + getById + ".className.replace(\"v-disabled\", \"nicetitle-link-disabled\")");
-		js.append(";");
+		if (visibleWhenDisabled) {
+			js.append(getById + ".className = " + getById + ".className.replace(\"v-disabled\", \"" + DISABLED_STYLE + "\")");
+			js.append(";");
+		}
 		js.append(getById + ".setAttribute(\"title\", \"" + titleEscaped + "\")");
 		js.append(";");
 		js.append("makeNiceTitleA(" + getById + ")");

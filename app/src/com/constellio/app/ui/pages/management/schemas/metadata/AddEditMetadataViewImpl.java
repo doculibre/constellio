@@ -369,7 +369,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		requiredField.setRequired(false);
 		requiredField.setId("required");
 		requiredField.addStyleName("required");
-		requiredField.setEnabled(presenter.isMetadataRequiredStatusModifiable());
+		requiredField.setEnabled(presenter.isMetadataRequiredStatusModifiable() || presenter.isFolderMediumTypes());
 
 		enabledField = new CheckBox();
 		enabledField.setCaption($("AddEditMetadataView.enabled"));

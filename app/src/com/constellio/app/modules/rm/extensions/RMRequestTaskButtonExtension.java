@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -198,10 +199,19 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
             view.addActionMenuButtonsDecorator(new ActionMenuButtonsDecorator() {
                 @Override
                 public void decorate(final BaseViewImpl view, List<Button> actionMenuButtons) {
-                    actionMenuButtons.add(buildRequestBorrowButton(view));
+                    Context context = buildContext(view);
+                    Folder folder = context.getFolder();
+
+                    if(folder.getArchivisticStatus() != FolderStatus.INACTIVE_DESTROYED)
+                    {
+                        actionMenuButtons.add(buildRequestBorrowButton(view));
+                        actionMenuButtons.add(buildRequestBorrowExtensionButton(view));
+                        actionMenuButtons.add(buildRequestReactivationButton(view));
+                    }
+
+
                     actionMenuButtons.add(buildRequestReturnButton(view));
-                    actionMenuButtons.add(buildRequestReactivationButton(view));
-                    actionMenuButtons.add(buildRequestBorrowExtensionButton(view));
+
                 }
             });
         }
