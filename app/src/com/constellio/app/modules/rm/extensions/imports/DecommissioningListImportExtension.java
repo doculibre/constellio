@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
 /**
  * Created by Charles Blanchette on 2017-02-17.
  */
@@ -123,8 +121,8 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
                 .isNotEmpty(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID))) {
              try {
                  ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
-                 List<Folder> folders = rm.searchFolders(where(rm.folder.container()).isEqualTo(containerRecord.getId()));
-                 decommissioningList.addFolderDetailsFor(folders.toArray(new Folder[0]));
+//                 List<Folder> folders = rm.searchFolders(where(rm.folder.container()).isEqualTo(containerRecord.getId()));
+//                 decommissioningList.addFolderDetailsFor(folders.toArray(new Folder[0]));
                  decomListContainerDetail = containerRecord != null ? new DecomListContainerDetail(containerRecord.getId()) : new DecomListContainerDetail();
              } catch (Exception e) {
                  LOGGER.error("Could not find containerDetail " + mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
