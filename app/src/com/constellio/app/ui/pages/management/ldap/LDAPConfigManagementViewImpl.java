@@ -155,6 +155,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					presenter.setLDAPActive(!presenter.isLDAPActive());
+					changePageState(presenter.isLDAPActive());
 				}
 			});
 			addComponent(activateAuthentication);
@@ -173,6 +174,16 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 			passwordField = new PasswordField($("LDAPConfigManagementView.testAuthenticationPassword"));
 			addComponent(passwordField);
+
+			changePageState(ldapServerConfiguration.getLdapAuthenticationActive());
+
+		}
+
+		private void changePageState(boolean state) {
+			clientId.setEnabled(state);
+			authorityTenantId.setEnabled(state);
+			userField.setEnabled(state);
+			passwordField.setEnabled(state);
 		}
 
 		public String getAuthorityTenantId() {
@@ -213,6 +224,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					presenter.setLDAPSyncActive(!presenter.isLDAPSyncActive());
+					changePageState(presenter.isLDAPSyncActive());
 				}
 			});
 			addComponent(activateSynch);
@@ -240,6 +252,20 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			addComponent(groupsAcceptanceRegexField);
 			buildGroupsRejectRegex(ldapUserSyncConfiguration);
 			addComponent(groupsRejectionRegexField);
+
+			changePageState(getLDAPServerConfiguration().getLdapSyncActive());
+		}
+
+		private void changePageState(boolean state) {
+			scheduleComponentField.setEnabled(state);
+			collectionsComponent.setEnabled(state);
+			clientId.setEnabled(state);
+			applicationKey.setEnabled(state);
+
+			usersRejectionRegexField.setEnabled(state);
+			groupsAcceptanceRegexField.setEnabled(state);
+			groupsRejectionRegexField.setEnabled(state);
+			usersAcceptanceRegexField.setEnabled(state);
 		}
 
 		public String getApplicationKey() {
@@ -282,6 +308,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					presenter.setLDAPActive(!presenter.isLDAPActive());
+					changePageState(presenter.isLDAPActive());
 				}
 			});
 			layout.addComponent(activateAuthentication);
@@ -304,6 +331,13 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			domainsField.setRequired(true);
 			layout.addComponent(domainsField);
 		}
+
+		private void changePageState(boolean state) {
+			followReferences.setEnabled(state);
+			urlsField.setEnabled(state);
+			domainsField.setEnabled(state);
+		}
+
 		public LDAPServerConfiguration getLDAPServerConfiguration() {
 			return new LDAPServerConfiguration(urlsField.getValues(),
 					domainsField.getValues(), getDirectoryType(), presenter.isLDAPActive(),
@@ -336,6 +370,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					presenter.setLDAPSyncActive(!presenter.isLDAPSyncActive());
+					changePageState(presenter.isLDAPSyncActive());
 				}
 			});
 			addComponent(activateSynch);
@@ -391,6 +426,27 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
             membershipAutomaticDerivationActivatedCheckbox = new CheckBox($("ldap.syncConfiguration.membershipAutomaticDerivationActivated"));
             membershipAutomaticDerivationActivatedCheckbox.setValue(membershipAutomaticDerivationActivated);
             layout.addComponent(membershipAutomaticDerivationActivatedCheckbox);
+
+			changePageState(getLDAPServerConfiguration().getLdapSyncActive());
+		}
+
+		private void changePageState(boolean state) {
+			scheduleComponentField.setEnabled(state);
+			collectionsComponent.setEnabled(state);
+
+			scheduleComponentField.setEnabled(state);
+			collectionsComponent.setEnabled(state);
+			userField.setEnabled(state);
+			passwordField.setEnabled(state);
+			groupsField.setEnabled(state);
+			groupsAcceptanceRegexField.setEnabled(state);
+			groupsRejectionRegexField.setEnabled(state);
+			usersField.setEnabled(state);
+			userFilterGroupsField.setEnabled(state);
+			usersAcceptanceRegexField.setEnabled(state);
+			usersRejectionRegexField.setEnabled(state);
+			membershipAutomaticDerivationActivatedCheckbox.setEnabled(state);
+
 		}
 
 		public String getTestUser() {
