@@ -61,7 +61,7 @@ public class SearchDisplayConfigViewImpl extends BaseViewImpl implements SearchD
 		List<FormMetadataVO> metadataVOs = presenter.getMetadatas();
 		List<FormMetadataVO> valueMetadataVOs = presenter.getValueMetadatas();
 
-		Collections.sort(metadataVOs, new SortFormMetadataVO(getSessionContext()));
+		Collections.sort(valueMetadataVOs, new SortFormMetadataVO(getSessionContext()));
 
 		final ListBuilder select = new ListBuilder();
 		select.setColumns(30);

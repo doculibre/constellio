@@ -61,7 +61,7 @@ public class DisplayConfigViewImpl extends BaseViewImpl implements DisplayConfig
 		List<FormMetadataVO> metadataVOs = presenter.getValueMetadatas();
 		List<FormMetadataVO> valueMetadataVOs = presenter.getMetadatas();
 
-		Collections.sort(metadataVOs, new SortFormMetadataVO(getSessionContext()));
+		Collections.sort(valueMetadataVOs, new SortFormMetadataVO(getSessionContext()));
 
 		final ListBuilder select = new ListBuilder();
 		select.setColumns(30);

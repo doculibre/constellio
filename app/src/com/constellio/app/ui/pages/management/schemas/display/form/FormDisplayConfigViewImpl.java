@@ -64,7 +64,7 @@ public class FormDisplayConfigViewImpl extends BaseViewImpl implements FormDispl
 		select.setLeftColumnCaption($("FormDisplayConfigView.leftColumn"));
 
 		// Ordre alphabétique
-		Collections.sort(metadataVOs, new SortFormMetadataVO(getSessionContext()));
+		Collections.sort(valueMetadataVOs, new SortFormMetadataVO(getSessionContext()));
 
 		for (FormMetadataVO form : metadataVOs) {
 			select.addItem(form);
