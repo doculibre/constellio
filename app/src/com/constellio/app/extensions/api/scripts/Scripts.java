@@ -16,4 +16,8 @@ public class Scripts {
 		return Collections.unmodifiableList(scripts);
 	}
 
+	public static void removeScripts() {
+		scripts.clear();
+	}
+
 }

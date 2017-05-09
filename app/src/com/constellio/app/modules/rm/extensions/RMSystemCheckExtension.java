@@ -53,6 +53,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	RecordServices recordServices;
 	IOServices ioServices;
 
+	public static final String EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckoutedList";
 	public static final String METRIC_EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckouted";
 	public static final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
 	public static final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
@@ -106,7 +107,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 			if (email.getContent() != null && email.getContent().getCurrentCheckedOutVersion() != null) {
 				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_EMAIL_CHECKOUTED);
-
+				validateRecordsCheckParams.getResultsBuilder().addListItem(EMAIL_CHECKOUTED, record.getId());
 				if (validateRecordsCheckParams.isRepair()) {
 					if (email.getContent() != null) {
 						email.getContent().checkIn();
