@@ -16,16 +16,21 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.taskdefs.Copy;
 import org.assertj.core.groups.Tuple;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,6 +67,44 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		exportThenImportInAnotherCollection(options);
 
+	}
+
+	@Test
+	public void whenExportingComment() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+		final String MESSAGE = "Message";
+		final User user = records.getAdmin();
+
+		Comment comment = new Comment();
+		comment.setUser(records.getAdmin());
+		comment.setMessage(MESSAGE);
+
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction transaction = new Transaction();
+
+		Category category = records.getCategory_X().setComments(asList(comment));
+		transaction.update(category.getWrappedRecord());
+
+		recordServices.execute(transaction);
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,Category.SCHEMA_TYPE)));
+
+
+		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		Category categoryFromAnOtherCollection = rmAnotherCollection.getCategory(records.categoryId_X);
+
+		assertThat(categoryFromAnOtherCollection.getComments().size() == 1);
+
+		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
+		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
+		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
+		assertThat(commentFromAnOtherCollection.getUserId()).isEqualTo(user.getId());
 	}
 
 	@Test
@@ -239,7 +282,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-	// ----------------------------------------------------
 
 	private void exportThenImportInAnotherCollection(RecordExportOptions options) {
 		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);

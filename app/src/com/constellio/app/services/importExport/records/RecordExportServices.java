@@ -1,11 +1,8 @@
 package com.constellio.app.services.importExport.records;
 
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
-import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.records.RecordExportServicesRuntimeException.ExportServicesRuntimeException_NoRecords;
 import com.constellio.app.services.importExport.records.writers.ImportRecordOfSameCollectionWriter;
@@ -15,23 +12,19 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
-import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.structures.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -138,6 +131,16 @@ public class RecordExportServices {
 							modifiableImportRecord.addField(metadata.getLocalCode(), object);
 						}
 					}
+					else if(metadata.getType() == MetadataValueType.STRUCTURE)
+							if(metadata.getStructureFactory().getClass().equals(MapStringListStringStructureFactory.class)) {
+								manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
+							} else if (metadata.getStructureFactory().getClass().equals(MapStringStringStructureFactory.class)) {
+								manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
+							} else if (metadata.getStructureFactory().getClass().equals(CommentFactory.class)) {
+								manageCommentFactory(record, metadata, modifiableImportRecord);
+							} else if(metadata.getStructureFactory().getClass().equals(EmailAddressFactory.class)) {
+								manageEmailAddressFactory(record, metadata, modifiableImportRecord);
+							}
 				}
 
 				appLayerFactory.getExtensions().forCollection(collection)
@@ -146,6 +149,135 @@ public class RecordExportServices {
 				writer.write(modifiableImportRecord);
 			}
 		}
+	}
+
+	private void manageMapStringListStringStructureFactory(Record record, Metadata metadata,ModifiableImportRecord modifiableImportRecord) {
+		List<MapStringListStringStructure> mapStringListStructureList;
+		MapStringListStringStructure mapStringListStructure;
+
+		if(metadata.isMultivalue()) {
+			mapStringListStructureList = record.getList(metadata);
+			modifiableImportRecord.addField(metadata.getLocalCode(), mapStringListStructureList);
+		}
+		else {
+			mapStringListStructure = record.get(metadata);
+			if(mapStringListStructure == null)
+			{
+				return;
+			}
+			else {
+				modifiableImportRecord.addField(metadata.getLocalCode(),mapStringListStructure);
+			}
+		}
+	}
+
+	private void manageMapStringStringStructureFactory(Record record, Metadata metadata, ModifiableImportRecord modifiableImportRecord) {
+		List<MapStringStringStructure> mapStringStringStructureList;
+		MapStringStringStructure mapStringStringStructure;
+
+		if(metadata.isMultivalue()) {
+			mapStringStringStructureList = record.getList(metadata);
+			modifiableImportRecord.addField(metadata.getLocalCode(), mapStringStringStructureList);
+		}
+		else {
+			mapStringStringStructure = record.get(metadata);
+			if(mapStringStringStructure == null)
+			{
+				return;
+			}
+			else {
+				modifiableImportRecord.addField(metadata.getLocalCode(), mapStringStringStructure);
+			}
+		}
+	}
+
+	private void manageCommentFactory(Record record, Metadata metadata,ModifiableImportRecord modifiableImportRecord) {
+		List<Comment> commentList;
+		Comment comment;
+		List<HashMap<String, String>> commentHashMapList = new ArrayList<>();
+
+		if(metadata.isMultivalue()) {
+			commentList = record.getList(metadata);
+
+			for(Comment currentComment : commentList)
+			{
+				commentHashMapList.add(getCommentHasHashMap(currentComment));
+			}
+
+			modifiableImportRecord.addField(metadata.getLocalCode(), commentHashMapList);
+		}
+		else {
+			comment = record.get(metadata);
+			if(comment == null)
+			{
+				return;
+			}
+			else {
+				modifiableImportRecord.addField(metadata.getLocalCode(), getCommentHasHashMap(comment));
+			}
+		}
+	}
+
+	// For Comments
+	public static final String MESSAGE = "Message";
+	public static final String USER_ID = "UserId";
+	public static final String USER_NAME = "UserName";
+	public static final String DATE_TIME = "DateTime";
+
+	private HashMap<String,String> getCommentHasHashMap(Comment comment)
+	{
+		HashMap<String,String> commentHasMap = new HashMap<String, String>();
+
+		commentHasMap.put(MESSAGE, comment.getMessage());
+		commentHasMap.put(USER_ID, comment.getUserId());
+		commentHasMap.put(USER_NAME, comment.getUsername());
+		if(comment.getDateTime() != null)
+		{
+
+		}
+
+		return commentHasMap;
+	}
+
+	private void manageEmailAddressFactory(Record record, Metadata metadata,ModifiableImportRecord modifiableImportRecord) {
+		List<EmailAddress> commentList;
+		EmailAddress emailAddress;
+		List<HashMap<String, String>> commentHashMapList = new ArrayList<>();
+
+		if(metadata.isMultivalue()) {
+			commentList = record.getList(metadata);
+
+			for(EmailAddress currentEmailAddress : commentList)
+			{
+				commentHashMapList.add(getEmailAddressHashMap(currentEmailAddress));
+			}
+
+			modifiableImportRecord.addField(metadata.getLocalCode(), commentList);
+		}
+		else {
+			emailAddress = record.get(metadata);
+			if(emailAddress == null)
+			{
+				return;
+			}
+			else {
+				modifiableImportRecord.addField(metadata.getLocalCode(), getEmailAddressHashMap(emailAddress));
+			}
+		}
+	}
+
+	public static final String EMAIL = "Email";
+	public static final String NAME = "Name";
+
+
+	private HashMap<String,String> getEmailAddressHashMap(EmailAddress emailAddress)
+	{
+		HashMap<String,String> commentHasMap = new HashMap<String, String>();
+
+		commentHasMap.put(EMAIL, emailAddress.getEmail());
+		commentHasMap.put(NAME, emailAddress.getName());
+
+		return commentHasMap;
 	}
 
 	private void mergeExportValueLists(MetadataSchemaTypes metadataSchemaTypes, List<String> schemaTypeList) {
@@ -161,10 +293,6 @@ public class RecordExportServices {
 	}
 
 	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
-		options.getExportedSchemaTypes();
-
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
-
 		writeRecordSchema(collection, writer, options);
 	}
 
