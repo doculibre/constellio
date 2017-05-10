@@ -5,6 +5,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -15,8 +16,9 @@ public class BlockingDeliveryStrategy implements DeliveryStrategy {
 	private long timeout = 0L;
 
 	@Override
-	public <K, V> boolean send(Producer<K, V> producer, ProducerRecord<K, V> record, FailedDeliveryCallback callback) {
+	public <K, V> boolean send(final Producer<K, V> producer, ProducerRecord<K, V> record, FailedDeliveryCallback callback) {
 		try {
+			/*
 			Future<RecordMetadata> future = producer.send(record);
 
 			if (getTimeout() > 0L) {
@@ -24,9 +26,13 @@ public class BlockingDeliveryStrategy implements DeliveryStrategy {
 			} else {
 				future.get();
 			}
-
+			*/
+			
+			producer.send(record);
+			producer.flush();
+			
 			return true;
-		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+		} catch (Exception e) {
 			if (callback != null) {
 				callback.onFailedDelivery(e);
 			} else {

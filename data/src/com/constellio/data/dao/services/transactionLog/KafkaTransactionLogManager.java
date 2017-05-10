@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -29,6 +28,7 @@ import com.constellio.data.dao.services.transactionLog.kafka.BlockingDeliveryStr
 import com.constellio.data.dao.services.transactionLog.kafka.ConsumerRecordPoller;
 import com.constellio.data.dao.services.transactionLog.kafka.DeliveryStrategy;
 import com.constellio.data.dao.services.transactionLog.kafka.FailedDeliveryCallback;
+import com.constellio.data.dao.services.transactionLog.kafka.LimitedSendNumberKafkaProducer;
 import com.constellio.data.dao.services.transactionLog.kafka.Transaction;
 import com.constellio.data.dao.services.transactionLog.kafka.TransactionReplayer;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
@@ -42,7 +42,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	private RecordDao recordDao;
 	private DataLayerLogger dataLayerLogger;
 
-	private Producer<String, Transaction> producer;
+	private static volatile KafkaProducer<String, Transaction> producer;
 	private DeliveryStrategy deliveryStrategy;
 
 	private boolean lastFlushFailed;
@@ -67,11 +67,13 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	public void close() {
 		transactions.clear();
 
+		/*
 		try {
 			producer.close();
 		} finally {
 			producer = null;
 		}
+		*/
 	}
 
 	@Override
@@ -116,22 +118,32 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		transaction.setVersions(transactionInfo.getNewDocumentVersions());
 		transaction.setTransaction(data);
 
-		setLastFlushFailed(!getDeliveryStrategy().<String, Transaction> send(getProducer(), getRecord(transaction), callback));
+		KafkaProducer<String, Transaction> prod = getProducer();
+			setLastFlushFailed(!getDeliveryStrategy().<String, Transaction> send(prod, getRecord(transaction), callback));
+		
+		/*
+		if(!prod.isClosed()) {
+			prod.flush();
+		}
+		*/
+			prod.flush();
 	}
 
 	private ProducerRecord<String, Transaction> getRecord(Transaction data) {
 		return new ProducerRecord<String, Transaction>(configuration.getKafkaTopic(), getHostname(), data);
 	}
 
-	private Producer<String, Transaction> getProducer() {
+	private synchronized KafkaProducer<String, Transaction> getProducer() {
 		if (producer == null) {
 			HashMap<String, Object> configs = new HashMap<>();
 			configs.put("bootstrap.servers", configuration.getKafkaServers());
-			configs.put("key.serializer",
-					"org.apache.kafka.comcom.constellio.data.dao.services.transactionLog.kafka.TransactionSerializerer");
+			configs.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+			configs.put("value.serializer", "com.constellio.data.dao.services.transactionLog.kafka.TransactionSerializer");
 
 			producer = new KafkaProducer<>(configs);
 		}
+		
+		//producer.prepareToSend();
 
 		return producer;
 	}
@@ -147,7 +159,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 			}
 		}
 
-		return host;
+		return host + System.currentTimeMillis();
 	}
 
 	@Override
@@ -196,7 +208,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		ConsumerRecordPoller<String, Transaction> poller = getConsumerRecordPoller(consumer);
 		poller.poll(replayer);
 
-		replayer.replayAllAndClose();
+		replayer.replayRemainsAndClose();
 		consumer.close();
 	}
 
@@ -222,8 +234,8 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		// props.put("enable.auto.commit", "true");
 		// props.put("auto.commit.interval.ms", "1000");
 		props.put("session.timeout.ms", "30000");
-		props.put("key.deserializer",
-				"org.apache.kafka.commcom.constellio.data.dao.services.transactionLog.kafka.TransactionDeserializer");
+		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		props.put("value.deserializer", "com.constellio.data.dao.services.transactionLog.kafka.TransactionDeserializer");
 		props.put("auto.offset.reset", "earliest");
 
 		KafkaConsumer<String, Transaction> consumer = new KafkaConsumer<>(props);

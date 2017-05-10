@@ -100,7 +100,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void whenMultipleThreadsAreAdding5000RecordsThenAllRecordsAreLogged()
 			throws Exception {
-//		runAdding(5000);
+//		runAdding(650000);
 //		assertThat(log.isLastFlushFailed()).isFalse();
 		
 		log.destroyAndRebuildSolrCollection();
@@ -117,7 +117,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 					int arrayIndex;
 
 					while ((arrayIndex = index.incrementAndGet()) < nbRecordsToAdd) {
-						if ((arrayIndex + 1) % 100 == 0) {
+						if ((arrayIndex + 1) % 500 == 0) {
 							System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd);
 						}
 						Record record = new TestRecord(zeSchema);

@@ -4,6 +4,7 @@ import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTrans
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,28 +24,33 @@ import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransaction
 import com.constellio.data.dao.services.transactionLog.replay.TransactionsLogImportHandler;
 
 public class TransactionReplayer implements ConsumerRecordCallback<String, Transaction> {
+	private long maxBufferSize = 250000L;
+	private long maxPurgeSize = 50000L;
+
 	private final DataLayerConfiguration configuration;
-	private final BigVaultLogAddUpdater addUpdater;
+	
+	private final BigVaultServer bigVaultServer;
+	private final DataLayerLogger dataLayerLogger;
+	
 	private Map<Long, String> transactions;
+
 	private String[] requestDelimiters = { "addUpdate ", "delete ", "deletequery ", "sequence next ", "sequence set " };
+
+	private long lastInserted = 0L;
 
 	public TransactionReplayer(DataLayerConfiguration configuration, BigVaultServer bigVaultServer,
 			DataLayerLogger dataLayerLogger) {
 		this.configuration = configuration;
+		this.bigVaultServer = bigVaultServer;
+		this.dataLayerLogger = dataLayerLogger;
 
-		TransactionsLogImportHandler transactionsLogImportHandler = new TransactionsLogImportHandler(bigVaultServer,
-				dataLayerLogger, 2);
-		transactionsLogImportHandler.start();
-
-		addUpdater = new BigVaultLogAddUpdater(transactionsLogImportHandler);
-		
 		setTransactions(new TreeMap<Long, String>());
 	}
 
 	@Override
 	public void onConsumerRecord(long offset, String topic, String key, Transaction value) {
 		String t = StringUtils.remove(value.getTransaction(), "--transaction--");
-		
+
 		List<String> list = new ArrayList<>();
 		String[] split = t.split("\n");
 		for (int i = 0; i < split.length; i++) {
@@ -56,7 +62,7 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 
 			list.add(split[i]);
 		}
-		
+
 		insertTransaction(list, value);
 	}
 
@@ -65,16 +71,24 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 			String request = StringUtils.join(list, "\n");
 
 			if (StringUtils.trimToNull(request) != null) {
-				Long version = null;
-				
+				long version = 0;
+
 				Set<Entry<String, Long>> entrySet = transaction.getVersions().entrySet();
 				for (Entry<String, Long> entry : entrySet) {
-					if(contains(list.get(0), entry.getKey())) {
+					if (contains(list.get(0), entry.getKey())) {
 						version = entry.getValue();
 					}
 				}
-				
+
+				if (version <= lastInserted) {
+					throw new IllegalStateException("Current version is lesser than the last replayed transaction.");
+				}
+
 				transactions.put(version, request);
+
+				if (transactions.size() >= getMaxBufferSize()) {
+					replayTransactions(getMaxPurgeSize());
+				}
 			}
 		}
 	}
@@ -82,14 +96,14 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 	private boolean contains(String line, String key) {
 		String[] split = line.split("\\s+");
 		for (int i = 0; i < split.length; i++) {
-			if(split[i].equals(key)) {
+			if (split[i].equals(key)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	protected void replayTransactionLog(String value) {
+	private void replayTransactionLog(BigVaultLogAddUpdater addUpdater, String value) {
 		Iterator<BigVaultServerTransaction> iteratorTransaction = toIteratorTransaction(value);
 		while (iteratorTransaction.hasNext()) {
 			addUpdater.add(iteratorTransaction.next());
@@ -102,14 +116,37 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 		return new ReaderTransactionsIteratorV1("Kafka", transactionLinesIterator, configuration);
 	}
 
-	public void replayAllAndClose() {
+	public void replayRemainsAndClose() {
+		replayTransactions(transactions.size());
+		transactions.clear();
+	}
+
+	private BigVaultLogAddUpdater initAddUpdater() {
+		TransactionsLogImportHandler transactionsLogImportHandler = new TransactionsLogImportHandler(bigVaultServer,
+				dataLayerLogger, 2);
+		transactionsLogImportHandler.start();
+
+		return new BigVaultLogAddUpdater(transactionsLogImportHandler);
+	}
+	
+	private void replayTransactions(long length) {
+		System.out.println("Replay " + length + " transactions.");
+		long i = 0L;
+		BigVaultLogAddUpdater addUpdater = initAddUpdater();
 		Set<Entry<Long, String>> entrySet = transactions.entrySet();
-		for (Entry<Long, String> transaction : entrySet) {
-			replayTransactionLog(transaction.getValue());
+
+		for (Iterator<Entry<Long, String>> iterator = entrySet.iterator(); i < length && iterator.hasNext();) {
+			Entry<Long, String> transaction = iterator.next();
+			replayTransactionLog(addUpdater, transaction.getValue());
+
+			iterator.remove();
+
+			lastInserted = transaction.getKey();
+			i++;
 		}
 
 		addUpdater.close();
-		transactions.clear();
+		System.out.println("Done.");
 	}
 
 	private static class BigVaultLogAddUpdater {
@@ -143,5 +180,31 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 
 	public void setTransactions(Map<Long, String> transactions) {
 		this.transactions = transactions;
+	}
+
+	public long getMaxBufferSize() {
+		return maxBufferSize;
+	}
+
+	public void setMaxBufferSize(long maxBufferSize) {
+		if (getMaxPurgeSize() > maxBufferSize) {
+			throw new IllegalArgumentException(
+					"Max buffer size cannot be lesser than max purge size. Current max purge size is " + getMaxPurgeSize());
+		}
+
+		this.maxBufferSize = maxBufferSize;
+	}
+
+	public long getMaxPurgeSize() {
+		return maxPurgeSize;
+	}
+
+	public void setMaxPurgeSize(long maxPurgeSize) {
+		if (maxPurgeSize > getMaxBufferSize()) {
+			throw new IllegalArgumentException(
+					"Max purge size cannot be greater than max buffer size. Current max buffer size is " + getMaxBufferSize());
+		}
+
+		this.maxPurgeSize = maxPurgeSize;
 	}
 }
