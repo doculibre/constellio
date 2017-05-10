@@ -1,48 +1,39 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_IN;
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_ContentAlreadyCheckedOut;
+import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_IOError;
+import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_RecordServicesError;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_ContentAlreadyCheckedOut;
-import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_IOError;
-import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_RecordServicesError;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
-import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.api.cmis.builders.object.AllowableActionsBuilder;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.CheckInParams;
-import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 
 public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 
@@ -108,7 +99,11 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 				inFromCopy = ioServices.newFileInputStream(file, READ_TEMP_FILE);
 
 				if (user.getId().equals(content.getCheckoutUserId())) {
-					ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
+					ContentManager.ContentVersionDataSummaryResponse summaryResponse = uploadContent(inFromCopy, contentStream.getFileName());
+					ContentVersionDataSummary dataSummary = summaryResponse.getContentVersionDataSummary();
+					if(summaryResponse.hasFoundDuplicate()) {
+						LOGGER.warn("Parsed content for document " + StringUtils.defaultIfBlank(contentCmisDocument.getDocumentId(), "") + " has a duplicate");
+					}
 					content.checkInWithModificationAndName(dataSummary, major, contentStream.getFileName());
 				} else {
 					throw new ConstellioCmisException_ContentAlreadyCheckedOut();

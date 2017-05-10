@@ -270,7 +270,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			contentVersionSummary = uploadContent(in, true, true, filename);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, true, true, filename);
+			contentVersionSummary = uploadResponse.getContentVersionDataSummary();
+			if(uploadResponse.hasFoundDuplicate()) {
+				view.showMessage($("ContentManager.hasFoundDuplicate"));
+			}
             contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
             document.setContent(contentBeforeChange);
 		} finally {
@@ -346,7 +350,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		Boolean majorVersion = contentVO.isMajorVersion();
 		String fileName = contentVO.getFileName();
 		String hash = contentVO.getHash();
-		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash);
+		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash).getContentVersionDataSummary();
 		Content copiedContent;
 		if (majorVersion != null && majorVersion) {
 			copiedContent = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);

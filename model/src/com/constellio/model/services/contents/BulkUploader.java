@@ -1,19 +1,18 @@
 package com.constellio.model.services.contents;
 
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class BulkUploader {
 
@@ -77,7 +76,7 @@ public class BulkUploader {
 
 					inputStream = streamFactory.create(READ_STREAM_RESOURCE);
 					ContentVersionDataSummary summary = contentManager
-							.upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+							.upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName).getContentVersionDataSummary();
 					writeToMap(key, summary);
 
 				} catch (ContentManagerRuntimeException_CannotReadParsedContent e) {
