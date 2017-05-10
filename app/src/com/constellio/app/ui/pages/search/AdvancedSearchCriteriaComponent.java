@@ -122,6 +122,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private Component buildMetadataField(final Criterion criterion, final Table source) {
 			ComboBox comboBox = new ComboBox();
+			comboBox.addStyleName("advanced-search-form-metadata");
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
 
@@ -148,7 +149,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					source.refreshRowCache();
 				}
 			});
-			comboBox.setPageLength(comboBox.size());
+//			comboBox.setPageLength(comboBox.size());
+			comboBox.setPageLength(20);
 			return comboBox;
 		}
 	}
