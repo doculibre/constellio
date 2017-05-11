@@ -392,7 +392,7 @@ public class ContainerRecordReportPresenter {
 		String phone = "";
 		String email = "";
 
-		String userdId = container.getModifiedBy();
+		String userdId = container.getDocumentResponsible();
 		if (userdId != null && !userdId.isEmpty()) {
 
 			User user = getUser(userdId);
