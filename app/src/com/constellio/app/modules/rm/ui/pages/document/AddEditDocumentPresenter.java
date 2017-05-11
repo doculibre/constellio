@@ -287,6 +287,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
         Document document;
 
         try {
+			//TODO should throw message if duplicate is found
             record = toRecord(documentVO, newFile);
             document = rmSchemas().wrapDocument(record);
 

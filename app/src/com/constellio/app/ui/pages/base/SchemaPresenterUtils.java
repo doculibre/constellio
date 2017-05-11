@@ -1,21 +1,8 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
@@ -41,6 +28,14 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 
@@ -286,7 +281,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				contentVersionDataSummary = uploadContent(inputStream, true, true, fileName);
+				contentVersionDataSummary = uploadContent(inputStream, true, true, fileName).getContentVersionDataSummary();
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);

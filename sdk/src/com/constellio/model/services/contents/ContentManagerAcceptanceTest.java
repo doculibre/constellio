@@ -1,33 +1,5 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SCAN_ACTIVATED;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SERVER_URL;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
-import com.constellio.sdk.tests.annotations.InternetTest;
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
@@ -39,7 +11,26 @@ import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
+import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SCAN_ACTIVATED;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SERVER_URL;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class ContentManagerAcceptanceTest extends ConstellioTest {
 
@@ -218,7 +209,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent(""));
 
 		// When
-		ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(contentStream, "someFileName");
+		ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(contentStream, "someFileName").getContentVersionDataSummary();
 
 		// Then
 		assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=")).isNotNull();
