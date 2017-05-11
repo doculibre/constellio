@@ -1,12 +1,12 @@
 package com.constellio.app.ui.entities;
 
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.Date;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.Date;
 
 public class ContentVersionVO implements Serializable {
 
@@ -44,6 +44,8 @@ public class ContentVersionVO implements Serializable {
 
 	private LocalDateTime checkoutDateTime;
 
+	private Boolean hasFoundDuplicate;
+
 	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length, String version,
 			Date lastModificationDateTime, String lastModifiedBy, String checkoutUserId, LocalDateTime checkoutDateTime,
 			String comment, InputStreamProvider inputStreamProvider) {
@@ -60,6 +62,7 @@ public class ContentVersionVO implements Serializable {
 		this.inputStreamProvider = inputStreamProvider;
 		this.checkoutUserId = checkoutUserId;
 		this.checkoutDateTime = checkoutDateTime;
+		this.hasFoundDuplicate = null;
 	}
 
 	public final String getContentId() {
@@ -132,6 +135,15 @@ public class ContentVersionVO implements Serializable {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	public Boolean hasFoundDuplicate() {
+		return hasFoundDuplicate;
+	}
+
+	public ContentVersionVO setHasFoundDuplicate(Boolean hasFoundDuplicate) {
+		this.hasFoundDuplicate = hasFoundDuplicate;
+		return this;
 	}
 
 	@Override

@@ -73,7 +73,8 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 		File tempFile = tempFileUpload.getTempFile();
 		try {
 			InputStream tempFileIn = ioServices.newFileInputStream(tempFile, "TempFileUploadToContentVersionVOConverter.toContentVO");
-			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(tempFileIn, fileName).getContentVersionDataSummary();
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(tempFileIn, fileName);
+			ContentVersionDataSummary contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
 			ioServices.closeQuietly(tempFileIn);
 			final String hash = contentVersionDataSummary.getHash();
 			InputStreamProvider inputStreamProvider = new InputStreamProvider() {
@@ -90,7 +91,7 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 			};
 			return tempFileUpload != null ?
 					new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, null,
-							inputStreamProvider) :
+							inputStreamProvider).setHasFoundDuplicate(uploadResponse.hasFoundDuplicate()) :
 					null;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

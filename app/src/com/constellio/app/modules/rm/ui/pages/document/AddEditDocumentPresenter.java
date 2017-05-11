@@ -37,10 +37,13 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -601,6 +604,16 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			public void newContentUploaded() {
 				ContentVersionVO contentVersionVO = contentField.getFieldValue();
 				if (contentVersionVO != null) {
+					if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+						RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+						LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getHash())))
+								.filteredWithUser(getCurrentUser());
+						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+						if(duplicateDocuments != null && duplicateDocuments.size() > 0) {
+							view.showMessage($("ContentManager.hasFoundDuplicate"));
+						}
+					}
 					view.getForm().commit();
 					contentVersionVO.setMajorVersion(true);
 					Record documentRecord = toRecord(documentVO);
@@ -615,7 +628,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 							InputStream inputStream = null;
 							try {
 								inputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromEML");
-								Email email = rmSchemasRecordsServices.newEmail(filename, inputStream);
+								Email email = AddEditDocumentPresenter.this.rmSchemasRecordsServices.newEmail(filename, inputStream);
 								document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
 
 								((Email) document).setSubject(email.getSubject());
