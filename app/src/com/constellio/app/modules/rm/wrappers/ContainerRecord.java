@@ -387,7 +387,7 @@ public class ContainerRecord extends RecordWrapper {
 		return this;
 	}
 
-	public LocalDate getDocumentResponsible() {
+	public String getDocumentResponsible() {
 		return get(DOCUMENT_RESPONSIBLE);
 	}
 

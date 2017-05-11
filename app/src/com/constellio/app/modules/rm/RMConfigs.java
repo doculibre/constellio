@@ -61,7 +61,6 @@ public class RMConfigs {
 			STORAGE_SPACE_TITLE_CALCULATOR_ENABLED,
 			COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS,
 			POPULATE_BORDEREAUX_WITH_COLLECTION,
-			POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT,
 			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
 			IS_CONTAINER_MULTIVALUE,
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
@@ -253,8 +252,6 @@ public class RMConfigs {
 		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
 
 		add(POPULATE_BORDEREAUX_WITH_COLLECTION = decommissioning.createBooleanTrueByDefault("populateBordereauxWithCollection"));
-
-		add(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT = decommissioning.createBooleanTrueByDefault("populateBordereauxWithAdministrativeUnit"));
 
 		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
 
@@ -448,10 +445,6 @@ public class RMConfigs {
 
 	public boolean isCalculateOpenDateBasedOnFirstTimerangePart() {
 		return manager.getValue(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART);
-	}
-
-	public boolean isPopulateBordereauxWithAdministrativeUnit() {
-		return manager.getValue(POPULATE_BORDEREAUX_WITH_ADMINISTRATIVE_UNIT);
 	}
 
 	public boolean isPopulateBordereauxWithCollection() {
