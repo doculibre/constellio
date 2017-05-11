@@ -27,17 +27,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.utils.SerializationCheckCache;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
@@ -75,6 +76,8 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 	@Mock ConfigUpdatedEventListener secondListener;
 	@Mock ConfigUpdatedEventListener otherPathListener;
 	@Mock ConfigEventListener otherEventListener;
+	
+	ConstellioCache cache;
 
 	@Before
 	public void setUp()
@@ -86,7 +89,8 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 
 		ioServices = getIOLayerFactory().newIOServices();
 
-		configManager = spy(new FileSystemConfigManager(root, ioServices, hashService));
+		cache = new SerializationCheckCache("zeCache");
+		configManager = spy(new FileSystemConfigManager(root, ioServices, hashService, cache));
 
 		this.loadProperties();
 
@@ -542,15 +546,15 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 		configManager.getXML(newConfigs1Xml);
 		configManager.getXML(newConfigs2Xml);
 
-		assertThat(configManager.getCache().containsKey(newConfigs1Xml)).isTrue();
-		assertThat(configManager.getCache().containsKey(newConfigs2Xml)).isTrue();
+		assertThat(configManager.getCacheKeys().contains(newConfigs1Xml)).isTrue();
+		assertThat(configManager.getCacheKeys().contains(newConfigs2Xml)).isTrue();
 		assertThat(configManager.exist(newConfigs1Xml)).isTrue();
 		assertThat(configManager.exist(newConfigs2Xml)).isTrue();
 
 		configManager.deleteAllConfigsIn("collection");
 
-		assertThat(configManager.getCache().containsKey(newConfigs1Xml)).isFalse();
-		assertThat(configManager.getCache().containsKey(newConfigs2Xml)).isFalse();
+		assertThat(configManager.getCacheKeys().contains(newConfigs1Xml)).isFalse();
+		assertThat(configManager.getCacheKeys().contains(newConfigs2Xml)).isFalse();
 		assertThat(configManager.exist(newConfigs1Xml)).isFalse();
 		assertThat(configManager.exist(newConfigs2Xml)).isFalse();
 	}

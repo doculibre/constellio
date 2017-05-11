@@ -1,10 +1,12 @@
 package com.constellio.data.dao.managers.config.values;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jdom2.Document;
 
-public class XMLConfiguration {
+public class XMLConfiguration implements Serializable {
 
 	private final String version;
 

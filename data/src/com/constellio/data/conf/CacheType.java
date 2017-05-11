@@ -1,6 +1,6 @@
 package com.constellio.data.conf;
 
-public enum ConfigManagerCache {
+public enum CacheType {
 
 	MEMORY, IGNITE
 

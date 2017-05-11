@@ -1,8 +1,11 @@
-package com.constellio.data.dao.services.cache;
+package com.constellio.data.dao.services.cache.ignite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
@@ -15,12 +18,18 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCache;
 
-public class IgniteConfigManager {
+public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
+	
+	private Map<String, ConstellioCache> caches = new HashMap<>();
+	
 	private Ignite client;
 
-	public IgniteConfigManager(DataLayerConfiguration dataLayerConfiguration) {
-		client = Ignition.getOrStart(getConfiguration(dataLayerConfiguration));
+	public ConstellioIgniteCacheManager(DataLayerConfiguration dataLayerConfiguration) {
+		IgniteConfiguration igniteConfiguration = getConfiguration(dataLayerConfiguration);
+		client = Ignition.getOrStart(igniteConfiguration);
 	}
 
 	private IgniteConfiguration getConfiguration(DataLayerConfiguration dataLayerConfiguration) {
@@ -33,7 +42,7 @@ public class IgniteConfigManager {
 		cfg.setDiscoverySpi(spi);
 		cfg.setClientMode(true);
 
-		CacheConfiguration partitionedCacheCfg = new CacheConfiguration();
+		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
 		partitionedCacheCfg.setCacheMode(CacheMode.PARTITIONED);
 		partitionedCacheCfg.setBackups(1);
@@ -50,11 +59,20 @@ public class IgniteConfigManager {
 		return new ArrayList<>(Arrays.asList(addresses));
 	}
 
-	public IgniteCache getRecordCache() {
-		return client.getOrCreateCache("records");
+	@Override
+	public List<String> getCacheNames() {
+		return Collections.unmodifiableList(new ArrayList<>(caches.keySet()));
 	}
 
-	public IgniteCache getManagerCache() {
-		return client.getOrCreateCache("manager");
+	@Override
+	public synchronized ConstellioCache getCache(String name) {
+		ConstellioCache cache = caches.get(name);
+		if (cache == null) {
+			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(name);
+			cache = new ConstellioIgniteCache(name, igniteCache);
+			caches.put(name, cache);
+		}
+		return cache;
 	}
+
 }

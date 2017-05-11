@@ -179,14 +179,27 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return (ConfigManagerType) getRequiredEnum("dao.settings.type", ConfigManagerType.class);
 	}
 
-	public ConfigManagerCache getSettingsConfigCache() {
-		return (ConfigManagerCache) getRequiredEnum("dao.settings.cache", ConfigManagerCache.class);
+	@Override
+	public CacheType getSettingsCacheType() {
+		return (CacheType) getRequiredEnum("dao.settings.cache", CacheType.class);
 	}
 
+	@Override
 	public String getSettingsCacheUrl() {
 		return getRequiredString("dao.settings.cache.url");
 	}
 
+	@Override
+	public CacheType getRecordsCacheType() {
+		return (CacheType) getRequiredEnum("dao.records.cache", CacheType.class);
+	}
+
+	@Override
+	public String getRecordsCacheUrl() {
+		return getRequiredString("dao.records.cache.url");
+	}
+
+	@Override
 	public File getSettingsFileSystemBaseFolder() {
 		return getFile("dao.settings.filesystem.baseFolder", defaultFileSystemBaseFolder);
 	}

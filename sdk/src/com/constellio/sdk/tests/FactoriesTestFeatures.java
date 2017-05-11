@@ -26,7 +26,6 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.conf.ConfigManagerCache;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -36,7 +35,8 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.cache.IgniteConfigManager;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
@@ -114,19 +114,26 @@ public class FactoriesTestFeatures {
 			deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
 		}
 
-		if (ConfigManagerCache.IGNITE == conf.getSettingsConfigCache()) {
-			deleteFromIgnite();
-		}
+		deleteFromCaches();
 
 		i18n.clearBundles();
 	}
 
-	private void deleteFromIgnite() {
+	private void deleteFromCaches() {
 		try {
-			IgniteConfigManager cacheManager = getConstellioFactories().getDataLayerFactory().getCacheConfigManager();
-			if (cacheManager != null) {
-				cacheManager.getRecordCache().clear();
-				cacheManager.getManagerCache().clear();
+			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory().getSettingsCacheManager();
+			if (settingsCacheManager != null) {
+				for (String cacheName : settingsCacheManager.getCacheNames()) {
+					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
+					cache.clear();
+				}
+			}
+			ConstellioCacheManager recordsCacheManager = getConstellioFactories().getDataLayerFactory().getRecordsCacheManager();
+			if (recordsCacheManager != null) {
+				for (String cacheName : recordsCacheManager.getCacheNames()) {
+					ConstellioCache cache = recordsCacheManager.getCache(cacheName);
+					cache.clear();
+				}
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
