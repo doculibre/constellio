@@ -142,13 +142,13 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		assertThat(readLines(contentManager.getContentInputStream("~42:1234", SDK_STREAM))).isEqualTo(asList("Chuck Norris"));
-		assertThat(readLines(contentManager.getContentInputStream("~42:2345", SDK_STREAM))).isEqualTo(asList("Édouard lechat"));
-		assertThat(readLines(contentManager.getContentInputStream("~666:1234", SDK_STREAM))).isEqualTo(asList("Alice"));
-		assertThat(readLines(contentManager.getContentInputStream("~666:2345", SDK_STREAM))).isEqualTo(asList("Dakota"));
+		assertThat(readLines(contentManager.getContentInputStream("#42=1234", SDK_STREAM))).isEqualTo(asList("Chuck Norris"));
+		assertThat(readLines(contentManager.getContentInputStream("#42=2345", SDK_STREAM))).isEqualTo(asList("Édouard lechat"));
+		assertThat(readLines(contentManager.getContentInputStream("#666=1234", SDK_STREAM))).isEqualTo(asList("Alice"));
+		assertThat(readLines(contentManager.getContentInputStream("#666=2345", SDK_STREAM))).isEqualTo(asList("Dakota"));
 
 		try {
-			contentManager.getContentInputStream("~42:3456", SDK_STREAM);
+			contentManager.getContentInputStream("#42=3456", SDK_STREAM);
 			fail("Exception expected");
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
 
