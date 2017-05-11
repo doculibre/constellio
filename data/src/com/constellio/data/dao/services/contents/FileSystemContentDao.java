@@ -98,9 +98,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	public InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent {
 
-		if (contentId.startsWith("~")) {
+		if (contentId.startsWith("#")) {
 			for (FileSystemContentDaoExternalResourcesExtension extension : externalResourcesExtensions) {
-				if (contentId.startsWith("~" + extension.getId() + ":")) {
+				if (contentId.startsWith("#" + extension.getId() + ":")) {
 					String hash = StringUtils.substringAfter(contentId, ":");
 					InputStream stream = extension.get(hash, streamName);
 					if (stream == null) {
