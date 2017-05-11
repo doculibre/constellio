@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +22,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BigFileEntry;
 import com.constellio.data.utils.BigFileIterator;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -350,6 +352,45 @@ public class ContentManagerImportThreadServices {
 			});
 		}
 		return map;
+	}
+
+	public static Iterator<FilenameSha1PropertiesEntry> buildSHA1ContentDataSummaryIterator(File file) {
+		Map<String, Factory<ContentVersionDataSummary>> sha1Map = ContentManagerImportThreadServices.buildSHA1Map(file);
+		final Iterator<Map.Entry<String, Factory<ContentVersionDataSummary>>> sha1MapEntries = sha1Map.entrySet().iterator();
+
+		return new LazyIterator<FilenameSha1PropertiesEntry>() {
+			@Override
+			protected FilenameSha1PropertiesEntry getNextOrNull() {
+				if (sha1MapEntries.hasNext()) {
+					Map.Entry<String, Factory<ContentVersionDataSummary>> entry = sha1MapEntries.next();
+					return new FilenameSha1PropertiesEntry(entry.getKey(), entry.getValue());
+				} else {
+					return null;
+				}
+
+			}
+		};
+	}
+
+	public static class FilenameSha1PropertiesEntry {
+
+		private String name;
+
+		private Factory<ContentVersionDataSummary> contentVersionDataSummaryFactory;
+
+		public FilenameSha1PropertiesEntry(String name,
+				Factory<ContentVersionDataSummary> contentVersionDataSummaryFactory) {
+			this.name = name;
+			this.contentVersionDataSummaryFactory = contentVersionDataSummaryFactory;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public Factory<ContentVersionDataSummary> getContentVersionDataSummaryFactory() {
+			return contentVersionDataSummaryFactory;
+		}
 	}
 
 	private static ContentVersionDataSummary toContentVersionDataSummary(String value) {
