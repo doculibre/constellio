@@ -35,10 +35,16 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	DataLayerConfiguration configuration;
 
+	List<FileSystemContentDaoExternalResourcesExtension> externalResourcesExtensions = new ArrayList<>();
+
 	public FileSystemContentDao(File rootFolder, IOServices ioServices, DataLayerConfiguration configuration) {
 		this.rootFolder = rootFolder;
 		this.ioServices = ioServices;
 		this.configuration = configuration;
+	}
+
+	public void register(FileSystemContentDaoExternalResourcesExtension extension) {
+		externalResourcesExtensions.add(extension);
 	}
 
 	@Override
@@ -90,6 +96,19 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	@Override
 	public InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent {
+
+		if (contentId.startsWith("~")) {
+			for (FileSystemContentDaoExternalResourcesExtension extension : externalResourcesExtensions) {
+				if (contentId.startsWith("~" + extension.getId() + ":")) {
+					InputStream stream = extension.get(contentId, streamName);
+					if (stream == null) {
+						throw new ContentDaoException_NoSuchContent(streamName);
+					}
+					return stream;
+				}
+			}
+		}
+
 		try {
 			return new BufferedInputStream(ioServices.newFileInputStream(getFileOf(contentId), streamName));
 		} catch (FileNotFoundException e) {
