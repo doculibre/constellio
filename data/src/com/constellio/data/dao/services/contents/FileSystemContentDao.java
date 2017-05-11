@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
@@ -97,10 +98,11 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	public InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent {
 
-		if (contentId.startsWith("~")) {
+		if (contentId.startsWith("#")) {
 			for (FileSystemContentDaoExternalResourcesExtension extension : externalResourcesExtensions) {
-				if (contentId.startsWith("~" + extension.getId() + ":")) {
-					InputStream stream = extension.get(contentId, streamName);
+				if (contentId.startsWith("#" + extension.getId() + "=")) {
+					String hash = StringUtils.substringAfter(contentId, "=");
+					InputStream stream = extension.get(hash, streamName);
 					if (stream == null) {
 						throw new ContentDaoException_NoSuchContent(streamName);
 					}

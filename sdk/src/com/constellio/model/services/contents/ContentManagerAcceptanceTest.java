@@ -117,10 +117,10 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		fsContentDao.register(new FileSystemContentDaoExternalResourcesExtension("42") {
 			@Override
 			public InputStream get(String hash, String streamName) {
-				if (hash.equals("~42:1234")) {
+				if (hash.equals("1234")) {
 					return IOUtils.toInputStream("Chuck Norris");
 
-				} else if (hash.equals("~42:2345")) {
+				} else if (hash.equals("2345")) {
 					return IOUtils.toInputStream("Édouard lechat");
 				}
 
@@ -131,10 +131,10 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		fsContentDao.register(new FileSystemContentDaoExternalResourcesExtension("666") {
 			@Override
 			public InputStream get(String hash, String streamName) {
-				if (hash.equals("~666:1234")) {
+				if (hash.equals("1234")) {
 					return IOUtils.toInputStream("Alice");
 
-				} else if (hash.equals("~666:2345")) {
+				} else if (hash.equals("2345")) {
 					return IOUtils.toInputStream("Dakota");
 				}
 
@@ -142,13 +142,13 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		assertThat(readLines(contentManager.getContentInputStream("~42:1234", SDK_STREAM))).isEqualTo(asList("Chuck Norris"));
-		assertThat(readLines(contentManager.getContentInputStream("~42:2345", SDK_STREAM))).isEqualTo(asList("Édouard lechat"));
-		assertThat(readLines(contentManager.getContentInputStream("~666:1234", SDK_STREAM))).isEqualTo(asList("Alice"));
-		assertThat(readLines(contentManager.getContentInputStream("~666:2345", SDK_STREAM))).isEqualTo(asList("Dakota"));
+		assertThat(readLines(contentManager.getContentInputStream("#42=1234", SDK_STREAM))).isEqualTo(asList("Chuck Norris"));
+		assertThat(readLines(contentManager.getContentInputStream("#42=2345", SDK_STREAM))).isEqualTo(asList("Édouard lechat"));
+		assertThat(readLines(contentManager.getContentInputStream("#666=1234", SDK_STREAM))).isEqualTo(asList("Alice"));
+		assertThat(readLines(contentManager.getContentInputStream("#666=2345", SDK_STREAM))).isEqualTo(asList("Dakota"));
 
 		try {
-			contentManager.getContentInputStream("~42:3456", SDK_STREAM);
+			contentManager.getContentInputStream("#42=3456", SDK_STREAM);
 			fail("Exception expected");
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
 
