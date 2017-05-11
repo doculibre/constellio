@@ -382,10 +382,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			if (presenter.hasCurrentUserPermissionToUseCart()) {
 				actionMenuButtons.add(addToCartButton);
 			}
+			actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 		}
-
-		actionMenuButtons.add(addToOrRemoveFromSelectionButton);
-
 		if(!isAFolderAndDestroyed) {
 			actionMenuButtons.add(printLabelButton);
 			actionMenuButtons.add(borrowButton);
