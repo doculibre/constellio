@@ -20,6 +20,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDate;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -233,7 +234,7 @@ public class RecordExportServices {
 		commentHasMap.put(USER_NAME, comment.getUsername());
 		if(comment.getDateTime() != null)
 		{
-
+			commentHasMap.put(DATE_TIME, comment.getDateTime().toString());
 		}
 
 		return commentHasMap;

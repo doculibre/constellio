@@ -16,8 +16,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -36,8 +35,6 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams;
 import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
@@ -70,6 +67,19 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenExportingDecommissionList()
+	{
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records).withDocumentsDecommissioningList(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE)));
+
+		//records.getList01(.get)
+	}
+
+	@Test
 	public void whenExportingComment() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
@@ -97,9 +107,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
-		Category categoryFromAnOtherCollection = rmAnotherCollection.getCategory(records.categoryId_X);
+		Category categoryFromAnOtherCollection = rmAnotherCollection.getCategoryWithCode("X");
 
-		assertThat(categoryFromAnOtherCollection.getComments().size() == 1);
+		assertThat(categoryFromAnOtherCollection.getComments().size()).isEqualTo(1);
 
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);

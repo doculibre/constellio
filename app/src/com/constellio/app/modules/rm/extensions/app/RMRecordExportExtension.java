@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.RecordExportExtension;
@@ -16,6 +21,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.extensions.behaviors.RecordExtension;
+import org.joda.time.LocalDate;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -31,23 +37,117 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	public void onWriteRecord(OnWriteRecordParams params) {
 
 		if (params.isRecordOfType(RetentionRule.SCHEMA_TYPE)) {
+			manageRetentionRule(params);
+		} else if (params.isRecordOfType(DecommissioningList.SCHEMA_TYPE))
+		{
+			manageDecomissionList(params);
+		}
+	}
 
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			RetentionRule retentionRule = rm.wrapRetentionRule(params.getRecord());
+	// Decom List container detail
+	public static final String DECOM_LIST_CONTAINER_DETAIL = "decomListContainerDetail";
+	public static final String CONTAINER_RECORD_ID = "ContainerRecordId";
+	public static final String AVAILABLE_SIZE = "AvailableSize";
+	public static final String FULL = "Full";
 
-			List<Map<String, String>> importedCopyRetentionRules = new ArrayList<>();
+	// DecomList folder detail
+	public static final String DECOM_LIST_FOLDER_DETAIL = "DecomListFolderDetail";
+	public static final String FOLDER_ID = "FolderId";
+	public static final String FOLDER_EXCLUDED = "FolderExcluded";
+	public static final String REVERSED_SORT = "ReversedSort";
+	public static final String FOLDER_LINEAR_SIZE = "FolderLinearSize";
+	public static final String IS_PLACED_IN_CONTAINER = "IsPlacedInContainer";
 
-			for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
-				//copyRetentionRule.etc
+	public static final String DECOM_LIST_VALIDATION = "decomListValidation";
+	public static final String USER_ID = "UserId";
+	public static final String REQUEST_DATE = "RequestDate";
+	public static final String VALIDATION_DATE = "ValidationDate";
 
-				Map<String, String> map = writeCopyRetentionRule(rm, copyRetentionRule);
+	private void manageDecomissionList(OnWriteRecordParams params)
+	{
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		DecommissioningList decommissioningList = rm.wrapDecommissioningList(params.getRecord());
 
-				importedCopyRetentionRules.add(map);
-			}
+		List<Map<String, String>> containerDetail = new ArrayList<>();
 
-			params.getModifiableImportRecord().addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
+		for(DecomListContainerDetail decomListContainerDetail : decommissioningList.getContainerDetails())
+		{
+			Map<String, String> map = writedecomListContainerDetail(decomListContainerDetail);
+
+			containerDetail.add(map);
 		}
 
+		params.getModifiableImportRecord().addField(DECOM_LIST_CONTAINER_DETAIL, containerDetail);
+
+		List<Map<String, String>> decomListFolderDetailList = new ArrayList<>();
+		for(DecomListFolderDetail decomListFolderDetail : decommissioningList.getFolderDetails())
+		{
+			Map<String, String> map = writeDecomListFolderDetail(decomListFolderDetail);
+
+			decomListFolderDetailList.add(map);
+		}
+
+		params.getModifiableImportRecord().addField(DECOM_LIST_FOLDER_DETAIL, decomListFolderDetailList);
+
+		List<Map<String, String>> decomListValidationList = new ArrayList<>();
+		for(DecomListValidation decomListValidation : decommissioningList.getValidations())
+		{
+			Map<String, String> map = writeDecomListValidation(decomListValidation);
+
+			decomListValidationList.add(map);
+		}
+
+		params.getModifiableImportRecord().addField(DECOM_LIST_VALIDATION, decomListFolderDetailList);
+	}
+
+	private Map<String, String> writeDecomListValidation(DecomListValidation decomListValidation) {
+		Map<String, String> map = new HashMap<>();
+
+		map.put(USER_ID, decomListValidation.getUserId());
+		map.put(REQUEST_DATE, decomListValidation.getRequestDate().toString(CommentFactory.DATE_PATTERN));
+		map.put(VALIDATION_DATE, decomListValidation.getValidationDate().toString(CommentFactory.DATE_PATTERN));
+
+		return map;
+	}
+
+	private Map<String, String> writedecomListContainerDetail(DecomListContainerDetail decomListContainerDetail) {
+		Map<String, String> map = new HashMap<>();
+
+		map.put(CONTAINER_RECORD_ID,decomListContainerDetail.getContainerRecordId());
+		map.put(AVAILABLE_SIZE, Double.toString(decomListContainerDetail.getAvailableSize()));
+		map.put(FULL, Boolean.toString(decomListContainerDetail.isFull()));
+		return map;
+	}
+
+	private Map<String, String> writeDecomListFolderDetail(DecomListFolderDetail decomListFolderDetail) {
+		Map<String, String> map = new HashMap<>();
+
+		map.put(FOLDER_ID,decomListFolderDetail.getFolderId());
+		map.put(FOLDER_EXCLUDED, Boolean.toString(decomListFolderDetail.isFolderExcluded()));
+		map.put(CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
+		map.put(REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
+		map.put(FOLDER_LINEAR_SIZE, Double.toString(decomListFolderDetail.getFolderLinearSize()));
+		map.put(IS_PLACED_IN_CONTAINER, Boolean.toString(decomListFolderDetail.isPlacedInContainer()));
+
+		return map;
+	}
+
+
+	private void manageRetentionRule(OnWriteRecordParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		RetentionRule retentionRule = rm.wrapRetentionRule(params.getRecord());
+
+		List<Map<String, String>> importedCopyRetentionRules = new ArrayList<>();
+
+		for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
+            //copyRetentionRule.etc
+
+            Map<String, String> map = writeCopyRetentionRule(rm, copyRetentionRule);
+
+            importedCopyRetentionRules.add(map);
+        }
+
+		params.getModifiableImportRecord().addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
 	}
 
 	private Map<String, String> writeCopyRetentionRule(RMSchemasRecordsServices rm, CopyRetentionRule copyRetentionRule) {
