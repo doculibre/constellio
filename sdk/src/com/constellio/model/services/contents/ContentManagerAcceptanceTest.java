@@ -117,10 +117,10 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		fsContentDao.register(new FileSystemContentDaoExternalResourcesExtension("42") {
 			@Override
 			public InputStream get(String hash, String streamName) {
-				if (hash.equals("~42:1234")) {
+				if (hash.equals("1234")) {
 					return IOUtils.toInputStream("Chuck Norris");
 
-				} else if (hash.equals("~42:2345")) {
+				} else if (hash.equals("2345")) {
 					return IOUtils.toInputStream("Édouard lechat");
 				}
 
@@ -131,10 +131,10 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		fsContentDao.register(new FileSystemContentDaoExternalResourcesExtension("666") {
 			@Override
 			public InputStream get(String hash, String streamName) {
-				if (hash.equals("~666:1234")) {
+				if (hash.equals("1234")) {
 					return IOUtils.toInputStream("Alice");
 
-				} else if (hash.equals("~666:2345")) {
+				} else if (hash.equals("2345")) {
 					return IOUtils.toInputStream("Dakota");
 				}
 
