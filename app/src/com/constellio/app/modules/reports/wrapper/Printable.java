@@ -34,4 +34,9 @@ public class Printable extends RecordWrapper {
     public ContentImpl getJasperfile() {
         return get(JASPERFILE);
     }
+
+    public Printable setIsDeletable(Boolean isDeletable) {
+        set(ISDELETABLE, isDeletable);
+        return this;
+    }
 }
