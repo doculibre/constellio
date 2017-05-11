@@ -16,7 +16,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 public class RMMigrationTo7_2_0_3 implements MigrationScript {
     @Override
     public String getVersion() {
-        return "7.2.0.2";
+        return "7.2.0.3";
     }
 
     @Override
