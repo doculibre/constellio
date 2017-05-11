@@ -18,15 +18,22 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hdfs.server.common.Storage;
 import org.apache.tools.ant.taskdefs.Copy;
 import org.assertj.core.groups.Tuple;
 import org.joda.time.LocalDateTime;
@@ -70,13 +77,27 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	public void whenExportingDecommissionList()
 	{
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records).withDocumentsDecommissioningList(),
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
-		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE)));
 
-		//records.getList01(.get)
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
+						Folder.SCHEMA_TYPE,	DecommissioningList.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+
+
+		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		List<DecommissioningList> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
+
+		assertThatRecords(listSearchDecommissiongList).extractingMetadatas("ID");
+
+		assertThat(listSearchDecommissiongList.size()).isEqualTo(1);
 	}
 
 	@Test

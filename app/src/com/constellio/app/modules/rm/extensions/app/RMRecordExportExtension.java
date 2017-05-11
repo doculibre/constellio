@@ -77,7 +77,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			containerDetail.add(map);
 		}
 
-		params.getModifiableImportRecord().addField(DECOM_LIST_CONTAINER_DETAIL, containerDetail);
+		params.getModifiableImportRecord().addField(DecommissioningList.CONTAINER_DETAILS, containerDetail);
 
 		List<Map<String, String>> decomListFolderDetailList = new ArrayList<>();
 		for(DecomListFolderDetail decomListFolderDetail : decommissioningList.getFolderDetails())
@@ -87,9 +87,10 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			decomListFolderDetailList.add(map);
 		}
 
-		params.getModifiableImportRecord().addField(DECOM_LIST_FOLDER_DETAIL, decomListFolderDetailList);
+		params.getModifiableImportRecord().addField(DecommissioningList.FOLDER_DETAILS, decomListFolderDetailList);
 
 		List<Map<String, String>> decomListValidationList = new ArrayList<>();
+
 		for(DecomListValidation decomListValidation : decommissioningList.getValidations())
 		{
 			Map<String, String> map = writeDecomListValidation(decomListValidation);
@@ -104,8 +105,12 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(USER_ID, decomListValidation.getUserId());
-		map.put(REQUEST_DATE, decomListValidation.getRequestDate().toString(CommentFactory.DATE_PATTERN));
-		map.put(VALIDATION_DATE, decomListValidation.getValidationDate().toString(CommentFactory.DATE_PATTERN));
+		if(decomListValidation.getRequestDate() != null) {
+			map.put(REQUEST_DATE, decomListValidation.getRequestDate().toString(CommentFactory.DATE_PATTERN));
+		}
+		if(decomListValidation.getValidationDate() != null) {
+			map.put(VALIDATION_DATE, decomListValidation.getValidationDate().toString(CommentFactory.DATE_PATTERN));
+		}
 
 		return map;
 	}
@@ -114,7 +119,11 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(CONTAINER_RECORD_ID,decomListContainerDetail.getContainerRecordId());
-		map.put(AVAILABLE_SIZE, Double.toString(decomListContainerDetail.getAvailableSize()));
+		if(decomListContainerDetail.getAvailableSize() != null)
+		{
+			map.put(AVAILABLE_SIZE, Double.toString(decomListContainerDetail.getAvailableSize()));
+		}
+
 		map.put(FULL, Boolean.toString(decomListContainerDetail.isFull()));
 		return map;
 	}
@@ -126,7 +135,10 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		map.put(FOLDER_EXCLUDED, Boolean.toString(decomListFolderDetail.isFolderExcluded()));
 		map.put(CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
 		map.put(REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
-		map.put(FOLDER_LINEAR_SIZE, Double.toString(decomListFolderDetail.getFolderLinearSize()));
+		if(decomListFolderDetail.getFolderLinearSize() != null) {
+			map.put(FOLDER_LINEAR_SIZE, Double.toString(decomListFolderDetail.getFolderLinearSize()));
+		}
+
 		map.put(IS_PLACED_IN_CONTAINER, Boolean.toString(decomListFolderDetail.isPlacedInContainer()));
 
 		return map;

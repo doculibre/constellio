@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -50,6 +51,7 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 
         List<Map<String, String>> decomListFolderDetails = buildParams.getImportRecord().getList(DecommissioningList.FOLDER_DETAILS);
         List<Map<String, String>> decomListContainerDetails = buildParams.getImportRecord().getList(DecommissioningList.CONTAINER_DETAILS);
+        List<Map<String, String>> decomListValidations = buildParams.getImportRecord().getList(DecommissioningList.VALIDATIONS);
         List<Map<String, String>> decomListComments = buildParams.getImportRecord().getList(DecommissioningList.COMMENTS);
 
         DecommissioningList decommissioningList = new DecommissioningList(buildParams.getRecord(), buildParams.getTypes());
@@ -72,6 +74,10 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
             decomListCommentList.add(buildDecomListComments(decomListComment));
         }
         decommissioningList.setComments(decomListCommentList);
+    }
+
+    private DecomListValidation buildDecomListValidation(Map<String, String> mapDecomListValidation) {
+        DecomListValidation decomListValidation = new DecomListValidation(mapDecomListValidation.get());
     }
 
     private DecomListFolderDetail buildDecomListFolderDetails(Map<String, String> mapDecomListFolderDetail) {
