@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,7 +20,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Inv
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class MetadataSchemaTypes {
+public class MetadataSchemaTypes implements Serializable {
 
 	private static final String DEFAULT = "default";
 

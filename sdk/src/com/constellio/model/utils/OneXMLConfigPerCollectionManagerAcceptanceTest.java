@@ -35,11 +35,14 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	CollectionsListManager collectionsListManager;
 	@Mock OneXMLConfigPerCollectionManagerListener managerListener, otherManagerListener;
 	List<String> languages = Arrays.asList("fr");
+	SerializationCheckCache cache;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
+		cache = new SerializationCheckCache("zeCache");
+		
 		configReader = new XMLConfigReader<String>() {
 			@Override
 			public String read(String collection, Document document) {
@@ -189,7 +192,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	}
 
 	private OneXMLConfigPerCollectionManager<String> newManager(OneXMLConfigPerCollectionManagerListener listener) {
-		return new OneXMLConfigPerCollectionManager(configManager, collectionsListManager, filePath, configReader, listener);
+		return new OneXMLConfigPerCollectionManager(configManager, collectionsListManager, filePath, configReader, listener, cache);
 	}
 
 	private void updateCollectionValue(String collection, final String newValue) {

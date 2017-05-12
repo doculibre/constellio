@@ -22,6 +22,8 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
@@ -34,6 +36,7 @@ import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerListener;
+import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
@@ -48,16 +51,19 @@ public class SchemasDisplayManager
 	private ConfigManager configManager;
 
 	private CollectionsListManager collectionsListManager;
+	
+	private ConstellioCacheManager cacheManager; 
 
 	private OneXMLConfigPerCollectionManager<SchemasDisplayManagerCache> oneXMLConfigPerCollectionManager;
 
 	private MetadataSchemasManager metadataSchemasManager;
 
 	public SchemasDisplayManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
-			MetadataSchemasManager metadataSchemasManager) {
+			MetadataSchemasManager metadataSchemasManager, ConstellioCacheManager cacheManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.metadataSchemasManager = metadataSchemasManager;
+		this.cacheManager = cacheManager;
 	}
 
 	public Set<String> getReturnedFieldsForSearch(String collection) {
@@ -228,6 +234,7 @@ public class SchemasDisplayManager
 
 	@Override
 	public void initialize() {
+		ConstellioCache cache = cacheManager.getCache(SchemasDisplayManager.class.getName());
 		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager,
 				SCHEMAS_DISPLAY_CONFIG, xmlConfigReader(), this, new DocumentAlteration() {
 			@Override
@@ -235,7 +242,7 @@ public class SchemasDisplayManager
 				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
 				writer.writeEmptyDocument();
 			}
-		});
+		}, cache);
 		metadataSchemasManager.registerListener(new MetadataSchemasManagerListener() {
 			@Override
 			public void onCollectionSchemasModified(String collection) {

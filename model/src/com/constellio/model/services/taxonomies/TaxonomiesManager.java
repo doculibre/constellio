@@ -3,6 +3,7 @@ package com.constellio.model.services.taxonomies;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,6 +18,8 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -52,17 +55,19 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	private final SearchServices searchServices;
 	private final ConfigManager configManager;
 	private final CollectionsListManager collectionsListManager;
+	private ConstellioCacheManager cacheManager; 
 	private final BatchProcessesManager batchProcessesManager;
 	private OneXMLConfigPerCollectionManager<TaxonomiesManagerCache> oneXMLConfigPerCollectionManager;
 
 	public TaxonomiesManager(ConfigManager configManager, SearchServices searchServices,
 			BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
-			RecordsCaches recordsCaches) {
+			RecordsCaches recordsCaches, ConstellioCacheManager cacheManager) {
 		this.searchServices = searchServices;
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.batchProcessesManager = batchProcessesManager;
 		this.recordsCaches = recordsCaches;
+		this.cacheManager = cacheManager;
 	}
 
 	@Override
@@ -71,8 +76,9 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public OneXMLConfigPerCollectionManager<TaxonomiesManagerCache> newOneXMLConfigPerCollectionManager() {
+		ConstellioCache cache = cacheManager.getCache(TaxonomiesManager.class.getName());
 		return new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager,
-				TAXONOMIES_CONFIG, xmlConfigReader(), this);
+				TAXONOMIES_CONFIG, xmlConfigReader(), this, cache);
 	}
 
 	private XMLConfigReader<TaxonomiesManagerCache> xmlConfigReader() {
@@ -413,7 +419,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		}
 	}
 
-	public static class TaxonomiesManagerCache {
+	public static class TaxonomiesManagerCache implements Serializable {
 		final Taxonomy principalTaxonomy;
 		final List<Taxonomy> enableTaxonomies;
 		final List<Taxonomy> disableTaxonomies;

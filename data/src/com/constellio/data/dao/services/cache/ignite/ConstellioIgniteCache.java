@@ -12,6 +12,8 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 
 public class ConstellioIgniteCache implements ConstellioCache {
 	
+	private static final Object NULL = new Object();
+	
 	private String name;
 	
 	private IgniteCache<String, Object> igniteCache;
@@ -29,12 +31,17 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
-		return (T) igniteCache.get(key);
+		T result = (T) igniteCache.get(key);
+		return result == NULL ? null : result;
 	}
 
 	@Override
 	public <T extends Serializable> void put(String key, T value) {
-		igniteCache.put(key, value);
+		if (value == null) {
+			igniteCache.put(key, NULL);
+		} else {
+			igniteCache.put(key, value);
+		}
 	}
 
 	@Override
