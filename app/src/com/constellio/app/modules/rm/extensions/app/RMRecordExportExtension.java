@@ -1,28 +1,27 @@
 package com.constellio.app.modules.rm.extensions.app;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
+import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.extensions.behaviors.RecordExtension;
-import org.joda.time.LocalDate;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -39,19 +38,37 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		if (params.isRecordOfType(RetentionRule.SCHEMA_TYPE)) {
 			manageRetentionRule(params);
-		} else if (params.isRecordOfType(DecommissioningList.SCHEMA_TYPE))
-		{
+		} else if (params.isRecordOfType(DecommissioningList.SCHEMA_TYPE)) {
 			manageDecomissionList(params);
+		} else if (params.isRecordOfType(Report.SCHEMA_TYPE)) {
+			manageReport(params);
 		}
 	}
 
-	// Decom List container detail
 
+	private void manageReport(OnWriteRecordParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Report report = rm.wrapReport(params.getRecord());
 
+		List<Map<String, String>> reportList = new ArrayList<>();
 
+		for(ReportedMetadata reportedMetadata : report.getReportedMetadata())
+		{
+			reportList.add(writeReportedMetadata(reportedMetadata));
+		}
 
-	public static final String DECOM_LIST_VALIDATION = "decomListValidation";
+		params.getModifiableImportRecord().addField(Report.REPORTED_METADATA, reportList);
+	}
 
+	private Map<String, String> writeReportedMetadata(ReportedMetadata reportedMetadata) {
+		Map<String, String> map = new HashMap<>();
+
+		map.put(ReportImportExtension.METADATA_CODE, reportedMetadata.getMetadataCode());
+		map.put(ReportImportExtension.X_POSITION, Integer.toString(reportedMetadata.getXPosition()));
+		map.put(ReportImportExtension.Y_POSITION, Integer.toString(reportedMetadata.getYPosition()));
+
+		return map;
+	}
 
 	private void manageDecomissionList(OnWriteRecordParams params)
 	{
@@ -96,10 +113,12 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		map.put(DecommissioningListImportExtension.USER_ID, decomListValidation.getUserId());
 		if(decomListValidation.getRequestDate() != null) {
-			map.put(DecommissioningListImportExtension.REQUEST_DATE, decomListValidation.getRequestDate().toString(CommentFactory.DATE_PATTERN));
+			map.put(DecommissioningListImportExtension.REQUEST_DATE,
+					decomListValidation.getRequestDate().toString("yyyy-MM-dd"));
 		}
 		if(decomListValidation.getValidationDate() != null) {
-			map.put(DecommissioningListImportExtension.VALIDATION_DATE, decomListValidation.getValidationDate().toString(CommentFactory.DATE_PATTERN));
+			map.put(DecommissioningListImportExtension.VALIDATION_DATE,
+					decomListValidation.getValidationDate().toString("yyyy-MM-dd"));
 		}
 
 		return map;

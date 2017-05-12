@@ -4,14 +4,12 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.modules.rm.wrappers.structures.*;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -88,8 +86,25 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
     }
 
     private DecomListValidation buildDecomListValidation(Map<String, String> mapDecomListValidation) {
-        DecomListValidation decomListValidation;
+        DecomListValidation decomListValidation = new DecomListValidation();
 
+        if(mapDecomListValidation.containsKey(USER_ID) && StringUtils.isNotEmpty(mapDecomListValidation.get(USER_ID))) {
+            decomListValidation.setUserId(mapDecomListValidation.get(USER_ID));
+        }
+
+        if(mapDecomListValidation.containsKey(DecommissioningListImportExtension.REQUEST_DATE)
+                && StringUtils.isNotEmpty(mapDecomListValidation.get(REQUEST_DATE))) {
+            String requestedDate = mapDecomListValidation.get(REQUEST_DATE);
+            decomListValidation.setRequestDate(LocalDate.parse(requestedDate));
+        }
+
+        if(mapDecomListValidation.containsKey(DecommissioningListImportExtension.VALIDATION_DATE)
+                && StringUtils.isNotEmpty(mapDecomListValidation.get(VALIDATION_DATE))) {
+            String validationDate = mapDecomListValidation.get(VALIDATION_DATE);
+            decomListValidation.setRequestDate(LocalDate.parse(validationDate));
+        }
+        
+        return decomListValidation;
     }
 
     private DecomListFolderDetail buildDecomListFolderDetails(Map<String, String> mapDecomListFolderDetail) {

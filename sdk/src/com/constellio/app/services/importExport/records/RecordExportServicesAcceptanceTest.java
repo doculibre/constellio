@@ -27,11 +27,14 @@ import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hdfs.server.common.Storage;
 import org.apache.tools.ant.taskdefs.Copy;
@@ -74,6 +77,28 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenExportingReport() {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(Report.SCHEMA_TYPE)));
+
+		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		List<Report> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(records.folders(Report.SCHEMA_TYPE)).returnAll());
+
+		getModelLayerFactory().newSearchServices().search(query);
+
+		assertThatRecords(listSearchDecommissiongList).extractingMetadatas("ID");
+	}
+
+	@Test
 	public void whenExportingDecommissionList()
 	{
 		prepareSystem(
@@ -81,8 +106,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
