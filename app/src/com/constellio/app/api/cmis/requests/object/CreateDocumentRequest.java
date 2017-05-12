@@ -22,7 +22,6 @@ import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,9 +75,6 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 		Content content;
 		ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(contentStream.getStream(), contentStream.getFileName());
 		ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
-		if(uploadResponse.hasFoundDuplicate()) {
-			LOGGER.warn("Parsed content for document " + contentStream.getFileName() + " has a duplicate");
-		}
 		if (versioningState == VersioningState.MAJOR) {
 			content = contentManager.createMajor(user, contentStream.getFileName(), dataSummary);
 		} else if (versioningState == VersioningState.MINOR) {

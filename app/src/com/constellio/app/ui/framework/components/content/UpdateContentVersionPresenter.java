@@ -25,8 +25,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class UpdateContentVersionPresenter implements Serializable {
 
 	private static final String STREAM_NAME = "UpdateContentVersionPresenter-InputStream";
@@ -165,9 +163,6 @@ public class UpdateContentVersionPresenter implements Serializable {
 						ContentManager.ContentVersionDataSummaryResponse uploadResponse = getPresenterUtils(recordVO)
 								.uploadContent(inputStream, true, true, fileName);
 						ContentVersionDataSummary newVersionDataSummary = uploadResponse.getContentVersionDataSummary();
-						if(uploadResponse.hasFoundDuplicate()) {
-							window.showErrorMessage($("ContentManager.hasFoundDuplicate"));
-						}
 						if (newMajorVersion) {
 							contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
 						} else if (newMinorVersion) {

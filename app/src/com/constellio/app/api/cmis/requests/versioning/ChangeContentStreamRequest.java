@@ -18,7 +18,6 @@ import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,9 +98,6 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 			} else {
 				ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 				content.updateContentWithName(user, dataSummary, false, contentStream.getFileName());
-			}
-			if(uploadResponse.hasFoundDuplicate()) {
-				LOGGER.warn("Parsed content for document " + StringUtils.defaultIfBlank(contentCmisDocument.getDocumentId(), "") + " has a duplicate");
 			}
 			recordServices.update(contentCmisDocument.getRecord(), user);
 		} catch (IOException | RecordServicesException e) {

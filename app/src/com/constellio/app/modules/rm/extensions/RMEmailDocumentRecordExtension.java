@@ -56,9 +56,6 @@ public class RMEmailDocumentRecordExtension extends RecordExtension {
 		try {
 			ContentManager.ParsedContentResponse parsedContentResponse = modelLayerFactory.getContentManager().getParsedContentParsingIfNotYetDone(hash);
 			ParsedContent parsedContent = parsedContentResponse.getParsedContent();
-			if(parsedContentResponse.hasFoundDuplicate()) {
-				LOGGER.warn("Parsed content for user document " + userDocument.getId() + " has a duplicate");
-			}
 			String subject = asString(parsedContent.getNormalizedProperty("Subject"));
 			if (subject != null) {
 				//				FIXME Move this in the Outlook plugin's code

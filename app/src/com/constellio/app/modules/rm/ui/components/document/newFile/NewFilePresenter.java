@@ -77,9 +77,6 @@ public class NewFilePresenter implements Serializable {
 				try {
 					ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(inputStream, filename);
 					ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
-					if(uploadResponse.hasFoundDuplicate()) {
-						window.showErrorMessage($("ContentManager.hasFoundDuplicate"));
-					}
 					fileContent = contentManager.createMinor(user, filename, dataSummary);
 				} catch (final IcapException e) {
                     final String message;
@@ -119,9 +116,6 @@ public class NewFilePresenter implements Serializable {
 		try {
 			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(newFileInput, fileName);
 			ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
-			if(uploadResponse.hasFoundDuplicate()) {
-				window.showErrorMessage($("ContentManager.hasFoundDuplicate"));
-			}
 			return contentManager.createMinor(user, fileName, dataSummary);
 		} finally {
 			IOUtils.closeQuietly(newFileInput);

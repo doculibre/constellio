@@ -93,9 +93,6 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 						attachmentDocument.setTitle(attachmentFilename);
 						ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(attachmentIn, true, true, attachmentFilename);
 						ContentVersionDataSummary attachmentSummary = uploadResponse.getContentVersionDataSummary();
-						if(uploadResponse.hasFoundDuplicate()) {
-							view.showMessage($("ContentManager.hasFoundDuplicate"));
-						}
 						Content attachmentContent = contentManager
 								.createMajor(getCurrentUser(), attachmentFilename, attachmentSummary);
 						attachmentDocument.setContent(attachmentContent);

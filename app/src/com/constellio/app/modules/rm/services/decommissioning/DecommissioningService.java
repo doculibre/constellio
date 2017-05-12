@@ -887,9 +887,6 @@ public class DecommissioningService {
 		try (InputStream inputStream = contentManager.getContentInputStream(contentInputStreamId, "DecommissioningServices.populateDocumentFromUserDocument.in")) {
 			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(inputStream, "DecommissioningServices.populateDocumentFromUserDocument.upload");
 			ContentVersionDataSummary contentVersion = uploadResponse.getContentVersionDataSummary();
-			if(uploadResponse.hasFoundDuplicate()) {
-				LOGGER.warn("Parsed content for document " + StringUtils.defaultIfBlank(filename, "") + " has a duplicate");
-			}
 			Content content = contentManager.createMajor(currentUser, filename, contentVersion);
 			document.setContent(content);
 		}

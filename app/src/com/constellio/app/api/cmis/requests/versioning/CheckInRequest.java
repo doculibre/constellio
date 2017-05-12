@@ -24,7 +24,6 @@ import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,9 +100,6 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 				if (user.getId().equals(content.getCheckoutUserId())) {
 					ContentManager.ContentVersionDataSummaryResponse summaryResponse = uploadContent(inFromCopy, contentStream.getFileName());
 					ContentVersionDataSummary dataSummary = summaryResponse.getContentVersionDataSummary();
-					if(summaryResponse.hasFoundDuplicate()) {
-						LOGGER.warn("Parsed content for document " + StringUtils.defaultIfBlank(contentCmisDocument.getDocumentId(), "") + " has a duplicate");
-					}
 					content.checkInWithModificationAndName(dataSummary, major, contentStream.getFileName());
 				} else {
 					throw new ConstellioCmisException_ContentAlreadyCheckedOut();
