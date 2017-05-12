@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -36,6 +37,7 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
@@ -275,9 +277,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		try {
 			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, true, true, filename);
 			contentVersionSummary = uploadResponse.getContentVersionDataSummary();
-			if(uploadResponse.hasFoundDuplicate()) {
-				view.showMessage($("ContentManager.hasFoundDuplicate"));
-			}
             contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
             document.setContent(contentBeforeChange);
 		} finally {
@@ -418,11 +417,20 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-						.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash())))
+						.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+						.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
 						.filteredWithUser(getCurrentUser());
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
-				if(duplicateDocuments != null && duplicateDocuments.size() > 0) {
-					view.showMessage($("ContentManager.hasFoundDuplicate"));
+				if(duplicateDocuments.size() > 0) {
+					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+					message.append("<br>");
+					for(Document document: duplicateDocuments) {
+						message.append("<br>-");
+						message.append(document.getTitle());
+						message.append(": ");
+						message.append(generateDisplayLink(document));
+					}
+					view.showMessage(message.toString());
 				}
 			}
 			boolean newFileButtonVisible = contentVersionVO == null;
@@ -618,11 +626,20 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
 						RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 						LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash())))
+								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+								.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
 								.filteredWithUser(getCurrentUser());
 						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
-						if(duplicateDocuments != null && duplicateDocuments.size() > 0) {
-							view.showMessage($("ContentManager.hasFoundDuplicate"));
+						if(duplicateDocuments.size() > 0) {
+							StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+							message.append("<br>");
+							for(Document document: duplicateDocuments) {
+								message.append("<br>-");
+								message.append(document.getTitle());
+								message.append(": ");
+								message.append(generateDisplayLink(document));
+							}
+							view.showMessage(message.toString());
 						}
 					}
 					view.getForm().commit();
@@ -723,5 +740,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		document.setCreatedBy(currentUser.getId());
 		document.setAuthor(currentUser.getFirstName() + " " + currentUser.getLastName());
 		return document;
+	}
+
+	String generateDisplayLink(Document document) {
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
+		return constellioUrl + "#!" + displayURL + "/" + document.getId();
 	}
 }

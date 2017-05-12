@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
@@ -52,6 +53,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -95,6 +97,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient MetadataSchemasManager metadataSchemasManager;
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
+	private transient ConstellioEIMConfigs eimConfigs;
 
 	Boolean allItemsSelected = false;
 
@@ -124,6 +127,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		recordServices = modelLayerFactory.newRecordServices();
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -656,8 +660,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash())))
 							.filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
-					if(duplicateDocuments != null && duplicateDocuments.size() > 0) {
-						view.showMessage($("ContentManager.hasFoundDuplicate"));
+					if(duplicateDocuments.size() > 0) {
+						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+						message.append("<br>");
+						for(Document document: duplicateDocuments) {
+							message.append("<br>-");
+							message.append(document.getTitle());
+							message.append(": ");
+							message.append(generateDisplayLink(document));
+						}
+						view.showMessage(message.toString());
 					}
 				}
 				uploadedContentVO.setMajorVersion(true);
@@ -1000,4 +1012,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
+	String generateDisplayLink(Document document) {
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
+		return constellioUrl + "#!" + displayURL + "/" + document.getId();
+	}
 }

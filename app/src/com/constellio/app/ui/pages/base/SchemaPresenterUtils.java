@@ -281,7 +281,9 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				contentVersionDataSummary = uploadContent(inputStream, true, true, fileName).getContentVersionDataSummary();
+				ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, true, true, fileName);
+				contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+				contentVersionVO.setHasFoundDuplicate(uploadResponse.hasFoundDuplicate()).setDuplicatedHash(contentVersionDataSummary.getHash());
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);
