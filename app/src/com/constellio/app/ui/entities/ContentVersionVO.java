@@ -46,6 +46,8 @@ public class ContentVersionVO implements Serializable {
 
 	private Boolean hasFoundDuplicate;
 
+	private String duplicatedHash;
+
 	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length, String version,
 			Date lastModificationDateTime, String lastModifiedBy, String checkoutUserId, LocalDateTime checkoutDateTime,
 			String comment, InputStreamProvider inputStreamProvider) {
@@ -63,6 +65,7 @@ public class ContentVersionVO implements Serializable {
 		this.checkoutUserId = checkoutUserId;
 		this.checkoutDateTime = checkoutDateTime;
 		this.hasFoundDuplicate = null;
+		this.duplicatedHash = null;
 	}
 
 	public final String getContentId() {
@@ -143,6 +146,15 @@ public class ContentVersionVO implements Serializable {
 
 	public ContentVersionVO setHasFoundDuplicate(Boolean hasFoundDuplicate) {
 		this.hasFoundDuplicate = hasFoundDuplicate;
+		return this;
+	}
+
+	public final String getDuplicatedHash() {
+		return duplicatedHash;
+	}
+
+	public ContentVersionVO setDuplicatedHash(String duplicatedHash) {
+		this.duplicatedHash = duplicatedHash;
 		return this;
 	}
 

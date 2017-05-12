@@ -414,7 +414,18 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	void adjustContentField(CustomDocumentField<?> valueChangeField) {
 		if (isAddView() && valueChangeField instanceof DocumentContentField) {
 			DocumentContentField contentField = getContentField();
-			boolean newFileButtonVisible = contentField.getFieldValue() == null;
+			ContentVersionVO contentVersionVO = contentField.getFieldValue();
+			if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+						.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash())))
+						.filteredWithUser(getCurrentUser());
+				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+				if(duplicateDocuments != null && duplicateDocuments.size() > 0) {
+					view.showMessage($("ContentManager.hasFoundDuplicate"));
+				}
+			}
+			boolean newFileButtonVisible = contentVersionVO == null;
 			contentField.setNewFileButtonVisible(newFileButtonVisible);
 			if (newFileButtonVisible) {
 				newFile = false;
@@ -607,7 +618,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
 						RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 						LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getHash())))
+								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash())))
 								.filteredWithUser(getCurrentUser());
 						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 						if(duplicateDocuments != null && duplicateDocuments.size() > 0) {

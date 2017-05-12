@@ -653,7 +653,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				if(Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 					LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-							.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getHash())))
+							.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash())))
 							.filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if(duplicateDocuments != null && duplicateDocuments.size() > 0) {

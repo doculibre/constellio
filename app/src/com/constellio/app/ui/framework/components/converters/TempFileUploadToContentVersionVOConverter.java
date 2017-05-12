@@ -89,9 +89,10 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 				public void deleteTemp() {
 				}
 			};
+			boolean hasFoundDuplicate = uploadResponse.hasFoundDuplicate();
 			return tempFileUpload != null ?
 					new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, null,
-							inputStreamProvider).setHasFoundDuplicate(uploadResponse.hasFoundDuplicate()) :
+							inputStreamProvider).setHasFoundDuplicate(hasFoundDuplicate).setDuplicatedHash(hasFoundDuplicate? hash:null) :
 					null;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
