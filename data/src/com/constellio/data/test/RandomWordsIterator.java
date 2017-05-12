@@ -64,7 +64,7 @@ public class RandomWordsIterator implements Iterator<String> {
 	private static List<String> loadDicWords(File file)
 			throws IOException {
 		List<String> words = new ArrayList<>();
-		for (String line : FileUtils.readLines(file)) {
+		for (String line : FileUtils.readLines(file, "latin1")) {
 			int slashIndex = line.indexOf("/");
 			if (slashIndex > 0) {
 				words.add(line.substring(0, slashIndex).toLowerCase());
@@ -76,7 +76,6 @@ public class RandomWordsIterator implements Iterator<String> {
 
 	public String nextWords(int nbWords) {
 		StringBuilder stringBuilder = new StringBuilder(next());
-		stringBuilder.append(next());
 		for (int i = 1; i < nbWords; i++) {
 			stringBuilder.append(" ");
 			stringBuilder.append(next());

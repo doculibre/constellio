@@ -280,7 +280,9 @@ public class ReindexingServices {
 					if (metadatas.isEmpty() || (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId()))) {
 						if (metadatas.isEmpty()) {
 							current++;
-							LOGGER.info("Indexing '" + typeCode + "' : " + current + "/" + counter);
+							if (current % 1000 == 0 || current == counter) {
+								LOGGER.info("Indexing '" + typeCode + "' : " + current + "/" + counter);
+							}
 							bulkTransactionHandler.append(record);
 						} else {
 							String parentId = getParentIdOfSameType(metadatas, record);

@@ -36,6 +36,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -144,12 +145,19 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.setNumberOfRows(0)
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
-		Set<String> metadataLocalCodes = new HashSet<>();
+		Set<String> metadataCodes = new HashSet<>();
 		if (schema_s != null) {
 			for (FacetValue facetValue : schema_s) {
 				if (facetValue.getQuantity() > 0) {
 					String schema = facetValue.getValue();
-					metadataLocalCodes.addAll(types().getSchema(schema).getMetadatas().toLocalCodesList());
+					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+						if(metadata.getInheritance() != null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getInheritance().getCode());
+						}
+						else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getCode());
+						}
+					}
 				}
 			}
 		}
@@ -158,11 +166,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		List<MetadataVO> result = new ArrayList<>();
 		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
-		for (Metadata metadata : schemaType.getAllMetadatas()) {
-			if (!schemaType.hasSecurity() || metadataLocalCodes.contains(metadata.getLocalCode())) {
+		MetadataList allMetadatas = schemaType.getAllMetadatas();
+		for (Metadata metadata : allMetadatas) {
+			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
 				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() && metadata.isEnabled() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString || isTextOrString && metadata.isSearchable())) {
+				if (config.isVisibleInAdvancedSearch()  && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString || isTextOrString && metadata.isSearchable())) {
 					result.add(builder.build(metadata, header.getSessionContext()));
 				}
 			}

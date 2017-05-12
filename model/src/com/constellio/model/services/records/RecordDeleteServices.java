@@ -609,7 +609,8 @@ public class RecordDeleteServices {
 					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
 			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText(record.getId()));
 		} else {
-			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText(record.getId()));
+			query.setCondition(
+					fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText("/" + record.getId() + "/"));
 		}
 		return !searchServices.hasResults(query);
 	}

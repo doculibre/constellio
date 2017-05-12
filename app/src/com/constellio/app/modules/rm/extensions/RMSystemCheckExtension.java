@@ -16,12 +16,16 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
@@ -49,13 +53,16 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	RecordServices recordServices;
 	IOServices ioServices;
 
-	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
-	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
+	public static final String EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckoutedList";
+	public static final String METRIC_EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckouted";
+	public static final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
+	public static final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
+	public static final String METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL = "rm.recordValidation.subFolderWithNullFieldsNotNulls";
 
-	public final String DELETED_ADM_UNITS = "rm.admUnit.deleted";
-	public final String RESTORED_ADM_UNITS = "rm.admUnit.restored";
-	public final String DELETED_CATEGORIES = "rm.category.deleted";
-	public final String RESTORED_CATEGORIES = "rm.category.restored";
+	public static final String DELETED_ADM_UNITS = "rm.admUnit.deleted";
+	public static final String RESTORED_ADM_UNITS = "rm.admUnit.restored";
+	public static final String DELETED_CATEGORIES = "rm.category.deleted";
+	public static final String RESTORED_CATEGORIES = "rm.category.restored";
 
 	RMSchemasRecordsServices rm;
 
@@ -84,6 +91,91 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public boolean validateRecord(ValidateRecordsCheckParams validateRecordsCheckParams) {
+
+		Record record = validateRecordsCheckParams.getRecord();
+		boolean isRepair = validateRecordsCheckParams.isRepair();
+		boolean isToBeSaved = false;
+
+		if (record.getSchemaCode().equals(Email.SCHEMA)) // Vérifier qu'il est checkouter.
+		{
+
+			Email email = rm.wrapEmail(record);
+
+			if (email.getContent() != null && email.getContent().getCurrentCheckedOutVersion() != null) {
+				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_EMAIL_CHECKOUTED);
+				validateRecordsCheckParams.getResultsBuilder().addListItem(EMAIL_CHECKOUTED, record.getId());
+				if (validateRecordsCheckParams.isRepair()) {
+					if (email.getContent() != null) {
+						email.getContent().checkIn();
+
+						isToBeSaved = true;
+					}
+				}
+			}
+		} else if (record.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+			Folder folder = rm.wrapFolder(record);
+			boolean incrementMetric = false;
+
+			if (folder.getParentFolder() != null) {
+				if (folder.getMainCopyRuleIdEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setMainCopyRuleEntered(null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getUniformSubdivisionEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setUniformSubdivisionEntered((UniformSubdivision) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getAdministrativeUnitEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setAdministrativeUnitEntered((AdministrativeUnit) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getCategoryEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setCategoryEntered((Category) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getRetentionRuleEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setRetentionRuleEntered((RetentionRule) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getCopyStatusEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setCopyStatusEntered(null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (incrementMetric) {
+					validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL);
+				}
+			}
+		}
+
+		return isToBeSaved;
 	}
 
 	@Override

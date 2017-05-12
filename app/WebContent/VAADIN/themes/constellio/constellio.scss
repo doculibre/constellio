@@ -653,6 +653,12 @@ $popup-view-z-index: 3;
 	.base-multifileupload-completed:after {
 		content: " \f00c ";
 	}
+				
+	.v-filterselect-suggestpopup-advanced-search-form-metadata {
+		.popupContent {
+			width: 400px;
+		}
+	}
 
 	.v-popupview-popup-header-popup {
 		width: 100%;
