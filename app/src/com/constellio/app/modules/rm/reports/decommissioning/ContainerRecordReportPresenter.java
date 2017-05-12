@@ -132,7 +132,7 @@ public class ContainerRecordReportPresenter {
 				.getMetadata(Folder.CONTAINER);
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchemaType)
-				.where(folderMetadata).isEqualTo(containerId));
+				.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode());
 
 		List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 
