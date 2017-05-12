@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -41,6 +31,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
@@ -247,6 +246,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		} else {
 			containerRecord.setFirstDepositReportDate(LocalDate.now());
 		}
+		containerRecord.setDocumentResponsible(getCurrentUser().getId());
 		try {
 			recordServices().update(containerRecord);
 		} catch (RecordServicesException e) {

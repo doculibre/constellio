@@ -12815,6 +12815,10 @@ div.v-layout.v-horizontal.v-widget {
 	content: " \f00c ";
 }
 
+.constellio .v-filterselect-suggestpopup-advanced-search-form-metadata .popupContent {
+	width: 400px;
+}
+
 .constellio .v-popupview-popup-header-popup {
 	width: 100%;
 }

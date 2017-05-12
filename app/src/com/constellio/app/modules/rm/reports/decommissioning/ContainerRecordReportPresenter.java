@@ -132,7 +132,7 @@ public class ContainerRecordReportPresenter {
 				.getMetadata(Folder.CONTAINER);
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchemaType)
-				.where(folderMetadata).isEqualTo(containerId));
+				.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode());
 
 		List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 
@@ -247,7 +247,7 @@ public class ContainerRecordReportPresenter {
 
 			LocalDate dispositionDate = decommissioningService.getDispositionDate(container);
 			if (dispositionDate != null) {
-				dispositionYear = dispositionDate.toString();
+				dispositionYear = Integer.toString(dispositionDate.getYear());
 			}
 
 			supports = getSupports(container);
@@ -331,7 +331,6 @@ public class ContainerRecordReportPresenter {
 		String boxNumber = "";
 		String containerNumber = "";
 		String organisationName = "";
-		String ministryName = "";
 		String publicOrganisationNumber = "";
 		String sentDateTransfer = "";
 		String sentDateDeposit = "";
@@ -342,12 +341,10 @@ public class ContainerRecordReportPresenter {
 
 			List<String> administrativeUnits = container.getAdministrativeUnits();
 			if (administrativeUnit != null && (administrativeUnits == null || administrativeUnits.isEmpty())) {
-				ministryName = rmConfigs.isPopulateBordereauxWithAdministrativeUnit()? administrativeUnit.getCode() + " - " + administrativeUnit.getTitle(): "";
 				administrativeAddress = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle()
 						+ "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
 			} else if(administrativeUnits != null && !administrativeUnits.isEmpty()) {
 				administrativeAddress = $("DocumentTransfertReport.multipleAdministrativeUnits");
-				ministryName= "";
 			}
 
 			containerNumber = container.getIdentifier();
@@ -378,7 +375,6 @@ public class ContainerRecordReportPresenter {
 		identificationModel.setBoxNumber(boxNumber);
 		identificationModel.setContainerNumber(containerNumber);
 		identificationModel.setOrganisationName(organisationName);
-		identificationModel.setMinistryName(ministryName);
 		identificationModel.setPublicOrganisationNumber(publicOrganisationNumber);
 		identificationModel.setSentDateTransfer(sentDateTransfer);
 		identificationModel.setSentDateDeposit(sentDateDeposit);
@@ -392,7 +388,7 @@ public class ContainerRecordReportPresenter {
 		String phone = "";
 		String email = "";
 
-		String userdId = container.getModifiedBy();
+		String userdId = container.getDocumentResponsible();
 		if (userdId != null && !userdId.isEmpty()) {
 
 			User user = getUser(userdId);
