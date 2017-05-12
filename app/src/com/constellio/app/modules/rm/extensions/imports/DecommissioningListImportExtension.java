@@ -33,6 +33,10 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
     public static final String USER_ID = "userId";
     public static final String USERNAME = "username";
     public static final String DATE_TIME = "dateTime";
+    public static final String AVAILABLE_SIZE = "availableSize";
+    public static final String IS_PLACED_IN_CONTAINER = "IsPlacedInContainer";
+    public static final String REQUEST_DATE = "requestDate";
+    public static final String VALIDATION_DATE = "validationDate";
 
     private final RMSchemasRecordsServices rm;
 
@@ -52,12 +56,14 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         List<Map<String, String>> decomListFolderDetails = buildParams.getImportRecord().getList(DecommissioningList.FOLDER_DETAILS);
         List<Map<String, String>> decomListContainerDetails = buildParams.getImportRecord().getList(DecommissioningList.CONTAINER_DETAILS);
         List<Map<String, String>> decomListValidations = buildParams.getImportRecord().getList(DecommissioningList.VALIDATIONS);
+
         List<Map<String, String>> decomListComments = buildParams.getImportRecord().getList(DecommissioningList.COMMENTS);
 
         DecommissioningList decommissioningList = new DecommissioningList(buildParams.getRecord(), buildParams.getTypes());
 
         List<DecomListFolderDetail> decomListFolderDetailList = new ArrayList<>();
         List<DecomListContainerDetail> decomListContainerDetailList = new ArrayList<>();
+        List<DecomListValidation> decomListValidationList = new ArrayList<>();
         List<Comment> decomListCommentList = new ArrayList<>();
 
         for (Map<String, String> decomListFolderDetail : decomListFolderDetails) {
@@ -70,6 +76,11 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         }
         decommissioningList.setContainerDetails(decomListContainerDetailList);
 
+        for(Map<String, String> decomListValidation : decomListValidations) {
+            decomListValidationList.add(buildDecomListValidation(decomListValidation));
+        }
+        decommissioningList.setValidations(decomListValidationList);
+
         for (Map<String, String> decomListComment : decomListComments) {
             decomListCommentList.add(buildDecomListComments(decomListComment));
         }
@@ -77,7 +88,8 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
     }
 
     private DecomListValidation buildDecomListValidation(Map<String, String> mapDecomListValidation) {
-        DecomListValidation decomListValidation = new DecomListValidation(mapDecomListValidation.get());
+        DecomListValidation decomListValidation;
+
     }
 
     private DecomListFolderDetail buildDecomListFolderDetails(Map<String, String> mapDecomListFolderDetail) {

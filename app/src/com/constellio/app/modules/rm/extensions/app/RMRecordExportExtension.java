@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
@@ -45,23 +46,12 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	}
 
 	// Decom List container detail
-	public static final String DECOM_LIST_CONTAINER_DETAIL = "decomListContainerDetail";
-	public static final String CONTAINER_RECORD_ID = "ContainerRecordId";
-	public static final String AVAILABLE_SIZE = "AvailableSize";
-	public static final String FULL = "Full";
 
-	// DecomList folder detail
-	public static final String DECOM_LIST_FOLDER_DETAIL = "DecomListFolderDetail";
-	public static final String FOLDER_ID = "FolderId";
-	public static final String FOLDER_EXCLUDED = "FolderExcluded";
-	public static final String REVERSED_SORT = "ReversedSort";
-	public static final String FOLDER_LINEAR_SIZE = "FolderLinearSize";
-	public static final String IS_PLACED_IN_CONTAINER = "IsPlacedInContainer";
+
+
 
 	public static final String DECOM_LIST_VALIDATION = "decomListValidation";
-	public static final String USER_ID = "UserId";
-	public static final String REQUEST_DATE = "RequestDate";
-	public static final String VALIDATION_DATE = "ValidationDate";
+
 
 	private void manageDecomissionList(OnWriteRecordParams params)
 	{
@@ -98,18 +88,18 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			decomListValidationList.add(map);
 		}
 
-		params.getModifiableImportRecord().addField(DECOM_LIST_VALIDATION, decomListFolderDetailList);
+		params.getModifiableImportRecord().addField(DecommissioningList.VALIDATIONS, decomListFolderDetailList);
 	}
 
 	private Map<String, String> writeDecomListValidation(DecomListValidation decomListValidation) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(USER_ID, decomListValidation.getUserId());
+		map.put(DecommissioningListImportExtension.USER_ID, decomListValidation.getUserId());
 		if(decomListValidation.getRequestDate() != null) {
-			map.put(REQUEST_DATE, decomListValidation.getRequestDate().toString(CommentFactory.DATE_PATTERN));
+			map.put(DecommissioningListImportExtension.REQUEST_DATE, decomListValidation.getRequestDate().toString(CommentFactory.DATE_PATTERN));
 		}
 		if(decomListValidation.getValidationDate() != null) {
-			map.put(VALIDATION_DATE, decomListValidation.getValidationDate().toString(CommentFactory.DATE_PATTERN));
+			map.put(DecommissioningListImportExtension.VALIDATION_DATE, decomListValidation.getValidationDate().toString(CommentFactory.DATE_PATTERN));
 		}
 
 		return map;
@@ -118,28 +108,28 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	private Map<String, String> writedecomListContainerDetail(DecomListContainerDetail decomListContainerDetail) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(CONTAINER_RECORD_ID,decomListContainerDetail.getContainerRecordId());
+		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID,decomListContainerDetail.getContainerRecordId());
 		if(decomListContainerDetail.getAvailableSize() != null)
 		{
-			map.put(AVAILABLE_SIZE, Double.toString(decomListContainerDetail.getAvailableSize()));
+			map.put(DecommissioningListImportExtension.AVAILABLE_SIZE, Double.toString(decomListContainerDetail.getAvailableSize()));
 		}
 
-		map.put(FULL, Boolean.toString(decomListContainerDetail.isFull()));
+		map.put(DecommissioningListImportExtension.BOOLEAN_FULL, Boolean.toString(decomListContainerDetail.isFull()));
 		return map;
 	}
 
 	private Map<String, String> writeDecomListFolderDetail(DecomListFolderDetail decomListFolderDetail) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(FOLDER_ID,decomListFolderDetail.getFolderId());
-		map.put(FOLDER_EXCLUDED, Boolean.toString(decomListFolderDetail.isFolderExcluded()));
-		map.put(CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
-		map.put(REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
+		map.put(DecommissioningListImportExtension.FOLDER_ID,decomListFolderDetail.getFolderId());
+		map.put(DecommissioningListImportExtension.FOLDER_EXCLUDED, Boolean.toString(decomListFolderDetail.isFolderExcluded()));
+		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
+		map.put(DecommissioningListImportExtension.REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
 		if(decomListFolderDetail.getFolderLinearSize() != null) {
-			map.put(FOLDER_LINEAR_SIZE, Double.toString(decomListFolderDetail.getFolderLinearSize()));
+			map.put(DecommissioningListImportExtension.FOLDER_LINEAR_SIZE, Double.toString(decomListFolderDetail.getFolderLinearSize()));
 		}
 
-		map.put(IS_PLACED_IN_CONTAINER, Boolean.toString(decomListFolderDetail.isPlacedInContainer()));
+		map.put(DecommissioningListImportExtension.IS_PLACED_IN_CONTAINER, Boolean.toString(decomListFolderDetail.isPlacedInContainer()));
 
 		return map;
 	}
