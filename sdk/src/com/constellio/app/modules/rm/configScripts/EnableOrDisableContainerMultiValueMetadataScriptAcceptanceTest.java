@@ -73,6 +73,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
         prepareSystem(
                 withZeCollection().withConstellioRMModule()
         );
+        metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 
         EnableOrDisableContainerMultiValueMetadataScript enableOrDisableContainerMultiValueMetadataScript = new EnableOrDisableContainerMultiValueMetadataScript();
 
