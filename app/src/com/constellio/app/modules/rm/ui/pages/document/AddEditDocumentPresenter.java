@@ -220,6 +220,22 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		ContentVersion contentVersion = content.getCurrentVersion();
 		ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
 		String folderId = userDocument.getFolder();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+				.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getHash())))
+				.filteredWithUser(getCurrentUser());
+		List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+		if(duplicateDocuments.size() > 0) {
+			StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+			message.append("<br>");
+			for(Document document: duplicateDocuments) {
+				message.append("<br>-");
+				message.append(document.getTitle());
+				message.append(": ");
+				message.append(generateDisplayLink(document));
+			}
+			view.showMessage(message.toString());
+		}
 
 		// Reset as new content
 		contentVersionVO.setHash(null);
