@@ -34,6 +34,8 @@ public class RecordUpdateOptions {
 	boolean skippingRequiredValuesValidation = false;
 	private boolean skippingReferenceToLogicallyDeletedValidation = false;
 
+	boolean allowSchemaTypeLockedRecordsModification = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -67,6 +69,15 @@ public class RecordUpdateOptions {
 
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
 		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
+	}
+
+	public boolean isAllowSchemaTypeLockedRecordsModification() {
+		return allowSchemaTypeLockedRecordsModification;
+	}
+
+	public RecordUpdateOptions setAllowSchemaTypeLockedRecordsModification(boolean allowSchemaTypeLockedRecordsModification) {
+		this.allowSchemaTypeLockedRecordsModification = allowSchemaTypeLockedRecordsModification;
+		return this;
 	}
 
 	public boolean isSkipUSRMetadatasRequirementValidations() {

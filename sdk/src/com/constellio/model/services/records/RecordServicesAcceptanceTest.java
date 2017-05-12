@@ -89,6 +89,7 @@ import com.constellio.model.services.records.RecordServicesException.ValidationE
 import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
+import com.constellio.model.services.records.RecordServicesRuntimeException.SchemaTypeOfARecordHasReadOnlyLock;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
@@ -312,6 +313,37 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), valueTooLong);
 
 		recordServices.update(record);
+	}
+
+	@Test(expected = SchemaTypeOfARecordHasReadOnlyLock.class)
+	public void whenAddUpdatingRecordWithReadOnlyLockThenException()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata());
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType("zeSchemaType").setReadOnlyLocked(true);
+			}
+		});
+
+		recordServices.add(record.set(zeSchema.stringMetadata(), "Banana"));
+	}
+
+	@Test
+	public void whenAddUpdatingRecordWithReadOnlyLockWithFlagAllowingItThenNoException()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata());
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType("zeSchemaType").setReadOnlyLocked(true);
+			}
+		});
+
+		Transaction transaction = new Transaction();
+		transaction.getRecordUpdateOptions().setAllowSchemaTypeLockedRecordsModification(true);
+		transaction.add(record.set(zeSchema.stringMetadata(), "Banana"));
+		recordServices.execute(transaction);
 	}
 
 	@Test()
