@@ -54,6 +54,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas
 				.withAStringMetadata()
 				.withANumberMetadata(whichIsCalculatedUsingPattern("stringMetadata.length()")));

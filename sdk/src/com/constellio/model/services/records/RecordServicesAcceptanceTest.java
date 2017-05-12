@@ -130,7 +130,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		System.out.println("\n\n--RecordServicesAcceptanceTest.setup--\n\n");
-
+		givenDisabledAfterTestValidations();
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
 			public void alter(InMemoryModelLayerConfiguration configuration) {
@@ -1893,7 +1893,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenBrokenMultivalueReferencesThenCatchedDependingOnTransactionOption()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
 

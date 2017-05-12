@@ -68,7 +68,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withDocumentsHavingContent());
