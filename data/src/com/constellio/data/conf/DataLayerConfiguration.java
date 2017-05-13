@@ -81,7 +81,9 @@ public interface DataLayerConfiguration {
 	
 	String getKafkaServers();
 	
-	String getSecondTransactionLogClass();
+	String getSecondTransactionLogMode();
 	
 	String getKafkaTopic();
+	
+	long getReplayTransactionStartVersion();
 }

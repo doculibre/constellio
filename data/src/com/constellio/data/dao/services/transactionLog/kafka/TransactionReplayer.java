@@ -4,7 +4,6 @@ import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTrans
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,13 +27,15 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 	private long maxPurgeSize = 50000L;
 
 	private final DataLayerConfiguration configuration;
-	
+
 	private final BigVaultServer bigVaultServer;
 	private final DataLayerLogger dataLayerLogger;
-	
+
 	private Map<Long, String> transactions;
 
 	private String[] requestDelimiters = { "addUpdate ", "delete ", "deletequery ", "sequence next ", "sequence set " };
+
+	private long startVersion;
 
 	private long lastInserted = 0L;
 
@@ -45,6 +46,7 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 		this.dataLayerLogger = dataLayerLogger;
 
 		setTransactions(new TreeMap<Long, String>());
+		setStartVersion(configuration.getReplayTransactionStartVersion());
 	}
 
 	@Override
@@ -84,13 +86,19 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 					throw new IllegalStateException("Current version is lesser than the last replayed transaction.");
 				}
 
-				transactions.put(version, request);
+				if (isAcceptableVersion(version)) {
+					transactions.put(version, request);
 
-				if (transactions.size() >= getMaxBufferSize()) {
-					replayTransactions(getMaxPurgeSize());
+					if (transactions.size() >= getMaxBufferSize()) {
+						replayTransactions(getMaxPurgeSize());
+					}
 				}
 			}
 		}
+	}
+
+	private boolean isAcceptableVersion(long version) {
+		return version > getStartVersion();
 	}
 
 	private boolean contains(String line, String key) {
@@ -128,7 +136,7 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 
 		return new BigVaultLogAddUpdater(transactionsLogImportHandler);
 	}
-	
+
 	private void replayTransactions(long length) {
 		System.out.println("Replay " + length + " transactions.");
 		long i = 0L;
@@ -137,6 +145,8 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 
 		for (Iterator<Entry<Long, String>> iterator = entrySet.iterator(); i < length && iterator.hasNext();) {
 			Entry<Long, String> transaction = iterator.next();
+
+			System.out.println("Replay version: " + transaction.getKey());
 			replayTransactionLog(addUpdater, transaction.getValue());
 
 			iterator.remove();
@@ -206,5 +216,13 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 		}
 
 		this.maxPurgeSize = maxPurgeSize;
+	}
+
+	public long getStartVersion() {
+		return startVersion;
+	}
+
+	public void setStartVersion(long startVersion) {
+		this.startVersion = startVersion;
 	}
 }

@@ -73,17 +73,18 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 			throws Exception {
 		// givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
-		withSpiedServices(SecondTransactionLogManager.class);
+		//withSpiedServices(SecondTransactionLogManager.class);
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
 			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setSecondTransactionLogEnabled(true);
-				configuration.setSecondTransactionLogClass("com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager");
+				configuration.setSecondTransactionLogMode("kafka");
 				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
 				configuration.setSecondTransactionLogBackupCount(3);
-				configuration.setKafkaServers("192.168.0.103:9092");
-				configuration.setKafkaTopic("constellio-topic1");
+				configuration.setReplayTransactionStartVersion(0L);
+				configuration.setKafkaServers("localhost:9092");
+				configuration.setKafkaTopic("constellio-topic5");
 			}
 		});
 
@@ -100,10 +101,10 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void whenMultipleThreadsAreAdding5000RecordsThenAllRecordsAreLogged()
 			throws Exception {
-//		runAdding(650000);
+		runAdding(2000000);
 //		assertThat(log.isLastFlushFailed()).isFalse();
 		
-		log.destroyAndRebuildSolrCollection();
+		//log.destroyAndRebuildSolrCollection();
 	}
 
 	private void runAdding(final int nbRecordsToAdd)
@@ -111,14 +112,14 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 		final ThreadList<Thread> threads = new ThreadList<>();
 		for (int i = 0; i < 10; i++) {
 
-			threads.add(new Thread() {
+			threads.add(new Thread(String.valueOf(i)) {
 				@Override
 				public void run() {
 					int arrayIndex;
 
 					while ((arrayIndex = index.incrementAndGet()) < nbRecordsToAdd) {
 						if ((arrayIndex + 1) % 500 == 0) {
-							System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd);
+							System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd + " (Thread numero : "+getName()+")");
 						}
 						Record record = new TestRecord(zeSchema);
 

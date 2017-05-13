@@ -68,8 +68,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setFile("secondTransactionLog.folder", value);
 		}
 
-		public void setSecondTransactionLogClass(String value) {
-			setString("secondTransactionLog.class", value);
+		public void setSecondTransactionLogMode(String value) {
+			setString("secondTransactionLog.mode", value);
+		}
+		
+		public void setReplayTransactionStartVersion(long value) {
+			setLong("secondTransactionLog.version", value);
 		}
 
 		public void setSecondTransactionLogEnabled(boolean value) {
@@ -215,8 +219,13 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public String getSecondTransactionLogClass() {
-		return getString("secondTransactionLog.class", null);
+	public String getSecondTransactionLogMode() {
+		return getString("secondTransactionLog.mode", "xml");
+	}
+	
+	@Override
+	public long getReplayTransactionStartVersion() {
+		return getLong("secondTransactionLog.version", 0);
 	}
 
 	public ConfigManagerType getSettingsConfigType() {

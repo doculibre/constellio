@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,13 +68,11 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	public void close() {
 		transactions.clear();
 
-		/*
 		try {
 			producer.close();
 		} finally {
 			producer = null;
 		}
-		*/
 	}
 
 	@Override
@@ -118,15 +117,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		transaction.setVersions(transactionInfo.getNewDocumentVersions());
 		transaction.setTransaction(data);
 
-		KafkaProducer<String, Transaction> prod = getProducer();
-			setLastFlushFailed(!getDeliveryStrategy().<String, Transaction> send(prod, getRecord(transaction), callback));
-		
-		/*
-		if(!prod.isClosed()) {
-			prod.flush();
-		}
-		*/
-			prod.flush();
+		setLastFlushFailed(!getDeliveryStrategy().<String, Transaction> send(getProducer(), getRecord(transaction), callback));
 	}
 
 	private ProducerRecord<String, Transaction> getRecord(Transaction data) {
@@ -142,8 +133,6 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 
 			producer = new KafkaProducer<>(configs);
 		}
-		
-		//producer.prepareToSend();
 
 		return producer;
 	}
@@ -159,7 +148,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 			}
 		}
 
-		return host + System.currentTimeMillis();
+		return host + new Random().nextInt(10);
 	}
 
 	@Override
