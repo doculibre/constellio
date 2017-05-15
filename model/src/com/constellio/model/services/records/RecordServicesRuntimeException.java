@@ -40,6 +40,13 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class SchemaTypeOfARecordHasReadOnlyLock extends RecordServicesRuntimeException {
+
+		public SchemaTypeOfARecordHasReadOnlyLock(String schemaType, String id) {
+			super("Schema type '" + schemaType + "' of record '" + id + "' has read only locked");
+		}
+	}
+
 	public static class BrokenReference extends RecordServicesRuntimeException {
 
 		public BrokenReference(String recordIdWithReference, String referencedId, Metadata metadata,

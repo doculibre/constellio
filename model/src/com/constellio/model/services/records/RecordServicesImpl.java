@@ -407,6 +407,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 		}
 
+		for (Record record : transaction.getRecords()) {
+			MetadataSchemaType schemaType = types.getSchemaType(record.getTypeCode());
+			if (schemaType.isReadOnlyLocked() && !options.isAllowSchemaTypeLockedRecordsModification()) {
+				throw new RecordServicesRuntimeException.SchemaTypeOfARecordHasReadOnlyLock(record.getTypeCode(), record.getId());
+			}
+		}
+
 		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(transaction.getCollection());
 		for (Record record : transaction.getRecords()) {
 			if (record.isDirty()) {

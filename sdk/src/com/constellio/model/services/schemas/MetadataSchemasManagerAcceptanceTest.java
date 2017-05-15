@@ -1348,6 +1348,38 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenReadOnlyLockedFlagsWhenSavingAndModifyingThenReadOnlyLockedConserved()
+			throws Exception {
+
+		MetadataSchemaTypes types = createTwoSchemas();
+		assertThat(types.getSchemaType("folder").isReadOnlyLocked()).isFalse();
+		assertThat(types.getSchemaType("rule").isReadOnlyLocked()).isFalse();
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType("folder").setReadOnlyLocked(true);
+			}
+		});
+		types = schemasManager.getSchemaTypes("zeCollection");
+
+		assertThat(types.getSchemaType("folder").isReadOnlyLocked()).isTrue();
+		assertThat(types.getSchemaType("rule").isReadOnlyLocked()).isFalse();
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType("folder").setReadOnlyLocked(false);
+				types.getSchemaType("rule").setReadOnlyLocked(true);
+			}
+		});
+		types = schemasManager.getSchemaTypes("zeCollection");
+
+		assertThat(types.getSchemaType("folder").isReadOnlyLocked()).isFalse();
+		assertThat(types.getSchemaType("rule").isReadOnlyLocked()).isTrue();
+	}
+
+	@Test
 	public void givenNewSchemaTypesThenSchemaHasCommonMetadatas()
 			throws Exception {
 

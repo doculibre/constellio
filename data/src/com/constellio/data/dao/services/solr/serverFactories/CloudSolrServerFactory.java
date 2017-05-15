@@ -46,7 +46,11 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 		}
 
 		for (SolrClient solrClient : solrClients)
-			solrClient.shutdown();
+			try {
+				solrClient.close();
+			} catch (IOException ioe) {
+				LOGGER.error("Error while closing solr client", ioe);
+			}
 	}
 
 	@Override

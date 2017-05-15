@@ -39,6 +39,21 @@ public class ReportServices {
 		reportSchema = schemaTypes.getSchema(Report.DEFAULT_SCHEMA);
 	}
 
+	public void deleteReport(User user, Report report)
+	{
+		String reportUsername = report.getUsername();
+		if (user.getUsername().equals(reportUsername)) {
+			delete(report, user);
+		} else {
+			if (report.getUsername() == null || hasReportManagementPermission(user)
+					&& recordServices.isLogicallyThenPhysicallyDeletable(report.getWrappedRecord(), user)) {
+				delete(report, user);
+			} else {
+				throw new CouldNotDeleteSomeoneElseReportRuntimeException(report.getUsername() + "!=" + user.getUsername());
+			}
+		}
+	}
+
 	public void saveReport(User user, Report report) {
 		String reportUsername = report.getUsername();
 		if (user.getUsername().equals(reportUsername)) {
@@ -144,6 +159,12 @@ public class ReportServices {
 		return returnList;
 	}
 
+	public void delete(Report report, User user)
+	{
+		recordServices.logicallyDelete(report.getWrappedRecord(), user);
+		recordServices.physicallyDelete(report.getWrappedRecord(), user);
+	}
+
 	public void addUpdate(Report report) {
 		Transaction transaction = new Transaction();
 		transaction.add(report);
@@ -187,6 +208,12 @@ public class ReportServices {
 
 	private class CouldNotModifySomeoneElseReportRuntimeException extends RuntimeException {
 		public CouldNotModifySomeoneElseReportRuntimeException(String message) {
+			super(message);
+		}
+	}
+
+	private class CouldNotDeleteSomeoneElseReportRuntimeException extends RuntimeException {
+		public CouldNotDeleteSomeoneElseReportRuntimeException(String message) {
 			super(message);
 		}
 	}
