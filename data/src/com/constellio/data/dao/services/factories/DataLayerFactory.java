@@ -34,6 +34,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.contents.HadoopContentDao;
@@ -104,6 +105,8 @@ public class DataLayerFactory extends LayerFactory {
 			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
 		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.MEMORY) {
 			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
+			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
@@ -112,6 +115,8 @@ public class DataLayerFactory extends LayerFactory {
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
 		} else if (dataLayerConfiguration.getRecordsCacheType() == CacheType.MEMORY) {
 			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
+			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}

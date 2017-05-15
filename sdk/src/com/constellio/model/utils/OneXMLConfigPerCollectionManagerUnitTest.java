@@ -15,6 +15,7 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTest;
 

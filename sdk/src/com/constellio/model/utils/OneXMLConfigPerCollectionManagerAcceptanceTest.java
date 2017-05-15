@@ -19,6 +19,7 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.services.collections.CollectionsListManager;

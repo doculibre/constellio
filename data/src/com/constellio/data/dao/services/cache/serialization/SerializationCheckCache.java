@@ -1,9 +1,9 @@
-package com.constellio.model.utils;
+package com.constellio.data.dao.services.cache.serialization;
 
 import java.io.Serializable;
 
-import com.constellio.app.utils.ConstellioSerializationUtils;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCache;
+import com.constellio.data.utils.serialization.ConstellioSerializationUtils;
 
 public class SerializationCheckCache extends ConstellioMapCache {
 
