@@ -8,7 +8,6 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,29 +17,21 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.hdfs.server.common.Storage;
-import org.apache.tools.ant.taskdefs.Copy;
 import org.assertj.core.groups.Tuple;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -77,25 +68,67 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingReport() {
+	public void whenExportingReport() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		final String TITLE = "title";
+		final String SCHEMA_TYPE_CODE = Document.DEFAULT_SCHEMA;
+
+		Report report = rm.newReport();
+		report.setColumnsCount(1);
+		report.setLinesCount(1);
+		report.setTitle(TITLE);
+		report.setSchemaTypeCode(SCHEMA_TYPE_CODE);
+
+		ReportedMetadata reportedMetadata1 = new ReportedMetadata("title", 1);
+		reportedMetadata1.setYPosition(2);
+		ReportedMetadata reportedMetadata2 = new ReportedMetadata("id", 3);
+		reportedMetadata2.setYPosition(4);
+
+		List<ReportedMetadata> reportedMetadataList = new ArrayList<>();
+		reportedMetadataList.add(reportedMetadata1);
+		reportedMetadataList.add(reportedMetadata2);
+
+		report.setReportedMetadata(reportedMetadataList);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction transaction = new Transaction();
+
+		transaction.add(report);
+
+		recordServices.execute(transaction);
+
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(Report.SCHEMA_TYPE)));
 
-		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		List<Record> listRecordReport;
 
-		List<Report> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		MetadataSchemasManager schemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchema metadataSchemaTypes = schemasManager.getSchemaTypes("anotherCollection").getSchema(Report.DEFAULT_SCHEMA);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(records.folders(Report.SCHEMA_TYPE)).returnAll());
+		query.setCondition(from(metadataSchemaTypes).returnAll());
 
-		getModelLayerFactory().newSearchServices().search(query);
+		listRecordReport = getModelLayerFactory().newSearchServices().search(query);
 
-		assertThatRecords(listSearchDecommissiongList).extractingMetadatas("ID");
+		assertThatRecords(listRecordReport).extractingMetadatas("columnsCount", "title",
+				"linesCount", "schemaTypeCode").contains(tuple(1.0, TITLE, 1.0, SCHEMA_TYPE_CODE));
+
+		Record record = listRecordReport.get(0);
+		Report reportFromAnOtherCollection = rmFromAnOtherCollection.wrapReport(record);
+
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(0).getXPosition()).isEqualTo(1);
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(0).getYPosition()).isEqualTo(2);
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getXPosition()).isEqualTo(3);
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getYPosition()).isEqualTo(4);
 	}
 
 	@Test

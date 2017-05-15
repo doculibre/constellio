@@ -190,6 +190,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return email;
 	}
 
+	public Report newReport() {
+		return new Report(create(reportSchema()), getTypes());
+	}
+
+	public MetadataSchema reportSchema() {
+		return getTypes().getSchema(Report.DEFAULT_SCHEMA);
+	}
+
 	public Document newDocumentWithId(String id) {
 		return new Document(create(defaultDocumentSchema(), id), getTypes());
 	}
@@ -1047,4 +1055,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return document;
 	}
 
+	public Report wrapReport(Record record) {
+		return record == null ? null : new Report(record, getTypes());
+	}
 }

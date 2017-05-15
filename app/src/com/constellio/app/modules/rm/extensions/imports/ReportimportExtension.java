@@ -45,6 +45,8 @@ public class ReportImportExtension extends RecordImportExtension {
             {
                 reportedMetadata.setYPosition(Integer.parseInt(map.get(Y_POSITION)));
             }
+
+            reportedMetadataList.add(reportedMetadata);
         }
 
         report.setReportedMetadata(reportedMetadataList);
