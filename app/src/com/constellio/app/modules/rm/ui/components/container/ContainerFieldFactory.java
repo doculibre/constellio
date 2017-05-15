@@ -13,11 +13,12 @@ import com.vaadin.ui.Field;
 public class ContainerFieldFactory extends RMRecordFieldFactory {
 
 	private String containerRecordType;
-
+	private Double containerCapacity;
 	private AddEditContainerPresenter presenter;
 
-	public ContainerFieldFactory(String containerRecordType, AddEditContainerPresenter presenter) {
+	public ContainerFieldFactory(String containerRecordType, Double containerCapacity, AddEditContainerPresenter presenter) {
 		this.containerRecordType = containerRecordType;
+		this.containerCapacity = containerCapacity;
 		this.presenter = presenter;
 	}
 
@@ -26,10 +27,14 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 		Field<?> field;
 		switch (metadataVO.getLocalCode()) {
 			case ContainerRecord.STORAGE_SPACE:
-				field = new ContainerStorageSpaceLookupField(containerRecordType, presenter);
-				if(!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
-					field.setVisible(false);
-					field.setEnabled(false);
+				if(!presenter.isContainerWithMultipleStorageSpaces()) {
+					field = new ContainerStorageSpaceLookupField(containerRecordType, containerCapacity, presenter);
+					if(!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
+						field.setVisible(false);
+						field.setEnabled(false);
+					}
+				} else {
+					field = super.build(recordVO, metadataVO);
 				}
 				break;
 			default:
@@ -40,6 +45,13 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 			postBuild(field, recordVO, metadataVO);
 		}
 
+		return field;
+	}
+
+	public ContainerStorageSpaceLookupField rebuildContainerStorageSpaceLookupField(RecordVO containerVo, AddEditContainerPresenter presenter) {
+		ContainerStorageSpaceLookupField field = new ContainerStorageSpaceLookupField(
+				(String) containerVo.get(ContainerRecord.TYPE), (Double) containerVo.get(ContainerRecord.CAPACITY), presenter);
+		postBuild(field, containerVo, containerVo.getMetadata(ContainerRecord.STORAGE_SPACE));
 		return field;
 	}
 

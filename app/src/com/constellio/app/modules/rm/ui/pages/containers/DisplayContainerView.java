@@ -4,5 +4,5 @@ import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewG
 import com.constellio.app.ui.pages.base.BaseView;
 
 public interface DisplayContainerView extends BaseView, ArchivesManagementViewGroup {
-
+    public void setBorrowedMessage(String borrowedMessage);
 }

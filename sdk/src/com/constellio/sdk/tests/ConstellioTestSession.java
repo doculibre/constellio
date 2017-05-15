@@ -49,7 +49,7 @@ public class ConstellioTestSession {
 		session.sdkProperties = sdkProperties;
 		session.skipTestsRule = skipTestsRule;
 		session.toggleTestFeature = new ToggleTestFeature(session.sdkProperties);
-
+		OpenedResourcesWatcher.enabled = true;
 		if (!isUniTest) {
 
 			ensureLog4jAndRepositoryProperties();

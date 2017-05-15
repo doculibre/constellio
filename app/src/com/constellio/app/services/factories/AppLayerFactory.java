@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.extensions.impl.DefaultPagesComponentsExtension;
 import com.constellio.app.modules.complementary.ESRMRobotsModule;
 import com.constellio.app.modules.es.ConstellioESModule;
@@ -99,8 +100,8 @@ public class AppLayerFactory extends LayerFactory {
 	private final SystemCheckManager systemCheckManager;
 
 	public AppLayerFactory(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
-			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
-		super(modelLayerFactory, statefullServiceDecorator);
+			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+		super(modelLayerFactory, statefullServiceDecorator, instanceName);
 
 		this.appLayerExtensions = new AppLayerExtensions();
 		this.modelLayerFactory = modelLayerFactory;
@@ -270,6 +271,19 @@ public class AppLayerFactory extends LayerFactory {
 
 		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
 		getModulesManager().enableComplementaryModules();
+
+		if (!invalidPlugins.isEmpty()) {
+			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
+			try {
+				restart();
+			} catch (AppManagementServiceException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public void postInitialization() {
+		pluginManager.configure();
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
 			try {
 				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
@@ -285,15 +299,6 @@ public class AppLayerFactory extends LayerFactory {
 
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
-
-		if (!invalidPlugins.isEmpty()) {
-			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
-			try {
-				restart();
-			} catch (AppManagementServiceException e) {
-				throw new RuntimeException(e);
-			}
-		}
 	}
 
 	void restart()
@@ -303,6 +308,7 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void close() {
+		Scripts.removeScripts();
 		super.close();
 	}
 

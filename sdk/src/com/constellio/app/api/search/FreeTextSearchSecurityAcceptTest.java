@@ -200,7 +200,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenUserWithSomeAccessWhenSearchingUsingWebServiceWithOnNonSecuredSchemaThenSeeAllResults()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 
 		assertThatUserIsInCollection(users.alice().getUsername(), "zeCollection");
 		assertThat(findAllRecordsVisibleByUsingWebService(userWithZeCollectionReadAccess))
@@ -228,7 +228,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 
 	@Test
 	public void whenSearchingUsingWebServiceThenSameResults()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 
 		assertThatUserIsInCollection(users.alice().getUsername(), "zeCollection");
 		assertThat(findAllRecordsVisibleByUsingWebService(userWithZeCollectionReadAccess))
@@ -304,7 +304,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private void whenSearchingWithInvalidTokenThenException()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
@@ -323,7 +323,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private void whenSearchingWithAvalidServiceKeyFromAnotherUserThenException()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
@@ -343,7 +343,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private void whenSearchingWithNoTokenThenException()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
@@ -361,7 +361,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private void whenSearchingWithNoServiceKeyThenException()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
@@ -378,7 +378,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private List<String> findAllRecordsVisibleByUsingWebService(UserCredential user)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:zeSchemaType*");
 
@@ -396,7 +396,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private List<String> findAllRecordsVisibleOfNonSecuredSchemaByUsingWebService(UserCredential user)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:anotherSchemaType*");
 		solrParams.add("fq", "collection_s:zeCollection");

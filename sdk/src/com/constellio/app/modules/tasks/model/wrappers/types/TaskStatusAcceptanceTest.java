@@ -18,6 +18,7 @@ import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -72,7 +73,7 @@ public class TaskStatusAcceptanceTest extends ConstellioTest {
 		recordServices.add(tasksSchemas.newTaskStatus().setStatusType(null).setCode(STANDBY_CODE).setTitle("newClosedTitle"));
 	}
 
-	@Test(expected = AtLeastOneRecordWithStatusRuntimeException.class)
+	@Test(expected = RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord.class)
 	public void whenStandByStatusDeletedThenException()
 			throws Exception {
 		List<TaskStatus> statuses = getAllStatusWithType(STANDBY);

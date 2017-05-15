@@ -90,6 +90,7 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 				Transaction transaction = new Transaction();
 
 				for (String userId : rmObject.getAlertUsersWhenAvailable()) {
+
 					EmailToSend emailToSend = newEmailToSend();
 					User user = rmSchemasRecordsServices.getUser(userId);
 					EmailAddress toAddress = new EmailAddress(user.getTitle(), user.getEmail());

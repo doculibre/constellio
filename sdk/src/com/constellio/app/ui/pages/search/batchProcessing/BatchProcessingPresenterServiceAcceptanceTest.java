@@ -84,7 +84,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Before
 	public void setUp()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		givenBackgroundThreadsEnabled();
+		givenRollbackCheckDisabled();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
 
@@ -119,6 +121,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulation()
 			throws Exception {
+		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A05, records.folder_A16))))
@@ -154,6 +157,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulationWithIds()
 			throws Exception {
+
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A05, records.folder_A16))
 				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
@@ -188,6 +192,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void whenSetCopyRuleEnteredThenApplied()
 			throws Exception {
+		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(records.folder_A05, records.folder_A16))))
@@ -318,7 +323,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Test
 	public void whenModifyDocumentParentFolderInBatchOnlyHumanFriendlyMetadataAreShown()
 			throws Exception {
-
+		givenRollbackCheckDisabled();
 		List<Document> folderA04Documents = rm.searchDocuments(where(rm.document.folder()).isEqualTo(records.folder_A04));
 		Document document1 = folderA04Documents.get(0);
 		Document document2 = folderA04Documents.get(1);
@@ -385,6 +390,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		ContainerRecord container2 = records.getContainerBac02();
 		ContainerRecord container3 = records.getContainerBac03();
 
+		getModelLayerFactory().newRecordServices().update(container1.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container2.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
+
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
 						.isIn(asList(container1.getId(), container2.getId(), container3.getId()))))
@@ -413,6 +422,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		ContainerRecord container1 = records.getContainerBac01();
 		ContainerRecord container2 = records.getContainerBac02();
 		ContainerRecord container3 = records.getContainerBac03();
+
+		getModelLayerFactory().newRecordServices().update(container1.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container2.setFull(null));
+		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(container1.getId(), container2.getId(), container3.getId()))
@@ -754,14 +767,16 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
-				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null)
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
 				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
-				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null)
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
 		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");

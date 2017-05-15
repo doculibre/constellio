@@ -53,6 +53,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -62,6 +63,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -114,7 +116,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField();
+                final LookupFolderField field = new LookupFolderField(true);
+                field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
                 BaseButton saveButton = new BaseButton($("save")) {
@@ -165,7 +168,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField();
+                final LookupFolderField field = new LookupFolderField(true);
+                field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
                 BaseButton saveButton = new BaseButton($("save")) {
@@ -210,13 +214,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
                 
-                final LookupFolderField folderField = new LookupFolderField();
+                final LookupFolderField folderField = new LookupFolderField(true);
                 folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 folderField.setVisible(true);
+                folderField.setRequired(true);
+                folderField.focus();
                 
                 final FolderCategoryFieldImpl categoryField = new FolderCategoryFieldImpl();
                 categoryField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 categoryField.setVisible(false);
+                categoryField.setRequired(false);
                 
                 final FolderRetentionRuleFieldImpl retentionRuleField = new FolderRetentionRuleFieldImpl(collection);
                 retentionRuleField.setVisible(false);
@@ -232,12 +239,19 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     public void valueChange(Property.ValueChangeEvent event) {
                     	boolean categoryClassification = Boolean.TRUE.equals(event.getProperty().getValue());
                         folderField.setVisible(!categoryClassification);
+                        folderField.setRequired(!categoryClassification);
                         categoryField.setVisible(categoryClassification);
+                        categoryField.setRequired(categoryClassification);
                         if (categoryClassification) {
                         	String categoryId = categoryField.getValue();
     						adjustRetentionRuleField(categoryId, retentionRuleField);
                         } else {
                         	retentionRuleField.setVisible(false);
+                        }
+                        if (categoryClassification) {
+                        	categoryField.focus();
+                        } else {
+                        	folderField.focus();
                         }
                     }
                 });
@@ -258,6 +272,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         String parentId = folderField.getValue();
                         String categoryId = categoryField.getValue();
                         String retentionRuleId = retentionRuleField.getValue();
+                        if(parentId == null && categoryId == null) {
+                            if(folderField.isVisible()) {
+                                showErrorMessage($("ConstellioHeader.noParentFolderSelectedForClassification"));
+                                return;
+                            } else {
+                                showErrorMessage($("ConstellioHeader.noCategorySelectedForClassification"));
+                                return;
+                            }
+                        }
                         boolean isClassifiedInFolder = !Boolean.TRUE.equals(classificationOption.getValue());
                         try {
                             classifyButtonClicked(parentId, categoryId, retentionRuleId, isClassifiedInFolder, param);
@@ -451,7 +474,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         }
     }
 
-    public void duplicateButtonClicked(String parentId, AvailableActionsParam param) {
+    public void duplicateButtonClicked(String parentId, final AvailableActionsParam param) {
         List<String> recordIds = param.getIds();
         List<String> couldNotDuplicate = new ArrayList<>();
         if (isNotBlank(parentId)) {
@@ -468,8 +491,21 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             break;
                         case Document.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
-                            for(Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            for (Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
+                            }
+                            if (newDocument.getContent() != null) {
+                            	User user = param.getUser();
+                            	Content content = newDocument.getContent();
+                            	ContentVersion contentVersion = content.getCurrentVersion();
+                            	String filename = contentVersion.getFilename();
+                            	ContentManager contentManager = rmSchemas.getModelLayerFactory().getContentManager();
+                            	ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(contentVersion.getHash());
+                            	Content newContent = contentManager.createMajor(user, filename, contentVersionDataSummary);
+                            	newDocument.setContent(newContent);
+                            }
+                            if (Boolean.TRUE == newDocument.getBorrowed()) {
+                                newDocument.setBorrowed(false);
                             }
                             String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
                             newDocument.setTitle(title);
@@ -499,8 +535,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         List<String> recordIds = param.getIds();
         List<String> couldNotMove = new ArrayList<>();
         if ((isClassifiedInFolder && isNotBlank(parentId)) || (!isClassifiedInFolder && isNotBlank(categoryId))) {
-            RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
             RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+            RecordServices recordServices = recordServices();
             for (String id: recordIds) {
             	Record record = null;
                 try {
@@ -551,6 +587,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         	int successCount = recordIds.size() - couldNotMove.size();
             showErrorMessage($("ConstellioHeader.selection.actions.couldNotClassify", successCount, recordIds.size()));
         }
+    }
+
+    protected RecordServices recordServices() {
+        return appLayerFactory.getModelLayerFactory().newRecordServices();
     }
 
     protected void deleteUserFolder(AvailableActionsParam param, RMUserFolder rmUserFolder, User user) {
@@ -652,7 +692,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 try {
                     Document document = rmSchemasRecordsServices.wrapDocument(record);
                     if (document.getContent() != null) {
-                        EmailServices.MessageAttachment contentFile = createAttachment(document.getContent());
+                        EmailServices.MessageAttachment contentFile = createAttachment(document);
                         returnList.add(contentFile);
                     }
                 } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -663,13 +703,14 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         return returnList;
     }
 
-    private EmailServices.MessageAttachment createAttachment(Content content)
+    private EmailServices.MessageAttachment createAttachment(Document document)
             throws IOException {
+        Content content = document.getContent();
         String hash = content.getCurrentVersion().getHash();
         ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
         InputStream inputStream = contentManager.getContentInputStream(hash, content.getCurrentVersion().getFilename());
         String mimeType = content.getCurrentVersion().getMimetype();
-        String attachmentName = content.getCurrentVersion().getFilename();
+        String attachmentName = document.getTitle();
         return new EmailServices.MessageAttachment().setMimeType(mimeType).setAttachmentName(attachmentName).setInputStream(inputStream);
     }
 

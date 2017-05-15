@@ -21,6 +21,7 @@ import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -119,17 +120,20 @@ public class ModelLayerFactory extends LayerFactory {
 	private final SearchBoostManager searchBoostManager;
 	private final ModelLayerLogger modelLayerLogger;
 	private EncryptionServices encryptionServices;
+	private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
-			Delayed<ConstellioModulesManager> modulesManagerDelayed) {
+			Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
-		super(dataLayerFactory, statefullServiceDecorator);
+		super(dataLayerFactory, statefullServiceDecorator, instanceName);
 
 		systemCollectionListeners = new ArrayList<>();
 
+		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		this.recordsCaches = new RecordsCaches(this);
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
@@ -150,7 +154,6 @@ public class ModelLayerFactory extends LayerFactory {
 						recordsCaches, cacheManager));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
-
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
@@ -176,7 +179,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
 				new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
-						dataLayerFactory.getBackgroundThreadsManager()));
+						dataLayerFactory.getConstellioJobManager()));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
 						ioServicesFactory.newHashingService(BASE64), newUserServices()));
@@ -410,6 +413,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public RecordPopulateServices newRecordPopulateServices() {
 		return new RecordPopulateServices(schemasManager, contentsManager, systemConfigurationsManager, modelLayerExtensions);
+	}
+
+	public Factory<ModelLayerFactory> getModelLayerFactoryFactory() {
+		return modelLayerFactoryFactory;
 	}
 
 	final void setEncryptionKey(Key key) {

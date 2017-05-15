@@ -229,13 +229,27 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	}
 	
 	private int secondsSinceLastRefresh = 0;
+	
+	private long lastKnownUserFoldersCount = -1;
+
+	private long lastKnownUserDocumentsCount = -1;
 
 	void backgroundViewMonitor() {
 		secondsSinceLastRefresh++;
 		if (secondsSinceLastRefresh >= 10) {
+			SearchServices searchServices = modelLayerFactory.newSearchServices();
+			
 			secondsSinceLastRefresh = 0;
-			userFoldersDataProvider.fireDataRefreshEvent();
-			userDocumentsDataProvider.fireDataRefreshEvent();
+			long userFoldersCount = searchServices.getResultsCount(getUserFoldersQuery());
+			if (lastKnownUserFoldersCount != userFoldersCount) {
+				lastKnownUserFoldersCount = userFoldersCount;
+				userFoldersDataProvider.fireDataRefreshEvent();
+			}
+			long userDocumentsCount = searchServices.getResultsCount(getUserDocumentsQuery());
+			if (lastKnownUserDocumentsCount != userDocumentsCount) {
+				lastKnownUserDocumentsCount = userDocumentsCount;
+				userDocumentsDataProvider.fireDataRefreshEvent();
+			}
 		}
 	}
 	

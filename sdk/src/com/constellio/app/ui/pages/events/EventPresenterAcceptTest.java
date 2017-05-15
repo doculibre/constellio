@@ -1,25 +1,10 @@
 package com.constellio.app.ui.pages.events;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.sdk.tests.MockedNavigation;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -30,6 +15,19 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class EventPresenterAcceptTest extends ConstellioTest {
 	@Mock EventView view;
@@ -86,7 +84,7 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder("C30", now.toLocalDate(), now.plusDays(1).toLocalDate(), records.getAdmin(),
 						records.getBob_userInAC(),
-						BorrowingType.BORROW);
+						BorrowingType.BORROW, true);
 
 		Map<String, String> params = new HashMap<>();
 		params.put("id", records.getBob_userInAC().getId());

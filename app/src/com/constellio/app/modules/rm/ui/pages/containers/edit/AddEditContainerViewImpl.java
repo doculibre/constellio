@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
 import com.constellio.app.modules.rm.ui.components.container.ContainerFormImpl;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -77,6 +78,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 		prepareTypeField(form.getTypeField());
 		prepareDecommissioningTypeField(form.getDecommissioningTypeField());
 		prepareAdministrativeUnitField(form.getAdministrativeUnitField());
+		prepareCapacityField(form.getCapacityField());
 		return form;
 	}
 
@@ -85,6 +87,22 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				presenter.typeSelected(field.getValue());
+			}
+		});
+	}
+
+	private void prepareCapacityField(final Field<String> field) {
+		field.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				String value = (String) event.getProperty().getValue();
+				container = getUpdatedContainer();
+				if(value == null) {
+					container.set(ContainerRecord.CAPACITY, null);
+				} else if(value.matches("-?\\d+(\\.\\d+)?")) {
+					container.set(ContainerRecord.CAPACITY, Double.parseDouble(value));
+				}
+				form.replaceStorageSpaceField(container, presenter);
 			}
 		});
 	}

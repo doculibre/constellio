@@ -41,6 +41,7 @@ public class MetadataSchemaTypeBuilder {
 	private Set<MetadataSchemaBuilder> customSchemas = new HashSet<MetadataSchemaBuilder>();
 	private Boolean undeletable = false;
 	private ClassProvider classProvider;
+	private Set<String> flags = new HashSet<>();
 
 	MetadataSchemaTypeBuilder() {
 	}

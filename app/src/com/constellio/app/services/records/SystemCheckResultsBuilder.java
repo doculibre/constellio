@@ -19,6 +19,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 public class SystemCheckResultsBuilder {
 
 	private static final String BROKEN_LINK_ERROR = "brokenLink";
+	private static final String BROKEN_LINK_IN_DEFAULT_VALUES_ERROR = "brokenLinkInDefaultValues";
 	private static final String LOGICALLY_DELETED_RECORD_ERROR = "logicallyDeletedRecord";
 
 	Language language;
@@ -58,6 +59,16 @@ public class SystemCheckResultsBuilder {
 		params.put("recordTitle", record.getTitle());
 
 		results.getErrors().add(SystemCheckResultsBuilder.class, LOGICALLY_DELETED_RECORD_ERROR, params);
+	}
+
+	public void addBrokenLinkFromMetadataDefaultValue(String metadata, String brokenLinkRecordId) {
+		incrementMetric(SystemCheckManager.BROKEN_REFERENCES_METRIC);
+		Map<String, Object> params = new HashMap<>();
+
+		params.put("metadataCode", metadata);
+		params.put("brokenLinkRecordId", brokenLinkRecordId);
+
+		results.getErrors().add(SystemCheckResultsBuilder.class, BROKEN_LINK_IN_DEFAULT_VALUES_ERROR, params);
 	}
 
 	public void addBrokenLink(String recordId, String brokenLinkRecordId, Metadata referenceMetadata) {

@@ -13,8 +13,13 @@ import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
 import com.constellio.data.io.concurrent.filesystem.ZookeeperAtomicFileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CloudSolrServerFactory extends AbstractSolrServerFactory {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CloudSolrServerFactory.class);
+
 	private List<AtomicFileSystem> atomicFileSystems = new ArrayList<>();
 	private List<SolrClient> solrClients = new ArrayList<>();
 

@@ -27,9 +27,13 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +42,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
+	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
 
@@ -47,6 +52,22 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		super(view);
 	}
 
+	String getBorrowMessageState(RecordVO containerRecord) {
+		String borrowedMessage = null;
+		if (containerRecord != null) {
+			boolean borrowed = Boolean.TRUE.equals(containerRecord.get(ContainerRecord.BORROWED));
+			String borrower = containerRecord.get(ContainerRecord.BORROWER);
+			if (borrowed && borrower != null) {
+				String userTitle = rmRecordServices.getUser(borrower).getTitle();
+				LocalDate borrowDate = containerRecord.get(ContainerRecord.BORROW_DATE);
+				borrowedMessage = $("DisplayContainerView.borrowedContainer", userTitle, borrowDate);
+			} else if (borrowed) {
+				borrowedMessage = $("DisplayContainerView.borrowedByNullUserContainer");
+			}
+		}
+		return borrowedMessage;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
@@ -54,7 +75,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasReadAccess().on(restrictedRecord);
+		return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
 	@Override
@@ -169,15 +190,15 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		}
 
 		MetadataVO linearSizeMetadata = container.getMetadata(ContainerRecord.LINEAR_SIZE);
-		Double linearSize = container.get(linearSizeMetadata) == null ? 0.0:(Double) container.get(linearSizeMetadata);
+		Double linearSize = container.get(linearSizeMetadata) == null ? 0.0 : (Double) container.get(linearSizeMetadata);
 
-		return 100*linearSize/capacity;
+		return (Double) Math.rint(100.0 * linearSize / capacity);
 	}
 
 	private LogicalSearchQuery getFoldersQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
 				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
-		return new LogicalSearchQuery(condition);
+		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser());
 	}
 
 	private boolean isContainerRecyclingAllowed() {
@@ -215,5 +236,26 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
 		return getRmReportBuilderFactories().labelsBuilderFactory.getValue();
+	}
+
+	public void saveIfFirstTimeReportCreated() {
+		ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+		ContainerRecordReportParameters reportParameters = getReportParameters(null);
+		if (reportParameters.isTransfer()) {
+			containerRecord.setFirstTransferReportDate(LocalDate.now());
+		} else {
+			containerRecord.setFirstDepositReportDate(LocalDate.now());
+		}
+		containerRecord.setDocumentResponsible(getCurrentUser().getId());
+		try {
+			recordServices().update(containerRecord);
+		} catch (RecordServicesException e) {
+			view.showErrorMessage("Could not update report creation time");
+		}
+	}
+
+	public boolean isEditButtonVisible() {
+		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
+		return getCurrentUser().hasWriteAccess().on(record);
 	}
 }

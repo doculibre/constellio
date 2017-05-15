@@ -1,19 +1,25 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
-import com.vaadin.ui.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.VerticalLayout;
 
 /**
  * Created by Constellio on 2017-01-11.
@@ -21,7 +27,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public abstract class ContainerFormImpl extends RecordForm implements ContainerForm {
 
     public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter) {
-        this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE), presenter));
+        this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE), (Double) record.get(ContainerRecord.CAPACITY), presenter));
         if(presenter.isMultipleMode()) {
             WindowButton newSaveButton = new WindowButton(saveButton.getCaption(), saveButton.getCaption()) {
                 @Override
@@ -66,7 +72,7 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
         }
     }
 
-    public ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
+    private ContainerFormImpl(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
         super(recordVO, buildFields(recordVO, formFieldFactory), formFieldFactory);
     }
 
@@ -83,9 +89,42 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
         return fieldsAndPropertyIds;
     }
 
+    private ContainerStorageSpaceLookupField storageSpaceField;
+    private VerticalLayout storageSpaceLayout;
+
+    @Override
+    protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
+        super.addFieldToLayout(field, fieldLayout);
+        if (field instanceof ContainerStorageSpaceLookupField) {
+            storageSpaceField = (ContainerStorageSpaceLookupField) field;
+            storageSpaceLayout = fieldLayout;
+        }
+    }
+
+    public void replaceStorageSpaceField(RecordVO containerVo, AddEditContainerPresenter presenter) {
+        ContainerStorageSpaceLookupField newField = ((ContainerFieldFactory) getFormFieldFactory())
+                .rebuildContainerStorageSpaceLookupField(containerVo, presenter);
+        newField.setPropertyDataSource(storageSpaceField.getPropertyDataSource());
+        newField.addStyleName(BaseForm.STYLE_FIELD);
+        newField.addStyleName(STYLE_FIELD);
+        MetadataVO metadata = containerVo.getMetadata(ContainerRecord.STORAGE_SPACE);
+        newField.addStyleName(STYLE_FIELD + "-" +  metadata.getCode());
+        storageSpaceLayout.replaceComponent(storageSpaceField, newField);
+        fields.remove(storageSpaceField);
+        fieldGroup.unbind(storageSpaceField);
+        storageSpaceField = newField;
+        fields.add(storageSpaceField);
+        fieldGroup.bind(storageSpaceField, metadata);
+    }
+
     @SuppressWarnings("unchecked")
     public Field<String> getTypeField() {
         return (Field<String>) getField(ContainerRecord.TYPE);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Field<String> getCapacityField() {
+        return (Field<String>) getField(ContainerRecord.CAPACITY);
     }
 
     @SuppressWarnings("unchecked")

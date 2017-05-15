@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -26,16 +16,19 @@ import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView, PollListener {
@@ -54,6 +47,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private Component mainComponent;
 	private Component actionMenu;
+	private List<Button> actionMenuButtons;
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
 	
@@ -282,7 +276,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	 */
 	protected Component buildActionMenu(ViewChangeEvent event) {
 		VerticalLayout actionMenuLayout;
-		List<Button> actionMenuButtons = buildActionMenuButtons(event);
+		actionMenuButtons = buildActionMenuButtons(event);
 		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
 			actionMenuLayout = null;
 		} else {
@@ -376,4 +370,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	protected abstract Component buildMainComponent(ViewChangeEvent event);
 
+	public List<Button> getActionMenuButtons() {
+		return actionMenuButtons;
+	}
 }

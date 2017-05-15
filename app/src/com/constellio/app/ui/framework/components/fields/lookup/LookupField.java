@@ -6,6 +6,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -115,7 +117,18 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				return suggestInputDataProvider.getData(text, 0, autoCompleteBuffer);
+				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, autoCompleteBuffer));
+				if (itemConverter != null) {
+					Collections.sort(values, new Comparator<T>() {
+						@Override
+						public int compare(T o1, T o2) {
+							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+							return s1.compareTo(s2);
+						}
+					});
+				}
+				return values;
 			}
 
 			@Override

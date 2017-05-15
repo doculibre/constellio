@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
@@ -35,10 +36,16 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	DataLayerConfiguration configuration;
 
+	List<FileSystemContentDaoExternalResourcesExtension> externalResourcesExtensions = new ArrayList<>();
+
 	public FileSystemContentDao(File rootFolder, IOServices ioServices, DataLayerConfiguration configuration) {
 		this.rootFolder = rootFolder;
 		this.ioServices = ioServices;
 		this.configuration = configuration;
+	}
+
+	public void register(FileSystemContentDaoExternalResourcesExtension extension) {
+		externalResourcesExtensions.add(extension);
 	}
 
 	@Override
@@ -90,6 +97,20 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	@Override
 	public InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent {
+
+		if (contentId.startsWith("#")) {
+			for (FileSystemContentDaoExternalResourcesExtension extension : externalResourcesExtensions) {
+				if (contentId.startsWith("#" + extension.getId() + "=")) {
+					String hash = StringUtils.substringAfter(contentId, "=");
+					InputStream stream = extension.get(hash, streamName);
+					if (stream == null) {
+						throw new ContentDaoException_NoSuchContent(streamName);
+					}
+					return stream;
+				}
+			}
+		}
+
 		try {
 			return new BufferedInputStream(ioServices.newFileInputStream(getFileOf(contentId), streamName));
 		} catch (FileNotFoundException e) {

@@ -10,8 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +83,11 @@ public class BulkRecordTransactionHandler {
 	public synchronized void append(Record record) {
 		List<Record> records = Collections.singletonList(record);
 		append(records);
+	}
+
+	public synchronized void append(Record record, List<Record> referencedRecords) {
+		List<Record> records = Collections.singletonList(record);
+		append(records, referencedRecords);
 	}
 
 	public synchronized void append(List<Record> records) {

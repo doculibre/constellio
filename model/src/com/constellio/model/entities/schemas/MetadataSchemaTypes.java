@@ -51,11 +51,28 @@ public class MetadataSchemaTypes implements Serializable {
 		this.schemaTypes = Collections.unmodifiableList(schemaTypes);
 		this.schemaTypesSortedByDependency = schemaTypesSortedByDependency;
 		this.referenceDefaultValues = referenceDefaultValues;
-		this.searchableMetadatas = getAllMetadatas().onlySearchable();
+		this.searchableMetadatas = getSearchableMetadatas(schemaTypes);
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
 		this.metadataNetwork = metadataNetwork;
+	}
+
+	private MetadataList getSearchableMetadatas(List<MetadataSchemaType> schemaTypes) {
+		MetadataList searchableMetadatas = new MetadataList();
+		Set<String> searchableMetadatasDataStoreCodes = new HashSet<>();
+		for (MetadataSchemaType schemaType : schemaTypes) {
+			for (MetadataSchema schema : schemaType.getAllSchemas()) {
+				for (Metadata metadata : schema.getMetadatas()) {
+					if (metadata.getInheritance() == null && metadata.isSearchable()
+							&& !searchableMetadatasDataStoreCodes.contains(metadata.getDataStoreCode())) {
+						searchableMetadatasDataStoreCodes.add(metadata.getDataStoreCode());
+						searchableMetadatas.add(metadata);
+					}
+				}
+			}
+		}
+		return searchableMetadatas.unModifiable();
 	}
 
 	private Set<String> buildTypeParentOfOtherTypes(List<MetadataSchemaType> schemaTypes) {

@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -28,7 +29,8 @@ public class BatchProcessTestFeature {
 	}
 
 	public void waitForAllBatchProcesses(Runnable batchProcessRuntimeAction, boolean acceptErrors) {
-		BatchProcessesManager batchProcessesManager = factoriesTestFeatures.newModelServicesFactory().getBatchProcessesManager();
+		BatchProcessesManager batchProcessesManager = factoriesTestFeatures.newModelServicesFactory(DEFAULT_NAME)
+				.getBatchProcessesManager();
 		boolean batchProcessRuntimeActionExecuted = false;
 
 		List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
@@ -58,7 +60,7 @@ public class BatchProcessTestFeature {
 
 		if (!acceptErrors) {
 			for (BatchProcess batchProcess : batchProcessesManager.getFinishedBatchProcesses()) {
-//				assertThat(batchProcess.getErrors()).isZero()
+				//				assertThat(batchProcess.getErrors()).isZero()
 				//						.describedAs("Errors during batch process '" + batchProcess.getId() + "'");
 			}
 		}

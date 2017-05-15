@@ -280,12 +280,12 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTo()).hasSize(usersToAlert.size());
 		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
 		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
-		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est disponible: " + documentWithContentA19
+		assertThat(emailToSend.getSubject()).isEqualTo("Le document demandé est disponible: " + documentWithContentA19
 				.getTitle());
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
-		assertThat(emailToSend.getParameters()).containsOnly("subject:Alerte lorsque le document est disponible: Chevreuil.odt",
+		assertThat(emailToSend.getParameters()).containsOnly("subject:Le document demandé est disponible: Chevreuil.odt",
 				"returnDate:2016-04-03  01:02:03", "title:Chevreuil.odt", "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayDocument/docA19", "recordType:document");
 

@@ -1,22 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -26,10 +9,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -70,6 +50,17 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -184,6 +175,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return getMetadataAllowedInSort(schemaTypeCode);
 	}
 
+	@Override
+	public boolean isPreferAnalyzedFields() {
+		return false;
+	}
+
 	public List<MetadataVO> getMetadataAllowedInBatchEdit() {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
@@ -239,10 +235,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	void buildSearchCondition()
 			throws ConditionException {
+		String languageCode = searchServices().getLanguageCode(view.getCollection());
 		MetadataSchemaType type = schemaType(schemaTypeCode);
 		condition = (view.getSearchCriteria().isEmpty()) ?
 				from(type).returnAll() :
-				new ConditionBuilder(type).build(view.getSearchCriteria());
+				new ConditionBuilder(type, languageCode).build(view.getSearchCriteria());
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {
@@ -298,7 +295,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Cart cart = rm.getOrCreateUserCart(getCurrentUser());
+		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
 		switch (schemaTypeCode) {
 		case Folder.SCHEMA_TYPE:
 			cart.addFolders(recordIds);
@@ -451,7 +448,12 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
-		view.navigate().to().batchProcesses();
+		if(searchID != null) {
+			view.navigate().to().advancedSearchReplay(searchID);
+		} else {
+			view.navigate().to().advancedSearch();
+		}
+
 	}
 
 	@Override
@@ -476,7 +478,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
-		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, buildBatchProcessLogicalSearchQuery());
+		return batchProcessingPresenterService()
+				.newRecordFieldFactory(schemaType, selectedType, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
@@ -521,17 +524,27 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
-//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
-		if (!batchProcessOnAllSearchResults) {
-			return buildLogicalSearchQueryWithSelectedIds();
+		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
+		if(ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			if (!batchProcessOnAllSearchResults) {
+				return buildUnsecuredLogicalSearchQueryWithSelectedIds();
+			} else {
+				return buildUnsecuredLogicalSearchQueryWithUnselectedIds();
+			}
 		} else {
-			return buildLogicalSearchQueryWithUnselectedIds();
+			if (!batchProcessOnAllSearchResults) {
+				return buildLogicalSearchQueryWithSelectedIds();
+			} else {
+				return buildLogicalSearchQueryWithUnselectedIds();
+			}
 		}
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
-		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -539,8 +552,30 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
-		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
+	}
+
+	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithSelectedIds() {
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
+	}
+
+	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithUnselectedIds() {
+		LogicalSearchQuery query = new LogicalSearchQuery()
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -549,7 +584,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithAllSearchResults() {
 		LogicalSearchQuery query = new LogicalSearchQuery()
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser()).setPreferAnalyzedFields(true);
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -577,5 +613,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public boolean isSearchResultsSelectionForm() {
 		return true;
 	}
-	
+
+	public User getUser() {
+		return getCurrentUser();
+	}
+
 }

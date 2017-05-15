@@ -55,6 +55,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         doNothing().when(extension).showErrorMessage(any(String.class));
         doNothing().when(extension).deleteUserFolder(any(AvailableActionsParam.class), any(RMUserFolder.class), any(User.class));
         doNothing().when(extension).deleteUserDocument(any(AvailableActionsParam.class), any(UserDocument.class), any(User.class));
+        doReturn(getModelLayerFactory().newRecordServices()).when(extension).recordServices();
     }
 
     @Test
@@ -149,7 +150,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         List<String> existingIds = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).
                 where(Schemas.PATH).isStartingWithText(records.getCategory_X().getPaths().get(0))
         ));
-        extension.classifyButtonClicked("", null, records.categoryId_X, false, param);
+        extension.classifyButtonClicked("", records.categoryId_X, records.ruleId_1, false, param);
 
         List<Record> recordList = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
                 .whereAllConditions(

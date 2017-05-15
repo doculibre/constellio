@@ -107,7 +107,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		decommissioningList.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_CLOSE);
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE);
 
-		decommissioningList.setFolderDetailsFor(aFolder.getId(), anotherFolder.getId());
+		decommissioningList.setFolderDetailsFor(asList(aFolder, anotherFolder));
 		decommissioningList.setContainerDetailsFor(aContainer.getId(), anotherContainer.getId());
 
 		decommissioningList.setProcessingDate(december12);
@@ -125,7 +125,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getApprovalUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getFolders()).isEqualTo(asList(aFolder.getId(), anotherFolder.getId()));
 		assertThat(decommissioningList.getFolderDetails())
-				.isEqualTo(asList(new DecomListFolderDetail(aFolder.getId()), new DecomListFolderDetail(anotherFolder.getId())));
+				.isEqualTo(asList(new DecomListFolderDetail(aFolder), new DecomListFolderDetail(anotherFolder)));
 		assertThat(decommissioningList.getContainers()).isEqualTo(asList(aContainer.getId(), anotherContainer.getId()));
 		assertThat(decommissioningList.getContainerDetails()).isEqualTo(asList(
 				new DecomListContainerDetail(aContainer.getId()),
@@ -144,7 +144,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	public void givenFoldersWithUniformRuleAndNonUniformCopyAndCategoryThenNotUniform()
 			throws Exception {
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(records.folders("A04-A06")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(rm.getFolders(records.folders("A04-A06"))));
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(HYBRID, HYBRID, HYBRID);
@@ -156,7 +156,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(true);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(records.folders("A04-A06, A16-A18")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(rm.getFolders(records.folders("A04-A06, A16-A18"))));
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(HYBRID, HYBRID, HYBRID, HYBRID, HYBRID, HYBRID);
@@ -168,17 +168,17 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(false);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(records.folders("A22-A24")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(rm.getFolders(records.folders("A22-A24"))));
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(ANALOG, ANALOG, ANALOG);
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(false);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(records.folders("A25-A27")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(rm.getFolders(records.folders("A25-A27"))));
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(ELECTRONIC, ELECTRONIC, ELECTRONIC);
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(false);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(records.folders("A22-A27")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(rm.getFolders(records.folders("A22-A27"))));
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 		assertThat(decommissioningList.getFoldersMediaTypes())
@@ -234,7 +234,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	public void whenCreateRecordContainerInDecommissioningListThenCorrectlySaved()
 			throws Exception {
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(records.folders("A04-A06")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setFolderDetailsFor(rm.getFolders(records.folders("A04-A06"))));
 		String containerRecordType = records.getContainerBac01().getType();
 
 		ContainerRecord containerRecord = rm.newContainerRecord().setTitle("ze container").setTemporaryIdentifier("42")

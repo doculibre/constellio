@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -41,6 +28,18 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class DecommissioningBuilderPresenter extends SearchPresenter<DecommissioningBuilderView>
 		implements SearchCriteriaPresenter {
@@ -49,7 +48,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private transient LogicalSearchCondition condition;
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
-
 
 	SearchType searchType;
 	String adminUnitId;
@@ -66,7 +64,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		String[] parts = params.split("/", 3);
 
-		if(!addMode) {
+		if (!addMode) {
 			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 			searchType = SearchType.valueOf(parts[0]);
 			view.setCriteriaSchemaType(getSchemaType());
@@ -74,8 +72,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			view.addEmptyCriterion();
 			this.displayResults = false;
 			pageNumber = 1;
-		}
-		else if (parts.length > 1) {
+		} else if (parts.length > 1) {
 			searchType = SearchType.valueOf(parts[0]);
 			SavedSearch search = getSavedSearch(parts[2]);
 			setSavedSearch(search);
@@ -88,20 +85,20 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			this.displayResults = false;
 			pageNumber = 1;
 		}
+
 		return this;
 	}
 
 	public void forParams(String params) {
 		List<String> parts = asList(params.split("/", 3));
 		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-		if(parts.size() == 3 && parts.get(1).equals("id")) {
+		if (parts.size() == 3 && parts.get(1).equals("id")) {
 			addMode = false;
 			decommissioningListId = parts.get(2);
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
 			administrativeUnitSelected(decommissioningList.getAdministrativeUnit());
 			view.setAdministrativeUnit(decommissioningList.getAdministrativeUnit());
-		}
-		else {
+		} else {
 			addMode = true;
 		}
 	}
@@ -109,7 +106,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		String[] parts = params.split("/", 3);
-		if(SearchType.transfer.equals(SearchType.valueOf(parts[0]))) {
+		if (SearchType.transfer.equals(SearchType.valueOf(parts[0]))) {
 			return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
 					user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
 		} else {
@@ -158,7 +155,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	public DecommissioningList getDecommissioningList() {
-		return decommissioningListId == null ? null:rmRecordServices().getDecommissioningList(decommissioningListId);
+		return decommissioningListId == null ? null : rmRecordServices().getDecommissioningList(decommissioningListId);
 	}
 
 	public void searchRequested() {
@@ -198,7 +195,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		try {
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
 			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				decommissioningList.addFolderDetailsFor(selected.toArray(new String[0]));
+				decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
 				recordServices().update(decommissioningList.getWrappedRecord());
 				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 			} else {
@@ -253,6 +250,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
+	public boolean isPreferAnalyzedFields() {
+		return false;
+	}
+
+	@Override
 	protected LogicalSearchCondition getSearchCondition() {
 		if (condition == null) {
 			try {
@@ -264,7 +266,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return condition;
 	}
 
-	void buildSearchCondition()
+	protected LogicalSearchCondition buildSearchCondition()
 			throws ConditionException {
 		List<Criterion> criteria = view.getSearchCriteria();
 		if (criteria.isEmpty()) {
@@ -272,14 +274,40 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		} else {
 			condition = allConditions(selectByDecommissioningStatus(), selectByAdvancedSearchCriteria(criteria));
 		}
+		if(searchType.isFolderSearch()) {
+			condition = condition.andWhere(rmRecordServices().folder.borrowed()).isFalseOrNull();
+		}
 
-		if(!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
+		if (!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
 				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally()) {
-			if(searchType.isFolderSearch()) {
+			if (searchType.isFolderSearch()) {
 				condition = condition.andWhere(rmRecordServices().folder.mediaType()).isEqualTo(FolderMediaType.ANALOG);
 			}
 		}
+		return condition;
 	}
+
+//	protected List<String> getFoldersAlreadyInNonProcessedDecommissioningLists() {
+//		RMSchemasRecordsServices rm = rmRecordServices();
+//		Set<String> foldersToHide = new HashSet<>();
+//		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
+//				.andWhere(rm.decommissioningList.folders()).isNotNull());
+//		for(DecommissioningList list: decommissioningLists) {
+//			foldersToHide.addAll(list.getFolders());
+//		}
+//		return new ArrayList<>(foldersToHide);
+//	}
+//
+//	protected List<String> getDocumentsAlreadyInNonProcessedDecommissioningLists() {
+//		RMSchemasRecordsServices rm = rmRecordServices();
+//		Set<String> documentsToHide = new HashSet<>();
+//		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
+//				.andWhere(rm.decommissioningList.documents()).isNotNull());
+//		for(DecommissioningList list: decommissioningLists) {
+//			documentsToHide.addAll(list.getFolders());
+//		}
+//		return new ArrayList<>(documentsToHide);
+//	}
 
 	private String getSchemaType() {
 		return searchType.isFolderSearch() ? Folder.SCHEMA_TYPE : Document.SCHEMA_TYPE;
@@ -292,9 +320,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
+		String languageCode = searchServices().getLanguageCode(view.getCollection());
 		MetadataSchemaType type = searchType.isFolderSearch() ?
 				rmRecordServices().folder.schemaType() : rmRecordServices().documentSchemaType();
-		return new ConditionBuilder(type).build(criteria);
+		return new ConditionBuilder(type, languageCode).build(criteria);
 	}
 
 	private DecommissioningService decommissioningService() {

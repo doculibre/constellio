@@ -12753,10 +12753,6 @@ div.v-layout.v-horizontal.v-widget {
 	height: initial;
 }
 
-.constellio .v-window .popupContent .v-has-caption {
-	padding-left: 10px;
-}
-
 .constellio .window-button-window .v-scrollable {
 	overflow: hidden;
 }
@@ -12817,6 +12813,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .base-multifileupload-completed:after {
 	content: " \f00c ";
+}
+
+.constellio .v-filterselect-suggestpopup-advanced-search-form-metadata .popupContent {
+	width: 400px;
 }
 
 .constellio .v-popupview-popup-header-popup {
@@ -13654,6 +13654,13 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-search {
 	width: 270px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .header .header-selection-button {
+	top: 0px;
+	right: 290px;
+	z-index: 1000;
+	margin: 0;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-collection-menu {

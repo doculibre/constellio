@@ -297,6 +297,7 @@ public class RecordsImportServicesExecutor {
 				TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext,
 						importDataIterator.getOptions(), importDataBatches.next());
 				skipped += importBatch(typeImportContext, typeBatchImportContext, errors);
+				typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 				recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 				incrementSequences(typeBatchImportContext);
 
@@ -362,6 +363,7 @@ public class RecordsImportServicesExecutor {
 						throws Exception {
 					TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext, options, value);
 					skipped.addAndGet(importBatch(typeImportContext, typeBatchImportContext, errors));
+					typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 					recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 
 				}

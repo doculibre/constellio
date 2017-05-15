@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -69,7 +71,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public boolean canEditAdministrativeUnit() {
-		return !editMode;
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
 	public boolean canEditDecommissioningType() {
@@ -119,16 +121,25 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	private RecordVO copyMetadataToSchema(RecordVO record, String schemaCode) {
 		MetadataSchema schema = schema(schemaCode);
 		Record container = recordServices().newRecordWithSchema(schema, record.getId());
+		boolean hasOverriddenAMetadata = false;
 		for (MetadataVO metadataVO : record.getMetadatas()) {
 			String localCode = metadataVO.getLocalCode();
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
 				if (metadata.getDataEntry().getType() == DataEntryType.MANUAL && !metadata.isSystemReserved()) {
-					container.set(metadata, record.get(metadataVO));
+					if(metadata.getDefaultValue() != null) {
+						container.set(metadata, metadata.getDefaultValue());
+						hasOverriddenAMetadata = hasOverriddenAMetadata || record.get(metadataVO) != null;
+					} else {
+						container.set(metadata, record.get(metadataVO));
+					}
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				e.printStackTrace();
 			}
+		}
+		if(hasOverriddenAMetadata) {
+			view.showMessage($("AddEditContainerView.hasOverriddenAMetadata"));
 		}
 		return new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());
 	}
@@ -199,5 +210,14 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public User getCurrentUser() {
 		return presenterService().getCurrentUser(getSessionContext());
+	}
+
+	public boolean isContainerWithMultipleStorageSpaces() {
+		return new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager()).isContainerMultipleValue();
+	}
+
+	public void setStorageSpaceTo(String storageSpaceId) {
+		container = view.getUpdatedContainer();
+		view.reloadWithContainer(container);
 	}
 }

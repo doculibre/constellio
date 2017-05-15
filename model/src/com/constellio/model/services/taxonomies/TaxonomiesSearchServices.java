@@ -45,6 +45,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -243,6 +244,7 @@ public class TaxonomiesSearchServices {
 			}
 
 			List<Record> nonNullRecords = new ArrayList<>();
+			realRecordsRows = Math.max(0, realRecordsRows);
 			nonTaxonomyRecordsResponse = getNonTaxonomyRecords(ctx, childrenWithoutAccessToInclude, realRecordsStart,
 					realRecordsRows);
 			nonNullRecords.addAll(nonTaxonomyRecordsResponse.getRecords());
@@ -548,7 +550,11 @@ public class TaxonomiesSearchServices {
 						if (index != -1) {
 							String pathAfterCurrentRecord = aPath.substring(index + context.record.getId().length() + 2);
 							String childLeadingToSecuredRecordId = StringUtils.substringBefore(pathAfterCurrentRecord, "/");
-							childRecordLeadingToSecuredRecord = recordServices.getDocumentById(childLeadingToSecuredRecordId);
+							try {
+								childRecordLeadingToSecuredRecord = recordServices.getDocumentById(childLeadingToSecuredRecordId);
+							} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+								e.printStackTrace();
+							}
 						}
 
 					}
@@ -783,11 +789,20 @@ public class TaxonomiesSearchServices {
 				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
 			}
 
+			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(ctx.getCollection());
 			while (visibleRecords.size() < ctx.options.getEndRow() + 1 && iterator.hasNext()) {
 
 				List<Record> batch = iterator.next();
+				boolean navigatingUsingPrincipalTaxonomy = principalTaxonomy != null
+						&& principalTaxonomy.getCode().equals(ctx.taxonomy.getCode());
 
-				LogicalSearchCondition condition = from(ctx.forSelectionOfSchemaType).returnAll();
+				List<String> schemaTypes = new ArrayList<>();
+				schemaTypes.add(ctx.forSelectionOfSchemaType.getCode());
+
+				if (ctx.options.isAlwaysReturnTaxonomyConceptsWithReadAccess() && navigatingUsingPrincipalTaxonomy) {
+					schemaTypes.addAll(ctx.taxonomy.getSchemaTypes());
+				}
+				LogicalSearchCondition condition = from(schemaTypes, ctx.getCollection()).returnAll();
 
 				if (!ctx.options.isShowInvisibleRecordsInLinkingMode()) {
 					condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
@@ -807,14 +822,24 @@ public class TaxonomiesSearchServices {
 					boolean hasVisibleChildren =
 							response.getQueryFacetCount(facetQueryFor(ctx.taxonomy, child)) > 0;
 
+					Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(child);
+					boolean visibleEvenIfEmpty = false;
+					if (taxonomy != null && ctx.options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
+						if (principalTaxonomy != null && taxonomy.getCode().equals(principalTaxonomy.getCode())) {
+							visibleEvenIfEmpty = ctx.hasRequiredAccessOn(child);
+						} else {
+							visibleEvenIfEmpty = true;
+						}
+					}
+
 					if (schemaType.equals(ctx.forSelectionOfSchemaType.getCode())) {
 						boolean hasAccess = ctx.user.hasRequiredAccess(ctx.options.getRequiredAccess()).on(child);
-						if (hasAccess || hasVisibleChildren) {
+						if (hasAccess || hasVisibleChildren || visibleEvenIfEmpty) {
 							visibleRecords.add(new TaxonomySearchRecord(child, hasAccess, hasVisibleChildren));
 						}
 
-					} else if (hasVisibleChildren) {
-						visibleRecords.add(new TaxonomySearchRecord(child, false, true));
+					} else if (hasVisibleChildren || visibleEvenIfEmpty) {
+						visibleRecords.add(new TaxonomySearchRecord(child, false, hasVisibleChildren));
 					}
 
 				}
