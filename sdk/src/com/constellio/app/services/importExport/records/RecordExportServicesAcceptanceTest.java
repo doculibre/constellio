@@ -217,6 +217,20 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	final String TITLE = "Title1";
+	final String CODE = "CODE1";
+	final String DESCRIPTION = "DESCRIPTION1";
+	final String CONTENT_TYPES_COMMENT = "CONTENT_TYPES_COMMENT1";
+	final String ACTIVE_RETENTION_COMMENT = "ACTIVE_RETENTION_COMMENT";
+	final RetentionPeriod ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
+	final String SEMI_ACTIVE_RETENTION_COMMENT = "SEMI_ACTIVE_RETENTION_COMMENT";
+	final RetentionPeriod SEMI_ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
+	final String INACTIVE_DISPOSAL_COMMENT = "DISPOSAL_COMMENT";
+	final DisposalType INACTIVE_DISPOSAL_TYPE = DisposalType.DESTRUCTION;
+	final Integer OPEN_ACTIVE_RETENTION_PERIOD = new Integer(100);
+	final boolean REQUIRED_COPYRULE_FIELD = true;
+	final String SET_ID = "ID1";
+
 	@Test
 	public void whenExportingSpecificSchemaTypesThenExported()
 			throws Exception {
@@ -231,22 +245,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 
-		final String TITLE = "Title1";
-		final String CODE = "CODE1";
-		final String DESCRIPTION = "DESCRIPTION1";
-		final String CONTENT_TYPES_COMMENT = "CONTENT_TYPES_COMMENT1";
-		final String ACTIVE_RETENTION_COMMENT = "ACTIVE_RETENTION_COMMENT";
-		final RetentionPeriod ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
-		final String SEMI_ACTIVE_RETENTION_COMMENT = "SEMI_ACTIVE_RETENTION_COMMENT";
-		final RetentionPeriod SEMI_ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
-		final String INACTIVE_DISPOSAL_COMMENT = "DISPOSAL_COMMENT";
-		final DisposalType INACTIVE_DISPOSAL_TYPE = DisposalType.DESTRUCTION;
-		final Integer OPEN_ACTIVE_RETENTION_PERIOD = new Integer(100);
-		final boolean REQUIRED_COPYRULE_FIELD = true;
-		final String SET_ID = "ID1";
-		final List<String> MEDIUM_TYPE = records.PA_MD;
 
-		ArrayList<CopyRetentionRule> arrayList = new ArrayList<CopyRetentionRule>();
+
+		ArrayList<CopyRetentionRule> arrayList = new ArrayList<>();
 
 		CopyRetentionRule copyRetentionRule1 = new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE)
 				.setTitle(TITLE)
@@ -256,7 +257,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
 				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
 				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
-				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(MEDIUM_TYPE).setIgnoreActivePeriod(false);
+				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(records.PA_MD).setIgnoreActivePeriod(false);
 
 		CopyRetentionRule copyRetentionRule2 = new CopyRetentionRule().setCopyType(CopyType.SECONDARY).setCode(CODE)
 				.setTitle(TITLE)
@@ -266,28 +267,19 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
 				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
 				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
-				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(MEDIUM_TYPE).setIgnoreActivePeriod(true);
+				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(records.PA_MD).setIgnoreActivePeriod(true);
 
-		CopyRetentionRule copyRetentionRule3 = new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE)
-				.setTitle(TITLE)
-				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
-				.setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
-				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
-				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
-				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
-				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
-				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(MEDIUM_TYPE)
-				.setTypeId(records.folderTypeEmploye()).setIgnoreActivePeriod(false);
 
 		arrayList.add(copyRetentionRule1);
 		arrayList.add(copyRetentionRule2);
-		arrayList.add(copyRetentionRule3);
 
 		retentionRule.setTitle(TITLE);
 		retentionRule.setCode(CODE);
 		retentionRule.setResponsibleAdministrativeUnits(true);
 
 		retentionRule.setCopyRetentionRules(arrayList);
+		retentionRule.setPrincipalDefaultDocumentCopyRetentionRule(copyRetentionRule1);
+		retentionRule.setSecondaryDefaultDocumentCopyRetentionRule(copyRetentionRule2);
 
 		RecordServices recordService = getModelLayerFactory().newRecordServices();
 
@@ -303,63 +295,24 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				options.setExportedSchemaTypes(
 						asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE)));
 
-		List<CopyRetentionRule> retentionRuleList = rm.getRetentionRuleWithCode(CODE).getCopyRetentionRules();
+		RMSchemasRecordsServices rmAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
-		retentionRule.getCopyRetentionRules();
+		List<CopyRetentionRule> retentionRuleList = rmAnOtherCollection.getRetentionRuleWithCode(CODE).getCopyRetentionRules();
 
-		CopyRetentionRule currentCopyRetentionRule = retentionRuleList.get(0);
+		RetentionRule currentRetentionRule = rmAnOtherCollection.getRetentionRuleWithCode(CODE);
 
 		// Test primary rententionRule.
 
-		assertThat(currentCopyRetentionRule.getCopyType()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(currentCopyRetentionRule.getCode()).isEqualTo(CODE);
-		assertThat(currentCopyRetentionRule.getTitle()).isEqualTo(TITLE);
-		assertThat(currentCopyRetentionRule.getDescription()).isEqualTo(DESCRIPTION);
-		assertThat(currentCopyRetentionRule.getContentTypesComment()).isEqualTo(CONTENT_TYPES_COMMENT);
-		assertThat(currentCopyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
-		assertThat(currentCopyRetentionRule.getSemiActiveRetentionComment()).isEqualTo(SEMI_ACTIVE_RETENTION_COMMENT);
-		assertThat(currentCopyRetentionRule.getSemiActiveRetentionPeriod()).isEqualTo(SEMI_ACTIVE_RETENTION_PERIOD);
-		assertThat(currentCopyRetentionRule.getInactiveDisposalComment()).isEqualTo(INACTIVE_DISPOSAL_COMMENT);
-		assertThat(currentCopyRetentionRule.getInactiveDisposalType()).isEqualTo(INACTIVE_DISPOSAL_TYPE);
-		assertThat(currentCopyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
-		assertThat(currentCopyRetentionRule.isEssential()).isEqualTo(REQUIRED_COPYRULE_FIELD);
-		assertThat(currentCopyRetentionRule.getId()).isEqualTo(SET_ID);
-		assertThat(currentCopyRetentionRule.getMediumTypeIds()).isEqualTo(MEDIUM_TYPE);
-		assertThat(currentCopyRetentionRule.getTypeId()).isNull();
-		assertThat(currentCopyRetentionRule.isIgnoreActivePeriod()).isFalse();
+		assertPrincipalCopyRetentionRule(retentionRuleList.get(0));
+		assertSecondaryCopyRetentionRule(retentionRuleList.get(1));
 
-		// Test secondary rententionRule.
-		currentCopyRetentionRule = retentionRuleList.get(1);
+		assertPrincipalCopyRetentionRule(currentRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule());
+		assertSecondaryCopyRetentionRule(currentRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule());
 
-		assertThat(currentCopyRetentionRule.getCopyType()).isEqualTo(CopyType.SECONDARY);
-		assertThat(currentCopyRetentionRule.getCode()).isEqualTo(CODE);
-		assertThat(currentCopyRetentionRule.getTitle()).isEqualTo(TITLE);
-		assertThat(currentCopyRetentionRule.getDescription()).isEqualTo(DESCRIPTION);
-		assertThat(currentCopyRetentionRule.getContentTypesComment()).isEqualTo(CONTENT_TYPES_COMMENT);
-		assertThat(currentCopyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
-		assertThat(currentCopyRetentionRule.getSemiActiveRetentionComment()).isEqualTo(SEMI_ACTIVE_RETENTION_COMMENT);
-		assertThat(currentCopyRetentionRule.getSemiActiveRetentionPeriod()).isEqualTo(SEMI_ACTIVE_RETENTION_PERIOD);
-		assertThat(currentCopyRetentionRule.getInactiveDisposalComment()).isEqualTo(INACTIVE_DISPOSAL_COMMENT);
-		assertThat(currentCopyRetentionRule.getInactiveDisposalType()).isEqualTo(INACTIVE_DISPOSAL_TYPE);
-		assertThat(currentCopyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
-		assertThat(currentCopyRetentionRule.isEssential()).isEqualTo(REQUIRED_COPYRULE_FIELD);
-		assertThat(currentCopyRetentionRule.getId()).isEqualTo(SET_ID);
-		assertThat(currentCopyRetentionRule.getMediumTypeIds()).isEqualTo(MEDIUM_TYPE);
-		assertThat(currentCopyRetentionRule.getTitle()).isEqualTo(TITLE);
-		assertThat(currentCopyRetentionRule.getCode()).isEqualTo(CODE);
-		assertThat(currentCopyRetentionRule.getTypeId()).isNull();
-		assertThat(currentCopyRetentionRule.isIgnoreActivePeriod()).isTrue();
+		assertPrincipalCopyRetentionRule(currentRetentionRule.getDocumentCopyRetentionRules().get(0));
+		assertSecondaryCopyRetentionRule(currentRetentionRule.getDocumentCopyRetentionRules().get(0));
 
-		currentCopyRetentionRule = retentionRuleList.get(2);
-
-		assertThat(rm.getFolderType(currentCopyRetentionRule.getTypeId()).getCode())
-				.isEqualTo(records.folderTypeEmploye().getCode());
-
-		transaction.add(retentionRule);
-
-		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
-
-		assertThatRecords(rmAnotherCollection.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code")
+		assertThatRecords(rmAnOtherCollection.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code")
 				.containsOnly(
 						tuple("10A", "Unité 10-A", "10"), tuple("11B", "Unité 11-B", "11"), tuple("11", "Unité 11", "10"),
 						tuple("12", "Unité 12", "10"), tuple("20", "Unité 20", null), tuple("30", "Unité 30", null),
@@ -369,6 +322,48 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	public void assertSecondaryCopyRetentionRule(CopyRetentionRule copyRetentionRule) {
+
+		// Test secondary rententionRule.
+
+		assertThat(copyRetentionRule.getCopyType()).isEqualTo(CopyType.SECONDARY);
+		assertThat(copyRetentionRule.getCode()).isEqualTo(CODE);
+		assertThat(copyRetentionRule.getTitle()).isEqualTo(TITLE);
+		assertThat(copyRetentionRule.getDescription()).isEqualTo(DESCRIPTION);
+		assertThat(copyRetentionRule.getContentTypesComment()).isEqualTo(CONTENT_TYPES_COMMENT);
+		assertThat(copyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
+		assertThat(copyRetentionRule.getSemiActiveRetentionComment()).isEqualTo(SEMI_ACTIVE_RETENTION_COMMENT);
+		assertThat(copyRetentionRule.getSemiActiveRetentionPeriod()).isEqualTo(SEMI_ACTIVE_RETENTION_PERIOD);
+		assertThat(copyRetentionRule.getInactiveDisposalComment()).isEqualTo(INACTIVE_DISPOSAL_COMMENT);
+		assertThat(copyRetentionRule.getInactiveDisposalType()).isEqualTo(INACTIVE_DISPOSAL_TYPE);
+		assertThat(copyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
+		assertThat(copyRetentionRule.isEssential()).isEqualTo(REQUIRED_COPYRULE_FIELD);
+		assertThat(copyRetentionRule.getId()).isEqualTo(SET_ID);
+		assertThat(copyRetentionRule.getMediumTypeIds()).isNotNull();
+		assertThat(copyRetentionRule.getTitle()).isEqualTo(TITLE);
+		assertThat(copyRetentionRule.getCode()).isEqualTo(CODE);
+		assertThat(copyRetentionRule.getTypeId()).isNull();
+		assertThat(copyRetentionRule.isIgnoreActivePeriod()).isTrue();
+	}
+
+	public void assertPrincipalCopyRetentionRule(CopyRetentionRule copyRetentionRule) {
+		assertThat(copyRetentionRule.getCopyType()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(copyRetentionRule.getCode()).isEqualTo(CODE);
+		assertThat(copyRetentionRule.getTitle()).isEqualTo(TITLE);
+		assertThat(copyRetentionRule.getDescription()).isEqualTo(DESCRIPTION);
+		assertThat(copyRetentionRule.getContentTypesComment()).isEqualTo(CONTENT_TYPES_COMMENT);
+		assertThat(copyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
+		assertThat(copyRetentionRule.getSemiActiveRetentionComment()).isEqualTo(SEMI_ACTIVE_RETENTION_COMMENT);
+		assertThat(copyRetentionRule.getSemiActiveRetentionPeriod()).isEqualTo(SEMI_ACTIVE_RETENTION_PERIOD);
+		assertThat(copyRetentionRule.getInactiveDisposalComment()).isEqualTo(INACTIVE_DISPOSAL_COMMENT);
+		assertThat(copyRetentionRule.getInactiveDisposalType()).isEqualTo(INACTIVE_DISPOSAL_TYPE);
+		assertThat(copyRetentionRule.getActiveRetentionPeriod()).isEqualTo(ACTIVE_RETENTION_PERIOD);
+		assertThat(copyRetentionRule.isEssential()).isEqualTo(REQUIRED_COPYRULE_FIELD);
+		assertThat(copyRetentionRule.getId()).isEqualTo(SET_ID);
+		assertThat(copyRetentionRule.getMediumTypeIds()).isNotNull();
+		assertThat(copyRetentionRule.getTypeId()).isNull();
+		assertThat(copyRetentionRule.isIgnoreActivePeriod()).isFalse();
+	}
 
 	private void exportThenImportInAnotherCollection(RecordExportOptions options) {
 		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
