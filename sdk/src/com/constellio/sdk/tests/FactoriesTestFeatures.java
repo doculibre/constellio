@@ -115,6 +115,7 @@ public class FactoriesTestFeatures {
 			if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
 				deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
 			}
+		}	
 
 		deleteFromCaches();
 
