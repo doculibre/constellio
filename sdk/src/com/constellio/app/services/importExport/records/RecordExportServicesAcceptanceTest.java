@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -257,6 +258,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		retentionRule.setCode(CODE);
 		retentionRule.setResponsibleAdministrativeUnits(true);
 
+
 		retentionRule.setCopyRetentionRules(arrayList);
 
 		RecordServices recordService = getModelLayerFactory().newRecordServices();
@@ -284,11 +286,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertPrincipalCopyRetentionRule(retentionRuleList.get(0));
 		assertSecondaryCopyRetentionRule(retentionRuleList.get(1));
 
-		assertPrincipalCopyRetentionRule(currentRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule());
-		assertSecondaryCopyRetentionRule(currentRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule());
-
-		assertPrincipalCopyRetentionRule(currentRetentionRule.getDocumentCopyRetentionRules().get(0));
-		assertSecondaryCopyRetentionRule(currentRetentionRule.getDocumentCopyRetentionRules().get(0));
 
 		assertThatRecords(rmAnOtherCollection.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code")
 				.containsOnly(
@@ -298,6 +295,63 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						tuple("12C", "Unité 12-C", "12"), tuple("20D", "Unité 20-D", "20"), tuple("20E", "Unité 20-E", "20")
 				);
 
+	}
+
+	@Test
+	public void whenExportingDocumentRetentionRuleThenExported() throws RecordServicesException {
+		givenDisabledAfterTestValidations();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		RetentionRule retentionRule = rm.newRetentionRule();
+
+		Transaction transaction = new Transaction();
+
+		ArrayList<CopyRetentionRule> arrayList = new ArrayList<>();
+
+		CopyRetentionRule copyRetentionRule1 = getPrimaryCopyRetentionRule();
+		CopyRetentionRule copyRetentionRule2 = getCopySecondaryRetentionRule();
+
+		CopyRetentionRule copyRetentionRule3 = getPrimaryCopyRetentionRule();
+
+		copyRetentionRule3.setTypeId(records.documentTypeId_1);
+
+		arrayList.add(copyRetentionRule1);
+		arrayList.add(copyRetentionRule2);
+
+		retentionRule.setTitle(TITLE);
+		retentionRule.setCode(CODE);
+		retentionRule.setResponsibleAdministrativeUnits(true);
+
+		retentionRule.setDocumentCopyRetentionRules(copyRetentionRule3);
+
+		retentionRule.setScope(RetentionRuleScope.DOCUMENTS);
+
+		retentionRule.setPrincipalDefaultDocumentCopyRetentionRule(copyRetentionRule1);
+		retentionRule.setSecondaryDefaultDocumentCopyRetentionRule(copyRetentionRule2);
+
+		RecordServices recordService = getModelLayerFactory().newRecordServices();
+		transaction.add(retentionRule);
+
+		recordService.execute(transaction);
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(
+						asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE)));
+
+		RMSchemasRecordsServices rmAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		RetentionRule currentRetentionRule = rmAnOtherCollection.getRetentionRuleWithCode(CODE);
+
+		assertPrincipalCopyRetentionRule(currentRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule());
+		assertSecondaryCopyRetentionRule(currentRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule());
+
+		assertPrincipalCopyRetentionRule(currentRetentionRule.getDocumentCopyRetentionRules().get(0));
+
+		assertThat(currentRetentionRule.getDocumentCopyRetentionRules()).isNotNull();
 	}
 
 	private CopyRetentionRule getPrimaryCopyRetentionRule() {
@@ -363,7 +417,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(copyRetentionRule.isEssential()).isEqualTo(REQUIRED_COPYRULE_FIELD);
 		assertThat(copyRetentionRule.getId()).isEqualTo(SET_ID);
 		assertThat(copyRetentionRule.getMediumTypeIds()).isNotNull();
-		assertThat(copyRetentionRule.getTypeId()).isNull();
 		assertThat(copyRetentionRule.isIgnoreActivePeriod()).isFalse();
 	}
 

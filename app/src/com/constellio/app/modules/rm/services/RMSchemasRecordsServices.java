@@ -1058,4 +1058,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public Report wrapReport(Record record) {
 		return record == null ? null : new Report(record, getTypes());
 	}
+
+	public SavedSearch wrapSavedSearch(Record record) {
+		return record == null ? null : new SavedSearch(record, getTypes());
+	}
 }

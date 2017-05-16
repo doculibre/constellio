@@ -363,10 +363,6 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
     private CopyRetentionRule buildCopyRetentionRule(MediumTypeResolver resolver, Map<String, String> mapCopyRetentionRule,
                                                      String rulesType) {
 
-        if (mapCopyRetentionRule.size() == 0) {
-            return null;
-        }
-
         CopyRetentionRuleBuilder builder = CopyRetentionRuleBuilder.sequential(rm);
         CopyRetentionRule copyRetentionRule;
         if (mapCopyRetentionRule.containsKey(COPY_RETENTION_RULE_ID) && StringUtils

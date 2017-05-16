@@ -5,6 +5,7 @@ import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -13,15 +14,19 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -42,9 +47,111 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			manageDecomissionList(params);
 		} else if (params.isRecordOfType(Report.SCHEMA_TYPE)) {
 			manageReport(params);
+		} else if (params.isRecordOfType(SavedSearch.SCHEMA_TYPE)) {
+			throw new NotImplementedException("Pas implémenté.");
+			//manageSavedSearch(params);
+		} else if (params.isRecordOfType(Task.SCHEMA_TYPE)) {
+			manageUserTask(params);
 		}
 	}
 
+	private void manageUserTask(OnWriteRecordParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Task task  = new Task(params.getRecord(), getTypes());
+
+		List<Map<String,String>> listTaskReminder = new ArrayList<>();
+
+		for(TaskReminder taskReminder : task.getReminders())
+		{
+			Map<String,String> map = writeTaskReminder(taskReminder);
+			listTaskReminder.add(map);
+		}
+
+		params.getModifiableImportRecord().addField(Task.REMINDERS, listTaskReminder);
+
+		List<Map<String,String>> listTaskFollowers = new ArrayList<>();
+
+		for(TaskFollower taskFollower : task.getTaskFollowers()) {
+			listTaskFollowers.add(writeTaskFollowers(taskFollower));
+		}
+
+		params.getModifiableImportRecord().addField(Task.TASK_FOLLOWERS, listTaskFollowers);
+	}
+
+
+	private Map<String,String> writeTaskFollowers(TaskFollower taskFollower) {
+		Map<String,String> map = new HashMap();
+
+		map.put(TaskImportExtension.FOLLOWER_ID, taskFollower.getFollowerId());
+		map.put(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED, Boolean.toString(taskFollower.getFollowTaskStatusModified()));
+		map.put(TaskImportExtension.FOLLOW_TASK_ASSIGNEE_MODIFIED, Boolean.toString(taskFollower.getFollowTaskAssigneeModified()));
+		map.put(TaskImportExtension.FOLLOW_SUB_TASKS_MODIFIED, Boolean.toString(taskFollower.getFollowSubTasksModified()));
+		map.put(TaskImportExtension.FOLLOW_TASK_COMPLETED, Boolean.toString(taskFollower.getFollowTaskCompleted()));
+		map.put(TaskImportExtension.FOLLOW_TASK_DELETE, Boolean.toString(taskFollower.getFollowTaskDeleted()));
+
+		return map;
+	}
+
+	private Map<String,String> writeTaskReminder(TaskReminder taskReminder) {
+		Map<String,String> map = new HashMap();
+
+		map.put(TaskImportExtension.FIXED_DATE, taskReminder.getFixedDate().toString("yyyy-MM-dd"));
+		map.put(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE, Integer.toString(taskReminder.getNumberOfDaysToRelativeDate()));
+		map.put(TaskImportExtension.BEFORE_RELATIVE_DATE, Boolean.toString(taskReminder.isBeforeRelativeDate()));
+		map.put(TaskImportExtension.RELATIVE_DATE_METADATA_CODE, taskReminder.getRelativeDateMetadataCode());
+		map.put(TaskImportExtension.PROCESSED, Boolean.toString(taskReminder.isProcessed()));
+
+		return map;
+	}
+
+	private void manageSavedSearch(OnWriteRecordParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		SavedSearch savedSearch = rm.wrapSavedSearch(params.getRecord());
+
+		List<Map<String, String>> reportList = new ArrayList<>();
+
+		for(Criterion criterion : savedSearch.getAdvancedSearch())
+		{
+			writeSavedSearchCriterion(criterion);
+		}
+	}
+
+	public MetadataSchemaTypes getTypes() {
+		return appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+	}
+
+	// N'as pas été fait encore. pusiqu'on ne peut pas vraiment sérialisé un Object et qu'il n'est pas vraiment essentiel.
+	public static final String SCHEMA_TYPE = "schemaType";
+	public static final String METADATA_CODE = "metadataCode";
+	public static final String METADATA_TYPE = "metadataType";
+	public static final String ENUM_CLASS_NAME = "enumClassName";
+	public static final String SEARCH_OPERATOR = "searchOperator";
+	public static final String VALUE = "value";
+	public static final String END_VALUE = "endValue";
+	public static final String LEFT_PARENS = "leftParens";
+	public static final String RIGHT_PARENS = "rightParens";
+	public static final String BOOLEAN_OPERATOR = "booleanOperator";
+	public static final String RELATIVE_CRITERIA = "relativeCriteria";
+
+	private Map<String, String> writeSavedSearchCriterion(Criterion criterion)
+	{
+		Map<String, String> map = new HashMap<>();
+
+		map.put(SCHEMA_TYPE,criterion.getSchemaType());
+		map.put(METADATA_CODE,criterion.getMetadataCode());
+		map.put(METADATA_TYPE, criterion.getMetadataType().toString());
+		map.put(ENUM_CLASS_NAME,criterion.getEnumClassName());
+		map.put(SEARCH_OPERATOR, criterion.getSearchOperator().toString());
+//		map.put(VALUE,schemaType);
+//		map.put(END_VALUE,schemaType);
+//		map.put(LEFT_PARENS,schemaType);
+//		map.put(RIGHT_PARENS,schemaType);
+//		map.put(BOOLEAN_OPERATOR,schemaType);
+//		map.put(RELATIVE_CRITERIA,schemaType);
+
+
+		return map;
+	}
 
 	private void manageReport(OnWriteRecordParams params) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -182,7 +289,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		{
 			params.getModifiableImportRecord().addField(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,
 					writeCopyRetentionRule(rm, retentionRule.getPrincipalDefaultDocumentCopyRetentionRule(),
-							RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
+					RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
 		}
 
 		if(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule() != null) {

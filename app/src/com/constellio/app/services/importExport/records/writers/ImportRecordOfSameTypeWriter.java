@@ -119,7 +119,13 @@ public class ImportRecordOfSameTypeWriter {
 						writeValue(value);
 						writer.writeEndElement();
 
-					} else {
+					} else if (value instanceof Map) {
+						writer.writeStartElement(importRecordMetadata.getKey());
+						writer.writeAttribute("type", "structure");
+						writeValue(value);
+						writer.writeEndElement();
+					}
+					else {
 						writer.writeStartElement(importRecordMetadata.getKey());
 						writeValue(value);
 						writer.writeEndElement();
