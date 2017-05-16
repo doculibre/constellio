@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.ReportimportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
