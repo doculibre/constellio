@@ -163,15 +163,36 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
             //copyRetentionRule.etc
 
-            Map<String, String> map = writeCopyRetentionRule(rm, copyRetentionRule);
+            Map<String, String> map = writeCopyRetentionRule(rm, copyRetentionRule, RetentionRuleImportExtension.RULES_TYPE_FOLDER);
 
             importedCopyRetentionRules.add(map);
         }
 
 		params.getModifiableImportRecord().addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
+
+		List<Map<String, String>> documentCopyRetentionRules = new ArrayList<>();
+
+		for (CopyRetentionRule copyRetentionRule : retentionRule.getDocumentCopyRetentionRules()) {
+			documentCopyRetentionRules.add(writeCopyRetentionRule(rm, copyRetentionRule, RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
+		}
+
+		params.getModifiableImportRecord().addField(RetentionRule.DOCUMENT_COPY_RETENTION_RULES, documentCopyRetentionRules);
+
+		if(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule() != null)
+		{
+			params.getModifiableImportRecord().addField(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,
+					writeCopyRetentionRule(rm, retentionRule.getPrincipalDefaultDocumentCopyRetentionRule(),
+							RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
+		}
+
+		if(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule() != null) {
+			params.getModifiableImportRecord().addField(RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,
+					writeCopyRetentionRule(rm, retentionRule.getSecondaryDefaultDocumentCopyRetentionRule(),
+							RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
+		}
 	}
 
-	private Map<String, String> writeCopyRetentionRule(RMSchemasRecordsServices rm, CopyRetentionRule copyRetentionRule) {
+	private Map<String, String> writeCopyRetentionRule(RMSchemasRecordsServices rm, CopyRetentionRule copyRetentionRule, String ruleType) {
 		Map<String, String> map = new HashMap<>();
 
 		List<String> mediumTypesCodes = new ArrayList<>();
@@ -194,14 +215,20 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, copyRetentionRule.getInactiveDisposalType().getCode());
 		map.put(RetentionRuleImportExtension.OPEN_ACTIVE_RETENTION_PERIOD,
 				Integer.toString(copyRetentionRule.getActiveRetentionPeriod().getValue()));
-		map.put(RetentionRuleImportExtension.REQUIRED_COPYRULE_FIELD, Boolean.toString(copyRetentionRule.isEssential()));
+		map.put(RetentionRuleImportExtension.ESSENTIAL, Boolean.toString(copyRetentionRule.isEssential()));
 		map.put(RetentionRuleImportExtension.COPY_RETENTION_RULE_ID, copyRetentionRule.getId());
 		map.put(RetentionRuleImportExtension.MEDIUM_TYPES, StringUtils.join(mediumTypesCodes, ','));
 		map.put(RetentionRuleImportExtension.IGNORE_ACTIVE_PERIOD, Boolean.toString(copyRetentionRule.isIgnoreActivePeriod()));
 
 		if (copyRetentionRule.getTypeId() != null) {
-			map.put(RetentionRuleImportExtension.TYPE_ID, rm.getFolderType(copyRetentionRule.getTypeId()).getCode());
+			if(RetentionRuleImportExtension.RULES_TYPE_FOLDER.equals(ruleType))
+			{
+				map.put(RetentionRuleImportExtension.TYPE_ID, rm.getFolderType(copyRetentionRule.getTypeId()).getCode());
+			} else {
+				map.put(RetentionRuleImportExtension.TYPE_ID, rm.getDocumentType(copyRetentionRule.getTypeId()).getCode());
+			}
 		}
+
 
 		return map;
 	}
