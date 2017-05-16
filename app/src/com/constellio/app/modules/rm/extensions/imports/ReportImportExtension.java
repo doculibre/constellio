@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Created by constellios on 2017-05-12.
  */
-public class ReportImportExtension2 extends RecordImportExtension {
+public class ReportImportExtension extends RecordImportExtension {
 
     RMSchemasRecordsServices rm;
 
@@ -23,7 +23,7 @@ public class ReportImportExtension2 extends RecordImportExtension {
     public final static String X_POSITION = "xPosition";
     public final static String Y_POSITION = "yPosition";
 
-    public ReportImportExtension2(String collection, ModelLayerFactory modelLayerFactory) {
+    public ReportImportExtension(String collection, ModelLayerFactory modelLayerFactory) {
         this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
     }
 
