@@ -214,8 +214,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 						message.append(": ");
 						message.append(generateDisplayLink(userDocument));
 					}
-					view.showMessage(message.toString());
-					System.out.println(message.toString());
+					view.showClickableMessage(message.toString());
 				}
 			}
 			userDocumentsDataProvider.fireDataRefreshEvent();
@@ -352,12 +351,14 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	String generateDisplayLink(Document document) {
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
-		return constellioUrl + "#!" + displayURL + "/" + document.getId();
+		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
+		return "<a href=\""+url+"\">"+url+"</a>";
 	}
 
 	String generateDisplayLink(UserDocument userDocument) {
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.LIST_USER_DOCUMENTS;
-		return constellioUrl + "#!" + displayURL;
+		String url = constellioUrl + "#!" + displayURL;
+		return "<a href=\""+url+"\">"+url+"</a>";
 	}
 }
