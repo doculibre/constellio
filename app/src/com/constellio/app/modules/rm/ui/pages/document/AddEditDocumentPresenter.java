@@ -655,7 +655,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								message.append(": ");
 								message.append(generateDisplayLink(document));
 							}
-							view.showMessage(message.toString());
+							view.showClickableMessage(message.toString());
 						}
 					}
 					view.getForm().commit();
