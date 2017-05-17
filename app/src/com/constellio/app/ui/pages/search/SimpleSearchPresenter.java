@@ -49,6 +49,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				}
 			} else {
 				pageNumber = 1;
+				searchExpression = parts[1];
 			}
 			if ("s".equals(parts[0])) {
 				searchID = parts[1];
