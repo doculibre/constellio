@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.records;
 
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
@@ -20,6 +21,11 @@ import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -31,8 +37,11 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import com.sun.xml.bind.v2.model.core.ID;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.groups.Tuple;
+import org.joda.time.LocalDate;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -56,6 +65,28 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	RecordExportOptions options = new RecordExportOptions();
 	Users users = new Users();
 
+	public static final String TITLE = "Title1";
+	public static final String CODE = "CODE1";
+	public static final String DESCRIPTION = "DESCRIPTION1";
+	public static final String CONTENT_TYPES_COMMENT = "CONTENT_TYPES_COMMENT1";
+	public static final String ACTIVE_RETENTION_COMMENT = "ACTIVE_RETENTION_COMMENT";
+	public static final RetentionPeriod ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
+	public static final String SEMI_ACTIVE_RETENTION_COMMENT = "SEMI_ACTIVE_RETENTION_COMMENT";
+	public static final RetentionPeriod SEMI_ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
+	public static final String INACTIVE_DISPOSAL_COMMENT = "DISPOSAL_COMMENT";
+	public static final DisposalType INACTIVE_DISPOSAL_TYPE = DisposalType.DESTRUCTION;
+	public static final Integer OPEN_ACTIVE_RETENTION_PERIOD = new Integer(100);
+	public static final boolean REQUIRED_COPYRULE_FIELD = true;
+	public static final String SET_ID = "ID1";
+	public static final String PROCESS = "PROCESS";
+	public static final String TASK_ID = "TASK_ID";
+
+	@Before
+	public void setup()
+	{
+
+	}
+
 	@Test(expected = RecordExportServicesRuntimeException.ExportServicesRuntimeException_NoRecords.class)
 	public void givenEmptyCollectionWhenExportRecordsThenExceptionThrown()
 			throws Exception {
@@ -66,10 +97,65 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		exportThenImportInAnotherCollection(options);
 
+
 	}
 
 	@Test
-	public void whenExportingReport() throws Exception {
+	public void whenExportingAndImportingTask() throws Exception {
+		prepareSystem(
+		withZeCollection().withConstellioRMModule().withAllTest(users)
+				.withRMTest(records).withTasksModule(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users).withTasksModule());
+
+		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		RMTask rmTask = rm.newRMTask();
+		rmTask.setTitle(TITLE);
+		rmTask.setAdministrativeUnit(records.getUnit10());
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		TaskStatus zeStatus = schemas.newTaskStatus().setCode("zeStatus").setStatusType(IN_PROGRESS).setTitle("status title");
+
+		recordServices.add(zeStatus);
+
+		rmTask.setStatus(zeStatus.getId());
+
+		TaskFollower taskFollower1 = new TaskFollower();
+		taskFollower1.setFollowerId(User.ADMIN);
+		taskFollower1.setFollowTaskDeleted(true);
+		taskFollower1.setFollowTaskCompleted(true);
+		taskFollower1.setFollowSubTasksModified(true);
+		taskFollower1.setFollowTaskAssigneeModified(true);
+		taskFollower1.setFollowTaskStatusModified(true);
+
+		TaskFollower taskFollower2 = new TaskFollower();
+		taskFollower2.setFollowerId(records.getDakota_managerInA_userInB().getId());
+
+		rmTask.setTaskFollowers(asList(taskFollower1, taskFollower2));
+
+		TaskReminder reminders1 = new TaskReminder();
+		reminders1.setNumberOfDaysToRelativeDate(5);
+		reminders1.setBeforeRelativeDate(false);
+		reminders1.setProcessed(true);
+		reminders1.setFixedDate(LocalDate.parse("2017-05-17"));
+
+		TaskReminder reminders2 = new TaskReminder();
+		reminders1.setNumberOfDaysToRelativeDate(7);
+		reminders1.setBeforeRelativeDate(false);
+		reminders1.setProcessed(false);
+		reminders1.setFixedDate(LocalDate.parse("2017-05-16"));
+
+		rmTask.setReminders(asList(reminders1,reminders2));
+
+		recordServices.add(rmTask);
+
+		rm.searchRMTasks(returnAll());
+	}
+
+	@Test
+	public void whenExportingAndImportingReport() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
@@ -133,7 +219,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingDecommissionList()
+	public void whenExportingAndImportingDecommissionList()
 	{
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
@@ -158,7 +244,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingComment() throws Exception {
+	public void whenExportingAndImportingComment() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -218,19 +304,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-	final String TITLE = "Title1";
-	final String CODE = "CODE1";
-	final String DESCRIPTION = "DESCRIPTION1";
-	final String CONTENT_TYPES_COMMENT = "CONTENT_TYPES_COMMENT1";
-	final String ACTIVE_RETENTION_COMMENT = "ACTIVE_RETENTION_COMMENT";
-	final RetentionPeriod ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
-	final String SEMI_ACTIVE_RETENTION_COMMENT = "SEMI_ACTIVE_RETENTION_COMMENT";
-	final RetentionPeriod SEMI_ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
-	final String INACTIVE_DISPOSAL_COMMENT = "DISPOSAL_COMMENT";
-	final DisposalType INACTIVE_DISPOSAL_TYPE = DisposalType.DESTRUCTION;
-	final Integer OPEN_ACTIVE_RETENTION_PERIOD = new Integer(100);
-	final boolean REQUIRED_COPYRULE_FIELD = true;
-	final String SET_ID = "ID1";
+
 
 	@Test
 	public void whenExportingFolderRetentionRuleThenExported()

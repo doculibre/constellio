@@ -1,9 +1,8 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
-import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
@@ -44,36 +43,62 @@ public class TaskImportExtension extends RecordImportExtension {
 
     @Override
     public void build(BuildParams event) {
-            Task task = new Task(event.getRecord(), getTypes());
+        Task task = new Task(event.getRecord(), getTypes());
 
-            List<ReportedMetadata> reportedMetadataList = new ArrayList<>();
+        List<Map<String, String>> mapTaskReminderList = event.getImportRecord().getList(Task.REMINDERS);
+        List<TaskReminder> taskReminderList = new ArrayList<>();
 
-            List<Map<String, String>> mapTaskReminderList = event.getImportRecord().getList(Task.REMINDERS);
-
-            for (Map<String,String> mapTaskReminder : mapTaskReminderList) {
-                TaskReminder taskReminder = new TaskReminder();
-
-                if(mapTaskReminder.get(TaskImportExtension.FIXED_DATE) != null) {
-                    taskReminder.setFixedDate(LocalDate.parse(mapTaskReminder.get(TaskImportExtension.FIXED_DATE)));
-                }
-
-                taskReminder.setNumberOfDaysToRelativeDate(Integer.parseInt(mapTaskReminder.get(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE)));
-                taskReminder.setBeforeRelativeDate(Boolean.parseBoolean(mapTaskReminder.get(TaskImportExtension.BEFORE_RELATIVE_DATE)));
-
-                if(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE) != null) {
-                    taskReminder.setRelativeDateMetadataCode(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE));
-                }
-
-                taskReminder.setProcessed(Boolean.parseBoolean(mapTaskReminder.get(TaskImportExtension.PROCESSED)));
+        for (Map<String,String> mapTaskReminder : mapTaskReminderList) {
+            taskReminderList.add(readTaskReminder(mapTaskReminder));
         }
 
+        task.setReminders(taskReminderList);
+
         List<Map<String, String>> mapTaskFollowersList = event.getImportRecord().getList(Task.TASK_FOLLOWERS);
+        List<TaskFollower> taskFollowerList = new ArrayList<>();
 
         for (Map<String,String> mapTaskFollower : mapTaskFollowersList)
         {
-
+            TaskFollower taskFollower = readTaskFollower(mapTaskFollower);
+            taskFollowerList.add(taskFollower);
         }
 
+        task.setTaskFollowers(taskFollowerList);
+    }
+
+    private TaskReminder readTaskReminder(Map<String, String> mapTaskReminder) {
+        TaskReminder taskReminder = new TaskReminder();
+
+        if(mapTaskReminder.get(TaskImportExtension.FIXED_DATE) != null) {
+            taskReminder.setFixedDate(LocalDate.parse(mapTaskReminder.get(TaskImportExtension.FIXED_DATE)));
+        }
+
+        taskReminder.setNumberOfDaysToRelativeDate(Integer.parseInt(mapTaskReminder.get(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE)));
+        taskReminder.setBeforeRelativeDate(Boolean.parseBoolean(mapTaskReminder.get(TaskImportExtension.BEFORE_RELATIVE_DATE)));
+
+        if(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE) != null) {
+            taskReminder.setRelativeDateMetadataCode(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE));
+        }
+
+        taskReminder.setProcessed(Boolean.parseBoolean(mapTaskReminder.get(TaskImportExtension.PROCESSED)));
+
+        return taskReminder;
+    }
+
+    private TaskFollower readTaskFollower(Map<String, String> mapTaskFollower) {
+        TaskFollower taskFollower = new TaskFollower();
+
+        if(mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID) != null) {
+            taskFollower.setFollowerId(mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID));
+        }
+
+        taskFollower.setFollowTaskStatusModified(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED)));
+        taskFollower.setFollowTaskAssigneeModified(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_ASSIGNEE_MODIFIED)));
+        taskFollower.setFollowSubTasksModified(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_SUB_TASKS_MODIFIED)));
+        taskFollower.setFollowTaskCompleted(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_COMPLETED)));
+        taskFollower.setFollowTaskDeleted(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_DELETE)));
+
+        return taskFollower;
     }
 
     public MetadataSchemaTypes getTypes() {

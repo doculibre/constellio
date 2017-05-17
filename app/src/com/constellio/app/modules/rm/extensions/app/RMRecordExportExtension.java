@@ -4,7 +4,6 @@ import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.ReportimportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -27,7 +26,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -49,7 +51,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		} else if (params.isRecordOfType(Report.SCHEMA_TYPE)) {
 			manageReport(params);
 		} else if (params.isRecordOfType(SavedSearch.SCHEMA_TYPE)) {
-			throw new NotImplementedException("Pas implémenté.");
+			throw new NotImplementedException("Pas implémenté");
 			//manageSavedSearch(params);
 		} else if (params.isRecordOfType(Task.SCHEMA_TYPE)) {
 			manageUserTask(params);
