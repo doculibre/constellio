@@ -63,11 +63,13 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.vaadin.ui.UI;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -669,7 +671,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							message.append(": ");
 							message.append(generateDisplayLink(document));
 						}
-						view.showClickableMessage(message.toString());
+						ConfirmDialog.show(UI.getCurrent(), $("ContentManager.hasFoundDuplicate"), message.toString(), null, null, (ConfirmDialog.Listener) null);
+//						view.showClickableMessage(message.toString());
 					}
 				}
 				uploadedContentVO.setMajorVersion(true);
