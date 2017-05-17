@@ -9,13 +9,16 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
@@ -28,6 +31,7 @@ public class FileSystemTestFeatures {
 
 	private static long sequence = 1;
 	private final File tempFolder;
+	private final File testClassFolder;
 
 	private final List<File> foldersToDeleteAfterTest = new ArrayList<File>();
 	private Class<? extends AbstractConstellioTest> testClass;
@@ -43,6 +47,8 @@ public class FileSystemTestFeatures {
 			tempFolders.mkdirs();
 			tempFolder = new File(tempFolders, tempFolderName);
 		}
+		testClassFolder = new File(tempFolder, testClass.getSimpleName());
+		testClassFolder.mkdirs();
 
 		boolean clearTempFolder = true;
 		String lastPreservedState = getLastPreservedState();
@@ -53,18 +59,19 @@ public class FileSystemTestFeatures {
 			}
 		}
 
-		if (clearTempFolder && tempFolder.exists()) {
+		if (clearTempFolder && testClassFolder.exists()) {
 			try {
-				FileUtils.deleteDirectory(tempFolder);
+				FileUtils.deleteDirectory(testClassFolder);
 			} catch (IOException e) {
-				throw new Error("Cannot deleteLogically temp test directory, it is impossible to start tests in a clean state.",
-						e);
+				Error error = new Error("Cannot deleteLogically temp test directory, it is impossible to start tests in a clean state.", e);
+				writeStackTrace(error);
+				throw error;
 			}
 		}
 	}
 
 	void setPreservedState(String state) {
-		File stateFile = new File(tempFolder, "state.txt");
+		File stateFile = new File(testClassFolder, "state.txt");
 		try {
 			FileUtils.write(stateFile, state);
 		} catch (IOException e) {
@@ -73,7 +80,7 @@ public class FileSystemTestFeatures {
 	}
 
 	String getLastPreservedState() {
-		File stateFile = new File(tempFolder, "state.txt");
+		File stateFile = new File(testClassFolder, "state.txt");
 		if (stateFile.exists()) {
 			try {
 				return FileUtils.readFileToString(stateFile);
@@ -90,23 +97,41 @@ public class FileSystemTestFeatures {
 	}
 
 	public void close() {
-		for (File folderToDelete : foldersToDeleteAfterTest) {
-			try {
-				FileUtils.deleteDirectory(folderToDelete);
-			} catch (IOException e) {
-				throw new RuntimeException("Cannot delete logically temp directory '" + folderToDelete
-						+ "' after test execution. It probably means that a resource has not been closed", e);
-			}
-			folderToDelete = null;
+		try {
+			for (File folderToDelete : foldersToDeleteAfterTest) {
+				try {
+					FileUtils.deleteDirectory(folderToDelete);
+				} catch (IOException e) {
+					throw new RuntimeException("Cannot delete logically temp directory '" + folderToDelete
+							+ "' after test execution. It probably means that a resource has not been closed", e);
+				}
+				folderToDelete = null;
 
+			}
+
+			if (testClassFolder.exists()) {
+				try {
+					FileUtils.forceDelete(testClassFolder);
+				} catch (IOException e) {
+					throw new RuntimeException("Cannot delete temp directory '" + testClassFolder
+							+ "' after test execution. It probably means that a resource has not been closed", e);
+				}
+			}
+		} catch (RuntimeException e) {
+			writeStackTrace(e);
+			throw e;
 		}
-
-		if (tempFolder.exists()) {
-			try {
-				FileUtils.forceDelete(tempFolder);
-			} catch (IOException e) {
-				// This directory cannot be deleted, but it is caused by an other test, for which a fail has been called
-			}
+	}
+	
+	private void writeStackTrace(Throwable t) {
+		String stackTrace = ExceptionUtils.getStackTrace(t);
+		String dateTimeStr = new SimpleDateFormat("yyyy-MM-dd_HH_mm_ss").format(new Date());
+		String stackTraceFileName = "stack-trace-" + dateTimeStr + ".txt";
+		File stackTraceFile = new File(testClassFolder, stackTraceFileName);
+		try {
+			FileUtils.write(stackTraceFile, stackTrace);
+		} catch (IOException e) {
+			throw new RuntimeException("Unable to write stack trace to file " + stackTraceFile.getAbsolutePath() + " : " + stackTrace, e);
 		}
 	}
 
@@ -147,14 +172,14 @@ public class FileSystemTestFeatures {
 	}
 
 	public File newTempFolder() {
-		File testFolder = new File(tempFolder, "test_" + testClass.getSimpleName() + "_" + (++sequence));
+		File testFolder = new File(testClassFolder, "test_" + testClass.getSimpleName() + "_" + (++sequence));
 		testFolder.mkdirs();
 		foldersToDeleteAfterTest.add(testFolder);
 		return testFolder;
 	}
 
 	public File newTempFolderWithName(String name) {
-		File testFolder = new File(tempFolder, "test_" + testClass.getSimpleName() + "_" + name);
+		File testFolder = new File(testClassFolder, "test_" + testClass.getSimpleName() + "_" + name);
 		testFolder.mkdirs();
 		foldersToDeleteAfterTest.add(testFolder);
 		return testFolder;

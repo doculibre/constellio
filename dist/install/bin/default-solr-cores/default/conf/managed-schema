@@ -385,6 +385,7 @@
         <filter class="solr.SnowballPorterFilterFactory" language="Swedish"/>
       </analyzer>
     </fieldType>
+<!--    
     <fieldType name="text_th" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer class="solr.StandardTokenizerFactory"/>
@@ -393,6 +394,7 @@
         <filter class="solr.StopFilterFactory" words="lang/stopwords_th.txt" ignoreCase="true"/>
       </analyzer>
     </fieldType>
+-->    
     <fieldType name="text_tr" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer class="solr.StandardTokenizerFactory"/>
