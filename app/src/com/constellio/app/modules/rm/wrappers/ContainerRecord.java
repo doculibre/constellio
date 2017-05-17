@@ -32,6 +32,8 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String REAL_TRANSFER_DATE = "realTransferDate";
 	public static final String STORAGE_SPACE = "storageSpace";
 	public static final String TEMPORARY_IDENTIFIER = "temporaryIdentifier";
+	public static final String TEMPORARY_IDENTIFIER_ENTERED = "temporaryIdentifierEntered";
+	public static final String TEMPORARY_IDENTIFIER_SEQUENCE = "temporaryIdentifierSequence";
 	public static final String TYPE = "type";
 	public static final String POSITION = "position";
 	public static final String COMMENTS = "comments";
