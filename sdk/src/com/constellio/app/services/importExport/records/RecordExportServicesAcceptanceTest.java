@@ -101,6 +101,17 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenExportingAndImportringEmailAddress()
+	{
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users)
+						.withRMTest(records).withTasksModule(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users).withTasksModule());
+
+
+	}
+
+	@Test
 	public void whenExportingAndImportingTask() throws Exception {
 		prepareSystem(
 		withZeCollection().withConstellioRMModule().withAllTest(users)
@@ -266,7 +277,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,Category.SCHEMA_TYPE)));
+				options.setExportedSchemaTypes(asList(User.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						Category.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
 
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
@@ -278,7 +290,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
-		assertThat(commentFromAnOtherCollection.getUserId()).isEqualTo(user.getId());
 	}
 
 	@Test
