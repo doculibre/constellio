@@ -39,14 +39,23 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	public SimpleSearchPresenter forRequestParameters(String params) {
 		if (StringUtils.isNotBlank(params)) {
 			String[] parts = params.split("/", 3);
-			pageNumber = parts.length == 3 ? Integer.parseInt(parts[2]) : 1;
+			if (parts.length == 3) {
+				try {
+					pageNumber = Integer.parseInt(parts[2]);
+					searchExpression = parts[1];
+				} catch (NumberFormatException e) {
+					pageNumber = 1;
+					searchExpression = parts[1] + "/" + parts[2];
+				}
+			} else {
+				pageNumber = 1;
+			}
 			if ("s".equals(parts[0])) {
 				searchID = parts[1];
 				SavedSearch search = getSavedSearch(searchID);
 				setSavedSearch(search);
 			} else {
 				searchID = null;
-				searchExpression = parts[1];
 				resultsViewMode = SearchResultsViewMode.DETAILED;
 				saveTemporarySearch(false);
 			}
