@@ -1,12 +1,13 @@
 package com.constellio.sdk.tests;
 
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.UiTest;
-import org.junit.Test;
 
 @UiTest
 @MainTest
@@ -32,7 +33,7 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		getSaveStateFeature().saveStateAfterTestWithTitle("with_manual_modifications");
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
-		modelLayerFactory.getSystemConfigurationsManager().setValue(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		//modelLayerFactory.getSystemConfigurationsManager().setValue(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 
 		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();

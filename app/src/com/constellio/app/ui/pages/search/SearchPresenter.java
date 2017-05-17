@@ -391,9 +391,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
+		String userSearchExpression = getUserSearchExpression();
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
-				.setFreeTextQuery(getUserSearchExpression())
+				.setFreeTextQuery(userSearchExpression)
 				.filteredWithUser(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
