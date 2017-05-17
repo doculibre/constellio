@@ -124,7 +124,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		rmTask.setStatus(zeStatus.getId());
 
 		TaskFollower taskFollower1 = new TaskFollower();
-		taskFollower1.setFollowerId(User.ADMIN);
+		taskFollower1.setFollowerId(records.getAdmin().getId());
 		taskFollower1.setFollowTaskDeleted(true);
 		taskFollower1.setFollowTaskCompleted(true);
 		taskFollower1.setFollowSubTasksModified(true);
@@ -141,18 +141,23 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		reminders1.setBeforeRelativeDate(false);
 		reminders1.setProcessed(true);
 		reminders1.setFixedDate(LocalDate.parse("2017-05-17"));
+		reminders1.setRelativeDateMetadataCode(RMTask.DUE_DATE);
 
 		TaskReminder reminders2 = new TaskReminder();
 		reminders1.setNumberOfDaysToRelativeDate(7);
 		reminders1.setBeforeRelativeDate(false);
 		reminders1.setProcessed(false);
 		reminders1.setFixedDate(LocalDate.parse("2017-05-16"));
+		reminders1.setFixedDate(LocalDate.parse("2017-05-16"));
+		reminders2.setRelativeDateMetadataCode(RMTask.START_DATE);
 
 		rmTask.setReminders(asList(reminders1,reminders2));
 
 		recordServices.add(rmTask);
 
-		rm.searchRMTasks(returnAll());
+		List<RMTask> zeCollectionTasks = rm.searchRMTasks(returnAll());
+
+		assertThat(zeCollectionTasks).hasSize(1);
 	}
 
 	@Test
