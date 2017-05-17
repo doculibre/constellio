@@ -9,7 +9,9 @@ import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
@@ -230,9 +232,13 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
 		List<Tuple> exportedDecommissiongListsIds = new ArrayList<>();
 		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
+		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
+		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
 		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
 			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
 			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
+			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
+			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
 		}
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
@@ -252,9 +258,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
 				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
 
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
-
 		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
+
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
 	}
 
 	@Test
@@ -551,5 +559,51 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				return true;
 			}
 		}.describedAs("containing all folderDetails in " + comparator);
+	}
+
+	private Condition<? super List<DecommissioningList>> containingAllContainerDetails(final List<List<DecomListContainerDetail>> comparator) {
+		return new Condition<List<DecommissioningList>>() {
+			@Override
+			public boolean matches(List<DecommissioningList> comparedLists) {
+				for(DecommissioningList list: comparedLists) {
+					boolean wasFound = false;
+					List<DecomListContainerDetail> containerDetails = list.getContainerDetails();
+					for(List<DecomListContainerDetail> comparatorDetailList: comparator) {
+						if(containerDetails.containsAll(comparatorDetailList)) {
+							wasFound = true;
+							break;
+						}
+					}
+
+					if(!wasFound) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}.describedAs("containing all containerDetails in " + comparator);
+	}
+
+	private Condition<? super List<DecommissioningList>> containingAllValidations(final List<List<DecomListValidation>> comparator) {
+		return new Condition<List<DecommissioningList>>() {
+			@Override
+			public boolean matches(List<DecommissioningList> comparedLists) {
+				for(DecommissioningList list: comparedLists) {
+					boolean wasFound = false;
+					List<DecomListValidation> validations = list.getValidations();
+					for(List<DecomListValidation> comparatorDetailList: comparator) {
+						if(validations.containsAll(comparatorDetailList)) {
+							wasFound = true;
+							break;
+						}
+					}
+
+					if(!wasFound) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}.describedAs("containing all validations in " + comparator);
 	}
 }
