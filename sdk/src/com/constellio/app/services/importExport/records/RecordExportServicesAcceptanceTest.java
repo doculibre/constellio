@@ -1,5 +1,55 @@
 package com.constellio.app.services.importExport.records;
 
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.RetentionPeriod;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams;
+import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
+import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Condition;
+import org.assertj.core.groups.Tuple;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.sdk.tests.TestUtils.asList;
@@ -7,57 +57,6 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.RetentionPeriod;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.modules.rm.wrappers.type.MediumType;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
-import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-
-import com.sun.xml.bind.v2.model.core.ID;
-import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.groups.Tuple;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
-import com.constellio.app.services.schemas.bulkImport.BulkImportParams;
-import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
-import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
 
 public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
@@ -226,6 +225,21 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
+		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
+		List<Tuple> exportedDecommissiongListsIds = new ArrayList<>();
+		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
+		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
+			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
+			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
+		}
+
+		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		List<DecommissioningList> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
+
+		assertThat(listSearchDecommissiongList).hasSize(0);
 
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
@@ -233,14 +247,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
 						ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
 
+		listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
 
-		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
+				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
 
-		List<DecommissioningList> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
 
-		assertThatRecords(listSearchDecommissiongList).extractingMetadatas("ID");
-
-		assertThat(listSearchDecommissiongList.size()).isEqualTo(1);
+		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
 	}
 
 	@Test
@@ -514,5 +528,28 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		} finally {
 			getIOLayerFactory().newIOServices().deleteQuietly(zipFile);
 		}
+	}
+
+	private Condition<? super List<DecommissioningList>> containingAllFolderDetails(final List<List<DecomListFolderDetail>> comparator) {
+		return new Condition<List<DecommissioningList>>() {
+			@Override
+			public boolean matches(List<DecommissioningList> comparedLists) {
+				for(DecommissioningList list: comparedLists) {
+					boolean wasFound = false;
+					List<DecomListFolderDetail> folderDetails = list.getFolderDetails();
+					for(List<DecomListFolderDetail> comparatorDetailList: comparator) {
+						if(folderDetails.containsAll(comparatorDetailList)) {
+							wasFound = true;
+							break;
+						}
+					}
+
+					if(!wasFound) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}.describedAs("containing all folderDetails in " + comparator);
 	}
 }
