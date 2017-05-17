@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -158,6 +159,37 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<RMTask> zeCollectionTasks = rm.searchRMTasks(returnAll());
 
 		assertThat(zeCollectionTasks).hasSize(1);
+
+		List<Tuple> exportedTasksIds = new ArrayList<>();
+		List<List<TaskReminder>> exportedReminders = new ArrayList<>();
+		List<List<TaskFollower>> exportedFollowers = new ArrayList<>();
+		for(Task task: zeCollectionTasks) {
+			exportedTasksIds.add(new Tuple(task.getId()));
+			exportedReminders.add(task.getReminders());
+			exportedFollowers.add(task.getTaskFollowers());
+		}
+
+		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		List<RMTask> listSearchTask = rmAnotherCollection.searchRMTasks(returnAll());
+
+		assertThat(listSearchTask).hasSize(0);
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
+						Folder.SCHEMA_TYPE,	DecommissioningList.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+
+		listSearchTask = rmAnotherCollection.searchRMTasks(returnAll());
+
+		assertThatRecords(listSearchTask).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
+				.containsAll(exportedTasksIds);
+
+		assertThat(listSearchTask.size()).isEqualTo(zeCollectionTasks.size());
+
+		assertThatRecords(listSearchTask).is((Condition<? super List<Object>>) containingAllReminders(exportedReminders));
+		assertThatRecords(listSearchTask).is((Condition<? super List<Object>>) containingAllFollowers(exportedFollowers));
 	}
 
 	@Test
@@ -610,5 +642,51 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				return true;
 			}
 		}.describedAs("containing all validations in " + comparator);
+	}
+
+	private Condition<? super List<Task>> containingAllReminders(final List<List<TaskReminder>> comparator) {
+		return new Condition<List<Task>>() {
+			@Override
+			public boolean matches(List<Task> comparedTasks) {
+				for(Task task: comparedTasks) {
+					boolean wasFound = false;
+					List<TaskReminder> reminders = task.getReminders();
+					for(List<TaskReminder> comparatorReminders: comparator) {
+						if(reminders.containsAll(comparatorReminders)) {
+							wasFound = true;
+							break;
+						}
+					}
+
+					if(!wasFound) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}.describedAs("containing all reminders in " + comparator);
+	}
+
+	private Condition<? super List<Task>> containingAllFollowers(final List<List<TaskFollower>> comparator) {
+		return new Condition<List<Task>>() {
+			@Override
+			public boolean matches(List<Task> comparedTasks) {
+				for(Task task: comparedTasks) {
+					boolean wasFound = false;
+					List<TaskFollower> followers = task.getTaskFollowers();
+					for(List<TaskFollower> comparatorFollowers: comparator) {
+						if(followers.containsAll(comparatorFollowers)) {
+							wasFound = true;
+							break;
+						}
+					}
+
+					if(!wasFound) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}.describedAs("containing all followers in " + comparator);
 	}
 }
