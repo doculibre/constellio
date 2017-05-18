@@ -693,11 +693,29 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void manageCommentFactory(Record record, Metadata metadata, Entry<String, Object> field) {
-		List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
-		List<Comment> commentList = new ArrayList<>();
+		if(metadata.isMultivalue()) {
+			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
+			List<Comment> commentList = new ArrayList<>();
 
-		for(Map<String, String> hashMap : listHashMap)
-		{
+			for(Map<String, String> hashMap : listHashMap)
+			{
+				String userName = hashMap.get(COMMENT_USER_NAME);
+				UserServices userService = new UserServices(modelLayerFactory);
+
+				Comment comment = new Comment();
+				comment.setMessage(hashMap.get(COMMENT_MESSAGE));
+				comment.setUser(userService.getUserInCollection(userName, collection));
+
+				if(comment.getDateTime() != null)
+				{
+					LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));
+				}
+
+				commentList.add(comment);
+			}
+			record.set(metadata, commentList);
+		} else {
+			Map<String, String> hashMap = (Map<String, String>) field.getValue();
 			String userName = hashMap.get(COMMENT_USER_NAME);
 			UserServices userService = new UserServices(modelLayerFactory);
 
@@ -710,9 +728,8 @@ public class RecordsImportServicesExecutor {
 				LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));
 			}
 
-			commentList.add(comment);
+			record.set(metadata, comment);
 		}
-		record.set(metadata, commentList);
 	}
 
 	private void manageMapStringStringStructureFactory(Record record, Metadata metadata, Entry<String, Object> field) {

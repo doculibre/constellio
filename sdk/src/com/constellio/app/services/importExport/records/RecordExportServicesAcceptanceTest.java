@@ -39,7 +39,9 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -391,6 +393,54 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(categoryFromAnOtherCollection.getComments().size()).isEqualTo(1);
 
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
+		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
+		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
+	}
+
+	@Test
+	public void whenExportingAndImportingSingleValueComment() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+		final String MESSAGE = "Message";
+		final User user = records.getAdmin();
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Category.SCHEMA_TYPE).getMetadata(Category.COMMENTS).setMultivalue(false);
+			}
+		});
+		getModelLayerFactory().getMetadataSchemasManager().modify("anotherCollection", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Category.SCHEMA_TYPE).getMetadata(Category.COMMENTS).setMultivalue(false);
+			}
+		});
+
+		Comment comment = new Comment();
+		comment.setUser(records.getAdmin());
+		comment.setMessage(MESSAGE);
+
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction transaction = new Transaction();
+
+		Category category = records.getCategory_X();
+		category.getWrappedRecord().set(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getMetadata(Category.DEFAULT_SCHEMA+"_"+Category.COMMENTS), comment);
+		transaction.update(category.getWrappedRecord());
+
+		recordServices.execute(transaction);
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(User.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						Category.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+
+		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		Category categoryFromAnOtherCollection = rmAnotherCollection.getCategoryWithCode("X");
+
+		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.get(Category.COMMENTS);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
 	}
