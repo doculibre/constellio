@@ -7,6 +7,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.records.RecordExportServicesRuntimeException.ExportServicesRuntimeException_NoRecords;
 import com.constellio.app.services.importExport.records.writers.ImportRecordOfSameCollectionWriter;
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
+import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
+import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
@@ -220,21 +222,16 @@ public class RecordExportServices {
 	}
 
 	// For Comments
-	public static final String MESSAGE = "Message";
-	public static final String USER_ID = "UserId";
-	public static final String USER_NAME = "UserName";
-	public static final String DATE_TIME = "DateTime";
 
 	private HashMap<String,String> getCommentHasHashMap(Comment comment)
 	{
 		HashMap<String,String> commentHasMap = new HashMap<String, String>();
 
-		commentHasMap.put(MESSAGE, comment.getMessage());
-		commentHasMap.put(USER_ID, comment.getUserId());
-		commentHasMap.put(USER_NAME, comment.getUsername());
+		commentHasMap.put(RecordsImportServicesExecutor.COMMENT_MESSAGE, comment.getMessage());
+		commentHasMap.put(RecordsImportServicesExecutor.COMMENT_USER_NAME, comment.getUsername());
 		if(comment.getDateTime() != null)
 		{
-			commentHasMap.put(DATE_TIME, comment.getDateTime().toString());
+			commentHasMap.put(RecordsImportServicesExecutor.COMMENT_DATE_TIME, comment.getDateTime().toString("yyyy-MM-dd"));
 		}
 
 		return commentHasMap;
@@ -267,16 +264,14 @@ public class RecordExportServices {
 		}
 	}
 
-	public static final String EMAIL = "Email";
-	public static final String NAME = "Name";
 
 
 	private HashMap<String,String> getEmailAddressHashMap(EmailAddress emailAddress)
 	{
 		HashMap<String,String> commentHasMap = new HashMap<String, String>();
 
-		commentHasMap.put(EMAIL, emailAddress.getEmail());
-		commentHasMap.put(NAME, emailAddress.getName());
+		commentHasMap.put(RecordsImportServicesExecutor.EMAIL_ADDRESS_EMAIL, emailAddress.getEmail());
+		commentHasMap.put(RecordsImportServicesExecutor.EMAIL_ADDRESS_NAME, emailAddress.getName());
 
 		return commentHasMap;
 	}
