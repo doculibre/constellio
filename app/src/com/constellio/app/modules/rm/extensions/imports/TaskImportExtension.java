@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.extensions.imports;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
-import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
@@ -74,7 +73,7 @@ public class TaskImportExtension extends RecordImportExtension {
         }
 
         taskReminder.setNumberOfDaysToRelativeDate(Integer.parseInt(mapTaskReminder.get(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE)));
-        taskReminder.setBeforeRelativeDate(Boolean.parseBoolean(mapTaskReminder.get(TaskImportExtension.BEFORE_RELATIVE_DATE)));
+        taskReminder.setBeforeRelativeDate(convertStringToBoolean(mapTaskReminder.get(TaskImportExtension.BEFORE_RELATIVE_DATE)));
 
         if(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE) != null) {
             taskReminder.setRelativeDateMetadataCode(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE));
@@ -108,5 +107,12 @@ public class TaskImportExtension extends RecordImportExtension {
     @Override
     public String getDecoratedSchemaType() {
         return Task.SCHEMA_TYPE;
+    }
+
+    private Boolean convertStringToBoolean(String s) {
+        if(s == null) {
+            return null;
+        }
+        return Boolean.parseBoolean(s);
     }
 }

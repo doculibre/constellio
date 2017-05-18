@@ -176,10 +176,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(listSearchTask).hasSize(0);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
-						Folder.SCHEMA_TYPE,	DecommissioningList.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
-						ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, TaskStatus.SCHEMA_TYPE, RMTask.SCHEMA_TYPE)));
 
 		listSearchTask = rmAnotherCollection.searchRMTasks(returnAll());
 

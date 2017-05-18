@@ -98,11 +98,11 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	private Map<String,String> writeTaskReminder(TaskReminder taskReminder) {
 		Map<String,String> map = new HashMap();
 
-		map.put(TaskImportExtension.FIXED_DATE, taskReminder.getFixedDate().toString("yyyy-MM-dd"));
+		map.put(TaskImportExtension.FIXED_DATE, taskReminder.getFixedDate() != null? taskReminder.getFixedDate().toString("yyyy-MM-dd"):null);
 		map.put(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE, Integer.toString(taskReminder.getNumberOfDaysToRelativeDate()));
-		map.put(TaskImportExtension.BEFORE_RELATIVE_DATE, Boolean.toString(taskReminder.isBeforeRelativeDate()));
+		map.put(TaskImportExtension.BEFORE_RELATIVE_DATE, convertBooleanToString(taskReminder.isBeforeRelativeDate()));
 		map.put(TaskImportExtension.RELATIVE_DATE_METADATA_CODE, taskReminder.getRelativeDateMetadataCode());
-		map.put(TaskImportExtension.PROCESSED, Boolean.toString(taskReminder.isProcessed()));
+		map.put(TaskImportExtension.PROCESSED, convertBooleanToString(taskReminder.isBeforeRelativeDate()));
 
 		return map;
 	}
@@ -341,6 +341,13 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 
 		return map;
+	}
+
+	public String convertBooleanToString(Boolean b) {
+		if(b == null) {
+			return null;
+		}
+		return b.toString();
 	}
 
 	public static String copyTypeToString(CopyType copyType) {
