@@ -149,7 +149,7 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
             decomListContainerDetail = new DecomListContainerDetail();
         }
 
-        decomListContainerDetail.setFull(Boolean.parseBoolean(mapDecomListContainerDetail.get(BOOLEAN_FULL)));
+        decomListContainerDetail.setFull(convertStringToBoolean(mapDecomListContainerDetail.get(BOOLEAN_FULL)));
 
         return decomListContainerDetail;
     }
@@ -163,5 +163,12 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         comment.setUser(rm.newUserWithId(mapDecomListComments.get(USER_ID)).setUsername(mapDecomListComments.get(USERNAME)));
 
         return comment;
+    }
+
+    private Boolean convertStringToBoolean(String s) {
+        if(s == null) {
+            return null;
+        }
+        return Boolean.parseBoolean(s);
     }
 }
