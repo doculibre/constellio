@@ -7,7 +7,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.records.RecordExportServicesRuntimeException.ExportServicesRuntimeException_NoRecords;
 import com.constellio.app.services.importExport.records.writers.ImportRecordOfSameCollectionWriter;
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
-import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -22,7 +21,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.joda.time.LocalDate;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -134,16 +132,18 @@ public class RecordExportServices {
 							modifiableImportRecord.addField(metadata.getLocalCode(), object);
 						}
 					}
-					else if(metadata.getType() == MetadataValueType.STRUCTURE)
-							if(metadata.getStructureFactory().getClass().equals(MapStringListStringStructureFactory.class)) {
-								manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
-							} else if (metadata.getStructureFactory().getClass().equals(MapStringStringStructureFactory.class)) {
-								manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
-							} else if (metadata.getStructureFactory().getClass().equals(CommentFactory.class)) {
-								manageCommentFactory(record, metadata, modifiableImportRecord);
-							} else if(metadata.getStructureFactory().getClass().equals(EmailAddressFactory.class)) {
-								manageEmailAddressFactory(record, metadata, modifiableImportRecord);
-							}
+					else if(metadata.getType() == MetadataValueType.STRUCTURE) {
+						StructureFactory structureFactory = metadata.getStructureFactory();
+						if(structureFactory.getClass().equals(MapStringListStringStructureFactory.class)) {
+                            manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
+                        } else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
+                            manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
+                        } else if (structureFactory.getClass().equals(CommentFactory.class)) {
+                            manageCommentFactory(record, metadata, modifiableImportRecord);
+                        } else if(structureFactory.getClass().equals(EmailAddressFactory.class)) {
+                            manageEmailAddressFactory(record, metadata, modifiableImportRecord);
+                        }
+					}
 				}
 
 				appLayerFactory.getExtensions().forCollection(collection)
@@ -250,7 +250,7 @@ public class RecordExportServices {
 				commentHashMapList.add(getEmailAddressHashMap(currentEmailAddress));
 			}
 
-			modifiableImportRecord.addField(metadata.getLocalCode(), commentList);
+			modifiableImportRecord.addField(metadata.getLocalCode(), commentHashMapList);
 		}
 		else {
 			emailAddress = record.get(metadata);
