@@ -264,16 +264,14 @@ public class RecordExportServices {
 		}
 	}
 
-	public static final String EMAIL = "Email";
-	public static final String NAME = "Name";
 
 
 	private HashMap<String,String> getEmailAddressHashMap(EmailAddress emailAddress)
 	{
 		HashMap<String,String> commentHasMap = new HashMap<String, String>();
 
-		commentHasMap.put(EMAIL, emailAddress.getEmail());
-		commentHasMap.put(NAME, emailAddress.getName());
+		commentHasMap.put(RecordsImportServicesExecutor.EMAIL_ADDRESS_EMAIL, emailAddress.getEmail());
+		commentHasMap.put(RecordsImportServicesExecutor.EMAIL_ADDRESS_NAME, emailAddress.getName());
 
 		return commentHasMap;
 	}

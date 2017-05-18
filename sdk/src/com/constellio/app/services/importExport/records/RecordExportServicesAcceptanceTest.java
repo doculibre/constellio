@@ -28,10 +28,12 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -41,6 +43,7 @@ import com.sun.xml.bind.v2.model.core.ID;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.groups.Tuple;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -80,6 +83,13 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	public static final String SET_ID = "ID1";
 	public static final String PROCESS = "PROCESS";
 	public static final String TASK_ID = "TASK_ID";
+	public static final String EMAIL_1 = "constelio1@constellio.com";
+	public static final String NAME_1 = "constelio1";
+	public static final String EMAIL_2 = "constelio12@constellio.com";
+	public static final String NAME_2 = "constelio2";
+	public static final String EMAIL_3 = "constelio13@constellio.com";
+	public static final String NAME_3 = "constelio3";
+	public static final LocalDateTime localDateTime=new LocalDateTime();
 
 	@Before
 	public void setup()
@@ -101,13 +111,50 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportringEmailAddress()
-	{
+	public void whenExportingAndImportringEmailAddress() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withTasksModule(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users).withTasksModule());
 
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		EmailToSend emailToSend = rm.newEmailToSend();
+
+		EmailAddress emailAddress1 = new EmailAddress();
+		emailAddress1.setEmail(EMAIL_1);
+		emailAddress1.setName(NAME_1);
+
+		EmailAddress emailAddress2 = new EmailAddress();
+		emailAddress2.setName(NAME_2);
+		emailAddress2.setEmail(EMAIL_2);
+
+		EmailAddress emailAddress3 = new EmailAddress();
+		emailAddress3.setName(NAME_3);
+		emailAddress3.setEmail(EMAIL_3);
+
+		List<EmailAddress> emailAddressList = asList(emailAddress1, emailAddress2, emailAddress3);
+
+		emailToSend.setFrom(emailAddress1);
+		emailToSend.setBCC(emailAddressList);
+		emailToSend.setCC(emailAddressList);
+		emailToSend.setSendOn(localDateTime);
+		emailToSend.setCreatedOn(localDateTime);
+		emailToSend.setTo(emailAddressList);
+		emailToSend.setSendOn(localDateTime);
+		emailToSend.setSubject("Subjet");
+		emailToSend.setTemplate("Template");
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		recordServices.add(emailToSend);
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
+
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+
+		List<EmailToSend> emailToSendList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
 
 	}
 

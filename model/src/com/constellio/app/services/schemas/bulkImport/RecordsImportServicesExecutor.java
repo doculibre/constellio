@@ -27,6 +27,7 @@ import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.entities.structures.EmailAddressFactory;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
@@ -92,6 +93,10 @@ public class RecordsImportServicesExecutor {
 	public static final String COMMENT_MESSAGE = "Message";
 	public static final String COMMENT_USER_NAME = "UserName";
 	public static final String COMMENT_DATE_TIME = "DateTime";
+
+	public static final String EMAIL_ADDRESS_EMAIL = "Email";
+	public static final String EMAIL_ADDRESS_NAME = "Name";
+
 
 	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemasManager schemasManager;
@@ -662,13 +667,36 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void manageEmailAddressFactory(Record record, Metadata metadata, Entry<String, Object> field) {
+		//Test if multi value
+		if(field.getValue() instanceof List) {
+			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
+			List<EmailAddress> emailAddressList = new ArrayList<>();
+			for(Map<String,String> map : listHashMap) {
+				EmailAddress emailAddress = new EmailAddress();
+
+				emailAddress.setEmail(map.get(EMAIL_ADDRESS_EMAIL));
+				emailAddress.setName(map.get(EMAIL_ADDRESS_NAME));
+				emailAddressList.add(emailAddress);
+
+			}
+			record.set(metadata, emailAddressList);
+			} else {
+
+			Map<String,String> map = (Map<String, String>) field.getValue();
+			EmailAddress emailAddress = new EmailAddress();
+
+			emailAddress.setEmail(map.get(EMAIL_ADDRESS_EMAIL));
+			emailAddress.setName(map.get(EMAIL_ADDRESS_NAME));
+
+			record.set(metadata, emailAddress);
+		}
 	}
 
 	private void manageCommentFactory(Record record, Metadata metadata, Entry<String, Object> field) {
-		List<HashMap<String, String>> listHashMap = (List<HashMap<String, String>>) field.getValue();
+		List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
 		List<Comment> commentList = new ArrayList<>();
 
-		for(HashMap<String, String> hashMap : listHashMap)
+		for(Map<String, String> hashMap : listHashMap)
 		{
 			String userName = hashMap.get(COMMENT_USER_NAME);
 			UserServices userService = new UserServices(modelLayerFactory);
