@@ -139,9 +139,9 @@ public class RecordsImportServicesExecutor {
 
 	//
 	public RecordsImportServicesExecutor(final ModelLayerFactory modelLayerFactory, RecordServices recordServices,
-			URLResolver urlResolver,
-			ImportDataProvider importDataProvider, final BulkImportProgressionListener bulkImportProgressionListener,
-			final User user, List<String> collections, BulkImportParams params) {
+										 URLResolver urlResolver,
+										 ImportDataProvider importDataProvider, final BulkImportProgressionListener bulkImportProgressionListener,
+										 final User user, List<String> collections, BulkImportParams params) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.importDataProvider = importDataProvider;
 		this.bulkImportProgressionListener = bulkImportProgressionListener;
@@ -273,7 +273,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void addCyclicDependenciesValidationError(ValidationErrors errors, MetadataSchemaType schemaType,
-			Set<String> cyclicDependentIds) {
+													  Set<String> cyclicDependentIds) {
 
 		List<String> ids = new ArrayList<>(cyclicDependentIds);
 		Collections.sort(ids);
@@ -297,6 +297,7 @@ public class RecordsImportServicesExecutor {
 				TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext,
 						importDataIterator.getOptions(), importDataBatches.next());
 				skipped += importBatch(typeImportContext, typeBatchImportContext, errors);
+				typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 				recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 				incrementSequences(typeBatchImportContext);
 
@@ -323,7 +324,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private TypeBatchImportContext newTypeBatchImportContext(TypeImportContext typeImportContext,
-			ImportDataOptions options, List<ImportData> batch) {
+															 ImportDataOptions options, List<ImportData> batch) {
 		TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext();
 		typeBatchImportContext.batch = batch;
 		typeBatchImportContext.transaction = new Transaction();
@@ -340,7 +341,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	int bulkImportInParallel(final TypeImportContext typeImportContext, ImportDataIterator importDataIterator,
-			final ValidationErrors errors)
+							 final ValidationErrors errors)
 			throws ValidationException {
 
 		final AtomicInteger skipped = new AtomicInteger();
@@ -362,6 +363,7 @@ public class RecordsImportServicesExecutor {
 						throws Exception {
 					TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext, options, value);
 					skipped.addAndGet(importBatch(typeImportContext, typeBatchImportContext, errors));
+					typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 					recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 
 				}
@@ -381,7 +383,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private int importBatch(final TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
-			ValidationErrors errors)
+							ValidationErrors errors)
 			throws ValidationException {
 
 		preuploadContents(typeBatchImportContext);
@@ -439,7 +441,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void importRecord(TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
-			ImportData toImport, DecoratedValidationsErrors errors)
+							  ImportData toImport, DecoratedValidationsErrors errors)
 			throws ValidationException, PostponedRecordException {
 
 		String legacyId = toImport.getLegacyId();
@@ -505,7 +507,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void findHigherSequenceValues(TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
-			Record record) {
+										  Record record) {
 
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata metadata : schema.getMetadatas().onlySequence()) {
@@ -575,7 +577,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	Record buildRecord(TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
-			ImportData toImport, ValidationErrors errors)
+					   ImportData toImport, ValidationErrors errors)
 			throws PostponedRecordException, SkippedBecauseOfFailedDependency {
 		MetadataSchemaType schemaType = getMetadataSchemaType(typeImportContext.schemaType);
 		MetadataSchema newSchema = getMetadataSchema(typeImportContext.schemaType + "_" + toImport.getSchema());
@@ -659,27 +661,27 @@ public class RecordsImportServicesExecutor {
 	}
 
 	Object convertScalarValue(TypeBatchImportContext typeBatchImportContext, Metadata metadata, Object value,
-			ValidationErrors errors)
+							  ValidationErrors errors)
 			throws PostponedRecordException, SkippedBecauseOfFailedDependency {
 		switch (metadata.getType()) {
 
-		case NUMBER:
-			return Double.valueOf((String) value);
+			case NUMBER:
+				return Double.valueOf((String) value);
 
-		case BOOLEAN:
-			return value == null ? null : ALL_BOOLEAN_YES.contains(((String) value).toLowerCase());
+			case BOOLEAN:
+				return value == null ? null : ALL_BOOLEAN_YES.contains(((String) value).toLowerCase());
 
-		case CONTENT:
-			return convertContent(typeBatchImportContext, value, errors);
+			case CONTENT:
+				return convertContent(typeBatchImportContext, value, errors);
 
-		case REFERENCE:
-			return convertReference(metadata, (String) value);
+			case REFERENCE:
+				return convertReference(metadata, (String) value);
 
-		case ENUM:
-			return EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), (String) value);
+			case ENUM:
+				return EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), (String) value);
 
-		default:
-			return value;
+			default:
+				return value;
 		}
 	}
 
