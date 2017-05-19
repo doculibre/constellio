@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -124,10 +125,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_1_2(),
 				new RMMigrationTo7_2(),
 				new RMMigrationTo7_2_0_1(),
-				new RMMigrationTo7_2_0_2(),
-				new RMMigrationTo7_2_0_3(),
-				new RMMigrationTo7_2_0_4(),
-				new RMMigrationTo7_3()
+				new RMMigrationTo7_2_0_2()
+                new RMMigrationTo7_2_0_3(),
+                new RMMigrationTo7_2_0_4(),
+                new RMMigrationTo7_3()
 		);
 	}
 

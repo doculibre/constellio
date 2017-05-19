@@ -1,24 +1,15 @@
 package com.constellio.model.services.migrations;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
-import com.constellio.model.entities.enums.MetadataPopulatePriority;
-import com.constellio.model.entities.enums.SearchSortType;
-import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
+import com.constellio.model.entities.enums.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.*;
 
 public class ConstellioEIMConfigs {
 
@@ -66,6 +57,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration TABLE_DYNAMIC_CONFIGURATION;
 
 	public static final SystemConfiguration TRANSACTION_DELAY;
+
+	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 			"   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
@@ -131,6 +124,7 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
+		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -299,6 +293,10 @@ public class ConstellioEIMConfigs {
 
 	public int getLazyTreeBufferSize() {
 		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
+	}
+
+	public boolean isReplaceSpacesInSimpleSearchForAnds() {
+		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
 	}
 
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
