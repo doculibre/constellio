@@ -64,13 +64,13 @@ public class DecommissioningListQueryFactory {
 
 	public LogicalSearchQuery getListsPendingValidationQuery(User user) {
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
-			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_VALIDATION)
 					.andWhere(rm.decommissioningList.approvalRequest()).isNull()
 					.andWhere(rm.decommissioningList.pendingValidations()).isNotEqual(user);
 			return newQueryWithAdministrativeUnitFilter(condition, user);
 		} else if (user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).onSomething()) {
-			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_VALIDATION)
 					.andWhere(rm.decommissioningList.approvalRequest()).isNotNull()
 					.andWhere(rm.decommissioningList.pendingValidations()).isNotEqual(user);
@@ -81,14 +81,14 @@ public class DecommissioningListQueryFactory {
 	}
 
 	public LogicalSearchQuery getListsToValidateQuery(User user) {
-		LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+		LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 				.where(rm.decommissioningList.pendingValidations()).isEqualTo(user);
 		return new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery getValidatedListsQuery(User user) {
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
-			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.VALIDATED);
 			return newQueryWithAdministrativeUnitFilter(condition, user);
 		} else {
@@ -98,7 +98,7 @@ public class DecommissioningListQueryFactory {
 
 	public LogicalSearchQuery getListsPendingApprovalQuery(User user) {
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
-			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isIn(
 							asList(DecomListStatus.IN_APPROVAL, DecomListStatus.IN_VALIDATION))
 					.andWhere(rm.decommissioningList.approvalRequest()).isNotNull();
@@ -110,7 +110,7 @@ public class DecommissioningListQueryFactory {
 
 	public LogicalSearchQuery getListsToApproveQuery(User user) {
 		if (user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).onSomething()) {
-			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_APPROVAL)
 					.andWhere(rm.decommissioningList.approvalRequest()).isNotEqual(user);
 			return newQueryWithAdministrativeUnitFilter(condition, user, RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
@@ -121,7 +121,7 @@ public class DecommissioningListQueryFactory {
 
 	public LogicalSearchQuery getApprovedListsQuery(User user) {
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
-			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.APPROVED);
 			return newQueryWithAdministrativeUnitFilter(condition, user);
 		} else {
@@ -131,7 +131,7 @@ public class DecommissioningListQueryFactory {
 
 	public LogicalSearchQuery getProcessedListsQuery(User user) {
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
-			LogicalSearchCondition condition = from(rm.decommissioningList.schema())
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.PROCESSED);
 			return newQueryWithAdministrativeUnitFilter(condition, user);
 		} else {

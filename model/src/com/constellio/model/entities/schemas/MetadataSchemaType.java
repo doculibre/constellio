@@ -97,6 +97,10 @@ public class MetadataSchemaType {
 		return labels;
 	}
 
+	public String getFrenchLabel() {
+		return labels.get(Language.French);
+	}
+
 	public String getLabel(Language language) {
 		return labels.get(language);
 	}
