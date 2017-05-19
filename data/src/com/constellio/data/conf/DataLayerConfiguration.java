@@ -1,12 +1,13 @@
 package com.constellio.data.conf;
 
 import java.io.File;
+import java.io.Serializable;
 
 import org.joda.time.Duration;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 
-public interface DataLayerConfiguration {
+public interface DataLayerConfiguration extends Serializable {
 
 	void validate();
 

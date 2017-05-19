@@ -736,12 +736,7 @@ public class MetadataBuilder {
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
 		final Factory<ModelLayerFactory> modelLayerFactoryFactory = modelLayerFactory.getModelLayerFactoryFactory();
-		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
-			@Override
-			public EncryptionServices get() {
-				return modelLayerFactoryFactory.get().newEncryptionServices();
-			}
-		};
+		Factory<EncryptionServices> encryptionServicesFactory = new EncryptionServicesFactory(modelLayerFactoryFactory);
 
 		if (duplicable == null) {
 			duplicable = false;
@@ -1033,5 +1028,20 @@ public class MetadataBuilder {
 
 	public Set<String> getCustomAttributes() {
 		return Collections.unmodifiableSet(customAttributes);
+	}
+	
+	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {
+		
+		private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
+		
+		private EncryptionServicesFactory(Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+			this.modelLayerFactoryFactory = modelLayerFactoryFactory;
+		}
+
+		@Override
+		public EncryptionServices get() {
+			return modelLayerFactoryFactory.get().newEncryptionServices();
+		}
+		
 	}
 }

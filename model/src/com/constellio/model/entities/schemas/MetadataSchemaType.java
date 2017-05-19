@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,7 +20,7 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
 
-public class MetadataSchemaType {
+public class MetadataSchemaType implements Serializable {
 
 	public static final String DEFAULT = "default";
 

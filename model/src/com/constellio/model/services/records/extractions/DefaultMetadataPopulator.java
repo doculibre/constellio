@@ -24,9 +24,11 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 	private LoadingCache<String, ParsedContent> cachedContentManager;
 	private boolean multiValue;
 
+	@Deprecated //Refactoring needed
 	public DefaultMetadataPopulator() {
 	}
 
+	@Deprecated //Refactoring needed
 	public <T> DefaultMetadataPopulator(Extractor<T> extractor, ExtractorSupplier<T> feedsExtractor){
 		this.feedsExtractor = feedsExtractor;
 		this.extractor = extractor;
