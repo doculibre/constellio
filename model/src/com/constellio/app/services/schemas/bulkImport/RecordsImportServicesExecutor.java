@@ -27,10 +27,7 @@ import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.entities.structures.EmailAddress;
-import com.constellio.model.entities.structures.EmailAddressFactory;
-import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
-import com.constellio.model.entities.structures.MapStringStringStructureFactory;
+import com.constellio.model.entities.structures.*;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -668,7 +665,7 @@ public class RecordsImportServicesExecutor {
 
 	private void manageEmailAddressFactory(Record record, Metadata metadata, Entry<String, Object> field) {
 		//Test if multi value
-		if(field.getValue() instanceof List) {
+		if(metadata.isMultivalue()) {
 			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
 			List<EmailAddress> emailAddressList = new ArrayList<>();
 			for(Map<String,String> map : listHashMap) {
@@ -717,9 +714,55 @@ public class RecordsImportServicesExecutor {
 
 	private void manageMapStringStringStructureFactory(Record record, Metadata metadata, Entry<String, Object> field) {
 
+
+		if(metadata.isMultivalue()) {
+			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
+			List<MapStringStringStructure> listMapStringListStringStructure = new ArrayList<>();
+
+			for(Map<String, String> map : listHashMap) {
+				MapStringStringStructure mapStringStringStructure = new MapStringStringStructure(map);
+				listMapStringListStringStructure.add(mapStringStringStructure);
+			}
+			record.set(metadata, listMapStringListStringStructure);
+		} else {
+			Map<String, String> listHashMap = (Map<String, String>) field.getValue();
+			record.set(metadata, new MapStringStringStructure(listHashMap));
+		}
+
 	}
 
 	private void manageMapStringListStringStructureFactory(Record record, Metadata metadata, Entry<String, Object> field) {
+
+		if(metadata.isMultivalue()) {
+			List<Map<String, String>> listMapStringList = (List<Map<String, String>>) field.getValue();
+			List<MapStringListStringStructure> mapStringListStringStructureList = new ArrayList<>();
+
+			MapStringListStringStructure currentMapStringListStringStructure;
+
+			for(Map<String, String> currentMapListString : listMapStringList) {
+				currentMapStringListStringStructure = new MapStringListStringStructure();
+				for(String keySet : currentMapListString.keySet()) {
+					String string = currentMapListString.get(keySet);
+					currentMapStringListStringStructure.put(keySet,asList(string.split(",")));
+				}
+
+				mapStringListStringStructureList.add(currentMapStringListStringStructure);
+			}
+			record.set(metadata, mapStringListStringStructureList);
+		} else {
+			Map<String,String> hashMapListString = (Map<String,String>) field.getValue();
+			hashMapListString.remove("type");
+
+			MapStringListStringStructure mapStringListStringStructure = new MapStringListStringStructure();
+
+			for(String keySet : hashMapListString.keySet()) {
+				String string = hashMapListString.get(keySet);
+				mapStringListStringStructure.put(keySet,asList(string.split(",")));
+			}
+
+			record.set(metadata, mapStringListStringStructure);
+		}
+
 
 	}
 

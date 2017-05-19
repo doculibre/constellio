@@ -23,6 +23,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,6 +86,7 @@ public class RecordExportServices {
 
 		return isSchemaCodePresent;
 	}
+
 
 	private void writeRecordSchema(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -174,12 +176,14 @@ public class RecordExportServices {
 		}
 	}
 
+
 	private void manageMapStringStringStructureFactory(Record record, Metadata metadata, ModifiableImportRecord modifiableImportRecord) {
 		List<MapStringStringStructure> mapStringStringStructureList;
 		MapStringStringStructure mapStringStringStructure;
 
 		if(metadata.isMultivalue()) {
 			mapStringStringStructureList = record.getList(metadata);
+
 			modifiableImportRecord.addField(metadata.getLocalCode(), mapStringStringStructureList);
 		}
 		else {

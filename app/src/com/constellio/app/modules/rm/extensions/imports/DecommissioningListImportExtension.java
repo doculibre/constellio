@@ -78,11 +78,6 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
             decomListValidationList.add(buildDecomListValidation(decomListValidation));
         }
         decommissioningList.setValidations(decomListValidationList);
-
-        for (Map<String, String> decomListComment : decomListComments) {
-            decomListCommentList.add(buildDecomListComments(decomListComment));
-        }
-        decommissioningList.setComments(decomListCommentList);
     }
 
     private DecomListValidation buildDecomListValidation(Map<String, String> mapDecomListValidation) {
@@ -152,17 +147,6 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         decomListContainerDetail.setFull(convertStringToBoolean(mapDecomListContainerDetail.get(BOOLEAN_FULL)));
 
         return decomListContainerDetail;
-    }
-
-    private Comment buildDecomListComments(Map<String, String> mapDecomListComments) {
-
-        Comment comment = new Comment();
-
-        comment.setMessage(mapDecomListComments.get(MESSAGE));
-        comment.setDateTime(new LocalDateTime(mapDecomListComments.get(DATE_TIME)));
-        comment.setUser(rm.newUserWithId(mapDecomListComments.get(USER_ID)).setUsername(mapDecomListComments.get(USERNAME)));
-
-        return comment;
     }
 
     private Boolean convertStringToBoolean(String s) {
