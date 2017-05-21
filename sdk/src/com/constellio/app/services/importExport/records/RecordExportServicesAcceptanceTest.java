@@ -498,10 +498,56 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getYPosition()).isEqualTo(4);
 	}
 
+
+	@Test
+	public void whenExportingAndImportingSameSystemDecommissionList()
+	{
+		prepareSystem(
+			withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
+					.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
+
+		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
+		List<Tuple> exportedDecommissiongListsIds = new ArrayList<>();
+		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
+		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
+		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
+		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
+			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
+			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
+			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
+			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
+		}
+
+
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+						DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
+
+		File file = exportToZip(recordExportOptions);
+
+		// Delete rows.
+
+		importFromZip(file, zeCollection);
+
+
+		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
+
+		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
+				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
+
+		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
+
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+	}
+
 	@Test
 	public void whenExportingAndImportingDecommissionList()
 	{
-		prepareSystem(
+ 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -793,6 +839,32 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(copyRetentionRule.getId()).isEqualTo(SET_ID);
 		assertThat(copyRetentionRule.getMediumTypeIds()).isNotNull();
 		assertThat(copyRetentionRule.isIgnoreActivePeriod()).isFalse();
+	}
+
+	private File exportToZip(RecordExportOptions optios)
+	{
+		return new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
+	}
+
+	private void importFromZip(File zipFile, String collection) {
+		ImportDataProvider importDataProvider = null;
+		try {
+			importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);
+
+			UserServices userServices = getModelLayerFactory().newUserServices();
+			User user = userServices.getUserInCollection("admin", collection);
+			BulkImportParams importParams = BulkImportParams.STRICT();
+			LoggerBulkImportProgressionListener listener = new LoggerBulkImportProgressionListener();
+			try {
+				new RecordsImportServices(getModelLayerFactory()).bulkImport(importDataProvider, listener, user, importParams);
+			} catch (ValidationException e) {
+				e.printStackTrace();
+				fail(StringUtils.join(i18n.asListOfMessages(e.getValidationErrors()), "\n"));
+
+			}
+		} finally {
+			getIOLayerFactory().newIOServices().deleteQuietly(zipFile);
+		}
 	}
 
 	private void exportThenImportInAnotherCollection(RecordExportOptions options) {

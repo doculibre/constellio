@@ -65,7 +65,7 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         List<Comment> decomListCommentList = new ArrayList<>();
 
         for (Map<String, String> decomListFolderDetail : decomListFolderDetails) {
-            decomListFolderDetailList.add(buildDecomListFolderDetails(decomListFolderDetail));
+            decomListFolderDetailList.add(buildDecomListFolderDetails(decomListFolderDetail,buildParams.getImportDataOptions().isImportAsLegacyId()));
         }
         decommissioningList.setFolderDetails(decomListFolderDetailList);
 
@@ -102,13 +102,21 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         return decomListValidation;
     }
 
-    private DecomListFolderDetail buildDecomListFolderDetails(Map<String, String> mapDecomListFolderDetail) {
+    private DecomListFolderDetail buildDecomListFolderDetails(Map<String, String> mapDecomListFolderDetail, boolean useLegacyId) {
 
         DecomListFolderDetail decomListFolderDetail;
 
         if (mapDecomListFolderDetail.containsKey(FOLDER_ID) && StringUtils
                 .isNotEmpty(mapDecomListFolderDetail.get(FOLDER_ID))) {
-            Folder folder = rm.getFolderWithLegacyId(mapDecomListFolderDetail.get(FOLDER_ID));
+
+            Folder folder;
+
+            if(useLegacyId) {
+                folder = rm.getFolderWithLegacyId(mapDecomListFolderDetail.get(FOLDER_ID));
+            } else {
+                folder = rm.getFolder(mapDecomListFolderDetail.get(FOLDER_ID));
+            }
+
             decomListFolderDetail = new DecomListFolderDetail(folder);
         } else {
             decomListFolderDetail = new DecomListFolderDetail();

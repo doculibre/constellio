@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,7 +60,9 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
 		givenDocumentTypes(documentTypes).code("documentPapier").addField("archivisticStatus", "C").build();
 
-		retentionRuleExtension.validate(new ValidationParams(validationErrors, importData));
+		ImportDataOptions importDataOptions = new ImportDataOptions();
+
+		retentionRuleExtension.validate(new ValidationParams(validationErrors, importData, importDataOptions));
 
 		assertThat(extractingSimpleCodeAndParameters(validationErrors, "index", "value")).containsOnly(
 				tuple("RetentionRuleImportExtension_invalidDocumentType", "0", "documentPapier")

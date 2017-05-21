@@ -442,7 +442,7 @@ public class RecordsImportServicesExecutor {
 		String legacyId = toImport.getLegacyId();
 		if (resolverCache.getNotYetImportedLegacyIds(typeImportContext.schemaType).contains(legacyId)) {
 
-			extensions.callRecordImportValidate(typeImportContext.schemaType, new ValidationParams(errors, toImport));
+			extensions.callRecordImportValidate(typeImportContext.schemaType, new ValidationParams(errors, toImport, typeBatchImportContext.options));
 
 			String title = (String) toImport.getFields().get("title");
 
@@ -658,7 +658,7 @@ public class RecordsImportServicesExecutor {
 		}
 
 
-		extensions.callRecordImportBuild(typeImportContext.schemaType, new BuildParams(record, types, toImport));
+		extensions.callRecordImportBuild(typeImportContext.schemaType, new BuildParams(record, types, toImport, typeBatchImportContext.options));
 
 		return record;
 	}
