@@ -332,10 +332,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public void showClickableMessage(String message) {
-		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
-		notification.setDelayMsec(-1);
-		notification.setHtmlContentAllowed(true);
-		notification.show(Page.getCurrent());
+//		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
+//		notification.setDelayMsec(-1);
+//		notification.setHtmlContentAllowed(true);
+//		notification.show(Page.getCurrent());
+		ClickableNotification.show(ConstellioUI.getCurrent(), "", message);
 	}
 
 	@Override
