@@ -513,7 +513,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
 		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
 		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
+		List<DecommissioningList> decommissioningListList = new ArrayList<>();
 		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
+			decommissioningListList.add(decommissioningList);
 			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
 			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
 			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
@@ -528,6 +530,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		File file = exportToZip(recordExportOptions);
 
 		// Delete rows.
+		RecordServices recordService = getModelLayerFactory().newRecordServices();
+
+		for(DecommissioningList decommissioningList: decommissioningListList) {
+			recordService.logicallyDelete(decommissioningList.getWrappedRecord(), User.GOD);
+			recordService.physicallyDelete(decommissioningList.getWrappedRecord(), User.GOD);
+		}
 
 		importFromZip(file, zeCollection);
 
