@@ -91,11 +91,11 @@ public class TaskImportExtension extends RecordImportExtension {
             taskFollower.setFollowerId(mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID));
         }
 
-        taskFollower.setFollowTaskStatusModified(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED)));
-        taskFollower.setFollowTaskAssigneeModified(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_ASSIGNEE_MODIFIED)));
-        taskFollower.setFollowSubTasksModified(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_SUB_TASKS_MODIFIED)));
-        taskFollower.setFollowTaskCompleted(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_COMPLETED)));
-        taskFollower.setFollowTaskDeleted(Boolean.parseBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_DELETE)));
+        taskFollower.setFollowTaskStatusModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED)));
+        taskFollower.setFollowTaskAssigneeModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_ASSIGNEE_MODIFIED)));
+        taskFollower.setFollowSubTasksModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_SUB_TASKS_MODIFIED)));
+        taskFollower.setFollowTaskCompleted(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_COMPLETED)));
+        taskFollower.setFollowTaskDeleted(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_DELETE)));
 
         return taskFollower;
     }

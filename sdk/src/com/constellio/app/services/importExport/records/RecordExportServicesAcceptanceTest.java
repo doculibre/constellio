@@ -34,9 +34,10 @@ import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.*;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -91,9 +92,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	public static final String NAME_1 = "constelio1";
 	public static final String EMAIL_2 = "constelio12@constellio.com";
 	public static final String NAME_2 = "constelio2";
-	public static final String EMAIL_3 = "constelio13@constellio.com";
-	public static final String NAME_3 = "constelio3";
-	public static final LocalDateTime localDateTime=new LocalDateTime();
+	public static final LocalDateTime LOCAL_DATE_TIME =new LocalDateTime();
+	public static final String EMAIL_TEMPLATE = "Template";
+	public static final String EMAIL_SUBJECT = "Subject";
 
 	@Before
 	public void setup()
@@ -110,12 +111,175 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
 		exportThenImportInAnotherCollection(options);
-
-
 	}
 
 	@Test
-	public void whenExportingAndImportringEmailAddress() throws Exception {
+	public void whenExportingAndImportingMapStringStringStructure() throws Exception {
+		final String MAP_STRING_STRING_STRUCTURE = "mapStringListStringStucture";
+		final String MAP_STRING_STRING_STRUCTURE_MULTIVALUE = "mapStringListStringStructure";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users)
+						.withRMTest(records).withTasksModule(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users).withTasksModule());
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringStringStructureFactory.class);
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringStringStructureFactory.class).setMultivalue(true);
+			}
+		});
+
+		getModelLayerFactory().getMetadataSchemasManager().modify("anotherCollection", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
+				.defineStructureFactory(MapStringStringStructureFactory.class);
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
+				.defineStructureFactory(MapStringStringStructureFactory.class).setMultivalue(true);
+			}
+		});
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		EmailToSend emailToSend = rm.newEmailToSend();
+
+		MapStringStringStructure mapStringStringStructure = new MapStringStringStructure();
+		List<MapStringStringStructure> mapStringStringStructureList = new ArrayList<>();
+		MapStringStringStructure mapStringStringStructure2 = new MapStringStringStructure();
+
+		mapStringStringStructure.put("key1", "value1");
+		mapStringStringStructure.put("key2", "value2");
+
+		mapStringStringStructure2.put("key3", "value3");
+		mapStringStringStructure2.put("key4", "value4");
+
+		mapStringStringStructureList.add(mapStringStringStructure);
+		mapStringStringStructureList.add(mapStringStringStructure2);
+
+		emailToSend.set(MAP_STRING_STRING_STRUCTURE, mapStringStringStructure);
+		emailToSend.set(MAP_STRING_STRING_STRUCTURE_MULTIVALUE, mapStringStringStructureList);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		recordServices.add(emailToSend);
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
+
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		List<EmailToSend> emailToSendFromAnOtherCollectionList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
+
+		EmailToSend emailToSendFromAnOtherCollection = emailToSendFromAnOtherCollectionList.get(0);
+		List<MapStringStringStructure> mapStringStringStructureListFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_STRING_STRUCTURE_MULTIVALUE);
+
+		MapStringStringStructure mapStringStringStructureFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_STRING_STRUCTURE);
+
+		// Assert MultiValued
+		MapStringStringStructure mapStringStringStructureFromAnOtherCollection1 = mapStringStringStructureListFromAnOtherCollection.get(0);
+		MapStringStringStructure mapStringStringStructureFromAnOtherCollection2 = mapStringStringStructureListFromAnOtherCollection.get(1);
+
+		assertThat(mapStringStringStructureFromAnOtherCollection2.get("key4")).isEqualTo("value4");
+		assertThat(mapStringStringStructureFromAnOtherCollection2.get("key3")).isEqualTo("value3");
+		assertThat(mapStringStringStructureFromAnOtherCollection1.get("key2")).isEqualTo("value2");
+		assertThat(mapStringStringStructureFromAnOtherCollection1.get("key1")).isEqualTo("value1");
+
+		assertThat(mapStringStringStructureFromAnOtherCollection.get("key1")).isEqualTo("value1");
+		assertThat(mapStringStringStructureFromAnOtherCollection.get("key2")).isEqualTo("value2");
+	}
+
+	@Test
+	public void whenExportingAndImportingMapStringListStringStructure() throws Exception {
+		final String MAP_STRING_LIST_STRING_STRUCTURE = "mapStringListStringStucture";
+		final String MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE = "mapStringListStringStructure";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users)
+						.withRMTest(records).withTasksModule(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users).withTasksModule());
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringListStringStructureFactory.class);
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringListStringStructureFactory.class).setMultivalue(true);
+			}
+		});
+
+		getModelLayerFactory().getMetadataSchemasManager().modify("anotherCollection", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringListStringStructureFactory.class);
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringListStringStructureFactory.class).setMultivalue(true);
+				;
+			}
+		});
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		EmailToSend emailToSend = rm.newEmailToSend();
+
+		MapStringListStringStructure mapStringListStringStructure = new MapStringListStringStructure();
+		List<MapStringListStringStructure> mapStringListStringStructureList = new ArrayList<>();
+		MapStringListStringStructure mapStringListStringStructure2 = new MapStringListStringStructure();
+
+
+		List<String> listString = asList("Hello1", "Hello2", "Hello3");
+		List<String> listString2 = asList("Sup1", "Sup2", "Sup3");
+
+		mapStringListStringStructure.put("list1", listString);
+		mapStringListStringStructure.put("list2", listString2);
+		mapStringListStringStructure2.put("list3", listString2);
+
+		mapStringListStringStructureList.add(mapStringListStringStructure);
+		mapStringListStringStructureList.add(mapStringListStringStructure2);
+
+		emailToSend.set(MAP_STRING_LIST_STRING_STRUCTURE, mapStringListStringStructure);
+		emailToSend.set(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE, mapStringListStringStructureList);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		recordServices.add(emailToSend);
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
+
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		List<EmailToSend> emailToSendFromAnOtherCollectionList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
+
+		EmailToSend emailToSendFromAnOtherCollection = emailToSendFromAnOtherCollectionList.get(0);
+		List<MapStringListStringStructure> mapStringListStringStructureListFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE);
+
+		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_LIST_STRING_STRUCTURE);
+
+		List<String> listStringFromAnOtherCollection = mapStringListStringStructureFromAnOtherCollection.get("list1");
+		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Hello1", "Hello2", "Hello3");
+
+		listStringFromAnOtherCollection = mapStringListStringStructureFromAnOtherCollection.get("list2");
+		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Sup1", "Sup2", "Sup3");
+
+		// Assert MultiValued
+		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection1 = mapStringListStringStructureListFromAnOtherCollection.get(0);
+		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection2 = mapStringListStringStructureListFromAnOtherCollection.get(1);
+
+		listStringFromAnOtherCollection = mapStringListStringStructureFromAnOtherCollection1.get("list1");
+		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Hello1", "Hello2", "Hello3");
+
+		listStringFromAnOtherCollection = mapStringListStringStructureFromAnOtherCollection1.get("list2");
+		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Sup1", "Sup2", "Sup3");
+
+		listStringFromAnOtherCollection = mapStringListStringStructureFromAnOtherCollection2.get("list3");
+		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Sup1", "Sup2", "Sup3");
+	}
+
+
+	@Test
+	public void whenExportingAndImportingEmailAddress() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withTasksModule(),
@@ -132,21 +296,13 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		emailAddress2.setName(NAME_2);
 		emailAddress2.setEmail(EMAIL_2);
 
-		EmailAddress emailAddress3 = new EmailAddress();
-		emailAddress3.setName(NAME_3);
-		emailAddress3.setEmail(EMAIL_3);
 
-		List<EmailAddress> emailAddressList = asList(emailAddress1, emailAddress2, emailAddress3);
+		List<EmailAddress> emailAddressList = asList(emailAddress1, emailAddress2);
 
-		emailToSend.setFrom(emailAddress1);
-		emailToSend.setBCC(emailAddressList);
-		emailToSend.setCC(emailAddressList);
-		emailToSend.setSendOn(localDateTime);
-		emailToSend.setCreatedOn(localDateTime);
-		emailToSend.setTo(emailAddressList);
-		emailToSend.setSendOn(localDateTime);
-		emailToSend.setSubject("Subjet");
-		emailToSend.setTemplate("Template");
+		emailToSend.setFrom(emailAddress1).setBCC(emailAddressList).setCC(emailAddressList).setTo(emailAddressList)
+				.setSendOn(LOCAL_DATE_TIME).setSubject(EMAIL_SUBJECT).setTemplate(EMAIL_TEMPLATE);
+
+		emailToSend.setCreatedOn(LOCAL_DATE_TIME);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
@@ -157,9 +313,38 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
+		List<EmailToSend> emailToSendFromAnOtherCollectionList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
 
-		List<EmailToSend> emailToSendList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
+		assertThat(emailToSendFromAnOtherCollectionList.size()).isEqualTo(1);
 
+		EmailToSend emailToSendFromAnOtherCollection = emailToSendFromAnOtherCollectionList.get(0);
+
+		assertThat(emailToSendFromAnOtherCollection.getFrom().getEmail()).isEqualTo(EMAIL_1);
+		assertThat(emailToSendFromAnOtherCollection.getFrom().getName()).isEqualTo(NAME_1);
+
+		assertEmailAddress(emailToSendFromAnOtherCollection.getBCC().get(0),
+				emailToSendFromAnOtherCollection.getBCC().get(1));
+
+
+		assertEmailAddress(emailToSendFromAnOtherCollection.getCC().get(0),
+				emailToSendFromAnOtherCollection.getCC().get(1));
+
+
+		assertEmailAddress(emailToSendFromAnOtherCollection.getTo().get(0),
+				emailToSendFromAnOtherCollection.getTo().get(1));
+
+		assertThat(emailToSend.getSendOn()).isEqualTo(LOCAL_DATE_TIME);
+		assertThat(emailToSend.getCreatedOn()).isEqualTo(LOCAL_DATE_TIME);
+
+		assertThat(emailToSend.getSubject()).isEqualTo(EMAIL_SUBJECT);
+		assertThat(emailToSend.getTemplate()).isEqualTo(EMAIL_TEMPLATE);
+	}
+
+	private void assertEmailAddress(EmailAddress emailAddress1, EmailAddress emailAddress2) {
+		assertThat(emailAddress1.getEmail()).isEqualTo(EMAIL_1);
+		assertThat(emailAddress1.getName()).isEqualTo(NAME_1);
+		assertThat(emailAddress2.getEmail()).isEqualTo(EMAIL_2);
+		assertThat(emailAddress2.getName()).isEqualTo(NAME_2);
 	}
 
 	@Test
@@ -313,10 +498,56 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getYPosition()).isEqualTo(4);
 	}
 
+
+	@Test
+	public void whenExportingAndImportingSameSystemDecommissionList()
+	{
+		prepareSystem(
+			withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
+					.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
+
+		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
+		List<Tuple> exportedDecommissiongListsIds = new ArrayList<>();
+		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
+		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
+		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
+		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
+			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
+			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
+			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
+			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
+		}
+
+
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+						DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
+
+		File file = exportToZip(recordExportOptions);
+
+		// Delete rows.
+
+		importFromZip(file, zeCollection);
+
+
+		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
+
+		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
+				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
+
+		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
+
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+	}
+
 	@Test
 	public void whenExportingAndImportingDecommissionList()
 	{
-		prepareSystem(
+ 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -658,6 +889,32 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(copyRetentionRule.isIgnoreActivePeriod()).isFalse();
 	}
 
+	private File exportToZip(RecordExportOptions optios)
+	{
+		return new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
+	}
+
+	private void importFromZip(File zipFile, String collection) {
+		ImportDataProvider importDataProvider = null;
+		try {
+			importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);
+
+			UserServices userServices = getModelLayerFactory().newUserServices();
+			User user = userServices.getUserInCollection("admin", collection);
+			BulkImportParams importParams = BulkImportParams.STRICT();
+			LoggerBulkImportProgressionListener listener = new LoggerBulkImportProgressionListener();
+			try {
+				new RecordsImportServices(getModelLayerFactory()).bulkImport(importDataProvider, listener, user, importParams);
+			} catch (ValidationException e) {
+				e.printStackTrace();
+				fail(StringUtils.join(i18n.asListOfMessages(e.getValidationErrors()), "\n"));
+
+			}
+		} finally {
+			getIOLayerFactory().newIOServices().deleteQuietly(zipFile);
+		}
+	}
+
 	private void exportThenImportInAnotherCollection(RecordExportOptions options) {
 		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
 		ImportDataProvider importDataProvider = null;
@@ -671,7 +928,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 			try {
 				new RecordsImportServices(getModelLayerFactory()).bulkImport(importDataProvider, listener, user, importParams);
 			} catch (ValidationException e) {
-
+				e.printStackTrace();
 				fail(StringUtils.join(i18n.asListOfMessages(e.getValidationErrors()), "\n"));
 
 			}
