@@ -6,7 +6,6 @@ import java.util.Iterator;
 import javax.cache.Cache;
 
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.cache.query.SqlQuery;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 
@@ -31,8 +30,14 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
-		T result = (T) igniteCache.get(key);
-		return result == NULL ? null : result;
+		long start = System.currentTimeMillis();
+		try {
+			T result = (T) igniteCache.get(key);
+			return result == NULL ? null : result;
+		} finally {
+			long end = System.currentTimeMillis();
+			System.out.println("Ignite " + name + " get time for " + key + " : " + (end - start) + " ms");
+		}
 	}
 
 	@Override
