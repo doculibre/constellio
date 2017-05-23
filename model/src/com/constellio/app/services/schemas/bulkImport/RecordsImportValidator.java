@@ -134,23 +134,23 @@ public class RecordsImportValidator {
 
 				errors.add(RecordsImportServices.class, REQUIRED_ID, parameters);
 				hasErrors = true;
-			} else {
-				DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
-					@Override
-					public void buildExtraParams(Map<String, Object> parameters) {
-						String schemaTypeLabel = type.getLabel(language);
-						if (importData.getValue("code") != null) {
-							parameters.put("prefix", schemaTypeLabel + " " + importData.getValue("code") + " : ");
-						} else {
-							parameters.put("prefix", schemaTypeLabel + " " + importData.getLegacyId() + " : ");
-						}
+				} else {
+					DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
+						@Override
+						public void buildExtraParams(Map<String, Object> parameters) {
+							String schemaTypeLabel = type.getLabel(language);
+							if (importData.getValue("code") != null) {
+								parameters.put("prefix", schemaTypeLabel + " " + importData.getValue("code") + " : ");
+							} else {
+								parameters.put("prefix", schemaTypeLabel + " " + importData.getLegacyId() + " : ");
+							}
 
-						parameters.put("index", "" + (importData.getIndex() + 1));
-						parameters.put("legacyId", importData.getLegacyId());
-					}
-				};
-				try {
-					validateValueUnicityOfUniqueMetadata(uniqueMetadatas, importData, decoratedErrors);
+							parameters.put("index", "" + (importData.getIndex() + 1));
+							parameters.put("legacyId", importData.getLegacyId());
+						}
+					};
+					try {
+						validateValueUnicityOfUniqueMetadata(uniqueMetadatas, importData, decoratedErrors);
 
 					markUniqueValuesAsInFile(uniqueMetadatas, importData);
 					MetadataSchema metadataSchema = type.getSchema(importData.getSchema());
