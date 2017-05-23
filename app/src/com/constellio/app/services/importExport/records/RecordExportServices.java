@@ -23,7 +23,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -131,7 +130,9 @@ public class RecordExportServices {
 							&& metadata.getType() != MetadataValueType.STRUCTURE) {
 						Object object = record.get(metadata);
 
-						if (object != null) {
+						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem) {
+							modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
+						} else if (object != null) {
 							modifiableImportRecord.addField(metadata.getLocalCode(), object);
 						}
 					}
