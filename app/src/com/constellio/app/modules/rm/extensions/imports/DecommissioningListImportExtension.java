@@ -4,13 +4,15 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.structures.*;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +56,7 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         List<Map<String, String>> decomListFolderDetails = buildParams.getImportRecord().getList(DecommissioningList.FOLDER_DETAILS);
         List<Map<String, String>> decomListContainerDetails = buildParams.getImportRecord().getList(DecommissioningList.CONTAINER_DETAILS);
         List<Map<String, String>> decomListValidations = buildParams.getImportRecord().getList(DecommissioningList.VALIDATIONS);
+        boolean importAsLegacyId = buildParams.getImportDataOptions().isImportAsLegacyId();
 
         List<Map<String, String>> decomListComments = buildParams.getImportRecord().getList(DecommissioningList.COMMENTS);
 
@@ -65,12 +68,12 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         List<Comment> decomListCommentList = new ArrayList<>();
 
         for (Map<String, String> decomListFolderDetail : decomListFolderDetails) {
-            decomListFolderDetailList.add(buildDecomListFolderDetails(decomListFolderDetail,buildParams.getImportDataOptions().isImportAsLegacyId()));
+            decomListFolderDetailList.add(buildDecomListFolderDetails(decomListFolderDetail, importAsLegacyId));
         }
         decommissioningList.setFolderDetails(decomListFolderDetailList);
 
         for (Map<String, String> decomListContainerDetail : decomListContainerDetails) {
-            decomListContainerDetailList.add(buildDecomListContainerDetails(decomListContainerDetail));
+            decomListContainerDetailList.add(buildDecomListContainerDetails(decomListContainerDetail, importAsLegacyId));
         }
         decommissioningList.setContainerDetails(decomListContainerDetailList);
 
@@ -127,7 +130,12 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 
         if (mapDecomListFolderDetail.containsKey(CONTAINER_RECORD_ID) && StringUtils
                 .isNotEmpty(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID))) {
-            ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
+            ContainerRecord containerRecord = null;
+            if(useLegacyId) {
+                containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
+            } else {
+                containerRecord = rm.getContainerRecord(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
+            }
             decomListFolderDetail.setContainerRecordId(containerRecord.getId());
         }
 
@@ -140,13 +148,18 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         return decomListFolderDetail;
     }
 
-    private DecomListContainerDetail buildDecomListContainerDetails(Map<String, String> mapDecomListContainerDetail) {
+    private DecomListContainerDetail buildDecomListContainerDetails(Map<String, String> mapDecomListContainerDetail, boolean isImportAsLegacyId) {
 
         DecomListContainerDetail decomListContainerDetail;
 
         if (mapDecomListContainerDetail.containsKey(CONTAINER_RECORD_ID) && StringUtils
                 .isNotEmpty(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID))) {
-            ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+            ContainerRecord containerRecord = null;
+            if(isImportAsLegacyId) {
+                containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+            } else {
+                containerRecord = rm.getContainerRecord(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+            }
             decomListContainerDetail = new DecomListContainerDetail(containerRecord.getId());
         } else {
             decomListContainerDetail = new DecomListContainerDetail();

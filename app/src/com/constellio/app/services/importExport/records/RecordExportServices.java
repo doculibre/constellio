@@ -130,8 +130,15 @@ public class RecordExportServices {
 							&& metadata.getType() != MetadataValueType.STRUCTURE) {
 						Object object = record.get(metadata);
 
-						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem) {
+						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && !metadata.isMultivalue()) {
 							modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
+						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && metadata.isMultivalue()) {
+							if(object instanceof List) {
+								List<String> idList = new ArrayList<>((List) object);
+								for(int i = 0; i < idList.size(); i++) {
+									idList.set(i, "id:"+idList.get(i));
+								}
+							}
 						} else if (object != null) {
 							modifiableImportRecord.addField(metadata.getLocalCode(), object);
 						}
