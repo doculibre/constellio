@@ -52,11 +52,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		export(false, false);
 	}
 
-	void exportWithoutContentsXMLButtonClicked(List<String> value, List<String> documentFieldValue) {
+	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds, List<String> documentIds) {
 
 	}
 
-	void exportAdministrativeUnitXMLButtonClicked(String value) {
+	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, String unitId) {
 
 	}
 
@@ -186,7 +186,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		export(false, true);
 	}
 
-	public void exportToolsToXMLButtonClicked() {
+	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
 
 	}
 }

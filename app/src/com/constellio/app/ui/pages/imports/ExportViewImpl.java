@@ -32,7 +32,11 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 	public static final String ADMINISTRATIVE_UNIT_OPTION = "administrativeUnitOption";
 	public static final String OTHERS_OPTION = "othersOption";
 
+	public static final String SAME_COLLECTION = "sameCollection";
+	public static final String OTHER_COLLECTION = "otherCollection";
+
 	private ListOptionGroup exportationOptions;
+	private ListOptionGroup collectionOptions;
 
 	private TextArea idsField;
 
@@ -73,6 +77,19 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSizeFull();
+		mainLayout.setSpacing(true);
+
+		collectionOptions = new ListOptionGroup($("ExportView.collectionOption"));
+		collectionOptions.addItem(SAME_COLLECTION);
+		collectionOptions.setItemCaption(SAME_COLLECTION, $("ExportView.sameCollection"));
+		collectionOptions.addItem(OTHER_COLLECTION);
+		collectionOptions.setItemCaption(OTHER_COLLECTION, $("ExportView.otherCollection"));
+		collectionOptions.setVisible(false);
+		collectionOptions.setMultiSelect(false);
+		collectionOptions.setNullSelectionAllowed(false);
+		collectionOptions.setValue(SAME_COLLECTION);
+
 		exportationOptions = new ListOptionGroup($("ExportView.exportationOptions"));
 		exportationOptions.setEnabled(presenter.hasCurrentCollectionRMModule());
 		exportationOptions.setVisible(presenter.hasCurrentCollectionRMModule());
@@ -88,16 +105,17 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 
 		if(presenter.hasCurrentCollectionRMModule()) {
 			exportationOptions.addItem(TOOL_OPTION);
-			exportationOptions.setItemCaption(TOOL_OPTION, $($("ExportView.toolOption")));
+			exportationOptions.setItemCaption(TOOL_OPTION, $("ExportView.toolOption"));
 			exportationOptions.addItem(FOLDER_AND_DOCUMENT_OPTION);
-			exportationOptions.setItemCaption(FOLDER_AND_DOCUMENT_OPTION, $($("ExportView.folderAndDocumentOption")));
+			exportationOptions.setItemCaption(FOLDER_AND_DOCUMENT_OPTION, $("ExportView.folderAndDocumentOption"));
 			exportationOptions.addItem(ADMINISTRATIVE_UNIT_OPTION);
-			exportationOptions.setItemCaption(ADMINISTRATIVE_UNIT_OPTION, $($("ExportView.administrativeUnitOption")));
+			exportationOptions.setItemCaption(ADMINISTRATIVE_UNIT_OPTION, $("ExportView.administrativeUnitOption"));
 			initRMLayouts();
 		}
 
 		exportationOptions.addItem(OTHERS_OPTION);
-		exportationOptions.setItemCaption(OTHERS_OPTION, $($("ExportView.othersOption")));
+		exportationOptions.setItemCaption(OTHERS_OPTION, $("ExportView.othersOption"));
+		exportationOptions.setValue(OTHERS_OPTION);
 
 		idsField = new BaseTextArea($("ExportView.exportedIds"));
 		idsField.setWidth("100%");
@@ -129,8 +147,6 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		};
 		exportWithContentsButton.setVisible(false);
 
-		exportationOptions.setValue(OTHERS_OPTION);
-
 		othersLayout = new VerticalLayout(idsField, exportWithoutContentsButton, exportWithContentsButton, exportTools,
 				exportLogs);
 		othersLayout.setSizeFull();
@@ -138,7 +154,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 
 		mainLayout.addComponent(exportationOptions);
 		if(presenter.hasCurrentCollectionRMModule()) {
-			mainLayout.addComponents(toolLayout, folderAndDocumentsLayout, administrativeUnitLayout);
+			mainLayout.addComponents(collectionOptions, toolLayout, folderAndDocumentsLayout, administrativeUnitLayout);
 		}
 		mainLayout.addComponent(othersLayout);
 
@@ -158,7 +174,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportTools = new BaseButton($("ExportView.exportTools")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportToolsToXMLButtonClicked();
+				presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
 			}
 		};
 		toolLayout.addComponent(exportTools);
@@ -176,7 +192,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportWithoutContentsXMLButtonClicked(folderField.getValue(), documentField.getValue());
+				presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue());
 			}
 		};
 		folderAndDocumentsLayout.addComponents(folderField, documentField, exportButton);
@@ -192,7 +208,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportAdministrativeUnitXMLButtonClicked(administrativeUnitField.getValue());
+				presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
 			}
 		};
 		administrativeUnitLayout.addComponents(administrativeUnitField, exportButton);
@@ -204,15 +220,19 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		folderAndDocumentsLayout.setVisible(false);
 		administrativeUnitLayout.setVisible(false);
 		othersLayout.setVisible(false);
+		collectionOptions.setVisible(false);
 		switch ((String) exportationOptions.getValue()) {
 			case TOOL_OPTION:
 				toolLayout.setVisible(true);
+				collectionOptions.setVisible(true);
 				break;
 			case FOLDER_AND_DOCUMENT_OPTION:
 				folderAndDocumentsLayout.setVisible(true);
+				collectionOptions.setVisible(true);
 				break;
 			case ADMINISTRATIVE_UNIT_OPTION:
 				administrativeUnitLayout.setVisible(true);
+				collectionOptions.setVisible(true);
 				break;
 			case OTHERS_OPTION:
 				othersLayout.setVisible(true);
