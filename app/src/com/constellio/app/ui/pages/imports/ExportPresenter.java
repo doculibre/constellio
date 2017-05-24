@@ -1,18 +1,6 @@
 package com.constellio.app.ui.pages.imports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
@@ -25,6 +13,18 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class ExportPresenter extends BasePresenter<ExportView> {
 
@@ -50,6 +50,14 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	void exportWithoutContentsButtonClicked() {
 		export(false, false);
+	}
+
+	void exportWithoutContentsXMLButtonClicked(List<String> value, List<String> documentFieldValue) {
+
+	}
+
+	void exportAdministrativeUnitXMLButtonClicked(String value) {
+
 	}
 
 	void exportWithContentsButtonClicked() {
@@ -170,7 +178,15 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	}
 
+	public boolean hasCurrentCollectionRMModule() {
+		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
+	}
+
 	public void exportToolsButtonClicked() {
 		export(false, true);
+	}
+
+	public void exportToolsToXMLButtonClicked() {
+
 	}
 }
