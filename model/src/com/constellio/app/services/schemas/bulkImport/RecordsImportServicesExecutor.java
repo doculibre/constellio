@@ -599,7 +599,14 @@ public class RecordsImportServicesExecutor {
 				if (typeBatchImportContext.options.isImportAsLegacyId()) {
 					record = recordServices.newRecordWithSchema(newSchema);
 				} else {
-					record = recordServices.newRecordWithSchema(newSchema, legacyId);
+					try {
+						record = recordServices.getDocumentById(legacyId);
+						if(!record.isOfSchemaType(schemaType.getCode())) {
+							record = recordServices.newRecordWithSchema(newSchema, legacyId);
+						}
+					} catch (Exception e) {
+						record = recordServices.newRecordWithSchema(newSchema, legacyId);
+					}
 				}
 			}
 		}
