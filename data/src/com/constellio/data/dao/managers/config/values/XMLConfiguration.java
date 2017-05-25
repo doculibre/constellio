@@ -43,4 +43,26 @@ public class XMLConfiguration implements Serializable {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	private int serializedCount = 0;
+	private int deserializedCount = 0;
+	
+	private void readObject(java.io.ObjectInputStream stream) throws java.io.IOException, ClassNotFoundException {
+		try {
+			stream.defaultReadObject();
+			System.out.println("Deserialized count for " + version + "." + hash + " : " + (++deserializedCount) + " " + new java.util.Date());
+		} catch (java.io.IOException | ClassNotFoundException | RuntimeException e) {
+			throw e;
+		} 
+    }
+	
+	private void writeObject(java.io.ObjectOutputStream stream)
+	            throws java.io.IOException {
+		try {
+			System.out.println("Serialized count for " + version + "." + hash + " : " + (++serializedCount) + " " + new java.util.Date());
+			stream.defaultWriteObject();
+		} catch (java.io.IOException | RuntimeException e) {
+			throw e;
+		} 
+	}
+	
 }

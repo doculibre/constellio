@@ -12,14 +12,16 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
+import org.apache.ignite.cache.eviction.lru.LruEvictionPolicy;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	
@@ -68,7 +70,16 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	public synchronized ConstellioCache getCache(String name) {
 		ConstellioCache cache = caches.get(name);
 		if (cache == null) {
-			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(name);
+			// Create near-cache configuration for "myCache".
+			NearCacheConfiguration<String, Object> nearCfg = 
+			    new NearCacheConfiguration<>();
+
+			// Use LRU eviction policy to automatically evict entries
+			// from near-cache, whenever it reaches 100_000 in size.
+			nearCfg.setNearEvictionPolicy(new LruEvictionPolicy<String, Object>(100_000));
+			
+			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(
+				    new CacheConfiguration<String, Object>(name), nearCfg);
 			cache = new ConstellioIgniteCache(name, igniteCache);
 			caches.put(name, cache);
 		}

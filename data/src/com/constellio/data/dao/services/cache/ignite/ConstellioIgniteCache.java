@@ -36,7 +36,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 			return result == NULL ? null : result;
 		} finally {
 			long end = System.currentTimeMillis();
-			System.out.println("Ignite " + name + " get time for " + key + " : " + (end - start) + " ms");
+//			System.out.println("Ignite " + name + " get time for " + key + " : " + (end - start) + " ms");
 		}
 	}
 
