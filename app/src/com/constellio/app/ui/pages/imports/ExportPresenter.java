@@ -1,18 +1,25 @@
 package com.constellio.app.ui.pages.imports;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.services.importExport.records.RecordExportOptions;
+import com.constellio.app.services.importExport.records.RecordExportServices;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -21,9 +28,11 @@ import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class ExportPresenter extends BasePresenter<ExportView> {
@@ -53,11 +62,72 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds, List<String> documentIds) {
+		RecordExportOptions options = new RecordExportOptions();
+		ArrayList<String> allIds = new ArrayList<>(folderIds);
+		allIds.addAll(documentIds);
+		options.setForSameSystem(isSameCollection);
+		options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE));
 
+		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).whereAnyCondition(
+				where(Schemas.IDENTIFIER).isIn(allIds),
+				where(Schemas.PATH_PARTS).isIn(folderIds))
+		);
+		exportToXML(options, recordsIterator);
 	}
 
 	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, String unitId) {
+		RecordExportOptions options = new RecordExportOptions();
+		options.setForSameSystem(isSameCollection);
+		options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE));
+		String path = (String)((List) recordServices().getDocumentById(unitId).get(Schemas.PATH)).get(0);
+		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path));
+		exportToXML(options, recordsIterator);
+	}
 
+	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
+		RecordExportOptions options = new RecordExportOptions();
+		options.setForSameSystem(isSameCollection);
+		options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE));
+		options.setExportValueLists(true);
+		exportToXML(options);
+	}
+
+	private void exportToXML(RecordExportOptions options, Iterator<Record> recordsToExport) {
+		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+
+		if (appLayerFactory.getSystemGlobalConfigsManager().hasLastReindexingFailed()) {
+			view.showErrorMessage($("ExportView.lastReindexingFailed"));
+
+		} else {
+
+			try {
+				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
+				File zip = recordExportServices.exportRecords(collection, "SDK Stream", options, recordsToExport);
+				view.startDownload(filename, new FileInputStream(zip), "application/zip");
+			} catch (Throwable t) {
+				LOGGER.error("Error while generating savestate", t);
+				view.showErrorMessage($("ExportView.error"));
+			}
+		}
+	}
+
+	private void exportToXML(RecordExportOptions options) {
+		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+
+		if (appLayerFactory.getSystemGlobalConfigsManager().hasLastReindexingFailed()) {
+			view.showErrorMessage($("ExportView.lastReindexingFailed"));
+
+		} else {
+
+			try {
+				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
+				File zip = recordExportServices.exportRecords(collection, "SDK Stream", options);
+				view.startDownload(filename, new FileInputStream(zip), "application/zip");
+			} catch (Throwable t) {
+				LOGGER.error("Error while generating savestate", t);
+				view.showErrorMessage($("ExportView.error"));
+			}
+		}
 	}
 
 	void exportWithContentsButtonClicked() {
@@ -184,9 +254,5 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	public void exportToolsButtonClicked() {
 		export(false, true);
-	}
-
-	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
-
 	}
 }
