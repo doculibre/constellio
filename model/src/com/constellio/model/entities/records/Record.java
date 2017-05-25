@@ -19,6 +19,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	public long getVersion();
 
+	public long getDataMigrationVersion();
+
 	public String getSchemaCode();
 
 	String getTypeCode();
