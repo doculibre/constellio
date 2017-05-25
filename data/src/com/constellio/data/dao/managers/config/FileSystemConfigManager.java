@@ -339,7 +339,6 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		String version = readVersion(doc);
 		if (version.equals(NO_VERSION)) {
 			XMLConfiguration config = new XMLConfiguration(hash, hash, doc);
-			putInCache(path, config);
 			return config;
 		} else {
 			return new XMLConfiguration(version, hash, doc);

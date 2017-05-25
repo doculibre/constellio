@@ -50,6 +50,12 @@ public class XMLConfiguration implements Serializable {
 		try {
 			stream.defaultReadObject();
 			System.out.println("Deserialized count for " + version + "." + hash + " : " + (++deserializedCount) + " " + new java.util.Date());
+//			try {
+//				throw new RuntimeException(super.toString());
+//			} catch (RuntimeException e) {
+////				String stackTrace = org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e);
+//				e.printStackTrace();
+//			}
 		} catch (java.io.IOException | ClassNotFoundException | RuntimeException e) {
 			throw e;
 		} 
@@ -58,6 +64,12 @@ public class XMLConfiguration implements Serializable {
 	private void writeObject(java.io.ObjectOutputStream stream)
 	            throws java.io.IOException {
 		try {
+			try {
+				throw new RuntimeException(super.toString());
+			} catch (RuntimeException e) {
+//				String stackTrace = org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e);
+				e.printStackTrace();
+			}
 			System.out.println("Serialized count for " + version + "." + hash + " : " + (++serializedCount) + " " + new java.util.Date());
 			stream.defaultWriteObject();
 		} catch (java.io.IOException | RuntimeException e) {
