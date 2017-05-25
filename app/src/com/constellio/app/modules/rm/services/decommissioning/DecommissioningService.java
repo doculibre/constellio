@@ -885,7 +885,8 @@ public class DecommissioningService {
 		String filename = userDocument.getTitle();
 		String contentInputStreamId = userDocument.getContent().getCurrentVersion().getHash();
 		try (InputStream inputStream = contentManager.getContentInputStream(contentInputStreamId, "DecommissioningServices.populateDocumentFromUserDocument.in")) {
-			ContentVersionDataSummary contentVersion = contentManager.upload(inputStream, "DecommissioningServices.populateDocumentFromUserDocument.upload");
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(inputStream, "DecommissioningServices.populateDocumentFromUserDocument.upload");
+			ContentVersionDataSummary contentVersion = uploadResponse.getContentVersionDataSummary();
 			Content content = contentManager.createMajor(currentUser, filename, contentVersion);
 			document.setContent(content);
 		}

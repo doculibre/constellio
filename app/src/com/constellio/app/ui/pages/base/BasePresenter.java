@@ -1,23 +1,12 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
@@ -34,6 +23,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -42,8 +32,15 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 @SuppressWarnings("serial")
 public abstract class BasePresenter<T extends BaseView> implements Serializable {
@@ -269,7 +266,7 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 		return rmModuleExtensions.getReportBuilderFactories();
 	}
 
-    public ContentVersionDataSummary uploadContent(final InputStream inputStream, final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
+    public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
 		return presenterUtils.uploadContent(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
 	}
 

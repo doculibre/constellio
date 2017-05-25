@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.FileBuffer;
-
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -22,15 +12,13 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.easyuploads.FileBuffer;
+
+import java.io.File;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class BaseUploadField extends CustomField<Object> implements DropHandler {
