@@ -669,7 +669,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							message.append(": ");
 							message.append(generateDisplayLink(document));
 						}
-						view.showMessage(message.toString());
+						view.showClickableMessage(message.toString());
 					}
 				}
 				uploadedContentVO.setMajorVersion(true);
@@ -1015,6 +1015,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	String generateDisplayLink(Document document) {
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
-		return constellioUrl + "#!" + displayURL + "/" + document.getId();
+		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
+		return "<a href=\""+url+"\">"+url+"</a>";
 	}
 }

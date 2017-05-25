@@ -446,7 +446,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						message.append(": ");
 						message.append(generateDisplayLink(document));
 					}
-					view.showMessage(message.toString());
+					view.showClickableMessage(message.toString());
 				}
 			}
 			boolean newFileButtonVisible = contentVersionVO == null;
@@ -655,7 +655,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								message.append(": ");
 								message.append(generateDisplayLink(document));
 							}
-							view.showMessage(message.toString());
+							view.showClickableMessage(message.toString());
 						}
 					}
 					view.getForm().commit();
@@ -761,6 +761,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	String generateDisplayLink(Document document) {
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
-		return constellioUrl + "#!" + displayURL + "/" + document.getId();
+		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
+		return "<a href=\""+url+"\">"+url+"</a>";
 	}
 }
