@@ -232,7 +232,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 					.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
 		return from(rmRecordServices().containerRecord.schemaType())
-				.where(rmRecordServices().containerRecord.administrativeUnit()).isEqualTo(adminUnitId)
+				.where(rmRecordServices().containerRecord.administrativeUnits()).isEqualTo(adminUnitId)
 				.andWhere(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 	}
 

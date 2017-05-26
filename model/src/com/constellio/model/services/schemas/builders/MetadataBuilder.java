@@ -36,7 +36,6 @@ import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
@@ -756,7 +755,7 @@ public class MetadataBuilder {
 	private void validateNotReferencingTaxonomy(String typeWithAllowedSchemas, TaxonomiesManager taxonomiesManager) {
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(collection);
 		if (principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(typeWithAllowedSchemas)) {
-			throw new CannotCreateMultivalueReferenceToPrincipalTaxonomy(code);
+			//throw new CannotCreateMultivalueReferenceToPrincipalTaxonomy(code);
 		}
 	}
 
