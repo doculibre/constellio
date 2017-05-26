@@ -81,8 +81,10 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 					} else {
 						SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
 						if (shareIndicator == null) {
+							//Multiple urls in database or no documents on share
 							job = new SmbDeleteJob(params);
 						} else if (contextIndicator.getParentId() == null || !contextIndicator.equals(shareIndicator)) {
+							//Misplaced document or document modified
 							job = new SmbNewDocumentRetrievalJob(params);
 						}
 					}

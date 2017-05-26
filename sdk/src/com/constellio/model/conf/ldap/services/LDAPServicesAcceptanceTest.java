@@ -49,6 +49,13 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 		assertThat(groupsNames).contains("group1", "group2", "group3", "group4");
 	}
 
+	@Test
+	public void whenGetRootContextsGetValidRootContext()
+			throws Exception {
+		LdapContext ldapContext = getValidContext();
+		assertThat(new LDAPServicesImpl().getRootContexts(ldapContext)).contains("DC=test,DC=doculibre,DC=ca");
+	}
+
 
 	@Test
 	public void whenSearchingMoreThan1000GroupsThenReturnAllGroups()
