@@ -208,7 +208,7 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		assertThat((List<String>) smbRecordService.getFolders(SmbTestParams.EXISTING_SHARE + "/testOk/").get(0).get(CommonMetadataBuilder.PATH_PARTS)).has(new Condition<List<String>>() {
 			@Override
 			public boolean matches(List<String> value) {
-				return value.get(0).contains("smbFolders");
+				return value.get(0).contains("R");
 			}
 		});
 	}
