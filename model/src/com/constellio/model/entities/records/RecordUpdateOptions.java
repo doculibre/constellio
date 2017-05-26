@@ -34,6 +34,10 @@ public class RecordUpdateOptions {
 	boolean skippingRequiredValuesValidation = false;
 	private boolean skippingReferenceToLogicallyDeletedValidation = false;
 
+	private boolean skipFindingRecordsToReindex = false;
+
+	boolean allowSchemaTypeLockedRecordsModification = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -67,6 +71,25 @@ public class RecordUpdateOptions {
 
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
 		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
+		this.skipFindingRecordsToReindex = copy.skipFindingRecordsToReindex;
+	}
+
+	public boolean isSkipFindingRecordsToReindex() {
+		return skipFindingRecordsToReindex;
+	}
+
+	public RecordUpdateOptions setSkipFindingRecordsToReindex(boolean skipFindingRecordsToReindex) {
+		this.skipFindingRecordsToReindex = skipFindingRecordsToReindex;
+		return this;
+	}
+
+	public boolean isAllowSchemaTypeLockedRecordsModification() {
+		return allowSchemaTypeLockedRecordsModification;
+	}
+
+	public RecordUpdateOptions setAllowSchemaTypeLockedRecordsModification(boolean allowSchemaTypeLockedRecordsModification) {
+		this.allowSchemaTypeLockedRecordsModification = allowSchemaTypeLockedRecordsModification;
+		return this;
 	}
 
 	public boolean isSkipUSRMetadatasRequirementValidations() {

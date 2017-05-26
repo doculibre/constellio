@@ -21,7 +21,9 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.joda.time.LocalDate.now;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
@@ -33,21 +35,34 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -67,12 +82,114 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rm;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
 
+	}
+
+	@Test
+	public void givenSystemWithSubfolderWithShouldBeNullMetadataThenRepair()
+			throws RecordServicesException, InterruptedException, RecordDaoException.NoSuchRecordWithId, RecordDaoException.OptimisticLocking {
+		final String ID = "MonDossier";
+		final String TITLE = "TITLE";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Folder folder = rm.newFolderWithId(ID);
+		folder.setTitle(TITLE);
+
+		folder.setOpenDate(new LocalDate());
+		folder.setMainCopyRuleEntered(records.principal42_5_CId);
+		folder.setUniformSubdivisionEntered(records.getUniformSubdivision1());
+		folder.setAdministrativeUnitEntered(records.getUnit10());
+		folder.setCategoryEntered(records.getCategory_X());
+		folder.setRetentionRuleEntered(records.getRule1());
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+
+		Transaction transaction = new Transaction();
+		transaction.add(folder);
+
+		recordServices.execute(transaction);
+
+		RecordDao recordDao = getDataLayerFactory().newRecordDao();
+
+		Map<String, Object> modifiedValues = new HashMap<>();
+		modifiedValues.put("parentFolderPId_s", records.folder_A01);
+
+		RecordDTO record = recordDao.get(ID);
+		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
+		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
+
+		waitForBatchProcess();
+
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		Folder folder2 = rm.getFolder(ID);
+
+		assertThat(folder2.getMainCopyRuleIdEntered()).isNull();
+		assertThat(folder2.getUniformSubdivisionEntered()).isNull();
+		assertThat(folder2.getAdministrativeUnitEntered()).isNull();
+		assertThat(folder2.getCategoryEntered()).isNull();
+		assertThat(folder2.getRetentionRuleEntered()).isNull();
+		assertThat(folder2.getCopyStatusEntered()).isNull();
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL)).isEqualTo(1);
+
+	}
+
+	@Test
+	public void givenSystemWithCheckoutedEmailThenCheckIntheseEmail()
+			throws RecordServicesException {
+		final String ID = "000001";
+		final String TITLE = "TITLE";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Email email = rm.newEmailWithId(ID);
+		email.setTitle(TITLE);
+		email.setFolder(records.folder_A01);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary newDocumentsVersions = contentManager.upload(getTestResourceInputStream("testMessage.msg"));
+		Content documentContent = contentManager.createMajor(records.getAdmin(), "testMessage.msg", newDocumentsVersions);
+
+		email.setContent(documentContent);
+		email.getContent().checkOut(records.getAdmin());
+
+		Transaction transaction = new Transaction();
+		transaction.add(email);
+
+		recordServices.execute(transaction);
+
+		Email emailCheckouted = rm.getEmail(ID);
+
+		// Still checkouted
+		assertThat(emailCheckouted.getContent().getCurrentCheckedOutVersion() == null).isFalse();
+
+		systemCheckManager.runSystemCheck(true);
+
+		Email emailCheckinByRepairService = rm.getEmail(ID);
+
+		// Not checkouted anymore.
+		assertThat(emailCheckinByRepairService.getContent().getCurrentCheckedOutVersion() == null).isTrue();
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).contains("000001");
 	}
 
 	@Test

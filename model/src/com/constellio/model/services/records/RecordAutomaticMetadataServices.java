@@ -137,7 +137,7 @@ public class RecordAutomaticMetadataServices {
 
 			Metadata inputMetadata = types.getMetadata(aggregatedDataEntry.getInputMetadata());
 			query.computeStatsOnField(inputMetadata);
-			query.setNumberOfRows(1000);
+			query.setNumberOfRows(0);
 			SPEQueryResponse response = searchServices.query(query);
 
 			if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {

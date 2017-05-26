@@ -17,6 +17,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -734,7 +735,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		Metadata linkedSchemaMetadata = documentTypeDefaultSchema.getMetadata(DocumentType.LINKED_SCHEMA);
 		LogicalSearchCondition condition = from(documentTypeDefaultSchema).where(linkedSchemaMetadata)
 				.isEqualTo(Email.SCHEMA);
-		DocumentType emailDocumentType = new DocumentType(searchServices.searchSingleResult(condition), types);
+		DocumentType emailDocumentType = new DocumentType(searchServices.search(new LogicalSearchQuery().setCondition(condition)).get(0), types);
 		return emailDocumentType.getId();
 	}
 

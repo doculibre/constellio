@@ -77,25 +77,27 @@ public class AvailableSpaceReportPresenter {
 
     private void createChildRow(AvailableSpaceReportModelNode parent, List<Record> childStorageSpaces) {
         for (Record childRecord : childStorageSpaces) {
-            AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
-            StorageSpace storageSpace = new StorageSpace(childRecord, types);
-            child.setCode(storageSpace.getCode()).setImage("etagere")
-                    .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
-                    .setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
-            List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, searchOptions.setRows(10000));
-            if (subChildStorageSpaces != null) {
-                createChildRow(child, subChildStorageSpaces);
-            }
+            if(StorageSpace.SCHEMA_TYPE.equals(childRecord.getTypeCode())) {
+                AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
+                StorageSpace storageSpace = new StorageSpace(childRecord, types);
+                child.setCode(storageSpace.getCode()).setImage("etagere")
+                        .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
+                        .setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
+                List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, searchOptions.setRows(10000));
+                if (subChildStorageSpaces != null) {
+                    createChildRow(child, subChildStorageSpaces);
+                }
 
-            LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace);
-            LogicalSearchQuery query = new LogicalSearchQuery(condition);
-            List<ContainerRecord> containerRecords = rm.searchContainerRecords(query);
-            if (containerRecords != null) {
-                createContainerRecordRow(child, containerRecords);
-            }
+                LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace);
+                LogicalSearchQuery query = new LogicalSearchQuery(condition);
+                List<ContainerRecord> containerRecords = rm.searchContainerRecords(query);
+                if (containerRecords != null) {
+                    createContainerRecordRow(child, containerRecords);
+                }
 
-            if(showFullSpaces || !(child.getChildrenNodes() == null || child.getChildrenNodes().isEmpty()) || child.getAvailableSpace() > 0.0) {
-                parent.getChildrenNodes().add(child);
+                if(showFullSpaces || !(child.getChildrenNodes() == null || child.getChildrenNodes().isEmpty()) || child.getAvailableSpace() > 0.0) {
+                    parent.getChildrenNodes().add(child);
+                }
             }
         }
     }
@@ -103,7 +105,7 @@ public class AvailableSpaceReportPresenter {
     private void createContainerRecordRow(AvailableSpaceReportModelNode parent, List<ContainerRecord> containerRecords) {
         for (ContainerRecord boite : containerRecords) {
             AvailableSpaceReportModelNode childBox = new AvailableSpaceReportModelNode();
-            childBox.setTitle(boite.getTitle()).setCode(boite.getId()).setImage("boite")
+            childBox.setTitle(boite.getTitle()).setCode(boite.getTitle()).setImage("boite")
                     .setCapacity(boite.getCapacity() != null ? boite.getCapacity() : 0)
                     .setAvailableSpace(boite.getAvailableSize() != null ? boite.getAvailableSize() : 0);
 

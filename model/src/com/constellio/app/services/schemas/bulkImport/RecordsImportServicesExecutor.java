@@ -230,7 +230,8 @@ public class RecordsImportServicesExecutor {
 
 		importedFilesMap = new HashMap<>();
 		for (Map.Entry<String, Factory<ContentVersionDataSummary>> entry : contentManager.getImportedFilesMap().entrySet()) {
-			importedFilesMap.put(entry.getKey(), entry.getValue());
+			String key = entry.getKey().contains("[\\]") ? entry.getKey().replace("\\", "/") : entry.getKey();
+			importedFilesMap.put(key, entry.getValue());
 		}
 		for (String schemaType : getImportedSchemaTypes()) {
 
@@ -326,6 +327,7 @@ public class RecordsImportServicesExecutor {
 				TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext,
 						importDataIterator.getOptions(), importDataBatches.next());
 				skipped += importBatch(typeImportContext, typeBatchImportContext, errors);
+				typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 				recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 				incrementSequences(typeBatchImportContext);
 
@@ -391,6 +393,7 @@ public class RecordsImportServicesExecutor {
 						throws Exception {
 					TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext, options, value);
 					skipped.addAndGet(importBatch(typeImportContext, typeBatchImportContext, errors));
+					typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 					recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 
 				}
@@ -472,6 +475,11 @@ public class RecordsImportServicesExecutor {
 			throws ValidationException, PostponedRecordException {
 
 		String legacyId = toImport.getLegacyId();
+//		if(typeImportContext.schemaType.equals("document")) {
+//			if(((ContentImport) toImport.getFields().get("content")).getFileName().equals("wiki-49.bigf/Jorj_Robin_3a1a.html")) {
+//				System.out.println("test");
+//			}
+//		}
 		if (resolverCache.getNotYetImportedLegacyIds(typeImportContext.schemaType).contains(legacyId)) {
 
 			extensions.callRecordImportValidate(typeImportContext.schemaType,
@@ -914,8 +922,8 @@ public class RecordsImportServicesExecutor {
 
 				ContentVersionDataSummary contentVersionDataSummary;
 				if (version.getUrl().toLowerCase().startsWith("imported://")) {
-					String importedFilePath = IMPORTED_FILEPATH_CLEANER.replaceOn(
-							version.getUrl().substring("imported://".length()));
+					String importedFilePath = /*IMPORTED_FILEPATH_CLEANER.replaceOn(*/
+							version.getUrl().substring("imported://".length())/*)*/;
 					Factory<ContentVersionDataSummary> factory = importedFilesMap.get(importedFilePath);
 
 					if (factory == null) {

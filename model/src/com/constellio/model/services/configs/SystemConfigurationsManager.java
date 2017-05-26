@@ -244,6 +244,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 			return reindex;
 		} catch (RuntimeException e) {
+			LOGGER.warn("Failed to execute script of system config '" + config.getCode() + "'", e);
 			if (listener != null) {
 				listener.onValueChanged(newValue, oldValue, modelLayerFactory);
 

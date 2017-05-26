@@ -1,17 +1,6 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.StringUtils;
-
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.data.dao.dto.records.FacetValue;
@@ -33,6 +22,13 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SearchPresenterService {
 	private SchemasRecordsServices schemas;
@@ -134,7 +130,11 @@ public class SearchPresenterService {
 				}
 			} else if (datastoreCode.endsWith("Id_s") || datastoreCode.endsWith("Id_ss")) {
 				Record record = recordServices.getDocumentById(value);
-				facetValueVO.setLabel(record.<String>get(Schemas.TITLE));
+				if(Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
+					facetValueVO.setLabel(record.<String>get(Schemas.CODE) + " - " + record.<String>get(Schemas.TITLE));
+				} else {
+					facetValueVO.setLabel(record.<String>get(Schemas.TITLE));
+				}
 			} else if (enumMetadatas.containsKey(value)) {
 				facetValueVO.setLabel(enumMetadatas.get(value));
 			} else {

@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 
 public class SmbNewFolderRetrievalJob extends SmbConnectorJob {
 	private static final String jobName = SmbNewFolderRetrievalJob.class.getSimpleName();
-	private final JobParams jobParams;;
+	private final JobParams jobParams;
 
 	public SmbNewFolderRetrievalJob(JobParams jobParams) {
 		super(jobParams.getConnector(), jobName);
@@ -41,8 +41,16 @@ public class SmbNewFolderRetrievalJob extends SmbConnectorJob {
 				if (parentId == null && jobParams.getParentUrl() != null) {
 					ConnectorSmbFolder parentFolder = jobParams.getSmbRecordService().getFolder(jobParams.getParentUrl());
 					parentId = SmbRecordService.getSafeId(parentFolder);
+					if (parentId == null) {
+						//The cache should be empty too
+						jobParams.getConnector().getContext().delete(jobParams.getParentUrl());
+					}
 				}
-				jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, fullFolder, parentId);
+				boolean seed = false;
+				if (jobParams.getConnectorInstance().getSeeds().contains(url)) {
+					seed = true;
+				}
+				jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, fullFolder, parentId, seed);
 				jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) fullFolder));
 				jobParams.getSmbRecordService().updateResumeUrl(url);
 				jobParams.getConnector().getContext().traverseModified(url, new SmbModificationIndicator(smbFileDTO), parentId, jobParams.getConnectorInstance().getTraversalCode());

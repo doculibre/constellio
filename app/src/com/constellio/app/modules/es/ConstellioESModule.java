@@ -69,6 +69,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo6_2(),
 				new ESMigrationTo6_4(),
 				new ESMigrationTo6_5_42(),
+				new ESMigrationTo6_5_58(),
 				new ESMigrationTo7_1_3()
 		);
 	}

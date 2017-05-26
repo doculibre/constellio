@@ -34,12 +34,14 @@ import com.constellio.model.services.records.RecordServicesException;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
+import org.joda.time.DateTime;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import static java.util.Arrays.asList;
 
@@ -73,6 +75,8 @@ public class ConnectorSmb extends Connector {
 	private String connectorId;
 	private SmbConnectorContext context;
 	private SmbConnectorContextServices contextServices;
+
+	private DateTime lastSave;
 
 	public ConnectorSmb() {
 		urlComparator = new SmbUrlComparator();
@@ -166,7 +170,10 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	public void afterJobs(List<ConnectorJob> jobs) {
-		contextServices.save(context);
+		if (lastSave == null || lastSave.plusMinutes(15).isBeforeNow()) {
+			contextServices.save(context);
+			lastSave = new DateTime();
+		}
 	}
 
 	@Override

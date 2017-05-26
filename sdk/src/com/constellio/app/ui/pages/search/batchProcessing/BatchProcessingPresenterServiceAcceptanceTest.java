@@ -84,6 +84,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	@Before
 	public void setUp()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		givenBackgroundThreadsEnabled();
 		givenRollbackCheckDisabled();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
