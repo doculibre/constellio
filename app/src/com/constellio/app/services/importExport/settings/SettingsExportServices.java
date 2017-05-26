@@ -45,6 +45,7 @@ public class SettingsExportServices {
 	MetadataSchemasManager schemasManager;
 	ValidationErrors validationErrors;
 	static final private List<String> nonUSRTaxonomies = asList(ArrayUtils.addAll(RMTaxonomies.ALL_RM_TAXONOMIES, ESTaxonomies.ALL_EN_TAXONOMIES));
+	static final public String CURRENT_COLLECTION_IMPORTATION_MODE = "%current%";
 
 	public SettingsExportServices(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -52,6 +53,35 @@ public class SettingsExportServices {
 		validationErrors = new ValidationErrors();
 		systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
 		schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+	}
+
+	public ImportedSettings exportSettings(String collection, SettingsExportOptions options)
+			throws ValidationException {
+
+		validate(asList(collection));
+
+		ImportedSettings settings = new ImportedSettings();
+
+		if(options.isExportingConfigs()) {
+			appendSystemConfigurations(settings);
+		}
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings();
+		if(options.isExportingAsCurrentCollection()) {
+			collectionSettings.setCode(CURRENT_COLLECTION_IMPORTATION_MODE);
+		} else {
+			collectionSettings.setCode(collection);
+		}
+
+		// add taxonomies
+		collectionSettings.setTaxonomies(getImportedTaxonomiesForCode(collection, options));
+
+		// add schemaTypes
+		collectionSettings.setTypes(getCollectionImportedTypes(collection, options));
+
+		settings.addCollectionSettings(collectionSettings);
+
+		return settings;
 	}
 
 	public ImportedSettings exportSettings(List<String> collections, SettingsExportOptions options)
@@ -120,7 +150,7 @@ public class SettingsExportServices {
 																	   MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig, SettingsExportOptions options) {
 		List<ImportedMetadataSchema> list = new ArrayList<>();
 		for (MetadataSchema customSchema : type.getAllSchemas()) {
-			ImportedMetadataSchema importedSchema = new ImportedMetadataSchema().setCode(customSchema.getCode());
+			ImportedMetadataSchema importedSchema = new ImportedMetadataSchema().setCode(customSchema.getLocalCode());
 			if (StringUtils.isNotBlank(customSchema.getLabel(Language.French))) {
 				importedSchema.setLabel(customSchema.getLabel(Language.French));
 			}
@@ -133,7 +163,7 @@ public class SettingsExportServices {
 					getImportedMetadataFromList(collection, displayManager, schemaDisplayConfig, metadata);
 			importedSchema.setAllMetadatas(importedMetadata);
 			if(options.isOnlyUSR()) {
-				if(!importedSchema.getCode().contains("_USR") && importedMetadata.isEmpty()) {
+				if(!importedSchema.getCode().contains("USR") && importedMetadata.isEmpty()) {
 					continue;
 				}
 			}
@@ -176,7 +206,7 @@ public class SettingsExportServices {
 	private ImportedMetadata getImportedMetadatumFrom(String collection, SchemasDisplayManager displayManager,
 			SchemaDisplayConfig schemaDisplayConfig, Metadata metadata) {
 		ImportedMetadata importedMetadata = new ImportedMetadata()
-				.setCode(metadata.getCode()).setLabel(metadata.getLabel(Language.French));
+				.setCode(metadata.getLocalCode()).setLabel(metadata.getLabel(Language.French));
 
 		MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, metadata.getCode());
 

@@ -91,10 +91,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	void exportSchemasClicked() {
 		SettingsExportOptions options = new SettingsExportOptions();
 		options.setOnlyUSR(true);
+		options.setExportingAsCurrentCollection(true);
 
 		SettingsExportServices services = new SettingsExportServices(appLayerFactory);
 		try {
-			ImportedSettings settings = services.exportSettings(asList(collection), options);
+			ImportedSettings settings = services.exportSettings(collection, options);
 			SettingsXMLFileWriter writer = new SettingsXMLFileWriter();
 			final org.jdom2.Document document = writer.writeSettings(settings);
 			final XMLOutputter xmlOutput = new XMLOutputter();
@@ -112,6 +113,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			Page.getCurrent().open(downloadedResource, null, false);
 		} catch (Exception e) {
 			view.showErrorMessage($("ExportView.errorWhileExportingSchemas"));
+			e.printStackTrace();
 		}
 	}
 

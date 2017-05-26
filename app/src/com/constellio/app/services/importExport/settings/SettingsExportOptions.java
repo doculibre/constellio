@@ -8,6 +8,8 @@ public class SettingsExportOptions {
 
 	private boolean isExportingConfigs = false;
 
+	private boolean isExportingAsCurrentCollection = false;
+
 	public boolean isOnlyUSR() {
 		return isOnlyUSR;
 	}
@@ -32,6 +34,15 @@ public class SettingsExportOptions {
 
 	public SettingsExportOptions setExportingConfigs(boolean exportingConfigs) {
 		isExportingConfigs = exportingConfigs;
+		return this;
+	}
+
+	public boolean isExportingAsCurrentCollection() {
+		return isExportingAsCurrentCollection;
+	}
+
+	public SettingsExportOptions setExportingAsCurrentCollection(boolean exportingAsCurrentCollection) {
+		isExportingAsCurrentCollection = exportingAsCurrentCollection;
 		return this;
 	}
 }

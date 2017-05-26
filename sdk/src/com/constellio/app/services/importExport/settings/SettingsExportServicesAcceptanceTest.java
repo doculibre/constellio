@@ -189,7 +189,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(defaultSchemaMetadata.size()).isEqualTo(importedMetadata.size());
 
 		for (Metadata metadata : defaultSchemaMetadata) {
-			assertThat(importedMetadataSchema.getMetadata(metadata.getCode())).isNotNull();
+			assertThat(importedMetadataSchema.getMetadata(metadata.getLocalCode())).isNotNull();
 		}
 
 		String outputFilePath = "settings-export-output.xml";
@@ -228,7 +228,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(customSchemata.size()).isEqualTo(importedTypeCustomSchemata.size());
 
 		for (MetadataSchema customSchema : customSchemata) {
-			assertThat(importedFolderType.getSchema(customSchema.getCode())).isNotNull();
+			assertThat(importedFolderType.getSchema(customSchema.getLocalCode())).isNotNull();
 		}
 
 		String outputFilePath = "settings-export-output.xml";
@@ -262,11 +262,11 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(importedFolderType).isNotNull();
 
 		for (MetadataSchema metadataSchema : folderSchemata) {
-			ImportedMetadataSchema importedMetadataSchema = importedFolderType.getSchema(metadataSchema.getCode());
+			ImportedMetadataSchema importedMetadataSchema = importedFolderType.getSchema(metadataSchema.getLocalCode());
 			assertThat(importedMetadataSchema).isNotNull();
 
 			for (Metadata metadata : metadataSchema.getMetadatas()) {
-				ImportedMetadata importedMetadata = importedMetadataSchema.getMetadata(metadata.getCode());
+				ImportedMetadata importedMetadata = importedMetadataSchema.getMetadata(metadata.getLocalCode());
 				assertThat(importedMetadata).isNotNull();
 				// TODO valider les flags de la métadonnée
 			}
