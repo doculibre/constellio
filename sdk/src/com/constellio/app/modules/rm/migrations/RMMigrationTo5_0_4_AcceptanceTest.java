@@ -77,7 +77,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 	private void givenSystemAtVersion5_0_3() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder + File.separator + "olds", STATE + ".zip");
+		File state = new File(statesFolder + File.separator + "veryOlds", STATE + ".zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
