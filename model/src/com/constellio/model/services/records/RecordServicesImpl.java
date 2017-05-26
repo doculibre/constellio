@@ -636,11 +636,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 			for (String deletedContent : contentModificationsBuilder.getDeletedContentsVersionsHashes()) {
 				contentManager.silentlyMarkForDeletionIfNotReferenced(deletedContent);
 			}
-			try {
-				saveTransactionDTO(transaction, modificationImpactHandler, attempt);
-			} catch(RecordServicesRuntimeException.IdAlreadyExisting ex) {
+			saveTransactionDTO(transaction, modificationImpactHandler, attempt);
 
-			}
 
 		} catch (RecordServicesException | RecordServicesRuntimeException e) {
 			for (String newContent : contentModificationsBuilder.getContentsWithNewVersion()) {
