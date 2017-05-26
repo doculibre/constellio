@@ -12,6 +12,7 @@ import com.constellio.app.services.importExport.systemStateExport.PartialSystemS
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
@@ -24,6 +25,9 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.sis.internal.jdk7.StandardCharsets;
@@ -33,6 +37,7 @@ import org.jdom2.output.XMLOutputter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -91,11 +96,20 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		try {
 			ImportedSettings settings = services.exportSettings(asList(collection), options);
 			SettingsXMLFileWriter writer = new SettingsXMLFileWriter();
-			org.jdom2.Document document = writer.writeSettings(settings);
-			XMLOutputter xmlOutput = new XMLOutputter();
+			final org.jdom2.Document document = writer.writeSettings(settings);
+			final XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
-			String filename = "exportedSchema-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".xml";
-			view.startDownload(filename, new ByteArrayInputStream(xmlOutput.outputString(document).getBytes(StandardCharsets.UTF_8)), "application/xml");
+			String filename = "exportedSchemas-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".xml";
+			StreamResource.StreamSource streamSource = new StreamResource.StreamSource() {
+				@Override
+				public InputStream getStream() {
+					return new ByteArrayInputStream(xmlOutput.outputString(document).getBytes(StandardCharsets.UTF_8));
+				}
+			};
+			StreamResource resource = new StreamResource(streamSource, filename);
+			resource.setMIMEType("application/xml");
+			Resource downloadedResource = DownloadLink.wrapForDownload(resource);
+			Page.getCurrent().open(downloadedResource, null, false);
 		} catch (Exception e) {
 			view.showErrorMessage($("ExportView.errorWhileExportingSchemas"));
 		}
