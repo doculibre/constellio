@@ -196,7 +196,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 	}
 
-	private File getFileOf(String contentId) {
+	public File getFileOf(String contentId) {
 		if (contentId.contains("/")) {
 			return new File(rootFolder, contentId.replace("/", File.separator));
 

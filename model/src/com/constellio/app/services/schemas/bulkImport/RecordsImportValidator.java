@@ -31,13 +31,12 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.records.ContentImport;
+import com.constellio.model.services.records.ImportContent;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
@@ -134,23 +133,23 @@ public class RecordsImportValidator {
 
 				errors.add(RecordsImportServices.class, REQUIRED_ID, parameters);
 				hasErrors = true;
-				} else {
-					DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
-						@Override
-						public void buildExtraParams(Map<String, Object> parameters) {
-							String schemaTypeLabel = type.getLabel(language);
-							if (importData.getValue("code") != null) {
-								parameters.put("prefix", schemaTypeLabel + " " + importData.getValue("code") + " : ");
-							} else {
-								parameters.put("prefix", schemaTypeLabel + " " + importData.getLegacyId() + " : ");
-							}
-
-							parameters.put("index", "" + (importData.getIndex() + 1));
-							parameters.put("legacyId", importData.getLegacyId());
+			} else {
+				DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
+					@Override
+					public void buildExtraParams(Map<String, Object> parameters) {
+						String schemaTypeLabel = type.getLabel(language);
+						if (importData.getValue("code") != null) {
+							parameters.put("prefix", schemaTypeLabel + " " + importData.getValue("code") + " : ");
+						} else {
+							parameters.put("prefix", schemaTypeLabel + " " + importData.getLegacyId() + " : ");
 						}
-					};
-					try {
-						validateValueUnicityOfUniqueMetadata(uniqueMetadatas, importData, decoratedErrors);
+
+						parameters.put("index", "" + (importData.getIndex() + 1));
+						parameters.put("legacyId", importData.getLegacyId());
+					}
+				};
+				try {
+					validateValueUnicityOfUniqueMetadata(uniqueMetadatas, importData, decoratedErrors);
 
 					markUniqueValuesAsInFile(uniqueMetadatas, importData);
 					MetadataSchema metadataSchema = type.getSchema(importData.getSchema());
@@ -384,7 +383,7 @@ public class RecordsImportValidator {
 
 		} else if (type == MetadataValueType.CONTENT) {
 
-			if (!ContentImport.class.equals(value.getClass())) {
+			if (!ImportContent.class.isAssignableFrom(value.getClass())) {
 				errors.add(RecordsImportServices.class, INVALID_CONTENT_VALUE);
 			}
 

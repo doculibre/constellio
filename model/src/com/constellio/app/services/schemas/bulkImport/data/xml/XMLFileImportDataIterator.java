@@ -23,8 +23,9 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.SimpleImportContent;
+import com.constellio.model.services.records.StructureImportContent;
 import com.google.common.base.Strings;
 
 public class XMLFileImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
@@ -43,6 +44,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	public static final String ID_ATTR = "id";
 	public static final String SCHEMA_ATTR = "schema";
 	public static final String URL_ATTR = "url";
+	public static final String STRUCTURE_VALUE_ATTR = "structureValue";
 	public static final String FILENAME_ATTR = "filename";
 	public static final String COMMENT_ATTR = "comment";
 	public static final String MAJOR_ATTR = "major";
@@ -50,6 +52,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 
 	public static final String STRING_VALUE = "string";
 	public static final String CONTENT_VALUE = "content";
+	public static final String STRUCTURE_CONTENT_VALUE = "structureContent";
 	public static final String DATE_VALUE = "date";
 	public static final String DATETIME_VALUE = "datetime";
 	public static final String STRUCTURE_VALUE = "structure";
@@ -137,6 +140,12 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 				case CONTENT_VALUE:
 					fields.put("content", parseContent());
 					break;
+
+				case STRUCTURE_CONTENT_VALUE:
+					String structureValue = xmlReader.getAttributeValue("", STRUCTURE_VALUE);
+					fields.put("content", new StructureImportContent(structureValue));
+					break;
+
 				default:
 					if (localName.equals(elementTag())) {
 						fields = new HashMap<>();
@@ -260,7 +269,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		return null;
 	}*/
 
-	private ContentImport parseContent()
+	private SimpleImportContent parseContent()
 			throws XMLStreamException {
 		boolean closeContent = false;
 		String url;
@@ -303,8 +312,39 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 			}
 		}
 
-		return new ContentImport(contentVersions);
+		return new SimpleImportContent(contentVersions);
 	}
+
+	//	private SimpleImportContent parseStructureContent()
+	//			throws XMLStreamException {
+	//		boolean closeContent = false;
+	//		String structureValue;
+	//		int endClose = 0;
+	//
+	//		List<ContentImportVersion> contentVersions = new ArrayList<>();
+	//
+	//		DateTimeFormatter datetimePattern;
+	//		try {
+	//			datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
+	//		} catch (IllegalArgumentException e) {
+	//			datetimePattern = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+	//		}
+	//		while (xmlReader.hasNext() && !closeContent) {
+	//			int event = xmlReader.next();
+	//			if (event == XMLStreamConstants.END_ELEMENT) {
+	//				if (endClose == 0) {
+	//					closeContent = true;
+	//				}
+	//				endClose--;
+	//			} else if (event == XMLStreamConstants.START_ELEMENT) {
+	//				endClose++;
+	//				structureValue = xmlReader.getAttributeValue("", STRUCTURE_VALUE_ATTR);
+	//
+	//			}
+	//		}
+	//
+	//		return new SimpleImportContent(contentVersions);
+	//	}
 
 	private Object parseMultivalue(String localName, String type)
 			throws XMLStreamException {
