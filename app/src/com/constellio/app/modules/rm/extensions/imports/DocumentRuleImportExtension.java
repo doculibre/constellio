@@ -28,27 +28,24 @@ public class DocumentRuleImportExtension extends RecordImportExtension {
 	public void build(BuildParams event) {
 		Map<String, Object> fields = event.getImportRecord().getFields();
 		Document document = rm.wrapDocument(event.getRecord());
-		if (document.getFormCreatedBy() == null) {
-			String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
-			if (createdBy != null) {
-				document.setFormCreatedBy(document.getCreatedBy());
-			}
+
+		String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
+		if (createdBy != null) {
+			document.setFormCreatedBy(document.getCreatedBy());
 		}
 
-		if (document.getFormCreatedOn() == null) {
-			LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
+		LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
+		if (createdOn != null) {
 			document.setFormCreatedOn(createdOn);
 		}
 
-		if (document.getFormModifiedBy() == null) {
-			String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
-			if (modifiedBy != null) {
-				document.setFormModifiedBy(document.getModifiedBy());
-			}
+		String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
+		if (modifiedBy != null) {
+			document.setFormModifiedBy(document.getModifiedBy());
 		}
 
-		if (document.getFormModifiedOn() == null) {
-			LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
+		LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
+		if (modifiedOn != null) {
 			document.setFormModifiedOn(modifiedOn);
 		}
 	}

@@ -44,21 +44,47 @@ public class EventImportExtension extends RecordImportExtension {
 
 		if (event.getRecordId() != null) {
 			if (event.getType().toLowerCase().contains(Folder.SCHEMA_TYPE.toLowerCase())) {
-				Folder folder = rm.getFolderWithLegacyId(event.getRecordId());
-				event.setRecordId(folder.getId());
-				event.setTitle(folder.getTitle());
+
+				Folder folder;
+				if(params.getImportDataOptions().isImportAsLegacyId()) {
+					folder = rm.getFolderWithLegacyId(event.getRecordId());
+				} else {
+					folder = rm.getFolder(event.getRecordId());
+				}
+
+				if(folder != null) {
+					event.setRecordId(folder.getId());
+					event.setTitle(folder.getTitle());
+				}
 			}
 
 			if (event.getType().toLowerCase().contains(Document.SCHEMA_TYPE.toLowerCase())) {
-				Document document = rm.getDocumentByLegacyId(event.getRecordId());
-				event.setRecordId(document.getId());
-				event.setTitle(document.getTitle());
+				Document document;
+
+				if(params.getImportDataOptions().isImportAsLegacyId()) {
+					document = rm.getDocumentByLegacyId(event.getRecordId());
+				}
+				else {
+					document = rm.getDocument(event.getRecordId());
+				}
+				if(document != null) {
+					event.setRecordId(document.getId());
+					event.setTitle(document.getTitle());
+				}
 			}
 
 			if (event.getType().toLowerCase().contains(ContainerRecord.SCHEMA_TYPE.toLowerCase())) {
-				ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(event.getRecordId());
-				event.setRecordId(containerRecord.getId());
-				event.setTitle(containerRecord.getTitle());
+				ContainerRecord containerRecord;
+
+				if(params.getImportDataOptions().isImportAsLegacyId()) {
+					containerRecord = rm.getContainerRecordWithLegacyId(event.getRecordId());
+				} else {
+					containerRecord = rm.getContainerRecord(event.getRecordId());
+				}
+				if(containerRecord != null) {
+					event.setRecordId(containerRecord.getId());
+					event.setTitle(containerRecord.getTitle());
+				}
 			}
 		}
 	}

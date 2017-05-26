@@ -259,6 +259,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if (resolution == OptimisticLockingResolution.EXCEPTION || transaction.getModifiedRecords().isEmpty()) {
 			throw new RecordServicesException.OptimisticLocking(transactionDTO, e);
 		} else if (resolution == OptimisticLockingResolution.TRY_MERGE) {
+
 			mergeRecords(transaction, e.getId());
 			if (handler == null) {
 				execute(transaction, attempt + 1);
@@ -635,7 +636,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 			for (String deletedContent : contentModificationsBuilder.getDeletedContentsVersionsHashes()) {
 				contentManager.silentlyMarkForDeletionIfNotReferenced(deletedContent);
 			}
-			saveTransactionDTO(transaction, modificationImpactHandler, attempt);
+			try {
+				saveTransactionDTO(transaction, modificationImpactHandler, attempt);
+			} catch(RecordServicesRuntimeException.IdAlreadyExisting ex) {
+
+			}
 
 		} catch (RecordServicesException | RecordServicesRuntimeException e) {
 			for (String newContent : contentModificationsBuilder.getContentsWithNewVersion()) {
