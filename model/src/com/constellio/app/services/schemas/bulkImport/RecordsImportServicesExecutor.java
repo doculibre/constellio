@@ -1,64 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
-import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior;
-import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
-import com.constellio.app.services.schemas.bulkImport.data.ImportData;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.services.sequence.SequencesManager;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.LangUtils.StringReplacer;
-import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
-import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.entities.structures.*;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.extensions.events.recordsImport.BuildParams;
-import com.constellio.model.extensions.events.recordsImport.ValidationParams;
-import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
-import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.contents.BulkUploader;
-import com.constellio.model.services.contents.BulkUploaderRuntimeException;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.*;
-import com.constellio.model.services.records.bulkImport.ProgressionHandler;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.model.utils.EnumWithSmallCodeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
@@ -71,6 +12,92 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.io.File.separator;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
+import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.dao.services.contents.FileSystemContentDao;
+import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LangUtils.StringReplacer;
+import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ConfigProvider;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
+import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.entities.structures.EmailAddressFactory;
+import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
+import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.entities.structures.MapStringStringStructureFactory;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.recordsImport.BuildParams;
+import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.BulkUploader;
+import com.constellio.model.services.contents.BulkUploaderRuntimeException;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.UserSerializedContentFactory;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.ImportContent;
+import com.constellio.model.services.records.RecordCachesServices;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SimpleImportContent;
+import com.constellio.model.services.records.StructureImportContent;
+import com.constellio.model.services.records.bulkImport.ProgressionHandler;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RecordsImportServicesExecutor {
 
@@ -93,7 +120,6 @@ public class RecordsImportServicesExecutor {
 
 	public static final String EMAIL_ADDRESS_EMAIL = "Email";
 	public static final String EMAIL_ADDRESS_NAME = "Name";
-
 
 	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemasManager schemasManager;
@@ -132,6 +158,12 @@ public class RecordsImportServicesExecutor {
 		ImportDataOptions options;
 		BulkUploader bulkUploader;
 		Map<String, Long> sequences = new HashMap<>();
+		TypeImportContext typeImportContext;
+
+		public TypeBatchImportContext(
+				TypeImportContext typeImportContext) {
+			this.typeImportContext = typeImportContext;
+		}
 	}
 
 	//
@@ -321,7 +353,7 @@ public class RecordsImportServicesExecutor {
 
 	private TypeBatchImportContext newTypeBatchImportContext(TypeImportContext typeImportContext,
 			ImportDataOptions options, List<ImportData> batch) {
-		TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext();
+		TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext(typeImportContext);
 		typeBatchImportContext.batch = batch;
 		typeBatchImportContext.transaction = new Transaction();
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
@@ -442,7 +474,8 @@ public class RecordsImportServicesExecutor {
 		String legacyId = toImport.getLegacyId();
 		if (resolverCache.getNotYetImportedLegacyIds(typeImportContext.schemaType).contains(legacyId)) {
 
-			extensions.callRecordImportValidate(typeImportContext.schemaType, new ValidationParams(errors, toImport, typeBatchImportContext.options));
+			extensions.callRecordImportValidate(typeImportContext.schemaType,
+					new ValidationParams(errors, toImport, typeBatchImportContext.options));
 
 			String title = (String) toImport.getFields().get("title");
 
@@ -456,6 +489,7 @@ public class RecordsImportServicesExecutor {
 					recordServices.validateRecordInTransaction(record, typeBatchImportContext.transaction);
 
 				} catch (ContentManagerRuntimeException_NoSuchContent e) {
+					e.printStackTrace();
 					Map<String, Object> params = new HashMap<>();
 					params.put("hash", e.getId());
 					errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
@@ -530,36 +564,39 @@ public class RecordsImportServicesExecutor {
 
 				for (Metadata contentMetadata : contentMetadatas) {
 					if (toImport.getFields().containsKey(contentMetadata.getLocalCode())) {
-						List<ContentImport> contentImports = new ArrayList<>();
+						List<ImportContent> contentImports = new ArrayList<>();
 						if (contentMetadata.isMultivalue()) {
 							contentImports.addAll((List) toImport.getFields().get(contentMetadata.getLocalCode()));
 						} else {
-							contentImports.add((ContentImport) toImport.getFields().get(contentMetadata.getLocalCode()));
+							contentImports.add((ImportContent) toImport.getFields().get(contentMetadata.getLocalCode()));
 
 						}
-						for (ContentImport contentImport : contentImports) {
-							for (Iterator<ContentImportVersion> iterator = contentImport.getVersions().iterator(); iterator
-									.hasNext(); ) {
-								ContentImportVersion version = iterator.next();
-								String url = version.getUrl();
-								if (!url.toLowerCase().startsWith("imported://")) {
-									StreamFactory<InputStream> inputStreamStreamFactory = urlResolver
-											.resolve(url, version.getFileName());
+						for (ImportContent contentImport : contentImports) {
+							if (contentImport instanceof SimpleImportContent) {
+								SimpleImportContent simpleImportContent = (SimpleImportContent) contentImport;
+								for (Iterator<ContentImportVersion> iterator = simpleImportContent.getVersions()
+										.iterator(); iterator.hasNext(); ) {
+									ContentImportVersion version = iterator.next();
+									String url = version.getUrl();
+									if (!url.toLowerCase().startsWith("imported://")) {
+										StreamFactory<InputStream> inputStreamStreamFactory = urlResolver
+												.resolve(url, version.getFileName());
 
-									if (typeBatchImportContext.bulkUploader == null) {
-										typeBatchImportContext.bulkUploader = new BulkUploader(modelLayerFactory);
-										typeBatchImportContext.bulkUploader.setHandleDeletionOfUnreferencedHashes(false);
-									}
+										if (typeBatchImportContext.bulkUploader == null) {
+											typeBatchImportContext.bulkUploader = new BulkUploader(modelLayerFactory);
+											typeBatchImportContext.bulkUploader.setHandleDeletionOfUnreferencedHashes(false);
+										}
 
-									if (iterator.hasNext()) {
-										typeBatchImportContext.bulkUploader
-												.uploadAsyncWithoutParsing(url, inputStreamStreamFactory, version.getFileName());
-									} else {
-										typeBatchImportContext.bulkUploader.uploadAsync(url, inputStreamStreamFactory);
+										if (iterator.hasNext()) {
+											typeBatchImportContext.bulkUploader
+													.uploadAsyncWithoutParsing(url, inputStreamStreamFactory,
+															version.getFileName());
+										} else {
+											typeBatchImportContext.bulkUploader.uploadAsync(url, inputStreamStreamFactory);
+										}
 									}
 								}
 							}
-
 						}
 					}
 				}
@@ -601,7 +638,7 @@ public class RecordsImportServicesExecutor {
 				} else {
 					try {
 						record = recordServices.getDocumentById(legacyId);
-						if(!record.isOfSchemaType(schemaType.getCode())) {
+						if (!record.isOfSchemaType(schemaType.getCode())) {
 							record = recordServices.newRecordWithSchema(newSchema, legacyId);
 						}
 					} catch (Exception e) {
@@ -650,32 +687,31 @@ public class RecordsImportServicesExecutor {
 					record.set(metadata, convertedValue);
 				}
 
-			}
-			else {
-				if(metadata.getStructureFactory().getClass().equals(MapStringListStringStructureFactory.class)) {
-					manageMapStringListStringStructureFactory(record,metadata, field);
+			} else {
+				if (metadata.getStructureFactory().getClass().equals(MapStringListStringStructureFactory.class)) {
+					manageMapStringListStringStructureFactory(record, metadata, field);
 				} else if (metadata.getStructureFactory().getClass().equals(MapStringStringStructureFactory.class)) {
 					manageMapStringStringStructureFactory(record, metadata, field);
 				} else if (metadata.getStructureFactory().getClass().equals(CommentFactory.class)) {
 					manageCommentFactory(record, metadata, field);
-				} else if(metadata.getStructureFactory().getClass().equals(EmailAddressFactory.class)) {
+				} else if (metadata.getStructureFactory().getClass().equals(EmailAddressFactory.class)) {
 					manageEmailAddressFactory(record, metadata, field);
 				}
 			}
 		}
 
-
-		extensions.callRecordImportBuild(typeImportContext.schemaType, new BuildParams(record, types, toImport, typeBatchImportContext.options));
+		extensions.callRecordImportBuild(typeImportContext.schemaType,
+				new BuildParams(record, types, toImport, typeBatchImportContext.options));
 
 		return record;
 	}
 
 	private void manageEmailAddressFactory(Record record, Metadata metadata, Entry<String, Object> field) {
 		//Test if multi value
-		if(metadata.isMultivalue()) {
+		if (metadata.isMultivalue()) {
 			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
 			List<EmailAddress> emailAddressList = new ArrayList<>();
-			for(Map<String,String> map : listHashMap) {
+			for (Map<String, String> map : listHashMap) {
 				EmailAddress emailAddress = new EmailAddress();
 
 				emailAddress.setEmail(map.get(EMAIL_ADDRESS_EMAIL));
@@ -684,9 +720,9 @@ public class RecordsImportServicesExecutor {
 
 			}
 			record.set(metadata, emailAddressList);
-			} else {
+		} else {
 
-			Map<String,String> map = (Map<String, String>) field.getValue();
+			Map<String, String> map = (Map<String, String>) field.getValue();
 			EmailAddress emailAddress = new EmailAddress();
 
 			emailAddress.setEmail(map.get(EMAIL_ADDRESS_EMAIL));
@@ -697,12 +733,11 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void manageCommentFactory(Record record, Metadata metadata, Entry<String, Object> field) {
-		if(metadata.isMultivalue()) {
+		if (metadata.isMultivalue()) {
 			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
 			List<Comment> commentList = new ArrayList<>();
 
-			for(Map<String, String> hashMap : listHashMap)
-			{
+			for (Map<String, String> hashMap : listHashMap) {
 				String userName = hashMap.get(COMMENT_USER_NAME);
 				UserServices userService = new UserServices(modelLayerFactory);
 
@@ -710,8 +745,7 @@ public class RecordsImportServicesExecutor {
 				comment.setMessage(hashMap.get(COMMENT_MESSAGE));
 				comment.setUser(userService.getUserInCollection(userName, collection));
 
-				if(comment.getDateTime() != null)
-				{
+				if (comment.getDateTime() != null) {
 					LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));
 				}
 
@@ -727,8 +761,7 @@ public class RecordsImportServicesExecutor {
 			comment.setMessage(hashMap.get(COMMENT_MESSAGE));
 			comment.setUser(userService.getUserInCollection(userName, collection));
 
-			if(comment.getDateTime() != null)
-			{
+			if (comment.getDateTime() != null) {
 				LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));
 			}
 
@@ -738,12 +771,11 @@ public class RecordsImportServicesExecutor {
 
 	private void manageMapStringStringStructureFactory(Record record, Metadata metadata, Entry<String, Object> field) {
 
-
-		if(metadata.isMultivalue()) {
+		if (metadata.isMultivalue()) {
 			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
 			List<MapStringStringStructure> listMapStringListStringStructure = new ArrayList<>();
 
-			for(Map<String, String> map : listHashMap) {
+			for (Map<String, String> map : listHashMap) {
 				MapStringStringStructure mapStringStringStructure = new MapStringStringStructure(map);
 				listMapStringListStringStructure.add(mapStringStringStructure);
 			}
@@ -757,36 +789,35 @@ public class RecordsImportServicesExecutor {
 
 	private void manageMapStringListStringStructureFactory(Record record, Metadata metadata, Entry<String, Object> field) {
 
-		if(metadata.isMultivalue()) {
+		if (metadata.isMultivalue()) {
 			List<Map<String, String>> listMapStringList = (List<Map<String, String>>) field.getValue();
 			List<MapStringListStringStructure> mapStringListStringStructureList = new ArrayList<>();
 
 			MapStringListStringStructure currentMapStringListStringStructure;
 
-			for(Map<String, String> currentMapListString : listMapStringList) {
+			for (Map<String, String> currentMapListString : listMapStringList) {
 				currentMapStringListStringStructure = new MapStringListStringStructure();
-				for(String keySet : currentMapListString.keySet()) {
+				for (String keySet : currentMapListString.keySet()) {
 					String string = currentMapListString.get(keySet);
-					currentMapStringListStringStructure.put(keySet,asList(string.split(",")));
+					currentMapStringListStringStructure.put(keySet, asList(string.split(",")));
 				}
 
 				mapStringListStringStructureList.add(currentMapStringListStringStructure);
 			}
 			record.set(metadata, mapStringListStringStructureList);
 		} else {
-			Map<String,String> hashMapListString = (Map<String,String>) field.getValue();
+			Map<String, String> hashMapListString = (Map<String, String>) field.getValue();
 			hashMapListString.remove("type");
 
 			MapStringListStringStructure mapStringListStringStructure = new MapStringListStringStructure();
 
-			for(String keySet : hashMapListString.keySet()) {
+			for (String keySet : hashMapListString.keySet()) {
 				String string = hashMapListString.get(keySet);
-				mapStringListStringStructure.put(keySet,asList(string.split(",")));
+				mapStringListStringStructure.put(keySet, asList(string.split(",")));
 			}
 
 			record.set(metadata, mapStringListStringStructure);
 		}
-
 
 	}
 
@@ -820,7 +851,60 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private Content convertContent(TypeBatchImportContext typeBatchImportContext, Object value, ValidationErrors errors) {
-		ContentImport contentImport = (ContentImport) value;
+		ImportContent contentImport = (ImportContent) value;
+
+		Content content;
+		if (contentImport == null) {
+			content = null;
+
+		} else if (contentImport instanceof SimpleImportContent) {
+			content = convertContent(typeBatchImportContext, (SimpleImportContent) value, errors);
+			validateHashExists(content, errors, false);
+
+		} else if (contentImport instanceof StructureImportContent) {
+			content = convertContent(typeBatchImportContext, (StructureImportContent) value, errors);
+			validateHashExists(content, errors, true);
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported ImportContent : " + contentImport.getClass().getSimpleName());
+		}
+
+		return content;
+	}
+
+	private void validateHashExists(Content content, ValidationErrors errors, boolean warnings) {
+
+		ContentDao contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
+
+		if (content != null) {
+			for (String hash : content.getHashOfAllVersions()) {
+				if (!contentDao.isDocumentExisting(hash)) {
+					Map<String, Object> parameters = new HashMap<>();
+					parameters.put("hash", hash);
+
+					if (contentDao instanceof FileSystemContentDao) {
+						parameters.put("filePath", ((FileSystemContentDao) contentDao).getFileOf(hash).getAbsolutePath());
+					}
+
+					if (warnings) {
+						errors.addWarning(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, parameters);
+					} else {
+						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, parameters);
+					}
+				}
+			}
+		}
+
+	}
+
+	private Content convertContent(TypeBatchImportContext typeBatchImportContext, StructureImportContent contentImport,
+			ValidationErrors errors) {
+		UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, modelLayerFactory);
+		return (Content) contentFactory.build(contentImport.getSerializedStructure());
+	}
+
+	private Content convertContent(TypeBatchImportContext typeBatchImportContext, SimpleImportContent contentImport,
+			ValidationErrors errors) {
 		List<ContentImportVersion> versions = contentImport.getVersions();
 		Content content = null;
 

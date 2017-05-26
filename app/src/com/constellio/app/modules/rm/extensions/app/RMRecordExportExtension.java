@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
@@ -23,6 +25,7 @@ import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,6 +38,8 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 	String collection;
 	AppLayerFactory appLayerFactory;
+
+	public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
 	public RMRecordExportExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -55,6 +60,43 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			//manageSavedSearch(params);
 		} else if (params.isRecordOfType(Task.SCHEMA_TYPE)) {
 			manageUserTask(params);
+		} else if (params.isRecordOfType(Folder.SCHEMA_TYPE)) {
+			manageFolder(params);
+		} else if (params.isRecordOfType(Document.SCHEMA_TYPE)) {
+			manageDocument(params);
+		}
+
+	}
+
+	private void manageDocument(OnWriteRecordParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+		Document document = new Document(params.getRecord(), getTypes());
+
+		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
+		if (document.getFormCreatedOn() != null) {
+			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), document.getFormCreatedOn());
+		}
+		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
+
+		if (document.getFormModifiedOn() != null) {
+			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), document.getFormCreatedOn());
+		}
+	}
+
+	private void manageFolder(OnWriteRecordParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+		Folder folder = new Folder(params.getRecord(), getTypes());
+
+		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
+		if (folder.getFormCreatedOn() != null) {
+			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), folder.getFormCreatedOn());
+		}
+		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
+
+		if (folder.getFormModifiedOn() != null) {
+			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), folder.getFormCreatedOn());
 		}
 	}
 

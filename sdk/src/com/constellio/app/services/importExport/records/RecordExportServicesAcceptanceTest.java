@@ -28,10 +28,7 @@ import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProv
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -43,6 +40,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -500,8 +498,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void whenExportingAndImportingSameSystemDecommissionList()
-	{
+	public void whenExportingAndImportingSameSystemDecommissionList() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
@@ -533,9 +530,20 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordService.logicallyDelete(decommissioningListList.get(0).getWrappedRecord(), User.GOD);
 		recordService.physicallyDelete(decommissioningListList.get(0).getWrappedRecord(), User.GOD);
 
+
+		DecommissioningList decommissioningList = decommissioningListList.get(1);
+				decommissioningList.setTitle("Jonathan Title");
+
+		recordService.update(decommissioningList.getWrappedRecord());
+
 		importFromZip(file, zeCollection);
 
 		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
+
+		for(DecommissioningList currentDecommissioningList : listSearchDecommissiongList)
+		{
+			assertThat(currentDecommissioningList.getTitle()).isNotEqualTo("Jonathan Title");
+		}
 
 		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
 				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
@@ -570,8 +578,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
 		}
 
-
-
 		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
 						DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
 
@@ -587,7 +593,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		importFromZip(file, zeCollection);
 
-
 		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
 
 		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
@@ -598,6 +603,345 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+	}
+
+
+	@Test
+	public void whenExportingAndImportingEvent() {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withEvents(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(Event.SCHEMA_TYPE, Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE)));
+
+
+		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		assertThatRecords(rmAnotherCollection.searchEvents(ALL)).extractingMetadatas("legacyIdentifier", "title")
+				.containsOnly(tuple("00000000436", "Abeille"),
+						tuple("00000000437", null), tuple("00000000438", null),
+						tuple("00000000439", null), tuple("00000000440", "Belette"),
+						tuple("00000000441", "Bob 'Elvis' Gratton"), tuple("00000000442", "Chuck Norris"),
+						tuple("00000000443", "Bob 'Elvis' Gratton"), tuple("00000000444", "Chuck Norris"),
+						tuple("00000000445", "Gandalf Leblanc"), tuple("00000000447", "group1"),
+						tuple("00000000449", "group2"), tuple("00000000450", "Aigle"),
+						tuple("00000000452", null), tuple("00000000454", null),
+						tuple("00000000456", null), tuple("00000000457", "Aigle"),
+						tuple("00000000458", "30_C_01"), tuple("00000000459", "Aigle"),
+						tuple("00000000460", "Alouette"), tuple("00000000461", null),
+						tuple("00000000462", null), tuple("00000000463", null));
+	}
+
+
+	 // TODO Ne fonctionne pas dans le moment.
+	 //@Test
+	public void whenExportingAndImportingEventInSameSystem() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withEvents(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		List<Event> event = rmZeCollection.searchEvents(returnAll());
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+				Event.SCHEMA_TYPE)).setForSameSystem(true);
+
+		File file = exportToZip(recordExportOptions);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		recordServices.logicallyDelete(event.get(0).getWrappedRecord(), records.getAdmin());
+		recordServices.physicallyDelete(event.get(0).getWrappedRecord(), records.getAdmin());
+
+		recordServices.update(event.get(1).setTitle("Test Title").getWrappedRecord(), records.getAdmin());
+
+		importFromZip(file, zeCollection);
+
+		assertThatRecords(rmZeCollection.searchEvents(ALL)).extractingMetadatas("id", "title")
+				.containsOnly(tuple("00000000436", "Abeille"),
+						tuple("00000000437", null), tuple("00000000438", null),
+						tuple("00000000439", null), tuple("00000000440", "Belette"),
+						tuple("00000000441", "Bob 'Elvis' Gratton"), tuple("00000000442", "Chuck Norris"),
+						tuple("00000000443", "Bob 'Elvis' Gratton"), tuple("00000000444", "Chuck Norris"),
+						tuple("00000000445", "Gandalf Leblanc"), tuple("00000000447", "group1"),
+						tuple("00000000449", "group2"), tuple("00000000450", "Aigle"),
+						tuple("00000000452", null), tuple("00000000454", null),
+						tuple("00000000456", null), tuple("00000000457", "Aigle"),
+						tuple("00000000458", "30_C_01"), tuple("00000000459", "Aigle"),
+						tuple("00000000460", "Alouette"), tuple("00000000461", null),
+						tuple("00000000462", null), tuple("00000000463", null));
+	}
+
+	@Test
+	public void whenExportingAndImportingFolder() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Folder abeillefolderFromAnOtherCollection = null;
+		Folder abeilleFolderFromZeCollection = null;
+
+		List<Folder> folderList = rmSchemasRecordsServices.searchFolders(ALL);
+
+		boolean isFound = false;
+
+		for(Folder folderFromZeCollection : folderList) {
+			isFound = false;
+			if(folderFromZeCollection.getTitle().equals("Abeille")) {
+				abeilleFolderFromZeCollection = folderFromZeCollection;
+				isFound = true;
+				break;
+			}
+		}
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		abeilleFolderFromZeCollection.setFormModifiedOn(new LocalDateTime());
+		abeilleFolderFromZeCollection.setFormCreatedOn(new LocalDateTime());
+		//abeilleFolderFromZeCollection.setFormCreatedBy(records.getAdmin());
+		//abeilleFolderFromZeCollection.setFormModifiedBy(records.getAdmin());
+
+		recordServices.update(abeilleFolderFromZeCollection.getWrappedRecord());
+
+		if(!isFound) {
+			fail("Folder abeille not found.");
+		}
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE)));
+
+
+		SearchServices searchService = getModelLayerFactory().newSearchServices();
+
+		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		List<Folder> folderListFromAnOtherCollection = rmSchemasRecordsServicesAnOtherCollection.searchFolders(ALL);
+
+
+
+		for(Folder folderFromAnOtherCollection : folderListFromAnOtherCollection) {
+			isFound = false;
+
+			for(Folder folderFromZeCollection : folderList) {
+
+				if(folderFromAnOtherCollection.getTitle().equals(folderFromZeCollection.getTitle())){
+					if(folderFromAnOtherCollection.getTitle().equals("Abeille")) {
+						abeillefolderFromAnOtherCollection = folderFromAnOtherCollection;
+					}
+
+					isFound = true;
+					break;
+				}
+			}
+			assertThat(isFound).isTrue();
+		}
+
+		assertThat(abeillefolderFromAnOtherCollection.getRetentionRule()).isNotNull();
+		assertThat(abeillefolderFromAnOtherCollection.getArchivisticStatus()).isEqualTo(abeilleFolderFromZeCollection.getArchivisticStatus());
+		assertThat(abeillefolderFromAnOtherCollection.getFormCreatedOn()).isEqualTo(abeilleFolderFromZeCollection.getFormCreatedOn().withMillisOfSecond(0));
+		assertThat(abeillefolderFromAnOtherCollection.getFormModifiedOn()).isEqualTo(abeilleFolderFromZeCollection.getFormModifiedOn().withMillisOfSecond(0));
+		//sertThat(abeillefolderFromAnOtherCollection.getFormCreatedBy()).isEqualTo(abeilleFolderFromZeCollection.getFormCreatedBy());
+		//assertThat(abeillefolderFromAnOtherCollection.getFormModifiedBy()).isEqualTo(abeilleFolderFromZeCollection.getFormModifiedBy());
+	}
+
+	@Test
+	public void whenExportingAndImportingFolderSameSystem() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+
+		List<Folder> folderList = rmSchemasRecordsServices.searchFolders(returnAll());
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		int originalSize = folderList.size();
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+				Folder.SCHEMA_TYPE)).setForSameSystem(true);
+
+		Folder updatedFolder = folderList.get(1);
+		Folder deletedFolder = rmSchemasRecordsServices.getFolder("A05");
+
+		updatedFolder.setFormCreatedOn(new LocalDateTime().plusYears(1000));
+		updatedFolder.setFormModifiedOn(new LocalDateTime().plusYears(1000));
+
+		recordServices.update(updatedFolder.getWrappedRecord(), records.getAdmin());
+
+		LocalDateTime originalFormCreatedOn = updatedFolder.getFormCreatedOn();
+		LocalDateTime originalFormModifiedOn = updatedFolder.getFormModifiedOn();
+		String originalTitle = updatedFolder.getTitle();
+
+		File file = exportToZip(recordExportOptions);
+
+
+		recordServices.logicallyDelete(deletedFolder.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(deletedFolder.getWrappedRecord(), User.GOD);
+
+		updatedFolder.setFormCreatedOn(new LocalDateTime().plusYears(50));
+		updatedFolder.setFormModifiedOn(new LocalDateTime().plusYears(50));
+		updatedFolder.setTitle("Some Title");
+		recordServices.update(updatedFolder.getWrappedRecord(), records.getAdmin());
+
+		importFromZip(file, zeCollection);
+
+		folderList = rmSchemasRecordsServices.searchFolders(returnAll());
+
+		SearchServices searchService = getModelLayerFactory().newSearchServices();
+
+		assertThat(folderList.size()).isEqualTo(originalSize);
+		assertThat(findRecordByTitle(deletedFolder.getTitle(),folderList)).isNotNull();
+		Folder revertedFolder = (Folder) findRecordByTitle(originalTitle, folderList);
+
+		assertThat(revertedFolder.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
+		assertThat(revertedFolder.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
+		assertThat(revertedFolder.getTitle()).isEqualTo(originalTitle);
+
+
+		assertThat(revertedFolder.getRetentionRule()).isNotNull();
+		assertThat(revertedFolder.getArchivisticStatus()).isEqualTo(updatedFolder.getArchivisticStatus());
+	}
+
+	@Test
+	public void whenExportingAndImportingDocument() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Document abeilleDocumentFromAnOtherCollection = null;
+		Document documentFromZeCollection = null;
+
+		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(ALL);
+
+		documentFromZeCollection = documentList.get(0);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		documentFromZeCollection.setFormModifiedOn(new LocalDateTime());
+		documentFromZeCollection.setFormCreatedOn(new LocalDateTime());
+
+		LocalDateTime originalFormModifiedOn = documentFromZeCollection.getFormModifiedOn();
+		LocalDateTime originalFormCreatedOn = documentFromZeCollection.getFormCreatedOn();
+
+		String originalTitle = documentFromZeCollection.getTitle();
+
+		recordServices.update(documentFromZeCollection.getWrappedRecord());
+
+		exportThenImportInAnotherCollection(
+				options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE)));
+
+		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+
+		List<Document> documentListFromAnOtherCollection = rmSchemasRecordsServicesAnOtherCollection.searchDocuments(ALL);
+
+		Document updatedDocument = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
+
+
+		assertThat(documentListFromAnOtherCollection.size()).isEqualTo(documentList.size());
+
+		for (Document documentZeCollection : documentList) {
+			boolean found = false;
+
+			for(Document documentAnOtherCollection : documentListFromAnOtherCollection) {
+				if(documentAnOtherCollection.getTitle().equals(documentZeCollection.getTitle())) {
+					found = true;
+				}
+			}
+
+			assertThat(found).isTrue();
+		}
+
+		assertThat(updatedDocument.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
+		assertThat(updatedDocument.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
+	}
+
+	@Test
+	public void whenExportingAndImportingDocumentSameSystem() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		int originalSize = documentList.size();
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+				Document.SCHEMA_TYPE)).setForSameSystem(true);
+
+		Document updatedDocument = documentList.get(1);
+		Document deletedDocument = documentList.get(0);
+
+		updatedDocument.setFormCreatedOn(new LocalDateTime().plusYears(1000));
+		updatedDocument.setFormModifiedOn(new LocalDateTime().plusYears(1000));
+
+		recordServices.update(updatedDocument.getWrappedRecord(), records.getAdmin());
+
+		LocalDateTime originalFormCreatedOn = updatedDocument.getFormCreatedOn();
+		LocalDateTime originalFormModifiedOn = updatedDocument.getFormModifiedOn();
+		String originalTitle = updatedDocument.getTitle();
+
+		File file = exportToZip(recordExportOptions);
+
+
+		recordServices.logicallyDelete(deletedDocument.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(deletedDocument.getWrappedRecord(), User.GOD);
+
+		updatedDocument.setFormCreatedOn(new LocalDateTime().plusYears(50));
+		updatedDocument.setFormModifiedOn(new LocalDateTime().plusYears(50));
+		updatedDocument.setTitle("Some Title");
+		recordServices.update(updatedDocument.getWrappedRecord(), records.getAdmin());
+
+		importFromZip(file, zeCollection);
+
+		documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
+
+		assertThat(documentList.size()).isEqualTo(originalSize);
+		assertThat(findRecordByTitle(deletedDocument.getTitle(), documentList)).isNotNull();
+		Document revertedFolder = (Document) findRecordByTitle(originalTitle, documentList);
+
+		assertThat(revertedFolder.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
+		assertThat(revertedFolder.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
+		assertThat(revertedFolder.getTitle()).isEqualTo(originalTitle);
+
+
+		assertThat(revertedFolder.getRetentionRule()).isNotNull();
+		assertThat(revertedFolder.getArchivisticStatus()).isEqualTo(updatedDocument.getArchivisticStatus());
+	}
+
+	private RecordWrapper findRecordByTitle(String title, List<? extends RecordWrapper> list)
+	{
+		RecordWrapper record = null;
+
+		for(RecordWrapper currentRecord : list) {
+			if(currentRecord.getTitle().equals(title)){
+				record = currentRecord;
+				break;
+			}
+		}
+
+		return record;
 	}
 
 	@Test
@@ -645,6 +989,52 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
 	}
+
+	@Test
+	public void whenExportingAndImportingSameSystemCategory() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+		final String MESSAGE = "Message";
+		final User user = records.getAdmin();
+
+		Comment comment = new Comment();
+		comment.setUser(records.getAdmin());
+		comment.setMessage(MESSAGE);
+
+		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction transaction = new Transaction();
+
+		Category category = records.getCategory_X().setComments(asList(comment));
+		transaction.update(category.getWrappedRecord());
+
+		recordServices.execute(transaction);
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(Category.SCHEMA_TYPE))
+				.setForSameSystem(true);
+
+		File file = exportToZip(recordExportOptions);
+
+		RecordServices recordService = getModelLayerFactory().newRecordServices();
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+		recordService.logicallyDelete(category.getWrappedRecord(), User.GOD);
+		recordService.physicallyDelete(category.getWrappedRecord(), User.GOD);
+
+		importFromZip(file, zeCollection);
+
+		Category categoryFromAnOtherCollection = rmZeCollection.getCategoryWithCode("X");
+
+		assertThat(categoryFromAnOtherCollection.getComments().size()).isEqualTo(1);
+
+		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
+		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
+		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
+	}
+
 
 	@Test
 	public void whenExportingAndImportingComment() throws Exception {
