@@ -11,6 +11,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.crawler.DeleteEventOptions;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
@@ -27,43 +28,18 @@ public class SmbDeleteJob extends SmbConnectorJob {
 	@Override
 	public void execute(Connector connector) {
 		String url = jobParams.getUrl();
-		if (jobParams.getSmbUtils().isAccepted(url, jobParams.getConnectorInstance())) {
-			SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url, false);
-			SmbFileDTOStatus status = smbFileDTO.getStatus();
-			switch (status) {
-			case DELETE_DTO:
-				deleteRecords();
-				break;
-			case FAILED_DTO:
-				// Do nothing
-				break;
-			case FULL_DTO:
-				// Do nothing
-				break;
-			default:
-				connector.getLogger()
-						.error("Unexpected DTO status when deleting : " + url, "", new LinkedHashMap<String, String>());
-				break;
-			}
-		} else {
-			deleteRecords();
-		}
-	}
-
-	private void deleteRecords() {
-		String url = jobParams.getUrl();
 		if (jobParams.getSmbUtils().isFolder(url)) {
-			ConnectorSmbFolder folderToDelete = jobParams.getSmbRecordService().getFolder(url);
-			if (folderToDelete != null) {
+			List<ConnectorSmbFolder> foldersToDelete = jobParams.getSmbRecordService().getFolders(url);
+			if (!foldersToDelete.isEmpty()) {
 				DeleteEventOptions options = new DeleteEventOptions();
 				options.getPhysicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
 				options.getLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(LOGICALLY_DELETE_THEM);
-				jobParams.getEventObserver().deleteEvents(options, folderToDelete);
+				jobParams.getEventObserver().deleteEvents(options, foldersToDelete.toArray(new ConnectorSmbFolder[0]));
 			}
 		} else {
-			ConnectorSmbDocument documentToDelete = jobParams.getSmbRecordService().getDocument(url);
-			if (documentToDelete != null) {
-				jobParams.getEventObserver().deleteEvents(documentToDelete);
+			List<ConnectorSmbDocument> documentsToDelete = jobParams.getSmbRecordService().getDocuments(url);
+			if (!documentsToDelete.isEmpty()) {
+				jobParams.getEventObserver().deleteEvents(documentsToDelete.toArray(new ConnectorSmbDocument[0]));
 			}
 		}
 		jobParams.getConnector().getContext().delete(url);

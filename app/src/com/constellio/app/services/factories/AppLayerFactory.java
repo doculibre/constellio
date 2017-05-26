@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.extensions.impl.DefaultPagesComponentsExtension;
 import com.constellio.app.modules.complementary.ESRMRobotsModule;
 import com.constellio.app.modules.es.ConstellioESModule;
@@ -331,6 +332,7 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void close() {
+		Scripts.removeScripts();
 		super.close();
 	}
 

@@ -3,6 +3,7 @@ package com.constellio.model.services.contents;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SCAN_ACTIVATED;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SERVER_URL;
 import static java.util.Arrays.asList;
+import static org.apache.commons.io.IOUtils.readLines;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -18,20 +19,20 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
-import com.constellio.sdk.tests.annotations.InternetTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.data.dao.services.contents.FileSystemContentDao;
+import com.constellio.data.dao.services.contents.FileSystemContentDaoExternalResourcesExtension;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.contents.icap.IcapResponse;
 import com.constellio.model.services.contents.icap.IcapService;
@@ -39,7 +40,7 @@ import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 
 public class ContentManagerAcceptanceTest extends ConstellioTest {
 
@@ -105,6 +106,59 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		rawContentInputStream = contentManager.getContentInputStream(dataSummary.getHash(), SDK_STREAM);
 		expectedContentInputStream = newFileInputStream(textContentFile);
 		assertThat(rawContentInputStream).hasContentEqualTo(expectedContentInputStream);
+
+	}
+
+	@Test
+	public void givenContentRetrievalExtensionConfiguredThenUsed()
+			throws Exception {
+
+		FileSystemContentDao fsContentDao = (FileSystemContentDao) getDataLayerFactory().getContentsDao();
+		fsContentDao.register(new FileSystemContentDaoExternalResourcesExtension("42") {
+			@Override
+			public InputStream get(String hash, String streamName) {
+				if (hash.equals("1234")) {
+					return IOUtils.toInputStream("Chuck Norris");
+
+				} else if (hash.equals("2345")) {
+					return IOUtils.toInputStream("Édouard lechat");
+				}
+
+				return null;
+			}
+		});
+
+		fsContentDao.register(new FileSystemContentDaoExternalResourcesExtension("666") {
+			@Override
+			public InputStream get(String hash, String streamName) {
+				if (hash.equals("1234")) {
+					return IOUtils.toInputStream("Alice");
+
+				} else if (hash.equals("2345")) {
+					return IOUtils.toInputStream("Dakota");
+				}
+
+				return null;
+			}
+		});
+
+		assertThat(readLines(contentManager.getContentInputStream("#42=1234", SDK_STREAM))).isEqualTo(asList("Chuck Norris"));
+		assertThat(readLines(contentManager.getContentInputStream("#42=2345", SDK_STREAM))).isEqualTo(asList("Édouard lechat"));
+		assertThat(readLines(contentManager.getContentInputStream("#666=1234", SDK_STREAM))).isEqualTo(asList("Alice"));
+		assertThat(readLines(contentManager.getContentInputStream("#666=2345", SDK_STREAM))).isEqualTo(asList("Dakota"));
+
+		try {
+			contentManager.getContentInputStream("#42=3456", SDK_STREAM);
+			fail("Exception expected");
+		} catch (ContentManagerRuntimeException_NoSuchContent e) {
+
+		}
+
+		try {
+			contentManager.getContentInputStream("~777:3456", SDK_STREAM);
+			fail("Exception expected");
+		} catch (ContentManagerRuntimeException_NoSuchContent e) {
+		}
 
 	}
 

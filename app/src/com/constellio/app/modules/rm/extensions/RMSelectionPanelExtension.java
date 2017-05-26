@@ -1,5 +1,27 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -8,7 +30,12 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -26,6 +53,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -35,6 +63,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -49,19 +78,15 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.IOUtils;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import java.io.*;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -449,7 +474,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         }
     }
 
-    public void duplicateButtonClicked(String parentId, AvailableActionsParam param) {
+    public void duplicateButtonClicked(String parentId, final AvailableActionsParam param) {
         List<String> recordIds = param.getIds();
         List<String> couldNotDuplicate = new ArrayList<>();
         if (isNotBlank(parentId)) {
@@ -466,8 +491,21 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             break;
                         case Document.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
-                            for(Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            for (Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
+                            }
+                            if (newDocument.getContent() != null) {
+                            	User user = param.getUser();
+                            	Content content = newDocument.getContent();
+                            	ContentVersion contentVersion = content.getCurrentVersion();
+                            	String filename = contentVersion.getFilename();
+                            	ContentManager contentManager = rmSchemas.getModelLayerFactory().getContentManager();
+                            	ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(contentVersion.getHash());
+                            	Content newContent = contentManager.createMajor(user, filename, contentVersionDataSummary);
+                            	newDocument.setContent(newContent);
+                            }
+                            if (Boolean.TRUE == newDocument.getBorrowed()) {
+                                newDocument.setBorrowed(false);
                             }
                             String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
                             newDocument.setTitle(title);

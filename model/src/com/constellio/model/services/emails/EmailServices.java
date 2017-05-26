@@ -1,24 +1,5 @@
 package com.constellio.model.services.emails;
 
-import com.constellio.model.conf.email.EmailServerConfiguration;
-import com.constellio.model.services.emails.EmailServicesException.EmailPermanentException;
-import com.constellio.model.services.emails.EmailServicesException.EmailServerException;
-import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.james.mime4j.dom.TextBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +7,39 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.AuthenticationFailedException;
+import javax.mail.Authenticator;
+import javax.mail.BodyPart;
+import javax.mail.FolderNotFoundException;
+import javax.mail.Message;
+import javax.mail.MessageRemovedException;
+import javax.mail.MessagingException;
+import javax.mail.MethodNotSupportedException;
+import javax.mail.Multipart;
+import javax.mail.NoSuchProviderException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.ReadOnlyFolderException;
+import javax.mail.SendFailedException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
+import javax.mail.util.ByteArrayDataSource;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.model.conf.email.EmailServerConfiguration;
+import com.constellio.model.services.emails.EmailServicesException.EmailPermanentException;
+import com.constellio.model.services.emails.EmailServicesException.EmailServerException;
+import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
 
 public class EmailServices {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailQueueManager.class);
@@ -86,6 +100,7 @@ public class EmailServices {
 
 	public Message createMessage(String from, String subject, String body, List<MessageAttachment> attachments)
 			throws MessagingException, IOException {
+		String charset = "UTF-8";
 		Message message = new MimeMessage(Session.getInstance(System.getProperties()));
 		if (StringUtils.isNotBlank(from)) {
 			message.setFrom(new InternetAddress(from));
@@ -106,10 +121,12 @@ public class EmailServices {
 		// add attachments
 		if (attachments != null && !attachments.isEmpty()) {
 			for (MessageAttachment messageAttachment : attachments) {
+				String filename = messageAttachment.getAttachmentName();
+				filename = MimeUtility.encodeText(filename, "UTF-8", null);
 				MimeBodyPart attachment = new MimeBodyPart();
 				DataSource source = new ByteArrayDataSource(messageAttachment.getInputStream(), messageAttachment.getMimeType());
 				attachment.setDataHandler(new DataHandler(source));
-				attachment.setFileName(messageAttachment.getAttachmentName());
+				attachment.setFileName(filename);
 				multipart.addBodyPart(attachment);
 			}
 		}

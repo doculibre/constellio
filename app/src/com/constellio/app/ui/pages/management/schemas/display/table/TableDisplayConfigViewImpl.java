@@ -1,16 +1,8 @@
 package com.constellio.app.ui.pages.management.schemas.display.table;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.ui.pages.management.schemas.display.SortFormMetadataVO;
-import org.vaadin.tepi.listbuilder.ListBuilder;
-
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.schemas.display.SortFormMetadataVO;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -20,6 +12,13 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.tepi.listbuilder.ListBuilder;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TableDisplayConfigViewImpl extends BaseViewImpl implements TableDisplayConfigView {
 

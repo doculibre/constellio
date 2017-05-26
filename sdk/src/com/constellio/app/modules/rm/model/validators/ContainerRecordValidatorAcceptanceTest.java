@@ -54,7 +54,7 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 	public void givenContainerWithLinearSizeGreaterThanCapacityThenErrorIsThrown()
 			throws RecordServicesException {
 
-		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(20);
+		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(20.0);
 		recordServices.add(containerRecord);
 	}
 
@@ -62,7 +62,7 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 	public void givenContainerWithLinearSizeEqualToCapacityThenNoErrorIsThrown()
 			throws RecordServicesException {
 
-		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(10);
+		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(10.0);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
@@ -98,10 +98,10 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 		StorageSpace storageSpace = buildDefaultStorageSpace().setContainerType(asList(containerType));
 		recordServices.add(storageSpace);
 
-		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(10);
+		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(10.0);
 		recordServices.add(containerRecord);
 		addFoldersLinkedToContainer(containerRecord.getId());
-		containerRecord.setLinearSizeEntered(20).setStorageSpace(storageSpace);
+		containerRecord.setLinearSizeEntered(20.0).setStorageSpace(storageSpace);
 		try {
 			recordServices.add(containerRecord);
 			fail("No exception was thrown");

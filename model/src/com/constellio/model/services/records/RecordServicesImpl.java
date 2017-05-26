@@ -138,22 +138,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void executeWithoutImpactHandling(Transaction transaction)
 			throws RecordServicesException {
-		executeWithImpactHandler(transaction, new RecordModificationImpactHandler() {
-			@Override
-			public void prepareToHandle(ModificationImpact modificationImpact) {
+		if (!transaction.getRecords().isEmpty()) {
+			executeWithImpactHandler(transaction, new RecordModificationImpactHandler() {
+				@Override
+				public void prepareToHandle(ModificationImpact modificationImpact) {
 
-			}
+				}
 
-			@Override
-			public void handle() {
+				@Override
+				public void handle() {
 
-			}
+				}
 
-			@Override
-			public void cancel() {
+				@Override
+				public void cancel() {
 
-			}
-		});
+				}
+			});
+		}
 	}
 
 	public void execute(Transaction transaction)
@@ -543,7 +545,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		}
 
-		new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+		if (!transaction.getRecordUpdateOptions().isSkipFindingRecordsToReindex()) {
+			new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+		}
 
 		ValidationErrors errors = new ValidationErrors();
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
