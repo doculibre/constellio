@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.constellio.model.services.contents.icap.IcapService;
-
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -64,6 +62,7 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotSaveContent;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.contents.icap.IcapService;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
@@ -103,6 +102,8 @@ public class ContentManager implements StatefulService {
 	private final ModelLayerFactory modelLayerFactory;
 	private final IcapService icapService;
 
+	private boolean serviceThreadEnabled = true;
+
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, new IcapService(modelLayerFactory));
 	}
@@ -132,10 +133,12 @@ public class ContentManager implements StatefulService {
 
 			@Override
 			public void run() {
-				if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
-					deleteUnreferencedContents();
+				if (serviceThreadEnabled) {
+					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+						deleteUnreferencedContents();
+					}
+					convertPendingContentForPreview();
 				}
-				convertPendingContentForPreview();
 			}
 		};
 
@@ -161,6 +164,11 @@ public class ContentManager implements StatefulService {
 
 		//
 		icapService.init();
+	}
+
+	public ContentManager setServiceThreadEnabled(boolean serviceThreadEnabled) {
+		this.serviceThreadEnabled = serviceThreadEnabled;
+		return this;
 	}
 
 	@Override
@@ -273,7 +281,7 @@ public class ContentManager implements StatefulService {
 					icapService.scan(fileName, icapInputStream);
 				}
 			}
-			
+
 			if (handleDeletionOfUnreferencedHashes) {
 				markForDeletionIfNotReferenced(hash);
 			}
@@ -431,7 +439,7 @@ public class ContentManager implements StatefulService {
 
 	public void convertPendingContentForPreview() {
 
-		for (String collection : collectionsListManager.getCollections()) {
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			if (!closing.get()) {
 				List<Record> records = searchServices.search(new LogicalSearchQuery()
 						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
