@@ -79,7 +79,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		};
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
-		rm = new RMSchemasRecordsServices(collection,appLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		String id = params;
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
-		
+
 		Record record = getRecord(id);
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setDocumentVO(documentVO);
@@ -249,9 +249,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void createPDFAButtonClicked() {
-		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDFA")) {
+		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO()
+				.getExtension().toUpperCase().equals("PDFA")) {
 			presenterUtils.createPDFA();
-			view.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 		} else {
 			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
@@ -392,7 +392,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
-				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
+				return rmEventsSearchServices
+						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
 			}
 		};
 	}

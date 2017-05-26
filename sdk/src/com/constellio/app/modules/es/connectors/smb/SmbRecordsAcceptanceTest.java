@@ -92,7 +92,7 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		userWithToken1And2 = users.chuckNorrisIn(zeCollection);
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("zeConnector").setEnabled(false)
-				.setTitle("ze connector").setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
+				.setTitle("ze connector").setSeeds(asList(folderA, folderB)).setUsername(username).setPassword(password).setDomain(domain)
 				.setTraversalCode("zeTraversal"));
 
 		anotherConnectorInstance = connectorManager
@@ -107,16 +107,16 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 
 		Transaction transaction = new Transaction();
-		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance))
+		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK))
 				.setTitle("A").setUrl("smb://A/");
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance))
+		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK))
 				.setTitle("B").setUrl("smb://B/");
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance))
-				.setTitle("AA").setUrl("smb://A/A/").setParent(folderA);
+		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK).setParent(folderA))
+				.setTitle("AA").setUrl("smb://A/A/");
 
-		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance))
+		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK).setParent(folderA))
 				.setTitle("AB").setUrl("smb://A/B/");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
@@ -128,10 +128,10 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
 				.setTitle("3.txt").setUrl("smb://B/3.txt").setParent(folderB).setManualTokens("rtoken1");
 
-		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
+		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance).setParent(folderAA))
 				.setTitle("4.txt").setUrl("smb://A/A/4.txt").setParent(folderAA).setManualTokens(PUBLIC_TOKEN);
 
-		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance))
+		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance).setParent(folderAA))
 				.setTitle("5.txt").setUrl("smb://A/A/5.txt").setParent(folderAA).setManualTokens("rtoken2");
 
 		recordServices.execute(transaction);

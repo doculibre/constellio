@@ -134,7 +134,11 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 			WindowsPermissions windowsPermissions = permissionsFactory.newWindowsPermissions(smbFile);
 			windowsPermissions.process();
 			permissionHash = windowsPermissions.getPermissionsHash();
-			size = smbFile.length();
+			if (smbFile.isDirectory()) {
+				size = 0;
+			} else {
+				size = smbFile.length();
+			}
 
 			return new SmbModificationIndicator(permissionHash, size, lastModified);
 		} catch (Exception e) {

@@ -158,10 +158,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
 				true, new HashSet<RecordValidator>(), null);
 		MetadataSchemaType o = new MetadataSchemaType("a", "a", labels, new ArrayList<MetadataSchema>(), defaultSchema, true,
-				true,
-				true);
+				true, true, false);
 		MetadataSchemaType o2 = new MetadataSchemaType("a", "a", labels, new ArrayList<MetadataSchema>(), defaultSchema2, true,
-				true, true);
+				true, true, false);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isNotInstanceOf(Serializable.class);
 	}

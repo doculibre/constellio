@@ -137,7 +137,7 @@ public class RecordAutomaticMetadataServices {
 
 			Metadata inputMetadata = types.getMetadata(aggregatedDataEntry.getInputMetadata());
 			query.computeStatsOnField(inputMetadata);
-			query.setNumberOfRows(1000);
+			query.setNumberOfRows(0);
 			SPEQueryResponse response = searchServices.query(query);
 
 			if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {
@@ -218,7 +218,7 @@ public class RecordAutomaticMetadataServices {
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
 			calculatedValue = calculator.calculate(
 					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
-							record.getCollection()));
+							types.getSchemaType(record.getTypeCode()), record.getCollection()));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}

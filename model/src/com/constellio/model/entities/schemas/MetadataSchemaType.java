@@ -41,10 +41,13 @@ public class MetadataSchemaType {
 
 	private final boolean inTransactionLog;
 
+	private boolean readOnlyLocked;
+
 	private final Boolean undeletable;
 
 	public MetadataSchemaType(String code, String collection, Map<Language, String> labels, List<MetadataSchema> customSchemas,
-			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog) {
+			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog,
+			boolean readOnlyLocked) {
 		super();
 		this.code = code;
 		this.collection = collection;
@@ -54,6 +57,7 @@ public class MetadataSchemaType {
 		this.undeletable = undeletable;
 		this.security = security;
 		this.inTransactionLog = inTransactionLog;
+		this.readOnlyLocked = readOnlyLocked;
 		this.metadatasByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildMetadataByLocalCodeIndex(
 				customSchemas, defaultSchema));
 		this.customSchemasByCode = buildCustomSchemasByCodeMap(customSchemas);
@@ -77,6 +81,10 @@ public class MetadataSchemaType {
 		return Collections.unmodifiableMap(schemaMap);
 	}
 
+	public boolean isReadOnlyLocked() {
+		return readOnlyLocked;
+	}
+
 	public String getCollection() {
 		return collection;
 	}
@@ -87,6 +95,10 @@ public class MetadataSchemaType {
 
 	public Map<Language, String> getLabels() {
 		return labels;
+	}
+
+	public String getFrenchLabel() {
+		return labels.get(Language.French);
 	}
 
 	public String getLabel(Language language) {

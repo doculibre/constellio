@@ -215,6 +215,8 @@ public class LDAPUserSyncManager implements StatefulService {
                         final List<String> newUserGlobalGroups = new ArrayList<>(userCredential.getGlobalGroups());
                         final UserCredential previousUserCredential = userServices.getUserCredential(userCredential.getUsername());
                         if (previousUserCredential != null) {
+                        	userCredential.withServiceKey(previousUserCredential.getServiceKey());
+                        	userCredential.withAccessTokens(previousUserCredential.getAccessTokens());
                             for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
                                 final GlobalGroup previousGlobalGroup = globalGroupsManager.getGlobalGroupWithCode(userGlobalGroup);
                                 if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {

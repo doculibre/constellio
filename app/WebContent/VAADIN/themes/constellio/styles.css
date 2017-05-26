@@ -12815,6 +12815,10 @@ div.v-layout.v-horizontal.v-widget {
 	content: " \f00c ";
 }
 
+.constellio .v-filterselect-suggestpopup-advanced-search-form-metadata .popupContent {
+	width: 400px;
+}
+
 .constellio .v-popupview-popup-header-popup {
 	width: 100%;
 }
@@ -13344,8 +13348,6 @@ div.v-layout.v-horizontal.v-widget {
 	border-radius: 0;
 	text-align: left;
 	border: none;
-	min-height: 37px;
-	height: auto;
 	background-color: #414B56;
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
 }

@@ -42,6 +42,10 @@ public class Transaction {
 	public Transaction() {
 	}
 
+	public Transaction(RecordUpdateOptions options) {
+		this.recordUpdateOptions = new RecordUpdateOptions(options);
+	}
+
 	public Transaction(String id) {
 		this.id = id;
 	}

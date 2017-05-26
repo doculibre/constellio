@@ -98,6 +98,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenEventsThenEventsDataProviderReturnValidEvents() throws Exception {
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withCollection("collectionTest").withConstellioRMModule().withTasksModule().withAllTest(users)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()

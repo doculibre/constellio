@@ -2,6 +2,8 @@ package com.constellio.app.ui.framework.buttons;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
+import com.constellio.app.modules.rm.ui.pages.reports.RMNewReportsPresenter;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.components.ReportViewer;
@@ -62,8 +64,13 @@ public class ReportButton extends WindowButton {
 			} else {
 
 				Object parameters = newPresenter.getReportParameters(report);
-				String filename = reportBuilderFactory.getFilename(parameters);
+
+				if(parameters instanceof ConservationRulesReportParameters && newPresenter instanceof RMNewReportsPresenter) {
+					((ConservationRulesReportParameters) parameters).setAdministrativeUnit(((RMNewReportsPresenter) newPresenter).getSchemaTypeValue());
+				}
+
 				ReportWriter reportWriter = reportBuilderFactory.getReportBuilder(parameters);
+
 
 				return new ReportViewer(reportWriter, reportBuilderFactory.getFilename(parameters));
 			}

@@ -235,7 +235,7 @@ public class DecommissioningService {
 	}
 
 	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
-		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isFolderRepackable(decommissioningList, folder);
+		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isRemovableFromContainer(decommissioningList, folder);
 	}
 
 	public boolean isApproved(DecommissioningList decommissioningList) {
@@ -433,7 +433,11 @@ public class DecommissioningService {
 	}
 
 	private boolean isFolderRepackable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
-		return decommissioningList.isFromSemiActive() && folder.getType().potentiallyHasAnalogMedium();
+		return folder.getType().potentiallyHasAnalogMedium();
+	}
+
+	private boolean isRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+		return folder.getType().potentiallyHasAnalogMedium();
 	}
 
 	private boolean isFolderProcessable(FolderDetailWithType folder) {
@@ -1057,7 +1061,28 @@ public class DecommissioningService {
 	}
 
 	public String getDecommissionningLabel(ContainerRecord record) {
-		return record.getDecommissioningType().getLabel();
+		return getDecommissioningType(record).getLabel();
+	}
+	
+	public DecommissioningType getDecommissioningType(ContainerRecord container) {
+		DecommissioningType decommissioningType = container.getDecommissioningType();
+		if (decommissioningType == null) {
+			List<Folder> folderRecords = getFoldersInContainers(container);
+			for (Folder folder : folderRecords) {
+				FolderStatus folderStatus = folder.getArchivisticStatus();
+				if (FolderStatus.SEMI_ACTIVE == folderStatus) {
+					decommissioningType = DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+					break;
+				} else if (FolderStatus.INACTIVE_DEPOSITED == folderStatus) {
+					decommissioningType = DecommissioningType.DEPOSIT;
+					break;
+				} else if (FolderStatus.INACTIVE_DESTROYED == folderStatus) {
+					decommissioningType = DecommissioningType.DESTRUCTION;
+					break;
+				}
+			}
+		}
+		return decommissioningType;
 	}
 
 	public void reactivateRecordsFromTask(String taskId, LocalDate reactivationDate, User respondant, User applicant, boolean isAccepted)

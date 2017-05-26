@@ -352,6 +352,27 @@ public class ContentManagerImportThreadServices {
 		return map;
 	}
 
+	public static class FilenameSha1PropertiesEntry {
+
+		private String name;
+
+		private ContentVersionDataSummary contentVersionDataSummary;
+
+		public FilenameSha1PropertiesEntry(String name,
+				ContentVersionDataSummary contentVersionDataSummary) {
+			this.name = name;
+			this.contentVersionDataSummary = contentVersionDataSummary;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public ContentVersionDataSummary getContentVersionDataSummary() {
+			return contentVersionDataSummary;
+		}
+	}
+
 	private static ContentVersionDataSummary toContentVersionDataSummary(String value) {
 		String[] parts = value.split(":");
 		String mimetype = "null".equals(parts[2]) ? null : parts[2];

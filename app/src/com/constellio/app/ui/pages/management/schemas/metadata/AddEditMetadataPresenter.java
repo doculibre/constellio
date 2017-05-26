@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.services.schemas.builders.*;
 import com.vaadin.ui.UI;
 import org.apache.commons.lang.StringUtils;
@@ -363,6 +364,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public boolean isMetadataRequiredStatusModifiable() {
 		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential() || getMetadata(metadataCode).hasSameCode(Schemas.LEGACY_ID);
+	}
+
+	public boolean isFolderMediumTypes()
+	{
+		return metadataCode.startsWith(Folder.SCHEMA_TYPE) && metadataCode.endsWith(Folder.MEDIUM_TYPES) ;
 	}
 
 	public void inputTypeValueChanged(FormMetadataVO formMetadataVO) {

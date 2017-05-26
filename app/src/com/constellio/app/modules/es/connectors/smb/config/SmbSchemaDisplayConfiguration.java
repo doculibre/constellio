@@ -134,10 +134,6 @@ public class SmbSchemaDisplayConfiguration {
 			newSchema = schema.withDisplayMetadataCodes(metadataCodes);
 		}
 
-		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-		manager.saveMetadata(manager.getMetadata(collection, getEs().getConnectorSmbDocumentSchemaCode(connectorInstance),
-				ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS)
-				.withVisibleInAdvancedSearchStatus(true));
 		return newSchema;
 	}
 }
