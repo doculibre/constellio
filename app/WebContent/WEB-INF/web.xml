@@ -149,10 +149,10 @@
     <servlet>
         <servlet-name>Jersey REST Service</servlet-name>
         <servlet-class>com.constellio.app.servlet.ConstellioServletContainer</servlet-class>
-        <!-- Register resources and providers under com.constellio.app.api.admin.services package. -->
+<!--         Register resources and providers under com.constellio.app.api.admin.services package. -->
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>com.constellio.app.api.admin.services;sct.scc.services.document.rest</param-value>
+            <param-value>com.constellio.app.api.admin.services</param-value>
         </init-param>
 
         <init-param>
