@@ -62,6 +62,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
+import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.TimeProvider;
@@ -95,13 +96,16 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
-import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordValidationServices;
+import com.constellio.model.services.records.SimpleImportContent;
+import com.constellio.model.services.records.StructureImportContent;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -124,6 +128,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.setups.Users;
 
 public class RecordsImportServicesRealTest extends ConstellioTest {
 
@@ -154,6 +159,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	BulkImportProgressionListener progressionListener = new LoggerBulkImportProgressionListener();
 
 	User admin;
+
+	Users users = new Users();
 
 	RecordImportExtension firstImportBehavior = new RecordImportExtension() {
 
@@ -265,7 +272,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
-				withZeCollection().withAllTestUsers()
+				withZeCollection().withAllTest(users)
 		);
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
@@ -1715,14 +1722,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAContentListMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-				.addField("contentMetadata", new ContentImport(testResource1, "Ze document.docx", true, null, null)));
+				.addField("contentMetadata", new SimpleImportContent(testResource1, "Ze document.docx", true, null, null)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
 				.addField("contentListMetadata", asList(
-						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
-						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
+						new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1803,32 +1810,33 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAContentListMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-				.addField("contentMetadata", new ContentImport("imported://file1.docx", "File 1.docx", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://file1.docx", "File 1.docx", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
 				.addField("contentListMetadata", asList(
-						new ContentImport("imported://file2.pdf", "File 2a.pdf", true, now),
-						new ContentImport("imported://file5.pdf", "File 2b.pdf", true, now))));
+						new SimpleImportContent("imported://file2.pdf", "File 2a.pdf", true, now),
+						new SimpleImportContent("imported://file5.pdf", "File 2b.pdf", true, now))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-				.addField("contentMetadata", new ContentImport("imported://inexistentFile.pdf", "File 3.pdf", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://inexistentFile.pdf", "File 3.pdf", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-				.addField("contentMetadata", new ContentImport("imported://folder/file3.docx", "File 4.docx", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://folder/file3.docx", "File 4.docx", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-				.addField("contentMetadata", new ContentImport("imported://folder\\file3.docx", "File 5.docx", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://folder\\file3.docx", "File 5.docx", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-				.addField("contentMetadata", new ContentImport("imported://otherFolder/file3.docx", "File 6.docx", true, now)));
+				.addField("contentMetadata",
+						new SimpleImportContent("imported://otherFolder/file3.docx", "File 6.docx", true, now)));
 
-		ContentImport contentImport7 = new ContentImport("imported://file2.pdf", "File 7a.pdf", true, now);
+		SimpleImportContent contentImport7 = new SimpleImportContent("imported://file2.pdf", "File 7a.pdf", true, now);
 		contentImport7.getVersions().add(new ContentImportVersion("imported://file4.pdf", "File 7b.pdf", false, now));
 		contentImport7.getVersions().add(new ContentImportVersion("imported://file5.pdf", "File 7c.pdf", false, now));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("7").addField("title", "Record 7")
 				.addField("contentMetadata", contentImport7));
 
-		ContentImport contentImport8 = new ContentImport("imported://file2.pdf", "File 7a.pdf", true, now);
+		SimpleImportContent contentImport8 = new SimpleImportContent("imported://file2.pdf", "File 7a.pdf", true, now);
 		contentImport8.getVersions().add(new ContentImportVersion("imported://fileZ.pdf", "File 7b.pdf", false, now));
 		contentImport8.getVersions().add(new ContentImportVersion("imported://file5.pdf", "File 7c.pdf", false, now));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("8").addField("title", "Record 8")
@@ -1836,6 +1844,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
+
 		} catch (ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e, "prefix", "fileName", "filePath", "hash")).containsOnly(
 					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 3 : ", "File 3.pdf",
@@ -1843,15 +1852,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 6 : ", "File 6.docx",
 							"otherFolder/file3.docx", null),
 					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 8 : ", "File 7a.pdf", "fileZ.pdf", null),
-					tuple("RecordsImportServices_hashNotFoundInVault", "Ze type de schéma 1 : ", null, null, file1Hash)
+					tuple("RecordsImportServices_hashNotFoundInVault", "Ze type de schéma 1 : ", null, pathOf(file1Hash),
+							file1Hash)
 			);
 
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma 6 : Aucun contenu pré-importé «otherFolder/file3.docx»",
 					"Ze type de schéma 8 : Aucun contenu pré-importé «fileZ.pdf»",
 					"Ze type de schéma 3 : Aucun contenu pré-importé «inexistentFile.pdf»",
-					"Ze type de schéma 1 : Le contenu «Fss7pKBafi8ok5KaOwEpmNdeGCE=» n'existe pas dans la voûte"
-			);
+					"Ze type de schéma 1 : Le contenu «Fss7pKBafi8ok5KaOwEpmNdeGCE=» n'existe pas dans la voûte à l'emplacement «"
+							+ pathOf(file1Hash) + "»");
 		}
 
 		Record record1 = recordWithLegacyId("1");
@@ -1879,6 +1889,112 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(record7Content.getVersions().get(0)).has(hashFilenameVersion(file2Hash, "File 7a.pdf", "1.0"));
 		assertThat(record7Content.getVersions().get(1)).has(hashFilenameVersion(file4Hash, "File 7b.pdf", "1.1"));
 		assertThat(record7Content.getVersions().get(2)).has(hashFilenameVersion(file5Hash, "File 7c.pdf", "1.2"));
+
+	}
+
+	private String pathOf(String hash) {
+		return ((FileSystemContentDao) getDataLayerFactory().getContentsDao()).getFileOf(hash).getAbsolutePath();
+
+	}
+
+	@Test
+	public void whenImportingContentUsingPreexistingHashModeThenContentAddedEvenIfHashNotFoundReturningItInWarnings()
+			throws Exception {
+
+		File toImport = new File(getModelLayerFactory().getConfiguration().getContentImportThreadFolder(), "toImport");
+
+		System.out.println(toImport.getAbsolutePath());
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary summary1 = contentManager.upload(getTestResourceInputStream("resource1.docx"), "File1.docx");
+		ContentVersionDataSummary summary2 = contentManager.upload(getTestResourceInputStream("resource2.pdf"), "File2.pdf");
+
+		ContentVersionDataSummary inexistent1 = new ContentVersionDataSummary("inexistentHash1", "pdf", 45);
+		ContentVersionDataSummary inexistent2 = new ContentVersionDataSummary("inexistentHash2", "doc", 56);
+		ContentVersionDataSummary inexistent3 = new ContentVersionDataSummary("inexistentHash3", "pdf", 67);
+		ContentVersionDataSummary inexistent4 = new ContentVersionDataSummary("inexistentHash4", "pdf", 78);
+
+		LocalDateTime now = TimeProvider.getLocalDateTime();
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAContentMetadata()
+				.withAContentListMetadata());
+
+		Content content = contentManager.createMajor(users.adminIn(zeCollection), "File1a.pdf", inexistent1)
+				.checkOut(users.sasquatchIn(zeCollection)).updateCheckedOutContent(summary1);
+
+		Content content1 = contentManager.createMajor(users.adminIn(zeCollection), "File1b.pdf", inexistent1);
+		content1.updateContent(users.dakotaIn(zeCollection), inexistent2, false);
+
+		Content content2 = contentManager.createMajor(users.adminIn(zeCollection), "File1c.pdf", inexistent1);
+		content2.updateContent(users.dakotaIn(zeCollection), inexistent3, false);
+		content2.updateContent(users.dakotaIn(zeCollection), summary2, true);
+
+		UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(zeCollection, getModelLayerFactory());
+
+		//
+		//		List<ContentImportVersion> versions = new ArrayList<>();
+		//		versions.add(new ContentImportVersion("hash://inexistentHash1", "File 1a.pdf", true, LocalDateTime.now()));
+		//		versions.add(new ContentImportVersion("hash://" + hash1, "File 1b.pdf", false, LocalDateTime.now()));
+		//		versions.add(new ContentImportVersion("hash://inexistentHash2", "File 1b.pdf", true, LocalDateTime.now()));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("contentMetadata", new StructureImportContent(contentFactory.toString(content))));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("contentListMetadata", asList(
+						new StructureImportContent(contentFactory.toString(content1)),
+						new StructureImportContent(contentFactory.toString(content2)))));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("Exception expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "filePath", "hash")).isEmpty();
+
+			String contentPath = getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemFolder()
+					.getAbsolutePath() + File.separator;
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "filePath", "hash")).containsOnly(
+					tuple("RecordsImportServices_hashNotFoundInVault", pathOf("inexistentHash1"), "inexistentHash1"),
+					tuple("RecordsImportServices_hashNotFoundInVault", pathOf("inexistentHash2"), "inexistentHash2"),
+					tuple("RecordsImportServices_hashNotFoundInVault", pathOf("inexistentHash3"), "inexistentHash3")
+			);
+
+			assertThat(frenchMessages(e.getValidationErrors().getValidationWarnings())).containsOnly(
+					"Ze type de schéma 1 : Le contenu «inexistentHash1» n'existe pas dans la voûte à l'emplacement «" + pathOf(
+							"inexistentHash1") + "»",
+					"Ze type de schéma 2 : Le contenu «inexistentHash3» n'existe pas dans la voûte à l'emplacement «" + pathOf(
+							"inexistentHash3") + "»",
+					"Ze type de schéma 2 : Le contenu «inexistentHash1» n'existe pas dans la voûte à l'emplacement «" + pathOf(
+							"inexistentHash1") + "»",
+					"Ze type de schéma 2 : Le contenu «inexistentHash2» n'existe pas dans la voûte à l'emplacement «" + pathOf(
+							"inexistentHash2") + "»"
+			);
+		}
+
+		Record record1 = recordWithLegacyId("1");
+		Record record2 = recordWithLegacyId("2");
+
+		assertThat(record1.getList(zeSchema.contentListMetadata())).isEmpty();
+		Content record1Content = record1.get(zeSchema.contentMetadata());
+		assertThat(record1Content.getCurrentVersion()).has(hashFilenameVersion("inexistentHash1", "File1a.pdf", "1.0"));
+		assertThat(record1Content.getCurrentCheckedOutVersion())
+				.has(hashFilenameVersion(summary1.getHash(), "File1a.pdf", "1.1"));
+		assertThat(record1Content.getCheckoutUserId()).isEqualTo(users.sasquatchIn(zeCollection).getId());
+
+		assertThat(record2.get(zeSchema.contentMetadata())).isNull();
+		List<Content> record2ContentList = record2.get(zeSchema.contentListMetadata());
+		assertThat(record2ContentList.get(0).getCurrentVersion())
+				.has(hashFilenameVersion("inexistentHash2", "File1b.pdf", "1.1"));
+		assertThat(record2ContentList.get(0).getHistoryVersions().get(0))
+				.has(hashFilenameVersion("inexistentHash1", "File1b.pdf", "1.0"));
+		assertThat(record2ContentList.get(1).getCurrentVersion())
+				.has(hashFilenameVersion(summary2.getHash(), "File1c.pdf", "2.0"));
+		assertThat(record2ContentList.get(1).getHistoryVersions().get(0))
+				.has(hashFilenameVersion("inexistentHash1", "File1c.pdf", "1.0"));
+		assertThat(record2ContentList.get(1).getHistoryVersions().get(1))
+				.has(hashFilenameVersion("inexistentHash3", "File1c.pdf", "1.1"));
 
 	}
 
@@ -1926,14 +2042,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		ContentImportVersion version3 = new ContentImportVersion(testResource5, "Ze document.docx", true, null, null);
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-				.addField("contentMetadata", new ContentImport(Arrays.asList(version1, version2, version3))));
+				.addField("contentMetadata", new SimpleImportContent(Arrays.asList(version1, version2, version3))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
 				.addField("contentListMetadata", asList(
-						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
-						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
+						new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -1996,14 +2112,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		//Reimport the records changing the order of versions of record #1
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-				.addField("contentMetadata", new ContentImport(Arrays.asList(version3, version2, version1))));
+				.addField("contentMetadata", new SimpleImportContent(Arrays.asList(version3, version2, version1))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
 				.addField("contentListMetadata", asList(
-						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
-						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
+						new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
