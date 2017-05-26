@@ -1,5 +1,12 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -7,9 +14,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.joda.time.LocalDate;
-
-import java.util.List;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
@@ -185,23 +189,28 @@ public class ContainerRecord extends RecordWrapper {
 		return this;
 	}
 
+	@Deprecated
 	public String getAdministrativeUnit() {
-		return get(ADMINISTRATIVE_UNIT);
+		List<String> admUnits = getList(ADMINISTRATIVE_UNITS);
+		return admUnits.isEmpty() ? null : admUnits.get(0);
 
 	}
 
+	@Deprecated
 	public ContainerRecord setAdministrativeUnit(Record administrativeUnit) {
-		set(ADMINISTRATIVE_UNIT, administrativeUnit);
+		set(ADMINISTRATIVE_UNITS, administrativeUnit == null ? new ArrayList<>() : asList(administrativeUnit));
 		return this;
 	}
 
+	@Deprecated
 	public ContainerRecord setAdministrativeUnit(String administrativeUnit) {
-		set(ADMINISTRATIVE_UNIT, administrativeUnit);
+		set(ADMINISTRATIVE_UNITS, administrativeUnit == null ? new ArrayList<>() : asList(administrativeUnit));
 		return this;
 	}
 
+	@Deprecated
 	public ContainerRecord setAdministrativeUnit(AdministrativeUnit administrativeUnit) {
-		set(ADMINISTRATIVE_UNIT, administrativeUnit);
+		set(ADMINISTRATIVE_UNITS, administrativeUnit == null ? new ArrayList<>() : asList(administrativeUnit));
 		return this;
 	}
 
@@ -342,7 +351,7 @@ public class ContainerRecord extends RecordWrapper {
 	}
 
 	public ContainerRecord setFirstTransferReportDate(LocalDate firstTransferReportDate) {
-		if(getFirstTransferReportDate() == null) {
+		if (getFirstTransferReportDate() == null) {
 			set(FIRST_TRANSFER_REPORT_DATE, firstTransferReportDate);
 		}
 		return this;
@@ -353,7 +362,7 @@ public class ContainerRecord extends RecordWrapper {
 	}
 
 	public ContainerRecord setFirstDepositReportDate(LocalDate firstDepositReportDate) {
-		if(getFirstDepositReportDate() == null) {
+		if (getFirstDepositReportDate() == null) {
 			set(FIRST_DEPOSIT_REPORT_DATE, firstDepositReportDate);
 		}
 		return this;
