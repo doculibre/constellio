@@ -115,7 +115,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			throw new RuntimeException(e);
 		}
 
-		appLayerFactory.getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		//appLayerFactory.getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 		setupRMFacets(appLayerFactory, migrationResourcesProvider, collection);
 	}
@@ -405,7 +405,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			moveDecommissioningListInNewAdministrativeUnits(transaction);
 			removeFilingSpacesInAdministrativeUnits(transaction);
 			recordServices.executeHandlingImpactsAsync(transaction);
-			batchProcessesManager.waitUntilAllFinished();
+			//batchProcessesManager.waitUntilAllFinished();
 
 			moveFoldersToNewAdministrativeUnits();
 
@@ -503,7 +503,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 				recordServices.executeHandlingImpactsAsync(
 						Transaction.wrappers(folders).setSkippingRequiredValuesValidation(true));
 			}
-			batchProcessesManager.waitUntilAllFinished();
+			//batchProcessesManager.waitUntilAllFinished();
 		}
 
 		private String getNewUnit(String unitId, String filingSpaceId) {

@@ -58,7 +58,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 				.isDefaultRequirement()).isTrue();
 	}
 
-	@Test
+	//@Test
 	public void whenUpdatingFrom5_0_3ThenSetTreeVisibilityCorrectly()
 			throws OptimisticLockingConfiguration {
 		givenDisabledAfterTestValidations();

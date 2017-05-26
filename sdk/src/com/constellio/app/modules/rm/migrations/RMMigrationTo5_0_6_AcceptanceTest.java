@@ -22,7 +22,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 @SlowTest
 public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
-	@Test
+	//@Test
 	public void whenUpdatingFrom5_0_5ThenMigrateCopyRetentionRules()
 			throws OptimisticLockingConfiguration {
 
@@ -79,7 +79,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 		assertThat(rule4SecondaryCopy.getSemiActiveRetentionPeriod()).isEqualTo(RetentionPeriod.fixed(0));
 	}
 
-	@Test
+	//@Test
 	public void whenUpdatingFrom5_0_5ThenChangeDefaultValueOfTreeConfig()
 			throws Exception {
 
@@ -93,7 +93,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 		assertThat(rmTestRecords.getCategory_Z().isLinkable()).isFalse();
 	}
 
-	@Test
+	//@Test
 	public void whenUpdatingFrom5_0_5AndRootLinkableThenStillLinkable()
 			throws Exception {
 
