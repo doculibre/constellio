@@ -23,7 +23,7 @@ public class UserSerializedContentFactory extends ContentFactory {
 
 	@Override
 	protected String deserializeUser(String value) {
-		if (value == null) {
+		if (value == null || value.isEmpty()) {
 			return null;
 		} else {
 			User user = userServices.getUserInCollection(value, collection);

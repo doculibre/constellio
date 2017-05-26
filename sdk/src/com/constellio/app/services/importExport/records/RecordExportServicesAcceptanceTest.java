@@ -815,10 +815,23 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(revertedFolder.getArchivisticStatus()).isEqualTo(updatedFolder.getArchivisticStatus());
 	}
 
+	private List<Document> getDocumentWithContent(List<Document> documentList) {
+		List<Document> arrayListDocument = new ArrayList<>();
+
+		for(Document document : documentList) {
+			if(document.getContent() != null) {
+				arrayListDocument.add(document);
+			}
+		}
+
+
+		return arrayListDocument;
+	}
+
 	@Test
 	public void whenExportingAndImportingDocument() throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+				withZeCollection().withConstellioRMModule().withDocumentsHavingContent().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
@@ -828,6 +841,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Document documentFromZeCollection = null;
 
 		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(ALL);
+
+		List<Document> documentWithContentZeCollection = getDocumentWithContent(documentList);
 
 		documentFromZeCollection = documentList.get(0);
 
@@ -851,8 +866,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		List<Document> documentListFromAnOtherCollection = rmSchemasRecordsServicesAnOtherCollection.searchDocuments(ALL);
 
-		Document updatedDocument = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
 
+		List<Document> documentListWithContentAnOtherCollection = getDocumentWithContent(documentListFromAnOtherCollection);
+
+		assertThat(documentListWithContentAnOtherCollection.size()).isEqualTo(documentWithContentZeCollection.size());
+
+		Document updatedDocument = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
 
 		assertThat(documentListFromAnOtherCollection.size()).isEqualTo(documentList.size());
 
@@ -875,7 +894,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExportingAndImportingDocumentSameSystem() throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 

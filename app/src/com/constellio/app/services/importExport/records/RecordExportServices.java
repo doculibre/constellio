@@ -107,6 +107,7 @@ public class RecordExportServices {
 
 		for (String schemaTypeCode : schemaTypeList) {
 			writer.setOptions(schemaTypeCode,
+
 					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true)
 							.setImportAsLegacyId(!options.isForSameSystem()));
 		}

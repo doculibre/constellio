@@ -26,6 +26,8 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.UserSerializedContentFactory;
+import com.constellio.model.services.records.StructureImportContent;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -82,6 +84,14 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		if (document.getFormModifiedOn() != null) {
 			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), document.getFormCreatedOn());
 		}
+
+		if(document.getContent() != null) {
+			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
+
+			params.getModifiableImportRecord().addField(Document.CONTENT,
+					new StructureImportContent(contentFactory.toString(document.getContent())));
+		}
+
 	}
 
 	private void manageFolder(OnWriteRecordParams params) {
@@ -255,6 +265,13 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			Map<String, String> map = writeDecomListValidation(decomListValidation);
 
 			decomListValidationList.add(map);
+		}
+
+		if(decommissioningList.getDocumentsReportContent() != null) {
+			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
+
+			params.getModifiableImportRecord().addField(Document.CONTENT,
+					new StructureImportContent(contentFactory.toString(decommissioningList.getDocumentsReportContent())));
 		}
 
 		params.getModifiableImportRecord().addField(DecommissioningList.VALIDATIONS, decomListFolderDetailList);

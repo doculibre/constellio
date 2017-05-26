@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
+import sun.java2d.pipe.SpanShapeRenderer;
 
 public class SimpleImportContent implements ImportContent {
 
@@ -11,6 +12,10 @@ public class SimpleImportContent implements ImportContent {
 
 	public SimpleImportContent(List<ContentImportVersion> versions) {
 		this.versions = versions;
+	}
+
+	public SimpleImportContent() {
+
 	}
 
 	public SimpleImportContent(String url, String fileName, boolean major, String comment, LocalDateTime lastModification) {
@@ -36,4 +41,10 @@ public class SimpleImportContent implements ImportContent {
 	public List<ContentImportVersion> getVersions() {
 		return versions;
 	}
+
+	public static ImportContent withSingleMajorVersion(String url, String fileName) {
+		SimpleImportContent importContent = new SimpleImportContent(url, fileName, true, null);
+		return importContent;
+	}
+
 }
