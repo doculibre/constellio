@@ -4,6 +4,10 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.importExport.records.RecordExportOptions;
 import com.constellio.app.services.importExport.records.RecordExportServices;
+import com.constellio.app.services.importExport.settings.SettingsExportOptions;
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
@@ -22,7 +26,11 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.sis.internal.jdk7.StandardCharsets;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
@@ -73,6 +81,24 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				where(Schemas.PATH_PARTS).isIn(folderIds))
 		);
 		exportToXML(options, recordsIterator);
+	}
+
+	void exportSchemasClicked() {
+		SettingsExportOptions options = new SettingsExportOptions();
+		options.setOnlyUSR(true);
+
+		SettingsExportServices services = new SettingsExportServices(appLayerFactory);
+		try {
+			ImportedSettings settings = services.exportSettings(asList(collection), options);
+			SettingsXMLFileWriter writer = new SettingsXMLFileWriter();
+			org.jdom2.Document document = writer.writeSettings(settings);
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			String filename = "exportedSchema-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".xml";
+			view.startDownload(filename, new ByteArrayInputStream(xmlOutput.outputString(document).getBytes(StandardCharsets.UTF_8)), "application/xml");
+		} catch (Exception e) {
+			view.showErrorMessage($("ExportView.errorWhileExportingSchemas"));
+		}
 	}
 
 	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, String unitId) {
