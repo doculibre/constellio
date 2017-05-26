@@ -107,17 +107,21 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 
 		Transaction transaction = new Transaction();
+
+		transaction.add(es.newConnectorSmbFolderWithId("root", connectorInstance))
+				.setTitle("root").setUrl("smb://");
+
 		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance))
-				.setTitle("A").setUrl("smb://A/");
+				.setTitle("A").setUrl("smb://A/").setParent("root");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance))
-				.setTitle("B").setUrl("smb://B/");
+				.setTitle("B").setUrl("smb://B/").setParent("root");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance))
 				.setTitle("AA").setUrl("smb://A/A/").setParent(folderA);
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance))
-				.setTitle("AB").setUrl("smb://A/B/");
+				.setTitle("AB").setUrl("smb://A/B/").setParent(folderA);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
 				.setTitle("1.txt").setUrl("smb://A/1.txt").setParent(folderA).setManualTokens(PUBLIC_TOKEN);
@@ -152,34 +156,38 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 
 		transaction.add(es.newConnectorSmbFolderWithId(fetchedFolderOfPreviousTraversalFromAnotherConnector,
 				anotherConnectorInstance))
-				.setTitle("B").setUrl("smb://B/").setFetched(true).setTraversalCode("previous");
+				.setTitle("B").setUrl("smb://B/").setFetched(true).setTraversalCode("previous").setParent(share);
 
 		transaction.add(es.newConnectorSmbFolderWithId(unfetchedFolderFromAnotherConnector, anotherConnectorInstance))
-				.setTitle("AA").setUrl("smb://A/A/").setFetched(false);
+				.setTitle("AA").setUrl("smb://A/A/").setFetched(false).setParent(fetchedFolderFromAnotherConnector);
+
+		transaction.add(es.newConnectorSmbFolderWithId("root", connectorInstance))
+				.setTitle("test").setUrl("smb://").setFetched(true).setTraversalCode("current")
+				.setModifiedOn(shishOClock.plusSeconds(0));
 
 		transaction.add(es.newConnectorSmbFolderWithId(fetchedFolder, connectorInstance))
 				.setTitle("A").setUrl("smb://A/").setFetched(true).setTraversalCode("current")
-				.setModifiedOn(shishOClock.plusSeconds(1));
+				.setModifiedOn(shishOClock.plusSeconds(1)).setParent("root");
 
 		transaction.add(es.newConnectorSmbFolderWithId(fetchedFolderOfPreviousTraversal, connectorInstance))
 				.setTitle("B").setUrl("smb://B/").setFetched(true).setTraversalCode("previous")
-				.setModifiedOn(shishOClock.plusSeconds(2));
+				.setModifiedOn(shishOClock.plusSeconds(2)).setParent("root");
 
 		transaction.add(es.newConnectorSmbFolderWithId(unfetchedFolder, connectorInstance))
 				.setTitle("AA").setUrl("smb://A/A/").setFetched(false)
-				.setModifiedOn(shishOClock.plusSeconds(6));
+				.setModifiedOn(shishOClock.plusSeconds(6)).setParent(fetchedFolder);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(fetchedDocument, connectorInstance))
 				.setTitle("1.txt").setUrl("smb://A/1.txt").setParent(fetchedFolder).setFetched(true).setTraversalCode("current")
-				.setModifiedOn(shishOClock.plusSeconds(3));
+				.setModifiedOn(shishOClock.plusSeconds(3)).setParent(fetchedFolder);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(fetchedDocumentOfPreviousTraversal, connectorInstance))
 				.setTitle("2.txt").setUrl("smb://A/2.txt").setParent(fetchedFolder).setFetched(true).setTraversalCode("previous")
-				.setModifiedOn(shishOClock.plusSeconds(4));
+				.setModifiedOn(shishOClock.plusSeconds(4)).setParent(fetchedFolder);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(unfetchedDocument, connectorInstance))
 				.setTitle("3.txt").setUrl("smb://B/3.txt").setParent(fetchedFolder).setFetched(false)
-				.setModifiedOn(shishOClock.plusSeconds(5));
+				.setModifiedOn(shishOClock.plusSeconds(5)).setParent(fetchedFolderOfPreviousTraversal);
 		recordServices.execute(transaction);
 
 		List<ConnectorDocument<?>> documents = es.searchConnectorDocuments(es.connectorDocumentsToFetchQuery(connectorInstance));
