@@ -53,10 +53,12 @@ public class SystemStateExporter {
 
 	SecondTransactionLogManager secondTransactionLogManager;
 
+	DataLayerFactory dataLayerFactory;
+
 	public SystemStateExporter(AppLayerFactory appLayerFactory) {
 		this.appLayerConfiguration = appLayerFactory.getAppLayerConfiguration();
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+		dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.dataLayerConfiguration = dataLayerFactory.getDataLayerConfiguration();
 		this.zipService = dataLayerFactory.getIOServicesFactory().newZipService();
 		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
@@ -209,12 +211,7 @@ public class SystemStateExporter {
 	}
 
 	private void copySettingsTo(File tempFolderSettingsFolder) {
-		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
-		try {
-			FileUtils.copyDirectory(settingsFolder, tempFolderSettingsFolder);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		dataLayerFactory.getConfigManager().exportTo(tempFolderSettingsFolder);
 	}
 
 	private void copyPluginsJarFolderTo(File tempPluginsFolder, boolean exportJars) {

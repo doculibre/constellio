@@ -557,6 +557,27 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		}
 	}
 
+	@Override
+	public void importFrom(File settingsFolder) {
+		try {
+			File bckFile = new File(this.configFolder.getParentFile(), this.configFolder.getName() + ".bck");
+			this.configFolder.renameTo(bckFile);
+			FileUtils.copyDirectory(settingsFolder, this.configFolder);
+			FileUtils.deleteDirectory(bckFile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void exportTo(File settingsFolder) {
+		try {
+			FileUtils.copyDirectory(this.configFolder, settingsFolder);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private void validateFileExistance(String path) {
 		if (!exist(path)) {
 			throw new NoSuchConfiguration(path);
