@@ -37,6 +37,7 @@ public class CorePermissions {
 	public static final String SYSTEM_MANAGEMENT = "management.system";
 
 	public static final String MANAGE_SYSTEM_CONFIGURATION = permission(SYSTEM_MANAGEMENT, "manageSystemConfiguration");
+	public static final String MANAGE_SYSTEM_STORAGE = permission(SYSTEM_MANAGEMENT, "manageSystemStorage");
 	public static final String MANAGE_SYSTEM_GROUPS = permission(SYSTEM_MANAGEMENT, "manageSystemGroups");
 	public static final String MANAGE_SYSTEM_USERS = permission(SYSTEM_MANAGEMENT, "manageSystemUsers");
 	public static final String MANAGE_SYSTEM_COLLECTIONS = permission(SYSTEM_MANAGEMENT, "manageSystemCollections");

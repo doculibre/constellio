@@ -62,11 +62,4 @@ public class RecordImplRuntimeException extends RuntimeException {
 			super("Cannot build structure value '" + structureValue + "' in record '" + recordId + "'", t);
 		}
 	}
-
-	public static class RecordImplException_PopulatorReturnedNullValue extends RecordImplRuntimeException {
-
-		public RecordImplException_PopulatorReturnedNullValue(FieldsPopulator populator, String field) {
-			super("Populator '" + populator.getClass() + "' returned a null value in field '" + field + "'");
-		}
-	}
 }
