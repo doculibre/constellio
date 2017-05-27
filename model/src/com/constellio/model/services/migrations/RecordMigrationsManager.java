@@ -36,7 +36,7 @@ public class RecordMigrationsManager implements StatefulService,
 
 	private static final String SCHEMAS_CONFIG_PATH = "/recordMigrations.xml";
 
-	Map<String, RecordMigrationScript> scripts = new HashMap<>();
+	Map<String, Map<String, RecordMigrationScript>> scripts = new HashMap<>();
 
 	SearchServices searchServices;
 	MetadataSchemasManager metadataSchemasManager;
@@ -83,33 +83,34 @@ public class RecordMigrationsManager implements StatefulService,
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 			SchemaTypesRecordMigration schemaTypesRecordMigration = oneXMLConfigPerCollectionManager.get(collection);
 
-			for (Entry<String, SchemaTypeRecordMigrations> entry : schemaTypesRecordMigration.schemaTypesRecordMigration
-					.entrySet()) {
-				MetadataSchemaType schemaType = types.getSchemaType(entry.getKey());
-				for (SchemaTypeRecordMigration recordMigration : entry.getValue().migrationScripts) {
-					if (!recordMigration.finished) {
-						//TODO Test
-						boolean allRecordMigrationScriptsRegistered = true;
-						List<RecordMigrationScript> recordMigrationScript = new ArrayList<>();
-						for (String finishedScript : recordMigration.migrationScripts) {
-							RecordMigrationScript script = scripts.get(finishedScript);
-							allRecordMigrationScriptsRegistered &= script != null;
-							recordMigrationScript.add(script);
-						}
-
-						if (allRecordMigrationScriptsRegistered && !searchServices.hasResults(from(schemaType)
-								.where(Schemas.MIGRATION_DATA_VERSION).isLessThan(recordMigration.dataVersion)
-								.orWhere(Schemas.MIGRATION_DATA_VERSION).isNull())) {
-
-							for (RecordMigrationScript script : recordMigrationScript) {
-								script.afterLastMigratedRecord();
+			Map<String, RecordMigrationScript> collectionMigrationScripts = scripts.get(collection);
+			if (collectionMigrationScripts != null) {
+				for (Entry<String, SchemaTypeRecordMigrations> entry : schemaTypesRecordMigration.schemaTypesRecordMigration
+						.entrySet()) {
+					MetadataSchemaType schemaType = types.getSchemaType(entry.getKey());
+					for (SchemaTypeRecordMigration recordMigration : entry.getValue().migrationScripts) {
+						if (!recordMigration.finished) {
+							boolean allRecordMigrationScriptsRegistered = true;
+							List<RecordMigrationScript> recordMigrationScript = new ArrayList<>();
+							for (String finishedScript : recordMigration.migrationScripts) {
+								RecordMigrationScript script = collectionMigrationScripts.get(finishedScript);
+								allRecordMigrationScriptsRegistered &= script != null;
+								recordMigrationScript.add(script);
 							}
-							markScriptAsFinished(collection, schemaType.getCode(), recordMigration.dataVersion);
+
+							if (allRecordMigrationScriptsRegistered && !searchServices.hasResults(from(schemaType)
+									.where(Schemas.MIGRATION_DATA_VERSION).isLessThan(recordMigration.dataVersion)
+									.orWhere(Schemas.MIGRATION_DATA_VERSION).isNull())) {
+
+								for (RecordMigrationScript script : recordMigrationScript) {
+									script.afterLastMigratedRecord();
+								}
+								markScriptAsFinished(collection, schemaType.getCode(), recordMigration.dataVersion);
+							}
 						}
 					}
 				}
 			}
-
 		}
 	}
 
@@ -127,8 +128,15 @@ public class RecordMigrationsManager implements StatefulService,
 	public Set<String> registerReturningTypesWithNewScripts(String collection,
 			final List<RecordMigrationScript> recordMigrationScripts, boolean isMasterNode) {
 		oneXMLConfigPerCollectionManager.createCollectionFile(collection, new NewSchemaTypesRecordMigrationAlteration());
+
+		Map<String, RecordMigrationScript> collectionMigrationScripts = scripts.get(collection);
+		if (collectionMigrationScripts == null) {
+			collectionMigrationScripts = new HashMap<>();
+			scripts.put(collection, collectionMigrationScripts);
+		}
+
 		for (RecordMigrationScript script : recordMigrationScripts) {
-			scripts.put(script.getId(), script);
+			collectionMigrationScripts.put(script.getId(), script);
 		}
 
 		final Set<String> schemaTypes = new HashSet<>();
@@ -176,9 +184,9 @@ public class RecordMigrationsManager implements StatefulService,
 	}
 
 	public RequiredRecordMigrations getRecordMigrationsFor(Record record) {
-
+		Map<String, RecordMigrationScript> collectionMigrationScripts = scripts.get(record.getCollection());
 		SchemaTypesRecordMigration typesRecordMigration = oneXMLConfigPerCollectionManager.get(record.getCollection());
-		if (typesRecordMigration != null) {
+		if (typesRecordMigration != null && collectionMigrationScripts != null) {
 			SchemaTypeRecordMigrations migrations = typesRecordMigration.getSchemaType(record.getTypeCode());
 			if (migrations != null) {
 				int currentDataVersion = migrations.getCurrentDataVersion();
@@ -193,7 +201,8 @@ public class RecordMigrationsManager implements StatefulService,
 					for (SchemaTypeRecordMigration script : migrations.migrationScripts) {
 						if (script.dataVersion > recordDataVersion) {
 							for (String migrationScript : script.migrationScripts) {
-								returnedScripts.add(scripts.get(migrationScript));
+
+								returnedScripts.add(collectionMigrationScripts.get(migrationScript));
 							}
 						}
 

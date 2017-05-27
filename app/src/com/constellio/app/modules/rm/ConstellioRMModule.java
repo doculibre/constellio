@@ -47,11 +47,7 @@ import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactory
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.*;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
