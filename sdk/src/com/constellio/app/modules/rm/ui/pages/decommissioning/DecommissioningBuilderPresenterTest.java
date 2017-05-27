@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,8 +47,8 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		when(mockedConfigs.getSearchSortType()).thenReturn(SearchSortType.RELEVENCE);
 
 		presenter = spy(new DecommissioningBuilderPresenter(view));
-		doReturn(new ArrayList<>()).when(presenter).getFoldersAlreadyInNonProcessedDecommissioningLists();
-		doReturn(new ArrayList<>()).when(presenter).getDocumentsAlreadyInNonProcessedDecommissioningLists();
+//		doReturn(new ArrayList<>()).when(presenter).getFoldersAlreadyInNonProcessedDecommissioningLists();
+//		doReturn(new ArrayList<>()).when(presenter).getDocumentsAlreadyInNonProcessedDecommissioningLists();
 	}
 
 	@Test

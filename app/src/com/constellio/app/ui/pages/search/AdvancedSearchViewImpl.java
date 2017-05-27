@@ -1,5 +1,14 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -28,20 +37,18 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
+		implements AdvancedSearchView, BatchProcessingView {
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
-
-public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView, BatchProcessingView {
-	
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
@@ -111,14 +118,14 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		batchProcessingButton = newBatchProcessingButton();
 		batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcessingButton.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		if(ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
 			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally());
-		} else if(StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
+		} else if (StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
 			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
 		}
 		selectionActions.add(batchProcessingButton);
 
-		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
+		if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
 			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 				@Override
 				public List<LabelTemplate> get() {
@@ -149,15 +156,15 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			selectionActions.add(labelsButton);
 		}
 
-		if (schemaType.equals(Document.SCHEMA_TYPE)) {
+		if (Document.SCHEMA_TYPE.equals(schemaType)) {
 			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 					new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 			zipButton.addStyleName(ValoTheme.BUTTON_LINK);
 			selectionActions.add(zipButton);
 		}
 
-		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
-				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
+		if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) ||
+				ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
 			if (presenter.hasCurrentUserPermissionToUseCart()) {
 				Button addToCart = buildAddToCartButton();
 				selectionActions.add(addToCart);
@@ -167,14 +174,15 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		Button switchViewMode = buildSwitchViewMode();
 
 		// TODO Build SelectAllButton properly for table mode
-//		List<Component> actions = Arrays.asList(
-//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+		//		List<Component> actions = Arrays.asList(
+		//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter),switchViewMode);
+				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(),
+				(Component) new ReportSelector(presenter), switchViewMode);
 
 		return results.createSummary(actions, selectionActions);
 	}
-	
+
 	private String getSwitchViewModeCaption() {
 		String caption;
 		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
@@ -192,7 +200,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			public void buttonClick(Button.ClickEvent event) {
 				if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
 					presenter.switchToTableView();
-				} else if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+				} else if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
 					presenter.switchToDetailedView();
 				}
 				switchViewModeButton.setCaption(getSwitchViewModeCaption());
@@ -240,22 +248,26 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(
+						presenter.getOwnedCartsDataProvider());
 				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSelectedRecordIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
+						presenter.addToCartRequested(getSelectedRecordIds(),
+								ownedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
 
-				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
+						presenter.getSharedCartsDataProvider());
 				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
 				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSelectedRecordIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
+						presenter.addToCartRequested(getSelectedRecordIds(),
+								sharedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
@@ -266,7 +278,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout,tabSheet);
+				layout.addComponents(newCartLayout, tabSheet);
 				return layout;
 			}
 		};

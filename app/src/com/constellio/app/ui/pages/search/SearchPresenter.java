@@ -1,5 +1,28 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -28,8 +51,10 @@ import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -39,6 +64,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -55,21 +81,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.vaadin.server.StreamResource.StreamSource;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.Map.Entry;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
@@ -90,6 +101,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	transient SearchPresenterService service;
 	boolean highlighter = true;
 	int selectedPageLength;
+	boolean allowDownloadZip = true;
 
 	public int getSelectedPageLength() {
 		return selectedPageLength;
@@ -149,6 +161,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 	}
 
+	public boolean isAllowDownloadZip() {
+		return allowDownloadZip;
+	}
+
 	public void setExtraSolrParams(Map<String, String[]> extraSolrParams) {
 		this.extraSolrParams = extraSolrParams;
 	}
@@ -169,6 +185,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		collection = sessionContext.getCurrentCollection();
 		service = new SearchPresenterService(collection, constellioFactories.getModelLayerFactory());
 		schemasDisplayManager = constellioFactories.getAppLayerFactory().getMetadataSchemasDisplayManager();
+
+		ConstellioModulesManager modulesManager = constellioFactories.getAppLayerFactory().getModulesManager();
+		Module rmModule = modulesManager.getInstalledModule(ConstellioRMModule.ID);
+		allowDownloadZip = modulesManager.isModuleEnabled(collection, rmModule);
 	}
 
 	public void resetFacetAndOrder() {
@@ -391,9 +411,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	protected LogicalSearchQuery getSearchQuery() {
+		String userSearchExpression = getUserSearchExpression();
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
-				.setFreeTextQuery(getUserSearchExpression())
+				.setFreeTextQuery(userSearchExpression)
 				.filteredWithUser(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
@@ -452,19 +473,24 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
-		if (schema_s != null) {
-			for (FacetValue facetValue : schema_s) {
-				if (facetValue.getQuantity() > 0) {
-					String schema = facetValue.getValue();
-					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-						if(metadata.getInheritance() != null && metadata.isEnabled()) {
-							metadataCodes.add(metadata.getInheritance().getCode());
-						}
-						else if (metadata.getInheritance() == null && metadata.isEnabled()) {
-							metadataCodes.add(metadata.getCode());
+		if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
+			if (schema_s != null) {
+				for (FacetValue facetValue : schema_s) {
+					if (facetValue.getQuantity() > 0) {
+						String schema = facetValue.getValue();
+						for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+							if (metadata.getInheritance() != null && metadata.isEnabled()) {
+								metadataCodes.add(metadata.getInheritance().getCode());
+							} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+								metadataCodes.add(metadata.getCode());
+							}
 						}
 					}
 				}
+			}
+		} else {
+			for (Metadata metadata : schemaType.getAllMetadatas()) {
+				metadataCodes.add(metadata.getCode());
 			}
 		}
 
@@ -475,9 +501,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
+				boolean isTextOrString =
+						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch()  && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString || isTextOrString && metadata.isSearchable())) {
+				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString
+						|| isTextOrString && metadata.isSearchable())) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
@@ -486,16 +514,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
-		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
+		if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
-			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(collection, referencedSchemaType);
-			if(taxonomy != null) {
+			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
+					.getTaxonomyFor(collection, referencedSchemaType);
+			if (taxonomy != null) {
 				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 				List<String> taxonomyUserIds = taxonomy.getUserIds();
 				List<String> userGroups = currentUser.getUserGroups();
-				for(String group: taxonomyGroupIds) {
-					for(String userGroup: userGroups) {
-						if(userGroup.equals(group)) {
+				for (String group : taxonomyGroupIds) {
+					for (String userGroup : userGroups) {
+						if (userGroup.equals(group)) {
 							return true;
 						}
 					}

@@ -36,6 +36,8 @@ public class RecordUpdateOptions {
 
 	private boolean skipFindingRecordsToReindex = false;
 
+	boolean allowSchemaTypeLockedRecordsModification = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -78,6 +80,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setSkipFindingRecordsToReindex(boolean skipFindingRecordsToReindex) {
 		this.skipFindingRecordsToReindex = skipFindingRecordsToReindex;
+		return this;
+	}
+
+	public boolean isAllowSchemaTypeLockedRecordsModification() {
+		return allowSchemaTypeLockedRecordsModification;
+	}
+
+	public RecordUpdateOptions setAllowSchemaTypeLockedRecordsModification(boolean allowSchemaTypeLockedRecordsModification) {
+		this.allowSchemaTypeLockedRecordsModification = allowSchemaTypeLockedRecordsModification;
 		return this;
 	}
 

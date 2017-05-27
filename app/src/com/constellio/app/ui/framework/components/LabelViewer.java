@@ -7,22 +7,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.services.contents.ContentManager;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportWriterFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.Embedded;
+import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import org.omg.CORBA.Object;
 
 public class LabelViewer extends VerticalLayout {
     private ContentManager contentManager;
@@ -31,9 +28,8 @@ public class LabelViewer extends VerticalLayout {
         contentManager = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory().getContentManager();
         StreamSource source = buildSource(PDF);
 
-        Embedded viewer = new Embedded();
+        BrowserFrame viewer = new BrowserFrame();
         viewer.setSource(new StreamResource(source, filename));
-        viewer.setType(Embedded.TYPE_BROWSER);
 
         viewer.setWidth("100%");
         viewer.setHeight("1024px");

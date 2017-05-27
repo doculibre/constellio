@@ -228,6 +228,54 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenReadOnlyLockedStatusNotDefinedWhenBuildingThenNoReadOnlyLocked()
+			throws Exception {
+		build();
+
+		assertThat(schemaType.isReadOnlyLocked()).isFalse();
+	}
+
+	@Test
+	public void givenReadOnlyLockedStatusDefinedToFalseWhenBuildingThenNoReadOnlyLocked()
+			throws Exception {
+		schemaTypeBuilder.setReadOnlyLocked(false);
+
+		build();
+
+		assertThat(schemaType.isReadOnlyLocked()).isFalse();
+	}
+
+	@Test
+	public void givenReadOnlyLockedStatusDefinedToFalseWhenModifyingThenNoReadOnlyLocked()
+			throws Exception {
+		schemaTypeBuilder.setReadOnlyLocked(false);
+
+		buildAndModify();
+
+		assertThat(schemaTypeBuilder.isReadOnlyLocked()).isFalse();
+	}
+
+	@Test
+	public void givenReadOnlyLockedStatusDefinedToTrueWhenBuildingThenReadOnlyLocked()
+			throws Exception {
+		schemaTypeBuilder.setReadOnlyLocked(true);
+
+		build();
+
+		assertThat(schemaType.isReadOnlyLocked()).isTrue();
+	}
+
+	@Test
+	public void givenReadOnlyLockedStatusDefinedToTrueWhenModifyingThenReadOnlyLocked()
+			throws Exception {
+		schemaTypeBuilder.setReadOnlyLocked(true);
+
+		buildAndModify();
+
+		assertThat(schemaTypeBuilder.isReadOnlyLocked()).isTrue();
+	}
+
+	@Test
 	public void givenInTransactionLogNotDefinedWhenBuildingThenSetToTrue()
 			throws Exception {
 		build();
