@@ -1282,10 +1282,14 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenFiveNumberValuesIncludingNegativeNumberAndMinIntegerValue();
 
-		condition = from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(10);
-		List<Record> records = findRecords(condition);
-
+		List<Record> records = findRecords(from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(10));
 		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3);
+
+		records = findRecords(from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(11));
+		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3, expectedRecord4);
+
+		records = findRecords(from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(0));
+		assertThat(records).containsOnly(expectedRecord, expectedRecord2);
 	}
 
 	@Test

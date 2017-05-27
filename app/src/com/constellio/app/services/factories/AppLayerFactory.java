@@ -1,5 +1,7 @@
 package com.constellio.app.services.factories;
 
+import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,11 +57,15 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.records.RecordMigrationScript;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public class AppLayerFactory extends LayerFactory {
 
@@ -280,6 +286,25 @@ public class AppLayerFactory extends LayerFactory {
 				throw new RuntimeException(e);
 			}
 		}
+
+		Map<String, Set<String>> typesWithNewScriptsInCollections = new HashMap<>();
+		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollectionsExcludingSystem()) {
+			List<RecordMigrationScript> scripts = newMigrationServices().getAllRecordMigrationScripts(collection);
+			//TODO Check if master node
+			Set<String> typesWithNewScripts = getModelLayerFactory().getRecordMigrationsManager()
+					.registerReturningTypesWithNewScripts(collection, scripts, true);
+			typesWithNewScriptsInCollections.put(collection, typesWithNewScripts);
+		}
+
+		modelLayerFactory.getBatchProcessesController().start();
+
+		ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		for (Map.Entry<String, Set<String>> entry : typesWithNewScriptsInCollections.entrySet()) {
+			List<MetadataSchemaType> types = schemasManager.getSchemaTypes(entry.getKey(), new ArrayList<>(entry.getValue()));
+			reindexingServices.reindexCollections(recalculateAndRewriteSchemaTypesInBackground(types));
+		}
+
 	}
 
 	public void postInitialization() {
@@ -296,7 +321,6 @@ public class AppLayerFactory extends LayerFactory {
 				systemGlobalConfigsManager.setReindexingRequired(true);
 				systemGlobalConfigsManager.setLastReindexingFailed(true);
 			}
-
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
 	}

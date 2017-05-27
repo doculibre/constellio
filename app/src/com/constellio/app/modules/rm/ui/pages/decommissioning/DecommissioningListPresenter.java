@@ -33,6 +33,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -58,8 +59,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		this.recordId = recordId;
 		return this;
 	}
-
-
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
@@ -105,32 +104,39 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public void processButtonClicked() {
 		HashMap<String, Double> sizeToBePlacedPerContainer = new HashMap<>();
 		RMSchemasRecordsServices rm = rmRecordsServices();
-		for(FolderDetailVO folder: getFoldersToValidate()) {
+		for (FolderDetailVO folder : getFoldersToValidate()) {
 			String newContainerRecordId = folder.getContainerRecordId();
 			Double newLinearSize = folder.getLinearSize();
-			if(StringUtils.isNotBlank(newContainerRecordId) && newLinearSize != null && sizeToBePlacedPerContainer.containsKey(newContainerRecordId)) {
-				sizeToBePlacedPerContainer.put(newContainerRecordId, sizeToBePlacedPerContainer.get(newContainerRecordId) + newLinearSize);
-			} else if(StringUtils.isNotBlank(newContainerRecordId) && newLinearSize != null && !sizeToBePlacedPerContainer.containsKey(newContainerRecordId)) {
+			if (StringUtils.isNotBlank(newContainerRecordId) && newLinearSize != null && sizeToBePlacedPerContainer
+					.containsKey(newContainerRecordId)) {
+				sizeToBePlacedPerContainer
+						.put(newContainerRecordId, sizeToBePlacedPerContainer.get(newContainerRecordId) + newLinearSize);
+			} else if (StringUtils.isNotBlank(newContainerRecordId) && newLinearSize != null && !sizeToBePlacedPerContainer
+					.containsKey(newContainerRecordId)) {
 				sizeToBePlacedPerContainer.put(newContainerRecordId, newLinearSize);
 			}
 
 			Folder oldFolder = rm.getFolder(folder.getFolderId());
 			String oldContainerRecordId = oldFolder.getContainer();
 			Double oldLinearSize = oldFolder.getLinearSize();
-			if(StringUtils.isNotBlank(oldContainerRecordId) && oldLinearSize != null && sizeToBePlacedPerContainer.containsKey(oldContainerRecordId)) {
-				sizeToBePlacedPerContainer.put(oldContainerRecordId, sizeToBePlacedPerContainer.get(oldContainerRecordId) - oldLinearSize);
-			} else if(StringUtils.isNotBlank(oldContainerRecordId) && oldLinearSize != null && !sizeToBePlacedPerContainer.containsKey(oldContainerRecordId)) {
+			if (StringUtils.isNotBlank(oldContainerRecordId) && oldLinearSize != null && sizeToBePlacedPerContainer
+					.containsKey(oldContainerRecordId)) {
+				sizeToBePlacedPerContainer
+						.put(oldContainerRecordId, sizeToBePlacedPerContainer.get(oldContainerRecordId) - oldLinearSize);
+			} else if (StringUtils.isNotBlank(oldContainerRecordId) && oldLinearSize != null && !sizeToBePlacedPerContainer
+					.containsKey(oldContainerRecordId)) {
 				sizeToBePlacedPerContainer.put(oldContainerRecordId, oldLinearSize);
 			}
 		}
-		List<ContainerRecord> containersToValidate = rm.getContainerRecords(new ArrayList<String>(sizeToBePlacedPerContainer.keySet()));
-		for (ContainerRecord container: containersToValidate) {
-			if(container.getAvailableSize() < sizeToBePlacedPerContainer.get(container.getId())) {
+		List<ContainerRecord> containersToValidate = rm
+				.getContainerRecords(new ArrayList<String>(sizeToBePlacedPerContainer.keySet()));
+		for (ContainerRecord container : containersToValidate) {
+			if (container.getAvailableSize() < sizeToBePlacedPerContainer.get(container.getId())) {
 				view.showErrorMessage($("DecommissioningListView.notEnoughSpaceInContainer", container.getTitle()));
 				return;
 			}
 		}
-		if(!isListReadyToBeProcessed()) {
+		if (!isListReadyToBeProcessed()) {
 			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
 			return;
 		}
@@ -141,8 +147,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public boolean isListReadyToBeProcessed() {
-		return !(searchServices().getResultsCount(from(rmRecordsServices().folder.schemaType()).where(rmRecordsServices().folder.borrowed()).isTrue()
-				.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
+		return !(searchServices().getResultsCount(
+				from(rmRecordsServices().folder.schemaType()).where(rmRecordsServices().folder.borrowed()).isTrue()
+						.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
 	}
 
 	public void validateButtonClicked() {
@@ -186,27 +193,31 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		view.navigate().to(RMViews.class).searchContainerForDecommissioningList(recordId);
 	}
 
-	public void folderPlacedInContainer(FolderDetailVO folder, ContainerVO container) throws Exception {
+	public void folderPlacedInContainer(FolderDetailVO folder, ContainerVO container)
+			throws Exception {
 		Double containerAvailableSize = container.getAvailableSize();
 		Double folderLinearSize = folder.getLinearSize();
-		if(containerAvailableSize != null && folderLinearSize != null && containerAvailableSize < folderLinearSize) {
-			String messageToShow = $("DecommissioningListView.containerCannotContainFolder", folderLinearSize, containerAvailableSize);
+		if (containerAvailableSize != null && folderLinearSize != null && containerAvailableSize < folderLinearSize) {
+			String messageToShow = $("DecommissioningListView.containerCannotContainFolder", folderLinearSize,
+					containerAvailableSize);
 			view.showErrorMessage(messageToShow);
 			throw new Exception(messageToShow);
 		}
 		folder.setContainerRecordId(container.getId());
 		folder.setPackageable(false);
 		DecommissioningList decommissioningList = decommissioningList();
-		if(containerAvailableSize != null && folderLinearSize != null) {
+		if (containerAvailableSize != null && folderLinearSize != null) {
 			containerAvailableSize = containerAvailableSize - folderLinearSize;
 		}
 		DecomListContainerDetail newContainerDetail = decommissioningList.getContainerDetail(container.getId());
-		if(newContainerDetail != null) {
+		if (newContainerDetail != null) {
 			newContainerDetail.setAvailableSize(containerAvailableSize);
 		}
-		decommissioningList.getFolderDetail(folder.getFolderId()).setFolderLinearSize(folderLinearSize).setContainerRecordId(container.getId()).setIsPlacedInContainer(true);
+		decommissioningList.getFolderDetail(folder.getFolderId()).setFolderLinearSize(folderLinearSize)
+				.setContainerRecordId(container.getId()).setIsPlacedInContainer(true);
 		addOrUpdate(decommissioningList.getWrappedRecord());
-		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize), newContainerDetail);
+		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize),
+				newContainerDetail);
 
 		view.setProcessable(folder);
 		view.updateProcessButtonState(isProcessable());
@@ -269,7 +280,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder) && !isFolderPlacedInContainer(folder)) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)
+					&& !isFolderPlacedInContainer(folder)) {
 				result.add(builder.build(folder));
 			}
 		}
@@ -280,7 +292,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder) || isFolderPlacedInContainer(folder))) {
+			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder)
+					|| isFolderPlacedInContainer(folder))) {
 				result.add(builder.build(folder));
 			}
 		}
@@ -315,7 +328,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public List<String> getPackageableFoldersIds() {
 		List<String> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder) && !folder.getDetail().isPlacedInContainer()) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder) && !folder
+					.getDetail().isPlacedInContainer()) {
 				result.add(folder.getFolderId());
 			}
 		}
@@ -325,7 +339,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public List<String> getProcessableFoldersIds() {
 		List<String> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder) || folder.getDetail().isPlacedInContainer())) {
+			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder) || folder
+					.getDetail().isPlacedInContainer())) {
 				result.add(folder.getFolderId());
 			}
 		}
@@ -363,26 +378,27 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		for (FolderDetailVO folderDetailVO : getProcessableFolders()) {
 			String containerRecordId = folderDetailVO.getContainerRecordId();
 			Double linearSize = folderDetailVO.getLinearSize();
-			if(containerRecordId != null && linearSize != null) {
+			if (containerRecordId != null && linearSize != null) {
 				Double oldSize = usedSpaceMap.get(containerRecordId);
-				oldSize = oldSize == null? 0.0: oldSize;
+				oldSize = oldSize == null ? 0.0 : oldSize;
 				usedSpaceMap.put(containerRecordId, oldSize + linearSize);
 			}
 		}
-		for (ContainerRecord container : rmRecordsServices.wrapContainerRecords(recordServices().getRecordsById(view.getCollection(), decommissioningList.getContainers()))) {
+		for (ContainerRecord container : rmRecordsServices.wrapContainerRecords(
+				recordServices().getRecordsById(view.getCollection(), decommissioningList.getContainers()))) {
 			ContainerVO containerVO;
-			if(container.getAvailableSize() == null) {
+			if (container.getAvailableSize() == null) {
 				containerVO = new ContainerVO(container.getId(), container.getTitle(), null);
 			} else {
 				Double usedSpace = usedSpaceMap.get(container.getId());
-				usedSpace = usedSpace == null? 0.0:usedSpace;
+				usedSpace = usedSpace == null ? 0.0 : usedSpace;
 				containerVO = new ContainerVO(container.getId(), container.getTitle(), container.getAvailableSize() - usedSpace);
 			}
 			decommissioningList.getContainerDetail(containerVO.getId()).setAvailableSize(containerVO.getAvailableSize());
 			result.add(containerVO);
 		}
-//		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
-//		decommissioningList.setContainerDetails(containerDetails);
+		//		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
+		//		decommissioningList.setContainerDetails(containerDetails);
 		addOrUpdate(decommissioningList.getWrappedRecord());
 		this.decommissioningList = decommissioningList;
 		return result;
@@ -591,44 +607,44 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void addFoldersButtonClicked() {
-		if(calculateSearchType() != null) {
+		if (calculateSearchType() != null) {
 			view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, calculateSearchType().toString());
 		}
 	}
 
 	public SearchType calculateSearchType() {
-		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+		if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
-				case FOLDERS_TO_DEPOSIT:
-					return SearchType.activeToDeposit;
-				case FOLDERS_TO_DESTROY:
-					return SearchType.activeToDestroy;
-				case FOLDERS_TO_TRANSFER:
-					return SearchType.transfer;
-				case DOCUMENTS_TO_DEPOSIT:
-					return SearchType.documentActiveToDeposit;
-				case DOCUMENTS_TO_DESTROY:
-					return SearchType.documentActiveToDestroy;
-				case DOCUMENTS_TO_TRANSFER:
-					return SearchType.documentTransfer;
+			case FOLDERS_TO_DEPOSIT:
+				return SearchType.activeToDeposit;
+			case FOLDERS_TO_DESTROY:
+				return SearchType.activeToDestroy;
+			case FOLDERS_TO_TRANSFER:
+				return SearchType.transfer;
+			case DOCUMENTS_TO_DEPOSIT:
+				return SearchType.documentActiveToDeposit;
+			case DOCUMENTS_TO_DESTROY:
+				return SearchType.documentActiveToDestroy;
+			case DOCUMENTS_TO_TRANSFER:
+				return SearchType.documentTransfer;
 			}
-		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+		} else if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
-				case FOLDERS_TO_DEPOSIT:
-					return SearchType.semiActiveToDeposit;
-				case FOLDERS_TO_DESTROY:
-					return SearchType.semiActiveToDestroy;
-				case DOCUMENTS_TO_DEPOSIT:
-					return SearchType.documentSemiActiveToDeposit;
-				case DOCUMENTS_TO_DESTROY:
-					return SearchType.documentSemiActiveToDestroy;
+			case FOLDERS_TO_DEPOSIT:
+				return SearchType.semiActiveToDeposit;
+			case FOLDERS_TO_DESTROY:
+				return SearchType.semiActiveToDestroy;
+			case DOCUMENTS_TO_DEPOSIT:
+				return SearchType.documentSemiActiveToDeposit;
+			case DOCUMENTS_TO_DESTROY:
+				return SearchType.documentSemiActiveToDestroy;
 			}
 		}
 		return null;
 	}
 
 	public void removeFoldersButtonClicked(List<FolderDetailVO> selected) {
-		for(FolderDetailVO folderDetailVO: selected) {
+		for (FolderDetailVO folderDetailVO : selected) {
 			decommissioningList().removeFolderDetail(folderDetailVO.getFolderId());
 		}
 		addOrUpdate(decommissioningList().getWrappedRecord());
@@ -640,14 +656,14 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		LogicalSearchQuery query = buildContainerQuery(linearSize.values().iterator().next());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		//TODO CAN BE NULL
-		if(modelLayerFactory.newSearchServices().getResultsCount(query) == 0) {
+		if (modelLayerFactory.newSearchServices().getResultsCount(query) == 0) {
 			view.showErrorMessage($("DecommissioningListView.noContainerFound"));
 			return;
 		}
 		List<ContainerRecord> containerRecordList = rm.wrapContainerRecords(modelLayerFactory.newSearchServices().search(query));
 		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>(linearSize.entrySet());
-		for(Map.Entry<String, Double> entry: listOfEntry) {
-			while(!containerRecordList.isEmpty() && !fill(containerRecordList.get(0), entry)) {
+		for (Map.Entry<String, Double> entry : listOfEntry) {
+			while (!containerRecordList.isEmpty() && !fill(containerRecordList.get(0), entry)) {
 				containerRecordList.remove(0);
 			}
 		}
@@ -666,17 +682,18 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
-				where(rm.containerRecord.administrativeUnit()).isEqualTo(decommissioningList().getAdministrativeUnit()),
+				where(rm.containerRecord.administrativeUnits()).isEqualTo(decommissioningList().getAdministrativeUnit()),
 				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize),
 				anyConditions(
-						where(rm.containerRecord.decommissioningType()).isEqualTo(decommissioningList().getDecommissioningListType().getDecommissioningType()),
+						where(rm.containerRecord.decommissioningType())
+								.isEqualTo(decommissioningList().getDecommissioningListType().getDecommissioningType()),
 						where(rm.containerRecord.decommissioningType()).isNull()
 				)
 		)).sortAsc(rm.containerRecord.availableSize());
 	}
 
 	private Map<String, Double> sortByValue(Map<String, Double> linearSize) {
-		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>( linearSize.entrySet() );
+		List<Map.Entry<String, Double>> listOfEntry = new LinkedList<>(linearSize.entrySet());
 		Collections.sort(listOfEntry, new Comparator<Map.Entry<String, Double>>() {
 			@Override
 			public int compare(Map.Entry<String, Double> entry1, Map.Entry<String, Double> entry2) {
@@ -685,16 +702,16 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		});
 
 		Map<String, Double> result = new LinkedHashMap<>();
-		for (Map.Entry<String, Double> entry : listOfEntry)
-		{
-			result.put( entry.getKey(), entry.getValue() );
+		for (Map.Entry<String, Double> entry : listOfEntry) {
+			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
 	}
 
 	public void addContainerToDecommissioningList(ContainerVO containerVO) {
 		try {
-			recordServices().update(decommissioningList().addContainerDetailsFrom(asList(rmRecordsServices.getContainerRecord(containerVO.getId()))));
+			recordServices().update(decommissioningList()
+					.addContainerDetailsFrom(asList(rmRecordsServices.getContainerRecord(containerVO.getId()))));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
@@ -707,8 +724,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public String getOrderNumber(String folderId) {
 		int orderNumber = getExcludedFoldersIds().indexOf(folderId);
 		orderNumber = orderNumber == -1 ? getPackageableFoldersIds().indexOf(folderId) : orderNumber;
-		orderNumber = orderNumber == -1? getProcessableFoldersIds().indexOf(folderId) : orderNumber;
-		orderNumber = orderNumber == -1? getFoldersToValidateIds().indexOf(folderId) : orderNumber;
+		orderNumber = orderNumber == -1 ? getProcessableFoldersIds().indexOf(folderId) : orderNumber;
+		orderNumber = orderNumber == -1 ? getFoldersToValidateIds().indexOf(folderId) : orderNumber;
 		return String.valueOf(orderNumber + 1);
 	}
 
@@ -725,7 +742,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
-		detail.setPackageable(decommissioningService().isFolderRemovableFromContainer(decommissioningList, decommissioningList.getFolderDetailWithType(detail.getFolderId())));
+		detail.setPackageable(decommissioningService().isFolderRemovableFromContainer(decommissioningList,
+				decommissioningList.getFolderDetailWithType(detail.getFolderId())));
 	}
 
 	public DecommissioningListFolderTableExtension getFolderDetailTableExtension() {

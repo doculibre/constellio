@@ -41,6 +41,7 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
@@ -122,6 +123,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
+	private final RecordMigrationsManager recordMigrationsManager;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -146,12 +148,14 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
 		this.collectionsListManager = add(new CollectionsListManager(configManager));
+
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
 						recordsCaches));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
+		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
@@ -198,6 +202,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
+	}
+
+	public RecordMigrationsManager getRecordMigrationsManager() {
+		return recordMigrationsManager;
 	}
 
 	public List<SystemCollectionListener> getSystemCollectionListeners() {

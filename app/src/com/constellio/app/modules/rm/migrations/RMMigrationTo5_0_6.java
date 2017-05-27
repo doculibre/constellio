@@ -62,9 +62,9 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 		//Reindexation that was planned in 5.0.6, moved to 5.0.7
 		//		ReindexingServices reindexingServices = appLayerFactory.getModelLayerFactory().newReindexingServices();
-		//		reindexingServices.reindexCollection(collection, recalculateSchemaTypes(asList(Folder.SCHEMA_TYPE)));
+		//		reindexingServices.reindexCollection(collection, setReindexedSchemaTypes(asList(Folder.SCHEMA_TYPE)));
 
-		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+		//modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
 	}
 
 	private void updateFormAndDisplayConfigs(String collection, AppLayerFactory appLayerFactory) {
