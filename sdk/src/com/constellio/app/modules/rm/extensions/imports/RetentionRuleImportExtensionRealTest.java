@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -127,7 +128,11 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
 		importDataMap.put(RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE, secDefaultDocCopyRetRule);
 
 		ImportData importData = new ImportData(1, retentionRule.getSchemaCode(), "zeLegacyId", importDataMap);
-		BuildParams buildParams = new BuildParams(retentionRule.getWrappedRecord(), rm.getTypes(), importData);
+
+		ImportDataOptions importDataOptions = new ImportDataOptions();
+		importDataOptions.setImportAsLegacyId(false);
+
+		BuildParams buildParams = new BuildParams(retentionRule.getWrappedRecord(), rm.getTypes(), importData, importDataOptions);
 
 		importExtension.build(buildParams);
 
@@ -230,9 +235,12 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
 		ValidationErrors errors = new ValidationErrors();
 		ImportData importData = new ImportData(1, retentionRule.getSchemaCode(), "zeLegacyId", importDataMap);
 
+		ImportDataOptions importDataOptions = new ImportDataOptions();
+
+
 		importExtension.prevalidate(new PrevalidationParams(errors, importData));
-		importExtension.validate(new ValidationParams(errors, importData));
-		importExtension.build(new BuildParams(retentionRule.getWrappedRecord(), rm.getTypes(), importData));
+		importExtension.validate(new ValidationParams(errors, importData,importDataOptions));
+		importExtension.build(new BuildParams(retentionRule.getWrappedRecord(), rm.getTypes(), importData, importDataOptions));
 
 		assertThat(asList(retentionRule.getSecondaryCopy())).extracting("code", "activeRetentionPeriod",
 				"semiActiveRetentionPeriod", "inactiveDisposalType").containsOnly(
