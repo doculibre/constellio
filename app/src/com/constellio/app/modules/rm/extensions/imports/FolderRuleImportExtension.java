@@ -84,29 +84,30 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 	}
 
 	private void ajustCreationModificationDates(Map<String, Object> fields, Folder folder) {
-		if (folder.getFormCreatedBy() == null) {
+
+
 			String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
 			if (createdBy != null) {
 				folder.setFormCreatedBy(folder.getCreatedBy());
 			}
-		}
 
-		if (folder.getFormCreatedOn() == null) {
+
 			LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
-			folder.setFormCreatedOn(createdOn);
-		}
 
-		if (folder.getFormModifiedBy() == null) {
+			if(createdOn != null) {
+				folder.setFormCreatedOn(createdOn);
+			}
+
 			String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
 			if (modifiedBy != null) {
 				folder.setFormModifiedBy(folder.getModifiedBy());
 			}
-		}
 
-		if (folder.getFormModifiedOn() == null) {
 			LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
-			folder.setFormModifiedOn(modifiedOn);
-		}
+
+			if(modifiedOn != null) {
+				folder.setFormModifiedOn(modifiedOn);
+			}
 	}
 
 }

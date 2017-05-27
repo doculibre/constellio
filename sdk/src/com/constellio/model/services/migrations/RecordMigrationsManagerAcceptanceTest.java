@@ -137,6 +137,10 @@ public class RecordMigrationsManagerAcceptanceTest extends ConstellioTest {
 				new AnotherSchemaScript1(), new SetStringMetadata(), new CountLetterD(),
 				new AnotherSchemaScript2(), new ChangeFramboiseForCanneberge()), false);
 
+		otherMigrationsManager.registerReturningTypesWithNewScripts("anotherCollection", asList(new CountLetterE(),
+				new AnotherSchemaScript1(), new SetStringMetadata(), new CountLetterD(),
+				new AnotherSchemaScript2(), new ChangeFramboiseForCanneberge()), false);
+
 		migrations = migrationsManager.getRecordMigrationsFor(zeSchemaInZecollectionRecord1);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")

@@ -1,10 +1,5 @@
 package com.constellio.app.modules.tasks;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -12,20 +7,10 @@ import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.core.LockedRecordsExtension;
-import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
-import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
-import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
-import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
-import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
+import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
+import com.constellio.app.modules.tasks.extensions.*;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationCombo;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_3;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo6_0;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo6_5_33;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_0;
-import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_2;
+import com.constellio.app.modules.tasks.migrations.*;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -34,6 +19,11 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
@@ -74,6 +64,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		ModelLayerCollectionExtensions extensions = appLayerFactory.getModelLayerFactory().getExtensions()
 				.forCollection(collection);
+		extensions.recordImportExtensions.add(new TaskImportExtension(collection, appLayerFactory.getModelLayerFactory()));
 		extensions.recordExtensions.add(new TaskRecordExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new TaskStatusSchemasExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new WorkflowRecordExtension(collection, appLayerFactory));
