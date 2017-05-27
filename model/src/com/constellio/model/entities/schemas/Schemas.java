@@ -10,13 +10,15 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
-public class Schemas {
+public class
+Schemas {
 
 	private static List<Metadata> allGlobalMetadatas = new ArrayList<>();
 
 	public static final String TITLE_CODE = "title";
 	public static final String GLOBAL_SCHEMA_TYPE = "global";
 
+	public static final Metadata MIGRATION_DATA_VERSION = add(new Metadata("migrationDataVersion_d", MetadataValueType.NUMBER, false));
 	public static final Metadata CREATED_BY = add(new Metadata("createdById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata MODIFIED_BY = add(new Metadata("modifiedById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata IDENTIFIER = add(new Metadata("id", STRING, false));

@@ -87,7 +87,6 @@ public class ContentManager implements StatefulService {
 	static final String READ_PARSED_CONTENT = "ContentServices-ReadParsedContent";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContentManager.class);
-	private final ContentDao contentDao;
 	private final RecordDao recordDao;
 	FileParser fileParser;
 	private final HashingService hashingService;
@@ -110,7 +109,6 @@ public class ContentManager implements StatefulService {
 	public ContentManager(ModelLayerFactory modelLayerFactory, IcapService icapService) {
 		super();
 		this.modelLayerFactory = modelLayerFactory;
-		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.fileParser = modelLayerFactory.newFileParser();
 		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory()
@@ -193,12 +191,16 @@ public class ContentManager implements StatefulService {
 	}
 
 	public boolean hasContentPreview(String hash) {
-		return contentDao.isDocumentExisting(hash + ".preview");
+		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
+
+    public ContentDao getContentDao() {
+        return modelLayerFactory.getDataLayerFactory().getContentsDao();
+    }
 
 	public InputStream getContentPreviewInputStream(String hash, String streamName) {
 		try {
-			return contentDao.getContentInputStream(hash + ".preview", streamName);
+			return getContentDao().getContentInputStream(hash + ".preview", streamName);
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview(hash);
 		}
@@ -207,7 +209,7 @@ public class ContentManager implements StatefulService {
 	public InputStream getContentInputStream(String id, String streamName)
 			throws ContentManagerRuntimeException_NoSuchContent {
 		try {
-			return contentDao.getContentInputStream(id, streamName);
+			return getContentDao().getContentInputStream(id, streamName);
 		} catch (ContentDaoException.ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException_NoSuchContent(id, e);
 		}
@@ -217,7 +219,7 @@ public class ContentManager implements StatefulService {
 			throws ContentManagerRuntimeException_NoSuchContent {
 
 		try {
-			return contentDao.getContentInputStreamFactory(id);
+			return getContentDao().getContentInputStreamFactory(id);
 		} catch (ContentDaoException.ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException_NoSuchContent(id, e);
 		}
@@ -227,7 +229,7 @@ public class ContentManager implements StatefulService {
 			throws ContentManagerRuntimeException_CannotSaveContent {
 
 		try {
-			contentDao.moveFileToVault(streamFactory.getTempFile(), id);
+            getContentDao().moveFileToVault(streamFactory.getTempFile(), id);
 		} catch (ContentDaoRuntimeException e) {
 			throw new ContentManagerRuntimeException_CannotSaveContent(e);
 		}
@@ -363,7 +365,7 @@ public class ContentManager implements StatefulService {
 			@Override
 			public void execute(InputStream stream)
 					throws ContentDaoException {
-				contentDao.add(newContentId + "__parsed", stream);
+                getContentDao().add(newContentId + "__parsed", stream);
 			}
 		};
 	}
@@ -375,7 +377,7 @@ public class ContentManager implements StatefulService {
 			@Override
 			public void execute(InputStream stream)
 					throws ContentDaoException {
-				contentDao.add(newContentId, stream);
+                getContentDao().add(newContentId, stream);
 			}
 		};
 	}
@@ -483,6 +485,7 @@ public class ContentManager implements StatefulService {
 	private void convertContentForPreview(Content content, ConversionManager conversionManager) {
 		String hash = content.getCurrentVersion().getHash();
 		String filename = content.getCurrentVersion().getFilename();
+        ContentDao contentDao = getContentDao();
 		if (!contentDao.isDocumentExisting(hash + ".preview")) {
 			InputStream inputStream = null;
 			try {
@@ -518,7 +521,7 @@ public class ContentManager implements StatefulService {
 					hashToDelete.add(hash + "__parsed");
 				}
 				if (!hashToDelete.isEmpty()) {
-					contentDao.delete(hashToDelete);
+                    getContentDao().delete(hashToDelete);
 				}
 
 			}
@@ -554,7 +557,7 @@ public class ContentManager implements StatefulService {
 		InputStream inputStream = null;
 
 		try {
-			inputStream = contentDao.getContentInputStream(hash + "__parsed", READ_PARSED_CONTENT);
+			inputStream = getContentDao().getContentInputStream(hash + "__parsed", READ_PARSED_CONTENT);
 			parsedContent = ioServices.readStreamToString(inputStream);
 		} catch (ContentDaoException.ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException_NoSuchContent(hash);

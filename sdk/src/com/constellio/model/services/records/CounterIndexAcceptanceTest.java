@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -32,6 +33,7 @@ import com.constellio.sdk.tests.setups.Users;
 public class CounterIndexAcceptanceTest extends ConstellioTest {
 
 	List<String> noAncestors = new ArrayList<>();
+	List<String> emptyAncestors = Arrays.asList("");
 	String childOfReference = "childOfReference";
 	String anotherSchemaReferenceToItself = "anotherSchemaReferenceToItself";
 	String anotherSchemaReferenceToZeSchema = "anotherSchemaReferenceToZeSchema";
@@ -193,7 +195,7 @@ public class CounterIndexAcceptanceTest extends ConstellioTest {
 		assertCounterIndexForRecordWithValue("record0", 1, asList("ze"));
 		assertCounterIndexForRecordWithValue("record1", 0, asList("ze"));
 		assertCounterIndexForRecordWithValue("record2", 1, asList("ze"));
-		assertCounterIndexForRecordWithValue("record3", 1, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 1, emptyAncestors);
 		assertCounterIndexForRecordWithValue("record4", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record5", 0, asList("ze"));
 
@@ -282,7 +284,7 @@ public class CounterIndexAcceptanceTest extends ConstellioTest {
 		assertCounterIndexForRecordWithValue("record0", 1, asList("ze"));
 		assertCounterIndexForRecordWithValue("record1", 0, asList("ze"));
 		assertCounterIndexForRecordWithValue("record2", 1, asList("ze"));
-		assertCounterIndexForRecordWithValue("record3", 1, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 1, emptyAncestors);
 		assertCounterIndexForRecordWithValue("record4", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record5", 0, asList("ze"));
 
@@ -334,7 +336,7 @@ public class CounterIndexAcceptanceTest extends ConstellioTest {
 
 		assertCounterIndexForRecordWithValue("record1", 0, asList("ze"));
 		assertCounterIndexForRecordWithValue("record2", 0, asList("ze"));
-		assertCounterIndexForRecordWithValue("record3", 0, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 0, emptyAncestors);
 	}
 
 	@Test

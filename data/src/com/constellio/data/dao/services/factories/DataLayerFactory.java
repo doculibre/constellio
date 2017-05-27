@@ -69,7 +69,7 @@ public class DataLayerFactory extends LayerFactory {
 	private final UniqueIdGenerator idGenerator;
 	private final UniqueIdGenerator secondaryIdGenerator;
 	private final DataLayerConfiguration dataLayerConfiguration;
-	private final ContentDao contentDao;
+	private ContentDao contentDao;
 	private final BigVaultLogger bigVaultLogger;
 	private final SecondTransactionLogManager secondTransactionLogManager;
 	private final BackgroundThreadsManager backgroundThreadsManager;
@@ -95,7 +95,7 @@ public class DataLayerFactory extends LayerFactory {
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
-			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(),
+			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
 					ioServicesFactory.newIOServices()));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
@@ -128,18 +128,7 @@ public class DataLayerFactory extends LayerFactory {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
 		}
 
-		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
-			File rootFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices(), dataLayerConfiguration));
-
-		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
-			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
-			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
-			contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
-
-		} else {
-			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
-		}
+        updateContentDao();
 
 		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
 
@@ -308,4 +297,17 @@ public class DataLayerFactory extends LayerFactory {
 	public SequencesManager getSequencesManager() {
 		return new SolrSequencesManager(newRecordDao(), secondTransactionLogManager);
 	}
+
+    public void updateContentDao() {
+        if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
+            contentDao = add(new FileSystemContentDao(ioServicesFactory.newIOServices(), dataLayerConfiguration));
+        } else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
+            String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
+            String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
+            contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
+
+        } else {
+            throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
+        }
+    }
 }

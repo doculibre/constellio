@@ -30,7 +30,7 @@ public class RMMigrationTo6_1_3_AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion6_1_2() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
 		File state = new File(statesFolder, "given_system_in_6.1.2_with_tasks,rm_modules_with_manual_modifications.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);

@@ -47,7 +47,12 @@ public final class MainConstellio {
 			PluginManagementUtils utils = new PluginManagementUtils(folderLocator);
 			Set<String> pluginsToMove = utils.getPluginsToMove();
 			if (pluginsToMove.isEmpty()) {
-				runApplication();
+				Map<String, String> configs = PropertyFileUtils.loadKeyValues(folderLocator.getConstellioProperties());
+				boolean initOnStartup = true;
+				if ("false".equals(configs.get("init.startup"))) {
+					initOnStartup = false;
+				}
+				runApplication(initOnStartup);
 			} else {
 				utils.movePlugins(pluginsToMove);
 				ensureApplicationWillRestartInCorrectState(utils);
@@ -98,9 +103,11 @@ public final class MainConstellio {
 		installationService.launchInstallation();
 	}
 
-	private static void runApplication()
+	private static void runApplication(boolean initOnStartup)
 			throws IOException {
-		ConstellioFactories.getInstance();
+		if (initOnStartup) {
+			ConstellioFactories.getInstance();
+		}
 
 		Map<String, String> properties = readProperties();
 

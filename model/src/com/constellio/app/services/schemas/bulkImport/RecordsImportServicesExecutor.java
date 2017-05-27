@@ -475,11 +475,11 @@ public class RecordsImportServicesExecutor {
 			throws ValidationException, PostponedRecordException {
 
 		String legacyId = toImport.getLegacyId();
-//		if(typeImportContext.schemaType.equals("document")) {
-//			if(((ContentImport) toImport.getFields().get("content")).getFileName().equals("wiki-49.bigf/Jorj_Robin_3a1a.html")) {
-//				System.out.println("test");
-//			}
-//		}
+		//		if(typeImportContext.schemaType.equals("document")) {
+		//			if(((ContentImport) toImport.getFields().get("content")).getFileName().equals("wiki-49.bigf/Jorj_Robin_3a1a.html")) {
+		//				System.out.println("test");
+		//			}
+		//		}
 		if (resolverCache.getNotYetImportedLegacyIds(typeImportContext.schemaType).contains(legacyId)) {
 
 			extensions.callRecordImportValidate(typeImportContext.schemaType,
@@ -751,7 +751,7 @@ public class RecordsImportServicesExecutor {
 
 				Comment comment = new Comment();
 				comment.setMessage(hashMap.get(COMMENT_MESSAGE));
-				comment.setUser(userService.getUserInCollection(userName, collection));
+				comment.setUser(userName == null ? null : userService.getUserInCollection(userName, collection));
 
 				if (comment.getDateTime() != null) {
 					LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));

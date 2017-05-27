@@ -2,8 +2,6 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -26,12 +24,12 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.AdministrativeUnitAncestorsCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator2;
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListStatusCalculator2;
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.PendingValidationCalculator;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -60,7 +58,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -78,7 +75,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 
 public class RMMigrationTo5_0_7 implements MigrationScript {
 	public static final String RECENT_FOLDERS = "F";
@@ -115,7 +111,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			throw new RuntimeException(e);
 		}
 
-		appLayerFactory.getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		//appLayerFactory.getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 		setupRMFacets(appLayerFactory, migrationResourcesProvider, collection);
 	}
@@ -405,7 +401,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			moveDecommissioningListInNewAdministrativeUnits(transaction);
 			removeFilingSpacesInAdministrativeUnits(transaction);
 			recordServices.executeHandlingImpactsAsync(transaction);
-			batchProcessesManager.waitUntilAllFinished();
+			//batchProcessesManager.waitUntilAllFinished();
 
 			moveFoldersToNewAdministrativeUnits();
 
@@ -503,7 +499,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 				recordServices.executeHandlingImpactsAsync(
 						Transaction.wrappers(folders).setSkippingRequiredValuesValidation(true));
 			}
-			batchProcessesManager.waitUntilAllFinished();
+			//batchProcessesManager.waitUntilAllFinished();
 		}
 
 		private String getNewUnit(String unitId, String filingSpaceId) {
@@ -528,8 +524,8 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void moveContainersInNewAdministrativeUnits(Transaction transaction) {
 			for (ContainerRecord container : rm.wrapContainerRecords(search(from(rm.containerRecord.schemaType()).returnAll()))) {
-				String unit = getNewUnit(container.getAdministrativeUnit(), container.getFilingSpace());
-				transaction.add(container.setFilingSpace((String) null).setAdministrativeUnit(unit));
+				String unit = getNewUnit(container.<String>get("administrativeUnit"), container.getFilingSpace());
+				transaction.add(container.setFilingSpace((String) null).set("administrativeUnit", unit));
 			}
 		}
 
