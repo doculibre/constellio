@@ -36,6 +36,7 @@ import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
@@ -85,27 +86,32 @@ public class MetadataBuilder {
 	private String inputMask;
 	private Boolean duplicable;
 	private Set<String> customAttributes;
+	private MetadataSchemaBuilder schemaBuilder;
 
-	MetadataBuilder() {
+	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
+		this.schemaBuilder = schemaBuilder;
 	}
 
-	static MetadataBuilder createCustomMetadataFromOriginalCustomMetadata(MetadataBuilder customMetadata, String codeSchema) {
+	static MetadataBuilder createCustomMetadataFromOriginalCustomMetadata(MetadataSchemaBuilder schemaBuilder,
+			MetadataBuilder customMetadata, String codeSchema) {
 		MetadataBuilder copy;
 
 		if (customMetadata.getInheritance() == null) {
-			copy = modifyMetadataWithoutInheritance(customMetadata.getOriginalMetadata(), customMetadata.getClassProvider());
+			copy = modifyMetadataWithoutInheritance(schemaBuilder, customMetadata.getOriginalMetadata(),
+					customMetadata.getClassProvider());
 		} else {
 			MetadataBuilder inheritanceCopy = MetadataBuilder.modifyMetadataWithoutInheritance(
-					customMetadata.getInheritance().getOriginalMetadata(), customMetadata.getClassProvider());
-			copy = modifyMetadataWithInheritance(customMetadata.getOriginalMetadata(), inheritanceCopy);
+					schemaBuilder, customMetadata.getInheritance().getOriginalMetadata(), customMetadata.getClassProvider());
+			copy = modifyMetadataWithInheritance(schemaBuilder, customMetadata.getOriginalMetadata(), inheritanceCopy);
 		}
 		copy.setCode(codeSchema + "_" + copy.getLocalCode());
 
 		return copy;
 	}
 
-	static MetadataBuilder createCustomMetadataFromDefault(MetadataBuilder defaultMetadata, String codeSchema) {
-		MetadataBuilder builder = new MetadataBuilder();
+	static MetadataBuilder createCustomMetadataFromDefault(MetadataSchemaBuilder schemaBuilder, MetadataBuilder defaultMetadata,
+			String codeSchema) {
+		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.classProvider = defaultMetadata.classProvider;
 		builder.setLocalCode(defaultMetadata.localCode);
 		builder.setCollection(defaultMetadata.collection);
@@ -132,7 +138,7 @@ public class MetadataBuilder {
 	}
 
 	static MetadataBuilder createMetadataWithoutInheritance(String localCode, MetadataSchemaBuilder schemaBuilder) {
-		MetadataBuilder builder = new MetadataBuilder();
+		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.classProvider = schemaBuilder.getClassProvider();
 		builder.setCollection(schemaBuilder.getCollection());
 		builder.setLocalCode(localCode);
@@ -150,15 +156,17 @@ public class MetadataBuilder {
 		return builder;
 	}
 
-	static MetadataBuilder modifyMetadataWithoutInheritance(Metadata defaultMetadata, ClassProvider classProvider) {
-		MetadataBuilder builder = new MetadataBuilder();
+	static MetadataBuilder modifyMetadataWithoutInheritance(MetadataSchemaBuilder schemaBuilder, Metadata defaultMetadata,
+			ClassProvider classProvider) {
+		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.classProvider = classProvider;
 		setBuilderPropertiesOfMetadataWithoutInheritance(defaultMetadata, builder);
 		return builder;
 	}
 
-	static MetadataBuilder modifyMetadataWithInheritance(Metadata metadata, MetadataBuilder defaultMetadata) {
-		MetadataBuilder builder = new MetadataBuilder();
+	static MetadataBuilder modifyMetadataWithInheritance(MetadataSchemaBuilder schemaBuilder, Metadata metadata,
+			MetadataBuilder defaultMetadata) {
+		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.inheritance = defaultMetadata;
 		setBuilderPropertiesOfMetadataWithInheritance(metadata, defaultMetadata, builder);
 		return builder;
@@ -755,7 +763,9 @@ public class MetadataBuilder {
 	private void validateNotReferencingTaxonomy(String typeWithAllowedSchemas, TaxonomiesManager taxonomiesManager) {
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(collection);
 		if (principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(typeWithAllowedSchemas)) {
-			//throw new CannotCreateMultivalueReferenceToPrincipalTaxonomy(code);
+			if (schemaBuilder.getSchemaTypeBuilder().isSecurity()) {
+				throw new CannotCreateMultivalueReferenceToPrincipalTaxonomy(code);
+			}
 		}
 	}
 

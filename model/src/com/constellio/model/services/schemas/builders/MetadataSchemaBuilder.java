@@ -94,9 +94,9 @@ public class MetadataSchemaBuilder {
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.inheritDefaultSchema()) {
 				MetadataBuilder inheritance = builder.defaultSchema.getMetadata(metadata.getLocalCode());
-				builder.metadatas.add(MetadataBuilder.modifyMetadataWithInheritance(metadata, inheritance));
+				builder.metadatas.add(MetadataBuilder.modifyMetadataWithInheritance(builder, metadata, inheritance));
 			} else {
-				builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata, builder.classProvider));
+				builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(builder, metadata, builder.classProvider));
 			}
 		}
 
@@ -127,7 +127,7 @@ public class MetadataSchemaBuilder {
 		builder.setSchemaTypeBuilder(typeBuilder);
 		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
-			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata, builder.classProvider));
+			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(builder, metadata, builder.classProvider));
 		}
 		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class,
 				defaultSchema.getValidators());
@@ -145,7 +145,7 @@ public class MetadataSchemaBuilder {
 		builder.setCode(defaultSchema.getSchemaTypeBuilder().getCode() + UNDERSCORE + localCode);
 
 		for (MetadataBuilder metadata : defaultSchema.metadatas) {
-			builder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(metadata, localCode));
+			builder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(builder, metadata, localCode));
 		}
 
 		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class);
@@ -608,7 +608,7 @@ public class MetadataSchemaBuilder {
 		MetadataBuilder metadata = MetadataBuilder.createMetadataWithoutInheritance(localCode, this);
 		this.metadatas.add(metadata);
 		for (MetadataSchemaBuilder customSchemaBuilder : schemaTypeBuilder.getCustomSchemas()) {
-			customSchemaBuilder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(metadata,
+			customSchemaBuilder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(customSchemaBuilder, metadata,
 					customSchemaBuilder.localCode));
 		}
 		return metadata;
@@ -679,7 +679,8 @@ public class MetadataSchemaBuilder {
 	}
 
 	public MetadataBuilder createMetadataCopying(MetadataBuilder metadataBuilder) {
-		MetadataBuilder metadata = MetadataBuilder.createCustomMetadataFromOriginalCustomMetadata(metadataBuilder, this.code);
+		MetadataBuilder metadata = MetadataBuilder
+				.createCustomMetadataFromOriginalCustomMetadata(this, metadataBuilder, this.code);
 		metadatas.add(metadata);
 		return metadata;
 	}

@@ -101,6 +101,8 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -113,7 +115,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -208,9 +209,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_2(),
 				new RMMigrationTo7_2_0_1(),
 				new RMMigrationTo7_2_0_2(),
-                new RMMigrationTo7_2_0_3(),
-                new RMMigrationTo7_2_0_4(),
-                new RMMigrationTo7_3()
+				new RMMigrationTo7_2_0_3(),
+				new RMMigrationTo7_2_0_4(),
+				new RMMigrationTo7_3()
 		);
 	}
 
