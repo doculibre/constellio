@@ -174,7 +174,7 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
             }
             decomListContainerDetail = new DecomListContainerDetail(containerRecord.getId());
             try {
-                ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+                containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
                 decomListContainerDetail = containerRecord != null ? new DecomListContainerDetail(containerRecord.getId()) : new DecomListContainerDetail();
             } catch (Exception e) {
                 LOGGER.error("Could not find containerDetail " + mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
