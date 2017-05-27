@@ -36,6 +36,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -78,6 +79,7 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
@@ -414,6 +416,19 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 		}
 
+		for (Record record : transaction.getRecords()) {
+			if (record.get(Schemas.MIGRATION_DATA_VERSION) == null) {
+				if (record.isSaved()) {
+					record.set(Schemas.MIGRATION_DATA_VERSION, 0);
+				} else {
+					record.set(Schemas.MIGRATION_DATA_VERSION, modelLayerFactory.getRecordMigrationsManager()
+							.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
+				}
+
+			}
+
+		}
+
 		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(transaction.getCollection());
 		for (Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
@@ -445,10 +460,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 				for (RecordPreparationStep step : schema.getPreparationSteps()) {
 
 					if (step instanceof CalculateMetadatasRecordPreparationStep) {
+						TransactionRecordsReindexation reindexationOptionForThisRecord = reindexation;
+						RequiredRecordMigrations migrations =
+								modelLayerFactory.getRecordMigrationsManager().getRecordMigrationsFor(record);
+
+						if (!migrations.getScripts().isEmpty()) {
+
+							for (RecordMigrationScript script : migrations.getScripts()) {
+								script.migrate(record);
+							}
+							record.set(Schemas.MIGRATION_DATA_VERSION, migrations.getVersion());
+
+							reindexationOptionForThisRecord = TransactionRecordsReindexation.ALL();
+						}
+
 						try {
 							for (Metadata metadata : step.getMetadatas()) {
 								automaticMetadataServices.updateAutomaticMetadata((RecordImpl) record, recordProvider, metadata,
-										reindexation, types, transaction.getRecordUpdateOptions());
+										reindexationOptionForThisRecord, types, transaction.getRecordUpdateOptions());
 							}
 						} catch (RuntimeException e) {
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);

@@ -454,6 +454,12 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public long getDataMigrationVersion() {
+		Double value = get(Schemas.MIGRATION_DATA_VERSION);
+		return value == null ? 0 : value.longValue();
+	}
+
+	@Override
 	public String getSchemaCode() {
 		return schemaCode;
 	}
@@ -580,6 +586,9 @@ public class RecordImpl implements Record {
 			try {
 				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
 			} catch (NoSuchMetadata e) {
+				if (!isSaved()) {
+					throw e;
+				}
 				Record originalRecord = getCopyOfOriginalRecord();
 				try {
 					modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));

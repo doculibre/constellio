@@ -2,8 +2,6 @@ package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.modules.rm.wrappers.Document.SAME_INACTIVE_FATE_AS_FOLDER;
-import static com.constellio.app.modules.rm.wrappers.Document.SAME_SEMI_ACTIVE_FATE_AS_FOLDER;
 import static com.constellio.data.utils.TimeProvider.getLocalDate;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNotNull;
@@ -18,7 +16,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -173,7 +170,7 @@ public class DecommissioningSearchConditionFactory {
 		params.validate();
 
 		return from(schemas.containerRecord.schemaType())
-				.where(schemas.containerRecord.administrativeUnit()).isEqualTo(params.adminUnitId)
+				.where(schemas.containerRecord.administrativeUnits()).isEqualTo(params.adminUnitId)
 				.andWhere(schemas.containerRecord.decommissioningType()).isEqualTo(params.type)
 				.andWhere(schemas.containerRecord.storageSpace()).is(params.withStorage ? isNotNull() : isNull());
 	}
@@ -184,7 +181,7 @@ public class DecommissioningSearchConditionFactory {
 		List<String> units = decommissioningService.getAllAdminUnitIdsHierarchyOf(params.adminUnitId);
 
 		LogicalSearchCondition condition = from(schemas.containerRecord.schemaType())
-				.where(schemas.containerRecord.administrativeUnit()).isIn(units)
+				.where(schemas.containerRecord.administrativeUnits()).isIn(units)
 				.andWhere(schemas.containerRecord.decommissioningType()).isEqualTo(params.type)
 				.andWhere(schemas.containerRecord.storageSpace()).is(params.withStorage ? isNotNull() : isNull());
 

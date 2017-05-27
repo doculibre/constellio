@@ -225,7 +225,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	@Override
 	public void close() {
-
+		started = false;
 	}
 
 	public File getFlushedFolder() {

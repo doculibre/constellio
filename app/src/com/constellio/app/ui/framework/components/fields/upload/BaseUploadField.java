@@ -48,15 +48,24 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	private ButtonsContainer<IndexedContainer> fileUploadsContainer;
 
 	private Table fileUploadsTable;
-	
+
 	private Map<Object, Component> itemCaptions = new HashMap<>();
-	
+
 	private ViewChangeListener viewChangeListener;
 
-	public BaseUploadField() {
+	private boolean haveDeleteButton;
+
+	public BaseUploadField()
+	{
+		this(true);
+	}
+
+	public BaseUploadField(boolean haveDeleteButton) {
 		super();
 		
 		setSizeFull();
+
+		this.haveDeleteButton = haveDeleteButton;
 
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
@@ -136,37 +145,42 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 		fileUploadsContainer = new ButtonsContainer<>(new IndexedContainer());
 		fileUploadsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
-		fileUploadsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				DeleteButton deleteButton = new DeleteButton() {
-					@SuppressWarnings("unchecked")
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						if (itemId instanceof TempFileUpload) {
-							TempFileUpload tempFileUpload = (TempFileUpload) itemId;
-							tempFileUpload.delete();
-						} else {
-							deleteTempFile(itemId);
-						}
-						if (!isMultiValue()) {
-							BaseUploadField.this.setValue(null);
-						} else {
-							List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
-							List<Object> newListValue = new ArrayList<Object>(previousListValue);
-							newListValue.remove(itemId);
-							BaseUploadField.this.setValue(newListValue);
-						}
-					}
-				};
-				deleteButton.setReadOnly(BaseUploadField.this.isReadOnly());
-				deleteButton.setEnabled(BaseUploadField.this.isEnabled());
-				deleteButton.setVisible(isDeleteLink(itemId));
-				return deleteButton;
-			}
-		});
 
+		if (haveDeleteButton)
+		{
+				fileUploadsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+
+					DeleteButton deleteButton = new DeleteButton() {
+						@SuppressWarnings("unchecked")
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							if (itemId instanceof TempFileUpload) {
+								TempFileUpload tempFileUpload = (TempFileUpload) itemId;
+								tempFileUpload.delete();
+							} else {
+								deleteTempFile(itemId);
+							}
+							if (!isMultiValue()) {
+								BaseUploadField.this.setValue(null);
+							} else {
+								List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
+								List<Object> newListValue = new ArrayList<Object>(previousListValue);
+								newListValue.remove(itemId);
+								BaseUploadField.this.setValue(newListValue);
+							}
+						}
+					};
+					deleteButton.setReadOnly(BaseUploadField.this.isReadOnly());
+					deleteButton.setEnabled(BaseUploadField.this.isEnabled());
+					deleteButton.setVisible(isDeleteLink(itemId));
+					return deleteButton;
+				}
+			});
+		}
 		fileUploadsTable = new Table();
+
 		fileUploadsTable.setContainerDataSource(fileUploadsContainer);
 		fileUploadsTable.setPageLength(0);
 		fileUploadsTable.setWidth("100%");
