@@ -1,8 +1,20 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_UnsupportedVersioningState;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.records.RecordServicesException;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
@@ -14,25 +26,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_UnsupportedVersioningState;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.records.RecordServicesException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocument> {
 
@@ -78,7 +73,8 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 		}
 
 		Content content;
-		ContentVersionDataSummary dataSummary = uploadContent(contentStream.getStream(), contentStream.getFileName());
+		ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(contentStream.getStream(), contentStream.getFileName());
+		ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 		if (versioningState == VersioningState.MAJOR) {
 			content = contentManager.createMajor(user, contentStream.getFileName(), dataSummary);
 		} else if (versioningState == VersioningState.MINOR) {
