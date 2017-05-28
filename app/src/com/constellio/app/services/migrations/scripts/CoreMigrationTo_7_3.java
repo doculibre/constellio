@@ -23,7 +23,7 @@ public class CoreMigrationTo_7_3 implements MigrationScript {
 
     @Override
     public String getVersion() {
-        return "7.1";
+        return "7.3";
     }
 
     @Override
