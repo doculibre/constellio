@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.email;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.constellio.model.services.contents.icap.IcapException;
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -25,8 +15,17 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresenter<AddEmailAttachmentsToFolderView> {
 
@@ -92,7 +91,8 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 					try {
 						Document attachmentDocument = rmSchemasRecordsServices.newDocument();
 						attachmentDocument.setTitle(attachmentFilename);
-						ContentVersionDataSummary attachmentSummary = uploadContent(attachmentIn, true, true, attachmentFilename);
+						ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(attachmentIn, true, true, attachmentFilename);
+						ContentVersionDataSummary attachmentSummary = uploadResponse.getContentVersionDataSummary();
 						Content attachmentContent = contentManager
 								.createMajor(getCurrentUser(), attachmentFilename, attachmentSummary);
 						attachmentDocument.setContent(attachmentContent);

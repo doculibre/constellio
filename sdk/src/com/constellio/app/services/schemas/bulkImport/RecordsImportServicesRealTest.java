@@ -1907,8 +1907,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 
-		ContentVersionDataSummary summary1 = contentManager.upload(getTestResourceInputStream("resource1.docx"), "File1.docx");
-		ContentVersionDataSummary summary2 = contentManager.upload(getTestResourceInputStream("resource2.pdf"), "File2.pdf");
+		ContentVersionDataSummary summary1 = contentManager.upload(getTestResourceInputStream("resource1.docx"), "File1.docx")
+				.getContentVersionDataSummary();
+		ContentVersionDataSummary summary2 = contentManager.upload(getTestResourceInputStream("resource2.pdf"), "File2.pdf")
+				.getContentVersionDataSummary();
 
 		ContentVersionDataSummary inexistent1 = new ContentVersionDataSummary("inexistentHash1", "pdf", 45);
 		ContentVersionDataSummary inexistent2 = new ContentVersionDataSummary("inexistentHash2", "doc", 56);
