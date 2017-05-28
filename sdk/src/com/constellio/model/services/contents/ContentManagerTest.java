@@ -260,7 +260,8 @@ public class ContentManagerTest extends ConstellioTest {
 		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		when(closeableStreamFactory.length()).thenReturn(42L);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		doReturn(parsingResults).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
+		ContentManager.ParsedContentResponse parsedContentResponse = contentManager.buildParsedContentResponse(false, parsingResults);
+		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doNothing().when(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 
@@ -330,7 +331,8 @@ public class ContentManagerTest extends ConstellioTest {
 
 		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		doReturn(parsingResults).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
+		ContentManager.ParsedContentResponse parsedContentResponse = contentManager.buildParsedContentResponse(false, parsingResults);
+		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(ContentManagerRuntimeException.class).when(contentManager)
 				.saveContent(aContentHash, closeableStreamFactory);
@@ -351,7 +353,8 @@ public class ContentManagerTest extends ConstellioTest {
 
 		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		doReturn(parsingResults).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
+		ContentManager.ParsedContentResponse parsedContentResponse = contentManager.buildParsedContentResponse(false, parsingResults);
+		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(IOException.class).when(contentManager)
 				.getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);

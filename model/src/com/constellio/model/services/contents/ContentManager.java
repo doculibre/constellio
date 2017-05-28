@@ -1,24 +1,5 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -695,6 +676,10 @@ public class ContentManager implements StatefulService {
 		public String getFileName() {
 			return fileName;
 		}
+	}
+
+	public ParsedContentResponse buildParsedContentResponse(boolean hasFoundDuplicate, ParsedContent parsedContent) {
+		return new ParsedContentResponse(hasFoundDuplicate, parsedContent);
 	}
 
 	public class ParsedContentResponse {
