@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import com.constellio.model.conf.FoldersLocator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +43,10 @@ public class SolrCollectionsBackupRestoreManagementToolAcceptanceTest extends Co
 			throws Exception {
 		props = loadProps();
 
-		String zkHost = props.getRecordsDaoCloudSolrServerZKHost();
+		File configFile = new FoldersLocator().getConstellioProperties();
+		Map<String, String> configs = PropertyFileUtils.loadKeyValues(configFile);
+		String zkHost = new PropertiesDataLayerConfiguration(configs, null, null, null).getRecordsDaoCloudSolrServerZKHost();
+
 		assumeTrue("zkHost seems not to be declared", StringUtils.isNotBlank(zkHost));
 
 		tool = new SolrCollectionsBackupRestoreManagementTool(zkHost);
