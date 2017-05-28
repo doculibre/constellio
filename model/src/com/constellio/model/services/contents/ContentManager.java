@@ -1,5 +1,24 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -92,6 +111,8 @@ public class ContentManager implements StatefulService {
 	private final ModelLayerFactory modelLayerFactory;
 	private final IcapService icapService;
 
+	private boolean serviceThreadEnabled = true;
+
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, new IcapService(modelLayerFactory));
 	}
@@ -120,10 +141,12 @@ public class ContentManager implements StatefulService {
 
 			@Override
 			public void run() {
-				if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
-					deleteUnreferencedContents();
+				if (serviceThreadEnabled) {
+					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+						deleteUnreferencedContents();
+					}
+					convertPendingContentForPreview();
 				}
-				convertPendingContentForPreview();
 			}
 		};
 
@@ -149,6 +172,11 @@ public class ContentManager implements StatefulService {
 
 		//
 		icapService.init();
+	}
+
+	public ContentManager setServiceThreadEnabled(boolean serviceThreadEnabled) {
+		this.serviceThreadEnabled = serviceThreadEnabled;
+		return this;
 	}
 
 	@Override
@@ -437,7 +465,7 @@ public class ContentManager implements StatefulService {
 
 	public void convertPendingContentForPreview() {
 
-		for (String collection : collectionsListManager.getCollections()) {
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			if (!closing.get()) {
 				List<Record> records = searchServices.search(new LogicalSearchQuery()
 						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
