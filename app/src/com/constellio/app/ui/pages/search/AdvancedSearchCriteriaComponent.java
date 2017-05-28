@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -351,7 +352,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private void addIsEmptyIsNotEmpty(final Criterion criterion, final ComboBox operator) {
 
-			Object defaultValue = criterion.getSearchOperator() != null ? criterion.getSearchOperator() : SearchOperator.EQUALS;
+			Object defaultValue = SearchOperator.EQUALS;
+			if (Arrays.asList(SearchOperator.EQUALS, SearchOperator.IS_NULL, SearchOperator.IS_NOT_NULL).contains(criterion.getSearchOperator())) {
+				defaultValue = criterion.getSearchOperator();
+			}
 
 			operator.addItem(SearchOperator.EQUALS);
 			operator.setItemCaption(SearchOperator.EQUALS, "=");

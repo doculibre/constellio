@@ -102,7 +102,7 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 				.containsOnly(addEvent(es.newConnectorSmbFolder(connectorInstance)
 						.setUrl(SHARE_URL)));
 
-		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
+		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString(), anyBoolean());
 		verify(smbRecordService, times(1)).getFolder(SHARE_URL);
 		verify(smbRecordService, times(1)).updateResumeUrl(SHARE_URL);
 	}

@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -52,6 +54,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -61,6 +64,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -97,6 +101,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	transient SearchPresenterService service;
 	boolean highlighter = true;
 	int selectedPageLength;
+	boolean allowDownloadZip = true;
 
 	public int getSelectedPageLength() {
 		return selectedPageLength;
@@ -156,6 +161,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 	}
 
+	public boolean isAllowDownloadZip() {
+		return allowDownloadZip;
+	}
+
 	public void setExtraSolrParams(Map<String, String[]> extraSolrParams) {
 		this.extraSolrParams = extraSolrParams;
 	}
@@ -176,6 +185,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		collection = sessionContext.getCurrentCollection();
 		service = new SearchPresenterService(collection, constellioFactories.getModelLayerFactory());
 		schemasDisplayManager = constellioFactories.getAppLayerFactory().getMetadataSchemasDisplayManager();
+
+		ConstellioModulesManager modulesManager = constellioFactories.getAppLayerFactory().getModulesManager();
+		Module rmModule = modulesManager.getInstalledModule(ConstellioRMModule.ID);
+		allowDownloadZip = modulesManager.isModuleEnabled(collection, rmModule);
 	}
 
 	public void resetFacetAndOrder() {

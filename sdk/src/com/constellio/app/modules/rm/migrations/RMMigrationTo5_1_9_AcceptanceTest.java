@@ -1,16 +1,17 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.util.List;
+
+import org.junit.Test;
+
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationTo5_1_9_AcceptanceTest extends ConstellioTest {
 
@@ -31,7 +32,8 @@ public class RMMigrationTo5_1_9_AcceptanceTest extends ConstellioTest {
 				String code = metadataSchema.getCode();
 				List<String> tableMetadataCodes = metadataSchemasDisplayManager
 						.getSchema(zeCollection, code).getTableMetadataCodes();
-				if (code.contains("default") || code.equals("printable_label") || (code.startsWith("userTask") && code.contains("Request"))) {
+				if (code.contains("default") || code.equals("printable_label") || (code.startsWith("userTask") && code
+						.contains("Request"))) {
 					if (!code.startsWith("event_") && !code.startsWith("printable_")) {
 						assertThat(tableMetadataCodes).isEqualTo(metadataSchemasDisplayManager
 								.getSchema(zeCollection, code).getSearchResultsMetadataCodes()).isNotEmpty();
@@ -45,7 +47,7 @@ public class RMMigrationTo5_1_9_AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_1_4_1() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "veryOlds");
 		File state = new File(statesFolder, "given_system_in_5.1.4.1_with_tasks,rm_modules__with_manual_modifications.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);

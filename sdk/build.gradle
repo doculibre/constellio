@@ -33,7 +33,7 @@ dependencies {
 
     testCompile "com.h2database:h2:1.4.182"
     testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
-    testCompile "org.glassfish.jersey.core:jersey-client:2.13"
+    testCompile "org.glassfish.jersey.core:jersey-client:2.25.1"
     testCompile "org.apache.chemistry.opencmis:chemistry-opencmis-client-bindings:0.12.0"
     testCompile "org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:0.12.0"
     testCompile "org.databene:contiperf:2.2.0"

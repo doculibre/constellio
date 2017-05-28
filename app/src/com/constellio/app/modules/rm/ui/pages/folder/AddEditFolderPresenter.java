@@ -1,5 +1,32 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -11,9 +38,27 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.folder.fields.*;
+import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTransferDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -24,48 +69,38 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.wrappers.Folder.*;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditFolderPresenter.class);
 
-    private static final String ID = "id";
-    private static final String PARENT_ID = "parentId";
-    private static final String DUPLICATE = "duplicate";
-    private static final String STRUCTURE = "structure";
-    private static final String USER_FOLDER_ID = "userFolderId";
+	private static final String ID = "id";
+	private static final String PARENT_ID = "parentId";
+	private static final String DUPLICATE = "duplicate";
+	private static final String STRUCTURE = "structure";
+	private static final String USER_FOLDER_ID = "userFolderId";
 
-    private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
+	private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 	private boolean addView;
 	private boolean folderHadAParent;
-    private String currentSchemaCode;
+	private String currentSchemaCode;
 	private FolderVO folderVO;
 	private Map<CustomFolderField<?>, Object> customContainerDependencyFields = new HashMap<>();
-    boolean isDuplicateAction;
-    boolean isDuplicateStructureAction;
-    private String userFolderId;
+	boolean isDuplicateAction;
+	boolean isDuplicateStructureAction;
+	private String userFolderId;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
@@ -97,7 +132,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		String parentId = paramsMap.get(PARENT_ID);
 		userFolderId = paramsMap.get(USER_FOLDER_ID);
 
-        Record record;
+		Record record;
 		if (StringUtils.isNotBlank(id)) {
 			record = getRecord(id);
 			addView = false;
@@ -252,7 +287,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				return;
 			}
 		}
-		if(!canContainerContainFolder(folder)) {
+		if (!canContainerContainFolder(folder)) {
 			view.showErrorMessage($("AddEditFolderViewImpl.notEnoughSpaceInContainer"));
 			return;
 		}
@@ -264,26 +299,26 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				folder.setFormCreatedOn(time);
 			}
 		}
-        folder.setFormModifiedBy(currentUser);
-        if (folder.getFormModifiedOn() == null){
-            folder.setFormModifiedOn(time);
-        }
-        addOrUpdate(folder.getWrappedRecord(),
-                RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
+		folder.setFormModifiedBy(currentUser);
+		if (folder.getFormModifiedOn() == null) {
+			folder.setFormModifiedOn(time);
+		}
+		addOrUpdate(folder.getWrappedRecord(),
+				RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
 
-        if (userFolderId != null) {
-            RMUserFolder userFolder = rmSchemas().getUserFolder(userFolderId);
-            try {
-                decommissioningService().duplicateSubStructureAndSave(folder, userFolder, currentUser);
-                decommissioningService().deleteUserFolder(userFolder, currentUser);
-            } catch (RecordServicesException e) {
-                LOGGER.error("Error while trying to recreate user folder structure", e);
-                view.showErrorMessage(e.getMessage());
-            } catch (IOException e) {
-                LOGGER.error("Error while trying to recreate user folder structure", e);
-                view.showErrorMessage(e.getMessage());
-            }
-        }
+		if (userFolderId != null) {
+			RMUserFolder userFolder = rmSchemas().getUserFolder(userFolderId);
+			try {
+				decommissioningService().duplicateSubStructureAndSave(folder, userFolder, currentUser);
+				decommissioningService().deleteUserFolder(userFolder, currentUser);
+			} catch (RecordServicesException e) {
+				LOGGER.error("Error while trying to recreate user folder structure", e);
+				view.showErrorMessage(e.getMessage());
+			} catch (IOException e) {
+				LOGGER.error("Error while trying to recreate user folder structure", e);
+				view.showErrorMessage(e.getMessage());
+			}
+		}
 
 		view.navigate().to(RMViews.class).displayFolder(folder.getId());
 	}
@@ -609,6 +644,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			CopyType currentValue = copyStatusEnteredField.getFieldValue();
 			if (isCopyStatusInputPossible(firstDraw)) {
 				if (!copyStatusEnteredField.isVisible()) {
+					copyStatusEnteredField.setFieldValue(CopyType.PRINCIPAL);
 					setFieldVisible(copyStatusEnteredField, true, Folder.COPY_STATUS_ENTERED);
 				}
 			} else {
@@ -675,8 +711,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 		if (currentField.equals(changedCustomField) && clearContainerField) {
-//			reloadFormAfterFieldChanged();
-		} else if (currentField.equals(changedCustomField) && currentField.getFieldValue() != null && !containerField.isVisible()) {
+			//			reloadFormAfterFieldChanged();
+		} else if (currentField.equals(changedCustomField) && currentField.getFieldValue() != null && !containerField
+				.isVisible()) {
 			commitForm();
 		}
 	}
@@ -805,7 +842,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private boolean canContainerContainFolder(Folder folder) {
-		if(addView) {
+		if (addView) {
 			return canContainerContainNewFolder(folder);
 		} else {
 			return canContainerContainEditedFolder(folder);
@@ -813,9 +850,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private boolean canContainerContainNewFolder(Folder folder) {
-		if(folder.getContainer() != null && folder.getLinearSize() != null)  {
-			ContainerRecord containerRecord = rmSchemas().wrapContainerRecord(presenterService().getRecord(folder.getContainer()));
-			if(containerRecord.getAvailableSize() < folder.getLinearSize()) {
+		if (folder.getContainer() != null && folder.getLinearSize() != null) {
+			ContainerRecord containerRecord = rmSchemas()
+					.wrapContainerRecord(presenterService().getRecord(folder.getContainer()));
+			if (containerRecord.getAvailableSize() < folder.getLinearSize()) {
 				return false;
 			}
 		}
@@ -824,14 +862,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private boolean canContainerContainEditedFolder(Folder folder) {
 		Record wrappedRecord = folder.getWrappedRecord();
-		if(wrappedRecord.isModified(rmSchemas().folder.container())) {
+		if (wrappedRecord.isModified(rmSchemas().folder.container())) {
 			return canContainerContainNewFolder(folder);
 		} else {
-			if(folder.getContainer() != null && folder.getLinearSize() != null && wrappedRecord.isModified(rmSchemas().folder.linearSize()))  {
-				ContainerRecord containerRecord = rmSchemas().wrapContainerRecord(presenterService().getRecord(folder.getContainer()));
+			if (folder.getContainer() != null && folder.getLinearSize() != null && wrappedRecord
+					.isModified(rmSchemas().folder.linearSize())) {
+				ContainerRecord containerRecord = rmSchemas()
+						.wrapContainerRecord(presenterService().getRecord(folder.getContainer()));
 				Double originalSize = wrappedRecord.getCopyOfOriginalRecord().get(rmSchemas().folder.linearSize());
-				double filterOriginalSize = originalSize == null ? 0.0:originalSize;
-				if(containerRecord.getAvailableSize() < folder.getLinearSize() - filterOriginalSize) {
+				double filterOriginalSize = originalSize == null ? 0.0 : originalSize;
+				if (containerRecord.getAvailableSize() < folder.getLinearSize() - filterOriginalSize) {
 					return false;
 				}
 			}
@@ -842,18 +882,18 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	@Override
 	protected Record newRecord() {
 		Record record = super.newRecord();
-        Folder folder = rmSchemas().wrapFolder(record);
-        folder.setOpenDate(new LocalDate());
-        
-        // If the current user is only attached to one administrative unit, set it as the field value.
-        User currentUser = getCurrentUser();
-        SearchServices searchServices = searchServices();
-        MetadataSchemaTypes types = types();
-        MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
-        LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
-        visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
-        LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
-        visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
+		Folder folder = rmSchemas().wrapFolder(record);
+		folder.setOpenDate(new LocalDate());
+
+		// If the current user is only attached to one administrative unit, set it as the field value.
+		User currentUser = getCurrentUser();
+		SearchServices searchServices = searchServices();
+		MetadataSchemaTypes types = types();
+		MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
+		LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
+		visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
+		LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
+		visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
 		String defaultAdministrativeUnit = getCurrentUser().get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
 		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		if (rmConfigs.isFolderAdministrativeUnitEnteredAutomatically()) {
@@ -863,10 +903,12 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					if (getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
 						folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
 					} else {
-						LOGGER.error("User " + getCurrentUser().getUsername() + " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
+						LOGGER.error("User " + getCurrentUser().getUsername()
+								+ " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
 					}
 				} catch (Exception e) {
-					LOGGER.error("Default administrative unit for user " + getCurrentUser().getUsername() + " is invalid: " + defaultAdministrativeUnit);
+					LOGGER.error("Default administrative unit for user " + getCurrentUser().getUsername() + " is invalid: "
+							+ defaultAdministrativeUnit);
 				}
 			} else {
 				if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {

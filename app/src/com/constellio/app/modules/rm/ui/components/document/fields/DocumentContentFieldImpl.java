@@ -26,7 +26,7 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 	private List<ContentUploadedListener> contentUploadedListeners = new ArrayList<>();
 
 	public DocumentContentFieldImpl() {
-		super();
+		super(false, false);
 
 		addValueChangeListener(new ValueChangeListener() {
 			@Override

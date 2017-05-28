@@ -28,6 +28,10 @@ public class BatchProcessController implements StatefulService, BatchProcessesLi
 
 	@Override
 	public final void initialize() {
+
+	}
+
+	public final void start() {
 		if (thread != null) {
 			throw new ControllerAlreadyStarted();
 		}
