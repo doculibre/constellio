@@ -121,6 +121,7 @@ public class ImportRecordOfSameTypeWriter {
 						writer.writeStartElement("structureContent");
 						writer.writeAttribute("type", "structureContent");
 						writer.writeAttribute("structure", ((StructureImportContent)value).getSerializedStructure());
+						writer.writeAttribute("key", importRecordMetadata.getKey());
 						writer.writeEndElement();
 					}
 					else if (value instanceof ImportContent) {
