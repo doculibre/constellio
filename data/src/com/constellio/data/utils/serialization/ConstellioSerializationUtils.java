@@ -1,4 +1,4 @@
-package com.constellio.app.utils;
+package com.constellio.data.utils.serialization;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
@@ -7,12 +7,12 @@ import java.io.Serializable;
 import org.apache.commons.lang.SerializationException;
 import org.apache.commons.lang.SerializationUtils;
 
-import com.constellio.app.utils.SerializableChecker.ConstellioNotSerializableException;
+import com.constellio.data.utils.serialization.SerializableChecker.ConstellioNotSerializableException;
 
 public class ConstellioSerializationUtils {
 	
 	public static void validateSerializable(Serializable serializable) {
-//		validateSerializable(serializable, (Class<Object>) null);
+		validateSerializable(serializable, (Class<Object>) null);
 	}
 	
 	public static void validateSerializable(Serializable serializable, Class<?>...ignoredClasses) {

@@ -1,5 +1,6 @@
 package com.constellio.model.utils;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
 
@@ -23,7 +25,9 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 
 	private final CollectionsListManager collectionsListManager;
 
-	private final Map<String, T> cache = new HashMap<>();
+//	private final Map<String, T> cache = new HashMap<>();
+
+	private final ConstellioCache cache;
 
 	private final OneXMLConfigPerCollectionManagerListener<T> listener;
 
@@ -31,15 +35,16 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 
 	public OneXMLConfigPerCollectionManager(
 			ConfigManager configManager, CollectionsListManager collectionsListManager, String collectionFolderRelativeConfigPath,
-			XMLConfigReader<T> configReader, OneXMLConfigPerCollectionManagerListener<T> listener) {
-		this(configManager, collectionsListManager, collectionFolderRelativeConfigPath, configReader, listener, null);
+			XMLConfigReader<T> configReader, OneXMLConfigPerCollectionManagerListener<T> listener, ConstellioCache cache) {
+		this(configManager, collectionsListManager, collectionFolderRelativeConfigPath, configReader, listener, null, cache);
 	}
 
 	public OneXMLConfigPerCollectionManager(
 			ConfigManager configManager, CollectionsListManager collectionsListManager, String collectionFolderRelativeConfigPath,
 			XMLConfigReader<T> configReader, OneXMLConfigPerCollectionManagerListener<T> listener,
-			DocumentAlteration newDocumentAlteration) {
+			DocumentAlteration newDocumentAlteration, ConstellioCache cache) {
 
+		this.cache = cache;
 		this.newDocumentAlteration = newDocumentAlteration;
 		this.configReader = configReader;
 		this.configManager = configManager;
@@ -56,6 +61,22 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 			registerCollectionConfigAndLoad(collection);
 
 		}
+	}
+
+	Object getFromCache(String key) {
+		return cache.get(key);
+	}
+	
+	void putInCache(String key, Object value) {
+		cache.put(key, (Serializable) value);
+	}
+	
+	void removeFromCache(String key) {
+		cache.remove(key);
+	}
+	
+	void clearCache() {
+		cache.clear();
 	}
 
 	private void registerCollectionConfigAndLoad(String collection) {
@@ -85,12 +106,13 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		//load(collection, configPath);
 	}
 
+	@SuppressWarnings("unchecked")
 	public T get(String collection) {
-		return cache.get(collection);
+		return (T) getFromCache(collection);
 	}
 
 	public void reload(String collection) {
-		cache.remove(collection);
+		removeFromCache(collection);
 		String configPath = getConfigPath(collection);
 		load(collection, configPath);
 	}
@@ -103,7 +125,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		}
 
 		T value = parse(collection, config);
-		cache.put(collection, value);
+		putInCache(collection, value);
 	}
 
 	protected T parse(String collection, XMLConfiguration xmlConfiguration) {
@@ -127,7 +149,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 
 	@Override
 	public void onCollectionDeleted(String collection) {
-		cache.remove(collection);
+		removeFromCache(collection);
 	}
 
 	public void createCollectionFile(final String collection, DocumentAlteration documentAlteration) {

@@ -1,5 +1,6 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.model.entities.Language;
 
-public class SchemaTypeDisplayConfig {
+public class SchemaTypeDisplayConfig implements Serializable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaTypeDisplayConfig.class);
 

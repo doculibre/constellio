@@ -30,6 +30,8 @@ import org.mockito.Mock;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.hashing.HashingService;
@@ -78,10 +80,13 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Mock DocumentAlteration alterDoc;
 
 	@Mock Properties fileProperties;
+	
+	ConstellioCache cache;
 
 	@Before
 	public void setUp() {
-		configManager = spy(new FileSystemConfigManager(configurationRoot, ioServices, hashService));
+		cache = new SerializationCheckCache("zeCache");
+		configManager = spy(new FileSystemConfigManager(configurationRoot, ioServices, hashService, cache));
 
 		properties = new HashMap<String, String>();
 		propertiesAdded = new HashMap<String, String>();
