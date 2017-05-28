@@ -56,7 +56,7 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 		CacheLoader<String, ParsedContent> loader = new CacheLoader<String, ParsedContent>() {
 			@Override
 			public ParsedContent load(String key) {
-				return contentManager.getParsedContentParsingIfNotYetDone(key);
+				return contentManager.getParsedContentParsingIfNotYetDone(key).getParsedContent();
 			}
 		};
 		cachedContentManager = CacheBuilder.newBuilder().build(loader);

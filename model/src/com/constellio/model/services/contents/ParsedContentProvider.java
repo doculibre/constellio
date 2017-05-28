@@ -1,9 +1,9 @@
 package com.constellio.model.services.contents;
 
+import com.constellio.model.entities.records.ParsedContent;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.model.entities.records.ParsedContent;
 
 public class ParsedContentProvider {
 
@@ -23,7 +23,7 @@ public class ParsedContentProvider {
 	public ParsedContent getParsedContentParsingIfNotYetDone(String hash) {
 		ParsedContent parsedContent = cache.get(hash);
 		if (parsedContent == null) {
-			parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash);
+			parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash).getParsedContent();
 			cache.put(hash, parsedContent);
 		}
 

@@ -147,7 +147,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tabSheet = new TabSheet();
 
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory());
-		versionTable = new ContentVersionVOTable() {
+		versionTable = new ContentVersionVOTable(presenter.getAppLayerFactory()) {
 			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();

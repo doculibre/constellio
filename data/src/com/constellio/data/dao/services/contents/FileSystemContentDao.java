@@ -25,6 +25,13 @@ import com.constellio.data.dao.services.contents.FileSystemContentDaoRuntimeExce
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import org.apache.commons.io.FileExistsException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileSystemContentDao implements StatefulService, ContentDao {
 
