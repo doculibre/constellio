@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import com.constellio.model.conf.FoldersLocator;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -27,28 +28,22 @@ public class ZookeeperBackupAcceptanceTest extends ConstellioTest {
 	private File backupDir;
 
 	@Rule
-	public TemporaryFolder folder= new TemporaryFolder();
+	public TemporaryFolder folder = new TemporaryFolder();
 
 	public ZookeeperBackupAcceptanceTest() {
 	}
 
 	@Before
 	public void setUp() throws IOException {
-		props = loadProps();
+		File configFile = new FoldersLocator().getConstellioProperties();
+		Map<String, String> configs = PropertyFileUtils.loadKeyValues(configFile);
+		zkHost = new PropertiesDataLayerConfiguration(configs, null, null, null).getRecordsDaoCloudSolrServerZKHost();
 
-		zkHost = props.getRecordsDaoCloudSolrServerZKHost();
 		assertThat(StringUtils.isNotBlank(zkHost)).isTrue();
 
 		backup = new ZookeeperBackup();
 
 		backupDir = folder.newFolder("zookeeperBackup");
-	}
-
-	private PropertiesDataLayerConfiguration loadProps() {
-		File configFile = new SDKFoldersLocator().getSDKProperties();
-		Map<String, String> configs = PropertyFileUtils.loadKeyValues(configFile);
-
-		return new PropertiesDataLayerConfiguration(configs, null, null, null);
 	}
 
 	@Test
