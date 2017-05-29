@@ -1048,27 +1048,23 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
 				.withStringMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator(),
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator()
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
 				)
 				.withTextMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
-								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).convertToMetatdataPopulator()
+								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).build()
 				)
 				.withStringsMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator(),
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator()
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
 				)
 				.withTextsMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
-								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).convertToMetatdataPopulator()
+								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).build()
 				)
 		));
 
