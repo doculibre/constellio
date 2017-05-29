@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static com.constellio.sdk.tests.SaveStateFeature.loadStateFrom;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.mockito.Mockito.spy;
 
@@ -16,6 +17,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.CloseableUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -29,8 +31,11 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -144,13 +149,16 @@ public class FactoriesTestFeatures {
 	}
 
 	private void deleteFromZooKeeper(String address) {
+		CuratorFramework client = null;
 		try {
 			RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-			CuratorFramework client = CuratorFrameworkFactory.newClient(address, retryPolicy);
+			client = CuratorFrameworkFactory.newClient(address, retryPolicy);
 			client.start();
 			client.delete().deletingChildrenIfNeeded().forPath("/constellio");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			CloseableUtils.closeQuietly(client);
 		}
 	}
 
@@ -311,6 +319,13 @@ public class FactoriesTestFeatures {
 							}
 							return service;
 						}
+
+						@Override
+						public <T> void afterInitialize(T service) {
+							if (service instanceof ConfigManager && importedSettings != null) {
+								((ConfigManager) service).importFrom(importedSettings);
+							}
+						}
 					};
 
 				}
@@ -358,12 +373,13 @@ public class FactoriesTestFeatures {
 				if (!ConstellioTest.isCurrentPreservingState()) {
 					File tempFolder = fileSystemTestFeatures.newTempFolder();
 					try {
-						SaveStateFeature
-								.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, pluginsFolder,
-										tlogWorkFolder, dummyPasswords);
+						File tempUnzipSettingsFolder = loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder,
+								pluginsFolder, tlogWorkFolder, dummyPasswords);
+						decorator.importSettings(tempUnzipSettingsFolder);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
+
 				}
 			}
 			decorators.put(name, decorator);

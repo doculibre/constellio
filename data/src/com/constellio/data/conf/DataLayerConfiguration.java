@@ -1,13 +1,13 @@
 package com.constellio.data.conf;
 
 import java.io.File;
-import java.io.Serializable;
+import java.util.List;
 
 import org.joda.time.Duration;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 
-public interface DataLayerConfiguration extends Serializable {
+public interface DataLayerConfiguration {
 
 	void validate();
 
@@ -27,21 +27,19 @@ public interface DataLayerConfiguration extends Serializable {
 
 	File getContentDaoFileSystemFolder();
 
+    void setContentDaoFileSystemFolder(File contentsFolder);
+
 	DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
 
 	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
 
-	File getTempFolder();
+    List<String> getContentDaoReplicatedVaultMountPoints();
+
+    void setContentDaoReplicatedVaultMountPoints(List<String> replicatedVaultMountPoints);
+
+    File getTempFolder();
 
 	ConfigManagerType getSettingsConfigType();
-
-	CacheType getSettingsCacheType();
-
-	String getSettingsCacheUrl();
-
-	CacheType getRecordsCacheType();
-
-	String getRecordsCacheUrl();
 
 	String getSettingsZookeeperAddress();
 

@@ -1,33 +1,7 @@
 package com.constellio.data.dao.managers.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.XMLOutputter;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.internal.AssumptionViolatedException;
-import org.mockito.Mock;
-
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
@@ -35,33 +9,64 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.ThreadList;
+import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.apache.commons.io.IOUtils;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.CloseableUtils;
+import org.apache.zookeeper.KeeperException;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.XMLOutputter;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
-//FIXME: This class does not test ZookeeperConfigManger instead it tests the FileSystemConfigManager
-//TODO: change the set up method so that getDataLayerFactory() instantiates ZookeeperConfigManger
-//TODO: Merge the ZookeeperConfigMangerAcceptanceTest and FileSystemConfigMangerAcceptanceTest and create
-//		one parametric test and name it ConfigMangerAcceptanceTest
-@Ignore
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+
 public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
-	ConfigManager configManager;
+	private String TEST_FOLDER = "/test-tmp";
 
-	String propertiesConfigurationPath = "/resources/configs.properties";
-	String propertiesConfigurationAddedPath = "/resources/newConfigs.properties";
+	ZooKeeperConfigManager configManager;
 
-	String xmlConfigurationPath = "/resources/test.xml";
+	String propertiesConfigurationPath = "resources/configs.properties";
+	String propertiesConfigurationAddedPath = "resources/newConfigs.properties";
 
-	String binaryConfigurationPath = "/resources/config.bin";
-	String binaryConfigurationPathRecursiveFolders = "/doc/docu/resources/configuration.bin";
+	String xmlConfigurationPath = "resources/test.xml";
+
+	String binaryConfigurationPath = "resources/config.bin";
+	String binaryConfigurationPathRecursiveFolders = "doc/docu/resources/configuration.bin";
 
 	IOServices ioServices;
+
+	HashingService hashService;
 
 	Map<String, String> properties;
 	Map<String, String> propertiesUpdated;
 	InputStream binInputStream;
 	InputStream binInputStreamUpdated;
+
+	File root;
 
 	Document docXML;
 	Document docXMLWithVersion;
@@ -75,22 +80,39 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 	@Mock ConfigUpdatedEventListener otherPathListener;
 	@Mock ConfigEventListener otherEventListener;
 
+	CuratorFramework client;
+
 	@Before
 	public void setUp()
-			throws FileNotFoundException {
-		withSpiedServices(ConfigManager.class);
+			throws Exception {
 
 		ioServices = getIOLayerFactory().newIOServices();
 
-		configManager = getDataLayerFactory().getConfigManager();
-		assertThat(configManager).isInstanceOf(ZooKeeperConfigManager.class);
+		File configFile = new FoldersLocator().getConstellioProperties();
+		Map<String, String> configs = PropertyFileUtils.loadKeyValues(configFile);
+		String zhHost = new PropertiesDataLayerConfiguration(configs, null, null, null).getRecordsDaoCloudSolrServerZKHost();
+
+		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
+		client = CuratorFrameworkFactory.newClient(zhHost, retryPolicy);
+		client.start();
+
+		if (client.checkExists().forPath("/constellio" + TEST_FOLDER) != null) {
+			client.delete().deletingChildrenIfNeeded().forPath("/constellio" + TEST_FOLDER);
+		}
+
+		configManager = spy(new ZooKeeperConfigManager(zhHost, TEST_FOLDER, ioServices));
+		configManager.initialize();
 
 		this.loadProperties();
 
 		this.loadInputStream();
 
 		this.loadElementWithRoot();
+	}
 
+	@After
+	public void cleanUp() throws Exception {
+		CloseableUtils.closeQuietly(client);
 	}
 
 	private void loadElementWithRoot() {
@@ -106,25 +128,26 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		docXMLWithVersionUpdated = new Document(rootWithAttributeVersionUpdated);
 	}
 
-	//TODO Maxime, ce test n'est pas valide  @Test
+	@Test
 	public void givenXMLDocWithVersionWhenUpdateThisDocumentThenDocumentUpdated()
 			throws Exception {
 
 		configManager.add(xmlConfigurationPath, docXMLWithVersion);
 
+		XMLConfiguration xmlConfiguration = configManager.getXML(xmlConfigurationPath);
 		configManager.update(xmlConfigurationPath, "0", docXMLWithVersionUpdated);
 
-		XMLConfiguration expectedXMLConfiguration = new XMLConfiguration("1", "anHash", docXMLWithVersionUpdated);
+		XMLConfiguration expectedXMLConfiguration = configManager.getXML(xmlConfigurationPath);
 
 		assertEquals(expectedXMLConfiguration.getDocument(), configManager.getXML(xmlConfigurationPath).getDocument());
-		assertThat(configManager.getXML(xmlConfigurationPath).getHash()).isEqualTo(expectedXMLConfiguration.getHash());
+		assertThat("1").isEqualTo(expectedXMLConfiguration.getHash());
 	}
 
-	@Test(expected = OptimisticLockingConfiguration.class)
+	@Test(expected = ConfigManagerException.OptimisticLockingConfiguration.class)
 	public void givenXMLDocWithVersionWhenUpdateThisDocumentWithSameVersionThenException()
 			throws Exception {
 		configManager.add(xmlConfigurationPath, docXMLWithVersion);
-		configManager.update(xmlConfigurationPath, "2", docXMLWithVersion);
+		configManager.update(xmlConfigurationPath, "23", docXMLWithVersion);
 	}
 
 	private void loadInputStream()
@@ -136,11 +159,11 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private void loadProperties() {
-		properties = new HashMap<>();
+		properties = new HashMap<String, String>();
 		properties.put("KeyOne", "ValueOne");
 		properties.put("KeyTwo", "ValueTwo");
 
-		propertiesUpdated = new HashMap<>();
+		propertiesUpdated = new HashMap<String, String>();
 		propertiesUpdated.put("KeyOneUpdated", "ValueOneUpdated");
 		propertiesUpdated.put("KeyTwoUpdated", "ValueTwoUpdated");
 	}
@@ -187,7 +210,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
 		configManager.add(propertiesConfigurationPath, properties);
 
-		configManager.update(propertiesConfigurationPath, "100", properties);
+		configManager.update(propertiesConfigurationPath, "23", properties);
 	}
 
 	@Test
@@ -230,7 +253,8 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		configManager.add(xmlConfigurationPath, docXML);
-		configManager.update(xmlConfigurationPath, "100", docXML);
+
+		configManager.update(xmlConfigurationPath, "23", docXML);
 	}
 
 	@Test
@@ -263,8 +287,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		IOUtils.closeQuietly(expectedContentInputStream);
 	}
 
-	//@Test
-	// TODO make the trigger event work
+	@Test
 	public void givenBinaryConfigurationWhenUpdateThenUpdated()
 			throws Exception {
 		StreamFactory<InputStream> binStreamFactoryUpdated = getTestResourceInputStreamFactory(inputStreamUpdated);
@@ -273,16 +296,13 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		configManager.registerListener(binaryConfigurationPath, secondListener);
 		configManager.registerListener(binaryConfigurationPath, otherEventListener);
 		configManager.registerListener("otherPath", otherPathListener);
-
-		Thread.sleep(100);
-
 		verify(firstListener, never()).onConfigUpdated(anyString());
 		verify(secondListener, never()).onConfigUpdated(anyString());
 
 		String hash = configManager.getBinary(binaryConfigurationPath).getHash();
 		configManager.update(binaryConfigurationPath, hash, binInputStreamUpdated);
 
-		verify(firstListener).onConfigUpdated(binaryConfigurationPath);
+		verify(firstListener, timeout(1000)).onConfigUpdated(binaryConfigurationPath);
 		verify(secondListener).onConfigUpdated(binaryConfigurationPath);
 		verify(otherPathListener, never()).onConfigUpdated(anyString());
 		hash = configManager.getBinary(binaryConfigurationPath).getHash();
@@ -301,7 +321,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		configManager.add(binaryConfigurationPath, binInputStream);
 
-		configManager.update(binaryConfigurationPath, "100", binInputStreamUpdated);
+		configManager.update(binaryConfigurationPath, "23", binInputStreamUpdated);
 
 	}
 
@@ -313,6 +333,19 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		configManager.delete(binaryConfigurationPath);
 
 		assertThat(configManager.exist(binaryConfigurationPath)).isFalse();
+	}
+
+	@Test
+	public void whenDeleteFolderThenFolderDeleted()
+			throws Exception {
+		String folderToDeletePath = "aParentFolder/folderToDelete/";
+		configManager.add(folderToDeletePath + "someBinFile.bin", binInputStream);
+		assertThat(configManager.folderExist(folderToDeletePath)).isTrue();
+
+		configManager.deleteFolder(folderToDeletePath);
+
+		assertThat(configManager.folderExist(folderToDeletePath)).isFalse();
+		assertThat(configManager.exist(folderToDeletePath + "someBinFile.bin"));
 	}
 
 	@Test
@@ -331,7 +364,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		configManager.add(binaryConfigurationPath, binInputStream);
 
-		configManager.delete(binaryConfigurationPath, "100");
+		configManager.delete(binaryConfigurationPath, "23");
 
 	}
 
@@ -342,8 +375,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		assertThat(configManager.exist(binaryConfigurationPathRecursiveFolders)).isTrue();
 	}
 
-	//@Test
-	// TODO make the trigger event work
+	@Test
 	public void givenPropertyFileWhenGetPropertiesAndUpdateConfigurationThenWellInstancied()
 			throws Exception {
 
@@ -354,24 +386,20 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		configManager.registerListener(propertiesConfigurationPath, secondListener);
 		configManager.registerListener(propertiesConfigurationPath, otherEventListener);
 		configManager.registerListener("otherPath", otherPathListener);
-
-		Thread.sleep(100);
-
 		verify(firstListener, never()).onConfigUpdated(anyString());
 		verify(secondListener, never()).onConfigUpdated(anyString());
 
 		String hash = configManager.getProperties(propertiesConfigurationPath).getHash();
 		configManager.update(propertiesConfigurationPath, hash, propertiesUpdated);
 
-		verify(firstListener).onConfigUpdated(propertiesConfigurationPath);
+		verify(firstListener, timeout(1000).times(1)).onConfigUpdated(propertiesConfigurationPath);
 		verify(secondListener).onConfigUpdated(propertiesConfigurationPath);
 		verify(otherPathListener, never()).onConfigUpdated(anyString());
 		propertiesConfig = configManager.getProperties(propertiesConfigurationPath);
 		assertThat(propertiesConfig.getProperties()).isEqualTo(propertiesUpdated);
 	}
 
-	//@Test
-	// TODO make the trigger event work
+	@Test
 	public void whenUpdateXMLWithAlterDocThenUpdate()
 			throws Exception {
 
@@ -395,9 +423,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		Thread.sleep(2000);
-
-		verify(firstListener).onConfigUpdated(xmlConfigurationPath);
+		verify(firstListener, timeout(1000)).onConfigUpdated(xmlConfigurationPath);
 		verify(secondListener).onConfigUpdated(xmlConfigurationPath);
 		verify(otherPathListener, never()).onConfigUpdated(anyString());
 		assertNotNull(configManager.getXML(xmlConfigurationPath).getDocument().getRootElement().getChild("newContent"));
@@ -423,8 +449,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 	public void givenConfigurationAlreadyExistsExceptionWhenAddingXMLFileWhenCreatingXMLDocumentThenReturnSilently()
 			throws Exception {
 
-		doThrow(ConfigManagerRuntimeException.ConfigurationAlreadyExists.class).when(configManager)
-				.add(eq("/zePath.xml"), any(Document.class));
+		doThrow(ConfigurationAlreadyExists.class).when(configManager).add(eq("/zePath.xml"), any(Document.class));
 
 		configManager.createXMLDocumentIfInexistent("/zePath.xml", new DocumentAlteration() {
 			@Override
@@ -473,8 +498,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 	public void givenConfigurationAlreadyExistsExceptionWhenAddingPropertiesFileWhenCreatingPropertiesDocumentThenReturnSilently()
 			throws Exception {
 
-		doThrow(ConfigManagerRuntimeException.ConfigurationAlreadyExists.class).when(configManager)
-				.add(eq("/zePath.properties"), any(Map.class));
+		doThrow(ConfigurationAlreadyExists.class).when(configManager).add(eq("/zePath.properties"), any(Map.class));
 
 		configManager.createPropertiesDocumentIfInexistent("/zePath.properties", new PropertiesAlteration() {
 
@@ -527,32 +551,6 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		assertThat(propertiesConfiguration.getProperties().get("property3")).isEqualTo("value3 added");
 	}
 
-	@Test
-	public void givenSomeConfigsWhenDeleteAllConfigsInCollectionThenAllConfigsAreDeleted()
-			throws Exception {
-
-		ZooKeeperConfigManager zooKeeperConfigManager;
-		if (configManager instanceof ZooKeeperConfigManager) {
-			zooKeeperConfigManager = (ZooKeeperConfigManager) configManager;
-		} else {
-			throw new AssumptionViolatedException("This test is only supporting the ZookeeperConfigManager");
-		}
-
-		String newConfigs1Xml = "/collection/newConfigs1.xml";
-		String newConfigs2Xml = "/collection/newConfigs2.xml";
-		zooKeeperConfigManager.add(newConfigs1Xml, docXMLWithVersion);
-		zooKeeperConfigManager.add(newConfigs2Xml, docXMLWithVersion);
-		zooKeeperConfigManager.getXML(newConfigs1Xml);
-		zooKeeperConfigManager.getXML(newConfigs2Xml);
-
-		zooKeeperConfigManager.deleteAllConfigsIn("collection");
-
-		assertThat(zooKeeperConfigManager.getXML(newConfigs1Xml)).isNull();
-		assertThat(zooKeeperConfigManager.getXML(newConfigs2Xml)).isNull();
-		assertThat(zooKeeperConfigManager.exist(newConfigs1Xml)).isFalse();
-		assertThat(zooKeeperConfigManager.exist(newConfigs2Xml)).isFalse();
-	}
-
 	@SlowTest
 	@Test
 	public void givenXMLDocumentModifiedConcurrentlyByMultipleThreadsThenNoUpdateLost()
@@ -565,39 +563,85 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
 		configManager.add("/zePath.xml", document);
 
+		final AtomicInteger exceptionsA = new AtomicInteger(0);
+		final AtomicInteger exceptionsB = new AtomicInteger(0);
+		final AtomicInteger exceptions = new AtomicInteger(0);
+
+
+
 		ThreadList<Thread> threadList = new ThreadList<>();
 		for (int i = 0; i < 5; i++) {
-			Thread thread = new Thread() {
+			threadList.add(new Thread() {
 				@Override
 				public void run() {
 					for (int j = 0; j < 500; j++) {
-						configManager.updateXML("/zePath.xml", newIncrementDecrementAlteration("a", "b"));
+						try {
+							configManager.updateXML("/zePath.xml", newIncrementDecrementAlteration("a", "b"));
+						} catch (Exception e) {
+							if (e.getCause() instanceof KeeperException.BadVersionException) {
+								exceptions.incrementAndGet();
+								exceptionsA.incrementAndGet();
+								exceptionsB.decrementAndGet();
+							}
+						}
 					}
 				}
-			};
-			thread.setName("updater1-" + i);
-			threadList.add(thread);
+			});
 		}
 		for (int i = 0; i < 5; i++) {
-			Thread thread = new Thread() {
+			threadList.add(new Thread() {
 				@Override
 				public void run() {
 					for (int j = 0; j < 507; j++) {
-						configManager.updateXML("/zePath.xml", newIncrementDecrementAlteration("b", "a"));
+						try {
+							configManager.updateXML("/zePath.xml", newIncrementDecrementAlteration("b", "a"));
+						} catch (Exception e) {
+							if (e.getCause() instanceof KeeperException.BadVersionException) {
+								exceptions.incrementAndGet();
+								exceptionsB.incrementAndGet();
+								exceptionsA.decrementAndGet();
+							}
+						}
 					}
 				}
-			};
-			thread.setName("updater2-" + i);
-			threadList.add(thread);
+			});
 		}
 
 		threadList.startAll();
 		threadList.joinAll();
 
 		document = configManager.getXML("/zePath.xml").getDocument();
-		assertThat(document.getRootElement().getAttributeValue("a")).isEqualTo("-35");
-		assertThat(document.getRootElement().getAttributeValue("b")).isEqualTo("35");
+		assertThat(document.getRootElement().getAttributeValue("a")).isEqualTo("" + (-35 - exceptionsA.get()));;
+		assertThat(document.getRootElement().getAttributeValue("b")).isEqualTo("" + (35 - exceptionsB.get()));
 
+	}
+
+	@Test
+	public void givenNoFilesInFolderWhenListThenOk()
+			throws Exception {
+
+		assertThat(configManager.list("/listFiles")).isEmpty();
+	}
+
+	@Test
+	public void givenFilesInFolderWhenListThenOk()
+			throws Exception {
+
+		givenTwoFilesInFolder();
+
+		assertThat(configManager.list("/listFiles")).hasSize(2);
+
+	}
+
+	private void givenTwoFilesInFolder() {
+		Document document = new Document();
+		Element root = new Element("root");
+		root.setAttribute("a", "0");
+		root.setAttribute("b", "0");
+		document.addContent(root);
+
+		configManager.add("listFiles/zePath.xml", document);
+		configManager.add("listFiles/ze1Path.xml", document);
 	}
 
 	private DocumentAlteration newIncrementDecrementAlteration(final String increment, final String decrement) {

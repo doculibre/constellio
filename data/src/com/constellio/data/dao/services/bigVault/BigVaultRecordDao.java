@@ -451,7 +451,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 	private void addParentPathToRecordsAncestors(String recordId, List<String> recordsAncestors, String parentPath) {
 		for (String parentId : parentPath.split("/")) {
-			if (!recordsAncestors.contains(parentId) && !parentId.equals(recordId)) {
+			if (!recordsAncestors.contains(parentId) && !parentId.equals(recordId) && StringUtils.isNotEmpty(parentId)) {
 				recordsAncestors.add(parentId);
 			}
 		}

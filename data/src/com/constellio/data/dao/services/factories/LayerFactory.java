@@ -41,7 +41,9 @@ public class LayerFactory {
 		T decoratedService = statefullServiceDecorator.decorate(statefulService);
 		statefulServices.add(decoratedService);
 		if (initializing || initialized) {
+			statefullServiceDecorator.beforeInitialize(statefulService);
 			statefulService.initialize();
+			statefullServiceDecorator.afterInitialize(statefulService);
 		}
 		return decoratedService;
 	}
@@ -54,7 +56,9 @@ public class LayerFactory {
 		}
 		List<StatefulService> statefulServiceListCopy = new ArrayList<>(statefulServices);
 		for (StatefulService statefulService : statefulServiceListCopy) {
+			statefullServiceDecorator.beforeInitialize(statefulService);
 			statefulService.initialize();
+			statefullServiceDecorator.afterInitialize(statefulService);
 		}
 		initializing = false;
 		initialized = true;

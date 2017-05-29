@@ -3,10 +3,10 @@ package com.constellio.data.conf;
 import static com.constellio.data.conf.SolrServerType.HTTP;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
+import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
@@ -137,6 +137,32 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public File getContentDaoFileSystemFolder() {
 		return getRequiredFile("dao.contents.filesystem.folder");
 	}
+
+    public void setContentDaoFileSystemFolder(File contentsFolder) {
+        setFile("dao.contents.filesystem.folder", contentsFolder);
+    }
+
+    public List<String> getContentDaoReplicatedVaultMountPoints() {
+        String propertyName = "dao.contents.filesystem.replicatedVaultMountPoints";
+
+        String propertyRawValue = getString(propertyName, null);
+        if (propertyRawValue == null) {
+            return null;
+        }
+
+        String[] replicatedVaultMountPointArray = propertyRawValue.split(";");
+        if (replicatedVaultMountPointArray.length < 2) {
+            throw new PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_InvalidConfigValue(propertyName, propertyRawValue);
+        }
+
+        return Arrays.asList(replicatedVaultMountPointArray);
+    }
+
+    public void setContentDaoReplicatedVaultMountPoints(List<String> replicatedVaultMountPoints) {
+        if (!CollectionUtils.isEmpty(replicatedVaultMountPoints)) {
+            setString("dao.contents.filesystem.replicatedVaultMountPoints", Joiner.on(";").join(replicatedVaultMountPoints));
+        }
+    }
 
 	@Override
 	public DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode() {
