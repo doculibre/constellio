@@ -3,6 +3,7 @@ package com.constellio.model.services.factories;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,9 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
@@ -59,9 +63,16 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Mock ConstellioModulesManager constellioModulesManager;
 	ModelLayerFactory modelLayerFactory;
 	StatefullServiceDecorator statefullServiceDecorator = new StatefullServiceDecorator();
+	@Mock ConstellioCacheManager cacheManager;
+	
+	ConstellioCache zeCache;
 
 	@Before
 	public void setUp() {
+
+		zeCache = new SerializationCheckCache("zeCache");
+		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
 
 		XMLConfiguration xmlConfiguration = Mockito.mock(XMLConfiguration.class);
 		Document document = Mockito.mock(Document.class);
