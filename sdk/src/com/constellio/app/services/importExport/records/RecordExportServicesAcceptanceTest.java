@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.*;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -1032,20 +1033,18 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(transaction);
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(Category.SCHEMA_TYPE))
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE))
 				.setForSameSystem(true);
 
 		File file = exportToZip(recordExportOptions);
 
-		RecordServices recordService = getModelLayerFactory().newRecordServices();
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		recordServices.physicallyDeleteNoMatterTheStatus(category.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 
-		recordService.logicallyDelete(category.getWrappedRecord(), User.GOD);
-		recordService.physicallyDelete(category.getWrappedRecord(), User.GOD);
+
 
 		importFromZip(file, zeCollection);
 
-		Category categoryFromAnOtherCollection = rmZeCollection.getCategoryWithCode("X");
+		Category categoryFromAnOtherCollection = rmZeCollection.getCategory(records.categoryId_X);
 
 		assertThat(categoryFromAnOtherCollection.getComments().size()).isEqualTo(1);
 
@@ -1367,6 +1366,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 			UserServices userServices = getModelLayerFactory().newUserServices();
 			User user = userServices.getUserInCollection("admin", collection);
 			BulkImportParams importParams = BulkImportParams.STRICT();
+			importParams.setThreads(1);
 			LoggerBulkImportProgressionListener listener = new LoggerBulkImportProgressionListener();
 			try {
 				new RecordsImportServices(getModelLayerFactory()).bulkImport(importDataProvider, listener, user, importParams);
