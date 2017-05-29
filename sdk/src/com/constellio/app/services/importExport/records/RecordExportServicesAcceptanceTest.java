@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.records;
 
+import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -26,6 +27,7 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.*;
@@ -35,6 +37,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.*;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -54,6 +58,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -343,6 +348,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(emailAddress1.getName()).isEqualTo(NAME_1);
 		assertThat(emailAddress2.getEmail()).isEqualTo(EMAIL_2);
 		assertThat(emailAddress2.getName()).isEqualTo(NAME_2);
+	}
+
+	private ContentVersionDataSummary upload(String resource) {
+		InputStream inputStream = DemoTestRecords.class.getResourceAsStream("RMTestRecords_" + resource);
+		return getModelLayerFactory().getContentManager().upload(inputStream);
 	}
 
 	@Test
@@ -901,6 +911,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
+		List<Document> documentWithContentZeCollection = getDocumentWithContent(documentList);
+
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
@@ -934,11 +946,15 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		importFromZip(file, zeCollection);
 
-		documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
+		List<Document> documentListFromAnOtherCollection = rmSchemasRecordsServices.searchDocuments(returnAll());
 
-		assertThat(documentList.size()).isEqualTo(originalSize);
-		assertThat(findRecordByTitle(deletedDocument.getTitle(), documentList)).isNotNull();
-		Document revertedFolder = (Document) findRecordByTitle(originalTitle, documentList);
+		List<Document> documentListWithContentAnOtherCollection = getDocumentWithContent(documentListFromAnOtherCollection);
+		assertThat(documentListWithContentAnOtherCollection.size()).isEqualTo(documentWithContentZeCollection.size());
+
+
+		assertThat(documentListFromAnOtherCollection.size()).isEqualTo(originalSize);
+		assertThat(findRecordByTitle(deletedDocument.getTitle(), documentListFromAnOtherCollection)).isNotNull();
+		Document revertedFolder = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
 
 		assertThat(revertedFolder.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
 		assertThat(revertedFolder.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
@@ -964,8 +980,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingDecommissionList()
-	{
+	public void whenExportingAndImportingDecommissionList() throws Exception {
  		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
@@ -985,19 +1000,42 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
 		}
 
+		ContentManager contentManager = new ContentManager(getModelLayerFactory());
+		ContentVersionDataSummary contractVersion = upload("contrat.docx");
+		Content content = contentManager.createMajor(records.getAdmin(),"FileName.txt", contractVersion);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+
+		DecommissioningList decommissioningListWithContent = exportedDecommissiongLists.get(0);
+
+		decommissioningListWithContent.setDocumentsReportContent(content);
+		decommissioningListWithContent.setFoldersReportContent(content);
+
+		recordServices.update(decommissioningListWithContent);
+
+		List<DecommissioningList> decommissioningListsWithDocumentReportContent = getDecomListWIthDocumentsReportContent(exportedDecommissiongLists);
+		List<DecommissioningList> decommissioningListsWithFolderReportContent = getDecomListWithFoldersReportContent(exportedDecommissiongLists);
+
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
 		List<DecommissioningList> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
 
-		assertThat(listSearchDecommissiongList).hasSize(0);
+   		assertThat(listSearchDecommissiongList).hasSize(0);
 
-		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
+     		exportThenImportInAnotherCollection(
+  				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
 						Folder.SCHEMA_TYPE,	DecommissioningList.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
 						Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
 						ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
 
 		listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
+
+		List<DecommissioningList> decomListsWithDocumentReportContentAnOtherCollection = getDecomListWIthDocumentsReportContent(exportedDecommissiongLists);
+		List<DecommissioningList> decomListsWithFolderReportContentAnOtherCollection = getDecomListWithFoldersReportContent(exportedDecommissiongLists);
+
+		assertThat(decomListsWithDocumentReportContentAnOtherCollection).hasSize(1);
+		assertThat(decomListsWithFolderReportContentAnOtherCollection).hasSize(1);
 
 		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
 				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
@@ -1007,6 +1045,32 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+	}
+
+	private List<DecommissioningList> getDecomListWIthDocumentsReportContent(List<DecommissioningList> documentList) {
+		List<DecommissioningList> arrayListDocument = new ArrayList<>();
+
+		for(DecommissioningList decommissioningList : documentList) {
+			if(decommissioningList.getDocumentsReportContent() != null) {
+				arrayListDocument.add(decommissioningList);
+			}
+		}
+
+
+		return arrayListDocument;
+	}
+
+	private List<DecommissioningList> getDecomListWithFoldersReportContent(List<DecommissioningList> documentList) {
+		List<DecommissioningList> arrayListDocument = new ArrayList<>();
+
+		for(DecommissioningList decommissioningList : documentList) {
+			if(decommissioningList.getFoldersReportContent() != null) {
+					arrayListDocument.add(decommissioningList);
+			}
+		}
+
+
+		return arrayListDocument;
 	}
 
 	@Test
