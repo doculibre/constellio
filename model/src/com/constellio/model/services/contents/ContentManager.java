@@ -92,6 +92,8 @@ public class ContentManager implements StatefulService {
 	private final ModelLayerFactory modelLayerFactory;
 	private final IcapService icapService;
 
+	private boolean serviceThreadEnabled = true;
+
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, new IcapService(modelLayerFactory));
 	}
@@ -120,10 +122,12 @@ public class ContentManager implements StatefulService {
 
 			@Override
 			public void run() {
-				if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
-					deleteUnreferencedContents();
+				if (serviceThreadEnabled) {
+					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+						deleteUnreferencedContents();
+					}
+					convertPendingContentForPreview();
 				}
-				convertPendingContentForPreview();
 			}
 		};
 
@@ -149,6 +153,11 @@ public class ContentManager implements StatefulService {
 
 		//
 		icapService.init();
+	}
+
+	public ContentManager setServiceThreadEnabled(boolean serviceThreadEnabled) {
+		this.serviceThreadEnabled = serviceThreadEnabled;
+		return this;
 	}
 
 	@Override
@@ -437,7 +446,7 @@ public class ContentManager implements StatefulService {
 
 	public void convertPendingContentForPreview() {
 
-		for (String collection : collectionsListManager.getCollections()) {
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			if (!closing.get()) {
 				List<Record> records = searchServices.search(new LogicalSearchQuery()
 						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
@@ -667,6 +676,10 @@ public class ContentManager implements StatefulService {
 		public String getFileName() {
 			return fileName;
 		}
+	}
+
+	public ParsedContentResponse buildParsedContentResponse(boolean hasFoundDuplicate, ParsedContent parsedContent) {
+		return new ParsedContentResponse(hasFoundDuplicate, parsedContent);
 	}
 
 	public class ParsedContentResponse {

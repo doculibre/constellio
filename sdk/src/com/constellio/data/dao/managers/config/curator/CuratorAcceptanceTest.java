@@ -130,7 +130,11 @@ public class CuratorAcceptanceTest {
                 contentFound = event.getData().getData();
             }
         }
-        assertThat(contentFound).isEqualTo(content);
+
+        String contentString = new String(content);
+        String cacheString = new String(contentFound);
+
+        assertThat(contentString).isEqualTo(cacheString);
     }
 
     @After

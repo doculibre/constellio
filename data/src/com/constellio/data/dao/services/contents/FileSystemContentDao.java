@@ -55,8 +55,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	List<FileSystemContentDaoExternalResourcesExtension> externalResourcesExtensions = new ArrayList<>();
 
-	public FileSystemContentDao(File rootFolder, IOServices ioServices, DataLayerConfiguration configuration) {
-		this.rootFolder = rootFolder;
+	public FileSystemContentDao(IOServices ioServices, DataLayerConfiguration configuration) {
 		this.ioServices = ioServices;
 		this.configuration = configuration;
 
@@ -176,11 +175,11 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 
 		try {
-			return new BufferedInputStream(ioServices.newFileInputStream(file, streamName));
+			return new BufferedInputStream(ioServices.newFileInputStream(getFileOf(contentId), streamName));
 		} catch (FileNotFoundException e1) {
             if (replicatedRootFolder != null) {
                 try {
-                    return new BufferedInputStream(ioServices.newFileInputStream(getReplicatedVaultFile(file), streamName));
+                    return new BufferedInputStream(ioServices.newFileInputStream(getReplicatedVaultFile(getFileOf(contentId)), streamName));
                 } catch (FileNotFoundException e2) {
                     throw new ContentDaoException_NoSuchContent(contentId);
                 }
