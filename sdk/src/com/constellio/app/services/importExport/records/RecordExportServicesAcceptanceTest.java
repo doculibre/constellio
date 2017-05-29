@@ -542,19 +542,27 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(report);
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				Event.SCHEMA_TYPE)).setForSameSystem(true);
-
-		File file = exportToZip(recordExportOptions);
-
-		List<Record> listRecordReport;
-
-		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 		MetadataSchemasManager schemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
-		MetadataSchema metadataSchemaTypes = schemasManager.getSchemaTypes("anotherCollection").getSchema(Report.DEFAULT_SCHEMA);
+		MetadataSchema metadataSchemaTypes = schemasManager.getSchemaTypes(zeCollection).getSchema(Report.DEFAULT_SCHEMA);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(metadataSchemaTypes).returnAll());
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+				Report.SCHEMA_TYPE)).setForSameSystem(true);
+
+		File file = exportToZip(recordExportOptions);
+
+		List<Record> recordtoDelete = searchServices.search(query);
+
+		recordServices.logicallyDelete(recordtoDelete.get(0), records.getAdmin());
+		recordServices.physicallyDelete(recordtoDelete.get(0), records.getAdmin());
+
+		importFromZip(file, zeCollection);
+
+		List<Record> listRecordReport;
 
 		listRecordReport = getModelLayerFactory().newSearchServices().search(query);
 
@@ -562,7 +570,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				"linesCount", "schemaTypeCode").contains(tuple(1.0, TITLE, 1.0, SCHEMA_TYPE_CODE));
 
 		Record record = listRecordReport.get(0);
-		Report reportFromAnOtherCollection = rmFromAnOtherCollection.wrapReport(record);
+		Report reportFromAnOtherCollection = rm.wrapReport(record);
 
 		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(0).getXPosition()).isEqualTo(1);
 		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(0).getYPosition()).isEqualTo(2);
