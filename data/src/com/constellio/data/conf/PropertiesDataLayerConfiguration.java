@@ -11,7 +11,6 @@ import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
-import com.constellio.data.utils.Factory;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -206,6 +205,27 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return (ConfigManagerType) getRequiredEnum("dao.settings.type", ConfigManagerType.class);
 	}
 
+	@Override
+	public CacheType getSettingsCacheType() {
+		return (CacheType) getRequiredEnum("dao.settings.cache", CacheType.class);
+	}
+
+	@Override
+	public String getSettingsCacheUrl() {
+		return getRequiredString("dao.settings.cache.url");
+	}
+
+	@Override
+	public CacheType getRecordsCacheType() {
+		return (CacheType) getRequiredEnum("dao.records.cache", CacheType.class);
+	}
+
+	@Override
+	public String getRecordsCacheUrl() {
+		return getRequiredString("dao.records.cache.url");
+	}
+
+	@Override
 	public File getSettingsFileSystemBaseFolder() {
 		return getFile("dao.settings.filesystem.baseFolder", defaultFileSystemBaseFolder);
 	}

@@ -255,7 +255,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			titre += " (" + etiquetteName + " " + format + ")";
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
 			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), false);
-			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), etiquetteName + " " + format + " " + type);
+			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), etiquetteName + " " + format + " " + type).getContentVersionDataSummary();
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
 			record.set(typeBuilder.getMetadata(Printable.JASPERFILE), contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
 			trans.add(record);

@@ -178,13 +178,13 @@ public class RecordAutomaticMetadataServices {
 			Metadata calculatedMetadata) {
 		boolean calculatorDependencyModified = !record.isSaved();
 		for (Dependency dependency : calculator.getDependencies()) {
-			if (dependency == SpecialDependencies.HIERARCHY) {
+			if (SpecialDependencies.HIERARCHY.equals(dependency)) {
 				calculatorDependencyModified = true;
 
-			} else if (dependency == SpecialDependencies.IDENTIFIER) {
+			} else if (SpecialDependencies.IDENTIFIER.equals(dependency)) {
 				calculatorDependencyModified = true;
 
-			} else if (dependency == SpecialDependencies.PRINCIPAL_TAXONOMY_CODE) {
+			} else if (SpecialDependencies.PRINCIPAL_TAXONOMY_CODE.equals(dependency)) {
 				calculatorDependencyModified = true;
 
 			} else if (dependency instanceof DynamicLocalDependency) {
@@ -300,12 +300,12 @@ public class RecordAutomaticMetadataServices {
 
 	void addValuesFromSpecialDependencies(RecordImpl record, RecordProvider recordProvider,
 			Map<Dependency, Object> values, Dependency dependency) {
-		if (dependency == SpecialDependencies.HIERARCHY) {
+		if (SpecialDependencies.HIERARCHY.equals(dependency)) {
 			addValueForTaxonomyDependency(record, recordProvider, values, dependency);
 
-		} else if (dependency == SpecialDependencies.IDENTIFIER) {
+		} else if (SpecialDependencies.IDENTIFIER.equals(dependency)) {
 			values.put(dependency, record.getId());
-		} else if (dependency == SpecialDependencies.PRINCIPAL_TAXONOMY_CODE) {
+		} else if (SpecialDependencies.PRINCIPAL_TAXONOMY_CODE.equals(dependency)) {
 			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
 			if (principalTaxonomy != null) {
 				values.put(dependency, principalTaxonomy.getCode());

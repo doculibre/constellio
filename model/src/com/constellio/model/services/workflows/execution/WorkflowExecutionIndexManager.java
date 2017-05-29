@@ -11,6 +11,8 @@ import org.jdom2.Document;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.model.entities.workflows.execution.WorkflowExecution;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexRuntimeException.WorkflowExecutionIndexRuntimeException_WorkflowExecutionNotFound;
@@ -31,18 +33,22 @@ public class WorkflowExecutionIndexManager
 	private static OneXMLConfigPerCollectionManager<List<WorkflowExecution>> oneXMLConfigPerCollectionManager;
 	private final ConfigManager configManager;
 	private final CollectionsListManager collectionsListManager;
+	private final ConstellioCacheManager cacheManager; 
 	private final Map<String, Boolean> workflowsExecutionsMap;
 
-	public WorkflowExecutionIndexManager(ConfigManager configManager, CollectionsListManager collectionsListManager) {
+	public WorkflowExecutionIndexManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
+		this.cacheManager = cacheManager;
 		this.workflowsExecutionsMap = new HashMap<>();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void initialize() {
+		ConstellioCache cache = cacheManager.getCache(WorkflowExecutionIndexManager.class.getName());
 		oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager(configManager, collectionsListManager,
-				INDEX_CONFIG, xmlConfigReader(), this);
+				INDEX_CONFIG, xmlConfigReader(), this, cache);
 	}
 
 	public void addUpdate(WorkflowExecution workflowExecution) {

@@ -1,14 +1,11 @@
 package com.constellio.model.entities.schemas;
 
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.data.utils.KeySetMap;
-
-public class MetadataNetwork {
+public class MetadataNetwork implements Serializable {
 
 	List<MetadataNetworkLink> links;
 	Map<String, List<MetadataNetworkLink>> linksFromMetadata;

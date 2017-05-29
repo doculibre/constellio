@@ -1,26 +1,5 @@
 package com.constellio.sdk.load.script;
 
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.records.wrappers.EventType.VIEW;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import demo.DemoInitScript;
-
-import org.apache.commons.io.IOUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMRoles;
@@ -56,6 +35,21 @@ import com.constellio.model.services.security.authentification.PasswordFileAuthe
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.load.script.utils.LinkableIdsList;
 import com.constellio.sdk.load.script.utils.LinkableRecordsList;
+import demo.DemoInitScript;
+import org.apache.commons.io.IOUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.records.wrappers.EventType.VIEW;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
@@ -330,7 +324,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 					InputStream in = new ByteArrayInputStream(entry.getBytes());
 					ContentVersionDataSummary contentVersionDataSummary;
 					try {
-						contentVersionDataSummary = contentManager.upload(in, false, true, null);
+						contentVersionDataSummary = contentManager.upload(in, false, true, null).getContentVersionDataSummary();;
 					} finally {
 						IOUtils.closeQuietly(in);
 					}

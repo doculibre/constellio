@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
+import com.constellio.data.conf.CacheType;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -30,6 +31,10 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
+import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.contents.HadoopContentDao;
@@ -65,6 +70,8 @@ public class DataLayerFactory extends LayerFactory {
 
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
+	private final ConstellioCacheManager settingsCacheManager;
+	private final ConstellioCacheManager recordsCacheManager;
 	private final ConfigManager configManager;
 	private final UniqueIdGenerator idGenerator;
 	private final UniqueIdGenerator secondaryIdGenerator;
@@ -94,6 +101,26 @@ public class DataLayerFactory extends LayerFactory {
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
+		if (dataLayerConfiguration.getSettingsCacheType() == CacheType.IGNITE) {
+			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.MEMORY) {
+			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
+			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
+		}
+
+		if (dataLayerConfiguration.getRecordsCacheType() == CacheType.IGNITE) {
+			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getRecordsCacheType() == CacheType.MEMORY) {
+			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
+			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
+		}
+
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
 					ioServicesFactory.newIOServices()));
@@ -101,7 +128,7 @@ public class DataLayerFactory extends LayerFactory {
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
-					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding())));
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()), settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -159,6 +186,14 @@ public class DataLayerFactory extends LayerFactory {
 
 	public ConfigManager getConfigManager() {
 		return configManager;
+	}
+	
+	public ConstellioCacheManager getSettingsCacheManager() {
+		return settingsCacheManager;
+	}
+	
+	public ConstellioCacheManager getRecordsCacheManager() {
+		return recordsCacheManager;
 	}
 
 	public ContentDao getContentsDao() {

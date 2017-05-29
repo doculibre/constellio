@@ -1,10 +1,10 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
+
+import java.io.Serializable;
+import java.util.List;
 
 public interface BaseView extends Serializable, SessionContextProvider, UIContextProvider {
 
@@ -14,6 +14,8 @@ public interface BaseView extends Serializable, SessionContextProvider, UIContex
 	//CoreViews navigateTo();
 
 	void showMessage(String message);
+
+	void showClickableMessage(String message);
 
 	void showErrorMessage(String errorMessage);
 

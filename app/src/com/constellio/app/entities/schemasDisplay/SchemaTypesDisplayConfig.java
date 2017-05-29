@@ -1,9 +1,10 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class SchemaTypesDisplayConfig {
+public class SchemaTypesDisplayConfig implements Serializable {
 
 	final String collection;
 

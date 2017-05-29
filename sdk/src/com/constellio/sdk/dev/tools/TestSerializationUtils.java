@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import org.mockito.internal.creation.DelegatingMethod;
 
-import com.constellio.app.utils.ConstellioSerializationUtils;
+import com.constellio.data.utils.serialization.ConstellioSerializationUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class TestSerializationUtils {

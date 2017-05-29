@@ -19,7 +19,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.AbstractConstellioTest;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -65,7 +64,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     public void createReportLabelAndAssignData() throws Exception {
         String title = "test REcords 1";
         File file = getFile("Avery_5162_Vide.jasper");
-        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette");
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette").getContentVersionDataSummary();
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
         Printable r = rm.newPrintableLabel();
         r.setTitle(title);
@@ -84,7 +83,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     public void createRecordsLabelAndAssignData() throws Exception {
         String title = "Test records 2";
         File file = getFile("Avery_5162_Vide.jasper");
-        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette");
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette").getContentVersionDataSummary();
         Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
         Printable r = rm.newPrintableLabel();
         PrintableLabel printableLabel = rm.newPrintableLabel();

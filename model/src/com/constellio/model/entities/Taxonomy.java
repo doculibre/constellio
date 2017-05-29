@@ -2,6 +2,7 @@ package com.constellio.model.entities;
 
 import static java.util.Arrays.asList;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class Taxonomy implements CollectionObject {
+public class Taxonomy implements CollectionObject, Serializable {
 
 	private final String code;
 
