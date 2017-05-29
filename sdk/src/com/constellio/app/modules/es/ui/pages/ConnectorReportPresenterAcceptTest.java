@@ -117,7 +117,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getDataProvider().size()).isEqualTo(4);
 		assertThat(presenter.getDataProvider().listRecordVOs(0, 4)).extracting("id")
 				.contains("folder1", "folder2", "doc1", "doc2");
-		assertThat(presenter.getDataProvider().getRecordVO(0).getId()).isEqualTo("doc1");
+		assertThat(presenter.getDataProvider().getRecordVO(0).getId()).isEqualTo("folder1");
 	}
 
 	@Test

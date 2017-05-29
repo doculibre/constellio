@@ -9,6 +9,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.FieldsPopulator;
+import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_PopulatorReturnedNullValue;
 
 public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -42,6 +43,9 @@ public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 	private void populateCopyFields(Map<String, Object> fields, Metadata modifiedMetadata, Object value) {
 		Map<String, Object> values = populateCopyfields(modifiedMetadata, value);
 		for (Map.Entry<String, Object> entry : values.entrySet()) {
+			if (entry.getValue() == null) {
+				throw new RecordImplException_PopulatorReturnedNullValue(this, entry.getKey());
+			}
 			fields.put(entry.getKey(), entry.getValue());
 		}
 	}
