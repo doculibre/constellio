@@ -151,7 +151,7 @@ public class RecordsImportValidator {
 
 					validateFields(importData, metadataSchema, decoratedErrors);
 
-					boolean isUpdate = resolverCache.isRecordUpdate(schemaType, importData.getLegacyId());
+					boolean isUpdate = resolverCache.isRecordUpdate(schemaType, importData.getLegacyId(), importDataIterator.getOptions().isImportAsLegacyId());
 
 					if (!isUpdate) {
 						validateMetadatasRequirement(importData, metadataSchema, decoratedErrors);
