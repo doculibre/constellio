@@ -78,13 +78,13 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		assertThat(record("r1").get(type)).isEqualTo(type2Id);
 		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v1");
-		assertThat(record("r1").get(metadataB)).isEqualTo("");
+		assertThat(record("r1").get(metadataB)).isNull();
 		assertThat(record("r1").get(metadataC)).isEqualTo("v4");
 
 		assertThat(record("r2").get(type)).isEqualTo(type2Id);
 		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v1");
-		assertThat(record("r2").get(metadataB)).isEqualTo("");
+		assertThat(record("r2").get(metadataB)).isNull();
 		assertThat(record("r2").get(metadataC)).isEqualTo("v4");
 
 		assertThat(record("r3").get(type)).isNull();
@@ -99,14 +99,14 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		assertThat(record("r1").get(type)).isEqualTo(type3Id);
 		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v1");
-		assertThat(record("r1").get(metadataB)).isEqualTo("");
-		assertThat(record("r1").get(metadataC)).isEqualTo("");
+		assertThat(record("r1").get(metadataB)).isNull();
+		assertThat(record("r1").get(metadataC)).isNull();
 
 		assertThat(record("r2").get(type)).isEqualTo(type3Id);
 		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v1");
-		assertThat(record("r2").get(metadataB)).isEqualTo("");
-		assertThat(record("r2").get(metadataC)).isEqualTo("");;
+		assertThat(record("r2").get(metadataB)).isNull();
+		assertThat(record("r2").get(metadataC)).isNull();
 
 		assertThat(record("r3").get(type)).isNull();
 		assertThat(record("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
@@ -120,14 +120,14 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		assertThat(record("r1").get(type)).isNull();
 		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v1");
-		assertThat(record("r1").get(metadataB)).isEqualTo("");
-		assertThat(record("r1").get(metadataC)).isEqualTo("");
+		assertThat(record("r1").get(metadataB)).isNull();
+		assertThat(record("r1").get(metadataC)).isNull();
 
 		assertThat(record("r2").get(type)).isNull();
 		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v1");
-		assertThat(record("r2").get(metadataB)).isEqualTo("");
-		assertThat(record("r2").get(metadataC)).isEqualTo("");
+		assertThat(record("r2").get(metadataB)).isNull();
+		assertThat(record("r2").get(metadataC)).isNull();
 
 		assertThat(record("r3").get(type)).isNull();
 		assertThat(record("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");

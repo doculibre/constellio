@@ -40,6 +40,8 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
@@ -118,9 +120,32 @@ public class FactoriesTestFeatures {
 			if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
 				deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
 			}
+		}	
 
-		}
+		deleteFromCaches();
+
 		i18n.clearBundles();
+	}
+
+	private void deleteFromCaches() {
+		try {
+			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory().getSettingsCacheManager();
+			if (settingsCacheManager != null) {
+				for (String cacheName : settingsCacheManager.getCacheNames()) {
+					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
+					cache.clear();
+				}
+			}
+			ConstellioCacheManager recordsCacheManager = getConstellioFactories().getDataLayerFactory().getRecordsCacheManager();
+			if (recordsCacheManager != null) {
+				for (String cacheName : recordsCacheManager.getCacheNames()) {
+					ConstellioCache cache = recordsCacheManager.getCache(cacheName);
+					cache.clear();
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void deleteFromZooKeeper(String address) {

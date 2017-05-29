@@ -349,6 +349,11 @@ public class ContentDaoRealTest extends ConstellioTest {
 		return newFileInputStream(file);
 	}
 
+	private InputStream  newFailingInputStreamOfTextContent(String aContent)
+			throws IOException {
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure(new IOException("fail"));
+	}
+
     @Test
     public void testMoveFileToVault() throws Exception {
         // Given
@@ -417,7 +422,7 @@ public class ContentDaoRealTest extends ConstellioTest {
     public void testAdd_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
         try {
             //When
-            vaultDao.add(theId, newInputStreamOfTextContent(theContent));
+            vaultDao.add(theId, newFailingInputStreamOfTextContent(theContent));
             // Then
             fail("FileSystemContentDaoRuntimeException_DatastoreFailure expected but not thrown !");
         } catch (Exception e) {

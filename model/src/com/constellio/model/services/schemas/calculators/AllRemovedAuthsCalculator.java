@@ -33,7 +33,7 @@ public class AllRemovedAuthsCalculator implements MetadataValueCalculator<List<S
 
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(inheritedRemovedAuthorizationsParam);
 		List<String> removedLocally = parameters.get(removedAuthorizationsParam);
-		boolean isDetached = Boolean.TRUE == parameters.get(isDetachedParams);
+		boolean isDetached = Boolean.TRUE.equals(parameters.get(isDetachedParams));
 
 		Set<String> calculatedAuthorizations = new HashSet<>();
 		calculatedAuthorizations.addAll(removedLocally);

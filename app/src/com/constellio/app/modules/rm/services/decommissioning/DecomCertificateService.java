@@ -116,7 +116,7 @@ public class DecomCertificateService {
 			outputStream = new FileOutputStream(tempFile);
 			builder.write(outputStream);
 			inputStream = new FileInputStream(tempFile);
-			ContentVersionDataSummary contentVersion = contentManager.upload(inputStream, filename);
+			ContentVersionDataSummary contentVersion = contentManager.upload(inputStream, filename).getContentVersionDataSummary();
 			Content content = contentManager.createMajor(user, filename, contentVersion);
 			fileService.deleteQuietly(tempFile);
 			return content;
