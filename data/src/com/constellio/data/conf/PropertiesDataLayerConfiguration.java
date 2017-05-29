@@ -146,27 +146,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		setFile("dao.contents.filesystem.folder", contentsFolder);
 	}
 
-	public List<String> getContentDaoReplicatedVaultMountPoints() {
-		String propertyName = "dao.contents.filesystem.replicatedVaultMountPoints";
-
-		String propertyRawValue = getString(propertyName, null);
-		if (propertyRawValue == null) {
-			return null;
-		}
-
-		String[] replicatedVaultMountPointArray = propertyRawValue.split(";");
-		if (replicatedVaultMountPointArray.length < 2) {
-			throw new PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_InvalidConfigValue(
-					propertyName, propertyRawValue);
-		}
-
-		return Arrays.asList(replicatedVaultMountPointArray);
+	public String getContentDaoReplicatedVaultMountPoint() {
+		return getString("dao.contents.filesystem.replicatedVaultMountPoint", null);
 	}
 
-	public void setContentDaoReplicatedVaultMountPoints(List<String> replicatedVaultMountPoints) {
-		if (!CollectionUtils.isEmpty(replicatedVaultMountPoints)) {
-			setString("dao.contents.filesystem.replicatedVaultMountPoints", Joiner.on(";").join(replicatedVaultMountPoints));
-		}
+	public void setContentDaoReplicatedVaultMountPoint(String replicatedVaultMountPoint) {
+		setString("dao.contents.filesystem.replicatedVaultMountPoint", replicatedVaultMountPoint);
 	}
 
 	@Override

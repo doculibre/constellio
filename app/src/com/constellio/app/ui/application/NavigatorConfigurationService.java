@@ -66,7 +66,6 @@ import com.constellio.app.ui.pages.management.schemas.metadata.AddEditMetadataVi
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaMetadataViewImpl;
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaViewImpl;
 import com.constellio.app.ui.pages.management.schemas.type.ListSchemaViewImpl;
-import com.constellio.app.ui.pages.management.storage.StorageManagementViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
@@ -124,7 +123,6 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String COLLECTION_GROUP = "collectionGroup";
 	public static final String COLLECTION_GROUP_ROLES = "collectionGroupRoles";
 	public static final String CONFIG_MANAGEMENT = "configManagement";
-	public static final String STORAGE_MANAGEMENT = "storageManagement";
 	public static final String PLUGIN_MANAGEMENT = "pluginManagement";
 	public static final String EMAIL_SERVER_MANAGEMENT = "emailServerManagement";
 	public static final String DISPLAY_SCHEMA_TYPE = "displaySchemaType";
@@ -202,7 +200,6 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_METADATA, AddEditMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_SCHEMA_METADATA, AddEditSchemaMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(CONFIG_MANAGEMENT, ConfigManagementViewImpl.class));
-        viewProviders.add(new ClassBasedViewProvider(STORAGE_MANAGEMENT, StorageManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PLUGIN_MANAGEMENT, PluginManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LDAP_CONFIG_MANAGEMENT, LDAPConfigManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_DISPLAY_FORM, DisplayConfigViewImpl.class));

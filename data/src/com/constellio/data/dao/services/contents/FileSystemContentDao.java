@@ -59,14 +59,11 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		this.ioServices = ioServices;
 		this.configuration = configuration;
 
-        if (CollectionUtils.isEmpty(configuration.getContentDaoReplicatedVaultMountPoints())) {
-            rootFolder = configuration.getContentDaoFileSystemFolder();
-        } else {
-            List<String> replicatedVaultMountPointList = configuration.getContentDaoReplicatedVaultMountPoints();
-            rootFolder =  new File(replicatedVaultMountPointList.get(0));
-            replicatedRootFolder = new File(replicatedVaultMountPointList.get(1));
+		rootFolder = configuration.getContentDaoFileSystemFolder();
+		String replicatedVaultMountPoint = configuration.getContentDaoReplicatedVaultMountPoint();
+        if (StringUtils.isNotBlank(replicatedVaultMountPoint)) {
+            replicatedRootFolder = new File(replicatedVaultMountPoint);
         }
-
 	}
 
 	public void register(FileSystemContentDaoExternalResourcesExtension extension) {
