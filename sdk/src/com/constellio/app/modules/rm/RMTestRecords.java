@@ -2023,7 +2023,7 @@ public class RMTestRecords {
 		return rm.newDocumentWithId(id).setTitle(resource).setContent(content).setType(documentTypeId_1);
 	}
 
-	private ContentVersionDataSummary upload(String resource) {
+	public ContentVersionDataSummary upload(String resource) {
 		InputStream inputStream = DemoTestRecords.class.getResourceAsStream("RMTestRecords_" + resource);
 		return contentManager.upload(inputStream);
 	}
