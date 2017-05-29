@@ -1029,6 +1029,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 
 		Category category = records.getCategory_X().setComments(asList(comment));
+		List<Category> childCategories = rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 		transaction.update(category.getWrappedRecord());
 
 		recordServices.execute(transaction);
@@ -1051,6 +1052,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
+		assertThatRecords(rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X))).containsAll(childCategories);
 	}
 
 

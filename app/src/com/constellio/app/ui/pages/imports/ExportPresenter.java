@@ -18,6 +18,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -120,7 +121,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, String unitId) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
-		options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE));
+		options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE));
 		String path = (String)((List) recordServices().getDocumentById(unitId).get(Schemas.PATH)).get(0);
 		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path));
 		exportToXML(options, recordsIterator);
@@ -129,7 +130,17 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
-		options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE));
+		List<Taxonomy> enabledTaxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
+		List<String> exportedSchemaTypes = new ArrayList<>(asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE));
+		for(Taxonomy taxonomy: enabledTaxonomies) {
+			List<String> linkedSchemaTypes = taxonomy.getSchemaTypes();
+			for(String schemaType: linkedSchemaTypes) {
+				if(!exportedSchemaTypes.contains(schemaType)) {
+					exportedSchemaTypes.add(schemaType);
+				}
+			}
+		}
+		options.setExportedSchemaTypes(exportedSchemaTypes);
 		options.setExportValueLists(true);
 		exportToXML(options);
 	}

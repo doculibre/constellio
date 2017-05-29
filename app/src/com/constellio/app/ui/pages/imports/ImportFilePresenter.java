@@ -105,6 +105,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 					} else {
 						params = BulkImportParams.STRICT();
 					}
+//					params = params.setThreads(1);
 
 					BulkImportResults errors = importServices
 							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections(), params);
