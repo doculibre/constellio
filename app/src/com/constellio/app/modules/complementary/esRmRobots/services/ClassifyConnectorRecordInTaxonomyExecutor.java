@@ -11,7 +11,6 @@ import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -646,7 +645,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				for (String availableVersion : availableVersions) {
 					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument,
 							CLASSIFY_DOCUMENT, availableVersion);
-					newVersionDataSummary = contentManager.upload(versionStream, false, true, connectorDocument.getTitle());
+					newVersionDataSummary = contentManager.upload(versionStream, false, true, connectorDocument.getTitle()).getContentVersionDataSummary();
 					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {
@@ -660,7 +659,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					version = (majorVersions ? "1.0" : "0.1");
 				}
 
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle());
+				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle()).getContentVersionDataSummary();
 				addVersionToDocument(connectorDocument, version, newVersionDataSummary, document);
 			}
 

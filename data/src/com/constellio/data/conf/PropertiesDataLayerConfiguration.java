@@ -3,15 +3,18 @@ package com.constellio.data.conf;
 import static com.constellio.data.conf.SolrServerType.HTTP;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
-import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
-import com.constellio.data.utils.Factory;
+import com.google.common.base.Joiner;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -139,31 +142,32 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRequiredFile("dao.contents.filesystem.folder");
 	}
 
-    public void setContentDaoFileSystemFolder(File contentsFolder) {
-        setFile("dao.contents.filesystem.folder", contentsFolder);
-    }
+	public void setContentDaoFileSystemFolder(File contentsFolder) {
+		setFile("dao.contents.filesystem.folder", contentsFolder);
+	}
 
-    public List<String> getContentDaoReplicatedVaultMountPoints() {
-        String propertyName = "dao.contents.filesystem.replicatedVaultMountPoints";
+	public List<String> getContentDaoReplicatedVaultMountPoints() {
+		String propertyName = "dao.contents.filesystem.replicatedVaultMountPoints";
 
-        String propertyRawValue = getString(propertyName, null);
-        if (propertyRawValue == null) {
-            return null;
-        }
+		String propertyRawValue = getString(propertyName, null);
+		if (propertyRawValue == null) {
+			return null;
+		}
 
-        String[] replicatedVaultMountPointArray = propertyRawValue.split(";");
-        if (replicatedVaultMountPointArray.length < 2) {
-            throw new PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_InvalidConfigValue(propertyName, propertyRawValue);
-        }
+		String[] replicatedVaultMountPointArray = propertyRawValue.split(";");
+		if (replicatedVaultMountPointArray.length < 2) {
+			throw new PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_InvalidConfigValue(
+					propertyName, propertyRawValue);
+		}
 
-        return Arrays.asList(replicatedVaultMountPointArray);
-    }
+		return Arrays.asList(replicatedVaultMountPointArray);
+	}
 
-    public void setContentDaoReplicatedVaultMountPoints(List<String> replicatedVaultMountPoints) {
-        if (!CollectionUtils.isEmpty(replicatedVaultMountPoints)) {
-            setString("dao.contents.filesystem.replicatedVaultMountPoints", Joiner.on(";").join(replicatedVaultMountPoints));
-        }
-    }
+	public void setContentDaoReplicatedVaultMountPoints(List<String> replicatedVaultMountPoints) {
+		if (!CollectionUtils.isEmpty(replicatedVaultMountPoints)) {
+			setString("dao.contents.filesystem.replicatedVaultMountPoints", Joiner.on(";").join(replicatedVaultMountPoints));
+		}
+	}
 
 	@Override
 	public DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode() {
@@ -206,6 +210,27 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return (ConfigManagerType) getRequiredEnum("dao.settings.type", ConfigManagerType.class);
 	}
 
+	@Override
+	public CacheType getSettingsCacheType() {
+		return (CacheType) getEnum("dao.settings.cache", CacheType.MEMORY);
+	}
+
+	@Override
+	public String getSettingsCacheUrl() {
+		return getRequiredString("dao.settings.cache.url");
+	}
+
+	@Override
+	public CacheType getRecordsCacheType() {
+		return (CacheType) getEnum("dao.records.cache", CacheType.MEMORY);
+	}
+
+	@Override
+	public String getRecordsCacheUrl() {
+		return getRequiredString("dao.records.cache.url");
+	}
+
+	@Override
 	public File getSettingsFileSystemBaseFolder() {
 		return getFile("dao.settings.filesystem.baseFolder", defaultFileSystemBaseFolder);
 	}

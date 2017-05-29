@@ -15,6 +15,8 @@ import org.jdom2.Document;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
@@ -43,15 +45,19 @@ public class RecordMigrationsManager implements StatefulService,
 	BatchProcessesManager batchProcessesManager;
 	OneXMLConfigPerCollectionManager<SchemaTypesRecordMigration> oneXMLConfigPerCollectionManager;
 	CollectionsListManager collectionsListManager;
+	ConstellioCacheManager cacheManager;
 
 	public RecordMigrationsManager(ModelLayerFactory modelLayerFactory) {
 		batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
 		searchServices = modelLayerFactory.newSearchServices();
+		
+		ConstellioCache cache = cacheManager.getCache(getClass().getName());
 		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(
 				modelLayerFactory.getDataLayerFactory().getConfigManager(), modelLayerFactory.getCollectionsListManager(),
-				SCHEMAS_CONFIG_PATH, new RecordMigrationReader(), this, new NewSchemaTypesRecordMigrationAlteration());
+				SCHEMAS_CONFIG_PATH, new RecordMigrationReader(), this, new NewSchemaTypesRecordMigrationAlteration(), cache);
 	}
 
 	public void initialize() {

@@ -105,12 +105,14 @@ allprojects {
         compile "javax.servlet.jsp:jsp-api:2.2"
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
+        compile group: 'org.apache.ignite', name: 'ignite-core', version: '2.0.0'
 
         compile files("${rootDir}/libs/commons-beanutils-1.8.2.jar")
         compile files("${rootDir}/libs/commons-collections-3.2.1.jar")
         compile files("${rootDir}/libs/commons-dbcp-1.2.2.jar")
         compile files("${rootDir}/libs/commons-digester-2.1.jar")
         compile files("${rootDir}/libs/groovy-all-2.0.1.jar")
+//        compile files("${rootDir}/libs/iText-2.1.7.jar")
         compile files("${rootDir}/libs/jasperreports-6.3.0.jar")
         compile files("${rootDir}/libs/com.lowagie.text-2.1.7.jar")
         compile files("${rootDir}/libs/barbecue-1.5-beta1.jar")
@@ -122,13 +124,13 @@ allprojects {
     }
 
     jar {
-        version = '7.2.7.7'
+        version = '7.2.7.12'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "7.2.7.7"
+    version = "7.2.7.12"
 
     webInf {
         from("resources_i18n/") {

@@ -3,8 +3,10 @@ package com.constellio.data.dao.managers.config.values;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.io.Serializable;
 
-public class TextConfiguration {
+
+public class TextConfiguration implements Serializable {
 	private final String version;
 	private final String text;
 	

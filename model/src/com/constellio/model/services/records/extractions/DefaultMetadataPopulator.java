@@ -24,10 +24,12 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 	private LoadingCache<String, ParsedContent> cachedContentManager;
 	private boolean multiValue;
 
+	@Deprecated //Refactoring needed
 	public DefaultMetadataPopulator() {
 	}
 
-	public <T> DefaultMetadataPopulator(Extractor<T> extractor, ExtractorSupplier<T> feedsExtractor) {
+    @Deprecated //Refactoring needed
+    public <T> DefaultMetadataPopulator(Extractor<T> extractor, ExtractorSupplier<T> feedsExtractor) {
 		this.feedsExtractor = feedsExtractor;
 		this.extractor = extractor;
 	}
@@ -54,7 +56,7 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 		CacheLoader<String, ParsedContent> loader = new CacheLoader<String, ParsedContent>() {
 			@Override
 			public ParsedContent load(String key) {
-				return contentManager.getParsedContentParsingIfNotYetDone(key);
+				return contentManager.getParsedContentParsingIfNotYetDone(key).getParsedContent();
 			}
 		};
 		cachedContentManager = CacheBuilder.newBuilder().build(loader);

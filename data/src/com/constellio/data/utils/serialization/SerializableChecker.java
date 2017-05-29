@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.constellio.app.utils;
+package com.constellio.data.utils.serialization;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -39,8 +39,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.constellio.app.api.admin.services.SchemasServicesAPI;
 
 /**
  * Adapted from wicket.util.io.SerializableChecker
@@ -178,7 +176,7 @@ public final class SerializableChecker extends ObjectOutputStream
 	private static final NoopOutputStream DUMMY_OUTPUT_STREAM = new NoopOutputStream();
 
 	/** log. */
-	private static Logger LOGGER = LoggerFactory.getLogger(SchemasServicesAPI.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(SerializableChecker.class);
 
 	/** Whether we can execute the tests. If false, check will just return. */
 	private static boolean available = true;

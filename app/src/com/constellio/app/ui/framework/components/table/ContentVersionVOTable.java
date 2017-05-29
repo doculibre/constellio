@@ -1,15 +1,6 @@
 package com.constellio.app.ui.framework.components.table;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.io.FileUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
@@ -17,9 +8,22 @@ import com.constellio.app.ui.framework.components.converters.BaseStringToDateTim
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
+import com.constellio.data.conf.ContentDaoType;
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.services.contents.FileSystemContentDao;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.vaadin.data.Item;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Table;
+import org.apache.commons.io.FileUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContentVersionVOTable extends Table {
 
@@ -35,6 +39,8 @@ public class ContentVersionVOTable extends Table {
 
 	private static final String LAST_MODIFIED_BY = "lastModifiedBy";
 
+	private static final String SYSTEM_FILE_NAME = "systemFileName";
+
 	private List<ContentVersionVO> contentVersionVOs;
 
 	private RecordIdToCaptionConverter recordCaptionConverter = new RecordIdToCaptionConverter();
@@ -43,17 +49,22 @@ public class ContentVersionVOTable extends Table {
 
 	private ButtonsContainer buttonsContainer;
 
-	public ContentVersionVOTable() {
-		this(new ArrayList<ContentVersionVO>());
+	private AppLayerFactory appLayerFactory;
+
+	public ContentVersionVOTable(AppLayerFactory appLayerFactory) {
+		this(new ArrayList<ContentVersionVO>(), appLayerFactory);
 	}
 
-	public ContentVersionVOTable(List<ContentVersionVO> contentVersions) {
+	public ContentVersionVOTable(List<ContentVersionVO> contentVersions, AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
+
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
 		addContainerProperty(VERSION, String.class, null);
 		addContainerProperty(LENGTH, String.class, null);
 		addContainerProperty(LAST_MODIFICATION_DATE_TIME, String.class, null);
 		addContainerProperty(LAST_MODIFIED_BY, String.class, null);
 		addContainerProperty(COMMENT, String.class, null);
+		addContainerProperty(SYSTEM_FILE_NAME, String.class, null);
 
 		setColumnHeader(FILE_NAME, $("ContentVersion.fileName"));
 		setColumnHeader(VERSION, $("ContentVersion.version"));
@@ -61,6 +72,7 @@ public class ContentVersionVOTable extends Table {
 		setColumnHeader(LAST_MODIFICATION_DATE_TIME, $("ContentVersion.lastModificationDateTime"));
 		setColumnHeader(LAST_MODIFIED_BY, $("ContentVersion.lastModifiedBy"));
 		setColumnHeader(COMMENT, $("ContentVersion.comment"));
+		setColumnHeader(SYSTEM_FILE_NAME, $("ContentVersion.systemFileName"));
 
 		setColumnExpandRatio(FILE_NAME, 1);
 		setContentVersions(contentVersions);
@@ -122,6 +134,14 @@ public class ContentVersionVOTable extends Table {
 			String lastModificationDateTimeCaption = dateTimeConverter
 					.convertToPresentation(lastModificationDateTime, String.class, locale);
 			String lastModifiedByCaption = recordCaptionConverter.convertToPresentation(lastModifiedBy, String.class, locale);
+			String systemFileName = "";
+			DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
+			DataLayerConfiguration conf = dataLayerFactory.getDataLayerConfiguration();
+			if (conf.getContentDaoType() == ContentDaoType.FILESYSTEM) {
+				systemFileName = ((FileSystemContentDao) dataLayerFactory.getContentsDao()).getFileOf(contentVersion.getHash()).getName();
+			} else {
+				systemFileName = "Unsupported";
+			}
 
 			Object itemId = addItem();
 			Item item = getItem(itemId);
@@ -131,6 +151,7 @@ public class ContentVersionVOTable extends Table {
 			item.getItemProperty(LAST_MODIFICATION_DATE_TIME).setValue(lastModificationDateTimeCaption);
 			item.getItemProperty(LAST_MODIFIED_BY).setValue(lastModifiedByCaption);
 			item.getItemProperty(COMMENT).setValue(comment);
+			item.getItemProperty(SYSTEM_FILE_NAME).setValue(systemFileName);
 		}
 	}
 
