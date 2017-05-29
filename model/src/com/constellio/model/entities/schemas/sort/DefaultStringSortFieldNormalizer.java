@@ -33,9 +33,6 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 
 			}
 		}
-		if ("".equals(normalizedText)) {
-			normalizedText = null;
-		}
 		return normalizedText;
 	}
 

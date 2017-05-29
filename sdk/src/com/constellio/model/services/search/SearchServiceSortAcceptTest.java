@@ -124,13 +124,13 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.stringMetadata())))
-				.containsExactly(record2, record3, record4, record5, record1);
+				.containsExactly(record2, record3, record4, record1, record5);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortAsc(zeSchema.stringMetadata())))
-				.containsExactly(record2.getId(), record3.getId(), record4.getId(), record5.getId(), record1.getId());
+				.containsExactly(record2.getId(), record3.getId(), record4.getId(), record1.getId(), record5.getId());
 		assertThat(searchServices.search(findAllQuery().sortDesc(zeSchema.stringMetadata())))
-				.containsExactly(record4, record3, record2, record5, record1);
+				.containsExactly(record4, record3, record2, record1, record5);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortDesc(zeSchema.stringMetadata())))
-				.containsExactly(record4.getId(), record3.getId(), record2.getId(), record5.getId(), record1.getId());
+				.containsExactly(record4.getId(), record3.getId(), record2.getId(), record1.getId(), record5.getId());
 
 	}
 

@@ -21,7 +21,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 
 public class CoreMigrationTo_7_3 implements MigrationScript {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_1.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_3.class);
 
 	@Override
 	public String getVersion() {
