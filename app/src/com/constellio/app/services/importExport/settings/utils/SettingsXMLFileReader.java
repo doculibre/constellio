@@ -1,22 +1,17 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.join;
-
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.DOMOutputter;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
@@ -26,10 +21,17 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	public static final String CLASSIFIED_TYPES = "classifiedTypes";
 	public static final String TITLE = "title";
 	public static final String SEQUENCES = "sequences";
+
+	private String currentCollection = null;
 	private Document document;
 
 	public SettingsXMLFileReader(Document document) {
 		this.document = document;
+	}
+
+	public SettingsXMLFileReader(Document document, String currentCollection) {
+		this.document = document;
+		this.currentCollection = currentCollection;
 	}
 
 	public ImportedSettings read() {
@@ -77,7 +79,14 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	}
 
 	private ImportedCollectionSettings readCollectionSetting(Element collectionElement) {
-		return new ImportedCollectionSettings().setCode(collectionElement.getAttributeValue(CODE))
+		String collectionCode = collectionElement.getAttributeValue(CODE);
+		if(SettingsExportServices.CURRENT_COLLECTION_IMPORTATION_MODE.equals(collectionCode)) {
+			collectionCode = currentCollection;
+			if(currentCollection.equals(null)) {
+				throw new RuntimeException("ERROR: tried to import settings as currentCollection but currentCollection was not set");
+			}
+		}
+		return new ImportedCollectionSettings().setCode(collectionCode)
 				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS)))
 				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES)))
 				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES)));
