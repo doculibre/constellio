@@ -47,7 +47,11 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 	private NewFilePresenter presenter;
 
-	public NewFileWindowImpl() {
+	public NewFileWindowImpl(){
+		this(false);
+	}
+
+	public NewFileWindowImpl(boolean isViewOnly) {
 		setModal(true);
 		setWidth("70%");
 		setHeight("250px");

@@ -58,7 +58,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	}
 
 	private DocumentFormImpl newForm() {
-		recordForm = new DocumentFormImpl(recordVO) {
+		recordForm = new DocumentFormImpl(recordVO, !presenter.isAddView()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
