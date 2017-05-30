@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.imports;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -20,6 +21,7 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 
@@ -94,14 +96,14 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		schemaLayout.setSpacing(true);
 
 		collectionOptions = new ListOptionGroup($("ExportView.collectionOption"));
-		collectionOptions.addItem(SAME_COLLECTION);
-		collectionOptions.setItemCaption(SAME_COLLECTION, $("ExportView.sameCollection"));
 		collectionOptions.addItem(OTHER_COLLECTION);
 		collectionOptions.setItemCaption(OTHER_COLLECTION, $("ExportView.otherCollection"));
+		collectionOptions.addItem(SAME_COLLECTION);
+		collectionOptions.setItemCaption(SAME_COLLECTION, $("ExportView.sameCollection"));
 		collectionOptions.setVisible(false);
 		collectionOptions.setMultiSelect(false);
 		collectionOptions.setNullSelectionAllowed(false);
-		collectionOptions.setValue(SAME_COLLECTION);
+		collectionOptions.setValue(OTHER_COLLECTION);
 
 		exportationOptions = new ListOptionGroup($("ExportView.exportationOptions"));
 		exportationOptions.setEnabled(presenter.hasCurrentCollectionRMModule());
@@ -190,7 +192,18 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportTools = new BaseButton($("ExportView.exportTools")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
+				if(SAME_COLLECTION.equals(collectionOptions.getValue())) {
+					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
+						@Override
+						public void onClose(ConfirmDialog dialog) {
+							if (dialog.isConfirmed()) {
+								presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
+							}
+						}
+					});
+				} else {
+					presenter.exportToolsToXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()));
+				}
 			}
 		};
 		toolLayout.addComponent(exportTools);
@@ -208,7 +221,18 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue());
+				if(SAME_COLLECTION.equals(collectionOptions.getValue())) {
+					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
+						@Override
+						public void onClose(ConfirmDialog dialog) {
+							if (dialog.isConfirmed()) {
+								presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue());
+							}
+						}
+					});
+				} else {
+					presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue());
+				}
 			}
 		};
 		folderAndDocumentsLayout.addComponents(folderField, documentField, exportButton);
@@ -224,7 +248,18 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
+				if(SAME_COLLECTION.equals(collectionOptions.getValue())) {
+					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
+						@Override
+						public void onClose(ConfirmDialog dialog) {
+							if (dialog.isConfirmed()) {
+								presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
+							}
+						}
+					});
+				} else {
+					presenter.exportAdministrativeUnitXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), administrativeUnitField.getValue());
+				}
 			}
 		};
 		administrativeUnitLayout.addComponents(administrativeUnitField, exportButton);
@@ -277,5 +312,15 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		StreamResource resource = new StreamResource(streamSource, filename);
 		resource.setMIMEType(mimeType);
 		Page.getCurrent().open(resource, "_blank", false);
+	}
+
+	private String buildConfirmMessage() {
+		StringBuilder html = new StringBuilder();
+		html.append("<span class=\"confirm-dialog-" + "warn" + "\">");
+		html.append("<span class=\"confirm-dialog-message\">");
+		html.append($("ExportView.confirmMessage"));
+		html.append("</span>");
+		html.append("</span>");
+		return html.toString();
 	}
 }

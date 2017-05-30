@@ -1854,6 +1854,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 8 : ", "File 7a.pdf", "fileZ.pdf", null),
 					tuple("RecordsImportServices_hashNotFoundInVault", "Ze type de schéma 1 : ", null, pathOf(file1Hash),
 							file1Hash)
+
 			);
 
 			assertThat(frenchMessages(e)).containsOnly(

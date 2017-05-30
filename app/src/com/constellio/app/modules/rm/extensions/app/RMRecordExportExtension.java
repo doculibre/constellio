@@ -270,11 +270,16 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		if(decommissioningList.getDocumentsReportContent() != null) {
 			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
 
-			params.getModifiableImportRecord().addField(Document.CONTENT,
+			params.getModifiableImportRecord().addField(DecommissioningList.DOCUMENTS_REPORT_CONTENT,
 					new StructureImportContent(contentFactory.toString(decommissioningList.getDocumentsReportContent())));
 		}
 
-		params.getModifiableImportRecord().addField(DecommissioningList.VALIDATIONS, decomListFolderDetailList);
+		if(decommissioningList.getFoldersReportContent() != null) {
+			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
+
+			params.getModifiableImportRecord().addField(DecommissioningList.FOLDERS_REPORT_CONTENT,
+					new StructureImportContent(contentFactory.toString(decommissioningList.getFoldersReportContent())));
+		}
 	}
 
 	private Map<String, String> writeDecomListValidation(DecomListValidation decomListValidation) {
