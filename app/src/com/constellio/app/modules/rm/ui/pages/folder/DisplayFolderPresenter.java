@@ -661,7 +661,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							.filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if(duplicateDocuments.size() > 0) {
-						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
 						message.append("<br>");
 						for(Document document: duplicateDocuments) {
 							message.append("<br>-");
