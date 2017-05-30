@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,9 +116,9 @@ public class RecordsImportServicesExecutor {
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
 	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 
-	public static final String COMMENT_MESSAGE = "Message";
-	public static final String COMMENT_USER_NAME = "UserName";
-	public static final String COMMENT_DATE_TIME = "DateTime";
+	public static final String COMMENT_MESSAGE = "message";
+	public static final String COMMENT_USER_NAME = "userName";
+	public static final String COMMENT_DATE_TIME = "dateTime";
 
 	public static final String EMAIL_ADDRESS_EMAIL = "Email";
 	public static final String EMAIL_ADDRESS_NAME = "Name";
@@ -769,8 +770,8 @@ public class RecordsImportServicesExecutor {
 				comment.setMessage(hashMap.get(COMMENT_MESSAGE));
 				comment.setUser(userName == null ? null : userService.getUserInCollection(userName, collection));
 
-				if (comment.getDateTime() != null) {
-					LocalDate.parse(hashMap.get(COMMENT_DATE_TIME));
+				if (hashMap.get(COMMENT_DATE_TIME) != null) {
+					comment.setDateTime(LocalDateTime.parse(hashMap.get(COMMENT_DATE_TIME)));
 				}
 
 				commentList.add(comment);
