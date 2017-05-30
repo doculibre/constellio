@@ -118,11 +118,7 @@ public class ResolverCache {
 				String resolverMetadata = resolver.substring(0, colonIndex);
 				String resolverValue = resolver.substring(colonIndex + 1);
 				String id;
-				if (resolverMetadata.equals("id")) {
-					id = resolverValue;
-				} else {
-					id = getSchemaTypeCache(schemaType, resolverMetadata).searchMapping.get(resolverValue);
-				}
+				id = getSchemaTypeCache(schemaType, resolverMetadata).searchMapping.get(resolverValue);
 
 				if (id == null) {
 					MetadataSchemaType type = types.getSchemaType(schemaType);
