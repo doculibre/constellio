@@ -28,6 +28,8 @@ public class ClickableNotification extends Window {
 
     public static Component buildNotificationContent(String message) {
         VerticalLayout mainLayout = new VerticalLayout();
+        mainLayout.setMargin(true);
+        mainLayout.setSpacing(true);
         Label label = new Label(message, ContentMode.HTML);
         mainLayout.addComponent(label);
         return mainLayout;

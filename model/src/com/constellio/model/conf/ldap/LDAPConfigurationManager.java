@@ -2,6 +2,7 @@ package com.constellio.model.conf.ldap;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
@@ -15,6 +16,7 @@ import org.joda.time.format.PeriodFormatterBuilder;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
+import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
@@ -95,9 +97,10 @@ public class LDAPConfigurationManager implements StatefulService {
 					if (ldapUserSyncConfiguration.getUsersFilter() != null) {
 						properties.put("ldap.syncConfiguration.usersFilter", ldapUserSyncConfiguration.getUsersFilter());
 					}
-                    if (!CollectionUtils.isEmpty(ldapUserSyncConfiguration.getUserGroups())) {
-                        properties.put("ldap.syncConfiguration.userGroups.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getUserGroups()));
-                    }
+					if (!CollectionUtils.isEmpty(ldapUserSyncConfiguration.getUserGroups())) {
+						properties.put("ldap.syncConfiguration.userGroups.sharpSV",
+								joinWithSharp(ldapUserSyncConfiguration.getUserGroups()));
+					}
 				} else {
 					properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
 					properties
@@ -128,10 +131,12 @@ public class LDAPConfigurationManager implements StatefulService {
 						properties.put("ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV",
 								joinWithSharp(ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList()));
 					}
-                    if (ldapUserSyncConfiguration.getUserFilterGroupsList() != null) {
-                        properties.put("ldap.syncConfiguration.userFilterGroupsList.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getUserFilterGroupsList()));
-                    }
-                    properties.put("ldap.syncConfiguration.membershipAutomaticDerivationActivated", Boolean.toString(ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated()));
+					if (ldapUserSyncConfiguration.getUserFilterGroupsList() != null) {
+						properties.put("ldap.syncConfiguration.userFilterGroupsList.sharpSV",
+								joinWithSharp(ldapUserSyncConfiguration.getUserFilterGroupsList()));
+					}
+					properties.put("ldap.syncConfiguration.membershipAutomaticDerivationActivated",
+							Boolean.toString(ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated()));
 				}
 
 				properties.put("ldap.syncConfiguration.selectedCollectionsCodes.sharpSV",
@@ -154,11 +159,13 @@ public class LDAPConfigurationManager implements StatefulService {
 							ldapUserSyncConfiguration.getGroupsFilterRejectionRegex());
 				}
 
-                if (ldapUserSyncConfiguration.getScheduleTime() == null || ldapUserSyncConfiguration.getScheduleTime().isEmpty()) {
-                    properties.remove("ldap.syncConfiguration.schedule.time.sharpSV");
-                } else {
-                    properties.put("ldap.syncConfiguration.schedule.time.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getScheduleTime()));
-                }
+				if (ldapUserSyncConfiguration.getScheduleTime() == null || ldapUserSyncConfiguration.getScheduleTime()
+						.isEmpty()) {
+					properties.remove("ldap.syncConfiguration.schedule.time.sharpSV");
+				} else {
+					properties.put("ldap.syncConfiguration.schedule.time.sharpSV",
+							joinWithSharp(ldapUserSyncConfiguration.getScheduleTime()));
+				}
 
 				if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null) {
 					long durationInMilli = ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis();
@@ -264,7 +271,8 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
-		Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
+		PropertiesConfiguration configuration = configManager.getProperties(LDAP_CONFIGS);
+		Map<String, String> configs = configuration == null ? new HashMap<String, String>() : configuration.getProperties();
 
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
 		Boolean active = getBooleanValue(configs, "ldap.authentication.active", false);
@@ -272,7 +280,8 @@ public class LDAPConfigurationManager implements StatefulService {
 		if (directoryType == LDAPDirectoryType.AZURE_AD) {
 			String authorityTanentId = getString(configs, "ldap.serverConfiguration.authorityTenantId", null);
 			String clientId = getString(configs, "ldap.serverConfiguration.clientId", null);
-			AzureADServerConfig serverConf = new AzureADServerConfig().setAuthorityTenantId(authorityTanentId).setClientId(clientId);
+			AzureADServerConfig serverConf = new AzureADServerConfig().setAuthorityTenantId(authorityTanentId)
+					.setClientId(clientId);
 			return new LDAPServerConfiguration(serverConf, active);
 		} else {
 			List<String> urls = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.urls.sharpSV",
@@ -290,30 +299,34 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(boolean decryptPassword) {
-		Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
+		PropertiesConfiguration configuration = configManager.getProperties(LDAP_CONFIGS);
+		Map<String, String> configs = configuration == null ? new HashMap<String, String>() : configuration.getProperties();
 		RegexFilter userFilter = newRegexFilter(configs, "ldap.syncConfiguration.userFilter.acceptedRegex",
 				"ldap.syncConfiguration.userFilter.rejectedRegex");
 		RegexFilter groupFilter = newRegexFilter(configs, "ldap.syncConfiguration.groupFilter.acceptedRegex",
 				"ldap.syncConfiguration.groupFilter.rejectedRegex");
 		Duration durationBetweenExecution = newDuration(configs, "ldap.syncConfiguration.durationBetweenExecution");
-		List<String> scheduleTimeList = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.syncConfiguration.schedule.time.sharpSV", new ArrayList<String>());
+		List<String> scheduleTimeList = getSharpSeparatedValuesWithoutBlanks(configs,
+				"ldap.syncConfiguration.schedule.time.sharpSV", new ArrayList<String>());
 
 		List<String> selectedCollections = getSharpSeparatedValuesWithoutBlanks(configs,
 				"ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", new ArrayList<String>());
-        boolean membershipAutomaticDerivationActivated = getBooleanValue(configs, "ldap.syncConfiguration.membershipAutomaticDerivationActivated", true);
+		boolean membershipAutomaticDerivationActivated = getBooleanValue(configs,
+				"ldap.syncConfiguration.membershipAutomaticDerivationActivated", true);
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
 		if (directoryType == LDAPDirectoryType.AZURE_AD) {
 			String applicationKey = getString(configs, "ldap.syncConfiguration.applicationKey", null);
-			String synchClientId =  getString(configs, "ldap.syncConfiguration.clientId", null);
-            String groupsFilter = getString(configs, "ldap.syncConfiguration.groupsFilter", null);
-            String usersFilter = getString(configs, "ldap.syncConfiguration.usersFilter", null);
-            List<String> userGroups = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.syncConfiguration.userGroups.sharpSV", null);
+			String synchClientId = getString(configs, "ldap.syncConfiguration.clientId", null);
+			String groupsFilter = getString(configs, "ldap.syncConfiguration.groupsFilter", null);
+			String usersFilter = getString(configs, "ldap.syncConfiguration.usersFilter", null);
+			List<String> userGroups = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.syncConfiguration.userGroups.sharpSV",
+					null);
 			AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig()
 					.setApplicationKey(applicationKey)
 					.setClientId(synchClientId)
-                    .setGroupsFilter(groupsFilter)
-                    .setUsersFilter(usersFilter)
-                    .setUserGroups(userGroups);
+					.setGroupsFilter(groupsFilter)
+					.setUsersFilter(usersFilter)
+					.setUserGroups(userGroups);
 			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution,
 					selectedCollections);
 		} else {
@@ -323,8 +336,8 @@ public class LDAPConfigurationManager implements StatefulService {
 					new ArrayList<String>());
 			List<String> usersWithoutGroupsBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
 					"ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV", new ArrayList<String>());
-            List<String> userFilterGroupsList = getSharpSeparatedValuesWithoutBlanks(configs,
-                    "ldap.syncConfiguration.userFilterGroupsList.sharpSV", new ArrayList<String>());
+			List<String> userFilterGroupsList = getSharpSeparatedValuesWithoutBlanks(configs,
+					"ldap.syncConfiguration.userFilterGroupsList.sharpSV", new ArrayList<String>());
 			String password = getString(configs, "ldap.syncConfiguration.user.password", "");
 			if (decryptPassword) {
 				if (encryptionServices == null) {
@@ -333,8 +346,10 @@ public class LDAPConfigurationManager implements StatefulService {
 				}
 				password = encryptionServices.decrypt(password);
 			}
-			return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution, scheduleTimeList,
-					groupBaseContextList, usersWithoutGroupsBaseContextList, userFilterGroupsList, membershipAutomaticDerivationActivated, selectedCollections);
+			return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution,
+					scheduleTimeList,
+					groupBaseContextList, usersWithoutGroupsBaseContextList, userFilterGroupsList,
+					membershipAutomaticDerivationActivated, selectedCollections);
 		}
 	}
 
@@ -421,14 +436,15 @@ public class LDAPConfigurationManager implements StatefulService {
 
 	public Boolean idUsersSynchActivated() {
 		LDAPUserSyncConfiguration config = getLDAPUserSyncConfiguration(false);
-		return config != null && !(config.getDurationBetweenExecution() == null && CollectionUtils.isEmpty(config.getScheduleTime()));
+		return config != null && !(config.getDurationBetweenExecution() == null && CollectionUtils
+				.isEmpty(config.getScheduleTime()));
 	}
 
 	public Date getNextUsersSyncFireTime() {
 		return nextUsersSyncFireTime;
 	}
 
-    public void setNextUsersSyncFireTime(Date nextUsersSyncFireTime) {
-        this.nextUsersSyncFireTime = nextUsersSyncFireTime;
-    }
+	public void setNextUsersSyncFireTime(Date nextUsersSyncFireTime) {
+		this.nextUsersSyncFireTime = nextUsersSyncFireTime;
+	}
 }

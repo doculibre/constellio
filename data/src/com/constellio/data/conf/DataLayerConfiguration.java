@@ -34,9 +34,9 @@ public interface DataLayerConfiguration extends Serializable {
 
 	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
 
-    List<String> getContentDaoReplicatedVaultMountPoints();
+    String getContentDaoReplicatedVaultMountPoint();
 
-    void setContentDaoReplicatedVaultMountPoints(List<String> replicatedVaultMountPoints);
+    void setContentDaoReplicatedVaultMountPoint(String replicatedVaultMountPoint);
 
     File getTempFolder();
 

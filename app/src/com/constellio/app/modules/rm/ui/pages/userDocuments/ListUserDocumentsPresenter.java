@@ -200,7 +200,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 						.filteredWithUser(getCurrentUser());
 				List<UserDocument> duplicateUserDocuments = rm.searchUserDocuments(duplicateUserDocumentsQuery);
 				if(duplicateDocuments.size() > 0 || duplicateUserDocuments.size() > 0) {
-					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
 					message.append("<br>");
 					for(Document document: duplicateDocuments) {
 						message.append("<br>-");

@@ -34,6 +34,9 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 			} else {
 				normalizedValue = normalizer.normalize((String) value);
 			}
+			if (normalizedValue == null) {
+				normalizedValue = "";
+			}
 			return singletonMap(sortField.getDataStoreCode(), normalizedValue);
 
 		} else {

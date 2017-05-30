@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import com.constellio.app.modules.rm.ui.components.container.ContainerFormImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.RecordVO;
@@ -13,8 +15,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.VerticalLayout;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditContainerView {
 	protected AddEditContainerPresenter presenter;
@@ -63,7 +63,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 	@Override
 	protected String getTitle() {
-		return presenter.isEditMode() ? $("EditContainerViewImpl.editViewTitle"):$("EditContainerViewImpl.addViewTitle");
+		return presenter.isEditMode() ? $("EditContainerViewImpl.editViewTitle") : $("EditContainerViewImpl.addViewTitle");
 	}
 
 	@Override
@@ -77,7 +77,6 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 		ContainerFormImpl form = newForm();
 		prepareTypeField(form.getTypeField());
 		prepareDecommissioningTypeField(form.getDecommissioningTypeField());
-		prepareAdministrativeUnitField(form.getAdministrativeUnitField());
 		prepareCapacityField(form.getCapacityField());
 		return form;
 	}
@@ -97,9 +96,9 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 			public void valueChange(ValueChangeEvent event) {
 				String value = (String) event.getProperty().getValue();
 				container = getUpdatedContainer();
-				if(value == null) {
+				if (value == null) {
 					container.set(ContainerRecord.CAPACITY, null);
-				} else if(value.matches("-?\\d+(\\.\\d+)?")) {
+				} else if (value.matches("-?\\d+(\\.\\d+)?")) {
 					container.set(ContainerRecord.CAPACITY, Double.parseDouble(value));
 				}
 				form.replaceStorageSpaceField(container, presenter);
@@ -109,10 +108,6 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 	private void prepareDecommissioningTypeField(Field<String> field) {
 		field.setVisible(presenter.canEditDecommissioningType());
-	}
-
-	private void prepareAdministrativeUnitField(Field<String> field) {
-		field.setVisible(presenter.canEditAdministrativeUnit());
 	}
 
 	private ContainerFormImpl newForm() {

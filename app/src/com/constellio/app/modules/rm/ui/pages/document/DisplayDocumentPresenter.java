@@ -397,6 +397,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
 	}
 
+	protected boolean hasCurrentUserPermissionToViewFileSystemName() {
+		return getCurrentUser().has(RMPermissionsTo.VIEW_SYSTEM_FILENAME).globally();
+	}
+
 	public void refreshEvents() {
 		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		view.setEvents(getEventsDataProvider());
