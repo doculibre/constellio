@@ -1,27 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserDocumentVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;
@@ -38,11 +25,25 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUserDocumentsView> {
 	
@@ -58,8 +59,11 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	
 	private RecordVODataProvider userDocumentsDataProvider;
 
+	private ConstellioEIMConfigs eimConfigs;
+
 	public ListUserDocumentsPresenter(ListUserDocumentsView view) {
 		super(view, UserDocument.DEFAULT_SCHEMA);
+		this.eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -184,6 +188,35 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 
 			addOrUpdate(newRecord);
 			contentVersionVO.getInputStreamProvider().deleteTemp();
+			if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+						.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash())))
+						.filteredWithUser(getCurrentUser());
+				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+				LogicalSearchQuery duplicateUserDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.userDocumentSchemaType())
+						.where(rm.userDocument.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+						.andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId()))
+						.filteredWithUser(getCurrentUser());
+				List<UserDocument> duplicateUserDocuments = rm.searchUserDocuments(duplicateUserDocumentsQuery);
+				if(duplicateDocuments.size() > 0 || duplicateUserDocuments.size() > 0) {
+					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+					message.append("<br>");
+					for(Document document: duplicateDocuments) {
+						message.append("<br>-");
+						message.append(document.getTitle());
+						message.append(": ");
+						message.append(generateDisplayLink(document));
+					}
+					for(UserDocument userDocument: duplicateUserDocuments) {
+						message.append("<br>-");
+						message.append(userDocument.getTitle());
+						message.append(": ");
+						message.append(generateDisplayLink(userDocument));
+					}
+					view.showClickableMessage(message.toString());
+				}
+			}
 			userDocumentsDataProvider.fireDataRefreshEvent();
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
@@ -315,4 +348,17 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		}
 	}
 
+	String generateDisplayLink(Document document) {
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
+		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
+		return "<a href=\""+url+"\">"+url+"</a>";
+	}
+
+	String generateDisplayLink(UserDocument userDocument) {
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.LIST_USER_DOCUMENTS;
+		String url = constellioUrl + "#!" + displayURL;
+		return "<a href=\""+url+"\">"+url+"</a>";
+	}
 }

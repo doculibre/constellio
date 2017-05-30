@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -31,6 +17,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -56,6 +43,14 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
 
@@ -402,6 +397,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
 	}
 
+	protected boolean hasCurrentUserPermissionToViewFileSystemName() {
+		return getCurrentUser().has(RMPermissionsTo.VIEW_SYSTEM_FILENAME).globally();
+	}
+
 	public void refreshEvents() {
 		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		view.setEvents(getEventsDataProvider());
@@ -409,5 +408,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public boolean hasPermissionToStartWorkflow() {
 		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
+	}
+
+	public AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
 	}
 }

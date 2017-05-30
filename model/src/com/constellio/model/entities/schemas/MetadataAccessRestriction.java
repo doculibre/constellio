@@ -1,9 +1,10 @@
 package com.constellio.model.entities.schemas;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MetadataAccessRestriction {
+public class MetadataAccessRestriction implements Serializable {
 
 	final List<String> requiredReadRoles;
 

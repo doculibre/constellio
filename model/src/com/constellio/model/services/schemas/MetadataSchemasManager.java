@@ -22,6 +22,8 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionObject;
@@ -65,6 +67,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private SearchServices searchServices;
 	private ModelLayerFactory modelLayerFactory;
 	private Delayed<ConstellioModulesManager> modulesManagerDelayed;
+	private ConstellioCacheManager cacheManager; 
 
 	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory, Delayed<ConstellioModulesManager> modulesManagerDelayed) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
@@ -75,6 +78,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.modulesManagerDelayed = modulesManagerDelayed;
 		this.modelLayerFactory = modelLayerFactory;
+		this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
 	}
 
 	@Override
@@ -92,8 +96,9 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	OneXMLConfigPerCollectionManager<MetadataSchemaTypes> newOneXMLManager(ConfigManager configManager,
 			CollectionsListManager collectionsListManager) {
+		ConstellioCache cache = cacheManager.getCache(MetadataSchemasManager.class.getName());
 		return new OneXMLConfigPerCollectionManager<MetadataSchemaTypes>(configManager,
-				collectionsListManager, SCHEMAS_CONFIG_PATH, xmlConfigReader(), this) {
+				collectionsListManager, SCHEMAS_CONFIG_PATH, xmlConfigReader(), this, cache) {
 
 			@Override
 			protected MetadataSchemaTypes parse(String collection, XMLConfiguration xmlConfiguration) {

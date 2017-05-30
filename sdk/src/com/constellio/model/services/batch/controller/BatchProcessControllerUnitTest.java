@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import com.constellio.model.conf.ModelLayerConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +18,7 @@ import org.mockito.Mock;
 
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.utils.LoggerUncaughtExceptionHandler;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.batch.controller.BatchProcessControllerRuntimeException.ControllerAlreadyStarted;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -70,7 +70,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	public void whenStartingThenCreateAndStartThread()
 			throws Exception {
 
-		controller.initialize();
+		controller.start();
 
 		verify(controller).newBatchProcessControllerThread();
 		verify(thread).setUncaughtExceptionHandler(LoggerUncaughtExceptionHandler.instance);
@@ -95,7 +95,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 			throws InterruptedException {
 		givenStartedController();
 
-		controller.initialize();
+		controller.start();
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 			throws InterruptedException {
 		givenStartedController();
 		controller.close();
-		controller.initialize();
+		controller.start();
 	}
 
 	@Test
@@ -120,7 +120,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	public void givenStartedManagerWhenBatchProcessesListUpdatedThenNotifyThread()
 			throws Exception {
 
-		controller.initialize();
+		controller.start();
 
 		controller.onBatchProcessesListUpdated();
 
@@ -131,7 +131,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 		controller = spy(
 				new BatchProcessController(modelLayerFactory, anInteger()));
 		doReturn(thread).when(controller).newBatchProcessControllerThread();
-		controller.initialize();
+		controller.start();
 		reset(controller);
 	}
 }

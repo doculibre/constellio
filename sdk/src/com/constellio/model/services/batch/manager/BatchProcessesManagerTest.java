@@ -247,7 +247,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Test
 	public void whenAddingBatchProcessThenAddToBatchProcessListAndCreateItsOwnXmlFile()
 			throws Exception {
-		String solrQuery = "fq=%28*%3A*+-type_s%3Aindex%29&fq=collection_s%3AzeCollection&fq=zeQuery&qt=%2Fspell&shards.qt=%2Fspell&q=*%3A*&rows=100000&start=0";
+		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
 		createManager();
 		givenExistingBatchProcessList();
 		doReturn(addBatchProcessDocumentAlteration).when(manager)

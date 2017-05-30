@@ -4,14 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
@@ -34,6 +37,7 @@ import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -59,25 +63,47 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	private final File configFolder;
 	private final HashingService hashService;
 	private final IOServices ioServices;
+	private final ConstellioCache cache;
 
-	private final Map<String, Object> cache = new HashMap<>();
+//	private final Map<String, Object> cache = new HashMap<>();
 
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
 
-	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService) {
+	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService, ConstellioCache cache) {
 		super();
 		this.configFolder = configFolder;
 		this.ioServices = ioServices;
 		this.hashService = hashService;
+		this.cache = cache;
 	}
 
 	@Override
 	public void initialize() {
-
 	}
 
-	Map<String, Object> getCache() {
-		return cache;
+	Object getFromCache(String key) {
+		return cache.get(key);
+	}
+	
+	void putInCache(String key, Object value) {
+		cache.put(key, (Serializable) value);
+	}
+	
+	void removeFromCache(String key) {
+		cache.remove(key);
+	}
+	
+	void clearCache() {
+		cache.clear();
+	}
+	
+	Set<String> getCacheKeys() {
+		Set<String> cacheKeys = new HashSet<>();
+		for (Iterator<String> it = cache.keySet(); it.hasNext();) {
+			String cacheKey = (String) it.next();
+			cacheKeys.add(cacheKey);
+		}
+		return cacheKeys;
 	}
 
 	@Override
@@ -145,7 +171,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public synchronized void delete(String path) {
 		LOGGER.debug("delete document => " + path);
-		cache.remove(path);
+		removeFromCache(path);
 		new File(configFolder, path).delete();
 	}
 
@@ -182,7 +208,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 		validateHash(path, hash, expectedVersion);
 
-		cache.remove(path);
+		removeFromCache(path);
 		new File(configFolder, path).delete();
 	}
 
@@ -287,14 +313,14 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public synchronized XMLConfiguration getXML(String path) {
 		LOGGER.debug("get XML  => " + path);
-		XMLConfiguration cachedConfiguration = (XMLConfiguration) cache.get(path);
+		XMLConfiguration cachedConfiguration = (XMLConfiguration) getFromCache(path);
 		if (cachedConfiguration == null) {
 			try {
 				cachedConfiguration = readXML(path);
 			} catch (NoSuchConfiguration noSuchConfiguration) {
 				return null;
 			}
-			cache.put(path, cachedConfiguration);
+			putInCache(path, cachedConfiguration);
 		}
 		return cachedConfiguration;
 
@@ -313,7 +339,6 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		String version = readVersion(doc);
 		if (version.equals(NO_VERSION)) {
 			XMLConfiguration config = new XMLConfiguration(hash, hash, doc);
-			cache.put(path, config);
 			return config;
 		} else {
 			return new XMLConfiguration(version, hash, doc);
@@ -376,7 +401,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 			try {
 				String content = getContentOfDocument(newDocument);
 				ioServices.replaceFileContent(xmlFile, content);
-				cache.remove(path);
+				removeFromCache(path);
 			} catch (IOException e) {
 				throw new ConfigManagerRuntimeException.CannotCompleteOperation("replace File Content", e);
 			}
@@ -470,7 +495,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 			throw new ImpossibleRuntimeException(e);
 		}
 
-		cache.remove(path);
+		removeFromCache(path);
 	}
 
 	@Override
@@ -487,7 +512,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 			throw new ImpossibleRuntimeException(e);
 		}
 
-		cache.remove(path);
+		removeFromCache(path);
 	}
 
 	@Override
@@ -520,13 +545,13 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public void deleteAllConfigsIn(String collection) {
 		List<String> toDelete = new ArrayList<>();
-		for (Entry<String, Object> entry : cache.entrySet()) {
-			if (entry.getKey().startsWith(collection)) {
-				toDelete.add(entry.getKey());
+		for (String cacheKey : getCacheKeys()) {
+			if (cacheKey.startsWith(collection)) {
+				toDelete.add(cacheKey);
 			}
 		}
 		for (String collectionConfig : toDelete) {
-			cache.remove(collectionConfig);
+			removeFromCache(collectionConfig);
 		}
 		File folderCollection = new File(configFolder, collection);
 		ioServices.deleteDirectoryWithoutExpectableIOException(folderCollection);
@@ -536,7 +561,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	public synchronized void copySettingsFrom(File setting) {
 		try {
 			this.ioServices.copyDirectory(setting, this.configFolder);
-			cache.clear();
+			clearCache();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -554,6 +579,27 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		File destFile = new File(configFolder, dest);
 		if (!srcFile.renameTo(destFile)) {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("move '" + src + "' to '" + dest + "'", null);
+		}
+	}
+
+	@Override
+	public void importFrom(File settingsFolder) {
+		try {
+			File bckFile = new File(this.configFolder.getParentFile(), this.configFolder.getName() + ".bck");
+			this.configFolder.renameTo(bckFile);
+			FileUtils.copyDirectory(settingsFolder, this.configFolder);
+			FileUtils.deleteDirectory(bckFile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void exportTo(File settingsFolder) {
+		try {
+			FileUtils.copyDirectory(this.configFolder, settingsFolder);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -588,7 +634,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public TextConfiguration getText(String path) {
 		LOGGER.debug("get Text  => " + path);
-		TextConfiguration cachedConfiguration = null;// (XMLConfiguration) cache.get(path);
+		TextConfiguration cachedConfiguration = null;// (XMLConfiguration) getFromCache(path);
 		if (cachedConfiguration == null) {
 			try {
 				String content = readFile(path);
@@ -597,7 +643,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 			} catch (NoSuchConfiguration | HashingServiceException noSuchConfiguration) {
 				return null;
 			}
-			cache.put(path, cachedConfiguration);
+			putInCache(path, cachedConfiguration);
 		}
 		return cachedConfiguration;
 

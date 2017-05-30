@@ -3,18 +3,13 @@ package com.constellio.app.modules.rm.model.calculators.document;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 
 import java.util.List;
 
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class DocumentDecomDatesDynamicLocalDependency extends DynamicLocalDependency {
 

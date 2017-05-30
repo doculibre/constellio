@@ -1,26 +1,24 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
-import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
-import com.constellio.model.services.schemas.SchemaUtils;
-
-public class Schemas {
+public class
+Schemas {
 
 	private static List<Metadata> allGlobalMetadatas = new ArrayList<>();
 
 	public static final String TITLE_CODE = "title";
 	public static final String GLOBAL_SCHEMA_TYPE = "global";
 
+	public static final Metadata MIGRATION_DATA_VERSION = add(new Metadata("migrationDataVersion_d", MetadataValueType.NUMBER, false));
 	public static final Metadata CREATED_BY = add(new Metadata("createdById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata MODIFIED_BY = add(new Metadata("modifiedById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata IDENTIFIER = add(new Metadata("id", STRING, false));

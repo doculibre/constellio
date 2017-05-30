@@ -1,45 +1,37 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_NO;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_YES;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.data.utils.KeySetMap;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
+import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.records.ImportContent;
+import com.constellio.model.services.records.bulkImport.ProgressionHandler;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import com.constellio.app.services.schemas.bulkImport.data.ImportData;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.data.utils.KeySetMap;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
-import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.records.ContentImport;
-import com.constellio.model.services.records.bulkImport.ProgressionHandler;
-import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_NO;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_YES;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 
 public class RecordsImportValidator {
 
@@ -97,8 +89,8 @@ public class RecordsImportValidator {
 	public void validate(ValidationErrors errors)
 			throws ValidationException {
 
-		Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(schemaType);
-
+		ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
+		importDataIterator.getOptions().isImportAsLegacyId();
 		DecoratedValidationsErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
 			@Override
 			public void buildExtraParams(Map<String, Object> parameters) {
@@ -116,10 +108,11 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void validate(Iterator<ImportData> importDataIterator, DecoratedValidationsErrors errors, AtomicBoolean fatalError) {
+	private void validate(ImportDataIterator importDataIterator, DecoratedValidationsErrors errors, AtomicBoolean fatalError) {
 		progressionHandler.beforeValidationOfSchema(schemaType);
 		int numberOfRecords = 0;
 		List<String> uniqueMetadatas = type.getAllMetadatas().onlyWithType(STRING).onlyUniques().toLocalCodesList();
+		boolean importAsLegacyId = importDataIterator.getOptions().isImportAsLegacyId();
 		while (importDataIterator.hasNext()) {
 
 			final ImportData importData = importDataIterator.next();
@@ -152,7 +145,8 @@ public class RecordsImportValidator {
 				try {
 					validateValueUnicityOfUniqueMetadata(uniqueMetadatas, importData, decoratedErrors);
 
-					markUniqueValuesAsInFile(uniqueMetadatas, importData);
+
+					markUniqueValuesAsInFile(importAsLegacyId, uniqueMetadatas, importData);
 					MetadataSchema metadataSchema = type.getSchema(importData.getSchema());
 
 					validateFields(importData, metadataSchema, decoratedErrors);
@@ -247,8 +241,13 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void markUniqueValuesAsInFile(List<String> uniqueMetadatas, ImportData importData) {
-		resolverCache.markAsRecordInFile(type.getCode(), LEGACY_ID_LOCAL_CODE, importData.getLegacyId());
+	private void markUniqueValuesAsInFile(boolean isImportedAsLegacyId, List<String> uniqueMetadatas, ImportData importData) {
+		if(isImportedAsLegacyId) {
+			resolverCache.markAsRecordInFile(type.getCode(), LEGACY_ID_LOCAL_CODE, importData.getLegacyId());
+		} else {
+			resolverCache.markAsRecordInFile(type.getCode(), Schemas.IDENTIFIER.getLocalCode(), importData.getLegacyId());
+		}
+
 		for (String uniqueMetadata : uniqueMetadatas) {
 			String value = (String) importData.getFields().get(uniqueMetadata);
 			if (value != null) {
@@ -384,7 +383,7 @@ public class RecordsImportValidator {
 
 		} else if (type == MetadataValueType.CONTENT) {
 
-			if (!ContentImport.class.equals(value.getClass())) {
+			if (!ImportContent.class.isAssignableFrom(value.getClass())) {
 				errors.add(RecordsImportServices.class, INVALID_CONTENT_VALUE);
 			}
 

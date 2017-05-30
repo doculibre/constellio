@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.assertj.core.api.Condition;
 
-import com.constellio.model.services.records.ContentImport;
+import com.constellio.model.services.records.SimpleImportContent;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -97,7 +97,7 @@ public class ImportDataIteratorTest extends ConstellioTest {
 		return new Condition<ImportData>() {
 			@Override
 			public boolean matches(ImportData value) {
-				assertThat((((ContentImport) value.getValue("content")).getVersions()).size()).isEqualTo(sizeExpected);
+				assertThat((((SimpleImportContent) value.getValue("content")).getVersions()).size()).isEqualTo(sizeExpected);
 				return true;
 			}
 		};
@@ -108,7 +108,7 @@ public class ImportDataIteratorTest extends ConstellioTest {
 			@Override
 			public boolean matches(ImportData value) {
 				int index = 0;
-				for (ContentImportVersion version : (((ContentImport) value.getValue("content")).getVersions())) {
+				for (ContentImportVersion version : (((SimpleImportContent) value.getValue("content")).getVersions())) {
 					assertThat((version.getFileName())).isEqualTo(versions[index].getFileName());
 					assertThat((version.getUrl())).isEqualTo(versions[index].getUrl());
 					assertThat((version.isMajor())).isEqualTo(versions[index].isMajor());

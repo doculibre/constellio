@@ -69,7 +69,8 @@ public class MetadataBuilderTest extends ConstellioTest {
 		metadataWithoutInheritanceBuilder = MetadataBuilder.createMetadataWithoutInheritance(CODE_DEFAULT_METADATA,
 				schemaBuilder);
 		inheritedMetadataBuilder = metadataWithoutInheritanceBuilder;
-		metadataWithInheritanceBuilder = MetadataBuilder.createCustomMetadataFromDefault(inheritedMetadataBuilder, "codeSchema");
+		metadataWithInheritanceBuilder = MetadataBuilder
+				.createCustomMetadataFromDefault(schemaBuilder, inheritedMetadataBuilder, "codeSchema");
 
 		referenceOtherSchemaMetadataBuilder = MetadataBuilder.createMetadataWithoutInheritance("ref", schemaBuilder);
 		referenceOtherSchemaMetadataBuilder.defineReferences().set(anotherSchemaTypeBuilder);
@@ -86,9 +87,10 @@ public class MetadataBuilderTest extends ConstellioTest {
 		Metadata inheritedMetadata = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory);
 		Metadata metadataWithInheritance = metadataWithInheritanceBuilder.buildWithInheritance(inheritedMetadata);
 		ClassProvider classProvider = new DefaultClassProvider();
-		metadataWithoutInheritanceBuilder = MetadataBuilder.modifyMetadataWithoutInheritance(inheritedMetadata, classProvider);
+		metadataWithoutInheritanceBuilder = MetadataBuilder
+				.modifyMetadataWithoutInheritance(schemaBuilder, inheritedMetadata, classProvider);
 		inheritedMetadataBuilder = metadataWithoutInheritanceBuilder;
-		metadataWithInheritanceBuilder = MetadataBuilder.modifyMetadataWithInheritance(metadataWithInheritance,
+		metadataWithInheritanceBuilder = MetadataBuilder.modifyMetadataWithInheritance(schemaBuilder, metadataWithInheritance,
 				inheritedMetadataBuilder);
 	}
 

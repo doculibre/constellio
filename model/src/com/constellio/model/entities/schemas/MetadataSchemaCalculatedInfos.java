@@ -1,10 +1,11 @@
 package com.constellio.model.entities.schemas;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 
-public class MetadataSchemaCalculatedInfos {
+public class MetadataSchemaCalculatedInfos implements Serializable {
 
 	List<RecordPreparationStep> recordPreparationSteps;
 

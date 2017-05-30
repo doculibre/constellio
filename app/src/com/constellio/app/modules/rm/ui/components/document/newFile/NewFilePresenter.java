@@ -1,16 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.model.services.contents.icap.IcapException;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.util.NewFileUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -18,8 +7,18 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -76,7 +75,8 @@ public class NewFilePresenter implements Serializable {
 				InputStream inputStream = contentManager
 						.getContentInputStream(templateContent.getCurrentVersion().getHash(), "newFilePresenterInputStream");
 				try {
-					ContentVersionDataSummary dataSummary = contentManager.upload(inputStream, filename);
+					ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(inputStream, filename);
+					ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 					fileContent = contentManager.createMinor(user, filename, dataSummary);
 				} catch (final IcapException e) {
                     final String message;
@@ -114,7 +114,8 @@ public class NewFilePresenter implements Serializable {
 
 		InputStream newFileInput = NewFileUtils.newFile(extension);
 		try {
-			ContentVersionDataSummary dataSummary = contentManager.upload(newFileInput, fileName);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(newFileInput, fileName);
+			ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 			return contentManager.createMinor(user, fileName, dataSummary);
 		} finally {
 			IOUtils.closeQuietly(newFileInput);

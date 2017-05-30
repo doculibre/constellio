@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -36,11 +37,15 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -215,6 +220,22 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		ContentVersion contentVersion = content.getCurrentVersion();
 		ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
 		String folderId = userDocument.getFolder();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+				.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getHash())))
+				.filteredWithUser(getCurrentUser());
+		List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+		if(duplicateDocuments.size() > 0) {
+			StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+			message.append("<br>");
+			for(Document document: duplicateDocuments) {
+				message.append("<br>-");
+				message.append(document.getTitle());
+				message.append(": ");
+				message.append(generateDisplayLink(document));
+			}
+			view.showMessage(message.toString());
+		}
 
 		// Reset as new content
 		contentVersionVO.setHash(null);
@@ -270,7 +291,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			contentVersionSummary = uploadContent(in, true, true, filename);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, true, true, filename);
+			contentVersionSummary = uploadResponse.getContentVersionDataSummary();
             contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
             document.setContent(contentBeforeChange);
 		} finally {
@@ -283,6 +305,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
         Document document;
 
         try {
+			//TODO should throw message if duplicate is found
             record = toRecord(documentVO, newFile);
             document = rmSchemas().wrapDocument(record);
 
@@ -346,7 +369,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		Boolean majorVersion = contentVO.isMajorVersion();
 		String fileName = contentVO.getFileName();
 		String hash = contentVO.getHash();
-		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash);
+		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash).getContentVersionDataSummary();
 		Content copiedContent;
 		if (majorVersion != null && majorVersion) {
 			copiedContent = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);
@@ -406,7 +429,27 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	void adjustContentField(CustomDocumentField<?> valueChangeField) {
 		if (isAddView() && valueChangeField instanceof DocumentContentField) {
 			DocumentContentField contentField = getContentField();
-			boolean newFileButtonVisible = contentField.getFieldValue() == null;
+			ContentVersionVO contentVersionVO = contentField.getFieldValue();
+			if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+						.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+						.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
+						.filteredWithUser(getCurrentUser());
+				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+				if(duplicateDocuments.size() > 0) {
+					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+					message.append("<br>");
+					for(Document document: duplicateDocuments) {
+						message.append("<br>-");
+						message.append(document.getTitle());
+						message.append(": ");
+						message.append(generateDisplayLink(document));
+					}
+					view.showClickableMessage(message.toString());
+				}
+			}
+			boolean newFileButtonVisible = contentVersionVO == null;
 			contentField.setNewFileButtonVisible(newFileButtonVisible);
 			if (newFileButtonVisible) {
 				newFile = false;
@@ -596,6 +639,25 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			public void newContentUploaded() {
 				ContentVersionVO contentVersionVO = contentField.getFieldValue();
 				if (contentVersionVO != null) {
+					if(Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+						RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+						LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+								.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
+								.filteredWithUser(getCurrentUser());
+						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+						if(duplicateDocuments.size() > 0) {
+							StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicate"));
+							message.append("<br>");
+							for(Document document: duplicateDocuments) {
+								message.append("<br>-");
+								message.append(document.getTitle());
+								message.append(": ");
+								message.append(generateDisplayLink(document));
+							}
+							view.showClickableMessage(message.toString());
+						}
+					}
 					view.getForm().commit();
 					contentVersionVO.setMajorVersion(true);
 					Record documentRecord = toRecord(documentVO);
@@ -610,7 +672,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 							InputStream inputStream = null;
 							try {
 								inputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromEML");
-								Email email = rmSchemasRecordsServices.newEmail(filename, inputStream);
+								Email email = AddEditDocumentPresenter.this.rmSchemasRecordsServices.newEmail(filename, inputStream);
 								document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
 
 								((Email) document).setSubject(email.getSubject());
@@ -694,5 +756,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		document.setCreatedBy(currentUser.getId());
 		document.setAuthor(currentUser.getFirstName() + " " + currentUser.getLastName());
 		return document;
+	}
+
+	String generateDisplayLink(Document document) {
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
+		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
+		return "<a href=\""+url+"\">"+url+"</a>";
 	}
 }

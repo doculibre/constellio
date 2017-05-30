@@ -6,4 +6,10 @@ public class StatefullServiceDecorator {
 		return service;
 	}
 
+	public <T> void beforeInitialize(T service) {
+	}
+
+	public <T> void afterInitialize(T service) {
+	}
+
 }

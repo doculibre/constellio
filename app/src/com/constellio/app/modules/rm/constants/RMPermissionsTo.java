@@ -86,6 +86,8 @@ public class RMPermissionsTo {
 
 	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
 
+	public static final String VIEW_SYSTEM_FILENAME = permission(DOCUMENT_GROUP, "viewSystemFilename");
+
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
 

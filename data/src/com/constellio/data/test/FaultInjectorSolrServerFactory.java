@@ -46,7 +46,7 @@ public class FaultInjectorSolrServerFactory implements SolrServerFactory {
 			//if (random.nextInt(10) == 0) {
 			//	throw new RemoteSolrException(404, "Random injected fault", new RuntimeException());
 			//}
-			return nestedSolrServer.request(request);
+			return nestedSolrServer.request(request, collection);
 		}
 
 		@Override

@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -41,6 +42,7 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
@@ -122,6 +124,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
+	private final RecordMigrationsManager recordMigrationsManager;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -141,17 +144,20 @@ public class ModelLayerFactory extends LayerFactory {
 		this.foldersLocator = foldersLocator;
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
+		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
 		this.systemConfigurationsManager = add(new SystemConfigurationsManager(this, configManager, modulesManagerDelayed));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
 		this.collectionsListManager = add(new CollectionsListManager(configManager));
+
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
-						recordsCaches));
+						recordsCaches, cacheManager));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
+		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
@@ -159,7 +165,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
 		//this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
 		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
-		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
+		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager, cacheManager));
 		this.rolesManager = add(new RolesManager(this));
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
@@ -167,8 +173,8 @@ public class ModelLayerFactory extends LayerFactory {
 		this.contentsManager = add(new ContentManager(this));
 
 		workflowsConfigManager = add(new WorkflowsConfigManager(configManager, collectionsListManager,
-				newWorkflowBPMNDefinitionsService()));
-		workflowExecutionIndexManager = add(new WorkflowExecutionIndexManager(configManager, collectionsListManager));
+				newWorkflowBPMNDefinitionsService(), cacheManager));
+		workflowExecutionIndexManager = add(new WorkflowExecutionIndexManager(configManager, collectionsListManager, cacheManager));
 
 		this.workflowExecutor = new WorkflowExecutor(this);
 
@@ -186,18 +192,22 @@ public class ModelLayerFactory extends LayerFactory {
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
 				passwordFileAuthenticationService);
 		this.emailConfigurationsManager = add(
-				new EmailConfigurationsManager(configManager, collectionsListManager, this));
+				new EmailConfigurationsManager(configManager, collectionsListManager, this, cacheManager));
 
 		this.emailTemplatesManager = add(
 				new EmailTemplatesManager(configManager, collectionsListManager, ioServicesFactory.newIOServices()));
 		this.emailQueueManager = add(new EmailQueueManager(this, new EmailServices()));
 		this.storedBatchProcessProgressionServices = add(new StoredBatchProcessProgressionServices(configManager));
 		this.searchBoostManager = add(
-				new SearchBoostManager(configManager, collectionsListManager));
+				new SearchBoostManager(configManager, collectionsListManager, cacheManager));
 		this.trashQueueManager = add(new TrashQueueManager(this));
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
+	}
+
+	public RecordMigrationsManager getRecordMigrationsManager() {
+		return recordMigrationsManager;
 	}
 
 	public List<SystemCollectionListener> getSystemCollectionListeners() {
