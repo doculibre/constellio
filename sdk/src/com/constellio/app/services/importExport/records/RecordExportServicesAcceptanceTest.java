@@ -1173,7 +1173,21 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
-		assertThatRecords(rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X))).containsAll(childCategories);
+		List<Category> childCategories2 = rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
+
+		for(Category categorie1 : childCategories) {
+			boolean isFound = false;
+
+			for(Category categorie2 : childCategories2) {
+				if(categorie1.getId().equals(categorie2.getId())) {
+					isFound = true;
+					break;
+				}
+			}
+
+			assertThat(isFound).isTrue();
+
+		}
 	}
 
 
