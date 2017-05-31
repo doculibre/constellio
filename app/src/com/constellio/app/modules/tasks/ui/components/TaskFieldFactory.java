@@ -17,6 +17,11 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
 
+
+	public TaskFieldFactory(boolean isViewOnly) {
+		super(isViewOnly);
+	}
+
 	@Override
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;

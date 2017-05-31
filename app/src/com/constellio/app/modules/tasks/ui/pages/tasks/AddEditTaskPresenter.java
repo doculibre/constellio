@@ -367,4 +367,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		progressPercentageField.setVisible(editMode);
 		return tasksSchemas.getTask(taskVO.getId());
 	}
+
+	public boolean isEditMode() {
+		return editMode;
+	}
 }

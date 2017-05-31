@@ -143,7 +143,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 
 				case STRUCTURE_CONTENT_VALUE:
 					String structureValue = xmlReader.getAttributeValue("", STRUCTURE_VALUE);
-					fields.put("content", new StructureImportContent(structureValue));
+					fields.put(xmlReader.getAttributeValue("", "key"), new StructureImportContent(structureValue));
 					break;
 
 				default:
@@ -261,7 +261,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 						break;
 				}
 			} else if (event == XMLStreamConstants.END_ELEMENT && (xmlReader.getLocalName().equals(RECORD_TAG)
-					|| xmlReader.getLocalName().equals(USER_CREDENTIAL_TAG))) {
+					|| xmlReader.getLocalName().equals(USER_CREDENTIAL_TAGT))) {
 				++index;
 				return new ImportData(index, schema, previousSystemId, fields);
 			}
