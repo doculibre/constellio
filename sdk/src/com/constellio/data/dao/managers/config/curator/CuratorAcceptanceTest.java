@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 @CloudTest
 @RunWith(MockitoJUnitRunner.class)
-public class CuratorAcceptanceTest {
+public class CuratorAcceptanceTest extends ConstellioTest {
 
     private CuratorFramework client;
     @Mock private TreeCacheListener treeCacheListener;
