@@ -677,6 +677,23 @@ public class AppManagementService {
 		updateWrapperConf(new File(constellioVersionInfo.getVersionDirectoryPath()));
 	}
 
+	public void updateJDKWrapperConf(File jdkFolder) {
+		LOGGER.info("New jdk path is '" + jdkFolder.getAbsolutePath() + "'");
+		File wrapperConf = foldersLocator.getWrapperConf();
+		if (foldersLocator.getFoldersLocatorMode().equals(FoldersLocatorMode.PROJECT) && !wrapperConf.exists()) {
+			return;
+		}
+		List<String> lines = fileService.readFileToLinesWithoutExpectableIOException(wrapperConf);
+		for (int i = 0; i < lines.size(); i++) {
+
+			String line = lines.get(i);
+			if (line.startsWith("wrapper.java.command=")) {
+				lines.set(i, "wrapper.java.command=" + jdkFolder.getAbsolutePath() + File.separator + "java");
+			}
+		}
+		fileService.writeLinesToFile(wrapperConf, lines);
+	}
+
 	private class WebAppFileNameFilter implements FilenameFilter {
 
 		@Override
