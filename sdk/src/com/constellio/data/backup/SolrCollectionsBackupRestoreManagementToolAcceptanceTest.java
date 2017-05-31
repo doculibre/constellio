@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.tests.annotations.CloudTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
@@ -28,10 +30,12 @@ import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
+@CloudTest
+@SlowTest
 public class SolrCollectionsBackupRestoreManagementToolAcceptanceTest extends ConstellioTest {
 
 	private static final int OK = 0;
-	private final String COLLECTION_CLOUD = "records";
+	private final String COLLECTION_CLOUD = "recordsZookeeperConfigManagerAcceptanceTest";
 
 	@Rule public TemporaryFolder tempFolder = new TemporaryFolder();
 

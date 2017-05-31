@@ -9,22 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.sdk.tests.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-
-import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
-import com.constellio.sdk.tests.annotations.DriverTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.LoadTest;
-import com.constellio.sdk.tests.annotations.MainTest;
-import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
-import com.constellio.sdk.tests.annotations.PerformanceTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
-import com.constellio.sdk.tests.annotations.UiTest;
 
 public class SkipTestsRule implements TestRule {
 
@@ -42,6 +32,7 @@ public class SkipTestsRule implements TestRule {
 	boolean skipTestsWithGradle;
 	boolean skipInternetTest;
 	boolean checkRollback = false;
+	boolean skipCloud;
 	private boolean inDevelopmentTest;
 	private boolean mainTest;
 	private List<String> whiteList;
@@ -84,6 +75,7 @@ public class SkipTestsRule implements TestRule {
 			this.skipUI = skipAllTests || "true".equals(properties.get("skip.uitests"));
 			this.whiteList = getFilterList("tests.whitelist", properties);
 			this.blackList = getFilterList("tests.blacklist", properties);
+			this.skipCloud = !"cloud".equals(properties.get("dao.records.type"));
 		}
 	}
 
@@ -123,6 +115,7 @@ public class SkipTestsRule implements TestRule {
 		PerformanceTest performanceTest = testClass.getAnnotation(PerformanceTest.class);
 		InDevelopmentTest inDevelopmentTestAnnotation = testClass.getAnnotation(InDevelopmentTest.class);
 		DoNotRunOnIntegrationServer doNotRunOnIntegrationServer = testClass.getAnnotation(DoNotRunOnIntegrationServer.class);
+		CloudTest cloudTest = testClass.getAnnotation(CloudTest.class);
 
 		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
 		inDevelopmentTest = inDevelopmentTestAnnotation != null || description.getAnnotation(InDevelopmentTest.class) != null;
@@ -165,6 +158,11 @@ public class SkipTestsRule implements TestRule {
 		if (slowTest == null) {
 			slowTest = description.getAnnotation(SlowTest.class);
 		}
+
+		if(cloudTest == null) {
+			cloudTest = description.getAnnotation(CloudTest.class);
+		}
+
 		if (loadTest == null) {
 			loadTest = description.getAnnotation(LoadTest.class);
 		}
@@ -200,6 +198,8 @@ public class SkipTestsRule implements TestRule {
 			return true;
 
 		} else if (!testClassDirectlyTargetted && isRealTest && skipReal) {
+			return true;
+		} else if (!testClassDirectlyTargetted && cloudTest != null && skipCloud) {
 			return true;
 
 		} else {

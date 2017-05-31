@@ -14,6 +14,7 @@ import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.CloudTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.io.IOUtils;
 import org.apache.curator.RetryPolicy;
@@ -43,6 +44,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+@CloudTest
+@SlowTest
 public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
 	private String TEST_FOLDER = "/test-tmp";

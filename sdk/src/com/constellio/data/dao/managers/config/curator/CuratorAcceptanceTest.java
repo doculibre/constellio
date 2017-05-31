@@ -5,6 +5,7 @@ import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.CloudTest;
 import org.apache.commons.io.IOUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -27,7 +28,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
+@CloudTest
 @RunWith(MockitoJUnitRunner.class)
 public class CuratorAcceptanceTest {
 
