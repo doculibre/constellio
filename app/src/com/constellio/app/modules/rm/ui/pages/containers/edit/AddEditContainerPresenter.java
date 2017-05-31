@@ -71,7 +71,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public boolean canEditAdministrativeUnit() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 	}
 
 	public boolean canEditDecommissioningType() {
