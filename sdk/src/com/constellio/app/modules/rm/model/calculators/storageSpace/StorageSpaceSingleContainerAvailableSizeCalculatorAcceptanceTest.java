@@ -42,7 +42,6 @@ public class StorageSpaceSingleContainerAvailableSizeCalculatorAcceptanceTest ex
 
 	@Before
 	public void setUp() {
-		givenBackgroundThreadsEnabled();
 		calculator = spy(new StorageSpaceSingleContainerAvailableSizeCalculator());
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()

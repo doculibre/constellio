@@ -42,7 +42,6 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
 
     @Before
     public void setUp() throws RecordServicesException {
-        givenBackgroundThreadsEnabled();
         calculator = spy(new StorageSpaceLinearSizeCalculator());
         prepareSystem(
                 withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
@@ -121,7 +120,7 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
     }
 
     @Test
-    public void givenContainerWithLinearSizeLinkedToStorageSpaceWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum2()
+    public void givenContainerIsMultivalueAndWithLinearSizeLinkedToStorageSpaceWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum()
             throws RecordServicesException {
         givenConfig(RMConfigs.IS_CONTAINER_MULTIVALUE, true);
         StorageSpace storageRecord = buildDefaultStorageSpace();
