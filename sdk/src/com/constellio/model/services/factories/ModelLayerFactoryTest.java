@@ -9,6 +9,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -59,6 +61,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Mock ConstellioModulesManager constellioModulesManager;
 	ModelLayerFactory modelLayerFactory;
 	StatefullServiceDecorator statefullServiceDecorator = new StatefullServiceDecorator();
+	@Mock ConstellioCacheManager constellioCache;
 
 	@Before
 	public void setUp() {
@@ -73,6 +76,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
 		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(constellioCache);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
