@@ -1,27 +1,32 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.model.entities.Language.English;
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.*;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.sdk.tests.setups.Users;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
@@ -33,50 +38,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.extensions.AppLayerExtensions;
-import com.constellio.app.extensions.AppLayerSystemExtensions;
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
-import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
-import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-import com.constellio.data.dao.services.sequence.SequencesManager;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.sdk.tests.setups.Users;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.model.entities.Language.English;
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
@@ -809,23 +784,24 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodePrefix"));
 	}
 
-	@Test
-	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
-			throws Exception {
-
-		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
-				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
-						.setTitle(TAXO_1_TITLE_FR)
-						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
-						.setVisibleOnHomePage(true)
-						.setUserIds(TAXO_USERS)
-						.setGroupIds(TAXO_GROUPS)
-				));
-
-		assertThatErrorsWhileImportingSettingsExtracting()
-				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodeSuffix"));
-
-	}
+	//TODO REMOVED VERIFICATION, SHOULD CHECK TAXONOMY SCHEMATYPE CODE INSTEAD OF TAXONOMY CODE
+//	@Test
+//	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
+//			throws Exception {
+//
+//		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
+//				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
+//						.setTitle(TAXO_1_TITLE_FR)
+//						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
+//						.setVisibleOnHomePage(true)
+//						.setUserIds(TAXO_USERS)
+//						.setGroupIds(TAXO_GROUPS)
+//				));
+//
+//		assertThatErrorsWhileImportingSettingsExtracting()
+//				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodeSuffix"));
+//
+//	}
 
 	@Test
 	public void whenImportingTaxonomyConfigSettingsThenConfigsAreSaved()
@@ -833,7 +809,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type",""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
@@ -841,7 +817,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
-		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
+		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE.replace("Type",""))
 				.setTitle(TAXO_2_TITLE_FR);
 		zeCollectionSettings.addTaxonomy(importedTaxonomy2);
 
@@ -897,7 +873,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type",""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
@@ -952,7 +928,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type",""))
 				.setTitle(TAXO_1_TITLE_FR);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -989,7 +965,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type",""))
 				.setVisibleOnHomePage(false);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -1026,7 +1002,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type",""))
 				.setUserIds(asList(gandalf, robin))
 				.setGroupIds(asList("group1"));
 
@@ -1069,7 +1045,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type",""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER));
 
