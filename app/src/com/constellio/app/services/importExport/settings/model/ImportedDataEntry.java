@@ -1,8 +1,5 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -19,6 +16,10 @@ public class ImportedDataEntry {
 	private String copiedMetadata;
 
 	private ImportedDataEntry() {
+	}
+
+	public static ImportedDataEntry asManual() {
+		return new ImportedDataEntry().withType("manual");
 	}
 
 	public static ImportedDataEntry asFixedSequence(String fixedSequenceCode) {
