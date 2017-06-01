@@ -73,7 +73,7 @@ public class BorrowingServices {
 			Transaction t = new Transaction();
 			for(String folderId: task.getLinkedFolders()) {
 				if(isAccepted) {
-					borrowFolder(folderId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
+					borrowFolder(folderId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
 				}
 				loggingServices.completeBorrowRequestTask(recordServices.getDocumentById(folderId), task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
 				Folder folder = rm.getFolder(folderId);
@@ -99,7 +99,7 @@ public class BorrowingServices {
 			Transaction t = new Transaction();
 			for(String containerId: task.getLinkedContainers()) {
 				if(isAccepted) {
-					borrowContainer(containerId, borrowingDate, returnDate, applicant, applicant, borrowingType, false);
+					borrowContainer(containerId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
 				}
 				loggingServices.completeBorrowRequestTask(recordServices.getDocumentById(containerId), task.getId(), isAccepted, applicant, respondant, task.getReason(), returnDate.toString());
 				ContainerRecord containerRecord = rm.getContainerRecord(containerId);
