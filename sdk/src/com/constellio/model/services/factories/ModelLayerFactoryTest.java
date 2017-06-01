@@ -9,8 +9,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 
-import com.constellio.data.dao.services.cache.ConstellioCache;
-import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -24,6 +22,7 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
@@ -84,7 +83,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(profiles.listFiles()).thenReturn(new File[0]);
 
 		modelLayerFactory = spy(
-				new ModelLayerFactory(dataLayerFactory, foldersLocator, modelLayerConfiguration,
+				new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator, modelLayerConfiguration,
 						statefullServiceDecorator, new Delayed<>(constellioModulesManager), null, null));
 	}
 

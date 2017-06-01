@@ -84,8 +84,10 @@ public class UserServices {
 	private final ModelLayerConfiguration modelLayerConfiguration;
 	private final UniqueIdGenerator secondaryUniqueIdGenerator;
 	private final AuthorizationsServices authorizationsServices;
+	private final ModelLayerFactory modelLayerFactory;
 
 	public UserServices(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
 		this.userCredentialsManager = modelLayerFactory.getUserCredentialsManager();
 		this.globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
@@ -263,7 +265,7 @@ public class UserServices {
 
 	public User getUserRecordInCollection(String username, String collection) {
 		return User.wrapNullable(recordServices.getRecordByMetadata(usernameMetadata(collection), username),
-				schemaTypes(collection), rolesManager.getCollectionRoles(collection));
+				schemaTypes(collection), rolesManager.getCollectionRoles(collection, modelLayerFactory));
 	}
 
 	public GlobalGroup getGroup(String groupCode) {
@@ -655,7 +657,7 @@ public class UserServices {
 
 	User newUserInCollection(String collection) {
 		Record record = recordServices.newRecordWithSchema(userSchema(collection));
-		return new User(record, schemaTypes(collection), rolesManager.getCollectionRoles(collection));
+		return new User(record, schemaTypes(collection), rolesManager.getCollectionRoles(collection, modelLayerFactory));
 	}
 
 	Group newGroupInCollection(String collection) {

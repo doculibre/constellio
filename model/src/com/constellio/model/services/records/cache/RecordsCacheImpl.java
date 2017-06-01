@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +60,18 @@ public class RecordsCacheImpl implements RecordsCache {
 		return holder != null && holder.getCopy() != null;
 	}
 
+	static AtomicInteger compteur = new AtomicInteger();
+
+	static Set<String> ids = new HashSet<>();
+
 	@Override
 	public Record get(String id) {
+		compteur.incrementAndGet();
+		synchronized (RecordsCacheImpl.class) {
+			ids.add(id);
+		}
+
+		System.out.println("get " + compteur.get());
 		RecordHolder holder = cacheById.get(id);
 
 		Record copy = null;

@@ -1,6 +1,5 @@
 package com.constellio.data.dao.services.factories;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -59,7 +58,7 @@ import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
-public class DataLayerFactory extends LayerFactory {
+public class DataLayerFactory extends LayerFactoryImpl {
 
 	private static final String RECORDS_SEQUENCE_TABLE_CONFIG_PATH = "/sequence.properties";
 	private static final String SECONDARY_SEQUENCE_TABLE_CONFIG_PATH = "/secondarySequence.properties";

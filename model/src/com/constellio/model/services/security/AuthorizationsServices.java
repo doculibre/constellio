@@ -127,7 +127,7 @@ public class AuthorizationsServices {
 	public List<User> getUsersWithGlobalPermissionInCollectionExcludingRoles(String permission, String collection,
 			List<String> excludingRoles) {
 
-		Roles roles = rolesManager.getCollectionRoles(collection);
+		Roles roles = rolesManager.getCollectionRoles(collection, modelLayerFactory);
 		List<String> rolesGivingPermission = toRolesCodes(roles.getRolesGivingPermission(permission));
 		rolesGivingPermission.removeAll(excludingRoles);
 
@@ -148,7 +148,7 @@ public class AuthorizationsServices {
 
 	public List<User> getUsersWithPermissionOnRecord(String permission, Record concept) {
 		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
+		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
 		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
 		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
 
@@ -176,7 +176,7 @@ public class AuthorizationsServices {
 
 	public List<String> getUserIdsWithPermissionOnRecord(String permission, Record concept) {
 		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
+		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
 		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
 		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
 
@@ -199,7 +199,7 @@ public class AuthorizationsServices {
 	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission, Record concept) {
 
 		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
+		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
 		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
 		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
 
@@ -264,7 +264,7 @@ public class AuthorizationsServices {
 					throw new InvalidPrincipalsIds(principalRecords, principals);
 				}
 				MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
-				Roles roles = rolesManager.getCollectionRoles(record.getCollection());
+				Roles roles = rolesManager.getCollectionRoles(record.getCollection(), modelLayerFactory);
 				for (Record principalRecord : principalRecords) {
 					if (principalRecord.getSchemaCode().equals(Group.SCHEMA_TYPE + "_default")) {
 						List<Record> usersInGroupRecord = getUserRecordsInGroup(principalRecord);
