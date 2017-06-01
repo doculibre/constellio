@@ -2,15 +2,20 @@ package com.constellio.app.services.importExport.settings.utils;
 
 import static org.apache.commons.lang3.StringUtils.join;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
@@ -436,6 +441,23 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		valueListsElem.addContent(listElem);
+	}
+
+	public static void writeToFile(ImportedSettings settings, File file)
+			throws IOException {
+
+		Document document = new SettingsXMLFileWriter().writeSettings(settings);
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+
+		FileOutputStream fos = new FileOutputStream(file);
+		try {
+			xmlOutput.output(document, fos);
+
+		} finally {
+			IOUtils.closeQuietly(fos);
+		}
+
 	}
 
 }
