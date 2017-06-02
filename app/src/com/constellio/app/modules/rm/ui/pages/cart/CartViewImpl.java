@@ -311,6 +311,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		});
 		if(!folderTab.isVisible() && !documentTab.isVisible() && !containerTab.isVisible()) {
 			mainLayout.addComponent(new Label($("CartView.emptyCart")));
+			reportSelector.setVisible(false);
 		} else {
 			mainLayout.addComponent(tabSheet);
 			tabSheet.fireTabSelectionChanged();
