@@ -28,13 +28,17 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		ConstellioFactories.getInstance().onRequestStarted();
+		if (ConstellioFactories.isInitialized()) {
+			ConstellioFactories.getInstance().onRequestStarted();
 
-		try {
+			try {
+				super.service(request, response);
+
+			} finally {
+				ConstellioFactories.getInstance().onRequestEnded();
+			}
+		} else {
 			super.service(request, response);
-
-		} finally {
-			ConstellioFactories.getInstance().onRequestEnded();
 		}
 	}
 
