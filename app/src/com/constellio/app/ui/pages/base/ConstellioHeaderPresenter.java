@@ -147,8 +147,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS)
 				.onSomething()) {
 			return false;
-		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
-				.onSomething()) {
+		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
 			return false;
 		}
 		return true;

@@ -318,9 +318,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access)) {
-							return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally();
+							return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 						} else if (Role.WRITE.equals(access) || Role.DELETE.equals(access)) {
-							return user.hasAny(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+							return user.hasAny(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 						}
 						return false;
 					}

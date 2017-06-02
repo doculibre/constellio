@@ -712,8 +712,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return String.valueOf(orderNumber + 1);
 	}
 
-	public boolean canCurrentUserManageStorageSpaces() {
-		return presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	public boolean canCurrentUserManageContainers() {
+		return presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 	}
 
 	public void removeFromContainer(FolderDetailVO detail) {

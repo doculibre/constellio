@@ -1,5 +1,16 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -11,6 +22,7 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerR
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -31,15 +43,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
@@ -75,7 +78,20 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+		boolean access = false;
+		ContainerRecord containerRecord = rmRecordServices().wrapContainerRecord(restrictedRecord);
+		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+			adminUnitIds.add(containerRecord.getAdministrativeUnit());
+		}
+		for (String adminUnitId : adminUnitIds) {
+			AdministrativeUnit adminUnit = rmRecordServices().getAdministrativeUnit(adminUnitId);
+			access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).on(adminUnit);
+			if (access) {
+				break;
+			}
+		}
+		return access;
 	}
 
 	@Override
@@ -206,8 +222,24 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	private boolean canEmpty() {
-		return getCurrentUser().has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally() &&
-				searchServices().hasResults(getFoldersQuery());
+		boolean approveDecommissioningListPermission = false;
+		if (getCurrentUser().has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+			approveDecommissioningListPermission = true;
+		} else {
+			ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
+			List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+			if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+				adminUnitIds.add(containerRecord.getAdministrativeUnit());
+			}
+			for (String adminUnitId : adminUnitIds) {
+				if (adminUnitIdsWithPermissions.contains(adminUnitId)) {
+					approveDecommissioningListPermission = true;
+					break;
+				}
+			}
+		}
+		return approveDecommissioningListPermission && searchServices().hasResults(getFoldersQuery());
 	}
 
 	private Double getSum(Map<String, Object> result) {

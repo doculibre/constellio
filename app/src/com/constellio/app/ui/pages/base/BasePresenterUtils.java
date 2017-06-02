@@ -168,7 +168,6 @@ public class BasePresenterUtils implements Serializable {
 		return appLayerFactory.getCollectionsManager();
 	}
 
-
 	public ContentVersionDataSummary uploadContent(final InputStream inputStream, final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
 		try {
 			return modelLayerFactory.getContentManager().upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
@@ -184,4 +183,10 @@ public class BasePresenterUtils implements Serializable {
             }
 		}
 	}
+
+	public List<String> getConceptsWithPermissionsForCurrentUser(String...permissions) {
+		User user = getCurrentUser();
+		return presenterService.getConceptsWithPermissionsForUser(user, permissions);
+	}
+	
 }

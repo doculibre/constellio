@@ -1,10 +1,17 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Iterator;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -24,11 +31,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataList;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Iterator;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEditContainerView> {
 	protected RecordVO container;
@@ -39,6 +41,8 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	public static final String STYLE_NAME = "window-button";
 	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
+
+	private transient DecommissioningService decommissioningService;
 
 	public AddEditContainerPresenter(AddEditContainerView view) {
 		super(view, ContainerRecord.DEFAULT_SCHEMA);
@@ -71,7 +75,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public boolean canEditAdministrativeUnit() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
 	public boolean canEditDecommissioningType() {
@@ -220,4 +224,12 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		container = view.getUpdatedContainer();
 		view.reloadWithContainer(container);
 	}
+
+	private DecommissioningService decommissioningService() {
+		if (decommissioningService == null) {
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
+		}
+		return decommissioningService;
+	}
+	
 }
