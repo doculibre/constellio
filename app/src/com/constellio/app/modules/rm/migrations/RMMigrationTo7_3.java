@@ -5,12 +5,17 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Map;
 
 /**
  * Created by constellios on 2017-05-02.
@@ -71,6 +76,13 @@ public class RMMigrationTo7_3 implements MigrationScript {
 					.setTaxonomyRelationship(false).setDefaultRequirement(false).setEnabled(false).setEssential(false);
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.ADMINISTRATIVE_UNITS)
 					.setTaxonomyRelationship(true).setDefaultRequirement(required).setEssential(true);
+
+			MetadataBuilder metadataBorrowUser = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.BORROW_USER);
+			MetadataBuilder metadataBorrowUserEntered = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.BORROW_USER_ENTERED);
+			Map<Language, String> labelsBorrowUserEntered = metadataBorrowUserEntered.getLabels();
+			Map<Language, String> labelsBorrowUser = metadataBorrowUser.getLabels();
+			metadataBorrowUser.setLabels(labelsBorrowUserEntered);
+			metadataBorrowUserEntered.setLabels(labelsBorrowUser);
 		}
 	}
 

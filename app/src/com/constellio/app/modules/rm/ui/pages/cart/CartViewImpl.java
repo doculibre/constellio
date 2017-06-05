@@ -281,7 +281,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		TabSheet tabSheet = new TabSheet();
+		FireableTabSheet tabSheet = new FireableTabSheet();
 		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
@@ -311,8 +311,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		});
 		if(!folderTab.isVisible() && !documentTab.isVisible() && !containerTab.isVisible()) {
 			mainLayout.addComponent(new Label($("CartView.emptyCart")));
+			reportSelector.setVisible(false);
 		} else {
 			mainLayout.addComponent(tabSheet);
+			tabSheet.fireTabSelectionChanged();
 		}
 		return mainLayout;
 	}
@@ -533,5 +535,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			return presenter.getRecordsIds(schemaType);
 		}
 	}
-	
+
+	private class FireableTabSheet extends TabSheet {
+		public void fireTabSelectionChanged() {
+			fireSelectedTabChange();
+		}
+	}
 }

@@ -950,7 +950,6 @@ public class SettingsImportServices {
 
 	private void validateTaxonomyCode(ValidationErrors validationErrors, ImportedTaxonomy importedTaxonomy) {
 		String code = importedTaxonomy.getCode();
-		List<String> classifiedTypes = importedTaxonomy.getClassifiedTypes();
 		if (StringUtils.isBlank(code)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
@@ -962,14 +961,13 @@ public class SettingsImportServices {
 			parameters.put(VALUE, importedTaxonomy.getCode());
 			validationErrors.add(SettingsImportServices.class, INVALID_TAXONOMY_CODE_PREFIX, parameters);
 		}
-		for(String type: classifiedTypes) {
-			if (!type.endsWith(TAXO_SUFFIX)) {
-				Map<String, Object> parameters = new HashMap<>();
-				parameters.put(CONFIG, CODE);
-				parameters.put(VALUE, importedTaxonomy.getCode());
-				validationErrors.add(SettingsImportServices.class, INVALID_TAXONOMY_CODE_SUFFIX, parameters);
-			}
-		}
+		//TODO ADD VERIFICATION OF SCHEMATYPE CODE INSTEAD OF IMPORTEDTAXONOMY CODE
+//		else if (!code.endsWith(TAXO_SUFFIX)) {
+//			Map<String, Object> parameters = new HashMap<>();
+//			parameters.put(CONFIG, CODE);
+//			parameters.put(VALUE, importedTaxonomy.getCode());
+//			validationErrors.add(SettingsImportServices.class, INVALID_TAXONOMY_CODE_SUFFIX, parameters);
+//		}
 	}
 
 	private void validateCollectionValueLists(ValidationErrors validationErrors, ImportedCollectionSettings collectionSettings) {
