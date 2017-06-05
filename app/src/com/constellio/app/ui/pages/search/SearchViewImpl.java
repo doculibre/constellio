@@ -29,6 +29,7 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -50,6 +51,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
+	private HashMap<Integer,Boolean> hashMapAllSelection = new HashMap<>();
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -193,7 +195,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		int totalResults = container.size();
 		int totalAmountOfPages =  srTable.getTotalAmountOfPages();
 		int currentPage = presenter.getPageNumber();
-		
+
 		int selectedPageLength = presenter.getSelectedPageLength();
 		if (selectedPageLength == 0) {
 			selectedPageLength = Math.min(totalResults, SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
@@ -203,13 +205,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
-		
+
+
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
+
 				presenter.saveTemporarySearch(false);
 				if (selectDeselectAllButton != null) {
-					selectDeselectAllButton.setSelectAllMode(true);
+					hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+					Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+					boolean isSelectAllMode = true;
+					if (objIsSelectAllMode != null) {
+						isSelectAllMode = objIsSelectAllMode;
+					}
+					selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
 				}
 			}
 		});
@@ -217,6 +227,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				presenter.setSelectedPageLength((int) event.getProperty().getValue());
+				hashMapAllSelection = new HashMap<>();
 			}
 		});
 
