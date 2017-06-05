@@ -2,8 +2,8 @@ package com.constellio.data.dao.services.cache.ignite;
 
 import java.io.Serializable;
 import java.util.Iterator;
-
-import javax.cache.Cache;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.IgniteCache;
 
@@ -11,11 +11,13 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 
 public class ConstellioIgniteCache implements ConstellioCache {
 	
-	private static final Object NULL = new Object();
+	private static final Object NULL = "__NULL__";
 	
 	private String name;
 	
 	private IgniteCache<String, Object> igniteCache;
+
+	private Map<String, Object> localCache = new ConcurrentHashMap<>();
 
 	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache) {
 		this.name = name;
@@ -27,41 +29,46 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return name;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
-		long start = System.currentTimeMillis();
-		try {
-			T result = (T) igniteCache.get(key);
-			return result == NULL ? null : result;
-		} finally {
-			long end = System.currentTimeMillis();
-//			System.out.println("Ignite " + name + " get time for " + key + " : " + (end - start) + " ms");
+		T result = (T) localCache.get(key);
+		if (result == null) {
+			result = (T) igniteCache.get(key);
+			if (result != null) {
+				localCache.put(key, result);
+			}
 		}
+		result = NULL.equals(result) ? null : result;
+		return result;
 	}
 
 	@Override
 	public <T extends Serializable> void put(String key, T value) {
-		if (value == null) {
-			igniteCache.put(key, NULL);
-		} else {
-			igniteCache.put(key, value);
-		}
+		value = value == null ? (T) NULL : value;
+		localCache.put(key, value);
+		igniteCache.put(key, value);
 	}
 
 	@Override
 	public void remove(String key) {
+		localCache.remove(key);
 		igniteCache.clear(key);
 	}
 
 	@Override
 	public void clear() {
+		localCache.clear();
 		igniteCache.clear();
+	}
+
+	public void removeLocal(String key) {
+		localCache.remove(key);
 	}
 
 	@Override
 	public Iterator<String> keySet() {
-		final Iterator<Cache.Entry<String, Object>> adaptee = igniteCache.iterator();
+		final Iterator<String> adaptee = localCache.keySet().iterator();
+
 		return new Iterator<String>() {
 			@Override
 			public boolean hasNext() {
@@ -70,7 +77,12 @@ public class ConstellioIgniteCache implements ConstellioCache {
 
 			@Override
 			public String next() {
-				return adaptee.next().getKey();
+				return adaptee.next();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
 			}
 		};
 	}
