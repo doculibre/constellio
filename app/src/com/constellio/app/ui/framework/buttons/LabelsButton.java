@@ -219,7 +219,9 @@ public class LabelsButton extends WindowButton {
                             throw new Exception($("ButtonLabel.error.posisbiggerthansize"));
                         }
                         ru.setStartingPosition((Integer) startPositionField.getValue() - 1);
-                        ru.setNumberOfCopies(Integer.parseInt(copiesField.getValue()));
+                        String number = copiesField.getValue();
+                        number = number.replace(" ", "");
+                        ru.setNumberOfCopies(Integer.parseInt(number));
                         String xml = type.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, (ReportField[]) null) : ru.convertContainerWithIdentifierToXML(ids, null);
                         Content content = selected.get(PrintableLabel.JASPERFILE);
                         InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
