@@ -9,7 +9,6 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -46,7 +45,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
 	private Component buildSearchResultsSelectionForm() {
 		getWindow().setHeight("220px");
 
-        VerticalLayout layout = new VerticalLayout(buildMetadataComponent(), valueArea, process);
+        VerticalLayout layout = new VerticalLayout(buildMetadataComponent());
         
 		Panel panel = new Panel();
 		layout = new VerticalLayout();
