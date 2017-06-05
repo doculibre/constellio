@@ -532,6 +532,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningList().getStatus() == DecomListStatus.IN_VALIDATION;
 	}
 
+	public boolean isInApprobation() {
+		return decommissioningList().getStatus() == DecomListStatus.IN_APPROVAL;
+	}
+
 	public boolean isValidationRequestedForCurrentUser() {
 		return decommissioningService().isValidationRequestedFor(decommissioningList(), getCurrentUser());
 	}
