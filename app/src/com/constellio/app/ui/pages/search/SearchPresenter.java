@@ -102,6 +102,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	boolean highlighter = true;
 	int selectedPageLength;
 	boolean allowDownloadZip = true;
+	int lastPageNumber;
 
 	public int getSelectedPageLength() {
 		return selectedPageLength;
@@ -211,6 +212,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public abstract int getPageNumber();
 
 	public abstract void setPageNumber(int pageNumber);
+
+	public int getLastPageNumber() {
+		return lastPageNumber;
+	}
 
 	public List<FacetVO> getFacets() {
 		return service.getFacets(getSearchQuery(), facetStatus);

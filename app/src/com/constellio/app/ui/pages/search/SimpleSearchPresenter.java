@@ -93,6 +93,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	}
 
 	public void setPageNumber(int pageNumber) {
+		this.lastPageNumber = this.pageNumber;
 		this.pageNumber = pageNumber;
 	}
 
