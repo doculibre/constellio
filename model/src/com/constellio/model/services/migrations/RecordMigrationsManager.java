@@ -12,11 +12,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jdom2.Document;
+import org.joda.time.Duration;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.threads.BackgroundThreadConfiguration;
+import com.constellio.data.threads.BackgroundThreadExceptionHandling;
+import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
@@ -46,14 +50,16 @@ public class RecordMigrationsManager implements StatefulService,
 	OneXMLConfigPerCollectionManager<SchemaTypesRecordMigration> oneXMLConfigPerCollectionManager;
 	CollectionsListManager collectionsListManager;
 	ConstellioCacheManager cacheManager;
+	BackgroundThreadsManager backgroundThreadsManager;
 
 	public RecordMigrationsManager(ModelLayerFactory modelLayerFactory) {
 		batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		backgroundThreadsManager = modelLayerFactory.getDataLayerFactory().getBackgroundThreadsManager();
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
 		searchServices = modelLayerFactory.newSearchServices();
-		
+
 		ConstellioCache cache = cacheManager.getCache(getClass().getName());
 		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(
 				modelLayerFactory.getDataLayerFactory().getConfigManager(), modelLayerFactory.getCollectionsListManager(),
@@ -62,6 +68,17 @@ public class RecordMigrationsManager implements StatefulService,
 
 	public void initialize() {
 
+		Runnable finishedRecordMigrationsAction = new Runnable() {
+			@Override
+			public void run() {
+				checkScriptsToFinish();
+			}
+		};
+
+		backgroundThreadsManager.configure(BackgroundThreadConfiguration
+				.repeatingAction("FinishedRecordMigrationsAction", finishedRecordMigrationsAction)
+				.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
+				.executedEvery(Duration.standardMinutes(1)));
 	}
 
 	@Override

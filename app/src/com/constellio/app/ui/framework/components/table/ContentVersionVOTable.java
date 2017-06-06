@@ -51,12 +51,15 @@ public class ContentVersionVOTable extends Table {
 
 	private AppLayerFactory appLayerFactory;
 
-	public ContentVersionVOTable(AppLayerFactory appLayerFactory) {
-		this(new ArrayList<ContentVersionVO>(), appLayerFactory);
+	private boolean isShowingSystemFileName = false;
+
+	public ContentVersionVOTable(AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
+		this(new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName);
 	}
 
-	public ContentVersionVOTable(List<ContentVersionVO> contentVersions, AppLayerFactory appLayerFactory) {
+	public ContentVersionVOTable(List<ContentVersionVO> contentVersions, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
 		this.appLayerFactory = appLayerFactory;
+		this.isShowingSystemFileName = isShowingSystemFileName;
 
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
 		addContainerProperty(VERSION, String.class, null);
@@ -64,7 +67,10 @@ public class ContentVersionVOTable extends Table {
 		addContainerProperty(LAST_MODIFICATION_DATE_TIME, String.class, null);
 		addContainerProperty(LAST_MODIFIED_BY, String.class, null);
 		addContainerProperty(COMMENT, String.class, null);
-		addContainerProperty(SYSTEM_FILE_NAME, String.class, null);
+		if(this.isShowingSystemFileName) {
+			addContainerProperty(SYSTEM_FILE_NAME, String.class, null);
+		}
+
 
 		setColumnHeader(FILE_NAME, $("ContentVersion.fileName"));
 		setColumnHeader(VERSION, $("ContentVersion.version"));
@@ -72,7 +78,9 @@ public class ContentVersionVOTable extends Table {
 		setColumnHeader(LAST_MODIFICATION_DATE_TIME, $("ContentVersion.lastModificationDateTime"));
 		setColumnHeader(LAST_MODIFIED_BY, $("ContentVersion.lastModifiedBy"));
 		setColumnHeader(COMMENT, $("ContentVersion.comment"));
-		setColumnHeader(SYSTEM_FILE_NAME, $("ContentVersion.systemFileName"));
+		if(this.isShowingSystemFileName) {
+			setColumnHeader(SYSTEM_FILE_NAME, $("ContentVersion.systemFileName"));
+		}
 
 		setColumnExpandRatio(FILE_NAME, 1);
 		setContentVersions(contentVersions);
@@ -151,8 +159,9 @@ public class ContentVersionVOTable extends Table {
 			item.getItemProperty(LAST_MODIFICATION_DATE_TIME).setValue(lastModificationDateTimeCaption);
 			item.getItemProperty(LAST_MODIFIED_BY).setValue(lastModifiedByCaption);
 			item.getItemProperty(COMMENT).setValue(comment);
-			item.getItemProperty(SYSTEM_FILE_NAME).setValue(systemFileName);
+			if(isShowingSystemFileName) {
+				item.getItemProperty(SYSTEM_FILE_NAME).setValue(systemFileName);
+			}
 		}
 	}
-
 }

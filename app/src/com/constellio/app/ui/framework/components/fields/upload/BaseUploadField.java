@@ -41,16 +41,20 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	private ViewChangeListener viewChangeListener;
 
+	private boolean isViewOnly;
+
 	private boolean haveDeleteButton;
 
 	public BaseUploadField()
 	{
-		this(true);
+		this(true, false);
 	}
 
-	public BaseUploadField(boolean haveDeleteButton) {
+	public BaseUploadField(boolean haveDeleteButton, boolean isViewOnly) {
 		super();
-		
+
+		this.isViewOnly = isViewOnly;
+
 		setSizeFull();
 
 		this.haveDeleteButton = haveDeleteButton;
@@ -175,7 +179,9 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		fileUploadsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		fileUploadsTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 47);
 
-		mainLayout.addComponents(multiFileUpload, fileUploadsTable);
+		multiFileUpload.setVisible(!isViewOnly);
+
+		mainLayout.addComponents(multiFileUpload,fileUploadsTable);
 	}
 	
 	@Override
@@ -241,6 +247,10 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	@Override
 	public void drop(DragAndDropEvent event) {
+		if(isViewOnly) {
+			return;
+		}
+
 		multiFileUpload.drop(event);
 	}
 

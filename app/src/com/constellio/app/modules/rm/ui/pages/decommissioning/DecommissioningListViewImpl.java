@@ -603,7 +603,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		processableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		BaseButton removeFromFolderButton = new BaseButton($("DecommissioningListView.removeFromFolder")) {
+		BaseButton removeFromTheBox = new BaseButton($("DecommissioningListView.removeFromFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				List<FolderDetailVO> selected = new ArrayList<>();
@@ -632,7 +632,14 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		};
 
-		VerticalLayout layout = new VerticalLayout(header, removeFromFolderButton, processableFolders, buildOrderProcessableFoldersButton());
+		VerticalLayout layout = new VerticalLayout(header);
+
+		if(!presenter.isInValidation() && !presenter.isInApprobation()) {
+			layout.addComponent(removeFromTheBox);
+		}
+
+		layout.addComponents(processableFolders, buildOrderProcessableFoldersButton());
+
 		layout.setSpacing(true);
 
 		return layout;

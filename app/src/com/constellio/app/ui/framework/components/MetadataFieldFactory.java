@@ -43,6 +43,16 @@ import java.util.Set;
 @SuppressWarnings("serial")
 public class MetadataFieldFactory implements Serializable {
 
+	private boolean isViewOnly;
+
+	public MetadataFieldFactory() {
+		this(false);
+	}
+
+	public MetadataFieldFactory(boolean isViewOnly) {
+		this.isViewOnly = isViewOnly;
+	}
+
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;
 
@@ -350,10 +360,10 @@ public class MetadataFieldFactory implements Serializable {
 			case CONTENT:
 				switch (metadataInputType) {
 				case CONTENT_CHECK_IN_CHECK_OUT:
-					field = new ContentVersionUploadField(true);
+					field = new ContentVersionUploadField(true, false, isViewOnly);
 					break;
 				default:
-					field = new ContentVersionUploadField(true);
+					field = new ContentVersionUploadField(true, false, isViewOnly);
 					break;
 				}
 				break;

@@ -542,7 +542,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
 		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
@@ -553,7 +554,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
 		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
@@ -564,7 +566,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithSelectedIds() {
 		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds()))
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
@@ -574,7 +577,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithUnselectedIds() {
 		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds()))
+				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);

@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.records;
 
+import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -26,6 +27,7 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.*;
@@ -36,6 +38,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.*;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -55,6 +60,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -346,6 +352,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(emailAddress2.getName()).isEqualTo(NAME_2);
 	}
 
+	private ContentVersionDataSummary upload(String resource) {
+		InputStream inputStream = DemoTestRecords.class.getResourceAsStream("RMTestRecords_" + resource);
+		return getModelLayerFactory().getContentManager().upload(inputStream);
+	}
+
 	@Test
 	public void whenExportingAndImportingTask() throws Exception {
 		prepareSystem(
@@ -497,113 +508,74 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getYPosition()).isEqualTo(4);
 	}
 
-
 	@Test
-	public void whenExportingAndImportingSameSystemDecommissionList() throws Exception {
+	public void whenExportingAndImportingSameSystemReport() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
-		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
-		List<Tuple> exportedDecommissiongListsIds = new ArrayList<>();
-		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
-		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
-		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
-		List<DecommissioningList> decommissioningListList = new ArrayList<>();
-		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
-			decommissioningListList.add(decommissioningList);
-			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
-			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
-			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
-			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
-		}
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		final String TITLE = "title";
+		final String SCHEMA_TYPE_CODE = Document.DEFAULT_SCHEMA;
+
+		Report report = rm.newReport();
+		report.setColumnsCount(1);
+		report.setLinesCount(1);
+		report.setTitle(TITLE);
+		report.setSchemaTypeCode(SCHEMA_TYPE_CODE);
+
+		ReportedMetadata reportedMetadata1 = new ReportedMetadata("title", 1);
+		reportedMetadata1.setYPosition(2);
+		ReportedMetadata reportedMetadata2 = new ReportedMetadata("id", 3);
+		reportedMetadata2.setYPosition(4);
+
+		List<ReportedMetadata> reportedMetadataList = new ArrayList<>();
+		reportedMetadataList.add(reportedMetadata1);
+		reportedMetadataList.add(reportedMetadata2);
+
+		report.setReportedMetadata(reportedMetadataList);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		recordServices.add(report);
+
+		MetadataSchemasManager schemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchema metadataSchemaTypes = schemasManager.getSchemaTypes(zeCollection).getSchema(Report.DEFAULT_SCHEMA);
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(metadataSchemaTypes).returnAll());
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
 		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
+				Report.SCHEMA_TYPE)).setForSameSystem(true);
 
 		File file = exportToZip(recordExportOptions);
 
-		// Delete rows.
-		RecordServices recordService = getModelLayerFactory().newRecordServices();
+		List<Record> recordtoDelete = searchServices.search(query);
 
-		recordService.logicallyDelete(decommissioningListList.get(0).getWrappedRecord(), User.GOD);
-		recordService.physicallyDelete(decommissioningListList.get(0).getWrappedRecord(), User.GOD);
-
-
-		DecommissioningList decommissioningList = decommissioningListList.get(1);
-				decommissioningList.setTitle("Jonathan Title");
-
-		recordService.update(decommissioningList.getWrappedRecord());
+		recordServices.logicallyDelete(recordtoDelete.get(0), records.getAdmin());
+		recordServices.physicallyDelete(recordtoDelete.get(0), records.getAdmin());
 
 		importFromZip(file, zeCollection);
 
-		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
+		List<Record> listRecordReport;
 
-		for(DecommissioningList currentDecommissioningList : listSearchDecommissiongList)
-		{
-			assertThat(currentDecommissioningList.getTitle()).isNotEqualTo("Jonathan Title");
-		}
+		listRecordReport = getModelLayerFactory().newSearchServices().search(query);
 
-		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
-				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
+		assertThatRecords(listRecordReport).extractingMetadatas("columnsCount", "title",
+				"linesCount", "schemaTypeCode").contains(tuple(1.0, TITLE, 1.0, SCHEMA_TYPE_CODE));
 
-		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
+		Record record = listRecordReport.get(0);
+		Report reportFromAnOtherCollection = rm.wrapReport(record);
 
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
-	}
-
-	@Test
-	public void whenExportingDeletingAndImportingSameSystemDecommissionList()
-	{
-		prepareSystem(
-			withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
-					.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
-
-		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
-		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
-		List<Tuple> exportedDecommissiongListsIds = new ArrayList<>();
-		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
-		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
-		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
-		List<DecommissioningList> decommissioningListList = new ArrayList<>();
-		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
-			decommissioningListList.add(decommissioningList);
-			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
-			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
-			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
-			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
-		}
-
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-						DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
-
-		File file = exportToZip(recordExportOptions);
-
-		// Delete rows.
-		RecordServices recordService = getModelLayerFactory().newRecordServices();
-
-		for(DecommissioningList decommissioningList: decommissioningListList) {
-			recordService.logicallyDelete(decommissioningList.getWrappedRecord(), User.GOD);
-			recordService.physicallyDelete(decommissioningList.getWrappedRecord(), User.GOD);
-		}
-
-		importFromZip(file, zeCollection);
-
-		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
-
-		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
-				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
-
-		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
-
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(0).getXPosition()).isEqualTo(1);
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(0).getYPosition()).isEqualTo(2);
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getXPosition()).isEqualTo(3);
+		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getYPosition()).isEqualTo(4);
 	}
 
 
@@ -872,6 +844,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(documentListWithContentAnOtherCollection.size()).isEqualTo(documentWithContentZeCollection.size());
 
+
 		Document updatedDocument = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
 
 		assertThat(documentListFromAnOtherCollection.size()).isEqualTo(documentList.size());
@@ -892,6 +865,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(updatedDocument.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
 	}
 
+
+
 	@Test
 	public void whenExportingAndImportingDocumentSameSystem() throws Exception {
 		prepareSystem(
@@ -902,6 +877,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
+		List<Document> documentWithContentZeCollection = getDocumentWithContent(documentList);
+
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
@@ -935,11 +912,15 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		importFromZip(file, zeCollection);
 
-		documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
+		List<Document> documentListFromAnOtherCollection = rmSchemasRecordsServices.searchDocuments(returnAll());
 
-		assertThat(documentList.size()).isEqualTo(originalSize);
-		assertThat(findRecordByTitle(deletedDocument.getTitle(), documentList)).isNotNull();
-		Document revertedFolder = (Document) findRecordByTitle(originalTitle, documentList);
+		List<Document> documentListWithContentAnOtherCollection = getDocumentWithContent(documentListFromAnOtherCollection);
+		assertThat(documentListWithContentAnOtherCollection.size()).isEqualTo(documentWithContentZeCollection.size());
+
+
+		assertThat(documentListFromAnOtherCollection.size()).isEqualTo(originalSize);
+		assertThat(findRecordByTitle(deletedDocument.getTitle(), documentListFromAnOtherCollection)).isNotNull();
+		Document revertedFolder = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
 
 		assertThat(revertedFolder.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
 		assertThat(revertedFolder.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
@@ -965,8 +946,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingDecommissionList()
-	{
+	public void whenExportingAndImportingDecommissionList() throws Exception {
  		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
@@ -986,11 +966,26 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
 		}
 
+		DecommissioningList decommissioningListWithContent = exportedDecommissiongLists.get(0);
+
+
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
 		List<DecommissioningList> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
 
+   		assertThat(listSearchDecommissiongList).hasSize(0);
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.upload("contrat.docx"));
+		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.upload("proces.docx"));
+
+		decommissioningListWithContent.setDocumentsReportContent(content);
+		decommissioningListWithContent.setFoldersReportContent(content2);
+
 		assertThat(listSearchDecommissiongList).hasSize(0);
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		recordServices.update(exportedDecommissiongLists.get(0));
 
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
@@ -1000,6 +995,28 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
 
+		List<DecommissioningList> decomListWithDocumentsReportContent = getDecomListWIthDocumentsReportContent(listSearchDecommissiongList);
+		List<DecommissioningList> decomListWithFoldersReportContent = getDecomListWithFoldersReportContent(listSearchDecommissiongList);
+
+		assertThat(decomListWithDocumentsReportContent).hasSize(1);
+		assertThat(decomListWithFoldersReportContent).hasSize(1);
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
+		assertThat(decomListWithFoldersReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
+				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
+				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
+				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
+				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename());
+
+
 		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
 				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
 
@@ -1008,6 +1025,110 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
 		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+	}
+
+	@Test
+	public void whenExportingDeletingAndImportingSameSystemDecommissionList() throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
+
+		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
+		List<Tuple> exportedDecommissiongListsIds = new ArrayList<>();
+		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
+		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
+		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
+		List<DecommissioningList> decommissioningListList = new ArrayList<>();
+		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
+			decommissioningListList.add(decommissioningList);
+			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
+			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
+			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
+			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
+		}
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+				DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.upload("contrat.docx"));
+		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.upload("proces.docx"));
+
+		DecommissioningList decommissioningListWithContent = exportedDecommissiongLists.get(0);
+
+		decommissioningListWithContent.setDocumentsReportContent(content);
+		decommissioningListWithContent.setFoldersReportContent(content2);
+
+		RecordServices recordService = getModelLayerFactory().newRecordServices();
+
+		recordService.update(decommissioningListWithContent);
+
+		File file = exportToZip(recordExportOptions);
+
+
+		// Delete rows.
+		recordService.logicallyDelete(decommissioningListWithContent.getWrappedRecord(), User.GOD);
+		recordService.physicallyDelete(decommissioningListWithContent.getWrappedRecord(), User.GOD);
+
+		importFromZip(file, zeCollection);
+
+		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
+
+		List<DecommissioningList> decomListWithDocumentsReportContent = getDecomListWIthDocumentsReportContent(listSearchDecommissiongList);
+		List<DecommissioningList> decomListWithFoldersReportContent = getDecomListWithFoldersReportContent(listSearchDecommissiongList);
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
+		assertThat(decomListWithFoldersReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
+				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
+				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
+				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename());
+
+		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
+				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename());
+
+
+		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
+				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
+
+		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
+
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
+		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+	}
+
+	private List<DecommissioningList> getDecomListWIthDocumentsReportContent(List<DecommissioningList> documentList) {
+		List<DecommissioningList> arrayListDocument = new ArrayList<>();
+
+		for(DecommissioningList decommissioningList : documentList) {
+			if(decommissioningList.getDocumentsReportContent() != null) {
+				arrayListDocument.add(decommissioningList);
+			}
+		}
+
+
+		return arrayListDocument;
+	}
+
+	private List<DecommissioningList> getDecomListWithFoldersReportContent(List<DecommissioningList> documentList) {
+		List<DecommissioningList> arrayListDocument = new ArrayList<>();
+
+		for(DecommissioningList decommissioningList : documentList) {
+			if(decommissioningList.getFoldersReportContent() != null) {
+					arrayListDocument.add(decommissioningList);
+			}
+		}
+
+
+		return arrayListDocument;
 	}
 
 	@Test
@@ -1029,6 +1150,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 
 		Category category = records.getCategory_X().setComments(asList(comment));
+		List<Category> childCategories = rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 		transaction.update(category.getWrappedRecord());
 
 		recordServices.execute(transaction);
@@ -1051,6 +1173,21 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
+		List<Category> childCategories2 = rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
+
+		for(Category categorie1 : childCategories) {
+			boolean isFound = false;
+
+			for(Category categorie2 : childCategories2) {
+				if(categorie1.getId().equals(categorie2.getId())) {
+					isFound = true;
+					break;
+				}
+			}
+
+			assertThat(isFound).isTrue();
+
+		}
 	}
 
 
@@ -1163,8 +1300,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-
-
 	@Test
 	public void whenExportingFolderRetentionRuleThenExported()
 			throws Exception {
@@ -1228,6 +1363,64 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						tuple("12C", "Unité 12-C", "12"), tuple("20D", "Unité 20-D", "20"), tuple("20E", "Unité 20-E", "20")
 				);
 
+	}
+
+	@Test
+	public void whenExportingFolderRetentionRuleInSameSystemThenExported()
+			throws Exception {
+		givenDisabledAfterTestValidations();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		RetentionRule retentionRule = rm.newRetentionRule();
+
+
+		ArrayList<CopyRetentionRule> arrayList = new ArrayList<>();
+
+		CopyRetentionRule copyRetentionRule1 = getPrimaryCopyRetentionRule();
+		CopyRetentionRule copyRetentionRule2 = getCopySecondaryRetentionRule();
+
+		arrayList.add(copyRetentionRule1);
+		arrayList.add(copyRetentionRule2);
+
+		retentionRule.setTitle(TITLE);
+		retentionRule.setCode(CODE);
+		retentionRule.setResponsibleAdministrativeUnits(true);
+
+		retentionRule.setCopyRetentionRules(arrayList);
+
+		RecordServices recordService = getModelLayerFactory().newRecordServices();
+
+		recordService.add(retentionRule);
+
+		int retentioRuleListSize = rm.searchRetentionRules(ALL).size();
+
+		// GetCopyRetentionRule.
+		// Save avec une transaction.
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
+				RetentionRule.SCHEMA_TYPE)).setForSameSystem(true);
+
+		// Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE
+		File file = exportToZip(recordExportOptions);
+
+		recordService.logicallyDelete(retentionRule.getWrappedRecord(), records.getAdmin());
+		recordService.physicallyDelete(retentionRule.getWrappedRecord(), records.getAdmin());
+
+		importFromZip(file, zeCollection);
+
+		RetentionRule currentRetentionRule = rm.getRetentionRuleWithCode(CODE);
+		List<RetentionRule> listRetentionRule = rm.searchRetentionRules(ALL);
+		List<CopyRetentionRule> retentionRuleList = currentRetentionRule.getCopyRetentionRules();
+
+		// Test primary rententionRule.
+
+		assertThat(listRetentionRule).hasSize(retentioRuleListSize);
+
+		assertPrincipalCopyRetentionRule(retentionRuleList.get(0));
+		assertSecondaryCopyRetentionRule(retentionRuleList.get(1));
 	}
 
 	@Test
