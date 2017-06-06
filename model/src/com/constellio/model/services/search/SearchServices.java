@@ -1,5 +1,26 @@
 package com.constellio.model.services.search;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
+import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.StatsParams;
+
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -29,11 +50,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery.Use
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.*;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 public class SearchServices {
 	RecordDao recordDao;
@@ -230,7 +246,7 @@ public class SearchServices {
 			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
-			if(systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
+			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
 				params.add(DisMaxParams.MM, "100%");
 			} else {
 				params.add(DisMaxParams.MM, "1");
@@ -365,6 +381,10 @@ public class SearchServices {
 			fieldsWithBoosts.add(boost.getKey());
 		}
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
+			if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
+				sb.append("^20 ");
+			}
 			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
 			if (!fieldsWithBoosts.contains(analyzedField)) {
 				sb.append(analyzedField + " ");
@@ -378,6 +398,7 @@ public class SearchServices {
 
 		//		sb.append("search_txt_");
 		//		sb.append(mainDataLanguage);
+		System.out.println(sb.toString());
 		return sb.toString();
 	}
 
