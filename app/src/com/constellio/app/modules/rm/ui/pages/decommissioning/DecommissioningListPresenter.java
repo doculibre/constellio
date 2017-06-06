@@ -131,7 +131,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		List<ContainerRecord> containersToValidate = rm
 				.getContainerRecords(new ArrayList<String>(sizeToBePlacedPerContainer.keySet()));
 		for (ContainerRecord container : containersToValidate) {
-			if (container.getAvailableSize() < sizeToBePlacedPerContainer.get(container.getId())) {
+			if (container.getAvailableSize() != null && container.getAvailableSize() < sizeToBePlacedPerContainer.get(container.getId())) {
 				view.showErrorMessage($("DecommissioningListView.notEnoughSpaceInContainer", container.getTitle()));
 				return;
 			}
