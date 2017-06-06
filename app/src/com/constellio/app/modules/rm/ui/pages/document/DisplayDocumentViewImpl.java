@@ -480,7 +480,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
-		actionMenuButtons.add(finalizeButton);
+
+		if(presenter.hasWritePermission()) {
+			actionMenuButtons.add(finalizeButton);
+		}
+
 		if (presenter.hasPermissionToStartWorkflow()) {
 			actionMenuButtons.add(startWorkflowButton);
 		}

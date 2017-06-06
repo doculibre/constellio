@@ -61,6 +61,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
 	private RMSchemasRecordsServices rm;
+	private boolean hasWriteAccess;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
@@ -88,6 +89,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		view.setTaxonomyCode(taxonomyCode);
 
 		Record record = getRecord(id);
+
+		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
+
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setDocumentVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
@@ -368,6 +372,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public boolean hasWritePermission()
+	{
+		return hasWriteAccess;
 	}
 
 	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
