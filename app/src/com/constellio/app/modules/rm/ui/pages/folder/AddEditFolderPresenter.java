@@ -892,20 +892,20 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
 		LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
 		visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
-		String defaultAdministrativeUnit = getCurrentUser().get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
+		String defaultAdministrativeUnit = currentUser.get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
 		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		if (rmConfigs.isFolderAdministrativeUnitEnteredAutomatically()) {
 			if (StringUtils.isNotBlank(defaultAdministrativeUnit)) {
 				try {
 					Record defaultAdministrativeUnitRecord = recordServices().getDocumentById(defaultAdministrativeUnit);
-					if (getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
+					if (currentUser.hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
 						folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
 					} else {
-						LOGGER.error("User " + getCurrentUser().getUsername()
+						LOGGER.error("User " + currentUser.getUsername()
 								+ " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
 					}
 				} catch (Exception e) {
-					LOGGER.error("Default administrative unit for user " + getCurrentUser().getUsername() + " is invalid: "
+					LOGGER.error("Default administrative unit for user " + currentUser.getUsername() + " is invalid: "
 							+ defaultAdministrativeUnit);
 				}
 			} else {
