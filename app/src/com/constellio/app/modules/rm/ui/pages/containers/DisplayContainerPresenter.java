@@ -84,12 +84,16 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
 			adminUnitIds.add(containerRecord.getAdministrativeUnit());
 		}
-		for (String adminUnitId : adminUnitIds) {
-			AdministrativeUnit adminUnit = rmRecordServices().getAdministrativeUnit(adminUnitId);
-			access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).on(adminUnit);
-			if (access) {
-				break;
+		if (!adminUnitIds.isEmpty()) {
+			for (String adminUnitId : adminUnitIds) {
+				AdministrativeUnit adminUnit = rmRecordServices().getAdministrativeUnit(adminUnitId);
+				access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).on(adminUnit);
+				if (access) {
+					break;
+				}
 			}
+		} else {
+			access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 		}
 		return access;
 	}
