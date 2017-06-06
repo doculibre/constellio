@@ -260,7 +260,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordImportExtensions.add(new EventImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DecommissioningListImportExtension(collection, modelLayerFactory));
-		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
+		extensions.schemaExtensions.add(new RMTrashSchemaExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMRequestTaskApprovedExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
@@ -319,8 +319,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access)) {
 							return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
-						} else if (Role.WRITE.equals(access) || Role.DELETE.equals(access)) {
-							return user.hasAny(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+						} else if (Role.WRITE.equals(access)) {
+							return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+						} else if (Role.DELETE.equals(access)) {
+							return user.has(RMPermissionsTo.DELETE_CONTAINERS).onSomething();
 						}
 						return false;
 					}
