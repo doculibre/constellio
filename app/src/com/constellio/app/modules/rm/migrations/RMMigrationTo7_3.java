@@ -6,6 +6,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -36,6 +37,10 @@ public class RMMigrationTo7_3 implements MigrationScript {
 
 		manager.saveSchema(manager.getSchema(collection, Category.DEFAULT_SCHEMA)
 				.withNewFormAndDisplayMetadatas(Category.DEFAULT_SCHEMA + "_" + Category.DEACTIVATE));
+
+		manager.saveSchema(manager.getSchema(collection, RMTask.DEFAULT_SCHEMA)
+				.withNewDisplayMetadataBefore(RMTask.DEFAULT_SCHEMA + "_" + RMTask.LINKED_CONTAINERS,
+						RMTask.DEFAULT_SCHEMA + "_" + RMTask.LINKED_DOCUMENTS));
 
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 
