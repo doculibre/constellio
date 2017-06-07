@@ -587,7 +587,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Label header = new Label($("DecommissioningListView.foldersToValidate"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
-		foldersToValidate = buildFolderTable(folders, false);
+		foldersToValidate = buildFolderTable(folders, true);
 
 		VerticalLayout layout = new VerticalLayout(header, foldersToValidate, buildOrderFoldersToValidateButton());
 		layout.setSpacing(true);
