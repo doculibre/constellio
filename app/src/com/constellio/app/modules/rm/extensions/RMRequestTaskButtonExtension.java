@@ -1,11 +1,22 @@
 package com.constellio.app.modules.rm.extensions;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -459,22 +470,44 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		Folder folder = context.getFolder();
 		ContainerRecord container = context.getContainer();
 		User currentUser = context.getCurrentUser();
+
 		try {
-			if (folder != null) {
+			SearchServices searchServices  = modelLayerFactory.newSearchServices();
+			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
+
+			TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+			MetadataSchemaType documentSchemaType = tasksSchemasRecordsServices.taskSchemaType();
+			Metadata metadataLinkedFolder = documentSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.LINKED_FOLDERS);
+			Metadata metadataStatus = documentSchemaType.getAllMetadatas().getMetadataWithLocalCode(Task.STATUS_TYPE);
+
+			LogicalSearchCondition logicalSearchCondition = from(documentSchemaType).where(Schemas.SCHEMA).isEqualTo(ReturnRequest.FULL_SCHEMA_NAME)
+					.andWhere(metadataLinkedFolder).isEqualTo(folder).andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY);
+
+			logicalSearchQuery.setCondition(logicalSearchCondition);
+
+			List<Record> recordResult = searchServices.search(logicalSearchQuery);
+
+
+			if(recordResult.size() > 0) {
+				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
+			}
+			else if (folder != null) {
 				String folderId = folder.getId();
 				Task returnRequest = taskSchemas
 						.newReturnFolderRequestTask(currentUser.getId(), getAssignees(folderId), folderId, folder.getTitle());
 				modelLayerFactory.newRecordServices().add(returnRequest);
+				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
 			} else if (container != null) {
 				String containerId = container.getId();
 				Task returnRequest = taskSchemas
 						.newReturnContainerRequestTask(currentUser.getId(), getAssignees(containerId), containerId,
 								container.getTitle());
 				modelLayerFactory.newRecordServices().add(returnRequest);
+				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
 			} else {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 			}
-			view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
+
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 			view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
