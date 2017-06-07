@@ -9,10 +9,7 @@ import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
+import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -147,6 +144,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		if (StringUtils.isNotBlank(id)) {
 			editMode = true;
 			task = tasksSchemas.getTask(id);
+			setSchemaCode(task.getSchemaCode());
 		} else {
 			editMode = false;
 			task = tasksSchemas.newTask();
