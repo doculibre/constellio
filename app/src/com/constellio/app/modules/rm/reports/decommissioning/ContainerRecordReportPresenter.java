@@ -336,11 +336,11 @@ public class ContainerRecordReportPresenter {
 		String sentDateDeposit = "";
 
 		if (container != null) {
-			String administrativeUnitId = container.getAdministrativeUnit();
-			AdministrativeUnit administrativeUnit = getAdministrativeUnitAddress(administrativeUnitId);
 
 			List<String> administrativeUnits = container.getAdministrativeUnits();
-			if (administrativeUnit != null && (administrativeUnits == null || administrativeUnits.isEmpty())) {
+			if (administrativeUnits != null && administrativeUnits.size() == 1) {
+				AdministrativeUnit administrativeUnit = getAdministrativeUnitAddress(administrativeUnits.get(0));
+
 				administrativeAddress = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle()
 						+ "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
 			} else if(administrativeUnits != null && !administrativeUnits.isEmpty()) {
