@@ -336,7 +336,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public List<String> getFilterQueries() {
 		List<String> filterQueries = new ArrayList<>();
 
-		if (condition.getFilters() != null) {
+		if (condition != null && condition.getFilters() != null) {
 			for (String filterQuery : condition.getFilters().getFilterQueries(userFilter != null)) {
 				filterQueries.add(filterQuery);
 			}

@@ -900,7 +900,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			if (StringUtils.isNotBlank(defaultAdministrativeUnit)) {
 				try {
 					Record defaultAdministrativeUnitRecord = recordServices().getDocumentById(defaultAdministrativeUnit);
-					if (getCurrentUser().hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
+					if (currentUser.hasWriteAccess().on(defaultAdministrativeUnitRecord)) {
 						folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
 					} else {
 						LOGGER.error("User " + getCurrentUser().getUsername()

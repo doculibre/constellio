@@ -7,6 +7,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordValidatorParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 public class ContainerRecordValidator implements RecordValidator {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ContainerRecordValidator.class);
 	public static final String CONTAINER_CAPACITY_MUST_BE_GREATER_OR_EQUAL_TO_LINEAR_SIZE = "containerCapacityMustBeGreaterOrEqualToLinearSize";
 	public static final String STORAGE_SPACE_CANNOT_CONTAIN_THIS_TYPE_OF_CONTAINER = "storageSpaceCannotContainThisTypeOfContainer";
 	public static final String STORAGE_SPACE_CAN_CONTAIN_ONLY_ONE_CONTAINER = "storageSpaceCanContainOnlyOneContainer";
@@ -142,5 +145,12 @@ public class ContainerRecordValidator implements RecordValidator {
 		}
 
 		return (containerRecordTypeList == null || containerRecordTypeList.isEmpty()) ? true : containerRecordTypeList.contains(containerRecordType);
+	}
+
+	public static double round(double value, int decimals) {
+		long factor = (long) Math.pow(10, decimals);
+		value = value * factor;
+		long longValue = Math.round(value);
+		return (double) longValue / factor;
 	}
 }

@@ -184,4 +184,10 @@ public class BasePresenterUtils implements Serializable {
             }
 		}
 	}
+
+	public List<String> getConceptsWithPermissionsForCurrentUser(String...permissions) {
+		User user = getCurrentUser();
+		return presenterService.getConceptsWithPermissionsForUser(user, permissions);
+	}
+
 }

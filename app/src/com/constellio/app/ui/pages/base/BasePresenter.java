@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -284,6 +285,10 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
 			final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
 		return presenterUtils.uploadContent(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+	}
+
+	public List<String> getConceptsWithPermissionsForCurrentUser(String...permissions) {
+		return presenterUtils.getConceptsWithPermissionsForCurrentUser(permissions);
 	}
 
 }

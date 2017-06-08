@@ -1014,12 +1014,6 @@ public class SettingsImportServices {
 				validationErrors.add(SettingsImportServices.class, SEQUENCE_ID_NULL_OR_EMPTY, parameters);
 			}
 
-			if (isNotNumerical(importedSequence.getKey())) {
-				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
-				validationErrors.add(SettingsImportServices.class, SEQUENCE_ID_NOT_NUMERICAL, parameters);
-
-			}
-
 			if (isNotNumerical(importedSequence.getValue())) {
 				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
 				validationErrors.add(SettingsImportServices.class, SEQUENCE_VALUE_NOT_NUMERICAL, parameters);
