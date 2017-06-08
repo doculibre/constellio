@@ -66,6 +66,14 @@ public class AvailableSpaceReportPresenter {
                 if (childStorageSpaces != null) {
                     createChildRow(parent, childStorageSpaces);
                 }
+
+                LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace);
+                LogicalSearchQuery query = new LogicalSearchQuery(condition);
+                List<ContainerRecord> containerRecords = rm.searchContainerRecords(query);
+                if (containerRecords != null) {
+                    createContainerRecordRow(parent, containerRecords);
+                }
+
                 if(showFullSpaces || !(parent.getChildrenNodes() == null || parent.getChildrenNodes().isEmpty()) || parent.getAvailableSpace() > 0.0) {
                     model.getRootNodes().add(parent);
                 }

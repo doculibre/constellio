@@ -141,20 +141,6 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(PRINTABLE_MANAGEMENT, PRINTABLE_MANAGEMENT_ICON) {
-
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().viewReport();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
-				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LABELS));
-			}
-		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(GROUPS, GROUPS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -326,6 +312,22 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 		});
+
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(PRINTABLE_MANAGEMENT, PRINTABLE_MANAGEMENT_ICON) {
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().viewReport();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
+						.has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LABELS));
+			}
+		});
+
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(METADATA_SCHEMAS, METADATA_SCHEMAS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
