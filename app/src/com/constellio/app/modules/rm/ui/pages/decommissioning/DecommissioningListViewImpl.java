@@ -631,8 +631,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				}
 			}
 		};
-		removeFromFolderButton.setEnabled(presenter.canCurrentUserManageContainers());
-		removeFromFolderButton.setVisible(presenter.canCurrentUserManageContainers() && presenter.shouldAllowContainerEditing() && !packageableFolders.isEmpty());
+		removeFromTheBox.setEnabled(presenter.canCurrentUserManageContainers());
+		removeFromTheBox.setVisible(presenter.canCurrentUserManageContainers() && presenter.shouldAllowContainerEditing() && !packageableFolders.isEmpty());
 
 		VerticalLayout layout = new VerticalLayout(header);
 
