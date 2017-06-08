@@ -48,6 +48,12 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	
 	private UpdateContentVersionPresenter presenter;
 
+	public boolean isCancel() {
+		return isCancel;
+	}
+
+	private boolean isCancel = false;
+
 	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records) {
 		this(records, false);
 	}
@@ -151,6 +157,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 				@Override
 				protected void cancelButtonClick(RecordVO viewObject) {
+					isCancel = true;
 					close();
 				}
 			};
