@@ -213,6 +213,10 @@ public class RecordUpdateOptions {
 				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
 	}
 
+	public static RecordUpdateOptions userModificationsSafeOptions() {
+		return new RecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(false).setSkipMaskedMetadataValidations(false);
+	}
+
 	public boolean isCatchExtensionsExceptions() {
 		return catchExtensionsExceptions;
 	}
