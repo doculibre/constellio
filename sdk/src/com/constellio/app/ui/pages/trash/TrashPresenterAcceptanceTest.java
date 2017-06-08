@@ -60,4 +60,21 @@ public class TrashPresenterAcceptanceTest extends ConstellioTest {
         recordServices.logicallyDelete(records.getFolder_A01().getWrappedRecord(), User.GOD);
         assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(1);
     }
+
+    @Test
+    public void givenUnsecuredSchemaTypeThenFindCorrectRecords() {
+        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(0);
+
+        recordServices.logicallyDelete(records.getContainerBac01().getWrappedRecord(), User.GOD);
+        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void givenBothSecuredAndUnsecuredSchemaTypeThenFindCorrectRecords() {
+        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(0);
+
+        recordServices.logicallyDelete(records.getFolder_A01().getWrappedRecord(), User.GOD);
+        recordServices.logicallyDelete(records.getContainerBac01().getWrappedRecord(), User.GOD);
+        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(2);
+    }
 }
