@@ -1,12 +1,9 @@
 package com.constellio.model.services.batch.controller;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
@@ -16,6 +13,10 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class CreateSubTaskModificationImpactHandler implements RecordModificationImpactHandler {
 
@@ -29,12 +30,15 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 
 	TaskList taskList;
 
+	User user;
+
 	public CreateSubTaskModificationImpactHandler(SearchServices searchServices, RecordServices recordServices,
-			MetadataSchemaTypes metadataSchemaTypes, TaskList taskList) {
+			MetadataSchemaTypes metadataSchemaTypes, TaskList taskList, User user) {
 		this.searchServices = searchServices;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;
 		this.taskList = taskList;
+		this.user = user;
 	}
 
 	@Override
@@ -63,7 +67,7 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 	void createSubTask(List<Record> subRecords, List<String> metadatas) {
 		BatchProcessAction action = new ReindexMetadatasBatchProcessAction(metadatas);
 		BatchProcessTask task = new BatchProcessTask(taskList, subRecords, action, recordServices,
-				metadataSchemaTypes, searchServices);
+				metadataSchemaTypes, searchServices, user);
 		taskList.addSubTask(task);
 	}
 
