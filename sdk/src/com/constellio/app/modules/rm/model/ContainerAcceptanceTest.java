@@ -151,7 +151,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 //		assertThat(users.adminIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isTrue();
 		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.adminIn(zeCollection)))).isEqualTo(1);
 
-		assertThat(users.chuckNorrisIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isFalse();
-		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.chuckNorrisIn(zeCollection)))).isEqualTo(0);
+		assertThat(users.aliceIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isFalse();
+		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.aliceIn(zeCollection)))).isEqualTo(0);
 	}
 }

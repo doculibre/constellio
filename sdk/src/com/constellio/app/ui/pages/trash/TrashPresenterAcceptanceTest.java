@@ -58,7 +58,7 @@ public class TrashPresenterAcceptanceTest extends ConstellioTest {
         assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(0);
 
         recordServices.logicallyDelete(records.getFolder_A01().getWrappedRecord(), User.GOD);
-        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(1);
+        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(5);
     }
 
     @Test
@@ -75,6 +75,6 @@ public class TrashPresenterAcceptanceTest extends ConstellioTest {
 
         recordServices.logicallyDelete(records.getFolder_A01().getWrappedRecord(), User.GOD);
         recordServices.logicallyDelete(records.getContainerBac01().getWrappedRecord(), User.GOD);
-        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(2);
+        assertThat(presenter.getLogicallyDeletedRecordsCount()).isEqualTo(6);
     }
 }

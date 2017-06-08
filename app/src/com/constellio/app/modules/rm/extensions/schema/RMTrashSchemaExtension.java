@@ -54,7 +54,7 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 				if(adminUnitIdsWithPermissions.isEmpty()) {
 					return null;
 				}
-				return from(rm.containerRecord.schemaType()).whereAllConditions(
+				return fromAllSchemasIn(collection).whereAllConditions(
 						anyConditions(
 								where(rm.containerRecord.administrativeUnit()).isNull(),
 								where(rm.containerRecord.administrativeUnit()).isIn(adminUnitIdsWithPermissions)
@@ -63,6 +63,7 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 								where(rm.containerRecord.administrativeUnits()).isNull(),
 								where(rm.containerRecord.administrativeUnits()).isIn(adminUnitIdsWithPermissions)
 						),
+						where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE+"_"),
 						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
 				);
 		}

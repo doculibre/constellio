@@ -30,6 +30,7 @@ import java.util.Set;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 public class TrashServices {
@@ -81,11 +82,11 @@ public class TrashServices {
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollection(String collection, User currentUser) {
 		List<MetadataSchemaType> trashSchemaList = getTrashSchemaTypes(collection, currentUser);
-		List<MetadataSchemaType> securedSchemaList = new ArrayList<>();
+		List<String> securedSchemaList = new ArrayList<>();
 		List<LogicalSearchCondition> conditionList = new ArrayList<>();
 		for(MetadataSchemaType schemaType: trashSchemaList) {
 			if(schemaType.hasSecurity()) {
-				securedSchemaList.add(schemaType);
+				securedSchemaList.add(schemaType.getCode()+"_");
 			} else {
 				LogicalSearchCondition deletableRecordsForUnsecuredType = getDeletableRecordsForUnsecuredType(schemaType.getCode(), currentUser);
 				if(deletableRecordsForUnsecuredType != null) {
@@ -93,9 +94,10 @@ public class TrashServices {
 				}
 			}
 		}
-		conditionList.add(from(securedSchemaList).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
+		LogicalSearchCondition securedSchemaTypesCondition = fromAllSchemasIn(collection).where(Schemas.SCHEMA).isStartingWithTextFromAny(securedSchemaList).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
+		conditionList.add(securedSchemaTypesCondition);
 
-		LogicalSearchCondition condition = anyConditions(conditionList.toArray(new LogicalSearchCondition[0]));
+		LogicalSearchCondition condition = anyConditions(conditionList);
 		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 
