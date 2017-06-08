@@ -78,7 +78,7 @@ public class BatchProcessingButton extends WindowButton {
 				presenter.allSearchResultsButtonClicked();
 				getWindow().setContent(buildBatchProcessingForm());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
-				getWindow().center();
+				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
 		};
 		
@@ -88,7 +88,7 @@ public class BatchProcessingButton extends WindowButton {
 				presenter.selectedSearchResultsButtonClicked();
 				getWindow().setContent(buildBatchProcessingForm());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
-				getWindow().center();
+				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
 		};
 		

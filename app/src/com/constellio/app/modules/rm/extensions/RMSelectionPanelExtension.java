@@ -348,16 +348,18 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     final int numberOfRecords = records.size();
                     if(numberOfRecords > 0) {
                         final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(records) {
+
                             @Override
                             public void close() {
                                 super.close();
                                 if (numberOfRecords != param.getIds().size()) {
                                     RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
-                                } else {
+                                } else if (!this.isCancel()) {
                                     RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
                                 }
                             }
                         };
+
                         uploadWindow.open(true);
                     } else {
                         showErrorMessage($("ConstellioHeader.selection.actions.noApplicableRecords"));
