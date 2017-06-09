@@ -8,6 +8,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 
@@ -23,6 +24,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
+import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -129,6 +131,9 @@ public class RecordAcceptTest extends ConstellioTest {
 				.hasMetadataValue(schema2.get("meta13"),
 						new MapStringStringStructure().with("key3", "value3").with("key4", "value4"));
 
+		assertThat(record.getModifiedMetadatas(setup.getTypes()).only(startingWithMeta)).extracting("localCode")
+				.containsOnly("meta9", "meta8", "meta7", "meta6", "meta5", "meta11", "meta4", "meta10", "meta3", "meta13",
+						"meta2", "meta12");
 		record.set(schema2.get("meta3"), "34");
 		record.changeSchema(schema2, schema2);
 
@@ -141,6 +146,9 @@ public class RecordAcceptTest extends ConstellioTest {
 
 		record.changeSchema(schema2, schema1);
 
+		assertThat(record.getModifiedMetadatas(setup.getTypes()).only(startingWithMeta)).extracting("localCode")
+				.containsOnly("meta9", "meta8", "meta7", "meta6", "meta5", "meta11", "meta4", "meta10", "meta1", "meta13",
+						"meta2", "meta12");
 		assertThatRecord(record)
 				.hasNoMetadataValue(schema1.get("meta1"))
 				.hasMetadataValue(schema1.get("meta2"), "23")
@@ -235,5 +243,12 @@ public class RecordAcceptTest extends ConstellioTest {
 				.hasMetadataValue(schema2.get("meta11"), asList("value1", "value2"));
 
 	}
-	
+
+	MetadataListFilter startingWithMeta = new MetadataListFilter() {
+		@Override
+		public boolean isReturned(Metadata metadata) {
+			return metadata.getLocalCode().startsWith("meta");
+		}
+	};
+
 }
