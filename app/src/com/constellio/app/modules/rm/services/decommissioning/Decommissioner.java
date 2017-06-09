@@ -563,13 +563,11 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	}
 
 	protected boolean shouldPurgeMinorVersions() {
-		return decommissioningList.isFromActive() ?
-				configs.purgeMinorVersionsOnTransfer() :
-				configs.purgeMinorVersionsOnDeposit();
+		return configs.purgeMinorVersionsOnTransfer() || configs.purgeMinorVersionsOnDeposit();
 	}
 
 	protected boolean shouldCreatePDFa() {
-		return decommissioningList.isFromActive() ? configs.createPDFaOnTransfer() : configs.createPDFaOnDeposit();
+		return configs.createPDFaOnTransfer() || configs.createPDFaOnDeposit();
 	}
 }
 

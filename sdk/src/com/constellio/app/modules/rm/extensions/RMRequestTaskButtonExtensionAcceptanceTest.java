@@ -222,7 +222,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED,
                 RequestTask.APPLICANT, Task.TYPE, Task.TITLE, ExtensionRequest.EXTENSION_VALUE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
                 taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_EXTENSION_REQUEST).getId(), "Demande de renouvellement d'emprunt du dossier: Crocodile",  LocalDate.now());
-        assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
+         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
     @Test

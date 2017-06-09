@@ -248,7 +248,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 		try {
 			saveUpdateSchemaTypes(builder);
-		} catch (OptimisticLocking optimistickLocking) {
+		} catch (OptimisticLocking  optimistickLocking) {
 			modify(collection, alteration);
 		}
 
@@ -324,12 +324,17 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return new SchemaTypesAlterationImpactsCalculator().calculatePotentialImpacts(schemaTypesBuilder);
 	}
 
-	private void saveSchemaTypesDocument(MetadataSchemaTypesBuilder schemaTypesBuilder, Document document) {
+	private void saveSchemaTypesDocument(MetadataSchemaTypesBuilder schemaTypesBuilder, Document document) throws OptimisticLocking {
 		try {
 			String collection = schemaTypesBuilder.getCollection();
 			oneXmlConfigPerCollectionManager.update(collection, "" + schemaTypesBuilder.getVersion(), document);
-		} catch (OptimisticLockingConfiguration | NoSuchConfiguration e) {
+
+		} catch (NoSuchConfiguration e) {
 			throw new MetadataSchemasManagerRuntimeException.CannotUpdateDocument(document.toString(), e);
+
+		} catch (OptimisticLockingConfiguration e) {
+			throw new MetadataSchemasManagerException.OptimisticLocking( e);
+
 		}
 	}
 
