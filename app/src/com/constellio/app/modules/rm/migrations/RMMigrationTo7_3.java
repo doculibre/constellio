@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.migrations;
 
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -16,12 +18,13 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import java.util.Map;
-
 /**
  * Created by constellios on 2017-05-02.
  */
 public class RMMigrationTo7_3 implements MigrationScript {
+
+	//Old metadata
+	private static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 
 	@Override
 	public String getVersion() {
@@ -45,12 +48,12 @@ public class RMMigrationTo7_3 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 
 		transaction.in(ContainerRecord.SCHEMA_TYPE).addToForm(ContainerRecord.ADMINISTRATIVE_UNITS)
-				.beforeMetadata(ContainerRecord.ADMINISTRATIVE_UNIT);
+				.beforeMetadata(ADMINISTRATIVE_UNIT);
 		transaction.in(ContainerRecord.SCHEMA_TYPE).addToDisplay(ContainerRecord.ADMINISTRATIVE_UNITS)
-				.beforeMetadata(ContainerRecord.ADMINISTRATIVE_UNIT);
+				.beforeMetadata(ADMINISTRATIVE_UNIT);
 
-		transaction.in(ContainerRecord.SCHEMA_TYPE).removeFromForm(ContainerRecord.ADMINISTRATIVE_UNIT);
-		transaction.in(ContainerRecord.SCHEMA_TYPE).removeFromDisplay(ContainerRecord.ADMINISTRATIVE_UNIT);
+		transaction.in(ContainerRecord.SCHEMA_TYPE).removeFromForm(ADMINISTRATIVE_UNIT);
+		transaction.in(ContainerRecord.SCHEMA_TYPE).removeFromDisplay(ADMINISTRATIVE_UNIT);
 
 		transaction.addReplacing(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA + "_" +
 				ContainerRecord.ADMINISTRATIVE_UNITS).withVisibleInAdvancedSearchStatus(true));
@@ -76,14 +79,16 @@ public class RMMigrationTo7_3 implements MigrationScript {
 					.setDefaultValue(null);
 
 			MetadataSchemaBuilder schemaBuilder = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE);
-			boolean required = Boolean.TRUE == schemaBuilder.get(ContainerRecord.ADMINISTRATIVE_UNIT).getDefaultRequirement();
-			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.ADMINISTRATIVE_UNIT)
+			boolean required = Boolean.TRUE == schemaBuilder.get(ADMINISTRATIVE_UNIT).getDefaultRequirement();
+			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ADMINISTRATIVE_UNIT)
 					.setTaxonomyRelationship(false).setDefaultRequirement(false).setEnabled(false).setEssential(false);
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.ADMINISTRATIVE_UNITS)
 					.setTaxonomyRelationship(true).setDefaultRequirement(required).setEssential(true);
 
-			MetadataBuilder metadataBorrowUser = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.BORROW_USER);
-			MetadataBuilder metadataBorrowUserEntered = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.BORROW_USER_ENTERED);
+			MetadataBuilder metadataBorrowUser = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE)
+					.getMetadata(Folder.BORROW_USER);
+			MetadataBuilder metadataBorrowUserEntered = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE)
+					.getMetadata(Folder.BORROW_USER_ENTERED);
 			Map<Language, String> labelsBorrowUserEntered = metadataBorrowUserEntered.getLabels();
 			Map<Language, String> labelsBorrowUser = metadataBorrowUser.getLabels();
 			metadataBorrowUser.setLabels(labelsBorrowUserEntered);

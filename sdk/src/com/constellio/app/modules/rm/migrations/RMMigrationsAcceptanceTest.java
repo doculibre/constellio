@@ -70,8 +70,18 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
 				whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(metadataSchemaTypes);
 				whenMigratingToCurrentVersionThenValidateUserFolderWasAdded();
+
+				getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+				getModelLayerFactory().getRecordMigrationsManager().checkScriptsToFinish();
+
+				validateSystemAfterRecordsMigrations();
 			}
 		}
+	}
+
+	private void validateSystemAfterRecordsMigrations() {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isFalse();
 	}
 
 	private void whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(
