@@ -1,15 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.Record;
@@ -20,6 +10,13 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class TasksSearchServices {
 	TasksSchemasRecordsServices tasksSchemas;
@@ -33,7 +30,7 @@ public class TasksSearchServices {
 	public LogicalSearchQuery getTasksAssignedByUserQuery(User user) {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assigner()).isEqualTo(user)
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.assignee()).isNotEqual(user)
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
@@ -43,7 +40,7 @@ public class TasksSearchServices {
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assignee()).isNull()
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
 						.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
@@ -57,7 +54,7 @@ public class TasksSearchServices {
 				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
 				anyConditions(
 						where(tasksSchemas.userTask.assignee()).isEqualTo(user).andWhere(Schemas.LOGICALLY_DELETED_STATUS)
-								.isNotEqual(true),
+								.isFalseOrNull(),
 						allConditions(
 								where(tasksSchemas.userTask.assignee()).isNull(),
 								anyConditions(
@@ -72,7 +69,7 @@ public class TasksSearchServices {
 	public LogicalSearchQuery getDirectSubTasks(String taskId, User user) {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.parentTask()).isEqualTo(taskId)
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
@@ -83,7 +80,7 @@ public class TasksSearchServices {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType())
 						.where(tasksSchemas.userTask.status()).isIn(taskStatusList)
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
@@ -96,7 +93,7 @@ public class TasksSearchServices {
 		LogicalSearchQuery firstClosedTaskStatusQuery = new LogicalSearchQuery(
 				from(tasksSchemas.ddvTaskStatus.schema()).where(tasksSchemas.ddvTaskStatus.statusType())
 						.is(FINISHED)
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true))
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.sortDesc(tasksSchemas.ddvTaskStatus.createdOn()).setNumberOfRows(1);
 		List<Record> result = searchServices.search(firstClosedTaskStatusQuery);
 		if (result.isEmpty()) {
@@ -107,12 +104,12 @@ public class TasksSearchServices {
 
 	public List<TaskStatus> getFinishedStatuses() {
 		return tasksSchemas.searchTaskStatuss(
-				where(tasksSchemas.ddvTaskStatus.statusType()).is(FINISHED).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true));
+				where(tasksSchemas.ddvTaskStatus.statusType()).is(FINISHED).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
 	}
 
 	public List<TaskStatus> getClosedStatuses() {
 		return tasksSchemas.searchTaskStatuss(
-				where(tasksSchemas.ddvTaskStatus.statusType()).is(CLOSED).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true));
+				where(tasksSchemas.ddvTaskStatus.statusType()).is(CLOSED).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
 	}
 
 	public String getSchemaCodeForTaskTypeRecordId(String taskTypeRecordId) {
