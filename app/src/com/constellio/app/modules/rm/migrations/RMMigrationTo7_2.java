@@ -17,7 +17,6 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -37,7 +36,6 @@ import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationReque
 import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -127,7 +125,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			throw new RuntimeException("Failed to create new task types in RMMigration7_2");
 		}
 		adjustSchemaDisplay(appLayerFactory, migrationResourcesProvider, collection);
-		migrateRoles(collection, appLayerFactory.getModelLayerFactory());
+		//migrateRoles(collection, appLayerFactory.getModelLayerFactory());
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 	}
 
@@ -210,46 +208,46 @@ public class RMMigrationTo7_2 implements MigrationScript {
 						.withInputType(MetadataInputType.FIELD));
 	}
 
-	private void migrateRoles(String collection, ModelLayerFactory modelLayerFactory) {
-		Role rgd = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
-		Role admin = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
-		Role manager = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.MANAGER);
-		Role user = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.USER);
-		modelLayerFactory.getRolesManager().updateRole(rgd.withNewPermissions(asList(
-				RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
-				RMPermissionsTo.BORROWING_FOLDER_DIRECTLY,
-				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
-				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
-				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
-				RMPermissionsTo.DISPLAY_CONTAINERS,
-				RMPermissionsTo.BORROW_CONTAINER
-		)));
-		modelLayerFactory.getRolesManager().updateRole(admin.withNewPermissions(asList(
-				RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
-				RMPermissionsTo.BORROWING_FOLDER_DIRECTLY,
-				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
-				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
-				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
-				RMPermissionsTo.DISPLAY_CONTAINERS,
-				RMPermissionsTo.BORROW_CONTAINER
-		)));
-
-		modelLayerFactory.getRolesManager().updateRole(manager.withNewPermissions(asList(
-				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
-				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
-				RMPermissionsTo.BORROW_CONTAINER
-		)));
-
-		modelLayerFactory.getRolesManager().updateRole(user.withNewPermissions(asList(
-				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
-				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
-				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
-				RMPermissionsTo.BORROW_CONTAINER
-		)));
-	}
+	//	private void migrateRoles(String collection, ModelLayerFactory modelLayerFactory) {
+	//		Role rgd = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+	//		Role admin = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
+	//		Role manager = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.MANAGER);
+	//		Role user = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.USER);
+	//		modelLayerFactory.getRolesManager().updateRole(rgd.withNewPermissions(asList(
+	//				RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
+	//				RMPermissionsTo.BORROWING_FOLDER_DIRECTLY,
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+	//				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.DISPLAY_CONTAINERS,
+	//				RMPermissionsTo.BORROW_CONTAINER
+	//		)));
+	//		modelLayerFactory.getRolesManager().updateRole(admin.withNewPermissions(asList(
+	//				RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
+	//				RMPermissionsTo.BORROWING_FOLDER_DIRECTLY,
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+	//				RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.DISPLAY_CONTAINERS,
+	//				RMPermissionsTo.BORROW_CONTAINER
+	//		)));
+	//
+	//		modelLayerFactory.getRolesManager().updateRole(manager.withNewPermissions(asList(
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.BORROW_CONTAINER
+	//		)));
+	//
+	//		modelLayerFactory.getRolesManager().updateRole(user.withNewPermissions(asList(
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER,
+	//				RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER,
+	//				RMPermissionsTo.BORROW_CONTAINER
+	//		)));
+	//	}
 
 	private void reloadEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
 			String collection) {

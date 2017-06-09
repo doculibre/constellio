@@ -8,6 +8,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,12 @@ public class BatchProcessTasksFactory {
 	public List<BatchProcessTask> createBatchProcessTasks(BatchProcess batchProcess, List<Record> records, List<String> errorList,
 			int numberOfRecordsPerTask, MetadataSchemasManager schemasManager) {
 		MetadataSchemaTypes metadataSchemaTypes = schemasManager.getSchemaTypes(batchProcess.getCollection());
-		User user = userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection());
+		User user = null;
+		try {
+			user = userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection());
+		} catch(UserServicesRuntimeException e) {
+			//OK
+		}
 		List<BatchProcessTask> tasks = new ArrayList<>();
 		for (int i = 0; i < records.size(); i += numberOfRecordsPerTask) {
 			List<Record> recordsForTask = records.subList(i, Math.min(records.size(), i + numberOfRecordsPerTask));

@@ -47,11 +47,15 @@ public class BatchProcessController implements StatefulService, BatchProcessesLi
 	public void close() {
 		if (thread != null) {
 			try {
-				thread.stopRequested();
-				thread.join();
+
+				while(thread.isAlive()) {
+					thread.stopRequested();
+					thread.join(500);
+				}
+
 				thread = null;
 			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
+				//throw new RuntimeException(e);
 			}
 		}
 	}
