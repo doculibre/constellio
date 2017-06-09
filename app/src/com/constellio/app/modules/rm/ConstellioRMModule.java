@@ -216,7 +216,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		List<RecordMigrationScript> scripts = new ArrayList<>();
 
 		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
-		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
 
 		return scripts;
 	}
@@ -410,7 +409,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access)) {
-							return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+							return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS)
+									.onSomething();
 						} else if (Role.WRITE.equals(access)) {
 							return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 						} else if (Role.DELETE.equals(access)) {
