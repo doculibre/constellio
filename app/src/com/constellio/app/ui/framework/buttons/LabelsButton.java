@@ -215,7 +215,12 @@ public class LabelsButton extends WindowButton {
                         ru.setStartingPosition((Integer) startPositionField.getValue() - 1);
                         String number = copiesField.getValue();
                         number = number.replace(" ", "");
-                        ru.setNumberOfCopies(Integer.parseInt(number));
+                        int numberOfCopies = Integer.parseInt(number);
+                        if(numberOfCopies >= 1000) {
+                            showErrorMessage($("LabelsButton.cannotPrint1000Labels"));
+                            return;
+                        }
+                        ru.setNumberOfCopies(numberOfCopies);
                         String xml = type.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, (ReportField[]) null) : ru.convertContainerWithIdentifierToXML(ids, null);
                         Content content = selected.get(PrintableLabel.JASPERFILE);
                         InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
