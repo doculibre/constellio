@@ -14,7 +14,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 	public static final String ANSI_RESET = "\u001B[0m";
 	private static boolean isCurrentPreservingState;
 
-	private static boolean IS_FIRST_EXECUTED_TEST = true;
+	public static boolean IS_FIRST_EXECUTED_TEST = true;
 
 	private ConstellioTestSession testSession;
 
