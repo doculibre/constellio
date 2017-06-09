@@ -187,6 +187,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 				} else {
 					inputStreamProvider = null;
 					if (newMajorVersion) {
+						content.checkIn();
 						content.finalizeVersion();
 					} else if (newMinorVersion) {
 						content.checkIn();
