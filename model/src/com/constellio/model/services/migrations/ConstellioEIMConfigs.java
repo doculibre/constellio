@@ -115,7 +115,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA).whichIsHidden());
+				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
