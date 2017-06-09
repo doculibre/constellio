@@ -182,6 +182,12 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			Transaction t = new Transaction();
 			t.addAll(asList(eventReindexing, eventRestarting));
 			try {
+				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
+			} catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			}
+
+			try {
 				appLayerFactory.newApplicationService().restart();
 			} catch (AppManagementServiceException ase) {
 				view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
