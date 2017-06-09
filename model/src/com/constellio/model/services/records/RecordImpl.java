@@ -592,7 +592,6 @@ public class RecordImpl implements Record {
 				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
 			} catch (NoSuchMetadata e) {
 				if (isSaved()) {
-					modifiedValues.remove(modifiedMetadataDataStoreCode);
 					Record originalRecord = getCopyOfOriginalRecord();
 					try {
 						modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));

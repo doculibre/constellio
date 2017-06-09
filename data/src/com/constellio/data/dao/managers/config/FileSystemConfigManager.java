@@ -86,7 +86,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	}
 	
 	void putInCache(String key, Object value) {
-		cache.put(key, (Serializable) value);
+		//cache.put(key, (Serializable) value);
 	}
 	
 	void removeFromCache(String key) {
