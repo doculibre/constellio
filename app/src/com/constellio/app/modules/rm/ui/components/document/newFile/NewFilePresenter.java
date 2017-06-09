@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.util.NewFileUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Content;
@@ -61,7 +62,7 @@ public class NewFilePresenter implements Serializable {
 				filename += "." + extension;
 			}
 		} else {
-			if (StringUtils.isNotBlank(filename)) {
+			if (StringUtils.isNotBlank(filename) && templateContent != null) {
 				String fileExtension = StringUtils.lowerCase(FilenameUtils.getExtension(templateContent.getCurrentVersion().getFilename()));
 				filename += "." + fileExtension;
 			}
@@ -93,7 +94,7 @@ public class NewFilePresenter implements Serializable {
 			} else {
 				fileContent = createNewFile(filename);
 			}
-			window.notifyNewFileCreated(fileContent);
+			window.notifyNewFileCreated(fileContent, documentTypeId);
 		} else {
 			window.showErrorMessage("NewFileWindow.invalidFileName", filename != null ? filename : "");
 		}
@@ -122,12 +123,25 @@ public class NewFilePresenter implements Serializable {
 		}
 	}
 
-	public void setTemplatesByDocumentTypeId(String documentTypeId) {
+	void documentTypeIdSet(String documentTypeId) {
 		this.documentTypeId = documentTypeId;
-		window.setTemplates(getTemplates());
+		window.setTemplateOptions(getTemplateOptions());
+		window.setTemplateFieldValue(null);
+	}
+	
+	void extensionSet(String value) {
+		if (value != null) {
+			window.setTemplateFieldValue(null);
+		}
+	}
+	
+	void templateSet(Content value) {
+		if (value != null) {
+			window.setExtensionFieldValue(null);
+		}
 	}
 
-	private List<Content> getTemplates() {
+	private List<Content> getTemplateOptions() {
 		List<Content> templates = new ArrayList<>();
 		if (documentTypeId != null) {
 			AppLayerFactory appLayerFactory = window.getConstellioFactories().getAppLayerFactory();

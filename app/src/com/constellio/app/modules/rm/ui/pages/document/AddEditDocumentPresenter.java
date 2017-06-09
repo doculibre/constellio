@@ -618,7 +618,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		final DocumentContentField contentField = getContentField();
 		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
 			@Override
-			public void newFileCreated(Content content) {
+			public void newFileCreated(Content content, String documentTypeId) {
 				view.getForm().commit();
 				contentField.setNewFileButtonVisible(false);
 				contentField.setMajorVersionFieldVisible(false);
@@ -632,6 +632,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					filename = FilenameUtils.removeExtension(filename);
 				}
 				documentVO.setTitle(filename);
+				documentVO.setType(documentTypeId);
 				newFile = true;
 				view.getForm().reload();
 				// Will have been lost after reloading the form
