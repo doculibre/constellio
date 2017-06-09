@@ -12,6 +12,8 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
@@ -79,6 +81,13 @@ public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 		getConstellioFactories().getModelLayerFactory().getRecordMigrationsManager().checkScriptsToFinish();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isFalse();
+
+		ContainerRecordType containerRecordType = rm.newContainerRecordType().setCode("test").setTitle("test");
+		rm.getModelLayerFactory().newRecordServices().add(containerRecordType);
+
+		ContainerRecord record = rm.newContainerRecord().setIdentifier("identifier").setType(containerRecordType);
+		getModelLayerFactory().newRecordServices().add(record);
+		assertThat(record.<Double>get(Schemas.MIGRATION_DATA_VERSION)).isGreaterThan(0.0);
 	}
 
 	private ListAssert<Object> assertThatContainerAdmUnits(String id) {

@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -36,21 +35,17 @@ public class RMContainerRecordMigrationTo7_3 extends RecordMigrationScript {
 	@Override
 	public void migrate(Record record) {
 
-		try {
-			ContainerRecord container = rm.wrapContainerRecord(record);
-			List<String> administrativeUnits = container.getAdministrativeUnits();
-			String administrativeUnit = container.get("administrativeUnit");
+		ContainerRecord container = rm.wrapContainerRecord(record);
+		List<String> administrativeUnits = container.getAdministrativeUnits();
+		String administrativeUnit = container.get("administrativeUnit");
 
-			if (administrativeUnit != null && !administrativeUnits.contains(administrativeUnit)) {
-				List<String> newAdministrativeUnits = new ArrayList<>(administrativeUnits);
-				newAdministrativeUnits.add(administrativeUnit);
-				container.setAdministrativeUnits(newAdministrativeUnits);
-			}
-			container.set("administrativeUnit", null);
-
-		} catch(MetadataSchemasRuntimeException.NoSuchMetadata e) {
-			e.printStackTrace();
+		if (administrativeUnit != null && !administrativeUnits.contains(administrativeUnit)) {
+			List<String> newAdministrativeUnits = new ArrayList<>(administrativeUnits);
+			newAdministrativeUnits.add(administrativeUnit);
+			container.setAdministrativeUnits(newAdministrativeUnits);
 		}
+		container.set("administrativeUnit", null);
+
 	}
 
 	@Override
