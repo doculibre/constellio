@@ -1,9 +1,12 @@
 package com.constellio.data.dao.managers.config.values;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Serializable;
+import java.io.StringReader;
 
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jdom2.Document;
@@ -38,12 +41,15 @@ public class XMLConfiguration implements Serializable {
 
 	private Document toDocument(String xml) {
 		SAXBuilder builder = new SAXBuilder();
+		Reader reader = new StringReader(xml);
 		try {
-			return builder.build(xml);
+			return builder.build(reader);
 		} catch (JDOMException e) {
 			throw new ConfigManagerRuntimeException("JDOM2 Exception", e);
 		} catch (IOException e) {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
+		} finally {
+			IOUtils.closeQuietly(reader);
 		}
 	}
 
@@ -87,21 +93,21 @@ public class XMLConfiguration implements Serializable {
 		}
 		this.document = toDocument(xml);
     }
-	
-	private void writeObject(java.io.ObjectOutputStream stream)
-	            throws java.io.IOException {
-		try {
-			try {
-				throw new RuntimeException(super.toString());
-			} catch (RuntimeException e) {
+
+	//private void writeObject(java.io.ObjectOutputStream stream)
+	 //           throws java.io.IOException {
+		//try {
+		//	try {
+	//			throw new RuntimeException(super.toString());
+	//		} catch (RuntimeException e) {
 //				String stackTrace = org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e);
-				e.printStackTrace();
-			}
-			System.out.println("Serialized count for " + version + "." + hash + " : " + (++serializedCount) + " " + new java.util.Date());
-			stream.defaultWriteObject();
-		} catch (java.io.IOException | RuntimeException e) {
-			throw e;
-		} 
-	}
-	
+	//			e.printStackTrace();
+//			}
+//			System.out.println("Serialized count for " + version + "." + hash + " : " + (++serializedCount) + " " + new java.util.Date());
+//			stream.defaultWriteObject();
+//		} catch (java.io.IOException | RuntimeException e) {
+//			throw e;
+//		}
+	//}
+
 }
