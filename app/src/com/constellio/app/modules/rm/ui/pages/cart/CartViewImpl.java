@@ -122,8 +122,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				defaultLabelTemplatesFactory,
 				getConstellioFactories().getAppLayerFactory(),
 				getSessionContext().getCurrentCollection(),
-				Folder.SCHEMA_TYPE,
-				presenter.getRecordsIds(Folder.SCHEMA_TYPE),
+				schemaType,
+				presenter.getRecordsIds(schemaType),
 				getSessionContext().getCurrentUser().getUsername()
 		);
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
