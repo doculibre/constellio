@@ -288,7 +288,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		if (module instanceof InstallableSystemModuleWithRecordMigrations) {
 			List<RecordMigrationScript> scripts = ((InstallableSystemModuleWithRecordMigrations) module)
 					.getRecordMigrationScripts(collection, appLayerFactory);
-			Set<String> typesWithNewScripts = modelLayerFactory.getRecordMigrationsManager()
+			modelLayerFactory.getRecordMigrationsManager()
 					.registerReturningTypesWithNewScripts(collection, scripts, true);
 			modelLayerFactory.getRecordMigrationsManager().checkScriptsToFinish();
 		}
