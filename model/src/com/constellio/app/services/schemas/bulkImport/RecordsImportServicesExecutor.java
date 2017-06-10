@@ -103,7 +103,7 @@ import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RecordsImportServicesExecutor {
 
-	public static StringReplacer IMPORTED_FILEPATH_CLEANER = replacingLiteral("/", separator).replacingLiteral("\\", separator);
+	public static StringReplacer IMPORTED_FILEPATH_CLEANER = replacingLiteral("/", separator).replacingLiteral("\\", "/");
 	public static final String INVALID_SCHEMA_TYPE_CODE = "invalidSchemaTypeCode";
 	public static final String LEGACY_ID_LOCAL_CODE = LEGACY_ID.getLocalCode();
 	static final List<String> ALL_BOOLEAN_YES = asList("o", "y", "t", "oui", "vrai", "yes", "true", "1");
