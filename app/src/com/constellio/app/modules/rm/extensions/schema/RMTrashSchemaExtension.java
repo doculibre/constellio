@@ -1,8 +1,21 @@
 package com.constellio.app.modules.rm.extensions.schema;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.wrappers.User;
@@ -13,13 +26,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RMTrashSchemaExtension extends SchemaExtension {
 
@@ -49,24 +55,36 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 	public LogicalSearchCondition getPhysicallyDeletableRecordsForSchemaType(SchemaEvent event) {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(event.getSchemaCode());
 		switch (schemaType) {
-			case ContainerRecord.SCHEMA_TYPE:
-				List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForUser(event.getUser(), RMPermissionsTo.DELETE_CONTAINERS);
-				if(adminUnitIdsWithPermissions.isEmpty()) {
-					return null;
-				}
+		case ContainerRecord.SCHEMA_TYPE:
+			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForUser(event.getUser(),
+					RMPermissionsTo.DELETE_CONTAINERS);
+			if (adminUnitIdsWithPermissions.isEmpty()) {
+				return null;
+			}
+			return fromAllSchemasIn(collection).whereAllConditions(
+					anyConditions(
+							where(rm.containerRecord.administrativeUnits()).isNull(),
+							where(rm.containerRecord.administrativeUnits()).isIn(adminUnitIdsWithPermissions)
+					),
+					where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
+					where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+			);
+
+		case Category.SCHEMA_TYPE:
+			if (event.getUser().has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally()) {
 				return fromAllSchemasIn(collection).whereAllConditions(
-						anyConditions(
-								where(rm.containerRecord.administrativeUnits()).isNull(),
-								where(rm.containerRecord.administrativeUnits()).isIn(adminUnitIdsWithPermissions)
-						),
-						where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE+"_"),
-						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
-				);
+						where(Schemas.SCHEMA).isStartingWithText(Category.SCHEMA_TYPE + "_"),
+						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
+			} else {
+				return null;
+			}
+
 		}
+
 		return null;
 	}
 
-	public List<String> getConceptsWithPermissionsForUser(User user, String...permissions) {
+	public List<String> getConceptsWithPermissionsForUser(User user, String... permissions) {
 		Set<String> recordIds = new HashSet<>();
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		for (String permission : permissions) {
