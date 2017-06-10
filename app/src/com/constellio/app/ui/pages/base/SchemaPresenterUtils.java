@@ -142,7 +142,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			return false;
 		}
 		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
-		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode(), null);
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
 

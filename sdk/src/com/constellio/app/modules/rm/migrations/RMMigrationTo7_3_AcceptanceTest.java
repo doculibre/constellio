@@ -2,14 +2,18 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
 import org.assertj.core.api.ListAssert;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
@@ -33,11 +37,57 @@ public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 
 		givenBackgroundThreadsEnabled();
 		waitForBatchProcess();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		assertThatContainerAdmUnits("00000000078").isEqualTo(asList(null, asList("u1")));
 		assertThatContainerAdmUnits("00000000081").isEqualTo(asList(null, asList("u3", "u2")));
 		assertThatContainerAdmUnits("00000000084").isEqualTo(asList(null, asList()));
 		assertThatContainerAdmUnits("00000000086").isEqualTo(asList(null, asList("u1", "u2", "u3")));
+		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isTrue();
+
+		getConstellioFactories().getModelLayerFactory().getRecordMigrationsManager().checkScriptsToFinish();
+		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isFalse();
+	}
+
+	@Test
+	public void givenNewSystemWithRMModuleThenNoAdministrativeUnitMetadata()
+			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+
+		givenBackgroundThreadsEnabled();
+		waitForBatchProcess();
+		getConstellioFactories().getModelLayerFactory().getRecordMigrationsManager().checkScriptsToFinish();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isFalse();
+	}
+
+	@Test
+	public void givenSystemWithESModuleWhenInstallingRMModuleThenNoAdministrativeUnitMetadata()
+			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioESModule()
+		);
+
+		getAppLayerFactory().getModulesManager().installValidModuleAndGetInvalidOnes(new ConstellioRMModule(),
+				getModelLayerFactory().getCollectionsListManager());
+		getAppLayerFactory().getModulesManager().enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRMModule());
+
+		givenBackgroundThreadsEnabled();
+		waitForBatchProcess();
+		getConstellioFactories().getModelLayerFactory().getRecordMigrationsManager().checkScriptsToFinish();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isFalse();
+
+		ContainerRecordType containerRecordType = rm.newContainerRecordType().setCode("test").setTitle("test");
+		rm.getModelLayerFactory().newRecordServices().add(containerRecordType);
+
+		ContainerRecord record = rm.newContainerRecord().setIdentifier("identifier").setType(containerRecordType);
+		getModelLayerFactory().newRecordServices().add(record);
+		assertThat(record.<Double>get(Schemas.MIGRATION_DATA_VERSION)).isGreaterThan(0.0);
 	}
 
 	private ListAssert<Object> assertThatContainerAdmUnits(String id) {

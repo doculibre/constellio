@@ -389,6 +389,10 @@ public class SearchServices {
 			fieldsWithBoosts.add(boost.getKey());
 		}
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
+			if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
+				sb.append("^20 ");
+			}
 			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
 			if (!fieldsWithBoosts.contains(analyzedField)) {
 				sb.append(analyzedField + " ");
@@ -402,6 +406,7 @@ public class SearchServices {
 
 		//		sb.append("search_txt_");
 		//		sb.append(mainDataLanguage);
+		System.out.println(sb.toString());
 		return sb.toString();
 	}
 

@@ -98,6 +98,7 @@ public class RMPermissionsTo {
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
+	public static final String DELETE_CONTAINERS = permission(DECOMMISSIONING, "deleteContainers");
 	public static final String DISPLAY_CONTAINERS = permission(DECOMMISSIONING, "displayContainers");
 
 	public static final String BORROW_CONTAINER = permission(DECOMMISSIONING, "borrowContainer");

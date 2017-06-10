@@ -187,14 +187,15 @@ public class UpdateContentVersionPresenter implements Serializable {
 				} else {
 					inputStreamProvider = null;
 					if (newMajorVersion) {
+						content.checkIn();
 						content.finalizeVersion();
 					} else if (newMinorVersion) {
 						content.checkIn();
-						modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
 					} else {
 						// TODO Throw appropriate exception
 						throw new RuntimeException("A new version must be specified if no new content is uploaded");
 					}
+					modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
 				}
 
 				try {

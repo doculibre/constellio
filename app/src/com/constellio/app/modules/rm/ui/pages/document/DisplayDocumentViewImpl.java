@@ -338,6 +338,16 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		actionMenuButtons.add(editDocumentButton);
+
+		copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.copyContentButtonClicked();
+			}
+		};
+
+		actionMenuButtons.add(copyContentButton);
+
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
 					WindowConfiguration.modalDialog("40%", "100px")) {
@@ -373,13 +383,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					layout.setSizeFull();
 
 					return layout;
-				}
-			};
-
-			copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.copyContentButtonClicked();
 				}
 			};
 
@@ -426,8 +429,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				}
 			};
 
-			actionMenuButtons.add(renameContentButton);
-			actionMenuButtons.add(copyContentButton);
+			actionMenuButtons.add(actionMenuButtons.indexOf(copyContentButton), renameContentButton);
 
 			publishButton = new LinkButton($("DocumentContextMenu.publish")) {
 				@Override
@@ -480,7 +482,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
-		actionMenuButtons.add(finalizeButton);
+
+		if(presenter.hasWritePermission()) {
+			actionMenuButtons.add(finalizeButton);
+		}
+
 		if (presenter.hasPermissionToStartWorkflow()) {
 			actionMenuButtons.add(startWorkflowButton);
 		}

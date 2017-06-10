@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.fields.*;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
@@ -146,12 +147,20 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
+		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document);
+		for(Metadata metadata: duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()) {
+			documentVO.set(metadata.getLocalCode(), duplicatedDocument.get(metadata));
+		}
 		Content content = document.getContent();
-		ContentVersion contentVersion = content.getCurrentVersion();
-		ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
-		contentVersionVO.setMajorVersion(contentVersion.isMajor());
-		contentVersionVO.setVersion(contentVersion.getVersion());
-		documentVO.setContent(contentVersionVO);
+		if(content != null) {
+			ContentVersion contentVersion = content.getCurrentVersion();
+			ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
+			contentVersionVO.setMajorVersion(contentVersion.isMajor());
+			contentVersionVO.setVersion(contentVersion.getVersion());
+			documentVO.setContent(contentVersionVO);
+		}
+
 		documentVO.setTitle(document.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")");
 		documentVO.setFolder(document.getFolder());
 	}
@@ -609,7 +618,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		final DocumentContentField contentField = getContentField();
 		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
 			@Override
-			public void newFileCreated(Content content) {
+			public void newFileCreated(Content content, String documentTypeId) {
 				view.getForm().commit();
 				contentField.setNewFileButtonVisible(false);
 				contentField.setMajorVersionFieldVisible(false);
@@ -623,6 +632,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					filename = FilenameUtils.removeExtension(filename);
 				}
 				documentVO.setTitle(filename);
+				documentVO.setType(documentTypeId);
 				newFile = true;
 				view.getForm().reload();
 				// Will have been lost after reloading the form

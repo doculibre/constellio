@@ -6,6 +6,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.sdk.tests.annotations.PreserveState;
 
@@ -14,7 +15,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 	public static final String ANSI_RESET = "\u001B[0m";
 	private static boolean isCurrentPreservingState;
 
-	private static boolean IS_FIRST_EXECUTED_TEST = true;
+	public static boolean IS_FIRST_EXECUTED_TEST = true;
 
 	private ConstellioTestSession testSession;
 
@@ -31,6 +32,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@Before
 	public void beforeConstellioTest() {
 		MockitoAnnotations.initMocks(this);
+		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {

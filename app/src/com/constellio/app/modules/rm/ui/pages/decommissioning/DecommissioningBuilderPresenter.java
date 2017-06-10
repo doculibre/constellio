@@ -32,9 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
@@ -179,11 +177,15 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		params.setAdministrativeUnit(adminUnitId);
 		params.setSearchType(searchType);
 		try {
-			DecommissioningList decommissioningList = decommissioningService.createDecommissioningList(params, getCurrentUser());
-			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+			if(params.getSelectedRecordIds() != null && params.getSelectedRecordIds().size() > 1000) {
+				view.showErrorMessage($("DecommissioningBuilderView.cannotBuildADecommissioningListWithMoreThan1000Records"));
 			} else {
-				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				DecommissioningList decommissioningList = decommissioningService.createDecommissioningList(params, getCurrentUser());
+				if (decommissioningList.getDecommissioningListType().isFolderList()) {
+					view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+				} else {
+					view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error while creating decommissioning list", e);
@@ -194,14 +196,27 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public void addToListButtonClicked(List<String> selected) {
 		try {
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
-			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
-				recordServices().update(decommissioningList.getWrappedRecord());
-				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+			Set<String> allIds = new HashSet<>(decommissioningList.getFolders());
+			if(decommissioningList.getFolders() != null) {
+				allIds = new HashSet<>(decommissioningList.getFolders());
 			} else {
-				decommissioningList.addDocuments(selected.toArray(new String[0]));
-				recordServices().update(decommissioningList.getWrappedRecord());
-				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				allIds = new HashSet<String>();
+			}
+			allIds.addAll(selected);
+
+			if(allIds.size() > 1000) {
+				view.showErrorMessage($("DecommissioningBuilderView.cannotBuildADecommissioningListWithMoreThan1000Records"));
+			} else {
+
+				if (decommissioningList.getDecommissioningListType().isFolderList()) {
+					decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+					recordServices().update(decommissioningList.getWrappedRecord());
+					view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+				} else {
+					decommissioningList.addDocuments(selected.toArray(new String[0]));
+					recordServices().update(decommissioningList.getWrappedRecord());
+					view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error while creating decommissioning list", e);

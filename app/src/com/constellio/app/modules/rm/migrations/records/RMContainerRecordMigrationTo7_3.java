@@ -34,6 +34,7 @@ public class RMContainerRecordMigrationTo7_3 extends RecordMigrationScript {
 
 	@Override
 	public void migrate(Record record) {
+
 		ContainerRecord container = rm.wrapContainerRecord(record);
 		List<String> administrativeUnits = container.getAdministrativeUnits();
 		String administrativeUnit = container.get("administrativeUnit");
@@ -44,6 +45,7 @@ public class RMContainerRecordMigrationTo7_3 extends RecordMigrationScript {
 			container.setAdministrativeUnits(newAdministrativeUnits);
 		}
 		container.set("administrativeUnit", null);
+
 	}
 
 	@Override

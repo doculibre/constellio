@@ -1,11 +1,7 @@
 package com.constellio.app.modules.rm.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -13,20 +9,31 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContainerAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
+	Users users = new Users();
 
 	@Before
 	public void setUp()
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withRMTest(records).withAllTestUsers()
 		);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -34,7 +41,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
-
+		users = users.setUp(getModelLayerFactory().newUserServices());
 	}
 
 	@Test
@@ -115,5 +122,36 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		assertThat(anotherContainer.isFull()).isTrue();
 		assertThat(anotherContainer.getAdministrativeUnit()).isEqualTo(records.unitId_20d);
 		assertThat(anotherContainer.getType()).isEqualTo("zeBoite");
+	}
+
+	@Test
+	public void givenContainerLogicallyDeletedThenOnlyUserWithDeletePermissionCanPhysicallyDelete() throws RecordServicesException {
+		ContainerRecordType zeBoite = rm.newContainerRecordTypeWithId("zeBoite");
+		zeBoite.setTitle("Ze Boite");
+		zeBoite.setCode("BOITE");
+
+		ContainerRecord zeContainer = rm.newContainerRecordWithId("zeContainer");
+		zeContainer.setTemporaryIdentifier("Ze temp identifier");
+		zeContainer.setDescription("Ze description");
+		zeContainer.setFull(false);
+		zeContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
+		zeContainer.setAdministrativeUnit(records.unitId_10a);
+		zeContainer.setType("zeBoite");
+
+		Transaction transaction = new Transaction();
+		transaction.add(zeBoite);
+		transaction.add(zeContainer);
+		recordServices.execute(transaction);
+
+		recordServices.logicallyDelete(zeContainer.getWrappedRecord(), users.adminIn(zeCollection));
+		LogicalSearchQuery logicallyDeletedQuery = new LogicalSearchQuery().setCondition(from(rm.containerRecord.schemaType())
+				.where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+//		assertThat(users.adminIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isTrue();
+		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.adminIn(zeCollection)))).isEqualTo(1);
+
+		assertThat(users.aliceIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isFalse();
+		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.aliceIn(zeCollection)))).isEqualTo(0);
 	}
 }

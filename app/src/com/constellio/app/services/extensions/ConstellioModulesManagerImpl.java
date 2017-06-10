@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.InstallableSystemModule;
+import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
 import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.ConstellioModulesManagerRuntimeException_ModuleIsNotInstalled;
@@ -34,6 +35,7 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
+import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -277,7 +279,20 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		} else {
 			returnList.add(module.getId());
 		}
+		applyRecordsMigrationsFinishScript(collection, module);
 		return returnList;
+	}
+
+	private void applyRecordsMigrationsFinishScript(String collection, Module module) {
+
+		if (module instanceof InstallableSystemModuleWithRecordMigrations) {
+			List<RecordMigrationScript> scripts = ((InstallableSystemModuleWithRecordMigrations) module)
+					.getRecordMigrationScripts(collection, appLayerFactory);
+			modelLayerFactory.getRecordMigrationsManager()
+					.registerReturningTypesWithNewScripts(collection, scripts, true);
+			modelLayerFactory.getRecordMigrationsManager().checkScriptsToFinish();
+		}
+
 	}
 
 	public Set<String> enableComplementaryModules(String collection) {

@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
@@ -19,7 +16,10 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -62,9 +62,6 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		selectedReportField.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				Component newTable = buildTables();
-				viewLayout.replaceComponent(tables, newTable);
-				tables = newTable;
 				if (selectedReportField.getValue() != null){
 					newReportTitle.setVisible(false);
 					deleteButton.setVisible(true);
@@ -72,6 +69,10 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 					deleteButton.setVisible(false);
 					newReportTitle.setVisible(true);
 				}
+				//Replace tables after setting visible or not because visibility is checked while building
+				Component newTable = buildTables();
+				viewLayout.replaceComponent(tables, newTable);
+				tables = newTable;
 			}
 		});
 		viewLayout.addComponent(selectedReportField);

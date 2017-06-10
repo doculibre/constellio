@@ -499,12 +499,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		if (containerComboBox.size() > 0) {
 			containerComboBox.setValue(containerVOs.getIdByIndex(containerComboBox.size() - 1));
 		}
-		containerComboBox.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		containerComboBox.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		containerComboBox.setEnabled(presenter.canCurrentUserManageContainers());
+		containerComboBox.setVisible(presenter.canCurrentUserManageContainers());
 
 		Button placeFolders = new Button($("DecommissioningListView.placeInContainer"));
-		placeFolders.setEnabled(containerComboBox.size() > 0 && presenter.canCurrentUserManageStorageSpaces());
-		placeFolders.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		placeFolders.setEnabled(containerComboBox.size() > 0 && presenter.canCurrentUserManageContainers());
+		placeFolders.setVisible(presenter.canCurrentUserManageContainers());
 		placeFolders.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -529,8 +529,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		Button createContainer = new Button($("DecommissioningListView.createContainer"));
 		createContainer.addStyleName(ValoTheme.BUTTON_LINK);
-		createContainer.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		createContainer.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		createContainer.setEnabled(presenter.canCurrentUserManageContainers());
+		createContainer.setVisible(presenter.canCurrentUserManageContainers());
 		createContainer.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -540,8 +540,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		Button searchContainer = new Button($("DecommissioningListView.searchContainer"));
 		searchContainer.addStyleName(ValoTheme.BUTTON_LINK);
-		searchContainer.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		searchContainer.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		searchContainer.setEnabled(presenter.canCurrentUserManageContainers());
+		searchContainer.setVisible(presenter.canCurrentUserManageContainers());
 		searchContainer.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -567,8 +567,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				presenter.refreshView();
 			}
 		});
-		autoFillContainers.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		autoFillContainers.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		autoFillContainers.setEnabled(presenter.canCurrentUserManageContainers());
+		autoFillContainers.setVisible(presenter.canCurrentUserManageContainers());
 
 		HorizontalLayout controls = new HorizontalLayout(label, containerComboBox, placeFolders, createContainer, searchContainer, autoFillContainers);
 		controls.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
@@ -587,7 +587,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Label header = new Label($("DecommissioningListView.foldersToValidate"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
-		foldersToValidate = buildFolderTable(folders, false);
+		foldersToValidate = buildFolderTable(folders, true);
 
 		VerticalLayout layout = new VerticalLayout(header, foldersToValidate, buildOrderFoldersToValidateButton());
 		layout.setSpacing(true);
@@ -603,7 +603,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		processableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		BaseButton removeFromFolderButton = new BaseButton($("DecommissioningListView.removeFromFolder")) {
+		BaseButton removeFromTheBox = new BaseButton($("DecommissioningListView.removeFromFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				List<FolderDetailVO> selected = new ArrayList<>();
@@ -631,8 +631,17 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				}
 			}
 		};
+		removeFromTheBox.setEnabled(presenter.canCurrentUserManageContainers());
+		removeFromTheBox.setVisible(presenter.canCurrentUserManageContainers() && presenter.shouldAllowContainerEditing() && !packageableFolders.isEmpty());
 
-		VerticalLayout layout = new VerticalLayout(header, removeFromFolderButton, processableFolders, buildOrderProcessableFoldersButton());
+		VerticalLayout layout = new VerticalLayout(header);
+
+		if(!presenter.isInValidation() && !presenter.isInApprobation()) {
+			layout.addComponent(removeFromTheBox);
+		}
+
+		layout.addComponents(processableFolders, buildOrderProcessableFoldersButton());
+
 		layout.setSpacing(true);
 
 		return layout;

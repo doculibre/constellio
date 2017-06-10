@@ -14,12 +14,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";

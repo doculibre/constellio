@@ -32,11 +32,15 @@ public class BatchProcessTestFeature {
 		BatchProcessesManager batchProcessesManager = factoriesTestFeatures.newModelServicesFactory(DEFAULT_NAME)
 				.getBatchProcessesManager();
 		boolean batchProcessRuntimeActionExecuted = false;
+		if (!ConstellioTest.IS_FIRST_EXECUTED_TEST) {
+			batchProcessesManager.waitUntilAllFinished();
+		}
+			List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
 
-		List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
 
 		//		batchProcessesManager.waitUntilAllFinished();
 
+		int errorsCount = 0;
 		for (BatchProcess batchProcess : batchProcesses) {
 			if (batchProcess != null) {
 				while (batchProcessesManager.get(batchProcess.getId()).getStatus() != BatchProcessStatus.FINISHED) {
@@ -54,11 +58,13 @@ public class BatchProcessTestFeature {
 						throw new RuntimeException(e);
 					}
 				}
-				assertThat(batchProcessesManager.get(batchProcess.getId()).getErrors()).isEqualTo(0);
+				errorsCount+= batchProcessesManager.get(batchProcess.getId()).getErrors();
+
 			}
 		}
 
 		if (!acceptErrors) {
+			assertThat(errorsCount).isZero();
 			for (BatchProcess batchProcess : batchProcessesManager.getFinishedBatchProcesses()) {
 				//				assertThat(batchProcess.getErrors()).isZero()
 				//						.describedAs("Errors during batch process '" + batchProcess.getId() + "'");

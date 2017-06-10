@@ -41,6 +41,7 @@ import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -127,7 +128,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			throw new RuntimeException("Failed to create new task types in RMMigration7_2");
 		}
 		adjustSchemaDisplay(appLayerFactory, migrationResourcesProvider, collection);
-		migrateRoles(collection, appLayerFactory.getModelLayerFactory());
+		if (Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.isEnabled()) {
+			migrateRoles(collection, appLayerFactory.getModelLayerFactory());
+		}
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 	}
 

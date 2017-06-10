@@ -1,28 +1,23 @@
 package com.constellio.model.services.batch.controller;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.RecursiveTask;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordModificationImpactHandler;
-import com.constellio.model.services.records.RecordProvider;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.*;
 import com.constellio.model.services.records.RecordServicesException.OptimisticLocking;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.RecursiveTask;
 
 @SuppressWarnings("serial")
 public class BatchProcessTask extends RecursiveTask<List<String>> {
@@ -35,15 +30,17 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	private final BatchProcessAction action;
 	private final SearchServices searchServices;
 	private final TaskList taskList;
+	private final User user;
 
 	public BatchProcessTask(TaskList taskList, List<Record> records, BatchProcessAction action, RecordServices recordServices,
-			MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices) {
+							MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user) {
 		this.records = records;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;
 		this.action = action;
 		this.searchServices = searchServices;
 		this.taskList = taskList;
+		this.user = user;
 
 		List<String> ids = new RecordUtils().toIdList(records);
 		Set<String> idsSet = new HashSet<>(ids);
@@ -79,6 +76,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 		if (transaction != null) {
 			RecordModificationImpactHandler handler = createSubTaskImpactHandler();
 			transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+			transaction.setUser(user);
 			try {
 				recordServices.executeWithImpactHandler(transaction, handler);
 
@@ -105,7 +103,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	}
 
 	RecordModificationImpactHandler createSubTaskImpactHandler() {
-		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList);
+		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user);
 	}
 
 	private void addRecordsIdsToErrorList(List<Record> batch, List<String> errors) {

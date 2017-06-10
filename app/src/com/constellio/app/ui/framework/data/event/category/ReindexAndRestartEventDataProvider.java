@@ -56,9 +56,9 @@ public class ReindexAndRestartEventDataProvider extends AbstractDataProvider imp
     public String getEventType(Integer index) {
         switch (index) {
             case 0:
-                return EventType.REINDEXING;
-            case 1:
                 return EventType.RESTARTING;
+            case 1:
+                return EventType.REINDEXING;
             default:
                 throw new RuntimeException("Unsupported");
         }

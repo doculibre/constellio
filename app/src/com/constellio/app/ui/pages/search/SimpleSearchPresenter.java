@@ -93,6 +93,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	}
 
 	public void setPageNumber(int pageNumber) {
+		this.lastPageNumber = this.pageNumber;
 		this.pageNumber = pageNumber;
 	}
 
@@ -181,7 +182,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	}
 
 	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
-		if(ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+		if(ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
 			return false;
 		} else if(StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
 			return false;

@@ -148,17 +148,15 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
 		}
 
-		if (!inValidationStatus) {
-			table.addGeneratedColumn(LINEAR_SIZE, this);
-			table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
-			visibleColumns.add(LINEAR_SIZE);
-		}
+		table.addGeneratedColumn(LINEAR_SIZE, this);
+		table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
+		visibleColumns.add(LINEAR_SIZE);
 
 		table.addGeneratedColumn(MEDIUM, this);
 		table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
 		visibleColumns.add(MEDIUM);
 
-		if (!inValidationStatus && presenter.canCurrentUserManageStorageSpaces()) {
+		if (presenter.canCurrentUserManageContainers()) {
 			table.addGeneratedColumn(CONTAINER, this);
 			table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
 			visibleColumns.add(CONTAINER);
@@ -246,7 +244,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			return null;
 		}
 
-		if (!(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable())) {
+		if (!(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable() && !presenter.isInValidation())) {
 			Double linearSize = presenter.getLinearSize(detail);
 			if (linearSize == null) {
 				return null;
@@ -290,7 +288,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		}
 
 		String containerRecordId = detail.getContainerRecordId();
-		if (containerRecordId != null && !(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable())) {
+		if (containerRecordId != null && !(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable() && !presenter.isInValidation())) {
 			return new ReferenceDisplay(containerRecordId);
 		}
 

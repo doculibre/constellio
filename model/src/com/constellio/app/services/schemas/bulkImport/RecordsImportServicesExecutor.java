@@ -103,7 +103,7 @@ import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RecordsImportServicesExecutor {
 
-	public static StringReplacer IMPORTED_FILEPATH_CLEANER = replacingLiteral("/", separator).replacingLiteral("\\", separator);
+	public static StringReplacer IMPORTED_FILEPATH_CLEANER = replacingLiteral("/", separator).replacingLiteral("\\", "/");
 	public static final String INVALID_SCHEMA_TYPE_CODE = "invalidSchemaTypeCode";
 	public static final String LEGACY_ID_LOCAL_CODE = LEGACY_ID.getLocalCode();
 	static final List<String> ALL_BOOLEAN_YES = asList("o", "y", "t", "oui", "vrai", "yes", "true", "1");
@@ -939,8 +939,8 @@ public class RecordsImportServicesExecutor {
 
 				ContentVersionDataSummary contentVersionDataSummary;
 				if (version.getUrl().toLowerCase().startsWith("imported://")) {
-					String importedFilePath = /*IMPORTED_FILEPATH_CLEANER.replaceOn(*/
-							version.getUrl().substring("imported://".length())/*)*/;
+					String importedFilePath = IMPORTED_FILEPATH_CLEANER.replaceOn(
+							version.getUrl().substring("imported://".length()));
 					Factory<ContentVersionDataSummary> factory = importedFilesMap.get(importedFilePath);
 
 					if (factory == null) {

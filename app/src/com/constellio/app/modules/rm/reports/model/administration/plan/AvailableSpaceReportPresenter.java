@@ -17,9 +17,12 @@ import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServic
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 /**
  * Created by Charles Blanchette on 2017-02-20.
@@ -54,6 +57,7 @@ public class AvailableSpaceReportPresenter {
         model.setShowFullSpaces(showFullSpaces);
         List<Record> rootStorageSpaces = conceptNodesTaxonomySearchServices
                 .getRootConcept(collection, RMTaxonomies.STORAGES, searchOptions.setRows(10000));
+        searchOptions.setReturnedMetadatasFilter(searchOptions.getReturnedMetadatasFilter().withIncludedMetadatas(rm.storageSpace.capacity(), rm.storageSpace.availableSize()));
 
         if (rootStorageSpaces != null) {
             for (Record rootRecord : rootStorageSpaces) {
@@ -66,6 +70,14 @@ public class AvailableSpaceReportPresenter {
                 if (childStorageSpaces != null) {
                     createChildRow(parent, childStorageSpaces);
                 }
+
+                LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace);
+                LogicalSearchQuery query = new LogicalSearchQuery(condition);
+                List<ContainerRecord> containerRecords = rm.searchContainerRecords(query);
+                if (containerRecords != null) {
+                    createContainerRecordRow(parent, containerRecords);
+                }
+
                 if(showFullSpaces || !(parent.getChildrenNodes() == null || parent.getChildrenNodes().isEmpty()) || parent.getAvailableSpace() > 0.0) {
                     model.getRootNodes().add(parent);
                 }
@@ -117,9 +129,10 @@ public class AvailableSpaceReportPresenter {
 
     private void init() {
         types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-        searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
-        taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
         rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+        Set<String> acceptedFields = new HashSet<>(asList(rm.storageSpace.capacity().getDataStoreCode(), rm.storageSpace.availableSize().getDataStoreCode()));
+        searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.allAndWithIncludedFields(acceptedFields));
+        taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
         searchServices = modelLayerFactory.newSearchServices();
         conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
     }

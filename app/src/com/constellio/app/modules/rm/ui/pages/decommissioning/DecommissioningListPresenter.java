@@ -131,7 +131,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		List<ContainerRecord> containersToValidate = rm
 				.getContainerRecords(new ArrayList<String>(sizeToBePlacedPerContainer.keySet()));
 		for (ContainerRecord container : containersToValidate) {
-			if (container.getAvailableSize() < sizeToBePlacedPerContainer.get(container.getId())) {
+			if (container.getAvailableSize() != null && container.getAvailableSize() < sizeToBePlacedPerContainer.get(container.getId())) {
 				view.showErrorMessage($("DecommissioningListView.notEnoughSpaceInContainer", container.getTitle()));
 				return;
 			}
@@ -532,6 +532,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningList().getStatus() == DecomListStatus.IN_VALIDATION;
 	}
 
+	public boolean isInApprobation() {
+		return decommissioningList().getStatus() == DecomListStatus.IN_APPROVAL;
+	}
+
 	public boolean isValidationRequestedForCurrentUser() {
 		return decommissioningService().isValidationRequestedFor(decommissioningList(), getCurrentUser());
 	}
@@ -729,8 +733,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return String.valueOf(orderNumber + 1);
 	}
 
-	public boolean canCurrentUserManageStorageSpaces() {
-		return presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	public boolean canCurrentUserManageContainers() {
+		return presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 	}
 
 	public void removeFromContainer(FolderDetailVO detail) {

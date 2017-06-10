@@ -587,17 +587,17 @@ public class RecordImpl implements Record {
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
 			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
+
 			try {
 				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
 			} catch (NoSuchMetadata e) {
-				if (!isSaved()) {
-					throw e;
-				}
-				Record originalRecord = getCopyOfOriginalRecord();
-				try {
-					modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
-				} catch (NoSuchMetadata e2) {
+				if (isSaved()) {
+					Record originalRecord = getCopyOfOriginalRecord();
+					try {
+						modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
+					} catch (NoSuchMetadata e2) {
 
+					}
 				}
 			}
 		}

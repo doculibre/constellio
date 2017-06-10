@@ -119,7 +119,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcessingButton.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally());
+			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething());
 		} else if (StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
 			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
 		}
