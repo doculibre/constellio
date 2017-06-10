@@ -94,6 +94,10 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	public void detectPlugins() {
+		detectPluginsInDirectory(pluginsDirectory);
+	}
+
+	public void detectPluginsInDirectory(File pluginsDirectory) {
 		initialize();
 		this.pluginManager = PluginManagerFactory.createPluginManager();
 		if (pluginsDirectory != null && pluginsDirectory.isDirectory()) {
