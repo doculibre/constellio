@@ -1,8 +1,6 @@
 package com.constellio.model.services.batch.controller;
 
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -13,7 +11,6 @@ import static org.mockito.Mockito.when;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
@@ -75,19 +72,6 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 		verify(controller).newBatchProcessControllerThread();
 		verify(thread).setUncaughtExceptionHandler(LoggerUncaughtExceptionHandler.instance);
 		verify(thread).start();
-	}
-
-	@Test
-	public void givenThreadStartedWhenStoppingThenRequestStopAfterCurrentBatchProcessAndJoinThread()
-			throws InterruptedException {
-		givenStartedController();
-
-		controller.close();
-
-		InOrder inOrder = inOrder(thread);
-		inOrder.verify(thread).stopRequested();
-
-		verify(controller, never()).newBatchProcessControllerThread();
 	}
 
 	@Test(expected = ControllerAlreadyStarted.class)

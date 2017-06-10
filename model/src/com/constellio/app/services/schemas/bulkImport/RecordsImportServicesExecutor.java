@@ -939,8 +939,8 @@ public class RecordsImportServicesExecutor {
 
 				ContentVersionDataSummary contentVersionDataSummary;
 				if (version.getUrl().toLowerCase().startsWith("imported://")) {
-					String importedFilePath = /*IMPORTED_FILEPATH_CLEANER.replaceOn(*/
-							version.getUrl().substring("imported://".length())/*)*/;
+					String importedFilePath = IMPORTED_FILEPATH_CLEANER.replaceOn(
+							version.getUrl().substring("imported://".length()));
 					Factory<ContentVersionDataSummary> factory = importedFilesMap.get(importedFilePath);
 
 					if (factory == null) {
