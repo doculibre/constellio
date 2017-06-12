@@ -70,7 +70,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 					newReportTitle.setVisible(true);
 				}
 				//Replace tables after setting visible or not because visibility is checked while building
-				Component newTable = buildTables();
+				Component newTable = buildTables(deleteButton.isVisible());
 				viewLayout.replaceComponent(tables, newTable);
 				tables = newTable;
 			}
@@ -79,12 +79,12 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		viewLayout.addComponent(newReportTitle);
 
 		viewLayout.setSizeFull();
-		tables = buildTables();
+		tables = buildTables(false);
 		viewLayout.addComponent(tables);
 		return viewLayout;
 	}
 
-	private Component buildTables() {
+	private Component buildTables(boolean isDeleteButtonVisible) {
 		MetadataVODataProvider metadataVOProvider = presenter.getDataProvider();
 		Set<String> metadataTitles = new HashSet<>();
 		Set<String> duplicatedTitles = new HashSet<>();
@@ -149,7 +149,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 			}
 		});
 
-		deleteButton.setVisible(false);
+		deleteButton.setVisible(isDeleteButtonVisible);
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
