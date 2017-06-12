@@ -40,7 +40,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
 
@@ -188,17 +187,6 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		GlobalGroupsManager globalGroupsManager2 = modelLayerFactory.getGlobalGroupsManager();
 
 		assertThat(globalGroupsManager1).isNotNull().isSameAs(globalGroupsManager2);
-
-	}
-
-	@Test
-	public void whenGetUserCredentialsManagerThenSameInstance()
-			throws Exception {
-
-		UserCredentialsManager userCredentialsManager1 = modelLayerFactory.getUserCredentialsManager();
-		UserCredentialsManager userCredentialsManager2 = modelLayerFactory.getUserCredentialsManager();
-
-		assertThat(userCredentialsManager1).isNotNull().isSameAs(userCredentialsManager2);
 
 	}
 
