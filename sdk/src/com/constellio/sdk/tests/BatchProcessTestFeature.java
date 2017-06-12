@@ -32,8 +32,11 @@ public class BatchProcessTestFeature {
 		BatchProcessesManager batchProcessesManager = factoriesTestFeatures.newModelServicesFactory(DEFAULT_NAME)
 				.getBatchProcessesManager();
 		boolean batchProcessRuntimeActionExecuted = false;
-		batchProcessesManager.waitUntilAllFinished();
-		List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
+		if (!ConstellioTest.IS_FIRST_EXECUTED_TEST) {
+			batchProcessesManager.waitUntilAllFinished();
+		}
+			List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
+
 
 		//		batchProcessesManager.waitUntilAllFinished();
 

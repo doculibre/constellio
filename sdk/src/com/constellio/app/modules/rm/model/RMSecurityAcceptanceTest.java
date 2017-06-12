@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.DELETE_CONTAINERS;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.DISPLAY_CONTAINERS;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_CONTAINERS;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_STORAGE_SPACES;
@@ -29,7 +30,7 @@ public class RMSecurityAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RolesManager rolesManager;
 
-	Role displayContainerRole, manageContainerRole, manageStorageSpace;
+	Role displayContainerRole, manageContainerRole, manageStorageSpace, deleteContainerRole;
 	UserServices userServices;
 	RecordServices recordServices;
 	SearchServices searchServices;
@@ -53,6 +54,8 @@ public class RMSecurityAcceptanceTest extends ConstellioTest {
 		displayContainerRole = rolesManager.addRole(new Role(zeCollection, "displayContainers", asList(DISPLAY_CONTAINERS)));
 		manageContainerRole = rolesManager.addRole(new Role(zeCollection, "manageContainers", asList(MANAGE_CONTAINERS)));
 		manageStorageSpace = rolesManager.addRole(new Role(zeCollection, "manageStorageSpaces", asList(MANAGE_STORAGE_SPACES)));
+		deleteContainerRole = rolesManager.addRole(new Role(zeCollection, "deleteContainers", asList(DELETE_CONTAINERS)));
+
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		allContainers = from(asList(rm.containerRecord.schemaType())).returnAll();
 		allStorageSpaces = from(asList(rm.storageSpace.schemaType())).returnAll();
@@ -93,10 +96,31 @@ public class RMSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserWithManagerContainerThenSeeContainerWhenSearchingRecordsButHasWriteDeleteAccess()
+	public void givenUserWithManagerContainerThenSeeContainerWhenSearchingRecordsButHasWriteAccess()
 			throws Exception {
 
 		recordServices.update(sasquatch.setUserRoles(asList(manageContainerRole.getCode())));
+
+		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUser(sasquatch))).isEqualTo(19);
+		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUserWrite(sasquatch))).isEqualTo(19);
+		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUserDelete(sasquatch))).isEqualTo(0);
+		assertThat(sasquatch.hasReadAccess().on(records.getContainerBac04())).isTrue();
+		assertThat(sasquatch.hasWriteAccess().on(records.getContainerBac04())).isTrue();
+		assertThat(sasquatch.hasDeleteAccess().on(records.getContainerBac04())).isFalse();
+
+		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUser(sasquatch))).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUserWrite(sasquatch))).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUserDelete(sasquatch))).isEqualTo(0);
+		assertThat(sasquatch.hasReadAccess().on(records.getStorageSpaceS01_01())).isFalse();
+		assertThat(sasquatch.hasWriteAccess().on(records.getStorageSpaceS01_01())).isFalse();
+		assertThat(sasquatch.hasDeleteAccess().on(records.getStorageSpaceS01_01())).isFalse();
+	}
+
+	@Test
+	public void givenUserWithManagerContainerAndDeleteContainerThenSeeContainerWhenSearchingRecordsButHasWriteDeleteAccess()
+			throws Exception {
+
+		recordServices.update(sasquatch.setUserRoles(asList(manageContainerRole.getCode(), deleteContainerRole.getCode())));
 
 		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUser(sasquatch))).isEqualTo(19);
 		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUserWrite(sasquatch))).isEqualTo(19);
