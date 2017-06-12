@@ -266,9 +266,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "notGood")
 				);
 
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<Object>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isNull();
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<Object>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isNull();
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage2);
 
@@ -325,10 +327,10 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : recordC",
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : recordC"
 		);
-		assertThat(recordServices.getDocumentById("recordWithProblem1").<String>get(
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<List<String>>get(
 				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordC", "recordA", "recordB"));
-		assertThat(recordServices.getDocumentById("recordWithProblem2").<String>get(
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<List<String>>get(
 				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA", "recordC"));
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage3);
@@ -346,10 +348,10 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "recordC")
 				);
 
-		assertThat(recordServices.getDocumentById("recordWithProblem1").<String>get(
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<List<String>>get(
 				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA", "recordB"));
-		assertThat(recordServices.getDocumentById("recordWithProblem2").<String>get(
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<List<String>>get(
 				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA"));
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage4);
