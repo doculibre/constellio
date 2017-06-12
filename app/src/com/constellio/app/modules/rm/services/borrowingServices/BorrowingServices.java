@@ -249,7 +249,7 @@ public class BorrowingServices {
 		validateCanBorrow(currentUser, containerRecord, borrowingDate);
 		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
 				previewReturnDate,
-				currentUser.getId());
+				borrowerEntered.getId());
 		recordServices.update(containerRecord);
 		if(isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {

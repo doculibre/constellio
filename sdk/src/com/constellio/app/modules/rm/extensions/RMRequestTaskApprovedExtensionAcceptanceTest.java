@@ -1,31 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_DENIED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_DENIED;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -50,6 +24,22 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 /**
  * Created by Constellio on 2017-04-03.
@@ -95,7 +85,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, 7,
 				records.getFolder_A42().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getChuckNorris().getId()));
+		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD,
 				new RecordPhysicalDeleteOptions());
@@ -108,7 +98,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 
 		Folder folder = records.getFolder_A42();
 		assertThat(folder.getBorrowed()).isTrue();
-		assertThat(folder.getBorrowUser()).isEqualTo(records.getChuckNorris().getId());
+		assertThat(folder.getBorrowUser()).isEqualTo(records.getAdmin().getId());
+		assertThat(folder.getBorrowUserEntered()).isEqualTo(records.getChuckNorris().getId());
 
 		EmailAddress adresseReceiver = new EmailAddress("Chuck Norris", "chuck@doculibre.com");
 		EmailToSend emailToSend = getEmailToSend(ALERT_BORROWED_ACCEPTED);
@@ -122,7 +113,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"borrowingDate:" + localDate, "returnDate:" + folder.getBorrowPreviewReturnDate(),
-				"currentUser:chuck", "borrowingType:" + BorrowingType.BORROW,
+				"currentUser:admin", "borrowingType:" + BorrowingType.BORROW,
 				"borrowerEntered:chuck", "title:" + folder.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
@@ -172,7 +163,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, 7,
 				records.getContainerBac13().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getChuckNorris().getId()));
+		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		extension.completeBorrowRequest(task, true);
 
@@ -192,7 +183,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"borrowingDate:" + localDate, "returnDate:" + container.getPlanifiedReturnDate(),
-				"currentUser:chuck", "borrowingType:" + BorrowingType.BORROW,
+				"currentUser:admin", "borrowingType:" + BorrowingType.BORROW,
 				"borrowerEntered:chuck", "title:" + container.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
