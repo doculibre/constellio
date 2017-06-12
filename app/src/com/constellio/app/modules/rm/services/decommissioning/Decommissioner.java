@@ -347,7 +347,7 @@ public abstract class Decommissioner {
 
 		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
 		for (DecomListContainerDetail detail : containerDetails) {
-			if(containerIdUsed.contains(detail.getContainerRecordId())) {
+			if (containerIdUsed.contains(detail.getContainerRecordId())) {
 				processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
 			} else {
 				decommissioningList.removeContainerDetail(detail.getContainerRecordId());
@@ -375,11 +375,28 @@ public abstract class Decommissioner {
 	protected abstract void processContainer(ContainerRecord container, DecomListContainerDetail detail);
 
 	protected boolean isContainerEmpty(ContainerRecord container, List<String> destroyedFolders) {
+		boolean empty;
 		LogicalSearchCondition condition = from(rm.folder.schemaType()).where(rm.folder.container()).isEqualTo(container);
 		if (!destroyedFolders.isEmpty()) {
 			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(destroyedFolders);
 		}
-		return searchServices.getResultsCount(condition) == 0;
+		boolean noSearchResult = searchServices.getResultsCount(condition) == 0;
+		if (noSearchResult) {
+			empty = true;
+			// Current transaction folders would not be taken into account otherwise
+			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+				if (detail.isFolderExcluded()) {
+					continue;
+				}
+				if (container.getId().equals(detail.getContainerRecordId())) {
+					empty = false;
+					break;
+				}
+			}	
+		} else {
+			empty = false;
+		}
+		return empty;
 	}
 
 	protected DecommissioningType getDecommissioningTypeForContainer() {

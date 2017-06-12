@@ -759,14 +759,19 @@ public class DecommissioningService {
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
 		for (Document child : childrenDocuments) {
-			Document newDocument = rm.newDocument();
-			for(Metadata metadata: child.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-				newDocument.set(metadata, child.get(metadata));
-			}
+			Document newDocument = createDuplicateOfDocument(child);
 			newDocument.setFolder(duplicatedFolder);
 			transaction.add(newDocument);
 		}
 		return duplicatedFolder;
+	}
+
+	public Document createDuplicateOfDocument(Document duplicatedDocument) {
+		Document newDocument = rm.newDocument();
+		for(Metadata metadata: duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+			newDocument.set(metadata, duplicatedDocument.get(metadata));
+		}
+		return newDocument;
 	}
 
     public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
@@ -933,7 +938,7 @@ public class DecommissioningService {
 			return false;
 		}
 		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
-		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode(), null);
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
 

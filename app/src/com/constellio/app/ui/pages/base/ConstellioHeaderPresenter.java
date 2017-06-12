@@ -145,10 +145,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
 		if (ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser
 				.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS)
-				.globally()) {
+				.onSomething()) {
 			return false;
-		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
-				.globally()) {
+		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
 			return false;
 		}
 		return true;
@@ -203,7 +202,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString
-						|| isTextOrString && metadata.isSearchable())) {
+						|| (isTextOrString && metadata.isSearchable()))) {
 					result.add(builder.build(metadata, header.getSessionContext()));
 				}
 			}

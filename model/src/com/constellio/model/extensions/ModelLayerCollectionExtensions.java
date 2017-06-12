@@ -1,12 +1,8 @@
 package com.constellio.model.extensions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
-import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -14,23 +10,15 @@ import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifiableByParams;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.behaviors.SchemaExtension;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
-import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
-import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.*;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ModelLayerCollectionExtensions {
 
@@ -222,6 +210,21 @@ public class ModelLayerCollectionExtensions {
 			}
 		});
 		return (inTrashFirst == null) ? false : inTrashFirst;
+	}
+
+	public LogicalSearchCondition getPhysicallyDeletableQueryForSchemaType(final SchemaEvent event) {
+		LogicalSearchCondition currentCondition = null;
+		for (SchemaExtension extension : schemaExtensions) {
+			LogicalSearchCondition newCondition = extension.getPhysicallyDeletableRecordsForSchemaType(event);
+			if(newCondition != null) {
+				if(currentCondition != null) {
+					currentCondition = LogicalSearchQueryOperators.allConditions(currentCondition, newCondition);
+				} else {
+					currentCondition = newCondition;
+				}
+			}
+		}
+		return currentCondition;
 	}
 
 	@Deprecated
