@@ -3,9 +3,9 @@ package com.constellio.data.dao.services.cache.ignite;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
@@ -16,6 +16,9 @@ import org.apache.ignite.cache.eviction.lru.LruEvictionPolicy;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
+import org.apache.ignite.events.CacheEvent;
+import org.apache.ignite.events.EventType;
+import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
@@ -24,9 +27,9 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
-	
-	private Map<String, ConstellioCache> caches = new HashMap<>();
-	
+
+	private Map<String, ConstellioIgniteCache> caches = new ConcurrentHashMap<>();
+
 	private Ignite client;
 
 	public ConstellioIgniteCacheManager(DataLayerConfiguration dataLayerConfiguration) {
@@ -43,6 +46,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		IgniteConfiguration cfg = new IgniteConfiguration();
 		cfg.setDiscoverySpi(spi);
 		cfg.setClientMode(true);
+		cfg.setIncludeEventTypes(EventType.EVT_CACHE_OBJECT_PUT,  EventType.EVT_CACHE_OBJECT_REMOVED);
 
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
@@ -68,22 +72,36 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
 	@Override
 	public synchronized ConstellioCache getCache(String name) {
-		ConstellioCache cache = caches.get(name);
+		ConstellioIgniteCache cache = caches.get(name);
 		if (cache == null) {
 			// Create near-cache configuration for "myCache".
-			NearCacheConfiguration<String, Object> nearCfg = 
-			    new NearCacheConfiguration<>();
+			NearCacheConfiguration<String, Object> nearCfg =
+					new NearCacheConfiguration<>();
 
 			// Use LRU eviction policy to automatically evict entries
 			// from near-cache, whenever it reaches 100_000 in size.
 			nearCfg.setNearEvictionPolicy(new LruEvictionPolicy<String, Object>(100_000));
-			
+
 			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(
-				    new CacheConfiguration<String, Object>(name), nearCfg);
+					new CacheConfiguration<String, Object>(name), nearCfg);
 			cache = new ConstellioIgniteCache(name, igniteCache);
+			addLocalListener(cache);
 			caches.put(name, cache);
 		}
 		return cache;
+	}
+
+	private void addLocalListener(final ConstellioIgniteCache cache) {
+		IgnitePredicate<CacheEvent> localListener = new IgnitePredicate<CacheEvent>() {
+			@Override public boolean apply(CacheEvent evt) {
+				cache.removeLocal((String) evt.key());
+				return true;
+			}
+		};
+
+		client.events(client.cluster().forCacheNodes(cache.getName())).localListen(localListener,
+				EventType.EVT_CACHE_OBJECT_PUT,
+				EventType.EVT_CACHE_OBJECT_REMOVED);
 	}
 
 }
