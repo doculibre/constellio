@@ -1,19 +1,19 @@
 package com.constellio.app.modules.rm.ui.components.document.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindowImpl;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.vaadin.data.Property;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.data.Property;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContentFieldImpl extends ContentVersionUploadField implements DocumentContentField {
 
@@ -25,8 +25,13 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 
 	private List<ContentUploadedListener> contentUploadedListeners = new ArrayList<>();
 
-	public DocumentContentFieldImpl() {
-		super();
+	public DocumentContentFieldImpl(){
+		this(false);
+	}
+
+	public DocumentContentFieldImpl(boolean isViewOnly) {
+		super(false, false, isViewOnly);
+
 
 		addValueChangeListener(new ValueChangeListener() {
 			@Override
@@ -37,7 +42,7 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 			}
 		});
 
-		newFileButton = new Button($("DocumentContentField.newFile"));
+        newFileButton = new Button($("DocumentContentField.newFile"));
 		newFileButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -46,6 +51,8 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 				}
 			}
 		});
+
+		newFileButton.setVisible(!isViewOnly);
 
 		getMainLayout().addComponent(newFileButton, 0);
 		getMainLayout().setComponentAlignment(newFileButton, Alignment.TOP_RIGHT);
@@ -76,6 +83,13 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 	@Override
 	public void addNewFileClickListener(NewFileClickListener listener) {
 		newFileClickListeners.add(listener);
+	}
+
+	@Override
+	public void addNewFileClickListenerIfEmpty(NewFileClickListener listener) {
+		if(newFileClickListeners.isEmpty()) {
+			newFileClickListeners.add(listener);
+		}
 	}
 
 	@Override

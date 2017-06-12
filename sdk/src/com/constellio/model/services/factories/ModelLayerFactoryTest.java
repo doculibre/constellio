@@ -4,12 +4,13 @@ import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -60,6 +61,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Mock ConstellioModulesManager constellioModulesManager;
 	ModelLayerFactory modelLayerFactory;
 	StatefullServiceDecorator statefullServiceDecorator = new StatefullServiceDecorator();
+	@Mock ConstellioCacheManager constellioCache;
 
 	@Before
 	public void setUp() {
@@ -74,6 +76,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
 		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(constellioCache);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
@@ -82,7 +85,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 
 		modelLayerFactory = spy(
 				new ModelLayerFactory(dataLayerFactory, foldersLocator, modelLayerConfiguration,
-						statefullServiceDecorator, new Delayed<>(constellioModulesManager)));
+						statefullServiceDecorator, new Delayed<>(constellioModulesManager), null, null));
 	}
 
 	@Test

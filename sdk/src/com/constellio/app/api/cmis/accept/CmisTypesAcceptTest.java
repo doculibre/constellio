@@ -291,6 +291,15 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		//		assertThat(groupDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(groupDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
+		ObjectType printable = iterator.next();
+		assertThat(printable.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(printable.getId()).isEqualTo("printable_default");
+		assertThat(printable.getDescription()).isEqualTo("printable_default");
+		assertThat(printable.getDisplayName()).isEqualTo("printable_default");
+		assertThat(printable.getLocalName()).isEqualTo("printable_default");
+		//		assertThat(report.getPropertyDefinitions().get("parent")).isNull();
+		assertThat(printable.getParentTypeId()).isEqualTo(baseFolderType.getId());
+
 		ObjectType report = iterator.next();
 		assertThat(report.getBaseTypeId().value()).isEqualTo("cmis:folder");
 		assertThat(report.getId()).isEqualTo("report_default");
@@ -339,6 +348,15 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(userDocument.getLocalName()).isEqualTo("userDocument_default");
 		//		assertThat(userDocument.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(userDocument.getParentTypeId()).isEqualTo(baseFolderType.getId());
+
+		ObjectType userFolder = iterator.next();
+		assertThat(userFolder.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(userFolder.getId()).isEqualTo("userFolder_default");
+		assertThat(userFolder.getDescription()).isEqualTo("userFolder_default");
+		assertThat(userFolder.getDisplayName()).isEqualTo("userFolder_default");
+		assertThat(userFolder.getLocalName()).isEqualTo("userFolder_default");
+		//		assertThat(userDocument.getPropertyDefinitions().get("parent")).isNull();
+		assertThat(userFolder.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType userDefault = iterator.next();
 		assertThat(userDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");

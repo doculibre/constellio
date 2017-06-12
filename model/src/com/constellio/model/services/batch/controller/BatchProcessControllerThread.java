@@ -1,5 +1,6 @@
 package com.constellio.model.services.batch.controller;
 
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -13,6 +14,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
+import com.constellio.model.services.users.UserServices;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +40,10 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	private boolean stopRequested;
 	private Semaphore newEventSemaphore;
 	private AtomicLong completed = new AtomicLong();
+	private UserServices userServices;
 
 	public BatchProcessControllerThread(ModelLayerFactory modelLayerFactory, int numberOfRecordsPerTask) {
-		super(RESOURCE_NAME);
+		super(modelLayerFactory.toResourceName(RESOURCE_NAME));
 		this.modelLayerFactory = modelLayerFactory;
 		this.batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
@@ -48,16 +51,17 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.newEventSemaphore = new Semaphore(1);
+		this.userServices =  modelLayerFactory.newUserServices();
 	}
 
 	@Override
 	public void execute() {
-		try {
-			while (!isStopRequested()) {
+		while (!isStopRequested()) {
+			try {
 				process();
+			} catch (Throwable t) {
+				LOGGER.error("Error while batch processing", t);
 			}
-		} catch (Throwable t) {
-			LOGGER.error("Error while batch processing", t);
 		}
 	}
 
@@ -66,10 +70,15 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 		BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 		if (batchProcess != null) {
-			if(batchProcess.getRecords() != null) {
-				processFromIds(batchProcess);
-			} else {
-				processFromQuery(batchProcess);
+			try {
+				if (batchProcess.getRecords() != null) {
+					processFromIds(batchProcess);
+				} else {
+					processFromQuery(batchProcess);
+				}
+			} catch (Exception e) {
+				batchProcessesManager.markAsFinished(batchProcess, 1);
+				throw e;
 			}
 		}
 		//newEventSemaphore.release();
@@ -120,8 +129,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("q", batchProcess.getQuery());
+		ModifiableSolrParams params = SolrUtils.parseQueryString(batchProcess.getQuery());
 		params.set("sort", "principalPath_s asc, id asc");
 
 		RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 100, true);
@@ -183,7 +191,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	}
 
 	BatchProcessTasksFactory newBatchProcessTasksFactory(TaskList taskList) {
-		return new BatchProcessTasksFactory(recordServices, searchServices, taskList);
+		return new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList);
 	}
 
 	ForkJoinPool newForkJoinPool() {

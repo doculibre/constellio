@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +114,12 @@ public class FileIconUtils implements Serializable {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-		return getIconForRecordId(recordServices.getDocumentById(recordId), false);
+		try {
+			return getIconForRecordId(recordServices.getDocumentById(recordId), false);
+
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public static Resource getIconForRecordVO(RecordVO recordVO) {
@@ -141,5 +149,12 @@ public class FileIconUtils implements Serializable {
 			LOGGER.warn("Error while retrieving icon for record id " + record.getId(), t);
 			return null;
 		}
+	}
+
+	public static String getIconPathForMimeType(String mimeType)
+			throws MimeTypeException {
+		MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+		MimeType currentMimeType = allTypes.forName(mimeType);
+		return currentMimeType.getExtension();
 	}
 }

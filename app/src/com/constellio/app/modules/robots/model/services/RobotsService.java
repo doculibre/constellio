@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
@@ -14,6 +15,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
@@ -86,8 +88,20 @@ public class RobotsService {
 		for (Robot child : getChildRobots(robot.getId())) {
 			deleteRobotHierarchy(child);
 		}
+
+		deleteRobotsActionParameters(robot);
+
 		recordServices.logicallyDelete(robot.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(robot.getWrappedRecord(), User.GOD);
+	}
+
+	private void deleteRobotsActionParameters(Robot robot) {
+		String actionParamId = robot.getActionParameters();
+		ActionParameters actionParameters = robots.getActionParameters(actionParamId);
+
+		recordServices.logicallyDelete(actionParameters.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDeleteNoMatterTheStatus(actionParameters.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+
 	}
 
 	public void deleteRobotHierarchy(String robotId) {

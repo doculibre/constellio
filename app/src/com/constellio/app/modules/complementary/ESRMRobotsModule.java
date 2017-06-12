@@ -61,6 +61,7 @@ public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigra
 		migrations.add(new ESRMRobotsMigrationTo6_1());
 		migrations.add(new ESRMRobotsMigrationTo6_2_2_1());
 		migrations.add(new ESRMRobotsMigrationTo7_0_1());
+		migrations.add(new ESRMRobotsMigrationTo7_1());
 
 		return migrations;
 	}
@@ -72,14 +73,6 @@ public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigra
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
-		RobotSchemaRecordServices robotSchemas = new RobotSchemaRecordServices(collection, appLayerFactory);
-		RobotsManager robotsManager = robotSchemas.getRobotsManager();
-
-		ClassifyConnectorDocumentInFolderActionExecutor.registerIn(robotsManager);
-		ClassifyConnectorFolderInTaxonomyActionExecutor.registerIn(robotsManager);
-		ClassifyConnectorFolderInParentFolderActionExecutor.registerIn(robotsManager);
-		ClassifyConnectorFolderDirectlyInThePlanActionExecutor.registerIn(robotsManager);
-
 		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 

@@ -1,20 +1,17 @@
 package com.constellio.app.modules.rm.services;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Created by Constelio on 2016-11-01.
  */
+@SlowTest
 public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest{
     RMTestRecords records = new RMTestRecords(zeCollection);
     SearchServices searchServices;
@@ -98,7 +96,7 @@ public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest{
     }
 
     @Test
-    public void whenCleaningAnAdministrativeUnitThenDecommissioningListStillExistButRemovedRecords() {
+    public void whenCleaningAnAdministrativeUnitThenDecommissioningListAreDeleted() {
         Record administrativeUnit = searchServices.searchSingleResult(from(rm.administrativeUnit.schema())
                 .where(rm.administrativeUnit.code()).isEqualTo("10A"));
         Record folder = searchServices.search(new LogicalSearchQuery().setCondition(
@@ -117,7 +115,7 @@ public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest{
 
         List<DecommissioningList> decommissioningListsAfterCleaning = rm.searchDecommissioningLists(
                 where(Schemas.IDENTIFIER).isIn(extractIdentifier(decommissioningLists)));
-        assertThat(decommissioningListsAfterCleaning).hasSameSizeAs(decommissioningLists);
+        assertThat(decommissioningListsAfterCleaning).isEmpty();
 
         long numberOfDecomListContainingRecords = getDecommissioningListsThatContainsAnyOf(asList(folder.getId()),
                 asList(document.getId()), asList(container.getId())).size();

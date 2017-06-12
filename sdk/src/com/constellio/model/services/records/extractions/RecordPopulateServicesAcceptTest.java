@@ -34,7 +34,6 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatasAdapter;
 import com.constellio.sdk.tests.setups.Users;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -44,9 +43,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.REMOVE_EXTENSION_FROM_RECORD_TITLE;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.*;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -159,7 +156,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		//run action
 		recordServices.add(robotsSchemas.newRobot().setActionParameters((ActionParameters) null)
 				.setSchemaFilter(zeSchemas.typeCode()).setSearchCriteria(asList(
-						new CriterionBuilder(zeSchemas.typeCode()).where(Schemas.TITLE).isContainingText(".").build()
+						new CriterionBuilder(zeSchemas.typeCode()).where(Schemas.TITLE).isEqualTo("contract").build()
 				)).setAction(RunExtractorsActionExecutor.ID).setCode("robocop").setTitle("robocop"));
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -995,8 +992,10 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.stringMeta(), "Gandalf Leblanc")
 				.hasMetadataValue(Schemas.TITLE, "ze");
 
-		validateThatARecordWithAContentWithStylesAndNoPropertiesAndNoRegexAndNoExtensionWillPopulateUsingStyles(andTitleIsFileName);
-		validateThatARecordWithAContentWithPropertiesAndEmptyStylesAndNoRegexAndNoExtensionWillPopulateUsingProperties(andTitleIsFileName);
+		validateThatARecordWithAContentWithStylesAndNoPropertiesAndNoRegexAndNoExtensionWillPopulateUsingStyles(
+				andTitleIsFileName);
+		validateThatARecordWithAContentWithPropertiesAndEmptyStylesAndNoRegexAndNoExtensionWillPopulateUsingProperties(
+				andTitleIsFileName);
 		validateThatARecordWithAContentWithRegexAndNoPropertiesAndNoStylesAndNoExtensionWillPopulateUsingRegex();
 		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesAndNoExtensionWillNotBePopulated();
 	}
@@ -1049,27 +1048,23 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
 				.withStringMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator(),
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator()
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
 				)
 				.withTextMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
-								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).convertToMetatdataPopulator()
+								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).build()
 				)
 				.withStringsMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator(),
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION)
-								.convertToMetatdataPopulator()
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
 				)
 				.withTextsMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
-								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).convertToMetatdataPopulator()
+								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).build()
 				)
 		));
 
@@ -1347,24 +1342,24 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
 		documentWithStylesAndProperties1 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties1.docx"), false, false,
-						"DocumentWithStylesAndProperties1.docx");
+						"DocumentWithStylesAndProperties1.docx").getContentVersionDataSummary();
 		documentWithStylesAndProperties2 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties2.docx"), false, false,
-						"DocumentWithStylesAndProperties2.docx");
+						"DocumentWithStylesAndProperties2.docx").getContentVersionDataSummary();
 		documentWithStylesAndProperties3 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties3.docx"), false, false,
-						"DocumentWithStylesAndProperties3.docx");
+						"DocumentWithStylesAndProperties3.docx").getContentVersionDataSummary();
 		documentWithStylesAndProperties4 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties4.docx"), false, false,
-						"DocumentWithStylesAndProperties4.docx");
+						"DocumentWithStylesAndProperties4.docx").getContentVersionDataSummary();
 		documentWithEmptyStylesAndNoProperties = contentManager
 				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndNoProperties.docx"), false, false,
-						"DocumentWithEmptyStylesAndNoProperties.docx");
+						"DocumentWithEmptyStylesAndNoProperties.docx").getContentVersionDataSummary();
 		documentWithEmptyStylesAndProperties = contentManager
 				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndWithProperties.docx"), false, false,
-						"DocumentWithEmptyStylesAndWithProperties.docx");
+						"DocumentWithEmptyStylesAndWithProperties.docx").getContentVersionDataSummary();
 		onlyWithRegex = contentManager
-				.upload(getTestResourceInputStream("onlyWithRegex.docx"), false, false, "OnlyWithRegex.docx");
+				.upload(getTestResourceInputStream("onlyWithRegex.docx"), false, false, "OnlyWithRegex.docx").getContentVersionDataSummary();
 		documentWithStylesAndNoProperties = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndNoProperties.docx"));
 		withoutStylesAndProperties = contentManager.upload(getTestResourceInputStream("withoutStylesAndProperties.docx"));

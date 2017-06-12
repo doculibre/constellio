@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records datetimePattern="yyyy-MM-dd HH:mm:ss">
+    <record id="event1">
+    	<type>create_folder</type>
+        <recordIdentifier>660</recordIdentifier>
+        <createdOn type="datetime">2002-02-02 02:02:02</createdOn>
+    </record>
+    <record id="event2">
+    	<type>modify_folder</type>
+        <recordIdentifier>670</recordIdentifier>
+        <createdOn type="datetime">2003-03-03 03:03:03</createdOn>
+    </record>
+    <record id="event3">
+    	<type>borrow_containerRecord</type>
+        <recordIdentifier>412903</recordIdentifier>
+        <createdOn type="datetime">2004-04-04 04:04:04</createdOn>
+    </record>
+
+    412903
+</records>

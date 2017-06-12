@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.components.contextmenu;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -34,8 +35,11 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 			ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
 			contextMenu.setContentVersionVO(contentVersionVO);
 			contextMenu.setDownloadDocumentButtonVisible(true);
+			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+			contextMenu.setOpenDocumentButtonVisible(agentURL != null);
 		} else {
 			contextMenu.setDownloadDocumentButtonVisible(false);
+			contextMenu.setOpenDocumentButtonVisible(false);
 		}
 		contextMenu.buildMenuItems();
 	}
@@ -48,12 +52,12 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		boolean showContextMenu;
 		Record record = presenterUtils.getRecord(recordId);
 		String recordSchemaCode = record.getSchemaCode();
-		String recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
+		String recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
 
 		if (Event.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
 			Event event = new Event(record, presenterUtils.types());
 			recordSchemaCode = event.getType().split("_")[1];
-			recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
+			recordSchemaTypeCode = SchemaUtils.getSchemaTypeCode(recordSchemaCode);
 			String linkedRecordId = event.getRecordId();
 			record = presenterUtils.getRecord(linkedRecordId);
 		}

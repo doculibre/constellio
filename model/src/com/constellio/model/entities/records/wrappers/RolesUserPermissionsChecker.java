@@ -1,25 +1,20 @@
 package com.constellio.model.entities.records.wrappers;
 
-import static com.constellio.model.entities.security.Role.DELETE;
-import static com.constellio.model.entities.security.Role.READ;
-import static com.constellio.model.entities.security.Role.WRITE;
-import static java.util.Arrays.asList;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.services.security.roles.Roles;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.utils.LangUtils;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
-import com.constellio.model.services.security.roles.Roles;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.constellio.model.entities.security.Role.*;
+import static java.util.Arrays.asList;
 
 public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
@@ -100,16 +95,19 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 		Set<String> allUserPermissions = new HashSet<>();
 		for (String authId : user.getAllUserAuthorizations()) {
-			AuthorizationDetails details = user.getAuthorizationDetail(authId);
-			for (String roleOrAccess : details.getRoles()) {
-				if (!roleOrAccess.equals(READ) && !roleOrAccess.equals(WRITE) && !roleOrAccess.equals(DELETE)) {
-					Role role = roles.getRole(roleOrAccess);
-					if (role != null) {
-						allUserPermissions.addAll(role.getOperationPermissions());
+			try {
+				AuthorizationDetails details = user.getAuthorizationDetail(authId);
+				for (String roleOrAccess : details.getRoles()) {
+					if (!roleOrAccess.equals(READ) && !roleOrAccess.equals(WRITE) && !roleOrAccess.equals(DELETE)) {
+						Role role = roles.getRole(roleOrAccess);
+						if (role != null) {
+							allUserPermissions.addAll(role.getOperationPermissions());
+						}
 					}
 				}
+			} catch (Exception e) {
+				LOGGER.error(e.toString());
 			}
-
 		}
 
 		for (String userRoleCode : user.getAllRoles()) {

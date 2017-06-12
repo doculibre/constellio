@@ -133,6 +133,8 @@ public class i18n {
 						Object argValue = args.get(argName);
 						if (argValue instanceof String) {
 							message = message.replace("{" + argName + "}", (String) argValue);
+						} else if (argValue instanceof Number) {	
+							message = message.replace("{" + argName + "}", "" + argValue);
 						} else if (argValue instanceof Map) {
 							/*	TODO Manage Map value here:
 								- Must fetch the entry for the current language.
@@ -268,7 +270,9 @@ public class i18n {
 	public static String $(ValidationErrors errors) {
 		StringBuilder sb = new StringBuilder();
 		for (ValidationError error : errors.getValidationErrors()) {
-			sb.append(" - " + $(error) + "<br/>");
+			if(error != null) {
+				sb.append(" - " + $(error) + "<br/>" + "\n");
+			}
 		}
 		return sb.toString();
 	}

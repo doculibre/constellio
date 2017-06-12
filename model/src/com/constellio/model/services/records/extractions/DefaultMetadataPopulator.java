@@ -1,5 +1,12 @@
 package com.constellio.model.services.records.extractions;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -7,15 +14,8 @@ import com.constellio.model.services.contents.ContentManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class DefaultMetadataPopulator implements MetadataPopulator {
-	private static DefaultMetadataPopulatorPersistenceManager factory = new DefaultMetadataPopulatorPersistenceManager();
 
 	private Extractor extractor;
 
@@ -24,10 +24,12 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 	private LoadingCache<String, ParsedContent> cachedContentManager;
 	private boolean multiValue;
 
+	@Deprecated //Refactoring needed
 	public DefaultMetadataPopulator() {
 	}
 
-	public <T> DefaultMetadataPopulator(Extractor<T> extractor, ExtractorSupplier<T> feedsExtractor){
+    @Deprecated //Refactoring needed
+    public <T> DefaultMetadataPopulator(Extractor<T> extractor, ExtractorSupplier<T> feedsExtractor) {
 		this.feedsExtractor = feedsExtractor;
 		this.extractor = extractor;
 	}
@@ -54,7 +56,7 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 		CacheLoader<String, ParsedContent> loader = new CacheLoader<String, ParsedContent>() {
 			@Override
 			public ParsedContent load(String key) {
-				return contentManager.getParsedContentParsingIfNotYetDone(key);
+				return contentManager.getParsedContentParsingIfNotYetDone(key).getParsedContent();
 			}
 		};
 		cachedContentManager = CacheBuilder.newBuilder().build(loader);
@@ -62,10 +64,10 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 	}
 
 	@Override
-	public Object getPopulationValue(Record record){
+	public Object getPopulationValue(Record record) {
 		List<Object> results = new ArrayList<>();
 
-		for (Object feed: feedsExtractor.getFeeds(record)){
+		for (Object feed : feedsExtractor.getFeeds(record)) {
 			Collection<? extends Object> value = extractor.extractFrom(feed);
 			if (value != null)
 				results.addAll(value);

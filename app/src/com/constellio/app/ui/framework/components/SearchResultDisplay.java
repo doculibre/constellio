@@ -57,8 +57,12 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
-		Label highlights = new Label(formatHighlights(searchResultVO.getHighlights()), ContentMode.HTML);
+		String formattedHighlights = formatHighlights(searchResultVO.getHighlights());
+		Label highlights = new Label(formattedHighlights, ContentMode.HTML);
 		highlights.addStyleName(HIGHLIGHTS_STYLE);
+		if (StringUtils.isBlank(formattedHighlights)) {
+			highlights.setVisible(false);
+		}
 		return highlights;
 	}
 
@@ -75,6 +79,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	private Layout buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.setSpacing(true);
 		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 			MetadataVO metadataVO = metadataValue.getMetadata();
 			if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
@@ -90,6 +95,7 @@ public class SearchResultDisplay extends VerticalLayout {
 			caption.addStyleName("metadata-caption");
 
 			HorizontalLayout item = new HorizontalLayout(caption, value);
+			item.setHeight("100%");
 			item.setSpacing(true);
 			item.addStyleName("metadata-caption-layout");
 

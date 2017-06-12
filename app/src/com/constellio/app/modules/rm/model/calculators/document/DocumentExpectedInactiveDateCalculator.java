@@ -3,6 +3,8 @@ package com.constellio.app.modules.rm.model.calculators.document;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.OPEN_DATE;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
 import static com.constellio.data.utils.LangUtils.max;
 import static java.util.Arrays.asList;
 
@@ -16,6 +18,7 @@ import com.constellio.app.modules.rm.model.calculators.CalculatorUtils;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -47,6 +50,7 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 
 	LocalDependency<CopyRetentionRule> copyParam = LocalDependency.toAStructure(Document.MAIN_COPY_RULE);
 
+
 	LocalDependency<FolderStatus> archivisticTypeParam = LocalDependency.toAnEnum(Document.FOLDER_ARCHIVISTIC_STATUS);
 
 	ConfigDependency<DecommissioningDateBasedOn> decommissioningDateBasedOnParam
@@ -66,6 +70,10 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
 			.dependency();
 
+	ReferenceDependency<RetentionRuleScope> retentionRuleScopeParam = ReferenceDependency
+			.toAnEnum(Document.FOLDER_RETENTION_RULE, SCOPE);
+	LocalDependency<String> documentTypeParam = LocalDependency.toAReference(Document.TYPE);
+
 	DocumentDecomDatesDynamicLocalDependency datesAndDateTimesParam = new DocumentDecomDatesDynamicLocalDependency();
 
 	@Override
@@ -73,7 +81,7 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 
 		CalculatorInput input = new CalculatorInput(parameters);
 
-		if (!input.documentRetentionRulesEnabled) {
+		if (!input.documentRetentionRulesEnabled || (input.retentionRuleScope != DOCUMENTS && input.documentType == null)) {
 			if (input.disposalType == DEPOSIT) {
 				return input.folderExpectedDepositDate;
 			} else {
@@ -142,7 +150,7 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 				expectedTransferDateParam, documentRetentionRulesEnabledParam, archivisticTypeParam, actualDepositDateParam,
 				actualDestructionDateParam, numberOfYearWhenSemiActiveVariableDelayParam,
 				numberOfYearWhenInactiveVariableDelayParam, datesAndDateTimesParam,
-				calculatedMetadatasBasedOnFirstTimerangePartParam);
+				calculatedMetadatasBasedOnFirstTimerangePartParam, retentionRuleScopeParam, documentTypeParam);
 	}
 
 	private class CalculatorInput {
@@ -166,6 +174,8 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 		FolderStatus archivisticType;
 		DynamicDependencyValues datesAndDateTimes;
 		boolean calculatedMetadatasBasedOnFirstTimerangePart;
+		RetentionRuleScope retentionRuleScope;
+		String documentType;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			this.expectedTransferDate = parameters.get(expectedTransferDateParam);
@@ -187,6 +197,8 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 			this.actualDestructionDate = parameters.get(actualDestructionDateParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
 			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
+			this.retentionRuleScope = parameters.get(retentionRuleScopeParam);
+			this.documentType = parameters.get(documentTypeParam);
 		}
 
 		LocalDate calculateInactiveBasedOn(LocalDate baseDate) {

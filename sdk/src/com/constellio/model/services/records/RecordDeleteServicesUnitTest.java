@@ -1,26 +1,5 @@
 package com.constellio.model.services.records;
 
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -29,10 +8,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -41,11 +17,28 @@ import com.constellio.model.services.records.RecordDeleteServicesRuntimeExceptio
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
@@ -77,6 +70,11 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	@Mock MetadataSchemaTypes types;
 	@Mock MetadataSchemaType type1, type2;
 	@Mock Metadata type1Reference1, type1Reference2, type2Reference1;
+
+	@Mock MetadataSchema schema1;
+	@Mock MetadataList metadataList1;
+
+	@Mock Record collection;
 
 	@Mock Record firstRecord;
 	@Mock Record secondRecord;
@@ -144,10 +142,24 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(types.getSchemaType("folder")).thenReturn(type1);
 		when(types.getSchemaType("type")).thenReturn(type1);
 		when(types.getSchemaType("type2")).thenReturn(type2);
+		when(types.getSchema("folder_default")).thenReturn(schema1);
 		when(type1.getAllNonParentReferences()).thenReturn(Arrays.asList(type1Reference1, type1Reference2));
 		when(type2.getAllNonParentReferences()).thenReturn(Arrays.asList(type2Reference1));
 		when(type1.hasSecurity()).thenReturn(true);
 		when(type2.hasSecurity()).thenReturn(true);
+
+		when(schema1.getMetadatas()).thenReturn(metadataList1);
+		when(metadataList1.iterator()).thenReturn(new Iterator<Metadata>() {
+			@Override
+			public boolean hasNext() {
+				return false;
+			}
+
+			@Override
+			public Metadata next() {
+				return null;
+			}
+		});
 
 		when(firstRecord.getId()).thenReturn("firstRecord");
 		when(secondRecord.getId()).thenReturn("secondRecord");
@@ -253,6 +265,8 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		RecordPhysicalDeleteOptions options = new RecordPhysicalDeleteOptions();
 		doNothing().when(recordDeleteServices).deleteContents(anyList());
 		doReturn(true).when(recordDeleteServices).isPhysicallyDeletable(theRecord, user, options);
+		when(recordServices.getDocumentById(zeCollection)).thenReturn(collection);
+		when(collection.getCollection()).thenReturn(zeCollection);
 		ArgumentCaptor<TransactionDTO> transactionDTO = ArgumentCaptor.forClass(TransactionDTO.class);
 
 		recordDeleteServices.physicallyDelete(theRecord, user, options);

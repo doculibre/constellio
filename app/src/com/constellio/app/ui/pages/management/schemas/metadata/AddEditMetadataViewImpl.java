@@ -15,6 +15,7 @@ import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -117,6 +118,25 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				multivalue = false;
 			}
 
+			if (value == MetadataValueType.STRING || value == MetadataValueType.TEXT) {
+				searchableField.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if (!searchableField.getValue()) {
+							advancedSearchField.setValue(false);
+						}
+
+						advancedSearchField.setEnabled(searchableField.getValue());
+					}
+				});
+
+				advancedSearchField.setEnabled(searchableField.getValue());
+
+				if (!searchableField.getValue()) {
+					advancedSearchField.setValue(false);
+				}
+			}
+
 			inputType.setEnabled(false);
 			inputType.removeAllItems();
 			inputType.setEnabled(true);
@@ -130,21 +150,22 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				inputType.addItem(type);
 				inputType.setItemCaption(type, $(MetadataInputType.getCaptionFor(type)));
 			}
+			inputType.setValue(null);
 
 			displayType.setEnabled(false);
 			displayType.removeAllItems();
 			displayType.setEnabled(true);
-			List<MetadataDisplayType> displayTypes = MetadataDisplayType.getAvailableMetadataDisplayTypesFor(value, formMetadataVO.getInput());
+			List<MetadataDisplayType> displayTypes = MetadataDisplayType
+					.getAvailableMetadataDisplayTypesFor(value, formMetadataVO.getInput());
 			for (MetadataDisplayType type : displayTypes) {
 				displayType.addItem(type);
 				displayType.setItemCaption(type, $(MetadataDisplayType.getCaptionFor(type)));
 			}
-			if(displayTypes.size() < 2) {
+			if (displayTypes.size() < 2) {
 				displayType.setEnabled(false);
 				displayType.setVisible(false);
 				displayType.setValue(displayType.getItemIds().iterator().next());
-			}
-			else {
+			} else {
 				displayType.setEnabled(true);
 				displayType.setVisible(true);
 			}
@@ -196,7 +217,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			multivalueType.setEnabled(true);
 			sortableField.setEnabled(false);
 			refType.setEnabled(true);
-			refType.setRequired(true);
+			refType.setRequired(!editMode);
 			break;
 		case STRING:
 			multivalueType.setEnabled(true);
@@ -250,8 +271,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		localcodeField.setRequired(true);
 
 		//$("AddEditMetadataView.title")
-		labelsField = new MultilingualTextField();
-		labelsField.setRequired(true);
+		labelsField = new MultilingualTextField(true);
+		//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 
@@ -348,7 +369,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		requiredField.setRequired(false);
 		requiredField.setId("required");
 		requiredField.addStyleName("required");
-		requiredField.setEnabled(presenter.isMetadataRequiredStatusModifiable());
+		requiredField.setEnabled(presenter.isMetadataRequiredStatusModifiable() || presenter.isFolderMediumTypes());
 
 		enabledField = new CheckBox();
 		enabledField.setCaption($("AddEditMetadataView.enabled"));
@@ -356,13 +377,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		enabledField.setId("enabled");
 		enabledField.addStyleName("enabled");
 		enabledField.setEnabled(presenter.isMetadataEnableStatusModifiable());
-
-		searchableField = new CheckBox();
-		searchableField.setCaption($("AddEditMetadataView.searchable"));
-		searchableField.setRequired(false);
-		searchableField.setId("searchable");
-		searchableField.addStyleName("searchable");
-		searchableField.setEnabled(!inherited);
 
 		sortableField = new CheckBox();
 		sortableField.setCaption($("AddEditMetadataView.sortable"));
@@ -377,6 +391,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		advancedSearchField.setId("advancedSearch");
 		advancedSearchField.addStyleName("advancedSearch");
 		advancedSearchField.setEnabled(!inherited);
+
+		searchableField = new CheckBox();
+		searchableField.setCaption($("AddEditMetadataView.searchable"));
+		searchableField.setRequired(false);
+		searchableField.setId("searchable");
+		searchableField.addStyleName("searchable");
+		searchableField.setEnabled(!inherited);
 
 		highlight = new CheckBox();
 		highlight.setCaption($("AddEditMetadataView.highlight"));
@@ -433,7 +454,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField, displayType) {//, displayedHorizontallyField) {
+				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField,
+				displayType) {//, displayedHorizontallyField) {
 
 			@Override
 			public void reload() {
@@ -443,6 +465,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			public void commit() {
+				labelsField.commit();
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {
 						field.commit();
@@ -453,7 +476,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			protected void saveButtonClick(FormMetadataVO viewObject) {
-				presenter.saveButtonClicked(formMetadataVO, editMode);
+				try {
+					labelsField.validateFields();
+				} catch (InvalidValueException e) {
+					showErrorMessage(e.getMessage());
+					return;
+				}
+				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 
 			@Override
@@ -486,7 +515,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 		});
 
-		if(presenter.isMetadataSystemReserved()) {
+		if (presenter.isMetadataSystemReserved()) {
 			disableFieldsForSystemReservedMetadatas();
 		}
 
@@ -499,20 +528,25 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		metadataForm.reload();
 	}
 
+	//TODO Move in presenter
 	public void disableFieldsForSystemReservedMetadatas() {
+
 		localcodeField.setEnabled(false);
 		valueType.setEnabled(false);
 		refType.setEnabled(false);
 		inputType.setEnabled(false);
 		multivalueType.setEnabled(false);
-		requiredField.setEnabled(false);
 		enabledField.setEnabled(false);
-		searchableField.setEnabled(false);
-		advancedSearchField.setEnabled(false);
 		highlight.setEnabled(false);
 		autocomplete.setEnabled(false);
 		duplicableField.setEnabled(false);
 		inputMask.setEnabled(false);
 		defaultValueField.setEnabled(false);
+
+		if (!formMetadataVO.getLocalcode().equals(Schemas.LEGACY_ID.getLocalCode())) {
+			requiredField.setEnabled(false);
+			searchableField.setEnabled(false);
+			advancedSearchField.setEnabled(false);
+		}
 	}
 }

@@ -1,21 +1,10 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.StringUtils;
-
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -33,6 +22,13 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SearchPresenterService {
 	private SchemasRecordsServices schemas;
@@ -110,13 +106,11 @@ public class SearchPresenterService {
 		return facetQuery;
 	}
 
-	private static class ComparatorByLabel implements Comparator<FacetValueVO> {
+	private static class ComparatorByLabel extends AbstractTextComparator<FacetValueVO> {
 
 		@Override
-		public int compare(FacetValueVO o1, FacetValueVO o2) {
-			String label1 = o1.getLabel();
-			String label2 = o2.getLabel();
-			return label1.compareTo(label2);
+		protected String getText(FacetValueVO object) {
+			return object.getLabel();
 		}
 	}
 
@@ -136,7 +130,11 @@ public class SearchPresenterService {
 				}
 			} else if (datastoreCode.endsWith("Id_s") || datastoreCode.endsWith("Id_ss")) {
 				Record record = recordServices.getDocumentById(value);
-				facetValueVO.setLabel(record.<String>get(Schemas.TITLE));
+				if(Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
+					facetValueVO.setLabel(record.<String>get(Schemas.CODE) + " - " + record.<String>get(Schemas.TITLE));
+				} else {
+					facetValueVO.setLabel(record.<String>get(Schemas.TITLE));
+				}
 			} else if (enumMetadatas.containsKey(value)) {
 				facetValueVO.setLabel(enumMetadatas.get(value));
 			} else {

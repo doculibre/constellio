@@ -1,9 +1,11 @@
 package com.constellio.model.entities.configs;
 
+import java.io.Serializable;
+
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 
-public class SystemConfiguration {
+public class SystemConfiguration implements Serializable {
 
 	boolean hidden;
 
@@ -21,14 +23,15 @@ public class SystemConfiguration {
 
 	boolean rebootRequired;
 	boolean hiddenValue;
+	boolean requireReIndexing;
 
 	Class<? extends Enum<?>> enumClass;
 
 	Class<? extends SystemConfigurationScript> scriptClass;
 
 	SystemConfiguration(SystemConfigurationType type, String module, String configGroupCode, String code, Object defaultValue,
-			Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden,
-			boolean rebootRequired, boolean hiddenValue) {
+						Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden,
+						boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
 		this.type = type;
 		this.configGroupCode = configGroupCode;
 		this.code = code;
@@ -40,6 +43,7 @@ public class SystemConfiguration {
 		this.rebootRequired = rebootRequired;
 		this.hiddenValue = hiddenValue;
 		this.propertyKey = configGroupCode + "_" + code;
+		this.requireReIndexing = requireReIndexing;
 	}
 
 	public SystemConfigurationType getType() {
@@ -72,13 +76,13 @@ public class SystemConfiguration {
 
 	public SystemConfiguration withDefaultValue(Object value) {
 		return new SystemConfiguration(type, module, configGroupCode, code, value, enumClass, scriptClass, hidden, rebootRequired,
-				hiddenValue);
+				hiddenValue, requireReIndexing);
 
 	}
 
 	public SystemConfiguration scriptedBy(Class<? extends SystemConfigurationScript> scriptClass) {
 		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
-				rebootRequired, hiddenValue);
+				rebootRequired, hiddenValue, requireReIndexing);
 	}
 
 	public <T> ConfigDependency<T> dependency() {
@@ -106,17 +110,22 @@ public class SystemConfiguration {
 
 	public SystemConfiguration whichIsHidden() {
 		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, true,
-				rebootRequired, hiddenValue);
+				rebootRequired, hiddenValue, requireReIndexing);
 	}
 
 	public SystemConfiguration whichRequiresReboot() {
 		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
-				true, hiddenValue);
+				true, hiddenValue, requireReIndexing);
 	}
 
 	public SystemConfiguration whichHasHiddenValue() {
 		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
-				rebootRequired, true);
+				rebootRequired, true, requireReIndexing);
+	}
+
+	public SystemConfiguration withReIndexionRequired() {
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+				rebootRequired, hiddenValue, true);
 	}
 
 	public boolean isHidden() {
@@ -133,6 +142,10 @@ public class SystemConfiguration {
 
 	public String getPropertyKey() {
 		return propertyKey;
+	}
+
+	public boolean isRequireReIndexing() {
+		return requireReIndexing;
 	}
 }
 

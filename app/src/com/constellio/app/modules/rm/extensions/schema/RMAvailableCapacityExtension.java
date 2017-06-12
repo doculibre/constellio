@@ -1,24 +1,22 @@
 package com.constellio.app.modules.rm.extensions.schema;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
+
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMAvailableCapacityExtension extends RecordExtension {
 
@@ -27,22 +25,24 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 
 	SearchServices searchServices;
 	RMSchemasRecordsServices rm;
+	AppLayerFactory appLayerFactory;
 
 	public RMAvailableCapacityExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
 	public void transactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event) {
-		if (event.isOnlySchemaType(ContainerRecord.SCHEMA_TYPE)) {
+		if (event.isOnlySchemaType(ContainerRecord.SCHEMA_TYPE) && !event.isNewRecordImport()) {
 			validateContainerRecord(event.getValidationErrors(), rm.wrapContainerRecords(event.getTransaction().getRecords()));
 		}
 	}
 
 	@Override
 	public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
-		if (event.isSingleRecordTransaction() && event.isSchemaType(StorageSpace.SCHEMA_TYPE)) {
+		if (event.isSingleRecordTransaction() && event.isSchemaType(StorageSpace.SCHEMA_TYPE) && !event.isNewRecordImport()) {
 			validateStorageSpace(event.getValidationErrors(), rm.wrapStorageSpace(event.getRecord()));
 		}
 	}
@@ -57,9 +57,11 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 	private void validateContainerRecord(ValidationErrors errors, List<ContainerRecord> containerRecords) {
 
 		KeyListMap<String, ContainerRecord> containerRecordsInMap = new KeyListMap<>();
+		RMConfigs rmConfigs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		boolean containerMultivalue = rmConfigs.isContainerMultivalue();
 
 		for (ContainerRecord containerRecord : containerRecords) {
-			if (containerRecord.getStorageSpace() != null) {
+			if (!containerMultivalue && containerRecord.getStorageSpace() != null) {
 				containerRecordsInMap.add(containerRecord.getStorageSpace(), containerRecord);
 			}
 		}
@@ -73,12 +75,13 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 	private void validateContainerRecord(ValidationErrors errors, StorageSpace storageSpace,
 			List<ContainerRecord> containerRecords) {
 
-		List<ContainerRecord> containerRecordsAtSameLevel = rm.searchContainerRecords(from(rm.containerRecord.schemaType())
-				.where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())
-				.andWhere(rm.containerRecord.capacity()).isNotNull());
-
-		if (storageSpace.getCapacity() != null && storageSpace.getLinearSizeEntered() == null) {
+		if (storageSpace.getCapacity() != null && storageSpace.getLinearSizeEntered() == null
+				&& Toggle.STORAGE_SPACE_CAPACITIY_VALIDATION.isEnabled()) {
 			long totalCapacity = 0;
+
+			List<ContainerRecord> containerRecordsAtSameLevel = rm.searchContainerRecords(from(rm.containerRecord.schemaType())
+					.where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())
+					.andWhere(rm.containerRecord.capacity()).isNotNull());
 
 			Set<String> ids = new HashSet<>();
 			for (ContainerRecord containerRecord : containerRecords) {
@@ -110,12 +113,13 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 		if (storageSpace.getParentStorageSpace() != null) {
 			StorageSpace parentStorageSpace = rm.getStorageSpace(storageSpace.getParentStorageSpace());
 
-			List<StorageSpace> storageSpacesAtSameLevel = rm.searchStorageSpaces(from(rm.storageSpace.schemaType())
-					.where(rm.storageSpace.parentStorageSpace()).isEqualTo(parentStorageSpace.getId())
-					.andWhere(rm.storageSpace.capacity()).isNotNull());
-
 			if (parentStorageSpace.getCapacity() != null && parentStorageSpace.getLinearSizeEntered() == null
-					&& storageSpace.getCapacity() != null) {
+					&& storageSpace.getCapacity() != null && Toggle.STORAGE_SPACE_CAPACITIY_VALIDATION.isEnabled()) {
+
+				List<StorageSpace> storageSpacesAtSameLevel = rm.searchStorageSpaces(from(rm.storageSpace.schemaType())
+						.where(rm.storageSpace.parentStorageSpace()).isEqualTo(parentStorageSpace.getId())
+						.andWhere(rm.storageSpace.capacity()).isNotNull());
+
 				long totalCapacity = storageSpace.getCapacity();
 				for (StorageSpace record : storageSpacesAtSameLevel) {
 					if (!record.getId().equals(storageSpace.getId())) {

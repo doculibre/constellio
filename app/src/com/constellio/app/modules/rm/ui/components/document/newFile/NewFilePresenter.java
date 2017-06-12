@@ -1,25 +1,25 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.model.services.contents.icap.IcapException;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.util.NewFileUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -62,7 +62,7 @@ public class NewFilePresenter implements Serializable {
 				filename += "." + extension;
 			}
 		} else {
-			if (StringUtils.isNotBlank(filename)) {
+			if (StringUtils.isNotBlank(filename) && templateContent != null) {
 				String fileExtension = StringUtils.lowerCase(FilenameUtils.getExtension(templateContent.getCurrentVersion().getFilename()));
 				filename += "." + fileExtension;
 			}
@@ -76,7 +76,8 @@ public class NewFilePresenter implements Serializable {
 				InputStream inputStream = contentManager
 						.getContentInputStream(templateContent.getCurrentVersion().getHash(), "newFilePresenterInputStream");
 				try {
-					ContentVersionDataSummary dataSummary = contentManager.upload(inputStream, filename);
+					ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(inputStream, filename);
+					ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 					fileContent = contentManager.createMinor(user, filename, dataSummary);
 				} catch (final IcapException e) {
                     final String message;
@@ -93,7 +94,7 @@ public class NewFilePresenter implements Serializable {
 			} else {
 				fileContent = createNewFile(filename);
 			}
-			window.notifyNewFileCreated(fileContent);
+			window.notifyNewFileCreated(fileContent, documentTypeId);
 		} else {
 			window.showErrorMessage("NewFileWindow.invalidFileName", filename != null ? filename : "");
 		}
@@ -114,19 +115,33 @@ public class NewFilePresenter implements Serializable {
 
 		InputStream newFileInput = NewFileUtils.newFile(extension);
 		try {
-			ContentVersionDataSummary dataSummary = contentManager.upload(newFileInput, fileName);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(newFileInput, fileName);
+			ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 			return contentManager.createMinor(user, fileName, dataSummary);
 		} finally {
 			IOUtils.closeQuietly(newFileInput);
 		}
 	}
 
-	public void setTemplatesByDocumentTypeId(String documentTypeId) {
+	void documentTypeIdSet(String documentTypeId) {
 		this.documentTypeId = documentTypeId;
-		window.setTemplates(getTemplates());
+		window.setTemplateOptions(getTemplateOptions());
+		window.setTemplateFieldValue(null);
+	}
+	
+	void extensionSet(String value) {
+		if (value != null) {
+			window.setTemplateFieldValue(null);
+		}
+	}
+	
+	void templateSet(Content value) {
+		if (value != null) {
+			window.setExtensionFieldValue(null);
+		}
 	}
 
-	private List<Content> getTemplates() {
+	private List<Content> getTemplateOptions() {
 		List<Content> templates = new ArrayList<>();
 		if (documentTypeId != null) {
 			AppLayerFactory appLayerFactory = window.getConstellioFactories().getAppLayerFactory();

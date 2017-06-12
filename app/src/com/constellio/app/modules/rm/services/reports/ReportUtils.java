@@ -8,7 +8,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -17,25 +20,27 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
-import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.DefaultJasperReportsContext;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRXmlUtils;
 import org.apache.commons.lang.NullArgumentException;
-import org.apache.hadoop.hdfs.util.Diff;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.joda.time.LocalDate;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-
-import org.joda.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
@@ -71,6 +76,10 @@ public class ReportUtils {
         this.usr = usr;
         this.userServices = factory.getModelLayerFactory().newUserServices();
         this.otherDataForContainer = getotherDataForContainer();
+
+        JasperReportsContext jasperReportsContext = DefaultJasperReportsContext.getInstance();
+        jasperReportsContext.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
+        jasperReportsContext.setProperty("net.sf.jasperreports.default.font.name", "Arial");
     }
 
     private List<DataField> getotherDataForContainer() {
@@ -200,32 +209,32 @@ public class ReportUtils {
             for (Folder fol : foldersFound) {
                 Element folder = new Element("folder");
                 Element metadatas = new Element("metadatas");
-                for (ReportField metadonnee : parameters) {
-                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
+                for (ReportField reportField : parameters) {
+                    MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.collection).getSchemaType(reportField.getSchema());
 //                if (!schema.getSchema(schema.getDefaultSchema().getCode()).hasMetadataWithCode(schema.getDefaultSchema().getCode() + "_" +  metadonnee.getCode()))
 //                    throw new MetadataException("No such metadata " + metadonnee.getCode() + " for schema " + metadonnee.getSchema());
-                    if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
+                    if (reportField.getTypes().equals(MetadataValueType.REFERENCE)) {
 //                    recordServices.getDocumentById()
-                        List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+                        List<String> IdsList = fol.getSchema().get(reportField.getCode()).isMultivalue() ? asList(fol.getList(fol.getSchema().getMetadata(reportField.getCode())).toArray(new String[0])) : asList((String) fol.get(fol.getSchema().getMetadata(reportField.getCode())));
                         List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
                         for (Record refRecords : referenceRecords) {
-                            Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+                            Element refElementCode = new Element("ref_" + reportField.getCode().replace("_default", "") + "_code");
                             refElementCode.setText(refRecords.get(Schemas.CODE) + "");
-                            Element refElementTitle = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+                            Element refElementTitle = new Element("ref_" + reportField.getCode().replace("_default", "") + "_title");
                             refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
                             metadatas.addContent(asList(refElementCode, refElementTitle));
                         }
-                    } else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-                        if (fol.get(metadonnee.getCode()) != null) {
-                            Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-                            refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
-                            Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-                            refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
+                    } else if (reportField.getTypes().equals(MetadataValueType.ENUM)) {
+                        if (fol.get(reportField.getCode()) != null) {
+                            Element refElementCode = new Element(escapeForXmlTag(reportField.getLabel()) + "_code");
+                            refElementCode.setText(((EnumWithSmallCode) fol.get(reportField.getCode())).getCode());
+                            Element refElementTitle = new Element(escapeForXmlTag(reportField.getLabel()) + "_title");
+                            refElementTitle.setText(fol.get(reportField.getCode()) + "");
                             metadatas.addContent(asList(refElementCode, refElementTitle));
                         }
                     } else {
-                        Element m = new Element(metadonnee.getLabel() != null ? escapeForXmlTag(metadonnee.getLabel()) : metadonnee.getCode().split("_")[2]);
-                        m.setText(metadonnee.formatData(fol.get(metadonnee.getCode()) != null ? fol.get(metadonnee.getCode()) + "" : null));
+                        Element m = new Element(reportField.getLabel() != null ? escapeForXmlTag(reportField.getLabel()) : reportField.getCode().split("_")[2]);
+                        m.setText(reportField.formatData(fol.get(reportField.getCode()) != null ? fol.get(reportField.getCode()) + "" : null));
                         metadatas.addContent(m);
                     }
                 }
@@ -302,7 +311,6 @@ public class ReportUtils {
                 for (DataField dataField : this.otherDataForContainer) {
                     Element e = new Element(dataField.getKey());
                     String value = dataField.calculate(new Object[]{con}) + "";
-                    System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
                     e.setText(value);
                     metadatas.addContent(e);
                 }
@@ -394,7 +402,6 @@ public class ReportUtils {
                 for (DataField dataField : this.otherDataForContainer) {
                     Element e = new Element(dataField.getKey());
                     String value = dataField.calculate(new Object[]{con}) + "";
-                    System.out.println(value + " " + new DecommissioningService(this.collection, this.factory).getDispositionDate(con));
                     e.setText(value);
                     metadatas.addContent(e);
                 }
@@ -428,7 +435,7 @@ public class ReportUtils {
 //        JasperPrint jp = JasperFillManager.fillReport(new FileInputStream(jasperFile), new HashMap<String, Object>(), new JRXmlDataSource());
 //        JasperExportManager.exportReportToPdfFile(jp, );
         File file = new File(PDFFile);
-        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette");
+        ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette").getContentVersionDataSummary();
         return contentManager.createFileSystem(escapeForXmlTag(format) + "-" + LocalDate.now(), upload);
     }
 

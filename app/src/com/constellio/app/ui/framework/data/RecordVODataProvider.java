@@ -25,7 +25,7 @@ import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 @SuppressWarnings("serial")
-public abstract class RecordVODataProvider implements DataProvider {
+public abstract class RecordVODataProvider extends AbstractDataProvider {
 	
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	transient LogicalSearchQuery query;
@@ -34,7 +34,6 @@ public abstract class RecordVODataProvider implements DataProvider {
 	transient MetadataSchemaVO schema;
 	protected transient ModelLayerFactory modelLayerFactory;
 	RecordToVOBuilder voBuilder;
-	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 	SessionContext sessionContext;
 	private int batchSize = 20;
 
@@ -75,26 +74,13 @@ public abstract class RecordVODataProvider implements DataProvider {
 		cache = new HashMap<>();
 	}
 
-	public void addDataRefreshListener(DataRefreshListener dataRefreshListener) {
-		this.dataRefreshListeners.add(dataRefreshListener);
-	}
-
-	public List<DataRefreshListener> getDataRefreshListeners() {
-		return dataRefreshListeners;
-	}
-
-	public void removeDataRefreshListener(DataRefreshListener dataRefreshListener) {
-		dataRefreshListeners.remove(dataRefreshListener);
-	}
-
+	@Override
 	public void fireDataRefreshEvent() {
 		query = getQuery();
 		size = null;
 		cache.clear();
 		queryCache.clear();
-		for (DataRefreshListener dataRefreshListener : dataRefreshListeners) {
-			dataRefreshListener.dataRefresh();
-		}
+		super.fireDataRefreshEvent();
 	}
 
 	public MetadataSchemaVO getSchema() {

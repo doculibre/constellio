@@ -7,6 +7,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 public class RMModuleExtensions implements ModuleExtensions {
 
 	RMReportBuilderFactories rmReportBuilderFactories;
+	
+	DecommissioningListFolderTableExtension decommissioningListFolderTableExtension;
 
 	public RMModuleExtensions(AppLayerFactory appLayerFactory) {
 		this.rmReportBuilderFactories = new RMReportBuilderFactories(appLayerFactory);
@@ -15,4 +17,14 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public RMReportBuilderFactories getReportBuilderFactories() {
 		return rmReportBuilderFactories;
 	}
+
+	public DecommissioningListFolderTableExtension getDecommissioningListFolderTableExtension() {
+		return decommissioningListFolderTableExtension;
+	}
+
+	public void setDecommissioningListFolderTableExtension(
+			DecommissioningListFolderTableExtension decommissioningListFolderTableExtension) {
+		this.decommissioningListFolderTableExtension = decommissioningListFolderTableExtension;
+	}
+	
 }

@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -29,12 +29,20 @@ public abstract class AbstractFolderExpectedDateCalculator implements MetadataVa
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
-		AllowModificationOfArchivisticStatusAndExpectedDatesChoice manualMetadataChoice = parameters.get(manualMetadataChoiceConfigDependency);
-		if (manualMetadataChoice == null || manualMetadataChoice == AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED) {
+		AllowModificationOfArchivisticStatusAndExpectedDatesChoice manualMetadataChoice = parameters
+				.get(manualMetadataChoiceConfigDependency);
+		if (manualMetadataChoice == null
+				|| manualMetadataChoice == AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED) {
 			return calculateWithoutConsideringManualMetadata(parameters);
 		} else {
 			LocalDate manualMetadata = parameters.get(getManualDateDependency());
-			if (manualMetadata == null) {
+
+			boolean hasOtherManualMetadata = false;
+			if (getOtherModeManualDateDependency() != null) {
+				hasOtherManualMetadata = parameters.get(getOtherModeManualDateDependency()) != null;
+			}
+
+			if (manualMetadata == null && !hasOtherManualMetadata) {
 				return calculateWithoutConsideringManualMetadata(parameters);
 			} else {
 				return manualMetadata;
@@ -74,9 +82,22 @@ public abstract class AbstractFolderExpectedDateCalculator implements MetadataVa
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(manualMetadataChoiceConfigDependency, applicableCopyRulesParam, mainCopyRuleParam, getDatesDependency(), getManualDateDependency());
+		List<Dependency> dependencies = new ArrayList<>();
+		dependencies.add(manualMetadataChoiceConfigDependency);
+		dependencies.add(applicableCopyRulesParam);
+		dependencies.add(mainCopyRuleParam);
+		dependencies.add(getDatesDependency());
+		dependencies.add(getManualDateDependency());
+
+		LocalDependency<LocalDate> otherModeManualDateDependency = getOtherModeManualDateDependency();
+		if (otherModeManualDateDependency != null) {
+			dependencies.add(otherModeManualDateDependency);
+		}
+		return dependencies;
 	}
 
 	protected abstract LocalDependency<LocalDate> getManualDateDependency();
+
+	protected abstract LocalDependency<LocalDate> getOtherModeManualDateDependency();
 
 }

@@ -1,5 +1,7 @@
 package com.constellio.app.services.factories;
 
+import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.extensions.impl.DefaultPagesComponentsExtension;
 import com.constellio.app.modules.complementary.ESRMRobotsModule;
 import com.constellio.app.modules.es.ConstellioESModule;
@@ -54,11 +57,15 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.records.RecordMigrationScript;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public class AppLayerFactory extends LayerFactory {
 
@@ -99,8 +106,8 @@ public class AppLayerFactory extends LayerFactory {
 	private final SystemCheckManager systemCheckManager;
 
 	public AppLayerFactory(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
-			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
-		super(modelLayerFactory, statefullServiceDecorator);
+			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+		super(modelLayerFactory, statefullServiceDecorator, instanceName);
 
 		this.appLayerExtensions = new AppLayerExtensions();
 		this.modelLayerFactory = modelLayerFactory;
@@ -112,7 +119,7 @@ public class AppLayerFactory extends LayerFactory {
 		this.appLayerConfiguration = appLayerConfiguration;
 		this.setDefaultLocale();
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
-				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager()));
+				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager(), dataLayerFactory.getSettingsCacheManager()));
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(),
@@ -270,12 +277,6 @@ public class AppLayerFactory extends LayerFactory {
 
 		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
 		getModulesManager().enableComplementaryModules();
-		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
-			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-			systemGlobalConfigsManager.setMarkedForReindexing(false);
-			systemGlobalConfigsManager.setReindexingRequired(false);
-		}
-		systemGlobalConfigsManager.setRestartRequired(false);
 
 		if (!invalidPlugins.isEmpty()) {
 			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
@@ -285,6 +286,43 @@ public class AppLayerFactory extends LayerFactory {
 				throw new RuntimeException(e);
 			}
 		}
+
+		Map<String, Set<String>> typesWithNewScriptsInCollections = new HashMap<>();
+		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollectionsExcludingSystem()) {
+			List<RecordMigrationScript> scripts = newMigrationServices().getAllRecordMigrationScripts(collection);
+			//TODO Check if master node
+			Set<String> typesWithNewScripts = getModelLayerFactory().getRecordMigrationsManager()
+					.registerReturningTypesWithNewScripts(collection, scripts, true);
+			typesWithNewScriptsInCollections.put(collection, typesWithNewScripts);
+		}
+
+		modelLayerFactory.getBatchProcessesController().start();
+
+		ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		for (Map.Entry<String, Set<String>> entry : typesWithNewScriptsInCollections.entrySet()) {
+			List<MetadataSchemaType> types = schemasManager.getSchemaTypes(entry.getKey(), new ArrayList<>(entry.getValue()));
+			reindexingServices.reindexCollections(recalculateAndRewriteSchemaTypesInBackground(types));
+		}
+
+	}
+
+	public void postInitialization() {
+		pluginManager.configure();
+		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
+			try {
+				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+				systemGlobalConfigsManager.setMarkedForReindexing(false);
+				systemGlobalConfigsManager.setReindexingRequired(false);
+				systemGlobalConfigsManager.setLastReindexingFailed(false);
+			} catch (Exception e) {
+				LOGGER.error("Reindexing failed", e);
+				systemGlobalConfigsManager.setMarkedForReindexing(false);
+				systemGlobalConfigsManager.setReindexingRequired(true);
+				systemGlobalConfigsManager.setLastReindexingFailed(true);
+			}
+		}
+		systemGlobalConfigsManager.setRestartRequired(false);
 	}
 
 	void restart()
@@ -294,6 +332,7 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void close() {
+		Scripts.removeScripts();
 		super.close();
 	}
 

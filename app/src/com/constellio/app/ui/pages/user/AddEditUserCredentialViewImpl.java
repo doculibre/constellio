@@ -38,6 +38,18 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 	@PropertyId("email")
 	private TextField emailField;
 
+	@PropertyId("jobTitle")
+	private TextField jobTitle;
+
+	@PropertyId("phone")
+	private TextField phone;
+
+	@PropertyId("fax")
+	private TextField fax;
+
+	@PropertyId("address")
+	private TextField address;
+
 	@PropertyId("personalEmails")
 	private TextArea personalEmailsField;
 
@@ -120,6 +132,34 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		emailField.addValidator(new EmailValidator($("AddEditUserCredentialView.invalidEmail")));
 		emailField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
+		jobTitle = new TextField();
+		jobTitle.setCaption($("UserCredentialView.jobTitle"));
+		jobTitle.setNullRepresentation("");
+		jobTitle.setId("jobTitle");
+		jobTitle.addStyleName("jobTitle");
+		jobTitle.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+
+		phone = new TextField();
+		phone.setCaption($("UserCredentialView.phone"));
+		phone.setNullRepresentation("");
+		phone.setId("phone");
+		phone.addStyleName("phone");
+		phone.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+
+		fax = new TextField();
+		fax.setCaption($("UserCredentialView.fax"));
+		fax.setNullRepresentation("");
+		fax.setId("fax");
+		fax.addStyleName("fax");
+		fax.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+
+		address = new TextField();
+		address.setCaption($("UserCredentialView.address"));
+		address.setNullRepresentation("");
+		address.setId("address");
+		address.addStyleName("address");
+		address.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+
 		personalEmailsField = new TextArea();
 		personalEmailsField.setCaption($("UserCredentialView.personalEmails"));
 		personalEmailsField.setRequired(false);
@@ -201,8 +241,9 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		}
 		statusField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
-		return new BaseForm<UserCredentialVO>(userCredentialVO, this, usernameField, firstNameField, lastNameField, emailField,
-                personalEmailsField, passwordField, confirmPasswordField, collectionsField, statusField) {
+		return new BaseForm<UserCredentialVO>(userCredentialVO, this, usernameField, firstNameField,
+				lastNameField, emailField, jobTitle, phone, fax, address, personalEmailsField, passwordField,
+				confirmPasswordField, collectionsField, statusField) {
 			@Override
 			protected void saveButtonClick(UserCredentialVO userCredentialVO)
 					throws ValidationException {

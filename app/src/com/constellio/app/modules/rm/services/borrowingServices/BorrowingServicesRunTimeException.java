@@ -29,6 +29,14 @@ public class BorrowingServicesRunTimeException extends RuntimeException {
 		}
 	}
 
+	public static class BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer
+			extends BorrowingServicesRunTimeException {
+
+		public BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(String username, String containerId) {
+			super("User: " + username + " cannot read container :" + containerId);
+		}
+	}
+
 	public static class BorrowingServicesRunTimeException_InvalidPreviewReturnDate
 			extends BorrowingServicesRunTimeException {
 
@@ -61,11 +69,35 @@ public class BorrowingServicesRunTimeException extends RuntimeException {
 		}
 	}
 
+	public static class BorrowingServicesRunTimeException_ContainerIsNotBorrowed
+			extends BorrowingServicesRunTimeException {
+
+		public BorrowingServicesRunTimeException_ContainerIsNotBorrowed(String containerId) {
+			super("Container is not borrowed :" + containerId);
+		}
+	}
+
 	public static class BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder
 			extends BorrowingServicesRunTimeException {
 
 		public BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder(String username) {
 			super("User not allowed to return folder :" + username);
+		}
+	}
+
+	public static class BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer
+			extends BorrowingServicesRunTimeException {
+
+		public BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer(String username) {
+			super("User not allowed to return container :" + username);
+		}
+	}
+
+	public static class BorrowingServicesRunTimeException_FolderIsInDecommissioningList
+			extends BorrowingServicesRunTimeException {
+
+		public BorrowingServicesRunTimeException_FolderIsInDecommissioningList(String folderId) {
+			super("Folder is in a decommissioning list :" + folderId);
 		}
 	}
 

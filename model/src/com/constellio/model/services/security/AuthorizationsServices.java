@@ -174,6 +174,28 @@ public class AuthorizationsServices {
 		return users;
 	}
 
+	public List<String> getUserIdsWithPermissionOnRecord(String permission, Record concept) {
+		SchemasRecordsServices schemas = schemas(concept.getCollection());
+		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
+		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+
+		//TODO tester avec des end/starts
+		List<String> authsGivingRoleOnConcept = new ArrayList<>();
+		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
+				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+
+		//TODO tester avec des remove
+		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+
+		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
+				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
+				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
+	}
+
 	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission, Record concept) {
 
 		SchemasRecordsServices schemas = schemas(concept.getCollection());
@@ -387,7 +409,7 @@ public class AuthorizationsServices {
 				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
 					transaction.recordsToResetIfNoAuths.add(target.getId());
 				}
-			} catch(RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				//Record does not exist. So nothing to do
 			}
 		} catch (NoSuchAuthorizationWithId e) {
@@ -538,7 +560,7 @@ public class AuthorizationsServices {
 	 * Return all authorizations targetting a given Record, which may be a user or securised Record.
 	 * Authorizations may be inherited or assigned directly to the record
 	 *
-	 * @param record User or a securised record
+	 * @param recordWrapper User or a securised record
 	 * @return Authorizations
 	 */
 	public List<Authorization> getRecordAuthorizations(RecordWrapper recordWrapper) {
@@ -1021,8 +1043,18 @@ public class AuthorizationsServices {
 		if (principals.isEmpty()) {
 			return null;
 		} else {
-			addAuthorizationToPrincipals(principals, detail.getId());
-			transaction.addAll(principals);
+
+			for (Record principal : principals) {
+				Record principalInTransaction = transaction.getRecord(principal.getId());
+				if (principalInTransaction == null) {
+					principalInTransaction = principal;
+					transaction.add(principal);
+				}
+				addAuthorizationToPrincipal(detail.getId(), principalInTransaction);
+			}
+
+			//addAuthorizationToPrincipals(principals, detail.getId());
+			//transaction.addAll(principals);
 			return detail;
 		}
 	}

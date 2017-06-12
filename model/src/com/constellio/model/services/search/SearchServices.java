@@ -1,5 +1,26 @@
 package com.constellio.model.services.search;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
+import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.StatsParams;
+
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -8,14 +29,15 @@ import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -29,12 +51,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.*;
-
-import java.util.*;
-import java.util.Map.Entry;
-
 public class SearchServices {
 	RecordDao recordDao;
 	RecordServices recordServices;
@@ -43,6 +59,7 @@ public class SearchServices {
 	RecordsCaches recordsCaches;
 	MetadataSchemasManager metadataSchemasManager;
 	String mainDataLanguage;
+	ConstellioEIMConfigs systemConfigs;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this.recordDao = recordDao;
@@ -51,6 +68,7 @@ public class SearchServices {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		recordsCaches = modelLayerFactory.getRecordsCaches();
 	}
 
@@ -97,6 +115,10 @@ public class SearchServices {
 
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition) {
 		return recordsIterator(new LogicalSearchQuery(condition));
+	}
+
+	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition, int batchSize) {
+		return recordsIterator(new LogicalSearchQuery(condition), batchSize);
 	}
 
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query) {
@@ -189,17 +211,21 @@ public class SearchServices {
 
 	public String getLanguage(LogicalSearchQuery query) {
 		if (query.getCondition().isCollectionSearch()) {
-			String collection = query.getCondition().getCollection();
-			String language;
-			try {
-				language = collectionsListManager.getCollectionLanguages(collection).get(0);
-			} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-				language = mainDataLanguage;
-			}
-			return language;
+			return getLanguageCode(query.getCondition().getCollection());
+
 		} else {
 			return mainDataLanguage;
 		}
+	}
+
+	public String getLanguageCode(String collection) {
+		String language;
+		try {
+			language = collectionsListManager.getCollectionLanguages(collection).get(0);
+		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+			language = mainDataLanguage;
+		}
+		return language;
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
@@ -220,7 +246,11 @@ public class SearchServices {
 			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
-			params.add(DisMaxParams.MM, "1");
+			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
+				params.add(DisMaxParams.MM, "100%");
+			} else {
+				params.add(DisMaxParams.MM, "1");
+			}
 			params.add("defType", "edismax");
 			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
 
@@ -351,13 +381,24 @@ public class SearchServices {
 			fieldsWithBoosts.add(boost.getKey());
 		}
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
-			if (!fieldsWithBoosts.contains(metadata.getDataStoreCode())) {
-				sb.append(metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode() + " ");
+			if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
+				sb.append("^20 ");
 			}
+			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+			if (!fieldsWithBoosts.contains(analyzedField)) {
+				sb.append(analyzedField + " ");
+			}
+		}
+
+		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+		if (!fieldsWithBoosts.contains(idAnalyzedField)) {
+			sb.append(idAnalyzedField + " ");
 		}
 
 		//		sb.append("search_txt_");
 		//		sb.append(mainDataLanguage);
+		System.out.println(sb.toString());
 		return sb.toString();
 	}
 

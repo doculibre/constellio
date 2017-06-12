@@ -149,10 +149,10 @@
     <servlet>
         <servlet-name>Jersey REST Service</servlet-name>
         <servlet-class>com.constellio.app.servlet.ConstellioServletContainer</servlet-class>
-        <!-- Register resources and providers under com.constellio.app.api.admin.services package. -->
+<!--         Register resources and providers under com.constellio.app.api.admin.services package. -->
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>com.constellio.app.api.admin.services;sct.scc.services.document.rest</param-value>
+            <param-value>com.constellio.app.api.admin.services</param-value>
         </init-param>
 
         <init-param>
@@ -200,40 +200,11 @@
     </servlet>
 
     <servlet>
-        <servlet-name>GetInfosSystemManagementWebService</servlet-name>
-        <servlet-class>
-            com.constellio.app.api.systemManagement.services.GetInfosSystemManagementWebService
-        </servlet-class>
-    </servlet>
-
-    <servlet>
-        <servlet-name>UpdatePluginSystemManagementWebService</servlet-name>
-        <servlet-class>
-            com.constellio.app.api.systemManagement.services.UpdatePluginSystemManagementWebService
-        </servlet-class>
-    </servlet>
-
-    <servlet>
-        <servlet-name>UpdateWarSystemManagementWebService</servlet-name>
-        <servlet-class>
-            com.constellio.app.api.systemManagement.services.UpdateWarSystemManagementWebService
-        </servlet-class>
-    </servlet>
-
-    <servlet>
-        <servlet-name>RebootSystemManagementWebService</servlet-name>
-        <servlet-class>
-            com.constellio.app.api.systemManagement.services.RebootSystemManagementWebService
-        </servlet-class>
-    </servlet>
-
-    <servlet>
         <servlet-name>PingSystemManagementWebService</servlet-name>
         <servlet-class>
             com.constellio.app.api.systemManagement.services.PingSystemManagementWebService
         </servlet-class>
     </servlet>
-
 
     <servlet>
         <servlet-name>Benchmark Service</servlet-name>
@@ -420,33 +391,13 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>GetInfosSystemManagementWebService</servlet-name>
-        <url-pattern>/systemManagement/getInfos</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>UpdatePluginSystemManagementWebService</servlet-name>
-        <url-pattern>/systemManagement/updatePlugin</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>UpdateWarSystemManagementWebService</servlet-name>
-        <url-pattern>/systemManagement/updateWar</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>RebootSystemManagementWebService</servlet-name>
-        <url-pattern>/systemManagement/reboot</url-pattern>
+        <servlet-name>download</servlet-name>
+        <url-pattern>/dl/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>PingSystemManagementWebService</servlet-name>
         <url-pattern>/systemManagement/ping</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>download</servlet-name>
-        <url-pattern>/dl/*</url-pattern>
     </servlet-mapping>
 
     <!--<servlet-mapping>-->

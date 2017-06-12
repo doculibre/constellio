@@ -1,9 +1,5 @@
 package com.constellio.model.services.contents;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -11,6 +7,10 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.artofsolving.jodconverter.office.OfficeException;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class ContentConversionManager implements AutoCloseable {
 	private final ContentManager contentManager;
@@ -57,7 +57,7 @@ public class ContentConversionManager implements AutoCloseable {
 		try {
 			convertedFile = conversionManager().convertToPDF(original, current.getFilename());
 			converted = ioServices.newFileInputStream(convertedFile, "ContentConversionManager-converted");
-			return contentManager.upload(converted, current.getFilename());
+			return contentManager.upload(converted, current.getFilename()).getContentVersionDataSummary();
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} finally {

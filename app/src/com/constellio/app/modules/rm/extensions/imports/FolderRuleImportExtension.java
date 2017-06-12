@@ -1,7 +1,9 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -30,30 +32,41 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 	public void build(BuildParams event) {
 		Map<String, Object> fields = event.getImportRecord().getFields();
 		Folder folder = rm.wrapFolder(event.getRecord());
-		if (folder.getFormCreatedBy() == null) {
-			String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
-			if (createdBy != null) {
-				folder.setFormCreatedBy(folder.getCreatedBy());
-			}
+		ajustCreationModificationDates(fields, folder);
+		setEnteredMainCopyId(folder);
+		ajusteManualDepositAndDestructionDates(folder);
+	}
+
+	private void ajusteManualDepositAndDestructionDates(Folder folder) {
+		LocalDate manualExpectedDeposit = folder.getManualExpectedDepositDate();
+		LocalDate manualExpectedDestruction = folder.getManualExpectedDestructionDate();
+		LocalDate actualTransfer = folder.getActualTransferDate();
+		LocalDate manualExpectedTransfer = folder.getManualExpecteTransferdDate();
+
+		Map<String, Object> errorParams = new HashMap<>();
+		errorParams.put("idTitle", folder.getId() + "-" + folder.getTitle());
+
+		if (manualExpectedDeposit != null && actualTransfer != null && manualExpectedDeposit.isBefore(actualTransfer)) {
+			folder.setManualExpectedDepositDate(null);
 		}
 
-		if (folder.getFormCreatedOn() == null) {
-			LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
-			folder.setFormCreatedOn(createdOn);
+		if (manualExpectedDeposit != null && manualExpectedTransfer != null
+				&& manualExpectedDeposit.isBefore(manualExpectedTransfer)) {
+			folder.setManualExpectedDepositDate(null);
+		}
+		if (manualExpectedDestruction != null && actualTransfer != null
+				&& manualExpectedDestruction.isBefore(actualTransfer)) {
+			folder.setManualExpectedDestructionDate(null);
 		}
 
-		if (folder.getFormModifiedBy() == null) {
-			String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
-			if (modifiedBy != null) {
-				folder.setFormModifiedBy(folder.getModifiedBy());
-			}
+		if (manualExpectedDestruction != null && manualExpectedTransfer != null
+				&& manualExpectedDestruction.isBefore(manualExpectedTransfer)) {
+			folder.setManualExpectedDestructionDate(null);
 		}
 
-		if (folder.getFormModifiedOn() == null) {
-			LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
-			folder.setFormModifiedOn(modifiedOn);
-		}
+	}
 
+	private void setEnteredMainCopyId(Folder folder) {
 		String enteredMainCopyId = folder.getMainCopyRuleIdEntered();
 		if (enteredMainCopyId != null && folder.getRetentionRuleEntered() != null) {
 			RetentionRule rule = rm.getRetentionRule(folder.getRetentionRuleEntered());
@@ -68,7 +81,33 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 			}
 			folder.setMainCopyRuleEntered(validId);
 		}
+	}
 
+	private void ajustCreationModificationDates(Map<String, Object> fields, Folder folder) {
+
+
+			String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
+			if (createdBy != null) {
+				folder.setFormCreatedBy(folder.getCreatedBy());
+			}
+
+
+			LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
+
+			if(createdOn != null) {
+				folder.setFormCreatedOn(createdOn);
+			}
+
+			String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
+			if (modifiedBy != null) {
+				folder.setFormModifiedBy(folder.getModifiedBy());
+			}
+
+			LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
+
+			if(modifiedOn != null) {
+				folder.setFormModifiedOn(modifiedOn);
+			}
 	}
 
 }

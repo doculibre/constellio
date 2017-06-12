@@ -2,9 +2,11 @@ package com.constellio.app.ui.pages.management.updates;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.awt.*;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 
@@ -41,6 +43,7 @@ import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
 
 public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
 	
@@ -51,7 +54,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Button license;
 	private Button standardUpdate;
 	private Button alternateUpdate;
-	private Button reindex;
+	private ConfirmDialogButton reindex;
 
 	public UpdateManagerViewImpl() {
 		presenter = new UpdateManagerPresenter(this);
@@ -66,29 +69,35 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
 
-		Button restart = new Button($("UpdateManagerViewImpl.restartButton"));
-		restart.addClickListener(new ClickListener() {
+		ConfirmDialogButton restart = new ConfirmDialogButton($("UpdateManagerViewImpl.restartButton")) {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected String getConfirmDialogMessage() {
+				return $("UpdateManagerViewImpl.restartwarning");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.restart();
 			}
-		});
+		};
+		restart.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
 		buttons.add(restart);
 
-		reindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton")) {
+		reindex = new ConfirmDialogButton($("UpdateManagerViewImpl.restartAndReindexButton")) {
 			@Override
-			public boolean isEnabled() {
-				return presenter.isRestartWithReindexButtonEnabled();
+			protected String getConfirmDialogMessage() {
+				return $("UpdateManagerViewImpl.reindexwarning");
 			}
-		};
-		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
-		reindex.addClickListener(new ClickListener() {
+
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.restartAndReindex();
 			}
-		});
+		};
+		reindex.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
+		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
 		buttons.add(reindex);
+
 
 		standardUpdate = new Button($("UpdateManagerViewImpl.automatic"));
 		standardUpdate.addClickListener(new ClickListener() {

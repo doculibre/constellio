@@ -124,7 +124,7 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 public class UserSecurityAcceptanceTest extends ConstellioTest {
 	// TODO: All of these constants are duplicated from somewhere else and must be removed
 
-	public static final String SYSTEM_USAGE = "SYSTEM_USAGE";
+	public static final String SYSTEM_USAGE = "OPEN_SESSION";
 	public static final String USERS_AND_GROUPS_ADD_OR_REMOVE = "USERS_AND_GROUPS_ADD_OR_REMOVE";
 	public static final String FOLDERS_AND_DOCUMENTS_CREATION = "FOLDERS_AND_DOCUMENTS_CREATION";
 	public static final String FOLDERS_AND_DOCUMENTS_MODIFICATION = "FOLDERS_AND_DOCUMENTS_MODIFICATION";

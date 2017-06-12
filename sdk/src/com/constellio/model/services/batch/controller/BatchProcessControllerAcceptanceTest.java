@@ -5,6 +5,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -128,7 +129,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		batchProcessManager = spy(batchProcessManager);
 		doThrow(Error.class).when(batchProcessManager)
-				.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class));
+				.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class), anyString());
 		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessManager);
 		recordServices = new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory,
 				getDataLayerFactory().newTypesFactory(), getDataLayerFactory().getUniqueIdGenerator(), recordsCaches);
@@ -233,7 +234,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changedMetadataValues);
 
 		LogicalSearchCondition condition = fromAllSchemasIn(zeCollection).where(IDENTIFIER).isIn(recordIds);
-		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(condition, action);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(condition, action, "zeTitle");
 		batchProcessManager.markAsPending(batchProcess);
 
 		waitForBatchProcess();

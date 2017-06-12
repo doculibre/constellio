@@ -1,25 +1,10 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
@@ -30,6 +15,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
@@ -42,8 +28,14 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 
@@ -150,7 +142,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			return false;
 		}
 		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
-		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode(), null);
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
 
@@ -185,7 +177,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				continue;
 			}
 
-			boolean systemReserved = metadata.isSystemReserved();
+			boolean systemReserved = metadata.isSystemReserved() && !metadata.hasSameCode(Schemas.LEGACY_ID);
 			if (!systemReserved && metadata.isEnabled() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
 				Object metadataValue = record.get(metadata);
 				Object metadataVOValue = metadataValueVO.getValue();
@@ -289,7 +281,9 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				contentVersionDataSummary = uploadContent(inputStream, true, true, fileName);
+				ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, true, true, fileName);
+				contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+				contentVersionVO.setHasFoundDuplicate(uploadResponse.hasFoundDuplicate()).setDuplicatedHash(contentVersionDataSummary.getHash());
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);

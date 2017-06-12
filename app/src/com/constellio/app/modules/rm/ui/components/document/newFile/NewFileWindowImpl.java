@@ -5,9 +5,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Content;
@@ -22,15 +24,20 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
+	
+	private boolean opened;
 
 	private List<NewFileCreatedListener> newFileCreatedListeners = new ArrayList<>();
 
 	private VerticalLayout mainLayout;
 
 	private Label errorLabel;
+	
+	private LookupRecordField documentTypeField;
 
 	private ComboBox extensionField;
 
@@ -44,10 +51,14 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 	private NewFilePresenter presenter;
 
-	public NewFileWindowImpl() {
+	public NewFileWindowImpl(){
+		this(false);
+	}
+
+	public NewFileWindowImpl(boolean isViewOnly) {
 		setModal(true);
 		setWidth("70%");
-		setHeight("300px");
+		setHeight("340px");
 		setZIndex(null);
 
 		mainLayout = new VerticalLayout();
@@ -60,6 +71,16 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		errorLabel = new Label();
 		errorLabel.addStyleName("error-label");
 		errorLabel.setVisible(false);
+		
+		documentTypeField = new LookupRecordField(DocumentType.SCHEMA_TYPE);
+		documentTypeField.setCaption($("NewFileWindow.documentType"));
+
+		documentTypeField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.documentTypeIdSet(documentTypeField.getValue());
+			}
+		});
 
 		extensionField = new ComboBox();
 		extensionField.setCaption($("NewFileWindow.extension"));
@@ -70,24 +91,21 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		extensionField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				if (extensionField.getValue() != null) {
-					templateField.setValue(null);
-				}
+				presenter.extensionSet((String) extensionField.getValue());
 			}
 		});
 
 		templateField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				if (templateField.getValue() != null) {
-					extensionField.setValue(null);
-				}
+				presenter.templateSet((Content) templateField.getValue());
 			}
 		});
 
 		Label label = new Label($("or"));
 
 		labelAndTemplateLayout = new HorizontalLayout(label, templateField);
+		labelAndTemplateLayout.setWidth("98%");
 		labelAndTemplateLayout.setSpacing(true);
 		labelAndTemplateLayout.setComponentAlignment(label, Alignment.BOTTOM_CENTER);
 
@@ -97,6 +115,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		fileNameField = new BaseTextField();
 		fileNameField.setCaption($("NewFileWindow.fileName"));
 		fileNameField.setRequired(true);
+		fileNameField.setWidth("98%");
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 			@Override
@@ -115,11 +134,13 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		createFileButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.setWidth("98%");
 		buttonLayout.addComponent(createFileButton);
 		buttonLayout.setSpacing(true);
+		buttonLayout.setComponentAlignment(createFileButton, Alignment.MIDDLE_CENTER);
 
 		setContent(mainLayout);
-		mainLayout.addComponents(errorLabel, extensionAndTemplateLayout, fileNameField, createFileButton);
+		mainLayout.addComponents(errorLabel, documentTypeField, extensionAndTemplateLayout, fileNameField, buttonLayout);
 
 		presenter = new NewFilePresenter(this);
 	}
@@ -159,11 +180,12 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 	}
 
 	@Override
-	public void setTemplates(List<Content> templates) {
+	public void setTemplateOptions(List<Content> templates) {
 		if (templates.isEmpty()) {
 			labelAndTemplateLayout.setVisible(false);
 		} else {
 			labelAndTemplateLayout.setVisible(true);
+			templateField.removeAllItems();
 			for (Content template : templates) {
 				templateField.addItem(template);
 				templateField.setItemCaption(template, template.getCurrentVersion().getFilename());
@@ -182,28 +204,58 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 	}
 
 	@Override
-	public void notifyNewFileCreated(Content content) {
+	public void notifyNewFileCreated(Content content, String documentTypeId) {
 		for (NewFileCreatedListener newFileCreatedListener : newFileCreatedListeners) {
-			newFileCreatedListener.newFileCreated(content);
+			newFileCreatedListener.newFileCreated(content, documentTypeId);
 		}
 	}
 
 	@Override
 	public void open() {
+		opened = true;
 		extensionField.setValue(null);
 		templateField.setValue(null);
 		fileNameField.setValue(null);
 		errorLabel.setVisible(false);
 		extensionField.focus();
+		
+		boolean selectableTemplates = !templateField.getItemIds().isEmpty();
+		documentTypeField.setVisible(documentTypeField.getValue() == null);
+		labelAndTemplateLayout.setVisible(selectableTemplates);
+
+		// Bugfix for windows opened twice because of ClassBasedViewProvider
+		for (Window window : new ArrayList<>(UI.getCurrent().getWindows())) {
+			if (window instanceof NewFileWindowImpl) {
+				window.close();
+			}
+		}
 		UI.getCurrent().addWindow(this);
 	}
 
 	@Override
 	public void setDocumentTypeId(String documentTypeId) {
-		presenter.setTemplatesByDocumentTypeId(documentTypeId);
+		presenter.documentTypeIdSet(documentTypeId);
+		documentTypeField.setValue(documentTypeId);
 	}
 
-	public String getDocumentTypeId() {
-		return presenter.getDocumentTypeId();
+	@Override
+	public void setExtensionFieldValue(String value) {
+		extensionField.setValue(value);
+	}
+
+	@Override
+	public void setTemplateFieldValue(String value) {
+		templateField.setValue(value);
+	}
+
+	@Override
+	public boolean isOpened() {
+		return opened;
+	}
+
+	@Override
+	public void close() {
+		opened = false;
+		super.close();
 	}
 }

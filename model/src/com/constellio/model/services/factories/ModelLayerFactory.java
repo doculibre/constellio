@@ -1,13 +1,27 @@
 package com.constellio.model.services.factories;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+
+import java.io.IOException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -28,6 +42,7 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
@@ -53,24 +68,18 @@ import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.*;
+import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
+import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.UserPhotosServices;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 import com.constellio.model.services.workflows.WorkflowExecutor;
 import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
 import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
 import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexManager;
 import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactory extends LayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactory.class);
@@ -112,17 +121,21 @@ public class ModelLayerFactory extends LayerFactory {
 	private final SearchBoostManager searchBoostManager;
 	private final ModelLayerLogger modelLayerLogger;
 	private EncryptionServices encryptionServices;
+	private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
+	private final RecordMigrationsManager recordMigrationsManager;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
-			Delayed<ConstellioModulesManager> modulesManagerDelayed) {
+			Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
-		super(dataLayerFactory, statefullServiceDecorator);
+		super(dataLayerFactory, statefullServiceDecorator, instanceName);
 
 		systemCollectionListeners = new ArrayList<>();
 
+		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		this.recordsCaches = new RecordsCaches(this);
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
@@ -131,18 +144,20 @@ public class ModelLayerFactory extends LayerFactory {
 		this.foldersLocator = foldersLocator;
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
+		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
 		this.systemConfigurationsManager = add(new SystemConfigurationsManager(this, configManager, modulesManagerDelayed));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
 		this.collectionsListManager = add(new CollectionsListManager(configManager));
+
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
-						recordsCaches));
+						recordsCaches, cacheManager));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
-
+		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
@@ -150,7 +165,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
 		//this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
 		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
-		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
+		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager, cacheManager));
 		this.rolesManager = add(new RolesManager(this));
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
@@ -158,8 +173,8 @@ public class ModelLayerFactory extends LayerFactory {
 		this.contentsManager = add(new ContentManager(this));
 
 		workflowsConfigManager = add(new WorkflowsConfigManager(configManager, collectionsListManager,
-				newWorkflowBPMNDefinitionsService()));
-		workflowExecutionIndexManager = add(new WorkflowExecutionIndexManager(configManager, collectionsListManager));
+				newWorkflowBPMNDefinitionsService(), cacheManager));
+		workflowExecutionIndexManager = add(new WorkflowExecutionIndexManager(configManager, collectionsListManager, cacheManager));
 
 		this.workflowExecutor = new WorkflowExecutor(this);
 
@@ -168,7 +183,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
 				new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
-						dataLayerFactory.getBackgroundThreadsManager()));
+						dataLayerFactory.getConstellioJobManager()));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
 						ioServicesFactory.newHashingService(BASE64), newUserServices()));
@@ -177,18 +192,22 @@ public class ModelLayerFactory extends LayerFactory {
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
 				passwordFileAuthenticationService);
 		this.emailConfigurationsManager = add(
-				new EmailConfigurationsManager(configManager, collectionsListManager, this));
+				new EmailConfigurationsManager(configManager, collectionsListManager, this, cacheManager));
 
 		this.emailTemplatesManager = add(
 				new EmailTemplatesManager(configManager, collectionsListManager, ioServicesFactory.newIOServices()));
 		this.emailQueueManager = add(new EmailQueueManager(this, new EmailServices()));
 		this.storedBatchProcessProgressionServices = add(new StoredBatchProcessProgressionServices(configManager));
 		this.searchBoostManager = add(
-				new SearchBoostManager(configManager, collectionsListManager));
+				new SearchBoostManager(configManager, collectionsListManager, cacheManager));
 		this.trashQueueManager = add(new TrashQueueManager(this));
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
+	}
+
+	public RecordMigrationsManager getRecordMigrationsManager() {
+		return recordMigrationsManager;
 	}
 
 	public List<SystemCollectionListener> getSystemCollectionListeners() {
@@ -402,6 +421,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public RecordPopulateServices newRecordPopulateServices() {
 		return new RecordPopulateServices(schemasManager, contentsManager, systemConfigurationsManager, modelLayerExtensions);
+	}
+
+	public Factory<ModelLayerFactory> getModelLayerFactoryFactory() {
+		return modelLayerFactoryFactory;
 	}
 
 	final void setEncryptionKey(Key key) {

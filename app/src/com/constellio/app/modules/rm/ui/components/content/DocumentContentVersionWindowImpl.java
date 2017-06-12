@@ -3,21 +3,21 @@ package com.constellio.app.modules.rm.ui.components.content;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
-import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -136,7 +136,10 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 
 	@Override
 	public void open(String url) {
-		Page.getCurrent().open(url, "_top");
+		StringBuilder js = new StringBuilder();
+		js.append("setTimeout(function(){ window.location.href=\"" + url + "\"; }, 100)");
+		JavaScript.getCurrent().execute(js.toString());
+//		Page.getCurrent().open(url, null);
 	}
 
 	@Override

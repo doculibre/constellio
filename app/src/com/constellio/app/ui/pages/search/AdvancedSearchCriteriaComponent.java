@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +31,6 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.data.util.converter.StringToDoubleConverter;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
@@ -123,6 +123,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private Component buildMetadataField(final Criterion criterion, final Table source) {
 			ComboBox comboBox = new ComboBox();
+			comboBox.addStyleName("advanced-search-form-metadata");
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
 
@@ -149,7 +150,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					source.refreshRowCache();
 				}
 			});
-			comboBox.setPageLength(comboBox.size());
+//			comboBox.setPageLength(comboBox.size());
+			comboBox.setPageLength(20);
 			return comboBox;
 		}
 	}
@@ -267,7 +269,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				public void valueChange(Property.ValueChangeEvent event) {
 					SearchOperator newOperator = (SearchOperator) operator.getValue();
 					if (newOperator != null) {
-						criterion.setSearchOperator(newOperator);
+						if(newOperator == SearchOperator.EQUALS ||  newOperator == SearchOperator.CONTAINS_TEXT) {
+							criterion.setSearchOperator(exact.getValue() ? SearchOperator.EQUALS : SearchOperator.CONTAINS_TEXT);
+						} else {
+							criterion.setSearchOperator(newOperator);
+						}
 						value.setVisible(
 								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
 						exact.setVisible(
@@ -346,7 +352,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private void addIsEmptyIsNotEmpty(final Criterion criterion, final ComboBox operator) {
 
-			Object defaultValue = criterion.getSearchOperator() != null ? criterion.getSearchOperator() : SearchOperator.EQUALS;
+			Object defaultValue = SearchOperator.EQUALS;
+			if (Arrays.asList(SearchOperator.EQUALS, SearchOperator.IS_NULL, SearchOperator.IS_NOT_NULL).contains(criterion.getSearchOperator())) {
+				defaultValue = criterion.getSearchOperator();
+			}
 
 			operator.addItem(SearchOperator.EQUALS);
 			operator.setItemCaption(SearchOperator.EQUALS, "=");
@@ -548,7 +557,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final TextField textValue = new TextField();
 			textValue.setWidth("100px");
 			textValue.setNullRepresentation("");
-			textValue.setConverter(new StringToDoubleConverter());
 			try {
 				textValue.setConvertedValue(value);
 			} catch (Exception e) {
@@ -556,10 +564,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			textValue.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
+					Object convertedValue = textValue.getConvertedValue();
 					if (!isEndValue) {
-						criterion.setValue(textValue.getConvertedValue());
+						criterion.setValue(convertedValue);
 					} else {
-						criterion.setEndValue(textValue.getConvertedValue());
+						criterion.setEndValue(convertedValue);
 					}
 				}
 			});

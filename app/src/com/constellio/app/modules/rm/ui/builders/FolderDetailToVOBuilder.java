@@ -20,13 +20,14 @@ public class FolderDetailToVOBuilder {
 
 		FolderDetailVO folderDetailVO = new FolderDetailVO();
 		folderDetailVO.setFolderId(detail.getFolderId());
+		folderDetailVO.setFolderLegacyId(folder.getLegacyId());
 		folderDetailVO.setFolderIncluded(detail.isFolderIncluded());
 		folderDetailVO.setContainerRecordId(detail.getContainerRecordId());
 		folderDetailVO.setMediumType(detailWithType.getType());
 		folderDetailVO.setRetentionRuleId(folder.getRetentionRule());
 		folderDetailVO.setCategoryCode(folder.getCategoryCode());
 		folderDetailVO.setPackageable(
-				!detailWithType.getDecommissioningType().isClosureOrDestroyal());
+				!detailWithType.getDecommissioningType().isClosureOrDestroyal() && !detail.isPlacedInContainer());
 		folderDetailVO.setSortable(folder.getInactiveDisposalType() == DisposalType.SORT);
 		folderDetailVO.setReversedSort(detail.isReversedSort());
 		folderDetailVO.setSelected(false);

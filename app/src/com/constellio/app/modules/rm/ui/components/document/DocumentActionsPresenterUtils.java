@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -38,16 +40,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.logging.EventFactory;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
-import org.apache.commons.lang.StringUtils;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -131,9 +131,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void copyContentButtonClicked() {
-		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
-		}
+		actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 	}
 
 	protected boolean isDeleteDocumentPossible() {
@@ -143,13 +141,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
-			if(documentVO != null) {
+			if (documentVO != null) {
 				Document document = new Document(currentDocument(), presenterUtils.types());
-				if(document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(currentDocument())) {
+				if (document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT)
+						.on(currentDocument())) {
 					return ComponentState.INVISIBLE;
 				}
 
-				if(getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(currentDocument())) {
+				if (getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT)
+						.on(currentDocument())) {
 					return ComponentState.INVISIBLE;
 				}
 			}
@@ -180,11 +180,23 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (isDeleteDocumentPossible()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
-			presenterUtils.delete(document.getWrappedRecord(), null);
+			try {
+				presenterUtils.delete(document.getWrappedRecord(), null);
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+				Content content = document.getContent();
+				String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
+
+				if (checkoutUserId != null) {
+					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleteBorrowedDocuments"));
+				} else {
+					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleted"));
+				}
+				return;
+			}
 			if (parentId != null) {
 				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
-				actionsComponent.navigateTo().recordsManagement();
+				actionsComponent.navigate().to().recordsManagement();
 			}
 		}
 	}
@@ -300,11 +312,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	private void createVersionDeletionEvent(Record record, String version) {
-		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(getCurrentUser().getCollection(), getModelLayerFactory());
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(getCurrentUser().getCollection(),
+				getModelLayerFactory());
 		Event event = schemasRecords.newEvent();
 		event.setType(EventType.DELETE_DOCUMENT);
 		event.setUsername(getCurrentUser().getUsername());
-		if(documentVO != null) {
+		if (documentVO != null) {
 			event.setUserRoles(StringUtils.join(getCurrentUser().getUserRoles().toArray(), "; "));
 			event.setTitle(record.getTitle());
 			event.setRecordId(documentVO.getId());
@@ -320,24 +333,30 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public synchronized void createPDFA() {
 		DocumentVO documentVO = getDocumentVO();
-		Record record = presenterUtils.getRecord(documentVO.getId());
-		Document document = new Document(record, presenterUtils.types());
-		Content content = document.getContent();
-		ContentConversionManager conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
-		if (content != null) {
-			try {
-				conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
-				conversionManager.convertContentToPDFA(getCurrentUser(), content);
-				presenterUtils.addOrUpdate(document.getWrappedRecord());
+		if (!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")) {
+			Record record = presenterUtils.getRecord(documentVO.getId());
+			Document document = new Document(record, presenterUtils.types());
+			Content content = document.getContent();
+			ContentConversionManager conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+			if (content != null) {
+				try {
+					conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+					conversionManager.convertContentToPDFA(getCurrentUser(), content);
+					presenterUtils.addOrUpdate(document.getWrappedRecord());
 
-				decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
+					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-				actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
-			} catch (Exception e) {
-				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
-			} finally {
-				conversionManager.close();
+					actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+					actionsComponent.showMessage($("DocumentActionsComponent.createPDFASuccess"));
+				} catch (Exception e) {
+					actionsComponent.showErrorMessage(
+							$("DocumentActionsComponent.createPDFAFailure") + " : " + MessageUtils.toMessage(e));
+				} finally {
+					conversionManager.close();
+				}
 			}
+		} else {
+			actionsComponent.showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
 	}
 
@@ -357,6 +376,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				documentVO.setContent(currentVersionVO);
 
 				updateActionsComponent();
+				actionsComponent.refreshParent();
 				actionsComponent.showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
@@ -443,7 +463,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	ComponentState getUploadButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-		if (isUploadPossible()) {
+		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument())) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -525,6 +545,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		updateBorrowedMessage();
 		actionsComponent.setEditDocumentButtonState(getEditButtonState());
 		// THIS IS WHERE I SHOULD USE THE ADD DOCUMENT PERMISSION INSTEAD
+		// OH MY GOD WHY ARE WE YELLING LIKE THAT ?
 		actionsComponent.setAddDocumentButtonState(getCreateDocumentState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
 		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());

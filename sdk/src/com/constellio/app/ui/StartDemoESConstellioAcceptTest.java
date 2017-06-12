@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.constellio.model.entities.records.Transaction;
 import org.eclipse.jetty.server.Server;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +52,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		givenTransactionLogIsEnabled();
 		prepareSystem(
-				withZeCollection().withConstellioESModule().withConstellioRMModule().withRobotsModule().withAllTestUsers()
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withRobotsModule().withAllTestUsers().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -59,6 +60,9 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		users.setUp(getModelLayerFactory().newUserServices());
 
+		Transaction transaction = new Transaction();
+		transaction.add(users.adminIn(zeCollection).setCollectionReadAccess(true));
+		getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
 	@Test
@@ -68,6 +72,29 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
 	}
+
+	@Test
+	public void startOnHomePageAsAdminWithSmbConnectorAndPermissions()
+			throws Exception {
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		connectorManager = es.getConnectorManager();
+		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
+				.setCode("zeConnectorCode")
+				.setEnabled(true)
+				.setSeeds(Arrays.asList(SDKPasswords.testSmbServer()))
+				.setUsername(SDKPasswords.testSmbUsername())
+				.setPassword(SDKPasswords.testSmbPassword())
+				.setDomain(SDKPasswords.testSmbDomain())
+				.setTraversalCode("")
+				.setInclusions(Arrays.asList(SDKPasswords.testSmbServer()))
+				.setTitle("New Smb Connector")
+				.setSkipShareAccessControl(true));
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+
+		waitUntilICloseTheBrowsers();
+	}
+
 
 	//
 	@Test

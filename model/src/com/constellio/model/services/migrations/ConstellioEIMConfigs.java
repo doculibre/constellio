@@ -1,21 +1,15 @@
 package com.constellio.model.services.migrations;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
-import com.constellio.model.entities.enums.MetadataPopulatePriority;
-import com.constellio.model.entities.enums.SearchSortType;
-import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
+import com.constellio.model.entities.enums.*;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.*;
 
 public class ConstellioEIMConfigs {
 
@@ -60,7 +54,11 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration REMOVE_EXTENSION_FROM_RECORD_TITLE;
 
+	public static final SystemConfiguration TABLE_DYNAMIC_CONFIGURATION;
+
 	public static final SystemConfiguration TRANSACTION_DELAY;
+
+	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 			"   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
@@ -81,6 +79,10 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration DEFAULT_START_TAB;
 
 	public static final SystemConfiguration DEFAULT_TAXONOMY;
+
+	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
+
+	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -113,13 +115,16 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA).whichIsHidden());
+				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
+		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
+				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
+		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -127,6 +132,8 @@ public class ConstellioEIMConfigs {
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
+
+		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
 		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
@@ -142,6 +149,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
 
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(10));
+		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
 		//
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -180,6 +188,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(WRITE_ZZRECORDS_IN_TLOG);
 	}
 
+	public Boolean isTableDynamicConfiguration() {
+		return manager.getValue(TABLE_DYNAMIC_CONFIGURATION);
+	}
+
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
 	}
@@ -212,7 +224,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(CMIS_NEVER_RETURN_ACL);
 	}
 
-	public Boolean isRemoveExtensionFromRecordTitle(){
+	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
 	}
 
@@ -229,6 +241,24 @@ public class ConstellioEIMConfigs {
 		@Override
 		public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
 			modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().setWriteZZRecords(newValue);
+		}
+
+	}
+
+	public static class LazyTreeBufferSizeValidationScript extends AbstractSystemConfigurationScript<Integer> {
+
+		@Override
+		public void validate(Integer newValue, ValidationErrors errors) {
+			int max = 100;
+			if (newValue < 0 || newValue > 100) {
+				errors.add(LazyTreeBufferSizeValidationScript.class, "invalidLazyTreeBufferSize", max(max));
+			}
+		}
+
+		private Map<String, Object> max(int max) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("maxValue", max);
+			return parameters;
 		}
 
 	}
@@ -260,5 +290,15 @@ public class ConstellioEIMConfigs {
 	public int getTransactionDelay() {
 		return manager.getValue(TRANSACTION_DELAY);
 	}
+
+	public int getLazyTreeBufferSize() {
+		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
+	}
+
+	public boolean isReplaceSpacesInSimpleSearchForAnds() {
+		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
+	}
+
+	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
 }

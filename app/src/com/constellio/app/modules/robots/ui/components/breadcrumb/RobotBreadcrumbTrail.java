@@ -1,6 +1,5 @@
 package com.constellio.app.modules.robots.ui.components.breadcrumb;
 
-import com.constellio.app.modules.robots.ui.components.breadcrumb.RobotBreadcrumbTrailPresenter.RobotBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -22,6 +21,8 @@ public class RobotBreadcrumbTrail extends TitleBreadcrumbTrail {
 
 	@Override
 	protected void itemClick(BreadcrumbItem item) {
-		presenter.itemClicked((RobotBreadcrumbItem) item);
+		if (!presenter.itemClicked(item)) {
+			super.itemClick(item);
+		}
 	}
 }

@@ -7,7 +7,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
-import com.constellio.app.ui.framework.data.DataProvider;
+import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -93,10 +93,27 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 
+		final int autoCompleteBuffer = 100;
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				return suggestInputDataProvider.getData(text, 0, 10);
+				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, autoCompleteBuffer));
+				if (itemConverter != null) {
+					Collections.sort(values, new Comparator<T>() {
+						@Override
+						public int compare(T o1, T o2) {
+							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+							return s1.compareTo(s2);
+						}
+					});
+				}
+				return values;
+			}
+
+			@Override
+			public int getBufferSize() {
+				return autoCompleteBuffer;
 			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
@@ -324,7 +341,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 						public void itemClick(ItemClickEvent event) {
 							T objectClicked = (T) event.getItemId();
 							if (lookupTreeDataProvider.isSelectable(objectClicked)) {
-								LookupField.this.setValue(objectClicked);
+								if(LookupField.this.getValue() != null && LookupField.this.getValue().equals(objectClicked)) {
+									if (lookupWindowButton.getWindow() != null) {
+										Window lookupWindow = lookupWindowButton.getWindow();
+										lookupWindow.close();
+									}
+								} else {
+									LookupField.this.setValue(objectClicked);
+								}
 							}
 						}
 					});
@@ -437,17 +461,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		boolean isSelectable(T selection);
 	}
 
-	public interface TextInputDataProvider<T> extends DataProvider {
+	public static abstract class TextInputDataProvider<T> extends AbstractDataProvider {
 
-		List<T> getData(String text, int startIndex, int count);
+		public abstract List<T> getData(String text, int startIndex, int count);
 
-		ModelLayerFactory getModelLayerFactory();
+		public abstract ModelLayerFactory getModelLayerFactory();
 
-		int size(String text);
+		public abstract int size(String text);
 
-		User getCurrentUser();
+		public abstract User getCurrentUser();
 
-		void setOnlyLinkables(boolean onlyLinkables);
+		public abstract void setOnlyLinkables(boolean onlyLinkables);
 	}
 
 	private class LookupSearchResultContainer extends LazyQueryContainer {
@@ -536,7 +560,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				selectButton.addClickListener(new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						LookupField.this.setValue(item);
+						if(LookupField.this.getValue() != null && LookupField.this.getValue().equals(item)) {
+							if (lookupWindowButton.getWindow() != null) {
+								Window lookupWindow = lookupWindowButton.getWindow();
+								lookupWindow.close();
+							}
+						} else {
+							LookupField.this.setValue(item);
+						}
 					}
 				});
 				selectButton.addStyleName(ValoTheme.BUTTON_LINK);

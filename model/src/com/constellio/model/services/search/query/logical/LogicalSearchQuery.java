@@ -61,7 +61,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private Map<String, String[]> overridedQueryParams = new HashMap<>();
 
 	public LogicalSearchQuery() {
-		numberOfRows = 10000000;
+		numberOfRows = 100000;
 		startRow = 0;
 		fieldFacetLimit = 0;
 	}
@@ -336,7 +336,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public List<String> getFilterQueries() {
 		List<String> filterQueries = new ArrayList<>();
 
-		if (condition.getFilters() != null) {
+		if (condition != null && condition.getFilters() != null) {
 			for (String filterQuery : condition.getFilters().getFilterQueries(userFilter != null)) {
 				filterQueries.add(filterQuery);
 			}

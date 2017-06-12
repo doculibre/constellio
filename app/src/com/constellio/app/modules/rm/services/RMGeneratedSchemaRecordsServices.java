@@ -1,6 +1,25 @@
 package com.constellio.app.modules.rm.services;
 
-import com.constellio.app.modules.rm.wrappers.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
@@ -11,12 +30,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
 public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	ModelLayerFactory appLayerFactory;
@@ -26,11 +39,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		super(collection, modelLayerFactory);
 	}
 
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
-
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
 	public AdministrativeUnit wrapAdministrativeUnit(Record record) {
 		return record == null ? null : new AdministrativeUnit(record, getTypes());
@@ -335,9 +347,9 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
-		public Metadata administrativeUnit() {
-			return metadata("administrativeUnit");
-		}
+		//public Metadata administrativeUnit() {
+		//	return metadata("administrativeUnit");
+		//}
 
 		public Metadata administrativeUnits() {
 			return metadata("administrativeUnits");
@@ -349,6 +361,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata borrowDate() {
 			return metadata("borrowDate");
+		}
+
+		public Metadata borrowReturnDate() {
+			return metadata("borrowReturnDate");
 		}
 
 		public Metadata borrowed() {
@@ -405,6 +421,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata linearSizeSum() {
 			return metadata("linearSizeSum");
+		}
+
+		public Metadata localization() {
+			return metadata("localization");
 		}
 
 		public Metadata planifiedReturnDate() {
@@ -859,6 +879,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("company");
 		}
 
+		public Metadata confidential() {
+			return metadata("confidential");
+		}
+
 		public Metadata content() {
 			return metadata("content");
 		}
@@ -873,6 +897,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata documentType() {
 			return metadata("documentType");
+		}
+
+		public Metadata essential() {
+			return metadata("essential");
 		}
 
 		public Metadata expectedDepositDate() {
@@ -909,6 +937,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata mainCopyRuleIdEntered() {
 			return metadata("mainCopyRuleIdEntered");
+		}
+
+		public Metadata mimetype() {
+			return metadata("mimetype");
 		}
 
 		public Metadata openingDate() {
@@ -1043,6 +1075,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
+
 	public Folder wrapFolder(Record record) {
 		return record == null ? null : new Folder(record, getTypes());
 	}
@@ -1190,6 +1223,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("comments");
 		}
 
+		public Metadata confidential() {
+			return metadata("confidential");
+		}
+
 		public Metadata container() {
 			return metadata("container");
 		}
@@ -1224,6 +1261,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata enteredClosingDate() {
 			return metadata("enteredClosingDate");
+		}
+
+		public Metadata essential() {
+			return metadata("essential");
 		}
 
 		public Metadata expectedDepositDate() {
@@ -1346,6 +1387,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("uniformSubdivisionEntered");
 		}
 	}
+
 	public PrintableLabel wrapPrintableLabel(Record record) {
 		return record == null ? null : new PrintableLabel(record, getTypes());
 	}
@@ -1378,7 +1420,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public PrintableLabel getPrintableLabelWithLegacyId(String legacyId) {
-		return wrapPrintableLabel(getByLegacyId(printable.schemaType(),  legacyId));
+		return wrapPrintableLabel(getByLegacyId(printable.schemaType(), legacyId));
 	}
 
 	public PrintableLabel newPrintableLabel() {
@@ -1391,6 +1433,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_label printable_label
 			= new SchemaTypeShortcuts_printable_label("printable_label");
+
 	public class SchemaTypeShortcuts_printable_label extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_label(String schemaCode) {
 			super(schemaCode);
@@ -1408,6 +1451,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("typelabel");
 		}
 	}
+
 	public RetentionRule wrapRetentionRule(Record record) {
 		return record == null ? null : new RetentionRule(record, getTypes());
 	}
@@ -1619,6 +1663,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("capacity");
 		}
 
+		public Metadata childLinearSizeSum() {
+			return metadata("childLinearSizeSum");
+		}
+
 		public Metadata code() {
 			return metadata("code");
 		}
@@ -1735,8 +1783,140 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRule");
 		}
 	}
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+
+	public RMUserFolder wrapRMUserFolder(Record record) {
+		return record == null ? null : new RMUserFolder(record, getTypes());
+	}
+
+	public List<RMUserFolder> wrapRMUserFolders(List<Record> records) {
+		List<RMUserFolder> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new RMUserFolder(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<RMUserFolder> searchRMUserFolders(LogicalSearchQuery query) {
+		return wrapRMUserFolders(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<RMUserFolder> searchRMUserFolders(LogicalSearchCondition condition) {
+		MetadataSchemaType type = userFolder.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapRMUserFolders(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public RMUserFolder getRMUserFolder(String id) {
+		return wrapRMUserFolder(get(id));
+	}
+
+	public List<RMUserFolder> getRMUserFolders(List<String> ids) {
+		return wrapRMUserFolders(get(ids));
+	}
+
+	public RMUserFolder getRMUserFolderWithLegacyId(String legacyId) {
+		return wrapRMUserFolder(getByLegacyId(userFolder.schemaType(), legacyId));
+	}
+
+	public RMUserFolder newRMUserFolder() {
+		return wrapRMUserFolder(create(userFolder.schema()));
+	}
+
+	public RMUserFolder newRMUserFolderWithId(String id) {
+		return wrapRMUserFolder(create(userFolder.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_userFolder_default userFolder
+			= new SchemaTypeShortcuts_userFolder_default("userFolder_default");
+
+	public class SchemaTypeShortcuts_userFolder_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_userFolder_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata administrativeUnit() {
+			return metadata("administrativeUnit");
+		}
+
+		public Metadata category() {
+			return metadata("category");
+		}
+
+		public Metadata parentFolder() {
+			return metadata("parentFolder");
+		}
+
+		public Metadata retentionRule() {
+			return metadata("retentionRule");
+		}
+	}
+
+	public RMTask wrapRMTask(Record record) {
+		return record == null ? null : new RMTask(record, getTypes());
+	}
+
+	public List<RMTask> wrapRMTasks(List<Record> records) {
+		List<RMTask> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new RMTask(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<RMTask> searchRMTasks(LogicalSearchQuery query) {
+		return wrapRMTasks(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<RMTask> searchRMTasks(LogicalSearchCondition condition) {
+		MetadataSchemaType type = userTask.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapRMTasks(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public RMTask getRMTask(String id) {
+		return wrapRMTask(get(id));
+	}
+
+	public List<RMTask> getRMTasks(List<String> ids) {
+		return wrapRMTasks(get(ids));
+	}
+
+	public RMTask getRMTaskWithLegacyId(String legacyId) {
+		return wrapRMTask(getByLegacyId(userTask.schemaType(), legacyId));
+	}
+
+	public RMTask newRMTask() {
+		return wrapRMTask(create(userTask.schema()));
+	}
+
+	public RMTask newRMTaskWithId(String id) {
+		return wrapRMTask(create(userTask.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_userTask_default userTask
+			= new SchemaTypeShortcuts_userTask_default("userTask_default");
+
+	public class SchemaTypeShortcuts_userTask_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_userTask_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata administrativeUnit() {
+			return metadata("administrativeUnit");
+		}
+
+		public Metadata linkedDocuments() {
+			return metadata("linkedDocuments");
+		}
+
+		public Metadata linkedFolders() {
+			return metadata("linkedFolders");
+		}
+	}
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
 }

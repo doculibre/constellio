@@ -1,26 +1,10 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidArgument;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
-import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -30,6 +14,18 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 
@@ -91,15 +87,16 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 			ioServices.closeQuietly(out);
 			inFromCopy = ioServices.newFileInputStream(file, READ_TEMP_FILE);
 
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inFromCopy, contentStream.getFileName());
 			if (content.getCheckoutUserId() != null) {
 				if (user.getId().equals(content.getCheckoutUserId())) {
-					ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
+					ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 					content.updateCheckedOutContentWithName(dataSummary, contentStream.getFileName());
 				} else {
 					throw new RuntimeException("TODO : Cannot modify content checked out by other user");
 				}
 			} else {
-				ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
+				ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 				content.updateContentWithName(user, dataSummary, false, contentStream.getFileName());
 			}
 			recordServices.update(contentCmisDocument.getRecord(), user);

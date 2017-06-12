@@ -1,28 +1,24 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
-import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
-
-public class Schemas {
+public class
+Schemas {
 
 	private static List<Metadata> allGlobalMetadatas = new ArrayList<>();
 
 	public static final String TITLE_CODE = "title";
 	public static final String GLOBAL_SCHEMA_TYPE = "global";
 
+	public static final Metadata MIGRATION_DATA_VERSION = add(new Metadata("migrationDataVersion_d", MetadataValueType.NUMBER, false));
 	public static final Metadata CREATED_BY = add(new Metadata("createdById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata MODIFIED_BY = add(new Metadata("modifiedById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata IDENTIFIER = add(new Metadata("id", STRING, false));
@@ -82,6 +78,7 @@ public class Schemas {
 	public static final Metadata ALL_REFERENCES = add(new Metadata("allReferences_ss", STRING, true));
 	public static final Metadata MARKED_FOR_REINDEXING = add(new Metadata("markedForReindexing_s", BOOLEAN, false));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
+	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
@@ -91,8 +88,6 @@ public class Schemas {
 		allGlobalMetadatas.add(metadata);
 		return metadata;
 	}
-
-	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = new Metadata("autocomplete_ss", STRING, false);
 
 	public static Metadata getGlobalMetadata(String code) {
 		//folder_default_createdOn_dt
@@ -140,6 +135,10 @@ public class Schemas {
 		if (metadata.isMultivalue()) {
 			dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
 			dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+
+		} else if (metadata.getLocalCode().equals("id")) {
+			dataStoreCode = "id_txt_" + languageCode;
+
 		} else {
 			dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
 			if (metadata.getType() == MetadataValueType.CONTENT) {

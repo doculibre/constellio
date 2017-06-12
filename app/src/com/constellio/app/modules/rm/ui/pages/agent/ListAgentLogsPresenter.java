@@ -33,7 +33,7 @@ public class ListAgentLogsPresenter extends BasePresenter<ListAgentLogsView> {
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(CorePermissions.VIEW_EVENTS).globally();
+		return user.has(CorePermissions.VIEW_EVENTS).onSomething();
 	}
 	
 	void showLogsButtonClicked() {

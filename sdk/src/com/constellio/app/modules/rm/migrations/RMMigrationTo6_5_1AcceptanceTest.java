@@ -54,8 +54,8 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 		MetadataSchema documentSchema = types.getDefaultSchema(Document.SCHEMA_TYPE);
 		assertMetadataDisabledAndMarkForDeletion("calendarYearEntered", folderSchema);
 		assertMetadataDisabledAndMarkForDeletion("calendarYear", folderSchema);
-		assertMetadataDisabledAndMarkForDeletion("calendarYearEntered", documentSchema);
-		assertMetadataDisabledAndMarkForDeletion("calendarYear", documentSchema);
+		//		assertMetadataDisabledAndMarkForDeletion("calendarYearEntered", documentSchema);
+		//		assertMetadataDisabledAndMarkForDeletion("calendarYear", documentSchema);
 		assertMetadataDisabledAndMarkForDeletion("ruleAdminUnit", folderSchema);
 		assertFolderRangeDatesCreatedCorrectly();
 		assertThat(getDataLayerFactory().newRecordDao().query(params).getNumFound()).isNotEqualTo(0);
@@ -92,7 +92,7 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 
 	private void givenPreviousSystemWithMetadtaToDeleteHavingValues() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
 		File state = new File(statesFolder, "6.4MetadataToDeleteWithValues.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
@@ -100,7 +100,7 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 
 	private void givenPreviousSystemWithEmptyMetadtaToDelete() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
 		File state = new File(statesFolder, "6.4MetadataToDeleteWithoutValues.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);

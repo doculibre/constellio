@@ -49,6 +49,13 @@ public class RMPermissionsTo {
 			"modifyInactiveBorrowedFolder");
 	public static final String MODIFY_OPENING_DATE_FOLDER = permission(FOLDER_GROUP,
 			"modifyOpeningDateFolder");
+	public static final String BORROWING_FOLDER_DIRECTLY = permission(FOLDER_GROUP, "borrowingFolderDirectly");
+
+	public static final String BORROWING_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "borrowingRequestOnFolder");
+
+	public static final String REACTIVATION_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "reactivationRequestOnFolder");
+
+	public static final String MANAGE_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "manageRequestOnFolder");
 
 	// Documents
 	private static final String DOCUMENT_GROUP = "documents";
@@ -79,6 +86,8 @@ public class RMPermissionsTo {
 
 	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
 
+	public static final String VIEW_SYSTEM_FILENAME = permission(DOCUMENT_GROUP, "viewSystemFilename");
+
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
 
@@ -89,6 +98,12 @@ public class RMPermissionsTo {
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
+	public static final String DELETE_CONTAINERS = permission(DECOMMISSIONING, "deleteContainers");
+	public static final String DISPLAY_CONTAINERS = permission(DECOMMISSIONING, "displayContainers");
+
+	public static final String BORROW_CONTAINER = permission(DECOMMISSIONING, "borrowContainer");
+	public static final String BORROWING_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "borrowingRequestOnContainer");
+	public static final String MANAGE_REQUEST_ON_CONTAINER = permission(DECOMMISSIONING, "manageRequestOnContainer");
 
 	public static final String CREATE_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createActiveFolderToSemiActiveDecommissioningList");
 	public static final String EDIT_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editActiveFolderToSemiActiveDecommissioningList");

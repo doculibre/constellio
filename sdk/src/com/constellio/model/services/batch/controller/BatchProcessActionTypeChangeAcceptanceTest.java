@@ -51,7 +51,7 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 
 		setup(true);
 
-		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type1Id));
+		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type1Id), null);
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type1Id);
@@ -72,7 +72,7 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
 
-		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type2Id));
+		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type2Id), null);
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type2Id);
@@ -93,7 +93,7 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
 
-		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type3Id));
+		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type3Id), null);
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type3Id);
@@ -114,7 +114,7 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
 
-		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(null));
+		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(null), null);
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isNull();
@@ -143,7 +143,7 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 
 		setup(false);
 
-		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type1Id));
+		batchProcessesManager.addPendingBatchProcess(fromZeSchemaWhereTitle.isEqualTo("apple"), setTypeTo(type1Id), null);
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type1Id);

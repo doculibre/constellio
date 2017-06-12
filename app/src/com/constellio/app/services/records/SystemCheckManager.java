@@ -5,20 +5,21 @@ import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.security.AuthorizationsServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.records.SystemCheckManagerRuntimeException.SystemCheckManagerRuntimeException_AlreadyRunning;
 import com.constellio.data.dao.managers.StatefulService;
@@ -26,16 +27,26 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 
 public class SystemCheckManager implements StatefulService {
@@ -106,10 +117,12 @@ public class SystemCheckManager implements StatefulService {
 		SystemCheckResultsBuilder builder = new SystemCheckResultsBuilder(language, appLayerFactory, lastSystemCheckResults);
 
 		Set<String> allRecordIds = new HashSet<>();
+		Set<String> allActiveRecordIds = new HashSet<>();
 
 		Map<String, String> allAuthsIdsWithTarget = getAllAuthsIds();
 
 		for (String collection : collectionsListManager.getCollections()) {
+
 			for (MetadataSchemaType type : schemasManager.getSchemaTypes(collection).getSchemaTypes()) {
 				List<Metadata> references = type.getAllMetadatas().onlyWithType(REFERENCE);
 				LogicalSearchQuery query = new LogicalSearchQuery(from(type).returnAll());
@@ -117,17 +130,31 @@ public class SystemCheckManager implements StatefulService {
 				while (allRecords.hasNext()) {
 					Record record = allRecords.next();
 					allRecordIds.add(record.getId());
+					if (record.isActive()) {
+						allActiveRecordIds.add(record.getId());
+					}
 					boolean recordsRepaired = findBrokenLinksInRecord(ids, references, record, repair, builder);
 					try {
 						recordServices.validateRecord(record);
-					} catch(RecordServicesException.ValidationException e) {
+					} catch (RecordServicesException.ValidationException e) {
 						builder.addNewValidationError(e);
+					} catch (Exception e) {
+						e.printStackTrace();
+						//TODO
 					}
-					if (recordsRepaired) {
+
+					ValidateRecordsCheckParams validateRecordsCheckParams = new ValidateRecordsCheckParams(record, repair,
+							builder);
+					boolean recordsRepaired2 = appLayerFactory.getExtensions().forCollection(collection)
+							.validateRecord(validateRecordsCheckParams);
+
+					if (recordsRepaired || recordsRepaired2) {
 
 						try {
 							Transaction transaction = new Transaction();
 							record.markAsModified(Schemas.TITLE);
+							transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true)
+									.setSkipMaskedMetadataValidations(true);
 							transaction.getRecordUpdateOptions().setFullRewrite(true);
 							transaction.getRecordUpdateOptions().setUpdateModificationInfos(false);
 							transaction.add(record);
@@ -141,13 +168,12 @@ public class SystemCheckManager implements StatefulService {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-
 					}
 				}
 			}
 		}
 
-		for(Map.Entry<String, String> entry : allAuthsIdsWithTarget.entrySet()) {
+		for (Map.Entry<String, String> entry : allAuthsIdsWithTarget.entrySet()) {
 			if (!allRecordIds.contains(entry.getValue())) {
 				builder.incrementMetric(BROKEN_AUTHS_METRIC);
 				if (repair) {
@@ -163,17 +189,59 @@ public class SystemCheckManager implements StatefulService {
 			appLayerFactory.getExtensions().forCollection(collection).checkCollection(params);
 		}
 
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+			MetadataSchemaTypesBuilder typesBuilder = modelLayerFactory.getMetadataSchemasManager().modify(collection);
+			for (MetadataSchemaTypeBuilder schemaType : typesBuilder.getTypes()) {
+				for (MetadataSchemaBuilder schema : schemaType.getAllSchemas()) {
+					for (MetadataBuilder metadata : schema.getMetadatas()) {
+						if (metadata.getDefaultValue() != null && metadata.getType() == MetadataValueType.REFERENCE) {
+							if (metadata.isMultivalue()) {
+								List<String> values = new ArrayList<>((List) metadata.getDefaultValue());
+								Iterator<String> valuesIterator = values.iterator();
+								while (valuesIterator.hasNext()) {
+									builder.incrementMetric(CHECKED_REFERENCES_METRIC);
+									String id = valuesIterator.next();
+									if (!allActiveRecordIds.contains(id)) {
+										valuesIterator.remove();
+										builder.addBrokenLinkFromMetadataDefaultValue(metadata.getCode(), id);
+									}
+
+								}
+								metadata.setDefaultValue(values);
+
+							} else {
+								builder.incrementMetric(CHECKED_REFERENCES_METRIC);
+								String id = (String) metadata.getDefaultValue();
+								if (!allActiveRecordIds.contains(id)) {
+									builder.addBrokenLinkFromMetadataDefaultValue(metadata.getCode(), id);
+									metadata.setDefaultValue(null);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (repair) {
+				try {
+					modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
+				} catch (OptimisticLocking e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
 		return getLastSystemCheckResults();
 	}
 
 	private Map<String, String> getAllAuthsIds() {
 		Map<String, String> authsIds = new HashMap<>();
 
-		for(String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 			Iterator<Record> authsIterator = searchServices.recordsIterator(new LogicalSearchQuery(
 					from(schemas.authorizationDetails.schemaType()).returnAll()), 10000);
-			while(authsIterator.hasNext()) {
+			while (authsIterator.hasNext()) {
 				SolrAuthorizationDetails auth = schemas.wrapSolrAuthorizationDetails(authsIterator.next());
 				authsIds.put(auth.getId(), auth.getTarget());
 			}

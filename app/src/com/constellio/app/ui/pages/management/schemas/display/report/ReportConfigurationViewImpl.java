@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
@@ -19,7 +16,10 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -29,9 +29,12 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 	public static final String BUTTONS_LAYOUT = "base-form-buttons-layout";
 	public static final String SAVE_BUTTON = "base-form-save";
 	public static final String CANCEL_BUTTON = "base-form_cancel";
+	public static final String DELETE_BUTTON = "base-form_delete";
 	private ComboBox selectedReportField;
 	private Field newReportTitle;
 	private Component tables;
+	private Button deleteButton;
+
 
 	public ReportConfigurationViewImpl() {
 		this.presenter = new ReportDisplayConfigPresenter(this);
@@ -61,9 +64,12 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 			public void valueChange(Property.ValueChangeEvent event) {
 				if (selectedReportField.getValue() != null){
 					newReportTitle.setVisible(false);
-				}else{
+					deleteButton.setVisible(true);
+				} else{
+					deleteButton.setVisible(false);
 					newReportTitle.setVisible(true);
 				}
+				//Replace tables after setting visible or not because visibility is checked while building
 				Component newTable = buildTables();
 				viewLayout.replaceComponent(tables, newTable);
 				tables = newTable;
@@ -133,11 +139,24 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 			}
 		});
 
+		deleteButton = new Button($("delete"));
+
+		deleteButton.addStyleName(DELETE_BUTTON);
+		deleteButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.deleteButtonClicked();
+			}
+		});
+
+		deleteButton.setVisible(false);
+
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 		buttonsLayout.addComponent(saveButton);
 		buttonsLayout.addComponent(cancelButton);
+		buttonsLayout.addComponent(deleteButton);
 
 		VerticalLayout viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
@@ -158,7 +177,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		if(newReportTitle != null && newReportTitle.isVisible()){
 			return (String) newReportTitle.getValue();
 		}
-		if(selectedReportField != null){
+		if(selectedReportField != null && selectedReportField.getValue() != null){
 			return ((ReportVO) selectedReportField.getValue()).getTitle();
 		}else{
 			return null;

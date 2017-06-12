@@ -81,7 +81,7 @@ public class CollectionManagementViewImpl extends BaseViewImpl
 	private void addButtons(final CollectionVODataProvider provider, ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				EditButton button = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -94,7 +94,7 @@ public class CollectionManagementViewImpl extends BaseViewImpl
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				DeleteButton button = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

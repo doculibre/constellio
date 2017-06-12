@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model.validators;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
@@ -15,9 +16,11 @@ public class StorageSpaceValidator implements RecordValidator {
 
 	public static final String CHILD_CAPACITY_MUST_BE_LESSER_OR_EQUAL_TO_PARENT_CAPACITY = "childCapacityMustBeLesserOrEqualToParentCapacity";
 	public static final String CONTAINER_TYPE_MUST_BE_INCLUDED_IN_PARENT_STORAGE_SPACE = "containerTypeMustBeIncludedInParentStorageSpace";
+	public static final String STORAGE_SPACE_CAN_CONTAIN_ONLY_ONE_CONTAINER = "storageSpaceCanContainOnlyOneContainer";
 	public static final String CAPACITY = "capacity";
 	public static final String PARENT_CAPACITY = "parentCapacity";
 	public static final String CONTAINER_TYPE = "containerType";
+	public static final String NUMBER_OF_CONTAINERS = "numberOfContainers";
 	public static final String PARENT_CONTAINER_TYPE = "parentContainerType";
 
 	@Override
@@ -27,6 +30,14 @@ public class StorageSpaceValidator implements RecordValidator {
 	}
 
 	private void validate(StorageSpace storageSpace, RecordValidatorParams params) {
+		Double numberOfContainers = storageSpace.getNumberOfContainers();
+		if(Boolean.TRUE.equals(params.getConfigProvider().get(RMConfigs.IS_CONTAINER_MULTIVALUE)) && numberOfContainers != null && numberOfContainers > 1) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(NUMBER_OF_CONTAINERS, formatToParameter(numberOfContainers));
+
+			params.getValidationErrors().add(StorageSpaceValidator.class, STORAGE_SPACE_CAN_CONTAIN_ONLY_ONE_CONTAINER, parameters);
+		}
+
 		if(storageSpace.getParentStorageSpace() == null) {
 			return;
 		}
@@ -58,6 +69,13 @@ public class StorageSpaceValidator implements RecordValidator {
 		return parameter.toString();
 	}
 
+	private String formatToParameter(Double parameter) {
+		if(parameter == null) {
+			return "";
+		}
+		return parameter.toString();
+	}
+
 	private String formatToParameter(List<String> parameter) {
 		if(parameter == null || parameter.isEmpty()) {
 			return "";
@@ -79,7 +97,7 @@ public class StorageSpaceValidator implements RecordValidator {
 			} else if(currentStorage.getParentStorageSpace() == null) {
 				break;
 			}
-			currentStorage = new StorageSpace(recordProvider.getRecord(storageSpace.getParentStorageSpace()), types);
+			currentStorage = new StorageSpace(recordProvider.getRecord(currentStorage.getParentStorageSpace()), types);
 		}
 
 		return (containerRecordTypeList == null || containerRecordTypeList.isEmpty()) ? true : containerRecordTypeList.containsAll(checkedContainerRecordType);

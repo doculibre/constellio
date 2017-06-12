@@ -1,18 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -20,8 +11,10 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerR
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -36,14 +29,23 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
+	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
 
@@ -53,6 +55,22 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		super(view);
 	}
 
+	String getBorrowMessageState(RecordVO containerRecord) {
+		String borrowedMessage = null;
+		if (containerRecord != null) {
+			boolean borrowed = Boolean.TRUE.equals(containerRecord.get(ContainerRecord.BORROWED));
+			String borrower = containerRecord.get(ContainerRecord.BORROWER);
+			if (borrowed && borrower != null) {
+				String userTitle = rmRecordServices.getUser(borrower).getTitle();
+				LocalDate borrowDate = containerRecord.get(ContainerRecord.BORROW_DATE);
+				borrowedMessage = $("DisplayContainerView.borrowedContainer", userTitle, borrowDate);
+			} else if (borrowed) {
+				borrowedMessage = $("DisplayContainerView.borrowedByNullUserContainer");
+			}
+		}
+		return borrowedMessage;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
@@ -60,7 +78,24 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasReadAccess().on(restrictedRecord);
+		boolean access = false;
+		ContainerRecord containerRecord = rmRecordServices().wrapContainerRecord(restrictedRecord);
+		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+			adminUnitIds.add(containerRecord.getAdministrativeUnit());
+		}
+		if (!adminUnitIds.isEmpty()) {
+			for (String adminUnitId : adminUnitIds) {
+				AdministrativeUnit adminUnit = rmRecordServices().getAdministrativeUnit(adminUnitId);
+				access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).on(adminUnit);
+				if (access) {
+					break;
+				}
+			}
+		} else {
+			access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+		}
+		return access;
 	}
 
 	@Override
@@ -104,6 +139,16 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
 		view.navigate().to(RMViews.class).displayContainer(containerId);
+	}
+
+	public void deleteButtonClicked() {
+		try {
+			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+			recordServices().logicallyDelete(container.getWrappedRecord(), getCurrentUser());
+		} catch (Exception e) {
+			view.showErrorMessage(MessageUtils.toMessage(e));
+		}
+		view.navigate().to(CoreViews.class).home();
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
@@ -153,9 +198,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return containerId;
 	}
 
-	public List<LabelTemplate> getTemplates() {
-		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
+	public List<LabelTemplate> getCustomTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(ContainerRecord.SCHEMA_TYPE);
+	}
 
+	public List<LabelTemplate> getDefaultTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 	}
 
 	public Double getFillRatio(RecordVO container)
@@ -170,35 +218,17 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		if (capacity == null || capacity == 0.0) {
 			throw new ContainerWithoutCapacityException();
 		}
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Metadata containerMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
-		LogicalSearchCondition condition = from(schemas.folder.schemaType()).where(containerMetadata)
-				.isEqualTo(container.getId());
-		DataStoreField linearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata);
-		SPEQueryResponse result = modelLayerFactory.newSearchServices().query(query);
-		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata);
-		if (linearSizeStats == null) {
-			if (result.getNumFound() > 0) {
-				//no folder with linearSize
-				throw new RecordInContainerWithoutLinearMeasure();
-			} else {
-				//No folder in container
-				return 0d;
-			}
 
-		}
-		if (includesMissing(linearSizeStats)) {
-			throw new RecordInContainerWithoutLinearMeasure();
-		}
-		Double sum = getSum(linearSizeStats);
-		return sum * 100 / capacity;
+		MetadataVO linearSizeMetadata = container.getMetadata(ContainerRecord.LINEAR_SIZE);
+		Double linearSize = container.get(linearSizeMetadata) == null ? 0.0 : (Double) container.get(linearSizeMetadata);
+
+		return (Double) Math.rint(100.0 * linearSize / capacity);
 	}
 
 	private LogicalSearchQuery getFoldersQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
 				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
-		return new LogicalSearchQuery(condition);
+		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser());
 	}
 
 	private boolean isContainerRecyclingAllowed() {
@@ -206,8 +236,44 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	private boolean canEmpty() {
-		return getCurrentUser().has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally() &&
-				searchServices().hasResults(getFoldersQuery());
+		boolean approveDecommissioningListPermission = false;
+		if (getCurrentUser().has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+			approveDecommissioningListPermission = true;
+		} else {
+			ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
+			List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+			if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+				adminUnitIds.add(containerRecord.getAdministrativeUnit());
+			}
+			for (String adminUnitId : adminUnitIds) {
+				if (adminUnitIdsWithPermissions.contains(adminUnitId)) {
+					approveDecommissioningListPermission = true;
+					break;
+				}
+			}
+		}
+		return approveDecommissioningListPermission && searchServices().hasResults(getFoldersQuery());
+	}
+
+	public boolean canDelete() {
+		ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+		List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DELETE_CONTAINERS);
+		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+			adminUnitIds.add(containerRecord.getAdministrativeUnit());
+		}
+
+		if(adminUnitIdsWithPermissions.isEmpty()) {
+			return false;
+		}
+
+		for (String adminUnitId : adminUnitIds) {
+			if (!adminUnitIdsWithPermissions.contains(adminUnitId)) {
+				return false;
+			}
+		}
+		return !containerRecord.isLogicallyDeletedStatus();
 	}
 
 	private Double getSum(Map<String, Object> result) {
@@ -236,5 +302,26 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
 		return getRmReportBuilderFactories().labelsBuilderFactory.getValue();
+	}
+
+	public void saveIfFirstTimeReportCreated() {
+		ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+		ContainerRecordReportParameters reportParameters = getReportParameters(null);
+		if (reportParameters.isTransfer()) {
+			containerRecord.setFirstTransferReportDate(LocalDate.now());
+		} else {
+			containerRecord.setFirstDepositReportDate(LocalDate.now());
+		}
+		containerRecord.setDocumentResponsible(getCurrentUser().getId());
+		try {
+			recordServices().update(containerRecord);
+		} catch (RecordServicesException e) {
+			view.showErrorMessage("Could not update report creation time");
+		}
+	}
+
+	public boolean isEditButtonVisible() {
+		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
+		return getCurrentUser().hasWriteAccess().on(record);
 	}
 }

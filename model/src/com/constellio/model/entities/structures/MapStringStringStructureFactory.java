@@ -1,5 +1,8 @@
 package com.constellio.model.entities.structures;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -12,13 +15,22 @@ import com.google.gson.reflect.TypeToken;
 
 public class MapStringStringStructureFactory implements StructureFactory {
 
-	private GsonBuilder gsonBuilder;
-	private Gson gson;
+	private transient GsonBuilder gsonBuilder;
+	private transient Gson gson;
 
 	public MapStringStringStructureFactory() {
+		initTransient();
+	}
+	
+	private void initTransient() {
 		gsonBuilder = new GsonBuilder();
 		gson = gsonBuilder.create();
 	}
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        initTransient();
+    }
 
 	@Override
 	public String toString(ModifiableStructure structure) {

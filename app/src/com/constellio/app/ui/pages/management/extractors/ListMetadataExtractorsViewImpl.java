@@ -92,7 +92,7 @@ public class ListMetadataExtractorsViewImpl extends BaseViewImpl implements List
 		table.setContainerDataSource(buttonsContainer);
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -105,7 +105,7 @@ public class ListMetadataExtractorsViewImpl extends BaseViewImpl implements List
 
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {

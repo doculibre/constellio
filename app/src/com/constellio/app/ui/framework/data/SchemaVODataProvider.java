@@ -12,6 +12,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -96,10 +97,22 @@ public class SchemaVODataProvider implements Serializable {
 		}
 
 		MetadataSchemaType type = types.getSchemaType(typeCode);
-		result.add(voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
+
 		for (MetadataSchema schema : type.getCustomSchemas()) {
 			result.add(voBuilder.build(schema, VIEW_MODE.TABLE, sessionContext));
 		}
+
+		Collections.sort(result, new Comparator<MetadataSchemaVO>() {
+			@Override
+			public int compare(MetadataSchemaVO o1, MetadataSchemaVO o2) {
+				String s1 = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
+				String s2 = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
+
+				return s1.compareTo(s2);
+			}
+		});
+
+		result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
 
 		return result;
 	}

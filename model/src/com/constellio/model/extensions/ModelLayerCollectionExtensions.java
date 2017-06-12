@@ -4,30 +4,25 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifiableByParams;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.behaviors.SchemaExtension;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
-import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
-import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.*;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ModelLayerCollectionExtensions {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ModelLayerCollectionExtensions.class);
 
 	//------------ Extension points -----------
 
@@ -36,6 +31,8 @@ public class ModelLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SchemaExtension> schemaExtensions = new VaultBehaviorsList<>();
+
+
 
 	//----------------- Callers ---------------
 
@@ -69,50 +66,103 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callTransactionExecutionBeforeSave(
-			TransactionExecutionBeforeSaveEvent event) {
+	public void callTransactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.transactionExecutionBeforeSave(event);
+			try {
+				extension.transactionExecutionBeforeSave(event);
+
+			} catch (RuntimeException e) {
+				if (options.isCatchExtensionsExceptions()) {
+					LOGGER.warn("Exception while calling extension of class '" + extension.getClass().getName()
+							+ "' on transaction ", e);
+				} else {
+					throw e;
+				}
+			}
 		}
 	}
 
-	public void callRecordInCreationBeforeSave(
-			RecordInCreationBeforeSaveEvent event) {
+	public void callRecordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInCreationBeforeSave(event);
+			try {
+				extension.recordInCreationBeforeSave(event);
+
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
-	public void callRecordInModificationBeforeSave(
-			RecordInModificationBeforeSaveEvent event) {
+	public void callRecordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInModificationBeforeSave(event);
+			try {
+				extension.recordInModificationBeforeSave(event);
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
 	public void callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
-			RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+			RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event, RecordUpdateOptions options) {
+
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInCreationBeforeValidationAndAutomaticValuesCalculation(event);
+			try {
+				extension.recordInCreationBeforeValidationAndAutomaticValuesCalculation(event);
+
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
+
+	}
+
+	public static void handleException(RuntimeException e, String recordId, String extensionClassname,
+			RecordUpdateOptions options) {
+		//if (e instanceof ValidationRuntimeException) {
+		//	if (options.isCatchExtensionsValidationsErrors()) {
+		//		LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+		//			} else {
+		//		throw e;
+		//		}
+		//} else {
+		if (options.isCatchExtensionsExceptions()) {
+			LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+		} else {
+			throw e;
+		}
+		//}
 	}
 
 	public void callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
-			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInModificationBeforeValidationAndAutomaticValuesCalculation(event);
+			try {
+				extension.recordInModificationBeforeValidationAndAutomaticValuesCalculation(event);
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
-	public void callRecordCreated(RecordCreationEvent event) {
+	public void callRecordCreated(RecordCreationEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordCreated(event);
+			try {
+				extension.recordCreated(event);
+
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
-	public void callRecordModified(RecordModificationEvent event) {
+	public void callRecordModified(RecordModificationEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordModified(event);
+			try {
+				extension.recordModified(event);
+			} catch (RuntimeException e) {
+				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
 		}
 	}
 
@@ -160,6 +210,21 @@ public class ModelLayerCollectionExtensions {
 			}
 		});
 		return (inTrashFirst == null) ? false : inTrashFirst;
+	}
+
+	public LogicalSearchCondition getPhysicallyDeletableQueryForSchemaType(final SchemaEvent event) {
+		LogicalSearchCondition currentCondition = null;
+		for (SchemaExtension extension : schemaExtensions) {
+			LogicalSearchCondition newCondition = extension.getPhysicallyDeletableRecordsForSchemaType(event);
+			if(newCondition != null) {
+				if(currentCondition != null) {
+					currentCondition = LogicalSearchQueryOperators.allConditions(currentCondition, newCondition);
+				} else {
+					currentCondition = newCondition;
+				}
+			}
+		}
+		return currentCondition;
 	}
 
 	@Deprecated

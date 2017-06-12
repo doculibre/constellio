@@ -12,7 +12,9 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -20,9 +22,13 @@ import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
 
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
@@ -89,9 +95,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		}
 
+		UIContext uiContext = breadcrumbTrail.getUIContext();
+		String searchId = uiContext.getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
+		Boolean advancedSearch = uiContext.getAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
 		if (taxonomyCode == null) {
-			UIContext uiContext = breadcrumbTrail.getUIContext();
-			taxonomyCode = uiContext.getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+			taxonomyCode = uiContext.getAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
 		}
 
 		if (taxonomyCode != null) {
@@ -127,11 +135,32 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 					currentCategoryId = currentCategory.getParent();
 				}
 			} else {
-				selectedTaxonomy = null;
+				try {
+					selectedTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
+					MetadataSchemaTypes types = rmSchemasRecordsServices.getTypes();
+					MetadataSchema schema = types.getSchema(record.getSchemaCode());
+					List<Metadata> taxonomyRelationshipReferences = schema.getTaxonomyRelationshipReferences(selectedTaxonomy);
+					if (!taxonomyRelationshipReferences.isEmpty()) {
+						Metadata firstTaxonomyRelationshipReference = taxonomyRelationshipReferences.get(0);
+						List<String> taxonomyItemReferences = record.get(firstTaxonomyRelationshipReference);
+						if (taxonomyItemReferences != null && !taxonomyItemReferences.isEmpty()) {
+							String taxonomyItemReference = taxonomyItemReferences.get(0);
+							while (taxonomyItemReference != null) {
+								Record taxonomyItem = rmSchemasRecordsServices.get(taxonomyItemReference);
+								breadcrumbItems.add(0, new TaxonomyElementBreadcrumbItem(taxonomyItem.getId()));
+								taxonomyItemReference = taxonomyItem.getParentId();
+							}
+						}
+					}
+				} catch (TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound e) {
+					selectedTaxonomy = null;
+				}
 			}
 			if (selectedTaxonomy != null) {
 				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle()));
 			}
+		} else if (searchId != null) {
+			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));
 		}
 		
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
@@ -139,14 +168,38 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		}
 	}
 
-	public void itemClicked(BreadcrumbItem item) {
+	public boolean itemClicked(BreadcrumbItem item) {
+		boolean handled;
 		if (item instanceof FolderBreadcrumbItem) {
+			handled = true;
 			String folderId = ((FolderBreadcrumbItem) item).getFolderId();
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
-		} else {
+		} else if (item instanceof DocumentBreadcrumbItem) {
+			handled = true;
 			String documentId = ((DocumentBreadcrumbItem) item).getDocumentId();
 			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
+		} else if (item instanceof TaxonomyElementBreadcrumbItem) {
+			handled = true;
+			TaxonomyElementBreadcrumbItem taxonomyElementBreadcrumbItem = (TaxonomyElementBreadcrumbItem) item;
+			String expandedRecordId = taxonomyElementBreadcrumbItem.getTaxonomyElementId();
+			breadcrumbTrail.navigate().to().home(taxonomyCode, expandedRecordId, null);
+		} else if (item instanceof TaxonomyBreadcrumbItem) {
+			handled = true;
+			breadcrumbTrail.navigate().to().home(taxonomyCode, null, null);
+		} else if (item instanceof SearchResultsBreadcrumbItem) {
+			handled = true;
+			SearchResultsBreadcrumbItem searchResultsBreadcrumbItem = (SearchResultsBreadcrumbItem) item;
+			String searchId = searchResultsBreadcrumbItem.getSearchId();
+			boolean advancedSearch = searchResultsBreadcrumbItem.isAdvancedSearch();
+			if (advancedSearch) {
+				breadcrumbTrail.navigate().to().advancedSearchReplay(searchId);
+			} else {
+				breadcrumbTrail.navigate().to().simpleSearchReplay(searchId);
+			}
+		} else {
+			handled = false;
 		}
+		return handled;
 	}
 
 	class TaxonomyBreadcrumbItem implements BreadcrumbItem {
@@ -171,7 +224,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public boolean isEnabled() {
-			return false;
+			return true;
 		}
 
 	}
@@ -195,7 +248,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public boolean isEnabled() {
-			return false;
+			return true;
 		}
 
 	}

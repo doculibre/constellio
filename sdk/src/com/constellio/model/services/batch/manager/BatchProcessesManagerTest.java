@@ -247,22 +247,22 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Test
 	public void whenAddingBatchProcessThenAddToBatchProcessListAndCreateItsOwnXmlFile()
 			throws Exception {
-		String solrQuery = "(*:*) AND ((*:* -type_s:index)) AND (collection_s:zeCollection) AND (zeQuery)";
+		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
 		createManager();
 		givenExistingBatchProcessList();
 		doReturn(addBatchProcessDocumentAlteration).when(manager)
 				.newAddBatchProcessDocumentAlteration(aBatchProcessId, solrQuery, "zeCollection",
-						currentDate, 42, action);
+						currentDate, 42, action, null, null);
 		doReturn(aBatchProcessDocument).when(manager).newDocument();
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
 		when(batchProcessListReader.read(aBatchProcessId)).thenReturn(aBatchProcess);
 		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(42L);
-		BatchProcess returnedBatchProcess = manager.addBatchProcessInStandby(condition, action);
+		BatchProcess returnedBatchProcess = manager.addBatchProcessInStandby(condition, action, null);
 
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);
 		InOrder inOrder = Mockito.inOrder(manager, configManager, batchProcessListReader);
-		inOrder.verify(manager)
-				.newAddBatchProcessDocumentAlteration(aBatchProcessId, solrQuery, "zeCollection", currentDate, 42, action);
+		inOrder.verify(manager).newAddBatchProcessDocumentAlteration(
+				aBatchProcessId, solrQuery, "zeCollection", currentDate, 42, action, null, null);
 		inOrder.verify(configManager).updateXML(BATCH_PROCESS_LIST_PATH, addBatchProcessDocumentAlteration);
 		inOrder.verify(batchProcessListReader).read(aBatchProcessId);
 

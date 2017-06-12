@@ -94,4 +94,17 @@ public class ListAddRemoveCommentField extends ListAddRemoveField<Comment, Comme
 		mainLayout.setWidth("100%");
 	}
 
+	@Override
+	protected int getExtraColumnWidth(Object propertyId) {
+		int width;
+		if (USER_PROPERTY.equals(propertyId)) {
+			width = 200;
+		} else if (DATE_PROPERTY.equals(propertyId)) {
+			width = 174;
+		} else {
+			throw new IllegalArgumentException("Unrecognized propertyId : " + propertyId);
+		}
+		return width;
+	}
+
 }

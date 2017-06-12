@@ -4,9 +4,9 @@
         <description></description>
         <title>test</title>
         <folderDetails multivalue="true" type="structure">
-            <item containerRecordId="412903" folderId="00000000103" folderExcluded="true" reversedSort="true" folderLinearSize="42.0"/>
-            <item containerRecordId="412904" folderId="00000000104"/>
-            <item containerRecordId="412905"/>
+            <item containerRecordId="412903" folderId="660" folderExcluded="true" reversedSort="true" folderLinearSize="42.0"/>
+            <item containerRecordId="412904" folderId="670"/>
+            <item containerRecordId="412904"/>
         </folderDetails>
     </record>
     <record id="41">
@@ -20,8 +20,8 @@
         <description></description>
         <title>test42</title>
         <comments multivalue="true" type="structure">
-            <item message="message test" username="charlocool" userId="007" dateTime="2017-02-28"/>
-            <item message="super message" username="charlocool" userId="007" dateTime="2017-02-28"/>
+            <item message="message test" userName="admin" dateTime="2017-02-28"/>
+            <item message="super message" userName="admin" dateTime="2017-02-28"/>
         </comments>
     </record>
 </records>

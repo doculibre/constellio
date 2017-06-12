@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -22,7 +20,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 @SlowTest
 public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
-	@Test
+	//@Test
 	public void whenUpdatingFrom5_0_5ThenMigrateCopyRetentionRules()
 			throws OptimisticLockingConfiguration {
 
@@ -79,7 +77,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 		assertThat(rule4SecondaryCopy.getSemiActiveRetentionPeriod()).isEqualTo(RetentionPeriod.fixed(0));
 	}
 
-	@Test
+	//@Test
 	public void whenUpdatingFrom5_0_5ThenChangeDefaultValueOfTreeConfig()
 			throws Exception {
 
@@ -93,7 +91,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 		assertThat(rmTestRecords.getCategory_Z().isLinkable()).isFalse();
 	}
 
-	@Test
+	//@Test
 	public void whenUpdatingFrom5_0_5AndRootLinkableThenStillLinkable()
 			throws Exception {
 
@@ -111,7 +109,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 	private void givenSystemAtVersion5_0_5() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder + File.separator + "olds",
+		File state = new File(statesFolder + File.separator + "veryOlds",
 				"given_system_in_5.0.5_with_rm_module__with_test_records_and_root_linkable.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
@@ -120,7 +118,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 	private void givenSystemAtVersion5_0_5_withRootLinkable() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder + File.separator + "olds",
+		File state = new File(statesFolder + File.separator + "veryOlds",
 				"given_system_in_5.0.5_with_rm_module__with_test_records.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);

@@ -2,6 +2,7 @@ package com.constellio.model.services.schemas;
 
 import static com.constellio.data.utils.LangUtils.compareStrings;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,10 +17,9 @@ import java.util.Map;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 
-public class MetadataList implements List<Metadata> {
+public class MetadataList implements List<Metadata>, Serializable {
 
 	boolean readOnly = false;
 	List<Metadata> nestedList = new ArrayList<>();

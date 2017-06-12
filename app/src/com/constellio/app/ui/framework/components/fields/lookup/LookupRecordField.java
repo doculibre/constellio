@@ -11,8 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCaptionConverter;
+import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
 import com.constellio.app.ui.framework.components.fields.autocomplete.RecordAutocompleteField;
@@ -30,7 +30,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 
 public class LookupRecordField extends LookupField<String> {
-	
+
 	private TaxonomyCodeToCaptionConverter captionConverter = new TaxonomyCodeToCaptionConverter();
 
 	public LookupRecordField(String schemaTypeCode) {
@@ -49,7 +49,6 @@ public class LookupRecordField extends LookupField<String> {
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess,
 			RecordTextInputDataProvider recordTextInputDataProvider) {
 		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
-		setItemConverter(new RecordIdToCaptionConverter());
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
@@ -59,16 +58,17 @@ public class LookupRecordField extends LookupField<String> {
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
-		setItemConverter(new RecordIdToCaptionConverter());
+		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
 
 	public LookupRecordField(RecordTextInputDataProvider recordTextInputDataProvider,
 			LookupTreeDataProvider<String>[] lookupTreeDataProviders) {
 		super(recordTextInputDataProvider, lookupTreeDataProviders);
-		setItemConverter(new RecordIdToCaptionConverter());
+		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode, boolean writeAccess) {
+	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
+			boolean writeAccess) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -82,7 +82,8 @@ public class LookupRecordField extends LookupField<String> {
 		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
 		List<Taxonomy> taxonomies;
 		if (schemaTypeCode != null) {
-			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
+			taxonomies = taxonomiesManager
+					.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
 		} else {
 			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSchema(schemaCode, currentUser, metadataSchemasManager);
 		}
@@ -93,6 +94,7 @@ public class LookupRecordField extends LookupField<String> {
 				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess));
 			}
 		}
+
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
 	}
 

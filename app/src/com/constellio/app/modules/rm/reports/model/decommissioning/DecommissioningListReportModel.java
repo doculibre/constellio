@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.reports.model.decommissioning;
 
+import com.constellio.data.io.streamFactories.StreamFactory;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.constellio.data.io.streamFactories.StreamFactory;
 
 public class DecommissioningListReportModel {
 
@@ -64,6 +64,8 @@ public class DecommissioningListReportModel {
 
 	public static class DecommissioningListReportModel_Folder {
 
+		String legacyId;
+
 		String id;
 
 		String title;
@@ -72,11 +74,15 @@ public class DecommissioningListReportModel {
 
 		String category;
 
-		public DecommissioningListReportModel_Folder(String id, String title, String retentionRule, String category) {
+		String containerRecord;
+
+		public DecommissioningListReportModel_Folder(String legacyId, String id, String title, String retentionRule, String category, String containerRecord) {
+			this.legacyId = legacyId;
 			this.id = id;
 			this.title = title;
 			this.retentionRule = retentionRule;
 			this.category = category;
+			this.containerRecord = containerRecord;
 		}
 
 		public String getId() {
@@ -109,6 +115,18 @@ public class DecommissioningListReportModel {
 
 		public void setCategory(String category) {
 			this.category = category;
+		}
+
+		public String getContainerRecord(){ return containerRecord; }
+
+        public void setContainerRecord(String containerRecord){ this.containerRecord = containerRecord; }
+
+		public String getLegacyId() {
+			return legacyId;
+		}
+
+		public void setLegacyId(String legacyId) {
+			this.legacyId = legacyId;
 		}
 	}
 }

@@ -1,5 +1,21 @@
 package com.constellio.model.services.configs;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.EnumUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -39,15 +55,6 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.InstanciationUtils;
-import org.apache.commons.lang3.EnumUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SystemConfigurationsManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -191,7 +198,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
 		int totalRecordsToReindex = 0;
-		for(BatchProcess process: batchProcesses) {
+		for (BatchProcess process : batchProcesses) {
 			totalRecordsToReindex += process.getTotalRecordsCount();
 		}
 		return totalRecordsToReindex > 10000;
@@ -206,7 +213,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
 		int totalRecordsToReindex = 0;
-		for(BatchProcess process: batchProcesses) {
+		for (BatchProcess process : batchProcesses) {
 			totalRecordsToReindex += process.getTotalRecordsCount();
 		}
 		try {
@@ -223,11 +230,21 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 			configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
 
-			for (BatchProcess batchProcess : batchProcesses) {
-				batchProcessesManager.markAsPending(batchProcess);
+			boolean reindex = totalRecordsToReindex > 10000 || (config.isRequireReIndexing() && totalRecordsToReindex > 0);
+
+			if (reindex) {
+				for (BatchProcess batchProcess : batchProcesses) {
+					batchProcessesManager.cancelStandByBatchProcess(batchProcess);
+				}
+			} else {
+				for (BatchProcess batchProcess : batchProcesses) {
+					batchProcessesManager.markAsPending(batchProcess);
+				}
 			}
 
+			return reindex;
 		} catch (RuntimeException e) {
+			LOGGER.warn("Failed to execute script of system config '" + config.getCode() + "'", e);
 			if (listener != null) {
 				listener.onValueChanged(newValue, oldValue, modelLayerFactory);
 
@@ -238,13 +255,12 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 				}
 			}
 			for (BatchProcess batchProcess : batchProcesses) {
-
 				batchProcessesManager.cancelStandByBatchProcess(batchProcess);
 			}
 
 			throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
 		}
-		return totalRecordsToReindex > 10000;
+
 	}
 
 	private PropertiesAlteration updateConfigValueAlteration(final SystemConfiguration config, final Object newValue) {
@@ -268,14 +284,15 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 				MetadataSchemaType type = types.getSchemaType(typeCode);
 				List<Metadata> metadatasToReindex = findMetadatasToReindex(type, config);
 				if (!metadatasToReindex.isEmpty()) {
-					batchProcesses.addAll(startBatchProcessesToReindex(metadatasToReindex, type));
+					batchProcesses.addAll(startBatchProcessesToReindex(metadatasToReindex, type, config));
 				}
 			}
 		}
 		return batchProcesses;
 	}
 
-	List<BatchProcess> startBatchProcessesToReindex(List<Metadata> metadatasToReindex, MetadataSchemaType type) {
+	List<BatchProcess> startBatchProcessesToReindex(List<Metadata> metadatasToReindex, MetadataSchemaType type,
+			SystemConfiguration config) {
 
 		List<BatchProcess> batchProcesses = new ArrayList<>();
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -284,7 +301,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		LogicalSearchCondition condition = from(type).returnAll();
 		if (searchServices.hasResults(condition)) {
 			BatchProcessAction action = new ReindexMetadatasBatchProcessAction(schemaCodes);
-			batchProcesses.add(batchProcessesManager.addBatchProcessInStandby(condition, action));
+			batchProcesses.add(batchProcessesManager
+					.addBatchProcessInStandby(condition, action, "reindex.config " + config.getCode()));
 		}
 		return batchProcesses;
 	}

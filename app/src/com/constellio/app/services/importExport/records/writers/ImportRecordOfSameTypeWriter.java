@@ -11,6 +11,10 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.ImportContent;
+import com.constellio.model.services.records.SimpleImportContent;
+import com.constellio.model.services.records.StructureImportContent;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
@@ -113,13 +117,25 @@ public class ImportRecordOfSameTypeWriter {
 						writer.writeCharacters(((LocalDateTime) value).toString("yyyy-MM-dd HH:mm:ss"));
 						writer.writeEndElement();
 
-					} else if (value instanceof ImportContent) {
+					} else if(value instanceof StructureImportContent) {
+						writer.writeStartElement("structureContent");
+						writer.writeAttribute("type", "structureContent");
+						writer.writeAttribute("structure", ((StructureImportContent)value).getSerializedStructure());
+						writer.writeAttribute("key", importRecordMetadata.getKey());
+						writer.writeEndElement();
+					}
+					else if (value instanceof ImportContent) {
 						writer.writeStartElement(importRecordMetadata.getKey());
 						writer.writeAttribute("type", "content");
 						writeValue(value);
 						writer.writeEndElement();
-
-					} else {
+					} else if (value instanceof Map) {
+						writer.writeStartElement(importRecordMetadata.getKey());
+						writer.writeAttribute("type", "structure");
+						writeValue(value);
+						writer.writeEndElement();
+					}
+					else {
 						writer.writeStartElement(importRecordMetadata.getKey());
 						writeValue(value);
 						writer.writeEndElement();
@@ -156,8 +172,8 @@ public class ImportRecordOfSameTypeWriter {
 				}
 			}
 		}
-		if (value instanceof ImportContent) {
-			for (ImportContentVersion version : ((ImportContent) value).getVersions()) {
+		if (value instanceof SimpleImportContent) {
+			for (ContentImportVersion version : ((SimpleImportContent) value).getVersions()) {
 				writer.writeStartElement("contentVersion");
 				writer.writeAttribute("url", version.getUrl());
 				writer.writeAttribute("filename", version.getFileName());

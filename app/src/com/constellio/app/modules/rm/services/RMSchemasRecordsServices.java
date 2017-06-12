@@ -1,20 +1,32 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import com.auxilii.msgparser.Message;
+import com.auxilii.msgparser.MsgParser;
+import com.auxilii.msgparser.attachment.Attachment;
+import com.auxilii.msgparser.attachment.FileAttachment;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.*;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.pages.base.SessionContextProvider;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.poi.hsmf.datatypes.*;
+import org.apache.poi.hsmf.parsers.POIFSChunkParser;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.joda.time.LocalDateTime;
 
 import javax.mail.Address;
 import javax.mail.BodyPart;
@@ -24,56 +36,11 @@ import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
+import java.io.*;
+import java.util.*;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.poi.hsmf.datatypes.ByteChunk;
-import org.apache.poi.hsmf.datatypes.Chunk;
-import org.apache.poi.hsmf.datatypes.ChunkGroup;
-import org.apache.poi.hsmf.datatypes.Chunks;
-import org.apache.poi.hsmf.datatypes.MAPIProperty;
-import org.apache.poi.hsmf.datatypes.StringChunk;
-import org.apache.poi.hsmf.parsers.POIFSChunkParser;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.joda.time.LocalDateTime;
-
-import com.auxilii.msgparser.Message;
-import com.auxilii.msgparser.MsgParser;
-import com.auxilii.msgparser.attachment.Attachment;
-import com.auxilii.msgparser.attachment.FileAttachment;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMObject;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
-import com.constellio.app.modules.rm.wrappers.type.FolderType;
-import com.constellio.app.modules.rm.wrappers.type.MediumType;
-import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
-import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
-import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.pages.base.SessionContextProvider;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.records.wrappers.ValueListItem;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
@@ -135,6 +102,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new ContainerRecordType(getByLegacyId(ContainerRecordType.SCHEMA_TYPE, id), getTypes());
 	}
 
+	public ContainerRecordType getContainerRecordTypeWithCode(String id) {
+		return new ContainerRecordType(getByCode(containerRecordTypeSchemaType(), id), getTypes());
+	}
+
 	public ContainerRecordType getContainerRecordType(String id) {
 		try {
 			return new ContainerRecordType(get(id), getTypes());
@@ -150,13 +121,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public ContainerRecordType newContainerRecordTypeWithId(String id) {
 		return new ContainerRecordType(create(containerRecordTypeSchema(), id), getTypes());
 	}
-
-	//
-	public UserDocument getUserDocument(String id) {
-		return new UserDocument(get(id), getTypes());
-	}
-
-	//
 
 	//Document
 
@@ -225,6 +189,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		String emailSchemaTypeId = getRecordIdForEmailSchema();
 		email.setType(emailSchemaTypeId);
 		return email;
+	}
+
+	public Report newReport() {
+		return new Report(create(reportSchema()), getTypes());
+	}
+
+	public MetadataSchema reportSchema() {
+		return getTypes().getSchema(Report.DEFAULT_SCHEMA);
 	}
 
 	public Document newDocumentWithId(String id) {
@@ -559,7 +531,20 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new Cart(record, getTypes()).setOwner(user);
 	}
 
+	public Cart getOrCreateCart(User user, String cartId) {
+		Record record = modelLayerFactory.newSearchServices().searchSingleResult(
+				from(cartSchemaType()).where(Schemas.IDENTIFIER).isEqualTo(cartId));
+		if (record == null) {
+			record = create(cartSchema()).set(cart.owner(), user.getId());
+		}
+		return new Cart(record, getTypes());
+	}
+
 	//User document
+
+	public UserDocument getUserDocument(String id) {
+		return new UserDocument(get(id), getTypes());
+	}
 
 	public MetadataSchemaType userDocumentSchemaType() {
 		return getTypes().getSchemaType(UserDocument.SCHEMA_TYPE);
@@ -591,6 +576,40 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public UserDocument newUserDocumentWithId(String id) {
 		return new UserDocument(create(userDocumentSchema(), id), getTypes());
+	}
+
+	//User Folder
+
+	public RMUserFolder getUserFolder(String id) {
+		return new RMUserFolder(get(id), getTypes());
+	}
+
+	public MetadataSchemaType userFolderSchemaType() {
+		return getTypes().getSchemaType(UserFolder.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema userFolderSchema() {
+		return getTypes().getSchema(UserFolder.DEFAULT_SCHEMA);
+	}
+
+	public RMUserFolder wrapUserFolder(Record record) {
+		return record == null ? null : new RMUserFolder(record, getTypes());
+	}
+
+	public List<RMUserFolder> wrapUserFolders(List<Record> records) {
+		List<RMUserFolder> userFolders = new ArrayList<>();
+		for (Record record : records) {
+			userFolders.add(wrapUserFolder(record));
+		}
+		return userFolders;
+	}
+
+	public RMUserFolder newUserFolder() {
+		return new RMUserFolder(create(userFolderSchema()), getTypes());
+	}
+
+	public RMUserFolder newUserFolderWithId(String id) {
+		return new RMUserFolder(create(userFolderSchema(), id), getTypes());
 	}
 
 	//
@@ -716,7 +735,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		Metadata linkedSchemaMetadata = documentTypeDefaultSchema.getMetadata(DocumentType.LINKED_SCHEMA);
 		LogicalSearchCondition condition = from(documentTypeDefaultSchema).where(linkedSchemaMetadata)
 				.isEqualTo(Email.SCHEMA);
-		DocumentType emailDocumentType = new DocumentType(searchServices.searchSingleResult(condition), types);
+		DocumentType emailDocumentType = new DocumentType(searchServices.search(new LogicalSearchQuery().setCondition(condition)).get(0), types);
 		return emailDocumentType.getId();
 	}
 
@@ -1037,4 +1056,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return document;
 	}
 
+	public Report wrapReport(Record record) {
+		return record == null ? null : new Report(record, getTypes());
+	}
+
+	public SavedSearch wrapSavedSearch(Record record) {
+		return record == null ? null : new SavedSearch(record, getTypes());
+	}
 }

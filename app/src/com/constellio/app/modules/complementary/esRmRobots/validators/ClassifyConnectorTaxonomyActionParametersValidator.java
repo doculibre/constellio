@@ -31,17 +31,6 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 			validateParentFolderUseCase(parameters, validationErrors);
 		} else if (StringUtils.isNotEmpty(parameters.getInTaxonomy())) {
 			validateClassifyInTaxoUseCase(parameters, validationErrors);
-		} else {
-			validateNoTaxoAndNoParentFolderUseCase(parameters, validationErrors);
-		}
-	}
-
-	private void validateNoTaxoAndNoParentFolderUseCase(ClassifyConnectorFolderInTaxonomyActionParameters parameters,
-			ValidationErrors validationErrors) {
-		if (StringUtils.isEmpty(parameters.getDefaultAdminUnit()) || StringUtils.isEmpty(parameters.getDefaultRetentionRule())
-				|| StringUtils.isEmpty(parameters.getDefaultCategory()) || parameters.getDefaultCopyStatus() == null
-				|| parameters.getDefaultOpenDate() == null) {
-			validationErrors.add(getClass(), MUST_SPECIFY_ALL_DEFAULT_VALUES_WHEN_NO_MAPPING_AND_NO_PARENT_FOLDER);
 		}
 	}
 
@@ -49,12 +38,6 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 			ValidationErrors validationErrors) {
 		if (StringUtils.isEmpty(parameters.getPathPrefix())) {
 			validationErrors.add(getClass(), MUST_SPECIFY_PATH_PREFIX_WITH_TAXO);
-		} else if (parameters.getFolderMapping() == null) {
-			if (StringUtils.isEmpty(parameters.getDefaultAdminUnit()) || StringUtils.isEmpty(parameters.getDefaultRetentionRule())
-					|| StringUtils.isEmpty(parameters.getDefaultCategory()) || parameters.getDefaultCopyStatus() == null
-					|| parameters.getDefaultOpenDate() == null) {
-				validationErrors.add(getClass(), MUST_SPECIFY_ALL_DEFAULT_VALUES_WHEN_NO_MAPPING_AND_NO_PARENT_FOLDER);
-			}
 		}
 	}
 

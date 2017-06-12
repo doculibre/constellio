@@ -20,6 +20,7 @@ import com.constellio.app.services.factories.ConstellioFactoriesDecorator;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
@@ -27,6 +28,7 @@ import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModel
 
 public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorator {
 
+	File importedSettings;
 	boolean backgroundThreadsEnabled;
 	boolean mockPluginManager;
 	String systemLanguage;
@@ -131,6 +133,17 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	}
 
 	@Override
+	public DataLayerFactory decorateDataLayerFactory(DataLayerFactory dataLayerFactory) {
+		dataLayerFactory = super.decorateDataLayerFactory(dataLayerFactory);
+
+		if (importedSettings != null) {
+			dataLayerFactory.getConfigManager().importFrom(importedSettings);
+		}
+
+		return dataLayerFactory;
+	}
+
+	@Override
 	public FoldersLocator decorateFoldersLocator(FoldersLocator foldersLocator) {
 
 		return new FoldersLocator() {
@@ -201,5 +214,9 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 	public void setTransactionLogWorkFolder(File transactionLogWorkFolder) {
 		this.transactionLogWorkFolder = transactionLogWorkFolder;
+	}
+
+	public void importSettings(File importedSettings) {
+		this.importedSettings = importedSettings;
 	}
 }

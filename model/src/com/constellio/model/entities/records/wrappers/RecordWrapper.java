@@ -44,6 +44,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		if (schemaCode == null || !schemaCode.startsWith(typeRequirement)) {
 			throw new WrappedRecordMustMeetRequirements(schemaCode, typeRequirement);
 		}
+		if (record.getCollection() != null && types.getCollection() != null
+				&& !record.getCollection().equals(types.getCollection())){
+			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame();
+		}
+
 		this.types = types;
 		this.wrappedRecord = record;
 	}
@@ -84,7 +89,14 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	public boolean hasValue(String localCode) {
 		ensureConnected();
 		MetadataSchema schema = types.getSchema(wrappedRecord.getSchemaCode());
-		return schema.hasMetadataWithCode(localCode) && get(schema.get(localCode)) != null;
+
+		Metadata metadata = null;
+		if (!schema.hasMetadataWithCode(localCode)) {
+			return false;
+		}
+		metadata = schema.get(localCode);
+
+		return metadata.isMultivalue() ? !getList(metadata).isEmpty() : get(metadata) != null;
 	}
 
 	public <T> List<T> getList(Metadata metadata) {
@@ -113,6 +125,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 	protected boolean getBooleanWithDefaultValue(String param, boolean defaultValue) {
 		Boolean value = get(param);
+		return value == null ? defaultValue : value;
+	}
+
+	protected <T> T getEnumWithDefaultValue(String param, T defaultValue) {
+		T value = get(param);
 		return value == null ? defaultValue : value;
 	}
 

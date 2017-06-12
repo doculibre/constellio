@@ -7,13 +7,13 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -49,8 +50,6 @@ import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
@@ -58,7 +57,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
@@ -81,7 +79,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, startWorkflowButton;
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
@@ -99,6 +97,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
 		presenter.viewAssembled();
+	}
+
+	@Override
+	public RecordVO getRecord() {
+		return recordVO;
 	}
 
 	@Override
@@ -177,15 +180,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
 	}
 
-	@Override
-	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
-	}
+//	@Override
+//	protected ClickListener getBackButtonClickListener() {
+//		return new ClickListener() {
+//			@Override
+//			public void buttonClick(ClickEvent event) {
+//				presenter.backButtonClicked();
+//			}
+//		};
+//	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
@@ -317,16 +320,24 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		};
 
 		addToCartButton = buildAddToCartButton();
+		
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO);
 
-		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
-				return presenter.getTemplates();
+				return presenter.getCustomTemplates();
+			}
+		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates();
 			}
 		};
 		try {
 			printLabelButton = new LabelsButton($("DisplayFolderView.printLabel"),
-					$("DisplayFolderView.printLabel"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId(), getSessionContext().getCurrentUser().getUsername());
+					$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId(), getSessionContext().getCurrentUser().getUsername());
 		} catch (Exception e) {
 			showErrorMessage(e.getMessage());
 		}
@@ -352,24 +363,40 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		startWorkflowButton = new StartWorkflowButton();
 		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
-		actionMenuButtons.add(addDocumentButton);
-		actionMenuButtons.add(addSubFolderButton);
+//		actionMenuButtons.add(addDocumentButton);
+//		actionMenuButtons.add(addSubFolderButton);
+
+		boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
+				&& ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+
 		actionMenuButtons.add(editFolderButton);
-		actionMenuButtons.add(moveInFolderButton);
-		actionMenuButtons.add(deleteFolderButton);
-		actionMenuButtons.add(duplicateFolderButton);
-		actionMenuButtons.add(linkToFolderButton);
-		actionMenuButtons.add(addAuthorizationButton);
-		actionMenuButtons.add(shareFolderButton);
-		if(presenter.hasCurrentUserPermissionToUseCart()) {
-			actionMenuButtons.add(addToCartButton);
+
+		if(!isAFolderAndDestroyed)
+		{
+			actionMenuButtons.add(moveInFolderButton);
+			actionMenuButtons.add(deleteFolderButton);
+			actionMenuButtons.add(duplicateFolderButton);
+			actionMenuButtons.add(linkToFolderButton);
+			actionMenuButtons.add(addAuthorizationButton);
+			actionMenuButtons.add(shareFolderButton);
+			if (presenter.hasCurrentUserPermissionToUseCart()) {
+				actionMenuButtons.add(addToCartButton);
+			}
+			actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 		}
-		actionMenuButtons.add(printLabelButton);
-		actionMenuButtons.add(borrowButton);
-		actionMenuButtons.add(returnFolderButton);
-		actionMenuButtons.add(reminderReturnFolderButton);
-		actionMenuButtons.add(alertWhenAvailableButton);
-		if (presenter.hasPermissionToStartWorkflow()) {
+		if(!isAFolderAndDestroyed) {
+			actionMenuButtons.add(printLabelButton);
+			actionMenuButtons.add(borrowButton);
+		}
+			actionMenuButtons.add(returnFolderButton);
+		    actionMenuButtons.add(reminderReturnFolderButton);
+
+		if(!isAFolderAndDestroyed) {
+
+			actionMenuButtons.add(alertWhenAvailableButton);
+		}
+
+		if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
 			actionMenuButtons.add(startWorkflowButton);
 		}
 
@@ -447,10 +474,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
 		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
-		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(nestedContainer);
+
+		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				int index = (int) itemId;
 				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new EditButton() {
@@ -469,7 +497,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				int index = (int) itemId;
 				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
@@ -489,7 +517,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				int index = (int) itemId;
 				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new DisplayButton() {
@@ -505,7 +533,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return button;
 			}
 		});
-		Table table = new RecordVOTable(null, container);
+		final Table table = new RecordVOTable();
 		table.setSizeFull();
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.addItemClickListener(new ItemClickListener() {
@@ -522,9 +550,47 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			}
 		});
+		table.setContainerDataSource(nestedContainer);
+		
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(folderContentComponent, table);
-		folderContentComponent = table;
+		RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
+			@Override
+			public void selectAll() {
+				presenter.selectAllClicked();
+			}
+
+			@Override
+			public void deselectAll() {
+				presenter.deselectAllClicked();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return presenter.isAllItemsSelected();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return presenter.isAllItemsDeselected();
+			}
+
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				return presenter.isSelected(recordVO);
+			}
+
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				presenter.recordSelectionChanged(recordVO, selected);
+				adjustSelectAllButton(selected);
+			}
+		};
+		tabSheet.replaceComponent(folderContentComponent, tableAdapter);
+		folderContentComponent = tableAdapter;
 	}
 
 	@Override
@@ -667,10 +733,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Button buildBorrowButton() {
 		return new WindowButton($("DisplayFolderView.borrow"),
-				$("DisplayFolderView.borrow")) {
+				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "460px")) {
 			@Override
 			protected Component buildWindowContent() {
-
 				final JodaDateField borrowDatefield = new JodaDateField();
 				borrowDatefield.setCaption($("DisplayFolderView.borrowDate"));
 				borrowDatefield.setRequired(true);
@@ -769,6 +834,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,
 								horizontalLayout);
 				verticalLayout.setSpacing(true);
+				verticalLayout.addStyleName("no-scroll");
 
 				return verticalLayout;
 			}
@@ -851,6 +917,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 //		Page.getCurrent().open(agentURL, null);
 //	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void downloadContentVersion(RecordVO recordVO, ContentVersionVO contentVersionVO) {
 		ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);

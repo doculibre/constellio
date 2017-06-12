@@ -1,5 +1,44 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.ids;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.Set;
+
+import org.apache.solr.common.params.SolrParams;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
@@ -34,28 +73,7 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
-
-import org.apache.solr.common.params.SolrParams;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.util.*;
-import java.util.Map.Entry;
-
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.ids;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 
 @SlowTest
 public class SearchServiceAcceptanceTest extends ConstellioTest {
@@ -210,6 +228,39 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		String suggestedTopic = facet.getClusterScore().entrySet().iterator().next().getKey();
 		assertThat(suggestedTopic).isEqualTo(topicNames[docTopicIdx]);
+	}
+
+	@Test
+	public void whenSearchingUsingIdsInFreeTextTheFindRecordWithOrWithoutPaddingZeros()
+			throws Exception {
+		defineSchemasManager().using(schema);
+
+		transaction.addUpdate(recordServices.newRecordWithSchema(zeSchema.instance(), "00000001042"));
+		transaction.addUpdate(recordServices.newRecordWithSchema(zeSchema.instance(), "00000001043"));
+		transaction.addUpdate(recordServices.newRecordWithSchema(zeSchema.instance(), "00000011043"));
+		recordServices.execute(transaction);
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(zeSchema.type()).returnAll());
+
+		query.setFreeTextQuery("00000001042");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("00000001042");
+
+		query.setFreeTextQuery("00000001043");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("00000001043");
+
+		query.setFreeTextQuery("00000011043");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("00000011043");
+
+		query.setFreeTextQuery("1042");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("00000001042");
+
+		query.setFreeTextQuery("1043");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("00000001043");
+
+		query.setFreeTextQuery("11043");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("00000011043");
+
 	}
 
 	@Test
@@ -1232,10 +1283,14 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenFiveNumberValuesIncludingNegativeNumberAndMinIntegerValue();
 
-		condition = from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(10);
-		List<Record> records = findRecords(condition);
-
+		List<Record> records = findRecords(from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(10));
 		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3);
+
+		records = findRecords(from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(11));
+		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3, expectedRecord4);
+
+		records = findRecords(from(zeSchema.instance()).where(zeSchema.numberMetadata()).isLessThan(0));
+		assertThat(records).containsOnly(expectedRecord, expectedRecord2);
 	}
 
 	@Test
@@ -2748,6 +2803,45 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenFreeTextSearchingWithSlashesThenNotSplitted()
+			throws Exception {
+		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable));
+
+		Record record1 = newRecordOfZeSchema("record1");
+		record1.set(zeSchema.stringMetadata(), "2007-2008/1");
+
+		Record record2 = newRecordOfZeSchema("record2");
+		record2.set(zeSchema.stringMetadata(), "2007-2008/100");
+
+		Record record3 = newRecordOfZeSchema("record3");
+		record3.set(zeSchema.stringMetadata(), "2007-2008/2");
+
+		transaction.addUpdate(record1, record2, record3);
+		recordServices.execute(transaction);
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(zeSchema.instance()).returnAll());
+
+		query.setFreeTextQuery("\"2007-2008/1\"");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
+
+		query.setFreeTextQuery("\"2007-2008/100\"");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2");
+
+		query.setFreeTextQuery("\"2007-2008/2\"");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record3");
+
+		query.setFreeTextQuery("2007-2008/1");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1", "record2", "record3");
+
+		query.setFreeTextQuery("2007-2008/100");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1", "record2", "record3");
+
+		query.setFreeTextQuery("2007-2008/2");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1", "record2", "record3");
+	}
+
 	private void givenSchemasInDiferentsCollections()
 			throws Exception {
 
@@ -2763,6 +2857,51 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction2.addUpdate(otherSchemaRecord2InCollection2 = newRecordOfOotherSchemaInCollection2().set(
 				otherSchemaInCollection2.metadata("title"), "Folder 4"));
 		recordServices.execute(transaction2);
+
+	}
+
+	@Test
+	public void whenFreeTextSearchingOnLegacyIdsThenSameLegacyIdBoosted()
+			throws Exception {
+		defineSchemasManager().using(schema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema("zeSchemaType_default").get(Schemas.LEGACY_ID).setSearchable(true);
+			}
+		}));
+
+		Record record3 = newRecordOfZeSchema("record3");
+		record3.set(Schemas.LEGACY_ID, "10340");
+
+		Record record2 = newRecordOfZeSchema("record2");
+		record2.set(Schemas.LEGACY_ID, "103400");
+
+		Record record1 = newRecordOfZeSchema("record1");
+		record1.set(Schemas.LEGACY_ID, "1034002");
+
+		transaction.addUpdate(record1, record2, record3);
+		recordServices.execute(transaction);
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(zeSchema.instance()).returnAll());
+
+		query.setFreeTextQuery("\"10340\"");
+		assertThat(searchServices.search(query)).extracting("id").containsExactly("record3", "record2");
+
+		query.setFreeTextQuery("\"103400\"");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2", "record3");
+
+		query.setFreeTextQuery("\"1034002\"");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
+
+		query.setFreeTextQuery("10340");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record3", "record2");
+
+		query.setFreeTextQuery("103400");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2", "record3");
+
+		query.setFreeTextQuery("1034002");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
 
 	}
 

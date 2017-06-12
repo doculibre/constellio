@@ -29,7 +29,7 @@ public class ESRecordAppExtension extends RecordAppExtension {
 	@Override
 	public void buildRecordVO(BuildRecordVOParams params) {
 		RecordVO recordVO = params.getBuiltRecordVO();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
 
 		if (schemaTypeCode.startsWith("connector")) {
 			String resourceKey = getIconPath(schemaTypeCode);
@@ -44,7 +44,7 @@ public class ESRecordAppExtension extends RecordAppExtension {
 	public String getIconPathForRecord(GetIconPathParams params) {
 		Record record = params.getRecord();
 		String schemaCode = record.getSchemaCode();
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 
 		String iconPath;
 		if (schemaTypeCode.startsWith("connectorType")) {

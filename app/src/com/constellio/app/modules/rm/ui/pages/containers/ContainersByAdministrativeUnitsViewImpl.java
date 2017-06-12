@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.containers.AdminUnitsWithContainersCountC
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -66,22 +67,22 @@ public class ContainersByAdministrativeUnitsViewImpl extends BaseViewImpl implem
 	}
 
 	private Component getRecordsList(Tab selectedTab) {
-
 		int indexOfSelectedTab = tabSheet.getTabPosition(selectedTab);
 		final ContainersViewTab tabSource = tabs.get(indexOfSelectedTab);
-		RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(tabSource.getDataProvider());
+		RecordVODataProvider dataProvider = tabSource.getDataProvider();
+		final RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(dataProvider);
 		AdminUnitsWithContainersCountContainer adaptedContainer = new AdminUnitsWithContainersCountContainer(
 				recordVOLazyContainer, getCollection(), getSessionContext().getCurrentUser().getId(), tabSource.getTabName());
 
 		ButtonsContainer buttonsContainer = new ButtonsContainer(adaptedContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
-						RecordVO entity = tabSource.getDataProvider().getRecordVO(index);
+						RecordVO entity = recordVOLazyContainer.getRecordVO(index);
 						presenter.displayButtonClicked(tabSource.getTabName(), entity);
 					}
 				};

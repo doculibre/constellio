@@ -1,5 +1,7 @@
 package com.constellio.model.entities.calculators;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +32,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	MetadataValueType type;
 	String metadataCode;
-	JexlScript jexlScript;
+	transient JexlScript jexlScript;
 	Set<List<String>> variables;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JEXLMetadataValueCalculator.class);
@@ -40,7 +42,18 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	public JEXLMetadataValueCalculator(String expression) {
 		this.expression = expression;
+		initTransient();
 	}
+	
+	private void initTransient() {
+		JexlEngine jexl = new JexlBuilder().create();
+		jexlScript = jexl.createScript(expression);
+	}
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        initTransient();
+    }
 
 	public JexlScript getJexlScript() {
 		return jexlScript;
@@ -132,14 +145,9 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
 		try {
-
-			JexlEngine jexl = new JexlBuilder().create();
-			jexlScript = jexl.createScript(expression);
-
 			for (List<String> variable : jexlScript.getVariables()) {
 				if (variable.size() == 2) {
 					dependencies.add(toReferenceDependency(types, schema, variable));
-
 				}
 			}
 
@@ -156,13 +164,9 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		type = calculatedMetadata.getType();
 		dependencies.clear();
 		try {
-
-			JexlEngine jexl = new JexlBuilder().create();
-			jexlScript = jexl.createScript(expression);
 			variables = jexlScript.getVariables();
 		} catch (Exception e) {
 			e.printStackTrace();
-
 		}
 
 		if (variables != null) {
@@ -172,19 +176,18 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 				}
 			}
-
 		}
 
 	}
 
-	private LocalDependency toLocalDependency(MetadataSchema schema, List<String> variable) {
+	private LocalDependency<?> toLocalDependency(MetadataSchema schema, List<String> variable) {
 		boolean isRequired = false;
 		Metadata metadata = schema.getMetadata(variable.get(0));
 		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
-				metadata.getType());
+				metadata.getType(), false);
 	}
 
-	private LocalDependency toLocalDependency(List<Metadata> metadatas, List<String> variable) {
+	private LocalDependency<?> toLocalDependency(List<Metadata> metadatas, List<String> variable) {
 		boolean isRequired = false;
 		Metadata metadata = null;
 
@@ -200,7 +203,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		}
 
 		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
-				metadata.getType());
+				metadata.getType(), false);
 	}
 
 	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema, List<String> variable) {
@@ -214,7 +217,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		boolean isGroupedByReferences = false;
 		return new ReferenceDependency<>(variable.get(0), variable.get(1), isRequired,
 				isMultivalue,
-				copiedMetadata.getType(), isGroupedByReferences);
+				copiedMetadata.getType(), isGroupedByReferences, false);
 	}
 
 }

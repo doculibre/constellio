@@ -15,6 +15,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
 import com.constellio.app.ui.framework.components.DurationPanel;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.ScheduleComponent;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
@@ -40,7 +41,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected Field groupsRejectionRegexField;
 	protected TextArea testAuthentication;
 	protected CollectionsSelectionPanel collectionsComponent;
-	protected DurationPanel durationField;
+	protected ScheduleComponent scheduleComponentField;
 	protected Button saveButton;
 	private BaseButton forceUsersSynchronization;
 
@@ -68,7 +69,6 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 
 	@Override
 	public void updateComponents() {
-
 	}
 
 	protected Field createStringField(String value, boolean required) {
@@ -132,11 +132,8 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		groupsRejectionRegexField.setCaption($("ldap.syncConfiguration.groupFilter.rejectedRegex"));
 	}
 
-	protected void buildDurationField(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		Duration duration = ldapUserSyncConfiguration.getDurationBetweenExecution();
-		durationField = new DurationPanel();
-		durationField.setCaption($("ldap.syncConfiguration.durationBetweenExecution"));
-		durationField.setDuration(duration);
+	protected void buildSynchronizationScheduleFields(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		scheduleComponentField = new ScheduleComponent(ldapUserSyncConfiguration.getScheduleTime(), ldapUserSyncConfiguration.getDurationBetweenExecution());
 	}
 
 	protected void buildCollectionsPanel() {
@@ -192,6 +189,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 		HorizontalLayout hLayout = new HorizontalLayout(testButton, forceUsersSynchronization, saveButton);
+		hLayout.setSpacing(true);
 		hLayout.addComponent(saveButton);
 		buttonsPanel.setContent(hLayout);
 		layout.addComponent(buttonsPanel);

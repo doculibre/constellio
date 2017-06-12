@@ -215,7 +215,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		ButtonsContainer container = new ButtonsContainer<>(authorizations, Authorizations.BUTTONS);
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(Object itemId) {
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				AuthorizationVO authorization = (AuthorizationVO) itemId;
 				EditAuthorizationButton button = new EditAuthorizationButton(authorization);
 				button.setVisible(inherited || !authorization.isSynched());
@@ -224,7 +224,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		});
 		container.addButton(new ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId) {
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				final AuthorizationVO authorization = (AuthorizationVO) itemId;
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override

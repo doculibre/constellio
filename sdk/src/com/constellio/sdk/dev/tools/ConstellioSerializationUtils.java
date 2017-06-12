@@ -7,8 +7,8 @@ import java.io.Serializable;
 import org.apache.commons.lang.SerializationException;
 import org.apache.commons.lang.SerializationUtils;
 
-import com.constellio.app.utils.SerializableChecker;
-import com.constellio.app.utils.SerializableChecker.ConstellioNotSerializableException;
+import com.constellio.data.utils.serialization.SerializableChecker;
+import com.constellio.data.utils.serialization.SerializableChecker.ConstellioNotSerializableException;
 
 public class ConstellioSerializationUtils {
 

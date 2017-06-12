@@ -9,6 +9,8 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -18,7 +20,10 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import java.util.List;
+
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -58,12 +63,14 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
         doNothing().when(view).reloadWithContainer(any(RecordVO.class));
 
         presenter = new AddEditContainerPresenter(view);
-        lookupField = spy(new ContainerStorageSpaceLookupField(records.containerTypeId_boite22x22, presenter));
+        lookupField = spy(new ContainerStorageSpaceLookupField(records.containerTypeId_boite22x22, 100D, presenter));
     }
 
     @Test
     public void givenNoValidStorageSpaceThenSuggestionReturnNull()
             throws Exception {
+        setAllStorageSpaceWithNoCapacity();
+        waitForBatchProcess();
         recordServices.add(buildDefaultContainer());
         presenter.forParams("containerTest");
         lookupField.suggestedButtonClicked();
@@ -74,6 +81,8 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
     @Test
     public void givenValidStorageSpaceThenSuggestionReturnFirst()
             throws Exception {
+        setAllStorageSpaceWithNoCapacity();
+        waitForBatchProcess();
         recordServices.add(buildDefaultStorageSpace());
         recordServices.add(buildDefaultContainer());
         presenter.forParams("containerTest");
@@ -120,5 +129,20 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 
     public StorageSpace buildDefaultStorageSpace() {
         return rm.newStorageSpaceWithId("storageTest").setCode("storageTest").setTitle("storageTest").setCapacity(150);
+    }
+
+    private void setAllStorageSpaceWithNoCapacity() {
+        List<StorageSpace> storageSpaces = rm.searchStorageSpaces(returnAll());
+        Transaction transaction = new Transaction();
+        for(StorageSpace storageSpace: storageSpaces) {
+            Record wrappedRecord = storageSpace.setCapacity(0).getWrappedRecord();
+            recordServices.recalculate(wrappedRecord);
+            transaction.addUpdate(wrappedRecord);
+        }
+        try {
+            recordServices.execute(transaction);
+        } catch (RecordServicesException e) {
+            e.printStackTrace();
+        }
     }
 }

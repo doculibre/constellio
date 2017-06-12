@@ -4,6 +4,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -12,9 +14,10 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
-public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsViewImpl implements
-																						ListContentAccessAuthorizationsView {
+public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsViewImpl implements ListContentAccessAuthorizationsView {
 
+	private BreadcrumbTrail breadcrumbTrail;
+	
 	public ListContentAccessAuthorizationsViewImpl() {
 		presenter = new ListContentAccessAuthorizationsPresenter(this);
 	}
@@ -70,4 +73,15 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 			groups.setId("groups");
 		}
 	}
+
+	@Override
+	public void setBreadcrumbTrail(BreadcrumbTrail breadcrumbTrail) {
+		this.breadcrumbTrail = breadcrumbTrail;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return breadcrumbTrail != null ? (BaseBreadcrumbTrail) breadcrumbTrail : super.buildBreadcrumbTrail();
+	}
+	
 }
