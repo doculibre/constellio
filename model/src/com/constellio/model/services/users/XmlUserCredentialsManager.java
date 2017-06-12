@@ -69,7 +69,6 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 		}
 	}
 
-	@Override
 	public void initialize() {
 		registerListener(configManager);
 
@@ -120,16 +119,21 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails,
+			String serviceKey,
+			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		return new XmlUserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
 				tokens, status, domain, msExchDelegateListBL, dn);
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn, String jobTitle, String phone, String fax, String address) {
-		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+			String dn, String jobTitle, String phone, String fax, String address) {
+		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups,
+				collections,
 				tokens, status, domain, msExchDelegateListBL, dn, address, phone, fax, jobTitle);
 	}
 
@@ -348,11 +352,6 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 			}
 		}
 		return null;
-	}
-
-	@Override
-	public void close() {
-
 	}
 
 	@Override

@@ -13,11 +13,7 @@ import java.util.Map.Entry;
 
 import org.joda.time.LocalDateTime;
 
-import com.constellio.data.threads.BackgroundThreadConfiguration;
-import com.constellio.data.threads.BackgroundThreadExceptionHandling;
-import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -314,25 +310,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 
 	@Override
 	public void rewrite() {
-		// Nothing to be done
-	}
-
-	@Override
-	public void initialize() {
-		BackgroundThreadsManager manager = modelLayerFactory.getDataLayerFactory().getBackgroundThreadsManager();
-		ModelLayerConfiguration configuration = modelLayerFactory.getConfiguration();
-
-		manager.configure(BackgroundThreadConfiguration.repeatingAction("removeTimedOutTokens", new Runnable() {
-			@Override
-			public void run() {
-				removeTimedOutTokens();
-			}
-		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
-				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
-	}
-
-	@Override
-	public void close() {
 		// Nothing to be done
 	}
 
