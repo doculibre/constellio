@@ -49,9 +49,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
-import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
-import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class CollectionsManagerTest extends ConstellioTest {
@@ -81,9 +78,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock ModifiableSolrParams params;
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock ConfigManager configManager;
-	@Mock WorkflowsConfigManager workflowsConfigManager;
-	@Mock WorkflowBPMNDefinitionsService workflowBPMNDefinitionsService;
-	@Mock WorkflowExecutionIndexManager workflowExecutionIndexManager;
 	@Mock Record aNewCollection, anotherNewCollection;
 
 	com.constellio.app.services.collections.CollectionsManager collectionsManager;
@@ -99,9 +93,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getGlobalGroupsManager()).thenReturn(globalGroupsManager);
 		when(modelLayerFactory.newUserServices()).thenReturn(userServices);
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
-		when(modelLayerFactory.newWorkflowBPMNDefinitionsService()).thenReturn(workflowBPMNDefinitionsService);
-		when(modelLayerFactory.getWorkflowsConfigManager()).thenReturn(workflowsConfigManager);
-		when(modelLayerFactory.getWorkflowExecutionIndexManager()).thenReturn(workflowExecutionIndexManager);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
