@@ -1,0 +1,40 @@
+include "constellio",
+        "constellio:data",
+        "constellio:model",
+        "constellio:app",
+        "constellio:sdk"
+
+if (new File(rootDir, "./constellio-plugins").exists()) {
+    // Add new plugins below with the right name
+    
+    include "constellio-plugins",
+            "constellio-plugins:sdk",
+            "constellio-plugins:importation",
+            "constellio-plugins:plugin001",
+            "constellio-plugins:plugin002",
+            "constellio-plugins:plugin003",
+            "constellio-plugins:plugin004",
+            "constellio-plugins:plugin005",
+            "constellio-plugins:plugin006",
+            "constellio-plugins:plugin007",
+            "constellio-plugins:plugin008",
+            "constellio-plugins:plugin009",
+            "constellio-plugins:plugin010",
+            "constellio-plugins:plugin011",
+            "constellio-plugins:plugin012",
+            "constellio-plugins:plugin013",
+            "constellio-plugins:plugin014",
+            "constellio-plugins:plugin015",
+            "constellio-plugins:plugin016",
+            "constellio-plugins:plugin017",
+            "constellio-plugins:plugin018",
+            "constellio-plugins:plugin019",
+            "constellio-plugins:plugin020",
+            "constellio-plugins:plugin021",
+            "constellio-plugins:plugin023",
+            "constellio-plugins:plugin024",
+            "constellio-plugins:plugin025",
+            "constellio-plugins:plugin026",
+            "constellio-plugins:plugin027",
+            "constellio-plugins:plugin666"
+}
