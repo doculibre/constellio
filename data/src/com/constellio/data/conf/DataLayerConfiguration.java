@@ -87,4 +87,12 @@ public interface DataLayerConfiguration extends Serializable {
 	String createRandomUniqueKey();
 
 	void setHashingEncoding(HashingEncoding encoding);
+	
+	String getKafkaServers();
+	
+	String getSecondTransactionLogMode();
+	
+	String getKafkaTopic();
+	
+	long getReplayTransactionStartVersion();
 }
