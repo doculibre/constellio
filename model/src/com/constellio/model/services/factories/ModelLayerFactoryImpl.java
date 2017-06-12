@@ -97,7 +97,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final RolesManager rolesManager;
 	private final EmailConfigurationsManager emailConfigurationsManager;
 	private final CollectionsListManager collectionsListManager;
-	private final UserCredentialsManager userCredentialsManager;
 	private final GlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
@@ -163,7 +162,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
 		//				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
-		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
 		//this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
 		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
 		this.authorizationDetailsManager = add(
@@ -305,7 +303,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public UserCredentialsManager getUserCredentialsManager() {
-		return userCredentialsManager;
+		return new SolrUserCredentialsManager(this);
 	}
 
 	public StoredBatchProcessProgressionServices getStoredBatchProcessProgressionServices() {

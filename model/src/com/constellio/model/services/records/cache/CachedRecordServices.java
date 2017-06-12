@@ -14,10 +14,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
-import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
@@ -71,6 +70,8 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public List<Record> getRecordsById(String collection,
 			List<String> ids) {
 
+		//TODO
+
 		//		RecordsCache cache = recordsCaches.getCache(collection);
 		//		List<Record> records = new ArrayList<>();
 		//		List<String> unfoundIds = new ArrayList<>();
@@ -98,11 +99,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public void refresh(List<?> records) {
 		recordServices.refresh(records);
-	}
-
-	@Override
-	public List<String> getRecordTitles(String collection, List<String> recordIds) {
-		return recordServices.getRecordTitles(collection, recordIds);
 	}
 
 	//These services are not cached

@@ -10,6 +10,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class Toggle {
 
+	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
+
 	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();
 	public static AvailableToggle USE_LATEST_BATCH_INSTEAD_OF_EXCEPTION = newToggle();
 

@@ -49,6 +49,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
@@ -180,9 +181,8 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 		return modelLayerFactory.getCollectionsListManager();
 	}
 
-	@Override
 	public UserCredentialsManager getUserCredentialsManager() {
-		return modelLayerFactory.getUserCredentialsManager();
+		return new SolrUserCredentialsManager(this);
 	}
 
 	@Override

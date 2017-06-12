@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RecordsCacheRequestImpl implements RecordsCache {
@@ -25,8 +27,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		if (cache.containsKey(id)) {
 			return cache.get(id).getCopyOfOriginalRecord();
 		}
-		System.out.println("get " + id);
-		return nested.get(id);
+		Record record = nested.get(id);
+		if (record != null) {
+			insertInRequestcache(record);
+		}
+		return record;
 	}
 
 	@Override
@@ -85,7 +90,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 
 	@Override
 	public void invalidateRecordsOfType(String recordType) {
-		for (Map.Entry<String, Record> entry : cache.entrySet()) {
+		for (Map.Entry<String, Record> entry : new ArrayList<>(cache.entrySet())) {
 			if (entry.getValue().getTypeCode().equals(recordType)) {
 				cache.remove(entry.getKey());
 			}
@@ -102,6 +107,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 
 	@Override
 	public void invalidate(String recordId) {
+
 		cache.remove(recordId);
 		nested.invalidate(recordId);
 	}
@@ -129,7 +135,23 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
-		return nested.getByMetadata(metadata, value);
+
+		String metadataTypeCode = SchemaUtils.getSchemaTypeCode(metadata.getSchemaCode());
+		for (Record cachedRecord : cache.values()) {
+			//if (cachedRecord.getTypeCode().equals(metadataTypeCode)) {
+			Object recordValue = cachedRecord.get(metadata);
+			if (recordValue != null && recordValue.equals(value)) {
+				return cachedRecord;
+			}
+			//}
+		}
+
+		Record record = nested.getByMetadata(metadata, value);
+		if (record != null) {
+			cache.put(record.getId(), record);
+		}
+
+		return record;
 	}
 
 	@Override

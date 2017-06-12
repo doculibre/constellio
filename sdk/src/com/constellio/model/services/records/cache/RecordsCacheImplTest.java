@@ -30,6 +30,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerSystemExtensions;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCacheImpl.RecordHolder;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
@@ -42,6 +44,9 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class RecordsCacheImplTest extends ConstellioTest {
+
+	@Mock ModelLayerSystemExtensions systemExtensions;
+	@Mock ModelLayerExtensions extensions;
 
 	@Mock User user;
 	@Mock SearchBoost searchBoost;
@@ -64,6 +69,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		zeTypeCodeMetadata = mockManualMetadata("zeType_default_code", MetadataValueType.STRING);
 		anotherTypeCodeMetadata = mockManualMetadata("anotherType_default_code", MetadataValueType.STRING);
 		anotherTypeLegacyIdMetadata = mockManualMetadata("anotherType_default_legacyId", MetadataValueType.STRING);
+
+		when(modelLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
 	}
 
 	@Test

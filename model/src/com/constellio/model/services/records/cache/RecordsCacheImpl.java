@@ -66,12 +66,12 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public Record get(String id) {
+
 		compteur.incrementAndGet();
 		synchronized (RecordsCacheImpl.class) {
 			ids.add(id);
 		}
 
-		System.out.println("get " + compteur.get());
 		RecordHolder holder = cacheById.get(id);
 
 		Record copy = null;
@@ -115,6 +115,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				insert(record);
 			}
 
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
 			cache.queryResults.put(signature.toStringSignature(), recordIds);
 		}
 	}
@@ -168,6 +169,10 @@ public class RecordsCacheImpl implements RecordsCache {
 					cachedResults.add(get(recordId));
 				}
 				cachedResults = Collections.unmodifiableList(cachedResults);
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheHit(signature, 0);
+
+			} else {
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheMiss(signature, 0);
 			}
 
 		}
@@ -189,6 +194,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				Record previousRecord = null;
 
 				synchronized (this) {
+					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);
 					RecordHolder holder = cacheById.get(recordCopy.getId());
 					if (holder != null) {
 						previousRecord = holder.record;
@@ -234,6 +240,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			Record previousRecord = null;
 
 			synchronized (this) {
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);
 				RecordHolder holder = cacheById.get(recordCopy.getId());
 				if (holder != null) {
 					previousRecord = holder.record;
@@ -382,6 +389,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (recordByMetadataCache != null) {
 			foundRecord = recordByMetadataCache.getByMetadata(metadata.getLocalCode(), value);
 		}
+
+		if (foundRecord == null) {
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByUniqueMetadataCacheMiss(metadata, value, 0);
+		} else {
+			modelLayerFactory.getExtensions().getSystemWideExtensions()
+					.onGetByUniqueMetadataCacheHit(foundRecord, metadata, value, 0);
+		}
+
 		return foundRecord;
 	}
 

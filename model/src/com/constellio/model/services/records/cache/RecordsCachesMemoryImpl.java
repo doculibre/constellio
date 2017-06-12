@@ -68,10 +68,22 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		for (RecordsCache cache : collectionsCache.values()) {
 			Record record = cache.get(id);
 			if (record != null) {
+				onCacheHit(record);
 				return record;
 			}
 		}
+
+		onCacheMiss(id);
+
 		return null;
+	}
+
+	protected void onCacheMiss(String id) {
+		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheMiss(id, 0);
+	}
+
+	protected void onCacheHit(Record record) {
+		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheHit(record, 0);
 	}
 
 	public void invalidateAll() {

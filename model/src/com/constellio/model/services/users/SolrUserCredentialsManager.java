@@ -13,7 +13,6 @@ import java.util.Map.Entry;
 
 import org.joda.time.LocalDateTime;
 
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
@@ -27,21 +26,19 @@ import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserCredentialsManagerRuntimeException.UserCredentialsManagerRuntimeException_CannotExecuteTransaction;
 
-public class SolrUserCredentialsManager implements UserCredentialsManager, SystemCollectionListener {
+public class SolrUserCredentialsManager implements UserCredentialsManager {
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
 
 	public SolrUserCredentialsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
-		modelLayerFactory.addSystemCollectionListener(this);
 		searchServices = modelLayerFactory.newSearchServices();
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
@@ -89,7 +86,10 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn, String jobTitle, String phone, String fax, String address) {
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+			String dn, String jobTitle, String phone, String fax, String address) {
 		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
@@ -334,11 +334,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	@Override
 	public void close() {
 		// Nothing to be done
-	}
-
-	@Override
-	public void systemCollectionCreated() {
-
 	}
 
 	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {
