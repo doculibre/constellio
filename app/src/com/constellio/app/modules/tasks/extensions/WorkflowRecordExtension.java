@@ -6,10 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -23,12 +23,12 @@ public class WorkflowRecordExtension extends RecordExtension {
 
 	RecordServices recordServices;
 	TasksSchemasRecordsServices tasks;
-	WorkflowServices workflowServices;
+	BetaWorkflowServices workflowServices;
 
 	public WorkflowRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		this.workflowServices = new WorkflowServices(collection, appLayerFactory);
+		this.workflowServices = new BetaWorkflowServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class WorkflowRecordExtension extends RecordExtension {
 	private void taskStatusModified(Task task)
 			throws RecordServicesException {
 
-		WorkflowInstance workflowInstance = tasks.getWorkflowInstance(task.getWorkflowInstance());
+		BetaWorkflowInstance workflowInstance = tasks.getBetaWorkflowInstance(task.getWorkflowInstance());
 		String nextModelTaskId = task.getNextTask(task.getDecision());
 		if (nextModelTaskId != null) {
 			Transaction transaction = new Transaction();

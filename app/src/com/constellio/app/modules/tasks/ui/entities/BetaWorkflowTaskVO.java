@@ -2,7 +2,7 @@ package com.constellio.app.modules.tasks.ui.entities;
 
 import java.io.Serializable;
 
-public class WorkflowTaskVO implements Serializable {
+public class BetaWorkflowTaskVO implements Serializable {
 
 	TaskVO taskVO;
 
@@ -64,7 +64,7 @@ public class WorkflowTaskVO implements Serializable {
 		this.title = title;
 	}
 
-	public boolean hasSameIdDecision(WorkflowTaskVO workflowTaskVO) {
+	public boolean hasSameIdDecision(BetaWorkflowTaskVO workflowTaskVO) {
 		return equals(id, workflowTaskVO.getId()) && equals(decision, workflowTaskVO.getDecision());
 	}
 
@@ -96,7 +96,7 @@ public class WorkflowTaskVO implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		WorkflowTaskVO other = (WorkflowTaskVO) obj;
+		BetaWorkflowTaskVO other = (BetaWorkflowTaskVO) obj;
 		if (decision == null) {
 			if (other.decision != null)
 				return false;

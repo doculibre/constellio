@@ -13,10 +13,13 @@ import com.constellio.model.entities.calculators.dependencies.SpecialDependencie
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
+/**
+ * *** USED BY BETA_WORKFLOW BETA ***
+ */
 public class WorkflowTaskSortCalculator implements MetadataValueCalculator<Double> {
 	SpecialDependency<String> identifierParam = SpecialDependencies.IDENTIFIER;
 	ReferenceDependency<List<Double>> childrenIndexesParam = ReferenceDependency
-			.toANumber(Task.NEXT_TASKS, Task.WORKFLOW_TASK_SORT).whichIsMultivalue();
+			.toANumber(Task.BETA_NEXT_TASKS, Task.BETA_WORKFLOW_TASK_SORT).whichIsMultivalue();
 
 	@Override
 	public Double calculate(CalculatorParameters parameters) {

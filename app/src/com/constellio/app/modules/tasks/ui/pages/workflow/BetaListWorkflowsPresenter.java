@@ -1,9 +1,9 @@
 package com.constellio.app.modules.tasks.ui.pages.workflow;
 
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -14,11 +14,11 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkflowsView> {
-	private transient WorkflowServices workflowServices;
+public class BetaListWorkflowsPresenter extends SingleSchemaBasePresenter<BetaListWorkflowsView> {
+	private transient BetaWorkflowServices workflowServices;
 
-	public ListWorkflowsPresenter(ListWorkflowsView view) {
-		super(view, Workflow.DEFAULT_SCHEMA);
+	public BetaListWorkflowsPresenter(BetaListWorkflowsView view) {
+		super(view, BetaWorkflow.DEFAULT_SCHEMA);
 	}
 
 	public void addButtonClicked() {
@@ -31,7 +31,7 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 
 	public RecordVODataProvider getWorkflows() {
 		MetadataSchemaVO schema = new MetadataSchemaToVOBuilder()
-				.build(schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+				.build(schema(BetaWorkflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
@@ -58,9 +58,9 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 		return user.has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
 	}
 
-	private WorkflowServices workflowServices() {
+	private BetaWorkflowServices workflowServices() {
 		if (workflowServices == null) {
-			workflowServices = new WorkflowServices(view.getCollection(), appLayerFactory);
+			workflowServices = new BetaWorkflowServices(view.getCollection(), appLayerFactory);
 		}
 		return workflowServices;
 	}

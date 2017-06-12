@@ -5,16 +5,16 @@ import java.util.List;
 
 import org.joda.time.LocalDate;
 
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
-import com.constellio.app.modules.tasks.ui.builders.WorkflowInstanceToVoBuilder;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
+import com.constellio.app.modules.tasks.ui.builders.BetaWorkflowInstanceToVoBuilder;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowInstanceVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskProgressionVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowInstanceVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -22,17 +22,17 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 
-public class DisplayWorkflowInstancePresenter extends SingleSchemaBasePresenter<DisplayWorkflowInstanceView> {
-	private WorkflowInstanceVO workflowInstanceVO;
-	private List<WorkflowTaskProgressionVO> workflowTaskProgressionVOs;
-	private transient WorkflowServices workflowServices;
+public class BetaDisplayWorkflowInstancePresenter extends SingleSchemaBasePresenter<BetaDisplayWorkflowInstanceView> {
+	private BetaWorkflowInstanceVO workflowInstanceVO;
+	private List<BetaWorkflowTaskProgressionVO> workflowTaskProgressionVOs;
+	private transient BetaWorkflowServices workflowServices;
 	private transient TasksSchemasRecordsServices tasksSchemas;
-	private WorkflowInstanceToVoBuilder workflowInstanceToVoBuilder;
+	private BetaWorkflowInstanceToVoBuilder workflowInstanceToVoBuilder;
 
-	public DisplayWorkflowInstancePresenter(DisplayWorkflowInstanceView view) {
-		super(view, Workflow.DEFAULT_SCHEMA);
+	public BetaDisplayWorkflowInstancePresenter(BetaDisplayWorkflowInstanceView view) {
+		super(view, BetaWorkflow.DEFAULT_SCHEMA);
 		initTransientObjects();
-		workflowInstanceToVoBuilder = new WorkflowInstanceToVoBuilder();
+		workflowInstanceToVoBuilder = new BetaWorkflowInstanceToVoBuilder();
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -42,7 +42,7 @@ public class DisplayWorkflowInstancePresenter extends SingleSchemaBasePresenter<
 	}
 
 	private void initTransientObjects() {
-		workflowServices = new WorkflowServices(collection, appLayerFactory);
+		workflowServices = new BetaWorkflowServices(collection, appLayerFactory);
 		tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 	}
 
@@ -58,16 +58,16 @@ public class DisplayWorkflowInstancePresenter extends SingleSchemaBasePresenter<
 		view.setWorkflowInstanceVO(workflowInstanceVO);
 
 		SessionContext sessionContext = view.getSessionContext();
-		WorkflowInstance workflowInstance = new WorkflowInstance(workflowInstanceRecord, types());
+		BetaWorkflowInstance workflowInstance = new BetaWorkflowInstance(workflowInstanceRecord, types());
 
 		workflowTaskProgressionVOs = workflowServices.getRootModelTaskProgressionsVOs(workflowInstance, sessionContext);
 		view.setWorkflowTaskProgressionVOs(workflowTaskProgressionVOs);
 	}
 
-	List<WorkflowTaskProgressionVO> getChildren(WorkflowTaskProgressionVO parent) {
+	List<BetaWorkflowTaskProgressionVO> getChildren(BetaWorkflowTaskProgressionVO parent) {
 		String workflowInstanceId = workflowInstanceVO.getId();
 		Record workflowInstanceRecord = getRecord(workflowInstanceId);
-		WorkflowInstance workflowInstance = new WorkflowInstance(workflowInstanceRecord, types());
+		BetaWorkflowInstance workflowInstance = new BetaWorkflowInstance(workflowInstanceRecord, types());
 		SessionContext sessionContext = view.getSessionContext();
 		return workflowServices.getChildModelTaskProgressions(workflowInstance, parent.getWorkflowTaskVO(), sessionContext);
 	}
@@ -76,13 +76,13 @@ public class DisplayWorkflowInstancePresenter extends SingleSchemaBasePresenter<
 		view.navigate().to(TaskViews.class).taskManagement();
 	}
 
-	boolean isFinished(WorkflowTaskProgressionVO workflowTaskProgressionVO) {
+	boolean isFinished(BetaWorkflowTaskProgressionVO workflowTaskProgressionVO) {
 		TaskVO taskVO = workflowTaskProgressionVO.getWorkflowTaskVO().getTaskVO();
 		TaskStatus status = tasksSchemas.getTaskStatus(taskVO.getStatus());
 		return status.isFinished();
 	}
 
-	boolean isTaskOverDue(WorkflowTaskProgressionVO workflowTaskProgressionVO) {
+	boolean isTaskOverDue(BetaWorkflowTaskProgressionVO workflowTaskProgressionVO) {
 		TaskVO task = workflowTaskProgressionVO.getWorkflowTaskVO().getTaskVO();
 		LocalDate dueDate = task.getDueDate();
 		if (dueDate == null) {

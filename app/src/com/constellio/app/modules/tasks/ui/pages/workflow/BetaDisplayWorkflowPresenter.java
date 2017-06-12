@@ -10,14 +10,14 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
-import com.constellio.app.modules.tasks.services.WorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
-import com.constellio.app.modules.tasks.ui.builders.WorkflowToVoBuilder;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowVO;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
+import com.constellio.app.modules.tasks.ui.builders.BetaWorkflowToVoBuilder;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -33,16 +33,16 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayWorkflowView> {
-	private WorkflowVO workflowVO;
-	private List<WorkflowTaskVO> workflowTaskVOs;
-	private transient WorkflowServices workflowServices;
-	private WorkflowToVoBuilder workflowToVoBuilder;
+public class BetaDisplayWorkflowPresenter extends SingleSchemaBasePresenter<BetaDisplayWorkflowView> {
+	private BetaWorkflowVO workflowVO;
+	private List<BetaWorkflowTaskVO> workflowTaskVOs;
+	private transient BetaWorkflowServices workflowServices;
+	private BetaWorkflowToVoBuilder workflowToVoBuilder;
 
-	public DisplayWorkflowPresenter(DisplayWorkflowView view) {
-		super(view, Workflow.DEFAULT_SCHEMA);
+	public BetaDisplayWorkflowPresenter(BetaDisplayWorkflowView view) {
+		super(view, BetaWorkflow.DEFAULT_SCHEMA);
 		initTransientObjects();
-		workflowToVoBuilder = new WorkflowToVoBuilder();
+		workflowToVoBuilder = new BetaWorkflowToVoBuilder();
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -52,7 +52,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	}
 
 	private void initTransientObjects() {
-		workflowServices = new WorkflowServices(collection, appLayerFactory);
+		workflowServices = new BetaWorkflowServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		view.setWorkflowVO(workflowVO);
 
 		SessionContext sessionContext = view.getSessionContext();
-		Workflow workflow = new Workflow(workflowRecord, types());
+		BetaWorkflow workflow = new BetaWorkflow(workflowRecord, types());
 		workflowTaskVOs = workflowServices.getRootModelTaskVOs(workflow, sessionContext);
 		view.setWorkflowTaskVOs(workflowTaskVOs);
 
@@ -85,7 +85,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		});
 	}
 
-	List<WorkflowTaskVO> getChildren(WorkflowTaskVO parent) {
+	List<BetaWorkflowTaskVO> getChildren(BetaWorkflowTaskVO parent) {
 		SessionContext sessionContext = view.getSessionContext();
 		return workflowServices.getChildModelTasks(parent, sessionContext);
 	}
@@ -110,15 +110,15 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	public void addTaskButtonClicked() {
 		String workflowId = workflowVO.getId();
 		SessionContext sessionContext = view.getSessionContext();
-		List<WorkflowTaskVO> availableTaskVOs = workflowServices.getAvailableWorkflowTaskVOForNewTask(workflowId, sessionContext);
+		List<BetaWorkflowTaskVO> availableTaskVOs = workflowServices.getAvailableWorkflowTaskVOForNewTask(workflowId, sessionContext);
 		view.openAddTaskWindow(null, availableTaskVOs);
 	}
 
-	void createTaskSelected(WorkflowTaskVO workflowTaskVOBefore) {
+	void createTaskSelected(BetaWorkflowTaskVO workflowTaskVOBefore) {
 		String workflowId = workflowVO.getId();
 		SessionContext sessionContext = view.getSessionContext();
 		if (workflowServices.canAddTaskIn(workflowTaskVOBefore, sessionContext)) {
-			List<WorkflowTaskVO> availableTaskVOs = workflowServices
+			List<BetaWorkflowTaskVO> availableTaskVOs = workflowServices
 					.getAvailableWorkflowTaskVOForNewTask(workflowId, sessionContext);
 			if (!availableTaskVOs.isEmpty()) {
 				view.openAddTaskWindow(workflowTaskVOBefore, availableTaskVOs);
@@ -126,22 +126,22 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		}
 	}
 
-	void createExistingTaskSelected(WorkflowTaskVO workflowTaskVOBefore) {
+	void createExistingTaskSelected(BetaWorkflowTaskVO workflowTaskVOBefore) {
 		String workflowId = workflowVO.getId();
 		SessionContext sessionContext = view.getSessionContext();
 		if (workflowServices.canAddTaskIn(workflowTaskVOBefore, sessionContext)) {
-			List<WorkflowTaskVO> availableTaskVOs = workflowServices
+			List<BetaWorkflowTaskVO> availableTaskVOs = workflowServices
 					.getAvailableWorkflowTaskVOForNewTask(workflowId, sessionContext);
 			if (!availableTaskVOs.isEmpty()) {
 				//				if (availableTaskVOs.contains(workflowTaskVOBefore)) {
 				availableTaskVOs.remove(workflowTaskVOBefore);
-				List<WorkflowTaskVO> toDelete = new ArrayList<>();
-				for (WorkflowTaskVO availableTaskVO : availableTaskVOs) {
+				List<BetaWorkflowTaskVO> toDelete = new ArrayList<>();
+				for (BetaWorkflowTaskVO availableTaskVO : availableTaskVOs) {
 					if (availableTaskVO.getDecision() != null) {
 						toDelete.add(availableTaskVO);
 					}
 				}
-				for (WorkflowTaskVO workflowTaskVO : toDelete) {
+				for (BetaWorkflowTaskVO workflowTaskVO : toDelete) {
 					availableTaskVOs.remove(workflowTaskVO);
 				}
 				//				}
@@ -150,18 +150,18 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		}
 	}
 
-	boolean isDecisionField(WorkflowTaskVO workflowTaskVO) {
+	boolean isDecisionField(BetaWorkflowTaskVO workflowTaskVO) {
 		SessionContext sessionContext = view.getSessionContext();
 		return workflowServices.canAddDecisionTaskIn(workflowTaskVO, sessionContext);
 	}
 
-	void editTaskSelected(WorkflowTaskVO workflowTaskVO) {
+	void editTaskSelected(BetaWorkflowTaskVO workflowTaskVO) {
 		String taskId = workflowTaskVO.getTaskVO().getId();
 		String workflowId = workflowVO.getId();
 		view.navigate().to().editTask(taskId, workflowId);
 	}
 
-	void deleteTaskSelected(WorkflowTaskVO workflowTaskVO) {
+	void deleteTaskSelected(BetaWorkflowTaskVO workflowTaskVO) {
 		if (workflowTaskVO.getDecision() != null) {
 			view.showMessage($("DisplayWorkflowView.cannotDeleteDecisionTask"));
 		} else {
@@ -173,11 +173,11 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	}
 
 	public void saveNewTaskButtonClicked(String taskType, String taskTitle, List<String> decisions,
-			WorkflowTaskVO workflowTaskVO) {
+			BetaWorkflowTaskVO workflowTaskVO) {
 		try {
 			SessionContext sessionContext = view.getSessionContext();
 			Record workflowRecord = toRecord(workflowVO);
-			Workflow workflow = new Workflow(workflowRecord, types());
+			BetaWorkflow workflow = new BetaWorkflow(workflowRecord, types());
 			if (!decisions.isEmpty()) {
 				workflowServices.createDecisionModelTaskAfter(workflow, workflowTaskVO, taskType, taskTitle, decisions,
 						sessionContext);
@@ -196,7 +196,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		view.closeAddTaskWindow();
 	}
 
-	public boolean moveAfter(WorkflowTaskVO droppedItemId, WorkflowTaskVO targetItemId) {
+	public boolean moveAfter(BetaWorkflowTaskVO droppedItemId, BetaWorkflowTaskVO targetItemId) {
 		boolean allow;
 		SessionContext sessionContext = view.getSessionContext();
 		if (StringUtils.isBlank(droppedItemId.getDecision())) {
@@ -215,7 +215,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		return allow;
 	}
 
-	public boolean addExistingTaskAfter(WorkflowTaskVO existingItemId, WorkflowTaskVO targetItemId) {
+	public boolean addExistingTaskAfter(BetaWorkflowTaskVO existingItemId, BetaWorkflowTaskVO targetItemId) {
 		boolean allow;
 		SessionContext sessionContext = view.getSessionContext();
 		if (StringUtils.isBlank(existingItemId.getDecision())) {

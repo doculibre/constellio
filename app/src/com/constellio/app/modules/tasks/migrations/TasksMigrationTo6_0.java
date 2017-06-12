@@ -13,8 +13,8 @@ import com.constellio.app.modules.tasks.model.calculators.DecisionsTasksCalculat
 import com.constellio.app.modules.tasks.model.calculators.WorkflowTaskSortCalculator;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -54,7 +54,7 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 				.addToForm(Task.DECISION, Task.RELATIVE_DUE_DATE)
 				.atTheEnd()
 				.in(Task.SCHEMA_TYPE)
-				.addToDisplay(Task.DECISION, Task.WORKFLOW, Task.WORKFLOW_INSTANCE, Task.RELATIVE_DUE_DATE)
+				.addToDisplay(Task.DECISION, Task.BETA_WORKFLOW, Task.BETA_WORKFLOW_INSTANCE, Task.RELATIVE_DUE_DATE)
 				.atTheEnd();
 		manager.execute(transactionBuilder.build());
 	}
@@ -86,19 +86,19 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder userSchemaType = typesBuilder.getSchemaType(User.SCHEMA_TYPE);
 
-			MetadataSchemaTypeBuilder workflowSchemaType = typesBuilder.createNewSchemaType(Workflow.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder workflowSchemaType = typesBuilder.createNewSchemaType(BetaWorkflow.SCHEMA_TYPE);
 			workflowSchemaType.setSecurity(false);
 			MetadataSchemaBuilder workflowSchema = workflowSchemaType.getDefaultSchema();
-			workflowSchema.create(Workflow.CODE).setType(STRING).setUniqueValue(true);
+			workflowSchema.create(BetaWorkflow.CODE).setType(STRING).setUniqueValue(true);
 
-			MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.createNewSchemaType(WorkflowInstance.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.createNewSchemaType(BetaWorkflowInstance.SCHEMA_TYPE);
 			workflowInstanceSchemaType.setSecurity(false);
 			MetadataSchemaBuilder workflowInstanceSchema = workflowInstanceSchemaType.getDefaultSchema();
-			workflowInstanceSchema.create(WorkflowInstance.STARTED_BY).defineReferencesTo(userSchemaType);
-			workflowInstanceSchema.create(WorkflowInstance.STARTED_ON).setType(MetadataValueType.DATE_TIME);
-			workflowInstanceSchema.create(WorkflowInstance.STATUS).defineAsEnum(WorkflowInstanceStatus.class);
-			workflowInstanceSchema.create(WorkflowInstance.WORKFLOW).defineReferencesTo(workflowSchemaType);
-			workflowInstanceSchema.create(WorkflowInstance.EXTRA_FIELDS)
+			workflowInstanceSchema.create(BetaWorkflowInstance.STARTED_BY).defineReferencesTo(userSchemaType);
+			workflowInstanceSchema.create(BetaWorkflowInstance.STARTED_ON).setType(MetadataValueType.DATE_TIME);
+			workflowInstanceSchema.create(BetaWorkflowInstance.STATUS).defineAsEnum(WorkflowInstanceStatus.class);
+			workflowInstanceSchema.create(BetaWorkflowInstance.WORKFLOW).defineReferencesTo(workflowSchemaType);
+			workflowInstanceSchema.create(BetaWorkflowInstance.EXTRA_FIELDS)
 					.defineStructureFactory(MapStringListStringStructureFactory.class);
 
 			MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.getSchemaType(Task.SCHEMA_TYPE);
@@ -108,18 +108,18 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 					typesBuilder.getDefaultSchema(TaskStatus.SCHEMA_TYPE).getMetadata(TaskStatus.STATUS_TYPE)
 			);
 
-			taskSchema.create(Task.WORKFLOW).defineReferencesTo(workflowSchemaType);
+			taskSchema.create(Task.BETA_WORKFLOW).defineReferencesTo(workflowSchemaType);
 			taskSchema.create(Task.MODEL_TASK).defineReferencesTo(taskSchemaType);
 			taskSchema.create(Task.DECISION).setType(MetadataValueType.STRING);
-			taskSchema.create(Task.WORKFLOW_INSTANCE).defineReferencesTo(workflowInstanceSchemaType);
+			taskSchema.create(Task.BETA_WORKFLOW_INSTANCE).defineReferencesTo(workflowInstanceSchemaType);
 			taskSchema.create(Task.IS_MODEL).setType(MetadataValueType.BOOLEAN);
-			taskSchema.create(Task.NEXT_TASK_CREATED).setType(MetadataValueType.BOOLEAN);
-			taskSchema.create(Task.WORKFLOW_TASK_SORT).setType(MetadataValueType.NUMBER)
+			taskSchema.create(Task.BETA_NEXT_TASK_CREATED).setType(MetadataValueType.BOOLEAN);
+			taskSchema.create(Task.BETA_WORKFLOW_TASK_SORT).setType(MetadataValueType.NUMBER)
 					.defineDataEntry().asCalculated(WorkflowTaskSortCalculator.class);
-			taskSchema.create(Task.NEXT_TASKS).setType(MetadataValueType.REFERENCE).setMultivalue(true)
+			taskSchema.create(Task.BETA_NEXT_TASKS).setType(MetadataValueType.REFERENCE).setMultivalue(true)
 					.defineReferencesTo(taskSchemaType)
 					.defineDataEntry().asCalculated(DecisionsTasksCalculator.class);
-			taskSchema.create(Task.NEXT_TASKS_DECISIONS).defineStructureFactory(MapStringStringStructureFactory.class);
+			taskSchema.create(Task.BETA_NEXT_TASKS_DECISIONS).defineStructureFactory(MapStringStringStructureFactory.class);
 			taskSchema.create(Task.RELATIVE_DUE_DATE).setType(MetadataValueType.NUMBER);
 
 		}

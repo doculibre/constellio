@@ -6,11 +6,11 @@ import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 
-public class WorkflowTaskProgressionVO implements Serializable {
+public class BetaWorkflowTaskProgressionVO implements Serializable {
 
 	String title;
 
-	WorkflowTaskVO workflowTaskVO;
+	BetaWorkflowTaskVO workflowTaskVO;
 
 	String decision;
 
@@ -26,11 +26,11 @@ public class WorkflowTaskProgressionVO implements Serializable {
 		this.title = title;
 	}
 
-	public WorkflowTaskVO getWorkflowTaskVO() {
+	public BetaWorkflowTaskVO getWorkflowTaskVO() {
 		return workflowTaskVO;
 	}
 
-	public void setWorkflowTaskVO(WorkflowTaskVO workflowTaskVO) {
+	public void setWorkflowTaskVO(BetaWorkflowTaskVO workflowTaskVO) {
 		this.workflowTaskVO = workflowTaskVO;
 	}
 

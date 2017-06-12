@@ -12,15 +12,15 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
-import com.constellio.app.modules.tasks.services.WorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
-import com.constellio.app.modules.tasks.services.WorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedMove;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedMove;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskProgressionVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -38,14 +38,14 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class WorkflowServices {
+public class BetaWorkflowServices {
 	String collection;
 	SearchServices searchServices;
 	RecordServices recordServices;
 	AppLayerFactory appLayerFactory;
 	TasksSchemasRecordsServices tasks;
 
-	public WorkflowServices(String collection, AppLayerFactory appLayerFactory) {
+	public BetaWorkflowServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
@@ -53,53 +53,54 @@ public class WorkflowServices {
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 	}
 
-	public List<Workflow> getWorkflows() {
-		return tasks.searchWorkflows(getWorkflowsQuery());
+	public List<BetaWorkflow> getWorkflows() {
+		return tasks.searchBetaWorkflows(getWorkflowsQuery());
 	}
 
 	public LogicalSearchQuery getWorkflowsQuery() {
-		return new LogicalSearchQuery(from(tasks.workflow.schemaType()).returnAll())
+		return new LogicalSearchQuery(from(tasks.betaWorkflow.schemaType()).returnAll())
 				.sortAsc(Schemas.TITLE).filteredByStatus(StatusFilter.ACTIVES);
 	}
 
-	public List<WorkflowInstance> getCurrentWorkflowInstances() {
-		return tasks.searchWorkflowInstances(getCurrentWorkflowInstancesQuery());
+	public List<BetaWorkflowInstance> getCurrentWorkflowInstances() {
+		return tasks.searchBetaWorkflowInstances(getCurrentWorkflowInstancesQuery());
 	}
 
 	public LogicalSearchQuery getCurrentWorkflowInstancesQuery() {
-		return new LogicalSearchQuery(from(tasks.workflowInstance.schemaType())
-				.where(tasks.workflowInstance.status()).isEqualTo(WorkflowInstanceStatus.IN_PROGRESS))
+		return new LogicalSearchQuery(from(tasks.betaWorkflowInstance.schemaType())
+				.where(tasks.betaWorkflowInstance.status()).isEqualTo(WorkflowInstanceStatus.IN_PROGRESS))
 				.sortAsc(Schemas.TITLE);
 	}
 
-	public List<WorkflowTaskProgressionVO> getFlattenModelTaskProgressionVOs(
-			WorkflowInstance workflowInstance, SessionContext sessionContext) {
-		List<WorkflowTaskProgressionVO> taskProgressionVOs = new ArrayList<>();
-		Workflow workflow = tasks.getWorkflow(workflowInstance.getWorkflow());
+	public List<BetaWorkflowTaskProgressionVO> getFlattenModelTaskProgressionVOs(
+			BetaWorkflowInstance workflowInstance, SessionContext sessionContext) {
+		List<BetaWorkflowTaskProgressionVO> taskProgressionVOs = new ArrayList<>();
+		BetaWorkflow workflow = tasks.getBetaWorkflow(workflowInstance.getWorkflow());
 
-		for (WorkflowTaskVO taskVO : getFlattenModelTaskVOs(workflow, sessionContext)) {
+		for (BetaWorkflowTaskVO taskVO : getFlattenModelTaskVOs(workflow, sessionContext)) {
 			taskProgressionVOs.add(getTaskProgression(workflowInstance, taskVO));
 		}
 
 		return taskProgressionVOs;
 	}
 
-	public List<WorkflowTaskVO> getFlattenModelTaskVOs(Workflow workflow, SessionContext sessionContext) {
-		List<WorkflowTaskVO> tasks = new ArrayList<>();
+	public List<BetaWorkflowTaskVO> getFlattenModelTaskVOs(BetaWorkflow workflow, SessionContext sessionContext) {
+		List<BetaWorkflowTaskVO> tasks = new ArrayList<>();
 
-		for (WorkflowTaskVO task : getRootModelTaskVOs(workflow, sessionContext)) {
+		for (BetaWorkflowTaskVO task : getRootModelTaskVOs(workflow, sessionContext)) {
 			tasks.addAll(getAllTasksInHierarchy(task, sessionContext));
 		}
 		return tasks;
 	}
 
-	private WorkflowTaskProgressionVO getTaskProgression(WorkflowInstance workflowInstance, WorkflowTaskVO workflowTaskVO) {
+	private BetaWorkflowTaskProgressionVO getTaskProgression(BetaWorkflowInstance workflowInstance,
+			BetaWorkflowTaskVO workflowTaskVO) {
 		Task instanceTask = tasks.wrapTask(searchServices.searchSingleResult(from(tasks.userTask.schemaType())
-				.where(tasks.userTask.workflowInstance()).isEqualTo(workflowInstance)
+				.where(tasks.userTask.betaWorkflowInstance()).isEqualTo(workflowInstance)
 				.andWhere(tasks.userTask.modelTask()).isEqualTo(workflowTaskVO.getId())
 		));
 
-		WorkflowTaskProgressionVO workflowTaskProgressionVO = new WorkflowTaskProgressionVO();
+		BetaWorkflowTaskProgressionVO workflowTaskProgressionVO = new BetaWorkflowTaskProgressionVO();
 		workflowTaskProgressionVO.setDecision(workflowTaskVO.getDecision());
 		workflowTaskProgressionVO.setWorkflowTaskVO(workflowTaskVO);
 		workflowTaskProgressionVO.setTitle(workflowTaskVO.getTitle());
@@ -113,17 +114,17 @@ public class WorkflowServices {
 
 	}
 
-	private List<WorkflowTaskVO> getAllTasksInHierarchy(WorkflowTaskVO task, SessionContext sessionContext) {
-		List<WorkflowTaskVO> taskVOs = new ArrayList<>();
+	private List<BetaWorkflowTaskVO> getAllTasksInHierarchy(BetaWorkflowTaskVO task, SessionContext sessionContext) {
+		List<BetaWorkflowTaskVO> taskVOs = new ArrayList<>();
 		taskVOs.add(task);
-		for (WorkflowTaskVO child : getChildModelTasks(task, sessionContext)) {
+		for (BetaWorkflowTaskVO child : getChildModelTasks(task, sessionContext)) {
 			taskVOs.addAll(getAllTasksInHierarchy(child, sessionContext));
 		}
 		return taskVOs;
 	}
 
-	public List<WorkflowTaskVO> getRootModelTaskVOs(Workflow workflow, SessionContext sessionContext) {
-		List<WorkflowTaskVO> workflows = new ArrayList<>();
+	public List<BetaWorkflowTaskVO> getRootModelTaskVOs(BetaWorkflow workflow, SessionContext sessionContext) {
+		List<BetaWorkflowTaskVO> workflows = new ArrayList<>();
 		for (Task modelTask : getStartModelTask(workflow)) {
 			workflows.addAll(getWorkflowTasksStarting(modelTask.getId(), sessionContext));
 		}
@@ -131,11 +132,11 @@ public class WorkflowServices {
 		return workflows;
 	}
 
-	WorkflowTaskVO newWorkflowTaskVO(Task modelTask, SessionContext sessionContext) {
+	BetaWorkflowTaskVO newWorkflowTaskVO(Task modelTask, SessionContext sessionContext) {
 		RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
 		TaskVO taskVO = new TaskVO(recordToVOBuilder.build(modelTask.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext));
 
-		WorkflowTaskVO workflowTaskVO = new WorkflowTaskVO();
+		BetaWorkflowTaskVO workflowTaskVO = new BetaWorkflowTaskVO();
 		workflowTaskVO.setId(modelTask.getId());
 		workflowTaskVO.setTaskVO(taskVO);
 		workflowTaskVO.setHasChildren(modelTask.hasDecisions());
@@ -144,8 +145,8 @@ public class WorkflowServices {
 		return workflowTaskVO;
 	}
 
-	WorkflowTaskVO newWorkflowTaskVO(Task modelTask, String decision, SessionContext sessionContext) {
-		WorkflowTaskVO workflowTaskVO = newWorkflowTaskVO(modelTask, sessionContext);
+	BetaWorkflowTaskVO newWorkflowTaskVO(Task modelTask, String decision, SessionContext sessionContext) {
+		BetaWorkflowTaskVO workflowTaskVO = newWorkflowTaskVO(modelTask, sessionContext);
 		workflowTaskVO.setDecision(decision);
 		if (decision != null) {
 			workflowTaskVO.setTitle(modelTask.getTitle() + " - " + decision);
@@ -153,8 +154,8 @@ public class WorkflowServices {
 		return workflowTaskVO;
 	}
 
-	private List<WorkflowTaskVO> getWorkflowTasksStarting(String taskId, SessionContext sessionContext) {
-		List<WorkflowTaskVO> workflowTaskVOs = new ArrayList<>();
+	private List<BetaWorkflowTaskVO> getWorkflowTasksStarting(String taskId, SessionContext sessionContext) {
+		List<BetaWorkflowTaskVO> workflowTaskVOs = new ArrayList<>();
 		if (taskId != null && !taskId.equals("NO_VALUE")) {
 			Task task = tasks.getTask(taskId);
 			workflowTaskVOs.add(newWorkflowTaskVO(task, sessionContext));
@@ -168,33 +169,33 @@ public class WorkflowServices {
 
 	}
 
-	public List<WorkflowTaskProgressionVO> getRootModelTaskProgressionsVOs(WorkflowInstance workflowInstance,
+	public List<BetaWorkflowTaskProgressionVO> getRootModelTaskProgressionsVOs(BetaWorkflowInstance workflowInstance,
 			SessionContext sessionContext) {
-		Workflow workflow = tasks.getWorkflow(workflowInstance.getWorkflow());
-		List<WorkflowTaskProgressionVO> progressionVOs = new ArrayList<>();
+		BetaWorkflow workflow = tasks.getBetaWorkflow(workflowInstance.getWorkflow());
+		List<BetaWorkflowTaskProgressionVO> progressionVOs = new ArrayList<>();
 
-		for (WorkflowTaskVO child : getRootModelTaskVOs(workflow, sessionContext)) {
+		for (BetaWorkflowTaskVO child : getRootModelTaskVOs(workflow, sessionContext)) {
 			progressionVOs.add(getTaskProgression(workflowInstance, child));
 		}
 
 		return progressionVOs;
 	}
 
-	public List<WorkflowTaskProgressionVO> getChildModelTaskProgressions(WorkflowInstance workflowInstance,
-			WorkflowTaskVO workflowTaskVO, SessionContext sessionContext) {
-		List<WorkflowTaskProgressionVO> progressionVOs = new ArrayList<>();
+	public List<BetaWorkflowTaskProgressionVO> getChildModelTaskProgressions(BetaWorkflowInstance workflowInstance,
+			BetaWorkflowTaskVO workflowTaskVO, SessionContext sessionContext) {
+		List<BetaWorkflowTaskProgressionVO> progressionVOs = new ArrayList<>();
 
-		for (WorkflowTaskVO child : getChildModelTasks(workflowTaskVO, sessionContext)) {
+		for (BetaWorkflowTaskVO child : getChildModelTasks(workflowTaskVO, sessionContext)) {
 			progressionVOs.add(getTaskProgression(workflowInstance, child));
 		}
 
 		return progressionVOs;
 	}
 
-	public List<WorkflowTaskVO> getChildModelTasks(WorkflowTaskVO workflowTaskVO, SessionContext sessionContext) {
+	public List<BetaWorkflowTaskVO> getChildModelTasks(BetaWorkflowTaskVO workflowTaskVO, SessionContext sessionContext) {
 
 		if (workflowTaskVO.getDecision() == null) {
-			List<WorkflowTaskVO> workflows = new ArrayList<>();
+			List<BetaWorkflowTaskVO> workflows = new ArrayList<>();
 			if (workflowTaskVO.hasChildren()) {
 				Task task = tasks.getTask(workflowTaskVO.getId());
 				for (String decision : task.getNextTasksDecisionsCodes()) {
@@ -214,9 +215,9 @@ public class WorkflowServices {
 
 	}
 
-	public boolean canAddTaskIn(WorkflowTaskVO selectedTask, SessionContext sessionContext) {
+	public boolean canAddTaskIn(BetaWorkflowTaskVO selectedTask, SessionContext sessionContext) {
 		Task task = tasks.getTask(selectedTask.getId());
-		for (WorkflowTaskVO workflowTaskVO : getAvailableWorkflowTaskVOForNewTask(task.getWorkflow(), sessionContext)) {
+		for (BetaWorkflowTaskVO workflowTaskVO : getAvailableWorkflowTaskVOForNewTask(task.getWorkflow(), sessionContext)) {
 			if (selectedTask.hasSameIdDecision(workflowTaskVO)) {
 				return true;
 			}
@@ -224,12 +225,12 @@ public class WorkflowServices {
 		return false;
 	}
 
-	public boolean canAddDecisionTaskIn(WorkflowTaskVO selectedTask, SessionContext sessionContext) {
+	public boolean canAddDecisionTaskIn(BetaWorkflowTaskVO selectedTask, SessionContext sessionContext) {
 		return canAddTaskIn(selectedTask, sessionContext) && getTaskVOAfter(selectedTask, sessionContext) == null;
 	}
 
-	public List<WorkflowTaskVO> getAvailableWorkflowTaskVOForNewTask(String workflowId, SessionContext sessionContext) {
-		List<WorkflowTaskVO> tasks = new ArrayList<>();
+	public List<BetaWorkflowTaskVO> getAvailableWorkflowTaskVOForNewTask(String workflowId, SessionContext sessionContext) {
+		List<BetaWorkflowTaskVO> tasks = new ArrayList<>();
 
 		for (Task task : getWorkflowModelTasks(workflowId)) {
 			if (task.hasDecisions()) {
@@ -248,7 +249,7 @@ public class WorkflowServices {
 	 * Create a task, which will be the next task of the current task
 	 * @param taskType TODO
 	 */
-	public Task createModelTaskAfter(Workflow workflow, WorkflowTaskVO selectedTask, String taskType,
+	public Task createModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
 			String title, SessionContext sessionContext) {
 		return createDecisionModelTaskAfter(workflow, selectedTask, taskType, title, null, sessionContext);
 	}
@@ -257,7 +258,8 @@ public class WorkflowServices {
 	 * Create a task with a true/false decision, and create a task for each decisions
 	 * @param taskType TODO
 	 */
-	public Task createDecisionModelTaskAfter(Workflow workflow, WorkflowTaskVO selectedTask, String taskType, String title,
+	public Task createDecisionModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
+			String title,
 			List<String> decisions, SessionContext sessionContext) {
 		Task newTask;
 		if (taskType != null) {
@@ -280,7 +282,7 @@ public class WorkflowServices {
 
 		try {
 			if (selectedTask != null) {
-				WorkflowTaskVO newTaskVO = newWorkflowTaskVO(newTask, sessionContext);
+				BetaWorkflowTaskVO newTaskVO = newWorkflowTaskVO(newTask, sessionContext);
 				moveAfter(newTaskVO, selectedTask, sessionContext);
 			}
 
@@ -312,13 +314,14 @@ public class WorkflowServices {
 	/**
 	 * Create a task, which will be the next task of the current task
 	 */
-	public void moveAfter(WorkflowTaskVO selectedWorkflowTaskVO, WorkflowTaskVO moveAfterTask, SessionContext sessionContext) {
+	public void moveAfter(BetaWorkflowTaskVO selectedWorkflowTaskVO, BetaWorkflowTaskVO moveAfterTask,
+			SessionContext sessionContext) {
 
-		WorkflowTaskVO taskBeforeSelected = getTaskVOBefore(selectedWorkflowTaskVO, sessionContext);
-		WorkflowTaskVO taskAfterSelected = getTaskVOAfter(selectedWorkflowTaskVO, sessionContext);
+		BetaWorkflowTaskVO taskBeforeSelected = getTaskVOBefore(selectedWorkflowTaskVO, sessionContext);
+		BetaWorkflowTaskVO taskAfterSelected = getTaskVOAfter(selectedWorkflowTaskVO, sessionContext);
 
-		WorkflowTaskVO newTaskBeforeSelected = moveAfterTask;
-		WorkflowTaskVO newTaskAfterSelected = getTaskVOAfter(moveAfterTask, sessionContext);
+		BetaWorkflowTaskVO newTaskBeforeSelected = moveAfterTask;
+		BetaWorkflowTaskVO newTaskAfterSelected = getTaskVOAfter(moveAfterTask, sessionContext);
 
 		Transaction transaction = new Transaction();
 
@@ -333,7 +336,8 @@ public class WorkflowServices {
 		}
 	}
 
-	public void addAfter(WorkflowTaskVO existingWorkflowTaskVO, WorkflowTaskVO targetTask, SessionContext sessionContext) {
+	public void addAfter(BetaWorkflowTaskVO existingWorkflowTaskVO, BetaWorkflowTaskVO targetTask,
+			SessionContext sessionContext) {
 
 		//		WorkflowTaskVO taskBeforeSelected = getTaskVOBefore(selectedWorkflowTaskVO, sessionContext);
 		//		WorkflowTaskVO taskAfterSelected = getTaskVOAfter(selectedWorkflowTaskVO, sessionContext);
@@ -354,8 +358,8 @@ public class WorkflowServices {
 		}
 	}
 
-	private void replaceRelationShip(Transaction transaction, WorkflowTaskVO node,
-			WorkflowTaskVO newNextNode) {
+	private void replaceRelationShip(Transaction transaction, BetaWorkflowTaskVO node,
+			BetaWorkflowTaskVO newNextNode) {
 
 		if (node == null) {
 			return;
@@ -390,8 +394,8 @@ public class WorkflowServices {
 		transaction.add(task);
 	}
 
-	private void addRelationShip(Transaction transaction, WorkflowTaskVO selectNode,
-			WorkflowTaskVO targetNode) {
+	private void addRelationShip(Transaction transaction, BetaWorkflowTaskVO selectNode,
+			BetaWorkflowTaskVO targetNode) {
 
 		if (selectNode == null) {
 			return;
@@ -427,7 +431,7 @@ public class WorkflowServices {
 		transaction.add(task);
 	}
 
-	private WorkflowTaskVO getTaskVOAfter(WorkflowTaskVO node, SessionContext sessionContext) {
+	private BetaWorkflowTaskVO getTaskVOAfter(BetaWorkflowTaskVO node, SessionContext sessionContext) {
 		if (node == null) {
 			throw new IllegalArgumentException("Node must be not null");
 		}
@@ -445,7 +449,7 @@ public class WorkflowServices {
 		}
 	}
 
-	private WorkflowTaskVO getTaskVOBefore(WorkflowTaskVO node, SessionContext sessionContext) {
+	private BetaWorkflowTaskVO getTaskVOBefore(BetaWorkflowTaskVO node, SessionContext sessionContext) {
 
 		if (node == null) {
 			throw new IllegalArgumentException("Node must be not null");
@@ -474,9 +478,9 @@ public class WorkflowServices {
 	/**
 	 * Delete the task (and all its sub tasks)
 	 */
-	public void delete(WorkflowTaskVO selectedTask, SessionContext sessionContext) {
+	public void delete(BetaWorkflowTaskVO selectedTask, SessionContext sessionContext) {
 		Task task = tasks.getTask(selectedTask.getId());
-		WorkflowTaskVO taskBeforeVO = getTaskVOBefore(selectedTask, sessionContext);
+		BetaWorkflowTaskVO taskBeforeVO = getTaskVOBefore(selectedTask, sessionContext);
 
 		if (!selectedTask.hasChildren()) {
 			if (taskBeforeVO != null) {
@@ -511,7 +515,7 @@ public class WorkflowServices {
 					throw new RuntimeException(e);
 				}
 			}
-			for (WorkflowTaskVO taskVO : getAllTasksInHierarchy(selectedTask, sessionContext)) {
+			for (BetaWorkflowTaskVO taskVO : getAllTasksInHierarchy(selectedTask, sessionContext)) {
 				Task taskInHierarchy = tasks.getTask(taskVO.getId());
 				recordServices.logicallyDelete(taskInHierarchy.getWrappedRecord(), User.GOD);
 			}
@@ -524,19 +528,19 @@ public class WorkflowServices {
 
 	public LogicalSearchQuery getWorkflowModelTasksQuery(String workflowId) {
 		return new LogicalSearchQuery(from(tasks.userTask.schemaType())
-				.where(tasks.userTask.workflow()).isEqualTo(workflowId)
+				.where(tasks.userTask.betaWorkflow()).isEqualTo(workflowId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-				.andWhere(tasks.userTask.isModel()).isTrue()).sortDesc(tasks.userTask.workflowTaskSort());
+				.andWhere(tasks.userTask.isModel()).isTrue()).sortDesc(tasks.userTask.betaWorkflowTaskSort());
 	}
 
-	public Task getCurrentWorkflowInstanceTask(WorkflowInstance workflowInstance) {
+	public Task getCurrentWorkflowInstanceTask(BetaWorkflowInstance workflowInstance) {
 		return tasks.wrapTask(searchServices.searchSingleResult(from(tasks.userTask.schemaType())
-				.where(tasks.userTask.workflow()).isEqualTo(workflowInstance.getWorkflow())
+				.where(tasks.userTask.betaWorkflow()).isEqualTo(workflowInstance.getWorkflow())
 				.andWhere(tasks.userTask.status()).isNotIn(tasks.getFinishedOrClosedStatuses())
-				.andWhere(tasks.userTask.workflowInstance()).isEqualTo(workflowInstance.getId())));
+				.andWhere(tasks.userTask.betaWorkflowInstance()).isEqualTo(workflowInstance.getId())));
 	}
 
-	public List<Task> getWorkflowInstanceTasks(WorkflowInstance workflowInstance) {
+	public List<Task> getWorkflowInstanceTasks(BetaWorkflowInstance workflowInstance) {
 		return tasks.searchTasks(getWorkflowInstanceTasksQuery(workflowInstance.getWorkflow(), workflowInstance.getId()));
 	}
 
@@ -546,11 +550,11 @@ public class WorkflowServices {
 
 	public LogicalSearchQuery getWorkflowInstanceTasksQuery(String workflowId, String workflowInstanceId) {
 		return new LogicalSearchQuery(from(tasks.userTask.schemaType())
-				.where(tasks.userTask.workflow()).isEqualTo(workflowId)
-				.andWhere(tasks.userTask.workflowInstance()).isEqualTo(workflowInstanceId));
+				.where(tasks.userTask.betaWorkflow()).isEqualTo(workflowId)
+				.andWhere(tasks.userTask.betaWorkflowInstance()).isEqualTo(workflowInstanceId));
 	}
 
-	public List<Task> getStartModelTask(Workflow workflow) {
+	public List<Task> getStartModelTask(BetaWorkflow workflow) {
 
 		List<Task> modelTasks = getWorkflowModelTasks(workflow.getId());
 		Set<String> referencedTasks = new HashSet<>();
@@ -569,11 +573,11 @@ public class WorkflowServices {
 		return startTasks;
 	}
 
-	public WorkflowInstance start(Workflow workflow, User user, Map<String, List<String>> extraFields) {
+	public BetaWorkflowInstance start(BetaWorkflow workflow, User user, Map<String, List<String>> extraFields) {
 		if (user == null) {
 			throw new IllegalArgumentException("User is required");
 		}
-		WorkflowInstance workflowInstance = tasks.newWorkflowInstance();
+		BetaWorkflowInstance workflowInstance = tasks.newBetaWorkflowInstance();
 		workflowInstance.setTitle(workflow.getTitle());
 		workflowInstance.setWorkflow(workflow);
 		workflowInstance.setStartedOn(TimeProvider.getLocalDateTime());
@@ -608,7 +612,7 @@ public class WorkflowServices {
 		return workflowInstance;
 	}
 
-	public Task createInstanceTask(Task modelTask, WorkflowInstance instance) {
+	public Task createInstanceTask(Task modelTask, BetaWorkflowInstance instance) {
 		String typeId = modelTask.getType();
 
 		Task instanceTask;
@@ -650,7 +654,7 @@ public class WorkflowServices {
 		return instanceTask;
 	}
 
-	public void cancel(WorkflowInstance workflowInstance) {
+	public void cancel(BetaWorkflowInstance workflowInstance) {
 		try {
 			recordServices.update(workflowInstance.setWorkflowStatus(WorkflowInstanceStatus.CANCELLED));
 		} catch (RecordServicesException e) {
@@ -664,11 +668,11 @@ public class WorkflowServices {
 		}
 	}
 
-	public WorkflowTaskVO getTaskVO(Task task, SessionContext context) {
+	public BetaWorkflowTaskVO getTaskVO(Task task, SessionContext context) {
 		return newWorkflowTaskVO(task, context);
 	}
 
-	public WorkflowTaskVO getTaskVO(Task task, String decision, SessionContext context) {
+	public BetaWorkflowTaskVO getTaskVO(Task task, String decision, SessionContext context) {
 		return newWorkflowTaskVO(task, decision, context);
 	}
 }

@@ -2,7 +2,7 @@ package com.constellio.app.modules.tasks.ui.pages.workflow;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.modules.tasks.ui.entities.WorkflowVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -10,16 +10,16 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 
-public class AddEditWorkflowViewImpl extends BaseViewImpl implements AddEditWorkflowView {
+public class BetaAddEditWorkflowViewImpl extends BaseViewImpl implements BetaAddEditWorkflowView {
 	
 	private boolean addView;
 	
-	private WorkflowVO workflowVO;
+	private BetaWorkflowVO workflowVO;
 	
-	private AddEditWorkflowPresenter presenter;
+	private BetaAddEditWorkflowPresenter presenter;
 
-	public AddEditWorkflowViewImpl() {
-		this.presenter = new AddEditWorkflowPresenter(this);
+	public BetaAddEditWorkflowViewImpl() {
+		this.presenter = new BetaAddEditWorkflowPresenter(this);
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class AddEditWorkflowViewImpl extends BaseViewImpl implements AddEditWork
 	}
 
 	@Override
-	public void setWorkflowVO(WorkflowVO workflowVO) {
+	public void setWorkflowVO(BetaWorkflowVO workflowVO) {
 		this.workflowVO = workflowVO;
 	}
 

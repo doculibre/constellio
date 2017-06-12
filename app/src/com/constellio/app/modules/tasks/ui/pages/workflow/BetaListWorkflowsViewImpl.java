@@ -24,11 +24,11 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
-public class ListWorkflowsViewImpl extends BaseViewImpl implements ListWorkflowsView {
-	private final ListWorkflowsPresenter presenter;
+public class BetaListWorkflowsViewImpl extends BaseViewImpl implements BetaListWorkflowsView {
+	private final BetaListWorkflowsPresenter presenter;
 
-	public ListWorkflowsViewImpl() {
-		this.presenter = new ListWorkflowsPresenter(this);
+	public BetaListWorkflowsViewImpl() {
+		this.presenter = new BetaListWorkflowsPresenter(this);
 	}
 
 	@Override

@@ -12,7 +12,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
 
-public class WorkflowInstance extends RecordWrapper {
+public class BetaWorkflowInstance extends RecordWrapper {
 
 	public static final String SCHEMA_TYPE = "workflowInstance";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
@@ -23,7 +23,7 @@ public class WorkflowInstance extends RecordWrapper {
 	public static final String STATUS = "status";
 	public static final String EXTRA_FIELDS = "extraFields";
 
-	public WorkflowInstance(Record record,
+	public BetaWorkflowInstance(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
@@ -37,12 +37,12 @@ public class WorkflowInstance extends RecordWrapper {
 		}
 	}
 
-	public WorkflowInstance setExtraFields(Map<String, List<String>> extraFields) {
+	public BetaWorkflowInstance setExtraFields(Map<String, List<String>> extraFields) {
 		set(EXTRA_FIELDS, extraFields == null ? null : new MapStringListStringStructure(extraFields));
 		return this;
 	}
 
-	public WorkflowInstance setTitle(String title) {
+	public BetaWorkflowInstance setTitle(String title) {
 		super.setTitle(title);
 		return this;
 	}
@@ -51,17 +51,17 @@ public class WorkflowInstance extends RecordWrapper {
 		return get(WORKFLOW);
 	}
 
-	public WorkflowInstance setWorkflow(String workflowId) {
+	public BetaWorkflowInstance setWorkflow(String workflowId) {
 		set(WORKFLOW, workflowId);
 		return this;
 	}
 
-	public WorkflowInstance setWorkflow(Record workflow) {
+	public BetaWorkflowInstance setWorkflow(Record workflow) {
 		set(WORKFLOW, workflow);
 		return this;
 	}
 
-	public WorkflowInstance setWorkflow(Workflow workflow) {
+	public BetaWorkflowInstance setWorkflow(BetaWorkflow workflow) {
 		set(WORKFLOW, workflow);
 		return this;
 	}
@@ -70,7 +70,7 @@ public class WorkflowInstance extends RecordWrapper {
 		return get(STATUS);
 	}
 
-	public WorkflowInstance setWorkflowStatus(WorkflowInstanceStatus status) {
+	public BetaWorkflowInstance setWorkflowStatus(WorkflowInstanceStatus status) {
 		set(STATUS, status);
 		return this;
 	}
@@ -79,7 +79,7 @@ public class WorkflowInstance extends RecordWrapper {
 		return get(STARTED_ON);
 	}
 
-	public WorkflowInstance setStartedOn(LocalDateTime startedOn) {
+	public BetaWorkflowInstance setStartedOn(LocalDateTime startedOn) {
 		set(STARTED_ON, startedOn);
 		return this;
 	}
@@ -88,17 +88,17 @@ public class WorkflowInstance extends RecordWrapper {
 		return get(STARTED_BY);
 	}
 
-	public WorkflowInstance setStartedBy(String startedBy) {
+	public BetaWorkflowInstance setStartedBy(String startedBy) {
 		set(STARTED_BY, startedBy);
 		return this;
 	}
 
-	public WorkflowInstance setStartedBy(Record startedBy) {
+	public BetaWorkflowInstance setStartedBy(Record startedBy) {
 		set(STARTED_BY, startedBy);
 		return this;
 	}
 
-	public WorkflowInstance setStartedBy(User startedBy) {
+	public BetaWorkflowInstance setStartedBy(User startedBy) {
 		set(STARTED_BY, startedBy);
 		return this;
 	}

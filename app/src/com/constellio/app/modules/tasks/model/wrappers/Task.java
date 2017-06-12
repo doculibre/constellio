@@ -1,5 +1,13 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -8,9 +16,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.MapStringStringStructure;
-import org.joda.time.LocalDate;
-
-import java.util.*;
 
 public class Task extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "userTask";
@@ -37,22 +42,30 @@ public class Task extends RecordWrapper {
 	public static final String PARENT_TASK = "parentTask";
 	public static final String PARENT_TASK_DUE_DATE = "parentTaskDueDate";
 	public static final String COMMENTS = "comments";
-	public static final String RELATIVE_DUE_DATE = "relativeDueDate";
-	public static final String MODEL_TASK = "modelTask";
-	public static final String WORKFLOW = "workflow";
-	public static final String WORKFLOW_INSTANCE = "workflowInstance";
-	public static final String IS_MODEL = "isModel";
-	public static final String WORKFLOW_TASK_SORT = "workflowTaskSort";
-	public static final String NEXT_TASKS_DECISIONS = "nextTasksDecisions";
-	public static final String NEXT_TASKS = "nextTasks";
-	public static final String DECISION = "decision";
-	public static final String NEXT_TASK_CREATED = "nextTaskCreated";
 	public static final String LINKED_FOLDERS = "linkedFolders";
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";
 	public static final String LINKED_CONTAINERS = "linkedContainers";
 	public static final String REASON = "reason";
 
-	public static final String DEFAULT_NEXT_TASK = "default";
+	/**
+	 * Fields used by second and third version of the workflow feature
+	 */
+	public static final String IS_MODEL = "isModel";
+	public static final String DECISION = "decision";
+	public static final String MODEL_TASK = "modelTask";
+	public static final String RELATIVE_DUE_DATE = "relativeDueDate";
+
+	/**
+	 * Fields used by the second version of workflow features
+	 */
+
+	public static final String BETA_WORKFLOW = "workflow";
+	public static final String BETA_WORKFLOW_INSTANCE = "workflowInstance";
+	public static final String BETA_WORKFLOW_TASK_SORT = "workflowTaskSort";
+	public static final String BETA_NEXT_TASKS_DECISIONS = "nextTasksDecisions";
+	public static final String BETA_NEXT_TASKS = "nextTasks";
+	public static final String BETA_NEXT_TASK_CREATED = "nextTaskCreated";
+	public static final String BETA_DEFAULT_NEXT_TASK = "default";
 
 	public Task(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -157,7 +170,7 @@ public class Task extends RecordWrapper {
 	}
 
 	public List<String> getNextTasks() {
-		return getList(NEXT_TASKS);
+		return getList(BETA_NEXT_TASKS);
 	}
 
 	public List<String> getNextTasksDecisionsCodes() {
@@ -176,7 +189,7 @@ public class Task extends RecordWrapper {
 	}
 
 	public MapStringStringStructure getNextTasksDecisions() {
-		return get(NEXT_TASKS_DECISIONS);
+		return get(BETA_NEXT_TASKS_DECISIONS);
 	}
 
 	public Task addNextTaskDecision(String decision, String reference) {
@@ -193,18 +206,18 @@ public class Task extends RecordWrapper {
 	}
 
 	public Task setNextTasksDecisions(MapStringStringStructure decisions) {
-		set(NEXT_TASKS_DECISIONS, decisions);
+		set(BETA_NEXT_TASKS_DECISIONS, decisions);
 		return this;
 	}
 
 	public Task setNextTask(String nextTask) {
 		Map<String, String> nextTaskDecisions = new HashMap<>();
-		nextTaskDecisions.put(DEFAULT_NEXT_TASK, nextTask);
+		nextTaskDecisions.put(BETA_DEFAULT_NEXT_TASK, nextTask);
 		return setNextTasksDecisions(nextTaskDecisions);
 	}
 
 	public Task setNextTasksDecisions(Map<String, String> decisions) {
-		set(NEXT_TASKS_DECISIONS, new MapStringStringStructure(decisions));
+		set(BETA_NEXT_TASKS_DECISIONS, new MapStringStringStructure(decisions));
 		return this;
 	}
 
@@ -218,21 +231,21 @@ public class Task extends RecordWrapper {
 	}
 
 	public String getWorkflow() {
-		return get(WORKFLOW);
+		return get(BETA_WORKFLOW);
 	}
 
 	public Task setWorkflow(String workflow) {
-		set(WORKFLOW, workflow);
+		set(BETA_WORKFLOW, workflow);
 		return this;
 	}
 
 	public Task setWorkflow(Record workflow) {
-		set(WORKFLOW, workflow);
+		set(BETA_WORKFLOW, workflow);
 		return this;
 	}
 
-	public Task setWorkflow(Workflow workflow) {
-		set(WORKFLOW, workflow);
+	public Task setWorkflow(BetaWorkflow workflow) {
+		set(BETA_WORKFLOW, workflow);
 		return this;
 	}
 
@@ -256,21 +269,21 @@ public class Task extends RecordWrapper {
 	}
 
 	public String getWorkflowInstance() {
-		return get(WORKFLOW_INSTANCE);
+		return get(BETA_WORKFLOW_INSTANCE);
 	}
 
 	public Task setWorkflowInstance(String workflowInstanceId) {
-		set(WORKFLOW_INSTANCE, workflowInstanceId);
+		set(BETA_WORKFLOW_INSTANCE, workflowInstanceId);
 		return this;
 	}
 
 	public Task setWorkflowInstance(Record workflowInstance) {
-		set(WORKFLOW_INSTANCE, workflowInstance);
+		set(BETA_WORKFLOW_INSTANCE, workflowInstance);
 		return this;
 	}
 
-	public Task setWorkflowInstance(WorkflowInstance workflowInstance) {
-		set(WORKFLOW_INSTANCE, workflowInstance);
+	public Task setWorkflowInstance(BetaWorkflowInstance workflowInstance) {
+		set(BETA_WORKFLOW_INSTANCE, workflowInstance);
 		return this;
 	}
 
@@ -284,7 +297,7 @@ public class Task extends RecordWrapper {
 	}
 
 	public int getWorkflowTaskSort() {
-		return getInteger(WORKFLOW_TASK_SORT);
+		return getInteger(BETA_WORKFLOW_TASK_SORT);
 	}
 
 	public String getDescription() {
@@ -350,11 +363,11 @@ public class Task extends RecordWrapper {
 	}
 
 	public boolean isNextTaskCreated() {
-		return getBooleanWithDefaultValue(NEXT_TASK_CREATED, false);
+		return getBooleanWithDefaultValue(BETA_NEXT_TASK_CREATED, false);
 	}
 
 	public Task setNextTaskCreated(boolean nextTaskCreated) {
-		set(NEXT_TASK_CREATED, nextTaskCreated);
+		set(BETA_NEXT_TASK_CREATED, nextTaskCreated);
 		return this;
 	}
 

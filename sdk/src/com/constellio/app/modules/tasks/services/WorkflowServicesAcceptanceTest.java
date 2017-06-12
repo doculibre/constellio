@@ -22,13 +22,13 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
-import com.constellio.app.modules.tasks.services.WorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskProgressionVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskVO;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -42,7 +42,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 	TasksSchemasRecordsServices tasks;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
-	WorkflowServices services;
+	BetaWorkflowServices services;
 	SearchServices searchServices;
 	RecordServices recordServices;
 	Map<String, List<String>> noExtraFields = Collections.emptyMap();
@@ -52,7 +52,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(withZeCollection().withTasksModule().withAllTest(users).withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus());
-		services = new WorkflowServices(zeCollection, getAppLayerFactory());
+		services = new BetaWorkflowServices(zeCollection, getAppLayerFactory());
 		searchServices = getModelLayerFactory().newSearchServices();
 		tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		this.recordServices = getModelLayerFactory().newRecordServices();
@@ -65,8 +65,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 	public void whenSearchingWorkflowModelTaskThenOnlyReturnGivenWorkflowModelTask()
 			throws Exception {
 
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		Workflow simpleWorkflow = tasks.getWorkflowWithCode("simple");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
 		services.start(approvalWorkflow, users.adminIn(zeCollection), noExtraFields);
 
 		assertThat(services.getWorkflows()).extracting("code").isEqualTo(asList(
@@ -86,21 +86,21 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		long initialTasksCount = getAllTasksCount();
 
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		Workflow simpleWorkflow = tasks.getWorkflowWithCode("simple");
-		WorkflowInstance approvalWorkflowInstance = services
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
+		BetaWorkflowInstance approvalWorkflowInstance = services
 				.start(approvalWorkflow, users.edouardIn(zeCollection), noExtraFields);
 
 		assertThat(services.getCurrentWorkflowInstances()).containsOnly(approvalWorkflowInstance);
 		assertThatRecord(approvalWorkflowInstance)
-				.hasMetadata(tasks.workflowInstance.title(), "Un workflow d'approbation")
-				.hasMetadata(tasks.workflowInstance.startedBy(), users.edouardIn(zeCollection).getId())
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
+				.hasMetadata(tasks.betaWorkflowInstance.title(), "Un workflow d'approbation")
+				.hasMetadata(tasks.betaWorkflowInstance.startedBy(), users.edouardIn(zeCollection).getId())
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 		assertThat(getAllTasksCount() - initialTasksCount).isEqualTo(1);
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title").isEqualTo(asList(
 				"Détails"));
 
-		WorkflowInstance simpleWorkflowInstance = services
+		BetaWorkflowInstance simpleWorkflowInstance = services
 				.start(simpleWorkflow, users.dakotaLIndienIn(zeCollection), noExtraFields);
 
 		assertThat(services.getWorkflowInstanceTasks(simpleWorkflowInstance)).extracting("title").containsOnly(
@@ -115,7 +115,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.adminInCollection(zeCollection);
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
 
 		assertThat(services.getAvailableWorkflowTaskVOForNewTask(approvalWorkflow.getId(), sessionContext))
 				.extracting("id", "decision").containsOnly(
@@ -128,10 +128,10 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		);
 
-		List<WorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
-		List<WorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
-		List<WorkflowTaskVO> approvedNodes = services.getChildModelTasks(approvalNodes.get(1), sessionContext);
-		List<WorkflowTaskVO> refusedNodes = services.getChildModelTasks(approvalNodes.get(0), sessionContext);
+		List<BetaWorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
+		List<BetaWorkflowTaskVO> approvedNodes = services.getChildModelTasks(approvalNodes.get(1), sessionContext);
+		List<BetaWorkflowTaskVO> refusedNodes = services.getChildModelTasks(approvalNodes.get(0), sessionContext);
 
 		assertThat(services.canAddTaskIn(approvalWorkflowRoots.get(0), sessionContext)).isTrue();
 		assertThat(services.canAddDecisionTaskIn(approvalWorkflowRoots.get(0), sessionContext)).isFalse();
@@ -157,9 +157,9 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.forRealUserIncollection(users.gandalfLeblancIn(zeCollection));
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
 
-		WorkflowTaskVO approvalSecondTask = services.newWorkflowTaskVO(tasks.getTask("approvedSecondTask"), sessionContext);
+		BetaWorkflowTaskVO approvalSecondTask = services.newWorkflowTaskVO(tasks.getTask("approvedSecondTask"), sessionContext);
 
 		Task task = services.createModelTaskAfter(approvalWorkflow, approvalSecondTask, null, "ze new task", sessionContext);
 		assertThat(task.getTitle()).isEqualTo("ze new task");
@@ -179,9 +179,9 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.forRealUserIncollection(users.gandalfLeblancIn(zeCollection));
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
 
-		WorkflowTaskVO approvalSecondTask = services.newWorkflowTaskVO(tasks.getTask("approvedSecondTask"), sessionContext);
+		BetaWorkflowTaskVO approvalSecondTask = services.newWorkflowTaskVO(tasks.getTask("approvedSecondTask"), sessionContext);
 
 		Task task = services.createDecisionModelTaskAfter(approvalWorkflow, approvalSecondTask, null,
 				"ze new task", asList("decision1", "decision2"), sessionContext);
@@ -196,14 +196,14 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 				"details", "approval"
 		);
 
-		WorkflowTaskVO zeNewTaskDecision1 = services.newWorkflowTaskVO(previousTask, "decision1", sessionContext);
+		BetaWorkflowTaskVO zeNewTaskDecision1 = services.newWorkflowTaskVO(previousTask, "decision1", sessionContext);
 		Task zeNewTaskInDecision1 = services.createDecisionModelTaskAfter(approvalWorkflow, zeNewTaskDecision1,
 				null, "ze new task decision 1 sub decisions", asList("decision3", "decision4"), sessionContext);
 		assertThat(zeNewTaskInDecision1.getTitle()).isEqualTo("ze new task decision 1 sub decisions");
 		assertThat(zeNewTaskInDecision1.getNextTasksDecisionsCodes()).containsOnly("decision3", "decision4");
 		assertThat(zeNewTaskInDecision1.getNextTasks()).isEmpty();
 
-		WorkflowTaskVO zeNewTaskDecision2 = services.newWorkflowTaskVO(previousTask, "decision2", sessionContext);
+		BetaWorkflowTaskVO zeNewTaskDecision2 = services.newWorkflowTaskVO(previousTask, "decision2", sessionContext);
 		Task zeNewTaskInDecision2 = services.createModelTaskAfter(approvalWorkflow, zeNewTaskDecision2,
 				null, "ze new task decision 2 sub decisions", sessionContext);
 		assertThat(zeNewTaskInDecision2.getTitle()).isEqualTo("ze new task decision 2 sub decisions");
@@ -213,7 +213,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 				tuple(zeNewTaskInDecision1.getId(), null)
 		);
 
-		WorkflowTaskVO zeNewTaskInDecision1VO = services.newWorkflowTaskVO(zeNewTaskInDecision1, sessionContext);
+		BetaWorkflowTaskVO zeNewTaskInDecision1VO = services.newWorkflowTaskVO(zeNewTaskInDecision1, sessionContext);
 		assertThat(services.getChildModelTasks(zeNewTaskInDecision1VO, sessionContext)).extracting("id", "decision").containsOnly(
 				tuple(zeNewTaskInDecision1.getId(), "decision3"),
 				tuple(zeNewTaskInDecision1.getId(), "decision4")
@@ -230,13 +230,13 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.forRealUserIncollection(users.gandalfLeblancIn(zeCollection));
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
 
 		assertThat(services.getWorkflowModelTasks(approvalWorkflow.getId())).extracting("id").containsOnly(
 				"details", "approval", "approval", "approvedFirstTask", "approvedSecondTask", "refusalFirstTask"
 		);
 
-		WorkflowTaskVO approvalTask = services.getRootModelTaskVOs(approvalWorkflow, sessionContext).get(1);
+		BetaWorkflowTaskVO approvalTask = services.getRootModelTaskVOs(approvalWorkflow, sessionContext).get(1);
 
 		try {
 
@@ -261,8 +261,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 						TaskStatusType.FINISHED)).getId();
 		String closedStatus = tasks.getTaskStatusWithCode(TaskStatus.CLOSED_CODE).getId();
 
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		WorkflowInstance approvalWorkflowInstance = services
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflowInstance approvalWorkflowInstance = services
 				.start(approvalWorkflow, users.edouardIn(zeCollection), noExtraFields);
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance).setStatus(closedStatus));
@@ -283,17 +283,17 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		String closedStatus = tasks.getTaskStatusWithCode(TaskStatus.CLOSED_CODE).getId();
 
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
 
 		Map<String, List<String>> extraFields = new HashMap<>();
 		extraFields.put(LINKED_FOLDERS, asList(records.folder_A04, records.folder_A08));
 
-		WorkflowInstance approvalWorkflowInstance = services
+		BetaWorkflowInstance approvalWorkflowInstance = services
 				.start(approvalWorkflow, users.edouardIn(zeCollection), extraFields);
 
 		assertThat(services.getCurrentWorkflowInstances()).containsOnly(approvalWorkflowInstance);
 		assertThatRecord(approvalWorkflowInstance)
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 
 		List<Task> tasks = services.getWorkflowInstanceTasks(approvalWorkflowInstance);
 		assertThat(tasks).hasSize(1);
@@ -318,13 +318,13 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 						TaskStatusType.FINISHED)).getId();
 		String closedStatus = tasks.getTaskStatusWithCode(TaskStatus.CLOSED_CODE).getId();
 
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		WorkflowInstance approvalWorkflowInstance = services
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflowInstance approvalWorkflowInstance = services
 				.start(approvalWorkflow, users.edouardIn(zeCollection), noExtraFields);
 
 		assertThat(services.getCurrentWorkflowInstances()).containsOnly(approvalWorkflowInstance);
 		assertThatRecord(approvalWorkflowInstance)
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Détails", standbyStatus));
@@ -373,8 +373,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 				tuple("Détails", closedStatus),
 				tuple("Approuvée - Première tâche", closedStatus),
 				tuple("Approuvée - Deuxième tâche", standbyStatus));
-		assertThatRecord(tasks.getWorkflowInstance(approvalWorkflowInstance.getId()))
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
+		assertThatRecord(tasks.getBetaWorkflowInstance(approvalWorkflowInstance.getId()))
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance)
 				.setStatus(closedStatus));
@@ -385,12 +385,12 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 				tuple("Approuvée - Première tâche", closedStatus),
 				tuple("Approuvée - Deuxième tâche", closedStatus));
 
-		assertThatRecord(tasks.getWorkflowInstance(approvalWorkflowInstance.getId()))
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.FINISHED);
+		assertThatRecord(tasks.getBetaWorkflowInstance(approvalWorkflowInstance.getId()))
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.FINISHED);
 	}
 
-	private ListAssert<WorkflowTaskProgressionVO> assertThatWorkflowProgression(
-			WorkflowInstance workflowInstance) {
+	private ListAssert<BetaWorkflowTaskProgressionVO> assertThatWorkflowProgression(
+			BetaWorkflowInstance workflowInstance) {
 		SessionContext sessionContext = FakeSessionContext.forRealUserIncollection(users.adminIn(zeCollection));
 		return assertThat(services.getFlattenModelTaskProgressionVOs(workflowInstance, sessionContext));
 	}
@@ -405,13 +405,13 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 						TaskStatusType.FINISHED)).getId();
 		String closedStatus = tasks.getTaskStatusWithCode(TaskStatus.CLOSED_CODE).getId();
 
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		WorkflowInstance approvalWorkflowInstance = services
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflowInstance approvalWorkflowInstance = services
 				.start(approvalWorkflow, users.edouardIn(zeCollection), noExtraFields);
 
 		assertThat(services.getCurrentWorkflowInstances()).containsOnly(approvalWorkflowInstance);
 		assertThatRecord(approvalWorkflowInstance)
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Détails", standbyStatus));
@@ -425,8 +425,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(currentTask.setStatus(finishedStatus).setDecision("true"));
 
-		assertThatRecord(tasks.getWorkflowInstance(approvalWorkflowInstance.getId()))
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
+		assertThatRecord(tasks.getBetaWorkflowInstance(approvalWorkflowInstance.getId()))
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Demande d'approbation", finishedStatus),
 				tuple("Détails", closedStatus),
@@ -434,8 +434,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		services.cancel(approvalWorkflowInstance);
 
-		assertThatRecord(tasks.getWorkflowInstance(approvalWorkflowInstance.getId()))
-				.hasMetadata(tasks.workflowInstance.status(), WorkflowInstanceStatus.CANCELLED);
+		assertThatRecord(tasks.getBetaWorkflowInstance(approvalWorkflowInstance.getId()))
+				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.CANCELLED);
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Demande d'approbation", finishedStatus),
 				tuple("Détails", closedStatus));
@@ -446,8 +446,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.adminInCollection(zeCollection);
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		Workflow simpleWorkflow = tasks.getWorkflowWithCode("simple");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
 		services.start(approvalWorkflow, users.edouardIn(zeCollection), noExtraFields);
 		services.start(simpleWorkflow, users.edouardIn(zeCollection), noExtraFields);
 
@@ -455,7 +455,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		// Approval workflow
 		//--
 
-		List<WorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
 		assertThat(approvalWorkflowRoots).extracting("id", "decision").isEqualTo(asList(
 				tuple("details", null),
 				tuple("approval", null)));
@@ -464,19 +464,19 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		assertThat(services.getChildModelTasks(approvalWorkflowRoots.get(0), sessionContext)).isEmpty();
 
 		//approval
-		List<WorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
+		List<BetaWorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
 		assertThat(approvalNodes).extracting("id", "decision").isEqualTo(asList(
 				tuple("approval", "false"),
 				tuple("approval", "true")));
 
 		//approved nodes
-		List<WorkflowTaskVO> approvedNodes = services.getChildModelTasks(approvalNodes.get(1), sessionContext);
+		List<BetaWorkflowTaskVO> approvedNodes = services.getChildModelTasks(approvalNodes.get(1), sessionContext);
 		assertThat(approvedNodes).extracting("id", "decision").isEqualTo(asList(
 				tuple("approvedFirstTask", null),
 				tuple("approvedSecondTask", null)));
 
 		//refused nodes
-		List<WorkflowTaskVO> refusedNodes = services.getChildModelTasks(approvalNodes.get(0), sessionContext);
+		List<BetaWorkflowTaskVO> refusedNodes = services.getChildModelTasks(approvalNodes.get(0), sessionContext);
 		assertThat(refusedNodes).extracting("id", "decision").isEqualTo(asList(
 				tuple("refusalFirstTask", null)));
 
@@ -484,7 +484,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		// Simple workflow
 		//--
 
-		List<WorkflowTaskVO> simpleWorkflowRoots = services.getRootModelTaskVOs(simpleWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> simpleWorkflowRoots = services.getRootModelTaskVOs(simpleWorkflow, sessionContext);
 		assertThat(simpleWorkflowRoots).extracting("id", "decision").isEqualTo(asList(
 				tuple("task1", null),
 				tuple("task2", null),
@@ -503,8 +503,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.adminInCollection(zeCollection);
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		Workflow simpleWorkflow = tasks.getWorkflowWithCode("simple");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
 		services.start(approvalWorkflow, users.edouardIn(zeCollection), noExtraFields);
 		services.start(simpleWorkflow, users.edouardIn(zeCollection), noExtraFields);
 
@@ -512,7 +512,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		// Approval workflow
 		//--
 
-		List<WorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
 		assertThat(approvalWorkflowRoots).extracting("id", "decision").isEqualTo(asList(
 				tuple("details", null),
 				tuple("approval", null)));
@@ -533,8 +533,8 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.adminInCollection(zeCollection);
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		Workflow simpleWorkflow = tasks.getWorkflowWithCode("simple");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
 		services.start(approvalWorkflow, users.edouardIn(zeCollection), noExtraFields);
 		services.start(simpleWorkflow, users.edouardIn(zeCollection), noExtraFields);
 
@@ -542,18 +542,18 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		// Approval workflow
 		//--
 
-		List<WorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
 		assertThat(approvalWorkflowRoots).extracting("id", "decision").isEqualTo(asList(
 				tuple("details", null),
 				tuple("approval", null)));
 
-		List<WorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
+		List<BetaWorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
 		assertThat(approvalNodes).extracting("id", "decision").isEqualTo(asList(
 				tuple("approval", "false"),
 				tuple("approval", "true")));
 
 		//approved nodes
-		List<WorkflowTaskVO> approvedNodes = services.getChildModelTasks(approvalNodes.get(1), sessionContext);
+		List<BetaWorkflowTaskVO> approvedNodes = services.getChildModelTasks(approvalNodes.get(1), sessionContext);
 		assertThat(approvedNodes).extracting("id", "decision").isEqualTo(asList(
 				tuple("approvedFirstTask", null),
 				tuple("approvedSecondTask", null)));
@@ -575,7 +575,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		assertThat(approvedNodes).extracting("id", "decision").isEqualTo(asList(
 				tuple("approvedSecondTask", null)));
 
-		List<WorkflowTaskVO> simpleWorkflowRoots = services.getRootModelTaskVOs(simpleWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> simpleWorkflowRoots = services.getRootModelTaskVOs(simpleWorkflow, sessionContext);
 		assertThat(simpleWorkflowRoots).extracting("id", "decision").isEqualTo(asList(
 				tuple("task1", null),
 				tuple("task2", null),
@@ -614,9 +614,9 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.forRealUserIncollection(users.dakotaLIndienIn(zeCollection));
-		Workflow simpleWorkflow = tasks.getWorkflowWithCode("simple");
+		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
 
-		List<WorkflowTaskVO> simpleWorkflowRoots = services.getRootModelTaskVOs(simpleWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> simpleWorkflowRoots = services.getRootModelTaskVOs(simpleWorkflow, sessionContext);
 		assertThat(simpleWorkflowRoots).extracting("title", "decision").isEqualTo(asList(
 				tuple("Task 1", null),
 				tuple("Task 2", null),
@@ -659,20 +659,20 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SessionContext sessionContext = FakeSessionContext.adminInCollection(zeCollection);
-		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");
-		Workflow simpleWorkflow = tasks.getWorkflowWithCode("simple");
+		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
+		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
 
-		List<WorkflowTaskVO> simpleWorkflowRoots;
-		List<WorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
+		List<BetaWorkflowTaskVO> simpleWorkflowRoots;
+		List<BetaWorkflowTaskVO> approvalWorkflowRoots = services.getRootModelTaskVOs(approvalWorkflow, sessionContext);
 
 		//approval
-		List<WorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
+		List<BetaWorkflowTaskVO> approvalNodes = services.getChildModelTasks(approvalWorkflowRoots.get(1), sessionContext);
 
 		//approved nodes
-		List<WorkflowTaskVO> approvedNodes;
+		List<BetaWorkflowTaskVO> approvedNodes;
 
 		//refused nodes
-		List<WorkflowTaskVO> refusedNodes = services.getChildModelTasks(approvalNodes.get(0), sessionContext);
+		List<BetaWorkflowTaskVO> refusedNodes = services.getChildModelTasks(approvalNodes.get(0), sessionContext);
 
 		//--
 		// Simple workflow
@@ -737,7 +737,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 
-		Workflow workflow = transaction.add(tasks.newWorkflow());
+		BetaWorkflow workflow = transaction.add(tasks.newBetaWorkflow());
 		workflow.setCode("approval");
 		workflow.setTitle("Un workflow d'approbation");
 
@@ -776,7 +776,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 
-		Workflow workflow = tasks.newWorkflow();
+		BetaWorkflow workflow = tasks.newBetaWorkflow();
 		workflow.setCode("simple");
 		workflow.setTitle("Un simple workflow");
 		recordServices.add(workflow);
@@ -813,7 +813,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 
-		Workflow workflow = tasks.newWorkflow();
+		BetaWorkflow workflow = tasks.newBetaWorkflow();
 		workflow.setCode("simple2");
 		workflow.setTitle("Un simple workflow2");
 		recordServices.add(workflow);

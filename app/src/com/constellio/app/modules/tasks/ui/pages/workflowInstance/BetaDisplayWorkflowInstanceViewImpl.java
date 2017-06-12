@@ -10,8 +10,8 @@ import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowInstanceVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskProgressionVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowInstanceVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
@@ -30,11 +30,11 @@ import com.vaadin.ui.Table.TableDragMode;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
 
-public class DisplayWorkflowInstanceViewImpl extends BaseViewImpl implements DisplayWorkflowInstanceView, NoDragAndDrop {
+public class BetaDisplayWorkflowInstanceViewImpl extends BaseViewImpl implements BetaDisplayWorkflowInstanceView, NoDragAndDrop {
 
-	private WorkflowInstanceVO workflowInstanceVO;
+	private BetaWorkflowInstanceVO workflowInstanceVO;
 
-	private List<WorkflowTaskProgressionVO> workflowTaskProgressionVOs = new ArrayList<>();
+	private List<BetaWorkflowTaskProgressionVO> workflowTaskProgressionVOs = new ArrayList<>();
 
 	private VerticalLayout mainLayout;
 
@@ -42,15 +42,15 @@ public class DisplayWorkflowInstanceViewImpl extends BaseViewImpl implements Dis
 
 	private TreeTable workflowTaskVOTable;
 
-	private DisplayWorkflowInstancePresenter presenter;
+	private BetaDisplayWorkflowInstancePresenter presenter;
 
 	private JodaDateToStringConverter jodaDateToStringConverter = new JodaDateToStringConverter();
 
 	private EnumWithSmallCodeToCaptionConverter taskStatusToCaptionConverter = new EnumWithSmallCodeToCaptionConverter(
 			TaskStatusType.class);
 
-	public DisplayWorkflowInstanceViewImpl() {
-		presenter = new DisplayWorkflowInstancePresenter(this);
+	public BetaDisplayWorkflowInstanceViewImpl() {
+		presenter = new BetaDisplayWorkflowInstancePresenter(this);
 	}
 
 	@Override
@@ -59,12 +59,12 @@ public class DisplayWorkflowInstanceViewImpl extends BaseViewImpl implements Dis
 	}
 
 	@Override
-	public void setWorkflowInstanceVO(WorkflowInstanceVO workflowInstanceVO) {
+	public void setWorkflowInstanceVO(BetaWorkflowInstanceVO workflowInstanceVO) {
 		this.workflowInstanceVO = workflowInstanceVO;
 	}
 
 	@Override
-	public void setWorkflowTaskProgressionVOs(List<WorkflowTaskProgressionVO> workflowTaskProgressionVOs) {
+	public void setWorkflowTaskProgressionVOs(List<BetaWorkflowTaskProgressionVO> workflowTaskProgressionVOs) {
 		this.workflowTaskProgressionVOs = workflowTaskProgressionVOs;
 	}
 
@@ -113,7 +113,7 @@ public class DisplayWorkflowInstanceViewImpl extends BaseViewImpl implements Dis
 		container.addContainerProperty("decision", String.class, "");
 		container.addContainerProperty("dueDate", String.class, "");
 
-		for (WorkflowTaskProgressionVO workflowTaskProgressionVO : workflowTaskProgressionVOs) {
+		for (BetaWorkflowTaskProgressionVO workflowTaskProgressionVO : workflowTaskProgressionVOs) {
 			addToTable(workflowTaskProgressionVO, container);
 		}
 
@@ -129,7 +129,7 @@ public class DisplayWorkflowInstanceViewImpl extends BaseViewImpl implements Dis
 	}
 
 	@SuppressWarnings("unchecked")
-	private void addToTable(WorkflowTaskProgressionVO workflowTaskProgressionVO, HierarchicalContainer container) {
+	private void addToTable(BetaWorkflowTaskProgressionVO workflowTaskProgressionVO, HierarchicalContainer container) {
 		Item item = container.addItem(workflowTaskProgressionVO);
 		String title = workflowTaskProgressionVO.getTitle();
 		TaskStatusType status = workflowTaskProgressionVO.getStatus();
@@ -146,8 +146,8 @@ public class DisplayWorkflowInstanceViewImpl extends BaseViewImpl implements Dis
 		item.getItemProperty("decision").setValue(decision);
 		item.getItemProperty("dueDate").setValue(dueDateStr);
 
-		List<WorkflowTaskProgressionVO> children = presenter.getChildren(workflowTaskProgressionVO);
-		for (WorkflowTaskProgressionVO child : children) {
+		List<BetaWorkflowTaskProgressionVO> children = presenter.getChildren(workflowTaskProgressionVO);
+		for (BetaWorkflowTaskProgressionVO child : children) {
 			// Recursive call
 			addToTable(child, container);
 			container.setParent(child, workflowTaskProgressionVO);
@@ -164,7 +164,7 @@ public class DisplayWorkflowInstanceViewImpl extends BaseViewImpl implements Dis
 			if (!isDueDateColumn(propertyId)) {
 				style = null;
 			} else {
-				WorkflowTaskProgressionVO workflowTaskProgressionVO = (WorkflowTaskProgressionVO) itemId;
+				BetaWorkflowTaskProgressionVO workflowTaskProgressionVO = (BetaWorkflowTaskProgressionVO) itemId;
 				if (presenter.isFinished(workflowTaskProgressionVO)) {
 					style = FINISHED_TASK_STYLE;
 				} else if (presenter.isTaskOverDue(workflowTaskProgressionVO)) {

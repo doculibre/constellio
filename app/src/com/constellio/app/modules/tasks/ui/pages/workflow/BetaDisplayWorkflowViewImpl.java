@@ -18,8 +18,8 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEv
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowTaskVO;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskVO;
+import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -65,15 +65,15 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWorkflowView, NoDragAndDrop {
+public class BetaDisplayWorkflowViewImpl extends BaseViewImpl implements BetaDisplayWorkflowView, NoDragAndDrop {
 
-	private WorkflowVO workflowVO;
+	private BetaWorkflowVO workflowVO;
 
-	private List<WorkflowTaskVO> workflowTaskVOs = new ArrayList<>();
+	private List<BetaWorkflowTaskVO> workflowTaskVOs = new ArrayList<>();
 
 	private RecordVODataProvider taskTypeDataProvider;
 
-	private WorkflowTaskVO selectedWorkflowTaskVO;
+	private BetaWorkflowTaskVO selectedWorkflowTaskVO;
 
 	private VerticalLayout mainLayout;
 
@@ -89,7 +89,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 
 	private Window addTaskWindow;
 
-	private DisplayWorkflowPresenter presenter;
+	private BetaDisplayWorkflowPresenter presenter;
 
 	private static ConfirmDialog.Factory factory = new DefaultConfirmDialogFactory();
 
@@ -110,8 +110,8 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 		});
 	}
 
-	public DisplayWorkflowViewImpl() {
-		presenter = new DisplayWorkflowPresenter(this);
+	public BetaDisplayWorkflowViewImpl() {
+		presenter = new BetaDisplayWorkflowPresenter(this);
 	}
 
 	@Override
@@ -125,19 +125,19 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 	}
 
 	@Override
-	public void setWorkflowVO(WorkflowVO workflowVO) {
+	public void setWorkflowVO(BetaWorkflowVO workflowVO) {
 		this.workflowVO = workflowVO;
 	}
 
 	@Override
-	public void setWorkflowTaskVOs(List<WorkflowTaskVO> workflowTaskVOs) {
+	public void setWorkflowTaskVOs(List<BetaWorkflowTaskVO> workflowTaskVOs) {
 		this.workflowTaskVOs = workflowTaskVOs;
 	}
 
 	@Override
-	public void remove(WorkflowTaskVO workflowTaskVO) {
-		List<WorkflowTaskVO> children = presenter.getChildren(workflowTaskVO);
-		for (WorkflowTaskVO child : children) {
+	public void remove(BetaWorkflowTaskVO workflowTaskVO) {
+		List<BetaWorkflowTaskVO> children = presenter.getChildren(workflowTaskVO);
+		for (BetaWorkflowTaskVO child : children) {
 			// Recursive call
 			remove(child);
 		}
@@ -210,8 +210,8 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 				TableTransferable transferable = (TableTransferable) event.getTransferable();
 				AbstractSelectTargetDetails targetDetails = (AbstractSelectTargetDetails) event.getTargetDetails();
 
-				WorkflowTaskVO droppedItemId = (WorkflowTaskVO) transferable.getItemId();
-				WorkflowTaskVO targetItemId = (WorkflowTaskVO) targetDetails.getItemIdOver();
+				BetaWorkflowTaskVO droppedItemId = (BetaWorkflowTaskVO) transferable.getItemId();
+				BetaWorkflowTaskVO targetItemId = (BetaWorkflowTaskVO) targetDetails.getItemIdOver();
 
 				Object droppedItemParent = container.getParent(droppedItemId);
 				Object targetItemParent = container.getParent(targetItemId);
@@ -231,7 +231,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 			}
 		});
 
-		for (WorkflowTaskVO workflowTaskVO : workflowTaskVOs) {
+		for (BetaWorkflowTaskVO workflowTaskVO : workflowTaskVOs) {
 			addToTable(workflowTaskVO, container, null);
 		}
 
@@ -243,9 +243,9 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 	}
 
 	@SuppressWarnings("unchecked")
-	private void addToTable(WorkflowTaskVO workflowTaskVO, HierarchicalContainer container, WorkflowTaskVO parentWorkflowTaskVO) {
+	private void addToTable(BetaWorkflowTaskVO workflowTaskVO, HierarchicalContainer container, BetaWorkflowTaskVO parentWorkflowTaskVO) {
 		if (container.getItem(workflowTaskVO) != null) {
-			WorkflowTaskVO newWorkflowTaskVO = new WorkflowTaskVO();
+			BetaWorkflowTaskVO newWorkflowTaskVO = new BetaWorkflowTaskVO();
 			String title = $("DisplayWorkflowView.redirect", workflowTaskVO.getTitle());
 			newWorkflowTaskVO.setTitle(title);
 			Item item = container.addItem(newWorkflowTaskVO);
@@ -259,8 +259,8 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 			String title = workflowTaskVO.getTitle();
 			item.getItemProperty("title").setValue(title);
 
-			List<WorkflowTaskVO> children = presenter.getChildren(workflowTaskVO);
-			for (WorkflowTaskVO child : children) {
+			List<BetaWorkflowTaskVO> children = presenter.getChildren(workflowTaskVO);
+			for (BetaWorkflowTaskVO child : children) {
 				boolean setParent = true;
 				if (container.getItem(child) != null) {
 					setParent = false;
@@ -340,7 +340,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 
 			@Override
 			public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
-				selectedWorkflowTaskVO = (WorkflowTaskVO) event.getItemId();
+				selectedWorkflowTaskVO = (BetaWorkflowTaskVO) event.getItemId();
 			}
 		};
 		contextMenu.addContextMenuTableListener(contextMenuTableListener);
@@ -372,13 +372,13 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 	}
 
 	@Override
-	public void openAddTaskWindow(WorkflowTaskVO workflowTaskVO, List<WorkflowTaskVO> availableTaskVOs) {
+	public void openAddTaskWindow(BetaWorkflowTaskVO workflowTaskVO, List<BetaWorkflowTaskVO> availableTaskVOs) {
 		addTaskWindow.setContent(new AddTaskWindowContent(workflowTaskVO, availableTaskVOs));
 		UI.getCurrent().addWindow(addTaskWindow);
 	}
 
 	@Override
-	public void openExistingTasksWindow(WorkflowTaskVO workflowTaskVO, List<WorkflowTaskVO> availableTaskVOs) {
+	public void openExistingTasksWindow(BetaWorkflowTaskVO workflowTaskVO, List<BetaWorkflowTaskVO> availableTaskVOs) {
 		addTaskWindow.setContent(buildExistingTasksContent(workflowTaskVO, availableTaskVOs));
 		UI.getCurrent().addWindow(addTaskWindow);
 	}
@@ -390,7 +390,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 
 	public class AddTaskWindowContent extends Panel {
 
-		private WorkflowTaskVO workflowTaskVO;
+		private BetaWorkflowTaskVO workflowTaskVO;
 
 		private String taskType;
 
@@ -412,7 +412,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 		@PropertyId("decisions")
 		private ListAddRemoveTextField decisionsField;
 
-		public AddTaskWindowContent(WorkflowTaskVO workflowTaskVO, List<WorkflowTaskVO> availableTaskVOs) {
+		public AddTaskWindowContent(BetaWorkflowTaskVO workflowTaskVO, List<BetaWorkflowTaskVO> availableTaskVOs) {
 			this.workflowTaskVO = workflowTaskVO;
 
 			typeField = new RecordComboBox(TaskType.DEFAULT_SCHEMA);
@@ -423,7 +423,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 
 			workflowTaskVOField = new BaseComboBox();
 			workflowTaskVOField.setCaption($("DisplayWorkflowView.addTaskWindow.workflowTaskVO"));
-			for (WorkflowTaskVO availableTaskVO : availableTaskVOs) {
+			for (BetaWorkflowTaskVO availableTaskVO : availableTaskVOs) {
 				workflowTaskVOField.addItem(availableTaskVO);
 				workflowTaskVOField.setItemCaption(availableTaskVO, availableTaskVO.getTitle());
 			}
@@ -431,7 +431,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					boolean decisionsFieldVisible;
-					WorkflowTaskVO newValue = (WorkflowTaskVO) event.getProperty().getValue();
+					BetaWorkflowTaskVO newValue = (BetaWorkflowTaskVO) event.getProperty().getValue();
 					if (newValue != null) {
 						decisionsFieldVisible = presenter.isDecisionField(newValue);
 					} else {
@@ -463,11 +463,11 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 			setContent(baseForm);
 		}
 
-		public WorkflowTaskVO getWorkflowTaskVO() {
+		public BetaWorkflowTaskVO getWorkflowTaskVO() {
 			return workflowTaskVO;
 		}
 
-		public void setWorkflowTaskVO(WorkflowTaskVO workflowTaskVO) {
+		public void setWorkflowTaskVO(BetaWorkflowTaskVO workflowTaskVO) {
 			this.workflowTaskVO = workflowTaskVO;
 		}
 
@@ -497,11 +497,11 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 
 	}
 
-	protected Component buildExistingTasksContent(final WorkflowTaskVO workflowTaskVO, List<WorkflowTaskVO> availableTaskVOs) {
+	protected Component buildExistingTasksContent(final BetaWorkflowTaskVO workflowTaskVO, List<BetaWorkflowTaskVO> availableTaskVOs) {
 
 		final ComboBox workflowTaskVOField = new BaseComboBox();
 		workflowTaskVOField.setCaption($("DisplayWorkflowView.addTaskWindow.availableTasks"));
-		for (WorkflowTaskVO availableTaskVO : availableTaskVOs) {
+		for (BetaWorkflowTaskVO availableTaskVO : availableTaskVOs) {
 			workflowTaskVOField.addItem(availableTaskVO);
 			workflowTaskVOField.setItemCaption(availableTaskVO, availableTaskVO.getTitle());
 		}
@@ -509,7 +509,7 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 		BaseButton saveButton = new BaseButton($("save")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				WorkflowTaskVO selectedWorkflowTaskVO = (WorkflowTaskVO) workflowTaskVOField.getValue();
+				BetaWorkflowTaskVO selectedWorkflowTaskVO = (BetaWorkflowTaskVO) workflowTaskVOField.getValue();
 				if (selectedWorkflowTaskVO != null) {
 					presenter.addExistingTaskAfter(selectedWorkflowTaskVO, workflowTaskVO);
 				}
