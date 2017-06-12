@@ -1,6 +1,6 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -11,8 +11,8 @@ import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
-import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.pages.base.BaseView;
 
 public class SDKViewNavigation {
@@ -37,7 +37,7 @@ public class SDKViewNavigation {
 
 		when(view.navigate()).thenReturn(navigation);
 		when(navigation.to()).thenReturn(coreViews);
-		when(navigation.to(any(Class.class))).thenAnswer(new Answer<Object>() {
+		when(navigation.to(anyObject())).thenAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation)
 					throws Throwable {

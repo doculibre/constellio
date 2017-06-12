@@ -40,6 +40,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
@@ -95,7 +96,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, 7,
 				records.getFolder_A42().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getChuckNorris().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getChuckNorris().getId()));
 
 		recordServices.physicallyDeleteNoMatterTheStatus(records.getList10().getWrappedRecord(), User.GOD,
 				new RecordPhysicalDeleteOptions());
@@ -137,7 +138,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42, 7,
 				records.getFolder_A42().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		extension.completeBorrowRequest(task, false);
 
@@ -172,7 +173,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, 7,
 				records.getContainerBac13().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getChuckNorris().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getChuckNorris().getId()));
 
 		extension.completeBorrowRequest(task, true);
 
@@ -207,7 +208,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13, 7,
 				records.getContainerBac13().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		extension.completeBorrowRequest(task, false);
 
@@ -243,7 +244,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newReturnFolderRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		Folder folder = records.getFolder_A42();
 		assertThat(folder.getBorrowed()).isTrue();
@@ -278,7 +279,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newReturnFolderRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		Folder folder = records.getFolder_A42();
 		assertThat(folder.getBorrowed()).isTrue();
@@ -313,7 +314,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newReturnContainerRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		ContainerRecord container = records.getContainerBac13();
 		assertThat(container.getBorrowed()).isTrue();
@@ -348,7 +349,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newReturnContainerRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		ContainerRecord container = records.getContainerBac13();
 		assertThat(container.getBorrowed()).isTrue();
@@ -384,7 +385,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		Folder folder = records.getFolder_A42();
 		assertThat(folder.getBorrowed()).isTrue();
@@ -422,7 +423,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		Folder folder = records.getFolder_A42();
 		assertThat(folder.getBorrowed()).isTrue();
@@ -460,7 +461,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		ContainerRecord containerRecord = records.getContainerBac13();
 		assertThat(containerRecord.getBorrowed()).isTrue();
@@ -498,7 +499,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 
 		ContainerRecord containerRecord = records.getContainerBac13();
 		assertThat(containerRecord.getBorrowed()).isTrue();
@@ -535,7 +536,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle(),
 				LocalDate.now()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 		LocalDate previousTransferDate = records.getFolder_A42().getActualTransferDate();
 		assertThat(previousTransferDate != null);
 
@@ -577,7 +578,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle(),
 				LocalDate.now()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 		LocalDate previousTransferDate = records.getFolder_A42().getActualTransferDate();
 		assertThat(previousTransferDate != null);
 
@@ -619,7 +620,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle(),
 				LocalDate.now()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 		Map<String, LocalDate> previousTransferDates = new HashMap<>();
 		LogicalSearchCondition condition = allConditions(
 				where(rm.folder.container()).isEqualTo(records.containerId_bac13),
@@ -671,7 +672,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle(),
 				LocalDate.now()).getWrappedRecord());
-		recordServices.add(task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
+		recordServices.add((RecordWrapper) task.set(RequestTask.RESPONDANT, records.getAdmin().getId()));
 		Map<String, LocalDate> previousTransferDates = new HashMap<>();
 		LogicalSearchCondition condition = allConditions(
 				where(rm.folder.container()).isEqualTo(records.containerId_bac13),

@@ -29,7 +29,6 @@ import com.constellio.data.dao.services.transactionLog.kafka.BlockingDeliveryStr
 import com.constellio.data.dao.services.transactionLog.kafka.ConsumerRecordPoller;
 import com.constellio.data.dao.services.transactionLog.kafka.DeliveryStrategy;
 import com.constellio.data.dao.services.transactionLog.kafka.FailedDeliveryCallback;
-import com.constellio.data.dao.services.transactionLog.kafka.LimitedSendNumberKafkaProducer;
 import com.constellio.data.dao.services.transactionLog.kafka.Transaction;
 import com.constellio.data.dao.services.transactionLog.kafka.TransactionReplayer;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
@@ -52,7 +51,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 
 	public KafkaTransactionLogManager(DataLayerConfiguration configuration, DataLayerSystemExtensions extensions,
 			RecordDao recordDao, DataLayerLogger dataLayerLogger) {
-		transactions = Collections.<String, String> synchronizedMap(new HashMap<String, String>());
+		transactions = Collections.<String, String>synchronizedMap(new HashMap<String, String>());
 
 		this.configuration = configuration;
 		this.extensions = extensions;
@@ -117,7 +116,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		transaction.setVersions(transactionInfo.getNewDocumentVersions());
 		transaction.setTransaction(data);
 
-		setLastFlushFailed(!getDeliveryStrategy().<String, Transaction> send(getProducer(), getRecord(transaction), callback));
+		setLastFlushFailed(!getDeliveryStrategy().<String, Transaction>send(getProducer(), getRecord(transaction), callback));
 	}
 
 	private ProducerRecord<String, Transaction> getRecord(Transaction data) {

@@ -20,6 +20,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -95,8 +96,8 @@ public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 		Double expectedRatio = 0d;
 		container.setCapacity(10d);
 
-		recordServices.update(records.getFolder_C50().set(Folder.CONTAINER, null));
-		recordServices.update(records.getFolder_C55().set(Folder.CONTAINER, null));
+		recordServices.update((RecordWrapper) records.getFolder_C50().set(Folder.CONTAINER, null));
+		recordServices.update((RecordWrapper) records.getFolder_C55().set(Folder.CONTAINER, null));
 		recordVO = new RecordToVOBuilder().build(container.getWrappedRecord(), RecordVO.VIEW_MODE.FORM, sessionContext);
 		Double ratio = presenter.getFillRatio(recordVO);
 		assertThat(ratio).isEqualTo(expectedRatio);
