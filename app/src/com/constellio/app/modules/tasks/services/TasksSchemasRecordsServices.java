@@ -465,6 +465,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("workflow");
 		}
 	}
+
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
 
@@ -529,19 +530,19 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return new Task(record, getTypes()).setType(typeId);
 	}
 
-	public Task newWorkflowModelTask(BetaWorkflow workflow) {
-		return wrapTask(create(userTask.schema())).setModel(true).setWorkflow(workflow);
+	public BetaWorkflowTask newWorkflowModelTask(BetaWorkflow workflow) {
+		return wrapBetaWorkflowTask(create(userTask.schema())).setModel(true).setWorkflow(workflow);
 	}
 
-	public Task newWorkflowModelTaskWithType(BetaWorkflow workflow, String typeId) {
-		Task task = wrapTask(create(taskSchemaFor(typeId))).setModel(true).setWorkflow(workflow);
+	public BetaWorkflowTask newWorkflowModelTaskWithType(BetaWorkflow workflow, String typeId) {
+		BetaWorkflowTask task = wrapBetaWorkflowTask(create(taskSchemaFor(typeId))).setModel(true).setWorkflow(workflow);
 		TaskType taskType = getTaskType(typeId);
 		task.setType(taskType);
 		return task;
 	}
 
-	public Task newWorkflowModelTaskWithId(String id, BetaWorkflow workflow) {
-		return wrapTask(create(userTask.schema(), id)).setModel(true).setWorkflow(workflow);
+	public BetaWorkflowTask newWorkflowModelTaskWithId(String id, BetaWorkflow workflow) {
+		return wrapBetaWorkflowTask(create(userTask.schema(), id)).setModel(true).setWorkflow(workflow);
 	}
 
 	public List<TaskStatus> getFinishedOrClosedStatuses() {

@@ -1,10 +1,6 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.joda.time.LocalDate;
 
@@ -15,7 +11,6 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.structures.MapStringStringStructure;
 
 public class Task extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "userTask";
@@ -161,66 +156,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public String getNextTask(String decision) {
-		if (decision == null) {
-			return hasNextTask() ? getSingleNextTask() : null;
-		} else {
-			return getNextTasksDecisions().get(decision);
-		}
-	}
-
-	public List<String> getNextTasks() {
-		return getList(BETA_NEXT_TASKS);
-	}
-
-	public List<String> getNextTasksDecisionsCodes() {
-		List<String> decisionCodes = new ArrayList<>();
-		MapStringStringStructure nextTasks = getNextTasksDecisions();
-		if (nextTasks != null) {
-			decisionCodes.addAll(nextTasks.keySet());
-		}
-		Collections.sort(decisionCodes);
-		return decisionCodes;
-	}
-
-	public boolean hasDecisions() {
-		List<String> decisions = getNextTasksDecisionsCodes();
-		return decisions.size() > 1;
-	}
-
-	public MapStringStringStructure getNextTasksDecisions() {
-		return get(BETA_NEXT_TASKS_DECISIONS);
-	}
-
-	public Task addNextTaskDecision(String decision, String reference) {
-		MapStringStringStructure values = getNextTasksDecisions();
-		if (values == null) {
-			setNextTasksDecisions(values = new MapStringStringStructure());
-		}
-		//if (reference == null || reference.equals("null")) {
-		//	values.remove(decision);
-		//} else {
-		values.put(decision, reference);
-		//}
-		return this;
-	}
-
-	public Task setNextTasksDecisions(MapStringStringStructure decisions) {
-		set(BETA_NEXT_TASKS_DECISIONS, decisions);
-		return this;
-	}
-
-	public Task setNextTask(String nextTask) {
-		Map<String, String> nextTaskDecisions = new HashMap<>();
-		nextTaskDecisions.put(BETA_DEFAULT_NEXT_TASK, nextTask);
-		return setNextTasksDecisions(nextTaskDecisions);
-	}
-
-	public Task setNextTasksDecisions(Map<String, String> decisions) {
-		set(BETA_NEXT_TASKS_DECISIONS, new MapStringStringStructure(decisions));
-		return this;
-	}
-
 	public String getDecision() {
 		return get(DECISION);
 	}
@@ -230,24 +165,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public String getWorkflow() {
-		return get(BETA_WORKFLOW);
-	}
-
-	public Task setWorkflow(String workflow) {
-		set(BETA_WORKFLOW, workflow);
-		return this;
-	}
-
-	public Task setWorkflow(Record workflow) {
-		set(BETA_WORKFLOW, workflow);
-		return this;
-	}
-
-	public Task setWorkflow(BetaWorkflow workflow) {
-		set(BETA_WORKFLOW, workflow);
-		return this;
-	}
 
 	public String getModelTask() {
 		return get(MODEL_TASK);
@@ -268,24 +185,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public String getWorkflowInstance() {
-		return get(BETA_WORKFLOW_INSTANCE);
-	}
-
-	public Task setWorkflowInstance(String workflowInstanceId) {
-		set(BETA_WORKFLOW_INSTANCE, workflowInstanceId);
-		return this;
-	}
-
-	public Task setWorkflowInstance(Record workflowInstance) {
-		set(BETA_WORKFLOW_INSTANCE, workflowInstance);
-		return this;
-	}
-
-	public Task setWorkflowInstance(BetaWorkflowInstance workflowInstance) {
-		set(BETA_WORKFLOW_INSTANCE, workflowInstance);
-		return this;
-	}
 
 	public boolean isModel() {
 		return getBooleanWithDefaultValue(IS_MODEL, false);
@@ -362,15 +261,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public boolean isNextTaskCreated() {
-		return getBooleanWithDefaultValue(BETA_NEXT_TASK_CREATED, false);
-	}
-
-	public Task setNextTaskCreated(boolean nextTaskCreated) {
-		set(BETA_NEXT_TASK_CREATED, nextTaskCreated);
-		return this;
-	}
-
 	public TaskStatusType getStatusType() {
 		return get(STATUS_TYPE);
 	}
@@ -422,17 +312,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public boolean hasNextTask() {
-		return !getNextTasks().isEmpty();
-	}
-
-	public String getSingleNextTask() {
-		List<String> nextTasks = getNextTasksDecisionsCodes();
-		if (nextTasks.size() != 1) {
-			throw new RuntimeException("Has no single next task");
-		}
-		return getNextTasksDecisions().get(nextTasks.get(0));
-	}
 
 	public String getReason() {
 		return (String) get(REASON);

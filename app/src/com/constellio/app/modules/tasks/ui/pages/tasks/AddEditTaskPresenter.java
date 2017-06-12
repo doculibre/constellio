@@ -1,15 +1,34 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.request.*;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
+import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -26,16 +45,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
 	TaskVO taskVO;
@@ -201,7 +210,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		TaskDecisionField field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
 		if (field != null) {
 			try {
-				Task task = loadTask();
+				BetaWorkflowTask task = loadTask();
 
 				if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
 					field.setVisible(false);
@@ -224,7 +233,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
 				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
 		String schemaCode = getTask().getSchema().getCode();
-		if(acceptedSchemas.contains(schemaCode)) {
+		if (acceptedSchemas.contains(schemaCode)) {
 			try {
 				if (!completeMode) {
 					view.adjustAcceptedField(false);
@@ -239,8 +248,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustReasonField() {
-		CustomTaskField field =  view.getForm().getCustomField(Task.REASON);
-		if(field != null) {
+		CustomTaskField field = view.getForm().getCustomField(Task.REASON);
+		if (field != null) {
 			try {
 				Task task = loadTask();
 
@@ -359,11 +368,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		reloadForm();
 	}
 
-	private Task loadTask() {
+	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
 		progressPercentageField.setVisible(editMode);
-		return tasksSchemas.getTask(taskVO.getId());
+		return tasksSchemas.getBetaWorkflowTask(taskVO.getId());
 	}
 
 	public boolean isEditMode() {

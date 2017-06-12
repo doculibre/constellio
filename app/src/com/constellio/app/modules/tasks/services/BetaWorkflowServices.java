@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
@@ -133,13 +134,14 @@ public class BetaWorkflowServices {
 	}
 
 	BetaWorkflowTaskVO newWorkflowTaskVO(Task modelTask, SessionContext sessionContext) {
+		BetaWorkflowTask betaModelTask = new BetaWorkflowTask(modelTask);
 		RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
 		TaskVO taskVO = new TaskVO(recordToVOBuilder.build(modelTask.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext));
 
 		BetaWorkflowTaskVO workflowTaskVO = new BetaWorkflowTaskVO();
 		workflowTaskVO.setId(modelTask.getId());
 		workflowTaskVO.setTaskVO(taskVO);
-		workflowTaskVO.setHasChildren(modelTask.hasDecisions());
+		workflowTaskVO.setHasChildren(betaModelTask.hasDecisions());
 		workflowTaskVO.setTitle(modelTask.getTitle());
 
 		return workflowTaskVO;
@@ -157,7 +159,7 @@ public class BetaWorkflowServices {
 	private List<BetaWorkflowTaskVO> getWorkflowTasksStarting(String taskId, SessionContext sessionContext) {
 		List<BetaWorkflowTaskVO> workflowTaskVOs = new ArrayList<>();
 		if (taskId != null && !taskId.equals("NO_VALUE")) {
-			Task task = tasks.getTask(taskId);
+			BetaWorkflowTask task = tasks.getBetaWorkflowTask(taskId);
 			workflowTaskVOs.add(newWorkflowTaskVO(task, sessionContext));
 
 			if (!task.hasDecisions() && task.hasNextTask()) {
@@ -197,14 +199,14 @@ public class BetaWorkflowServices {
 		if (workflowTaskVO.getDecision() == null) {
 			List<BetaWorkflowTaskVO> workflows = new ArrayList<>();
 			if (workflowTaskVO.hasChildren()) {
-				Task task = tasks.getTask(workflowTaskVO.getId());
+				BetaWorkflowTask task = tasks.getBetaWorkflowTask(workflowTaskVO.getId());
 				for (String decision : task.getNextTasksDecisionsCodes()) {
 					workflows.add(newWorkflowTaskVO(task, decision, sessionContext));
 				}
 			}
 			return workflows;
 		} else {
-			Task task = tasks.getTask(workflowTaskVO.getId());
+			BetaWorkflowTask task = tasks.getBetaWorkflowTask(workflowTaskVO.getId());
 			String taskId = task.getNextTask(workflowTaskVO.getDecision());
 			if (taskId == null) {
 				return new ArrayList<>();
@@ -216,7 +218,7 @@ public class BetaWorkflowServices {
 	}
 
 	public boolean canAddTaskIn(BetaWorkflowTaskVO selectedTask, SessionContext sessionContext) {
-		Task task = tasks.getTask(selectedTask.getId());
+		BetaWorkflowTask task = tasks.getBetaWorkflowTask(selectedTask.getId());
 		for (BetaWorkflowTaskVO workflowTaskVO : getAvailableWorkflowTaskVOForNewTask(task.getWorkflow(), sessionContext)) {
 			if (selectedTask.hasSameIdDecision(workflowTaskVO)) {
 				return true;
@@ -232,7 +234,7 @@ public class BetaWorkflowServices {
 	public List<BetaWorkflowTaskVO> getAvailableWorkflowTaskVOForNewTask(String workflowId, SessionContext sessionContext) {
 		List<BetaWorkflowTaskVO> tasks = new ArrayList<>();
 
-		for (Task task : getWorkflowModelTasks(workflowId)) {
+		for (BetaWorkflowTask task : getWorkflowModelTasks(workflowId)) {
 			if (task.hasDecisions()) {
 				for (String decision : task.getNextTasksDecisionsCodes()) {
 					tasks.add(newWorkflowTaskVO(task, decision, sessionContext));
@@ -249,7 +251,7 @@ public class BetaWorkflowServices {
 	 * Create a task, which will be the next task of the current task
 	 * @param taskType TODO
 	 */
-	public Task createModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
+	public BetaWorkflowTask createModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
 			String title, SessionContext sessionContext) {
 		return createDecisionModelTaskAfter(workflow, selectedTask, taskType, title, null, sessionContext);
 	}
@@ -258,10 +260,10 @@ public class BetaWorkflowServices {
 	 * Create a task with a true/false decision, and create a task for each decisions
 	 * @param taskType TODO
 	 */
-	public Task createDecisionModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
+	public BetaWorkflowTask createDecisionModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
 			String title,
 			List<String> decisions, SessionContext sessionContext) {
-		Task newTask;
+		BetaWorkflowTask newTask;
 		if (taskType != null) {
 			newTask = tasks.newWorkflowModelTaskWithType(workflow, taskType);
 		} else {
@@ -379,10 +381,10 @@ public class BetaWorkflowServices {
 
 		String newNextNodeTaskId = newNextNode == null ? null : newNextNode.getId();
 
-		Task task = tasks.wrapTask(transaction.getRecord(node.getId()));
+		BetaWorkflowTask task = tasks.wrapBetaWorkflowTask(transaction.getRecord(node.getId()));
 
 		if (task == null) {
-			task = tasks.getTask(node.getId());
+			task = tasks.getBetaWorkflowTask(node.getId());
 		}
 
 		if (node.getDecision() == null) {
@@ -415,7 +417,7 @@ public class BetaWorkflowServices {
 
 		String newTargetTaskId = targetNode == null ? null : targetNode.getId();
 
-		Task task = tasks.getTask(newTargetTaskId);
+		BetaWorkflowTask task = tasks.getBetaWorkflowTask(newTargetTaskId);
 
 		if (task.getNextTasks().isEmpty()) {
 			task.setNextTask(selectNode.getId());
@@ -438,7 +440,7 @@ public class BetaWorkflowServices {
 		if (node.getDecision() == null && node.hasChildren()) {
 			throw new IllegalArgumentException("Node has multiple nodes after");
 		}
-		Task task = tasks.getTask(node.getId());
+		BetaWorkflowTask task = tasks.getBetaWorkflowTask(node.getId());
 		String nextId = task.getNextTask(node.getDecision());
 
 		if (nextId == null || nextId.equals("NO_VALUE")) {
@@ -459,8 +461,8 @@ public class BetaWorkflowServices {
 			throw new IllegalArgumentException("Node must not be a decision node");
 		}
 
-		Task task = tasks.getTask(node.getId());
-		for (Task modelTask : getWorkflowModelTasks(task.getWorkflow())) {
+		BetaWorkflowTask task = tasks.getBetaWorkflowTask(node.getId());
+		for (BetaWorkflowTask modelTask : getWorkflowModelTasks(task.getWorkflow())) {
 			if (modelTask.hasDecisions()) {
 				for (String decision : modelTask.getNextTasksDecisionsCodes()) {
 					if (task.getId().equals(modelTask.getNextTask(decision))) {
@@ -479,12 +481,12 @@ public class BetaWorkflowServices {
 	 * Delete the task (and all its sub tasks)
 	 */
 	public void delete(BetaWorkflowTaskVO selectedTask, SessionContext sessionContext) {
-		Task task = tasks.getTask(selectedTask.getId());
+		BetaWorkflowTask task = tasks.getBetaWorkflowTask(selectedTask.getId());
 		BetaWorkflowTaskVO taskBeforeVO = getTaskVOBefore(selectedTask, sessionContext);
 
 		if (!selectedTask.hasChildren()) {
 			if (taskBeforeVO != null) {
-				Task taskBefore = tasks.getTask(taskBeforeVO.getId());
+				BetaWorkflowTask taskBefore = tasks.getBetaWorkflowTask(taskBeforeVO.getId());
 
 				String nextTaskId = task.hasNextTask() ? task.getSingleNextTask() : "NO_VALUE";
 
@@ -503,7 +505,7 @@ public class BetaWorkflowServices {
 			recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
 		} else {
 			if (taskBeforeVO != null) {
-				Task taskBefore = tasks.getTask(taskBeforeVO.getId());
+				BetaWorkflowTask taskBefore = tasks.getBetaWorkflowTask(taskBeforeVO.getId());
 				if (taskBeforeVO.getDecision() == null) {
 					taskBefore.setNextTask(null);
 				} else {
@@ -522,8 +524,8 @@ public class BetaWorkflowServices {
 		}
 	}
 
-	public List<Task> getWorkflowModelTasks(String workflowId) {
-		return tasks.searchTasks(getWorkflowModelTasksQuery(workflowId));
+	public List<BetaWorkflowTask> getWorkflowModelTasks(String workflowId) {
+		return tasks.searchBetaWorkflowTasks(getWorkflowModelTasksQuery(workflowId));
 	}
 
 	public LogicalSearchQuery getWorkflowModelTasksQuery(String workflowId) {
@@ -556,10 +558,10 @@ public class BetaWorkflowServices {
 
 	public List<Task> getStartModelTask(BetaWorkflow workflow) {
 
-		List<Task> modelTasks = getWorkflowModelTasks(workflow.getId());
+		List<BetaWorkflowTask> modelTasks = getWorkflowModelTasks(workflow.getId());
 		Set<String> referencedTasks = new HashSet<>();
 
-		for (Task modelTask : modelTasks) {
+		for (BetaWorkflowTask modelTask : modelTasks) {
 			referencedTasks.addAll(modelTask.getNextTasks());
 		}
 
@@ -615,12 +617,12 @@ public class BetaWorkflowServices {
 	public Task createInstanceTask(Task modelTask, BetaWorkflowInstance instance) {
 		String typeId = modelTask.getType();
 
-		Task instanceTask;
+		BetaWorkflowTask instanceTask;
 		if (typeId != null) {
 			TaskType type = tasks.getTaskType(typeId);
-			instanceTask = tasks.newTaskWithType(type);
+			instanceTask = new BetaWorkflowTask(tasks.newTaskWithType(type));
 		} else {
-			instanceTask = tasks.newTask();
+			instanceTask = tasks.newBetaWorkflowTask();
 		}
 
 		for (Metadata metadata : tasks.userTask.schema().getMetadatas().onlyManuals().onlyNotSystemReserved().onlyEnabled()) {
