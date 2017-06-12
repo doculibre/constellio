@@ -23,7 +23,6 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
-import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
@@ -85,7 +84,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
 		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
-		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(constellioCache);
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
