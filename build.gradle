@@ -1,5 +1,5 @@
 plugins {
-    id "fi.jasoft.plugin.vaadin" version '1.1.6' apply false
+    id "fi.jasoft.plugin.vaadin" version '1.1.11' apply false
     id "org.sonarqube" version "2.2" apply false
 }
 
@@ -54,17 +54,6 @@ subprojects {
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
         compile group: 'org.apache.ignite', name: 'ignite-core', version: '2.0.0'
-
-/*
-        compile files("${rootDir}/libs/commons-beanutils-1.8.2.jar")
-        compile files("${rootDir}/libs/commons-collections-3.2.1.jar")
-        compile files("${rootDir}/libs/commons-dbcp-1.2.2.jar")
-        compile files("${rootDir}/libs/commons-digester-2.1.jar")
-        compile files("${rootDir}/libs/groovy-all-2.0.1.jar")
-        compile files("${rootDir}/libs/jasperreports-6.3.0.jar")
-        compile files("${rootDir}/libs/com.lowagie.text-2.1.7.jar")
-        compile files("${rootDir}/libs/barbecue-1.5-beta1.jar")
-        */
     }
 
     configurations {
@@ -90,13 +79,13 @@ war {
         }
     }
 
-    if (new File(rootDir, "../constellio-plugins").exists()) {
-        def updatePlugins = [":plugins:plugin001", ":plugins:plugin002", ":plugins:plugin003", ":plugins:plugin004",
-                             ":plugins:plugin005", ":plugins:plugin006", ":plugins:plugin007", ":plugins:plugin008",
-                             ":plugins:plugin009", ":plugins:plugin010", ":plugins:plugin012", ":plugins:plugin015",
-                             ":plugins:plugin016", ":plugins:plugin017", ":plugins:plugin018", ":plugins:plugin019",
-                             ":plugins:plugin020"]
-        def installPlugins = [":plugins:plugin023", ":plugins:plugin025"]
+    if (project(":constellio-plugins") != null) {
+        def updatePlugins = [":constellio-plugins:plugin001", ":constellio-plugins:plugin002", ":constellio-plugins:plugin003", ":constellio-plugins:plugin004",
+                             ":constellio-plugins:plugin005", ":constellio-plugins:plugin006", ":constellio-plugins:plugin007", ":constellio-plugins:plugin008",
+                             ":constellio-plugins:plugin009", ":constellio-plugins:plugin010", ":constellio-plugins:plugin012", ":constellio-plugins:plugin015",
+                             ":constellio-plugins:plugin016", ":constellio-plugins:plugin017", ":constellio-plugins:plugin018", ":constellio-plugins:plugin019",
+                             ":constellio-plugins:plugin020"]
+        def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 
         from(files(updatePlugins.collect { project(it).jar.outputs.files })) {
             into "plugins-to-update"

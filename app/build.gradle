@@ -1,7 +1,7 @@
 apply plugin: 'fi.jasoft.plugin.vaadin'
 
 vaadin {
-    version '7.7.4'
+    version '7.7.5'
     addon.title = "constellio"
 
     manageRepositories = true
@@ -15,7 +15,7 @@ vaadin {
 
 vaadinCompile {
     widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
-    manageWidgetset false
+    manageWidgetset true
     profiler true
 }
 
@@ -59,7 +59,6 @@ dependencies {
     compile "org.vaadin.addons:googleanalyticstracker:2.1.0"
     compile "org.vaadin.addon:confirmdialog:2.1.2"
     compile "vaadin:breadcrumb:1.7.3"
-//    compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "com.google.code.gson:gson:1.7.2"
     compile "com.sun.messaging.mq:jaxm-api:4.4.1"
     compile "org.vaadin.addons:ckeditor-wrapper-for-vaadin:7.11.0"
