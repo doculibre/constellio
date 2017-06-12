@@ -2,18 +2,18 @@ package com.constellio.app.ui.pages.management.updates;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.awt.*;
 import java.io.OutputStream;
 import java.util.List;
 
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -43,10 +43,9 @@ import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
 
 public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
-	
+
 	private final UpdateManagerPresenter presenter;
 	private UploadWaitWindow uploadWaitWindow;
 	private VerticalLayout layout;
@@ -97,7 +96,6 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		reindex.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
 		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
 		buttons.add(reindex);
-
 
 		standardUpdate = new Button($("UpdateManagerViewImpl.automatic"));
 		standardUpdate.addClickListener(new ClickListener() {
@@ -157,6 +155,15 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Component buildMessagePanel() {
 		VerticalLayout verticalLayout = new VerticalLayout();
 		UpdateRecoveryImpossibleCause cause = presenter.isUpdateWithRecoveryPossible();
+
+		if (presenter.isJava8Installed()) {
+			verticalLayout.addComponent(new Label("<p style=\"color:green\">" +
+					$("UpdateManagerViewImpl.runningWithJava8") + "</p>", ContentMode.HTML));
+		} else {
+			verticalLayout.addComponent(new Label("<p style=\"color:red\">" +
+					$("UpdateManagerViewImpl.notRunningWithJava8") + "</p>", ContentMode.HTML));
+		}
+
 		if (cause != null) {
 			verticalLayout.addComponent(
 					new Label("<p style=\"color:red\">" + $("UpdateManagerViewImpl." + cause) + "</p>", ContentMode.HTML));
@@ -171,8 +178,10 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		final String exceptionDuringLastUpdate = presenter.getExceptionDuringLastUpdate();
 		if (StringUtils.isNotBlank(exceptionDuringLastUpdate)) {
 			verticalLayout.addComponent(new Label(
-					"<p style=\"color:red\">" + $("UpdateManagerViewImpl.exceptionCausedByLastVersion")+ "</p>", ContentMode.HTML));
-			WindowButton windowButton  = new WindowButton($("details"), $("details"), WindowConfiguration.modalDialog("90%", "90%")) {
+					"<p style=\"color:red\">" + $("UpdateManagerViewImpl.exceptionCausedByLastVersion") + "</p>",
+					ContentMode.HTML));
+			WindowButton windowButton = new WindowButton($("details"), $("details"),
+					WindowConfiguration.modalDialog("90%", "90%")) {
 				@Override
 				protected Component buildWindowContent() {
 					TextArea textArea = new TextArea();
@@ -369,5 +378,5 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	public AcceptCriterion getAcceptCriterion() {
 		return AcceptAll.get();
 	}
-	
+
 }
