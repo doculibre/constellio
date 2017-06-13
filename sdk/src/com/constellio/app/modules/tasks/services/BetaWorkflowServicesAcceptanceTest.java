@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -38,7 +39,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
 
-public class WorkflowServicesAcceptanceTest extends ConstellioTest {
+public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 	TasksSchemasRecordsServices tasks;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
@@ -161,11 +162,12 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		BetaWorkflowTaskVO approvalSecondTask = services.newWorkflowTaskVO(tasks.getTask("approvedSecondTask"), sessionContext);
 
-		Task task = services.createModelTaskAfter(approvalWorkflow, approvalSecondTask, null, "ze new task", sessionContext);
+		BetaWorkflowTask task = services
+				.createModelTaskAfter(approvalWorkflow, approvalSecondTask, null, "ze new task", sessionContext);
 		assertThat(task.getTitle()).isEqualTo("ze new task");
 		assertThat(task.getNextTasks()).isEmpty();
 
-		Task previousTask = tasks.getTask(approvalSecondTask.getId());
+		BetaWorkflowTask previousTask = tasks.getBetaWorkflowTask(approvalSecondTask.getId());
 		assertThat(previousTask.getNextTasks()).containsOnly(task.getId());
 
 		assertThat(services.getRootModelTaskVOs(approvalWorkflow, sessionContext)).extracting("id").containsOnly(
@@ -183,13 +185,13 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		BetaWorkflowTaskVO approvalSecondTask = services.newWorkflowTaskVO(tasks.getTask("approvedSecondTask"), sessionContext);
 
-		Task task = services.createDecisionModelTaskAfter(approvalWorkflow, approvalSecondTask, null,
+		BetaWorkflowTask task = services.createDecisionModelTaskAfter(approvalWorkflow, approvalSecondTask, null,
 				"ze new task", asList("decision1", "decision2"), sessionContext);
 		assertThat(task.getTitle()).isEqualTo("ze new task");
 		assertThat(task.getNextTasksDecisionsCodes()).containsOnly("decision1", "decision2");
 		assertThat(task.getNextTasks()).isEmpty();
 
-		Task previousTask = tasks.getTask(approvalSecondTask.getId());
+		BetaWorkflowTask previousTask = tasks.getBetaWorkflowTask(approvalSecondTask.getId());
 		assertThat(previousTask.getNextTasks()).containsOnly(task.getId());
 
 		assertThat(services.getRootModelTaskVOs(approvalWorkflow, sessionContext)).extracting("id").containsOnly(
@@ -197,14 +199,14 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		);
 
 		BetaWorkflowTaskVO zeNewTaskDecision1 = services.newWorkflowTaskVO(previousTask, "decision1", sessionContext);
-		Task zeNewTaskInDecision1 = services.createDecisionModelTaskAfter(approvalWorkflow, zeNewTaskDecision1,
+		BetaWorkflowTask zeNewTaskInDecision1 = services.createDecisionModelTaskAfter(approvalWorkflow, zeNewTaskDecision1,
 				null, "ze new task decision 1 sub decisions", asList("decision3", "decision4"), sessionContext);
 		assertThat(zeNewTaskInDecision1.getTitle()).isEqualTo("ze new task decision 1 sub decisions");
 		assertThat(zeNewTaskInDecision1.getNextTasksDecisionsCodes()).containsOnly("decision3", "decision4");
 		assertThat(zeNewTaskInDecision1.getNextTasks()).isEmpty();
 
 		BetaWorkflowTaskVO zeNewTaskDecision2 = services.newWorkflowTaskVO(previousTask, "decision2", sessionContext);
-		Task zeNewTaskInDecision2 = services.createModelTaskAfter(approvalWorkflow, zeNewTaskDecision2,
+		BetaWorkflowTask zeNewTaskInDecision2 = services.createModelTaskAfter(approvalWorkflow, zeNewTaskDecision2,
 				null, "ze new task decision 2 sub decisions", sessionContext);
 		assertThat(zeNewTaskInDecision2.getTitle()).isEqualTo("ze new task decision 2 sub decisions");
 		assertThat(zeNewTaskInDecision2.getNextTasks()).isEmpty();
@@ -741,11 +743,11 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		workflow.setCode("approval");
 		workflow.setTitle("Un workflow d'approbation");
 
-		Task details = transaction.add(tasks.newWorkflowModelTaskWithId("details", workflow));
-		Task approval = transaction.add(tasks.newWorkflowModelTaskWithId("approval", workflow));
-		Task approvedSecondTask = transaction.add(tasks.newWorkflowModelTaskWithId("approvedSecondTask", workflow));
-		Task refusalFirstTask = transaction.add(tasks.newWorkflowModelTaskWithId("refusalFirstTask", workflow));
-		Task approvedFirstTask = transaction.add(tasks.newWorkflowModelTaskWithId("approvedFirstTask", workflow));
+		BetaWorkflowTask details = transaction.add(tasks.newWorkflowModelTaskWithId("details", workflow));
+		BetaWorkflowTask approval = transaction.add(tasks.newWorkflowModelTaskWithId("approval", workflow));
+		BetaWorkflowTask approvedSecondTask = transaction.add(tasks.newWorkflowModelTaskWithId("approvedSecondTask", workflow));
+		BetaWorkflowTask refusalFirstTask = transaction.add(tasks.newWorkflowModelTaskWithId("refusalFirstTask", workflow));
+		BetaWorkflowTask approvedFirstTask = transaction.add(tasks.newWorkflowModelTaskWithId("approvedFirstTask", workflow));
 
 		details.setTitle("Détails").setAssigneeGroupsCandidates(asList(legends));
 		approval.setTitle("Demande d'approbation").setAssigneeGroupsCandidates(asList(legends));
@@ -781,11 +783,11 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		workflow.setTitle("Un simple workflow");
 		recordServices.add(workflow);
 
-		Task taskZ = transaction.add(tasks.newWorkflowModelTaskWithId("taskZ", workflow));
-		Task task4 = transaction.add(tasks.newWorkflowModelTaskWithId("task4", workflow));
-		Task task1 = transaction.add(tasks.newWorkflowModelTaskWithId("task1", workflow));
-		Task task3 = transaction.add(tasks.newWorkflowModelTaskWithId("task3", workflow));
-		Task task2 = transaction.add(tasks.newWorkflowModelTaskWithId("task2", workflow));
+		BetaWorkflowTask taskZ = transaction.add(tasks.newWorkflowModelTaskWithId("taskZ", workflow));
+		BetaWorkflowTask task4 = transaction.add(tasks.newWorkflowModelTaskWithId("task4", workflow));
+		BetaWorkflowTask task1 = transaction.add(tasks.newWorkflowModelTaskWithId("task1", workflow));
+		BetaWorkflowTask task3 = transaction.add(tasks.newWorkflowModelTaskWithId("task3", workflow));
+		BetaWorkflowTask task2 = transaction.add(tasks.newWorkflowModelTaskWithId("task2", workflow));
 
 		task1.setTitle("Task 1").setAssigneeGroupsCandidates(asList(legends));
 		task2.setTitle("Task 2").setAssigneeUsersCandidates(asList(dakota, gandalf));
@@ -818,13 +820,13 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 		workflow.setTitle("Un simple workflow2");
 		recordServices.add(workflow);
 
-		Task task1 = transaction.add(tasks.newWorkflowModelTaskWithId("task1", workflow));
-		Task task2 = transaction.add(tasks.newWorkflowModelTaskWithId("task2", workflow));
-		Task task3 = transaction.add(tasks.newWorkflowModelTaskWithId("task3", workflow));
-		Task task4 = transaction.add(tasks.newWorkflowModelTaskWithId("task4", workflow));
-		Task task5 = transaction.add(tasks.newWorkflowModelTaskWithId("task5", workflow));
-		Task task6 = transaction.add(tasks.newWorkflowModelTaskWithId("task6", workflow));
-		Task task7 = transaction.add(tasks.newWorkflowModelTaskWithId("task7", workflow));
+		BetaWorkflowTask task1 = transaction.add(tasks.newWorkflowModelTaskWithId("task1", workflow));
+		BetaWorkflowTask task2 = transaction.add(tasks.newWorkflowModelTaskWithId("task2", workflow));
+		BetaWorkflowTask task3 = transaction.add(tasks.newWorkflowModelTaskWithId("task3", workflow));
+		BetaWorkflowTask task4 = transaction.add(tasks.newWorkflowModelTaskWithId("task4", workflow));
+		BetaWorkflowTask task5 = transaction.add(tasks.newWorkflowModelTaskWithId("task5", workflow));
+		BetaWorkflowTask task6 = transaction.add(tasks.newWorkflowModelTaskWithId("task6", workflow));
+		BetaWorkflowTask task7 = transaction.add(tasks.newWorkflowModelTaskWithId("task7", workflow));
 
 		task1.setTitle("Task 1").setAssigneeGroupsCandidates(asList(legends));
 		task2.setTitle("Task 2").setAssigneeUsersCandidates(asList(dakota, gandalf));
