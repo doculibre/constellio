@@ -46,8 +46,8 @@ public class Task extends RecordWrapper {
 	 * Fields used by second and third version of the workflow feature
 	 */
 	public static final String IS_MODEL = "isModel";
-	public static final String DECISION = "decision";
 	public static final String MODEL_TASK = "modelTask";
+	public static final String DECISION = "decision";
 	public static final String RELATIVE_DUE_DATE = "relativeDueDate";
 
 	/**
@@ -165,7 +165,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-
 	public String getModelTask() {
 		return get(MODEL_TASK);
 	}
@@ -185,7 +184,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-
 	public boolean isModel() {
 		return getBooleanWithDefaultValue(IS_MODEL, false);
 	}
@@ -193,10 +191,6 @@ public class Task extends RecordWrapper {
 	public Task setModel(boolean isModel) {
 		set(IS_MODEL, isModel);
 		return this;
-	}
-
-	public int getWorkflowTaskSort() {
-		return getInteger(BETA_WORKFLOW_TASK_SORT);
 	}
 
 	public String getDescription() {
@@ -311,7 +305,6 @@ public class Task extends RecordWrapper {
 		super.setTitle(title);
 		return this;
 	}
-
 
 	public String getReason() {
 		return (String) get(REASON);

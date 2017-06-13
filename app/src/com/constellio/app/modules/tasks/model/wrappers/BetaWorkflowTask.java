@@ -294,4 +294,8 @@ public class BetaWorkflowTask extends Task {
 	public BetaWorkflowTask setLinkedDocuments(List<?> documentIds) {
 		return (BetaWorkflowTask) super.setLinkedDocuments(documentIds);
 	}
+
+	public int getWorkflowTaskSort() {
+		return getInteger(BETA_WORKFLOW_TASK_SORT);
+	}
 }
