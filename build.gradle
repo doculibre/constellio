@@ -106,6 +106,7 @@ allprojects {
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
         compile group: 'org.apache.ignite', name: 'ignite-core', version: '2.0.0'
+        compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
 
         compile files("${rootDir}/libs/commons-beanutils-1.8.2.jar")
         compile files("${rootDir}/libs/commons-collections-3.2.1.jar")
