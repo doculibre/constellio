@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -23,6 +17,12 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider extends AbstractDataProvider {
@@ -130,12 +130,14 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			Metadata metadata;
 			MetadataSchema schema = query.getSchemaCondition();
 			MetadataVO metadataVO = propertyId[i];
-			metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
+			if(schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
+				metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
 
-			if (ascending[i]) {
-				query = query.sortAsc(metadata);
-			} else {
-				query = query.sortDesc(metadata);
+				if (ascending[i]) {
+					query = query.sortAsc(metadata);
+				} else {
+					query = query.sortDesc(metadata);
+				}
 			}
 		}
 	}
