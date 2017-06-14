@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -27,19 +41,6 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
@@ -112,13 +113,13 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(modifiedContent.getHistoryVersions()).hasSize(2);
 		assertThat(modifiedContent.getHistoryVersions().get(0).getMimetype())
-				.isEqualTo("application/vnd.oasis.opendocument.text");
+				.isEqualTo("application/zip");
 		assertThat(modifiedContent.getHistoryVersions().get(0).getHash())
 				.isEqualTo(initialOlderVersionHash);
 		assertThat(modifiedContent.getHistoryVersions().get(0).getFilename())
 				.isEqualTo("Chevreuil.odt");
 		assertThat(modifiedContent.getHistoryVersions().get(1).getMimetype())
-				.isEqualTo("application/vnd.oasis.opendocument.text");
+				.isEqualTo("application/zip");
 		assertThat(modifiedContent.getHistoryVersions().get(1).getHash())
 				.isEqualTo(initialHash);
 		assertThat(modifiedContent.getHistoryVersions().get(1).getFilename())
@@ -252,7 +253,8 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE)).where(rm.emailToSend.template()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
+				.where(rm.emailToSend.template()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		long numberOfPreExistingEmails = searchServices.getResultsCount(query);
@@ -293,21 +295,28 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEventsThenEventsDataProviderReturnValidEvents() throws Exception {
+	public void givenEventsThenEventsDataProviderReturnValidEvents()
+			throws Exception {
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		Transaction transaction = new Transaction();
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A19)
-				.setTitle(rmRecords.document_A19).setUsername(users.adminIn(zeCollection).getUsername()).setType(EventType.MODIFY_DOCUMENT)
+				.setTitle(rmRecords.document_A19).setUsername(users.adminIn(zeCollection).getUsername())
+				.setType(EventType.MODIFY_DOCUMENT)
 				.setCreatedOn(LocalDateTime.now()));
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A49)
-				.setTitle(rmRecords.document_A49).setUsername(users.adminIn(zeCollection).getUsername()).setType(EventType.MODIFY_DOCUMENT)
+				.setTitle(rmRecords.document_A49).setUsername(users.adminIn(zeCollection).getUsername())
+				.setType(EventType.MODIFY_DOCUMENT)
 				.setCreatedOn(LocalDateTime.now()));
 		recordServices.execute(transaction);
 
 		getDataLayerFactory().newEventsDao().flush();
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19))).isEqualTo(1);
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19))).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19)))
+				.isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19)))
+				.isEqualTo(1);
 
 		presenter.forParams(rmRecords.document_A19);
 		RecordVODataProvider provider = presenter.getEventsDataProvider();
