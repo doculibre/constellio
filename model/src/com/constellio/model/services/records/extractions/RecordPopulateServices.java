@@ -97,7 +97,7 @@ public class RecordPopulateServices {
 		for (Content content : getContents(record, contentMetadatas)) {
 			ParsedContent parsedContent = parsedContentProvider
 					.getParsedContentIfAlreadyParsed(content.getCurrentVersion().getHash());
-			String category = (String) parsedContent.getNormalizedProperty("category");
+			String category = parsedContent == null ? null : (String) parsedContent.getNormalizedProperty("category");
 			if (category != null) {
 				return category;
 			}
