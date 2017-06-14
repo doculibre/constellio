@@ -1,14 +1,56 @@
 package com.constellio.app.modules.rm;
 
+import static com.constellio.app.modules.rm.constants.RMRoles.MANAGER;
+import static com.constellio.app.modules.rm.constants.RMRoles.RGD;
+import static com.constellio.app.modules.rm.constants.RMRoles.USER;
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_TRANSFER;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
@@ -34,6 +76,7 @@ import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
@@ -47,21 +90,6 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.modules.rm.constants.RMRoles.*;
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.*;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.*;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class RMTestRecords {
 
@@ -517,7 +545,7 @@ public class RMTestRecords {
 
 	public RMTestRecords withDocumentsHavingContent() {
 		Transaction transaction = new Transaction();
-		setupDocumentsWithContent(transaction);
+		setupUnparsedDocumentsWithContent(transaction);
 		try {
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
@@ -731,10 +759,13 @@ public class RMTestRecords {
 	}
 
 	private void setupUniformSubdivisions(Transaction transaction) {
-		transaction.add(rm.newUniformSubdivisionWithId(subdivId_1).setCode("sub1").setTitle("Subdiv. 1").setDescription("description1")
+		transaction.add(rm.newUniformSubdivisionWithId(subdivId_1).setCode("sub1").setTitle("Subdiv. 1")
+				.setDescription("description1")
 				.setRetentionRules(asList(ruleId_2)));
-		transaction.add(rm.newUniformSubdivisionWithId(subdivId_2).setCode("sub2").setTitle("Subdiv. 2").setDescription("description2"));
-		transaction.add(rm.newUniformSubdivisionWithId(subdivId_3).setCode("sub3").setTitle("Subdiv. 3").setDescription("description3"));
+		transaction.add(rm.newUniformSubdivisionWithId(subdivId_2).setCode("sub2").setTitle("Subdiv. 2")
+				.setDescription("description2"));
+		transaction.add(rm.newUniformSubdivisionWithId(subdivId_3).setCode("sub3").setTitle("Subdiv. 3")
+				.setDescription("description3"));
 	}
 
 	private void setupRetentionRules(Transaction transaction) {
@@ -1228,9 +1259,9 @@ public class RMTestRecords {
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		User user = users.adminIn(collection);
 
-		ContentVersionDataSummary contractVersion = upload("contrat.docx");
+		ContentVersionDataSummary contractVersion = uploadUnparsed("contrat.docx");
 		Content contractContent = contentManager.createMinor(user, "contrat.docx", contractVersion);
-		ContentVersionDataSummary procesVersion = upload("proces.docx");
+		ContentVersionDataSummary procesVersion = uploadUnparsed("proces.docx");
 		Content procesContent = contentManager.createMinor(user, "proces.docx", procesVersion);
 
 		List<String> returnedIds = new ArrayList<>();
@@ -2006,26 +2037,30 @@ public class RMTestRecords {
 		}
 	}
 
-	private void setupDocumentsWithContent(Transaction transaction) {
-		transaction.add(newDocumentWithContent(document_A19, "Chevreuil.odt").setFolder(folder_A19));
-		transaction.add(newDocumentWithContent(document_A49, "Grenouille.odt").setFolder(folder_A49));
-		transaction.add(newDocumentWithContent(document_B30, "Nectarine.odt").setFolder(folder_B30));
-		transaction.add(newDocumentWithContent(document_B33, "Poire.odt").setFolder(folder_B33));
-		transaction.add(newDocumentWithContent(document_A79, "Lynx.odt").setFolder(folder_A79));
+	private void setupUnparsedDocumentsWithContent(Transaction transaction) {
+		transaction.add(newUnparsedDocumentWithContent(document_A19, "Chevreuil.odt").setFolder(folder_A19));
+		transaction.add(newUnparsedDocumentWithContent(document_A49, "Grenouille.odt").setFolder(folder_A49));
+		transaction.add(newUnparsedDocumentWithContent(document_B30, "Nectarine.odt").setFolder(folder_B30));
+		transaction.add(newUnparsedDocumentWithContent(document_B33, "Poire.odt").setFolder(folder_B33));
+		transaction.add(newUnparsedDocumentWithContent(document_A79, "Lynx.odt").setFolder(folder_A79));
 	}
 
-	private Document newDocumentWithContent(String id, String resource) {
+	private Document newUnparsedDocumentWithContent(String id, String resource) {
 		User user = users.adminIn(collection);
-		ContentVersionDataSummary version01 = upload("Minor_" + resource);
+
+		ContentVersionDataSummary version01 = uploadUnparsed("Minor_" + resource);
 		Content content = contentManager.createMinor(user, resource, version01);
-		ContentVersionDataSummary version10 = upload("Major_" + resource);
+		ContentVersionDataSummary version10 = uploadUnparsed("Major_" + resource);
 		content.updateContent(user, version10, true);
 		return rm.newDocumentWithId(id).setTitle(resource).setContent(content).setType(documentTypeId_1);
 	}
 
-	public ContentVersionDataSummary upload(String resource) {
+	public ContentVersionDataSummary uploadUnparsed(String resource) {
 		InputStream inputStream = DemoTestRecords.class.getResourceAsStream("RMTestRecords_" + resource);
-		return contentManager.upload(inputStream);
+
+		UploadOptions options = new UploadOptions(null);
+		options.setParse(false);
+		return contentManager.upload(inputStream, options).getContentVersionDataSummary();
 	}
 
 	private LocalDate date(int year, int month, int day) {

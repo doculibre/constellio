@@ -47,6 +47,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -227,7 +228,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		return transaction;
 	}
 
-	public Transaction createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider, Transaction trans) throws FileNotFoundException {
+	public Transaction createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider,
+			Transaction trans)
+			throws FileNotFoundException {
 		Map<String, Integer> map = new HashMap<>();
 		map.put("5159", 7);
 		map.put("5161", 10);
@@ -255,7 +258,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 			if (type.equals(Folder.SCHEMA_TYPE)) {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaDossier") + " " + (fi.getName().contains("_D_") ?
-						provider.getDefaultLanguageString("Migration.typeAveryDroite") : provider.getDefaultLanguageString("Migration.typeAveryGauche"));
+						provider.getDefaultLanguageString("Migration.typeAveryDroite") :
+						provider.getDefaultLanguageString("Migration.typeAveryGauche"));
 			} else {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaConteneur");
 			}
@@ -264,9 +268,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			titre += " (" + etiquetteName + " " + format + ")";
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
 			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), false);
-			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), etiquetteName + " " + format + " " + type).getContentVersionDataSummary();
+			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type);
+			options.setParse(false);
+			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), options)
+					.getContentVersionDataSummary();
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
-			record.set(typeBuilder.getMetadata(Printable.JASPERFILE), contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
+			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
+					contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
 			trans.add(record);
 		}
 		return trans;
@@ -342,7 +350,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID);
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "alertAvailableTemplate.html",
 				RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
-		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "alertWhenDecommissioningListCreatedTemplate.html",
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection,
+				"alertWhenDecommissioningListCreatedTemplate.html",
 				RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
 	}
 
