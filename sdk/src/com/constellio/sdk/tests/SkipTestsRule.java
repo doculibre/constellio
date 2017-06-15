@@ -50,6 +50,7 @@ public class SkipTestsRule implements TestRule {
 	private List<String> blackList;
 	private Class<? extends AbstractConstellioTest> currentTestClass;
 	private static String firstClassname;
+	private static String firstTestname;
 
 	private String sunJavaCommand;
 
@@ -58,22 +59,14 @@ public class SkipTestsRule implements TestRule {
 	public SkipTestsRule(SDKPropertiesLoader sdkPropertiesLoader, boolean isUnitMode) {
 
 		RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-
-		System.out.println("Input arguments : " + bean.getInputArguments());
-		System.out.println("Boot classpath : " + bean.getBootClassPath());
-		System.out.println("classpath : " + bean.getClassPath());
-		System.out.println("Library path : " + bean.getLibraryPath());
-		System.out.println("Name : " + bean.getName());
-		System.out.println("Vm name : " + bean.getVmName());
-		System.out.println("object name : " + bean.getObjectName().toString());
 		Map<String, String> systemProperties = bean.getSystemProperties();
-
-		for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
-
-			if (entry.getValue().toLowerCase().contains("ldap")) {
-				System.out.println(entry.getValue());
-			}
-		}
+		//
+		//		for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+		//
+		//			if (entry.getValue().toLowerCase().contains("ldap")) {
+		//				System.out.println(entry.getValue());
+		//			}
+		//		}
 
 		sunJavaCommand = systemProperties.get("sun.java.command");
 		//		String bootClasspath = bean.getBootClassPath();
@@ -136,6 +129,9 @@ public class SkipTestsRule implements TestRule {
 		currentTestName = description.getMethodName();
 		if (firstClassname == null) {
 			firstClassname = currentTestClass.getName();
+		}
+		if (firstTestname == null) {
+			firstTestname = currentTestName;
 		}
 
 		boolean testClassDirectlyTargetted = isTestClassDirectlyTargetted(testClass);
@@ -267,7 +263,8 @@ public class SkipTestsRule implements TestRule {
 			return sunJavaCommand.contains(testClass.getName() + ":" + currentTestName);
 
 		} else {
-			return false;
+			return currentTestClass.getName().equals(firstClassname)
+					&& currentTestName.equals(firstTestname);
 		}
 	}
 
