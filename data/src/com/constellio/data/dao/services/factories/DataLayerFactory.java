@@ -103,18 +103,22 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		if (dataLayerConfiguration.getSettingsCacheType() == CacheType.IGNITE) {
 			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.MEMORY) {
+			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
 		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
 			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 		} else {
-			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
 
 		if (dataLayerConfiguration.getRecordsCacheType() == CacheType.IGNITE) {
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getRecordsCacheType() == CacheType.MEMORY) {
+			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
 		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
 			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 		} else {
-			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
