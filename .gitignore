@@ -81,3 +81,4 @@ app/WebContent/VAADIN/themes/constellio/inputmask/addons.scss
 
 Supprimerait app/WebContent/WEB-INF/lib/
 Supprimerait sdk/ConfigurationRoot/
+/app/src/com/constellio/app/ui/application/widgetset/AppWidgetset.gwt.xml
