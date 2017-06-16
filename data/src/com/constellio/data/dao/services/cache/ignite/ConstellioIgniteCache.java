@@ -10,11 +10,10 @@ import org.apache.ignite.IgniteCache;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 
 public class ConstellioIgniteCache implements ConstellioCache {
-	
+
 	private static final Object NULL = "__NULL__";
-	
 	private String name;
-	
+
 	private IgniteCache<String, Object> igniteCache;
 
 	private Map<String, Object> localCache = new ConcurrentHashMap<>();

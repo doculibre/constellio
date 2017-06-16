@@ -74,13 +74,13 @@ public class FileService {
 	public void replaceFileContent(File file, String data)
 			throws IOException {
 		File tempFile = getAtomicWriteTempFileFor(file);
-		FileUtils.writeStringToFile(tempFile, data, false);
+		FileUtils.writeStringToFile(tempFile, data, "UTF-8",false);
 		moveFile(tempFile, file);
 	}
 
 	public synchronized void appendFileContent(File file, String data)
 			throws IOException {
-		FileUtils.writeStringToFile(file, data, true);
+		FileUtils.writeStringToFile(file, data, "UTF8",true);
 	}
 
 	public synchronized void appendFileContent(File file, String data, String encoding)

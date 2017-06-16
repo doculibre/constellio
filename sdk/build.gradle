@@ -1,35 +1,9 @@
-plugins {
-    id "fi.jasoft.plugin.vaadin" version '0.11.4'
-}
-
-vaadin {
-    version '7.7.4'
-    addon.title = "constellio"
-
-    widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
-    manageWidgetset true
-
-    debug true
-    debugPort 8000
-    profiler true
-
-    manageRepositories = true
-    manageDependencies true
-
-    serverPort 8080
-
-    jvmArgs()
-
-    //mainSourceSet sourceSets.main.allJava
-
-    vaadin.plugin.themesDirectory 'VAADIN/themes/constellio'
-    vaadin.plugin.themeAutoRecompile true
-}
+apply plugin: 'org.sonarqube'
 
 dependencies {
-    testCompile project(":data")
-    testCompile project(":model")
-    testCompile project(":app")
+    testCompile project(":constellio:data")
+    testCompile project(":constellio:model")
+    testCompile project(":constellio:app")
 
     testCompile "com.h2database:h2:1.4.182"
     testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
@@ -43,13 +17,6 @@ dependencies {
     testCompile "org.slf4j:slf4j-log4j12:1.7.7"
     testCompile "org.slf4j:slf4j-api:1.7.7"
     testCompile "javax.servlet:javax.servlet-api:3.1.0"
-    testCompile "com.vaadin:vaadin-shared:7.7.4"
-    testCompile "com.vaadin:vaadin-client:7.7.4"
-    testCompile "com.vaadin:vaadin-server:7.7.4"
-    testCompile "com.vaadin:vaadin-themes:7.7.4"
-    testCompile "com.vaadin:vaadin-client-compiled:7.7.4"
-//    testCompile "com.vaadin:vaadin-client-compiler:7.7.4"
-    testCompile "com.vaadin:vaadin-sass-compiler:0.9.11"
     testCompile "javax.servlet:javax.servlet-api:3.1.0"
     testCompile "javax.servlet.jsp:jsp-api:2.2"
     testCompile "junit:junit:4.11"
@@ -61,11 +28,11 @@ dependencies {
     testCompile "com.github.detro.ghostdriver:phantomjsdriver:1.1.0"
     testCompile "org.apache.zookeeper:zookeeper:3.4.6"
     testCompile "javax.validation:validation-api:1.0.0.GA"
-    testCompile "com.squareup:javapoet:1.7.0";
+    testCompile "com.squareup:javapoet:1.7.0"
 
-    compile project(":data")
-    compile project(":model")
-    compile project(":app")
+    compile project(":constellio:data")
+    compile project(":constellio:model")
+    compile project(":constellio:app")
 
     compile "com.cybozu.labs:langdetect:1.1-20120112"
     compile "org.apache.chemistry.opencmis:chemistry-opencmis-client-bindings:0.12.0"
@@ -76,19 +43,12 @@ dependencies {
     compile "com.github.detro.ghostdriver:phantomjsdriver:1.1.0"
     compile "javax.servlet:javax.servlet-api:3.1.0"
     compile "javax.servlet.jsp:jsp-api:2.2"
-    compile "com.vaadin:vaadin-shared:7.7.4"
-    compile "com.vaadin:vaadin-client:7.7.4"
-    compile "com.vaadin:vaadin-server:7.7.4"
-    compile "com.vaadin:vaadin-themes:7.7.4"
-    compile "com.vaadin:vaadin-client-compiled:7.7.4"
-//    compile "com.vaadin:vaadin-client-compiler:7.7.4"
-    compile "com.vaadin:vaadin-sass-compiler:0.9.11"
-    compile "org.apache.solr:solr-solrj:6.5.0"
-    compile "org.apache.solr:solr-core:6.5.0"
     compile "org.apache.zookeeper:zookeeper:3.4.6"
     compile "javax.validation:validation-api:1.1.0.Final"
-
+    compile "org.joda:joda-convert:1.8.1"
+    compile "com.google.code.findbugs:jsr305:3.0.0"
 }
+
 configurations {
     compile.exclude group: "org.ow2.asm:asm:asm-debug-all-5.0.1"
 }
@@ -99,7 +59,6 @@ eclipse {
         buildCommand 'compileJava'
     }
 }
-
 
 sourceSets {
     test {
@@ -125,12 +84,36 @@ artifacts {
     testArtifacts jarTest
 }
 
+project.tasks["sonarqube"].dependsOn "build"
+
 sonarqube {
     properties {
-        property "sonar.jacoco.reportPath", "$projectDir/sdk/build/jacoco/test.exec"
-        property "sonar.junit.reportsPath", "$projectDir/sdk/build/reports/"
+        property "sonar.jacoco.reportPath", "$projectDir/build/jacoco/jacocoTest.exec"
+        property "sonar.junit.reportsPath", "$projectDir/build/reports/"
         property "sonar.projectName", "constellio"
         property "sonar.projectKey", "constellio"
-        property "sonar.sources", "src/"
+        properties["sonar.sources"] = sourceSets.sonar.allJava
+        property "sonar.tests", "$projectDir/src/"
+        property "sonar.host.url", "http://167.114.79.165:82"
+        property "sonar.login", "c118fd00dcba2ee386bc45fbdfb63ff71657e830"
+        property "sonar.projectBaseDir", project(":constellio").projectDir.getAbsolutePath()
     }
 }
+
+sourceSets {
+    sonar {
+        java {
+        }
+    }
+}
+
+task buildSonarSourceset() {
+    List projectsList = [":constellio:app", ":constellio:model", ":constellio:data"]
+
+    projectsList.each {
+        project(it).sourceSets.main.allSource.srcDirs.each {
+            sourceSets.sonar.allJava.srcDirs += it
+        }
+    }
+}
+

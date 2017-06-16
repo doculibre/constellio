@@ -14,13 +14,13 @@ dao.contents.type=filesystem
 dao.settings.type=filesystem
 
 # === RUN/SKIP TESTS CONFIGURATION ===
-skip.slowtests=false
 skip.uitests=true
-skip.drivertests=false
-skip.loadtests=true
-skip.internettests=false
 skip.indevelopment=true
-skip.testsWithGradle=false
-
+skip.drivertests=false
+skip.internettests=true
+validateRollback=false
+skip.testsWithGradle=true
+skip.loadtests=true
+skip.slowtests=false
 tests.whitelist=
-tests.blacklist=com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactoryAcceptanceTest,com.constellio.model.services.search.SearchServiceAcceptanceTest,com.constellio.model.services.emails.EmailServicesAcceptanceTest,com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImplAcceptanceTest,com.constellio.app.modules.es.connectors.sharepoint.ConnectorSharepointUtilsServicesRealTest,com.constellio.app.modules.es.connectors.sharepoint.SharepointSecurityAcceptanceTest
+tests.blacklist=com.constellio.app.modules.sct.

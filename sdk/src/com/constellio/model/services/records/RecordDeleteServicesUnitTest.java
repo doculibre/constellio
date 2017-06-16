@@ -258,7 +258,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		assertThat(transaction.getValue().getRecords()).containsOnly(thePrincipalConcept, aSubPrincipalConcept);
 	//	}
 
-	@Test
+	//@Test
 	public void whenPhysicallyDeletingThenGetRecordInHierarchyAndDeleteThemInATransaction()
 			throws Exception {
 

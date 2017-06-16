@@ -27,9 +27,8 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
-	
+
 	private Map<String, ConstellioIgniteCache> caches = new ConcurrentHashMap<>();
-	
 	private Ignite client;
 
 	public ConstellioIgniteCacheManager(DataLayerConfiguration dataLayerConfiguration) {
@@ -75,15 +74,15 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		ConstellioIgniteCache cache = caches.get(name);
 		if (cache == null) {
 			// Create near-cache configuration for "myCache".
-			NearCacheConfiguration<String, Object> nearCfg = 
-			    new NearCacheConfiguration<>();
+			NearCacheConfiguration<String, Object> nearCfg =
+					new NearCacheConfiguration<>();
 
 			// Use LRU eviction policy to automatically evict entries
 			// from near-cache, whenever it reaches 100_000 in size.
 			nearCfg.setNearEvictionPolicy(new LruEvictionPolicy<String, Object>(100_000));
-			
+
 			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(
-				    new CacheConfiguration<String, Object>(name), nearCfg);
+					new CacheConfiguration<String, Object>(name), nearCfg);
 			cache = new ConstellioIgniteCache(name, igniteCache);
 			addLocalListener(cache);
 			caches.put(name, cache);

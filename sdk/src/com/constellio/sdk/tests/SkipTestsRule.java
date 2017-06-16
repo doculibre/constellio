@@ -9,12 +9,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.sdk.tests.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import com.constellio.sdk.tests.annotations.CloudTest;
+import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
+import com.constellio.sdk.tests.annotations.DriverTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
+import com.constellio.sdk.tests.annotations.LoadTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import com.constellio.sdk.tests.annotations.PerformanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.annotations.UiTest;
 
 public class SkipTestsRule implements TestRule {
 
@@ -38,6 +49,8 @@ public class SkipTestsRule implements TestRule {
 	private List<String> whiteList;
 	private List<String> blackList;
 	private Class<? extends AbstractConstellioTest> currentTestClass;
+	private static String firstClassname;
+	private static String firstTestname;
 
 	private String sunJavaCommand;
 
@@ -47,6 +60,14 @@ public class SkipTestsRule implements TestRule {
 
 		RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
 		Map<String, String> systemProperties = bean.getSystemProperties();
+		//
+		//		for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+		//
+		//			if (entry.getValue().toLowerCase().contains("ldap")) {
+		//				System.out.println(entry.getValue());
+		//			}
+		//		}
+
 		sunJavaCommand = systemProperties.get("sun.java.command");
 		//		String bootClasspath = bean.getBootClassPath();
 		//		String classpath = bean.getClassPath();
@@ -57,6 +78,9 @@ public class SkipTestsRule implements TestRule {
 		//		System.out.println(bootClasspath);
 		//		System.out.println(classpath);
 		//		System.out.println(libraryPath);
+		this.whiteList = new ArrayList<>();
+		this.blackList = new ArrayList<>();
+
 		this.isUnitMode = isUnitMode;
 		if (!isUnitMode) {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
@@ -103,6 +127,12 @@ public class SkipTestsRule implements TestRule {
 
 		currentTestClass = (Class) testClass;
 		currentTestName = description.getMethodName();
+		if (firstClassname == null) {
+			firstClassname = currentTestClass.getName();
+		}
+		if (firstTestname == null) {
+			firstTestname = currentTestName;
+		}
 
 		boolean testClassDirectlyTargetted = isTestClassDirectlyTargetted(testClass);
 
@@ -159,7 +189,7 @@ public class SkipTestsRule implements TestRule {
 			slowTest = description.getAnnotation(SlowTest.class);
 		}
 
-		if(cloudTest == null) {
+		if (cloudTest == null) {
 			cloudTest = description.getAnnotation(CloudTest.class);
 		}
 
@@ -233,7 +263,8 @@ public class SkipTestsRule implements TestRule {
 			return sunJavaCommand.contains(testClass.getName() + ":" + currentTestName);
 
 		} else {
-			return false;
+			return currentTestClass.getName().equals(firstClassname)
+					&& currentTestName.equals(firstTestname);
 		}
 	}
 
@@ -246,7 +277,7 @@ public class SkipTestsRule implements TestRule {
 			return sunJavaCommand.contains(testClass.getName() + ":" + currentTestName);
 
 		} else {
-			return false;
+			return currentTestClass.getName().equals(firstClassname);
 		}
 	}
 
