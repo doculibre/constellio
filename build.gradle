@@ -85,7 +85,7 @@ war {
                              ":constellio-plugins:plugin005", ":constellio-plugins:plugin006", ":constellio-plugins:plugin007", ":constellio-plugins:plugin008",
                              ":constellio-plugins:plugin009", ":constellio-plugins:plugin010", ":constellio-plugins:plugin012", ":constellio-plugins:plugin015",
                              ":constellio-plugins:plugin016", ":constellio-plugins:plugin017", ":constellio-plugins:plugin018", ":constellio-plugins:plugin019",
-                             ":constellio-plugins:plugin020"]
+                             ":constellio-plugins:plugin020", ":constellio-plugins:plugin028"]
         def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 
         from(files(updatePlugins.collect { project(it).jar.outputs.files })) {
