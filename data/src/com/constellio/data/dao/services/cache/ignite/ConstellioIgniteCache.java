@@ -33,6 +33,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return igniteCache;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
 		T result = (T) localCache.get(key);
@@ -46,6 +47,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> void put(String key, T value) {
 		value = value == null ? (T) NULL : value;

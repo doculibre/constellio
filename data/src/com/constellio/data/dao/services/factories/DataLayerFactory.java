@@ -110,6 +110,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
+		add(settingsCacheManager);
 
 		if (dataLayerConfiguration.getRecordsCacheType() == CacheType.IGNITE) {
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
@@ -120,6 +121,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
+		add(recordsCacheManager);
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",

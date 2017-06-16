@@ -32,4 +32,12 @@ public class SerializationCheckCacheManager implements ConstellioCacheManager {
 		return cache;
 	}
 
+	@Override
+	public void initialize() {
+	}
+
+	@Override
+	public void close() {
+	}
+
 }
