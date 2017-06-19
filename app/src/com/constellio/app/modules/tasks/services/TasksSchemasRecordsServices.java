@@ -39,7 +39,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
-	private final AppLayerFactory appLayerFactory;
+	protected final AppLayerFactory appLayerFactory;
 
 	public TasksSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory) {
 		super(collection, appLayerFactory.getModelLayerFactory());
