@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Collection;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.model.entities.records.wrappers.Group;
@@ -176,20 +174,39 @@ public class Users {
 	public Users setUp(UserServices userServices) {
 		this.userServices = userServices;
 		if (userServices.getUserCredential(dakotaLindienUsername) == null) {
-			addGroup(heroes, "The heroes", null);
-			addGroup(legends, "The legends", null);
-			addGroup(sidekicks, "The sidekicks", heroes);
-			addGroup(rumors, "The rumors", legends);
 
-			addUser(chuckNorrisUsername, "Chuck", "Norris");
-			addUser(aliceUsername, "Alice", "Wonderland", "legends");
-			addUser(bobGrattonUsername, "Bob 'Elvis'", "Gratton");
-			addUser(charlesFrancoisXavierUsername, "Charles-François", "Xavier", "heroes");
-			addUser(dakotaLindienUsername, "Dakota", "L'Indien", "heroes");
-			addUser(edouardLechatUsername, "Edouard", "Lechat", "legends");
-			addUser(gandalfLeblancUsername, "Gandalf", "Leblanc", "legends", "heroes");
-			addUser(robinUsername, "Good Guy", "Robin", "sidekicks");
-			addUser(sasquatchUsername, "Big", "Foot", "rumors");
+			if ("true".equals(System.getProperty("normalUsers"))) {
+				addGroup(heroes, "The heroes", null);
+				addGroup(legends, "The legends", null);
+				addGroup(sidekicks, "The sidekicks", heroes);
+				addGroup(rumors, "The rumors", legends);
+
+				addUser(chuckNorrisUsername, "Chuck", "Norris");
+				addUser(aliceUsername, "Alice", "Wonderland", "legends");
+				addUser(bobGrattonUsername, "Bob 'Elvis'", "Gratton");
+				addUser(charlesFrancoisXavierUsername, "Charles-François", "Xavier", "heroes");
+				addUser(dakotaLindienUsername, "John", "Smith", "heroes");
+				addUser(edouardLechatUsername, "Eddie", "Murphy", "legends");
+				addUser(gandalfLeblancUsername, "Gandalf", "Leblanc", "legends", "heroes");
+				addUser(robinUsername, "Good Guy", "Robin", "sidekicks");
+				addUser(sasquatchUsername, "Big", "Foot", "rumors");
+
+			} else {
+				addGroup(heroes, "The heroes", null);
+				addGroup(legends, "The legends", null);
+				addGroup(sidekicks, "The sidekicks", heroes);
+				addGroup(rumors, "The rumors", legends);
+
+				addUser(chuckNorrisUsername, "Chuck", "Norris");
+				addUser(aliceUsername, "Alice", "Wonderland", "legends");
+				addUser(bobGrattonUsername, "Bob 'Elvis'", "Gratton");
+				addUser(charlesFrancoisXavierUsername, "Charles-François", "Xavier", "heroes");
+				addUser(dakotaLindienUsername, "Dakota", "L'Indien", "heroes");
+				addUser(edouardLechatUsername, "Edouard", "Lechat", "legends");
+				addUser(gandalfLeblancUsername, "Gandalf", "Leblanc", "legends", "heroes");
+				addUser(robinUsername, "Good Guy", "Robin", "sidekicks");
+				addUser(sasquatchUsername, "Big", "Foot", "rumors");
+			}
 		}
 		return this;
 	}
