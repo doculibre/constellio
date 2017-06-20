@@ -11,7 +11,6 @@ import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
 import com.constellio.app.extensions.sequence.SystemSequenceExtension;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 
 public class AppLayerSystemExtensions {
@@ -63,11 +62,5 @@ public class AppLayerSystemExtensions {
 	}
 
 	public UpdateModeExtension alternateUpdateMode = new UpdateModeExtension();
-	
-	public void addLabelTemplates(String schemaType, List<LabelTemplate> labelTemplates) {
-		for (LabelTemplateExtension extension : labelTemplateExtensions) {
-			extension.addLabelTemplates(schemaType, labelTemplates);
-		}
-	}
-	
+
 }
