@@ -1,9 +1,11 @@
 package com.constellio.model.services.contents;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class ContentVersionDataSummary {
+public class ContentVersionDataSummary implements Serializable {
 
 	private String hash;
 

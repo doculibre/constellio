@@ -5,10 +5,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.jdom2.Document;
@@ -83,6 +81,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	@Override
 	public void initialize() {
+		typesCache = cacheManager.getCache(MetadataSchemasManager.class.getName() + ".types");
 		oneXmlConfigPerCollectionManager();
 	}
 
@@ -92,7 +91,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	 * It is disabled by default and enabled in tests
 	 */
 	public static boolean cacheEnabled = false;
-	private static Map<String, MetadataSchemaTypes> typesCache = new HashMap<>();
+	private ConstellioCache typesCache;
 
 	OneXMLConfigPerCollectionManager<MetadataSchemaTypes> newOneXMLManager(ConfigManager configManager,
 			CollectionsListManager collectionsListManager) {
@@ -103,7 +102,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			@Override
 			protected MetadataSchemaTypes parse(String collection, XMLConfiguration xmlConfiguration) {
 				if (cacheEnabled) {
-					if (typesCache.containsKey(collection + xmlConfiguration.getRealHash())) {
+					if (typesCache.get(collection + xmlConfiguration.getRealHash()) != null) {
 						return typesCache.get(collection + xmlConfiguration.getRealHash());
 					}
 					MetadataSchemaTypes types = super.parse(collection, xmlConfiguration);
@@ -117,12 +116,13 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		};
 	}
 
-	public static Set<String> getCacheKeys() {
+	public Iterator<String> getCacheKeys() {
 		return typesCache.keySet();
 	}
 
-	public static void keepOnlyCacheKeys(Set<String> keys) {
-		for (String key : new HashSet<>(typesCache.keySet())) {
+	public void keepOnlyCacheKeys(Set<String> keys) {
+		for (Iterator<String> it = getCacheKeys(); it.hasNext();) {
+			String key = it.next();
 			if (!keys.contains(key)) {
 				typesCache.remove(key);
 			}

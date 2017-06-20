@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -48,11 +51,13 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	ModelLayerFactory modelLayerFactory;
 	SearchServices searchServices;
+	ConstellioCacheManager recordsCacheManager;
 
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
+		this.recordsCacheManager = modelLayerFactory.getDataLayerFactory().getRecordsCacheManager();
 	}
 
 	public boolean isCached(String id) {
@@ -348,7 +353,8 @@ public class RecordsCacheImpl implements RecordsCache {
 			volatileCaches.put(cacheConfig.getSchemaType(), new VolatileCache(cacheConfig.getVolatileMaxSize()));
 		}
 
-		recordByMetadataCache.put(cacheConfig.getSchemaType(), new RecordByMetadataCache(cacheConfig));
+		String recordsByMetadataCacheName = collection + "." + cacheConfig.getSchemaType() + ".recordsByMetadata";
+		recordByMetadataCache.put(cacheConfig.getSchemaType(), new RecordByMetadataCache(recordsCacheManager.getCache(recordsByMetadataCacheName), cacheConfig));
 
 		if (cacheConfig.isLoadedInitially()) {
 			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
@@ -504,14 +510,26 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	static class PermanentCache {
 
-		Map<String, List<String>> queryResults = new HashMap<>();
-		LinkedList<RecordHolder> holders = new LinkedList<>();
-
+//		Map<String, List<String>> queryResults = new HashMap<>();
+//		LinkedList<RecordHolder> holders = new LinkedList<>();
+		
+		private ConstellioCache constellioCache;
+		
+		private PermanentCache(ConstellioCache constellioCache) {
+			this.constellioCache = constellioCache;
+			constellioCache.put("holders", new LinkedList<>());
+		}
+		
+		private LinkedList<RecordHolder> getHolders() {
+			return constellioCache.get("holders");
+		}
+		
 		void insert(RecordHolder holder) {
-			holders.add(holder);
+			getHolders().add(holder);
 		}
 
 		void invalidateAll() {
+			LinkedList<RecordHolder> holders = getHolders();
 			for (RecordHolder holder : holders) {
 				holder.invalidate();
 			}
@@ -519,7 +537,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		public int getCacheObjectsCount() {
-			int size = holders.size();
+			int size = getHolders().size();
 
 			for (List<String> aQueryResults : queryResults.values()) {
 				size += 1 + aQueryResults.size();
@@ -530,19 +548,34 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	static class RecordByMetadataCache {
-
-		Map<String, Map<String, RecordHolder>> map = new HashMap<>();
+		
+		private ConstellioCache recordHolderCache;
+		
+//		Map<String, Map<String, RecordHolder>> recordHolderMap = new HashMap<>();
 		Map<String, Metadata> supportedMetadatas = new HashMap<>();
 
-		RecordByMetadataCache(CacheConfig cacheConfig) {
+		RecordByMetadataCache(ConstellioCache recordHolderCache, CacheConfig cacheConfig) {
+			this.recordHolderCache = recordHolderCache;
 			for (Metadata indexedMetadata : cacheConfig.getIndexes()) {
 				supportedMetadatas.put(indexedMetadata.getLocalCode(), indexedMetadata);
-				map.put(indexedMetadata.getLocalCode(), new HashMap<String, RecordHolder>());
+				putInCache(indexedMetadata.getLocalCode(), new HashMap<String, RecordHolder>());
 			}
+		}
+		
+		private Map<String, RecordHolder> getFromCache(String key) {
+			return recordHolderCache.get(key);
+		}
+		
+		private void putInCache(String key, Map<String, RecordHolder> value) {
+			recordHolderCache.put(key, (Serializable) value);
+		}
+		
+		private int getCacheSize() {
+			return recordHolderCache.size();
 		}
 
 		Record getByMetadata(String localCode, String value) {
-			Map<String, RecordHolder> metadataMap = map.get(localCode);
+			Map<String, RecordHolder> metadataMap = getFromCache(localCode);
 			RecordHolder recordHolder = null;
 			if (metadataMap != null) {
 				recordHolder = metadataMap.get(value);
@@ -563,10 +596,10 @@ public class RecordsCacheImpl implements RecordsCache {
 					value = recordHolder.record.get(supportedMetadata);
 				}
 				if (previousValue != null && !previousValue.equals(value)) {
-					map.get(supportedMetadata.getLocalCode()).remove(previousValue);
+					getFromCache(supportedMetadata.getLocalCode()).remove(previousValue);
 				}
 				if (value != null && !value.equals(previousValue)) {
-					map.get(supportedMetadata.getLocalCode()).put(value, recordHolder);
+					getFromCache(supportedMetadata.getLocalCode()).put(value, recordHolder);
 				}
 			}
 		}
@@ -576,22 +609,23 @@ public class RecordsCacheImpl implements RecordsCache {
 				String value = record.get(supportedMetadata);
 
 				if (value != null) {
-					map.get(supportedMetadata.getLocalCode()).remove(value);
+					getFromCache(supportedMetadata.getLocalCode()).remove(value);
 				}
 			}
 		}
 
 		public int getCacheObjectsCount() {
-			int cacheSize = map.size() + supportedMetadatas.size();
-			for (Map<String, RecordHolder> aMap : map.values()) {
+			int cacheSize = getCacheSize() + supportedMetadatas.size();
+			for (Iterator<String> it = recordHolderCache.keySet(); it.hasNext();) {
+				String key = it.next();
+				Map<String, RecordHolder> aMap = getFromCache(key);
 				cacheSize += aMap.size();
 			}
-
 			return cacheSize;
 		}
 	}
 
-	static class RecordHolder {
+	static class RecordHolder implements Serializable {
 
 		private Record record;
 

@@ -48,4 +48,9 @@ public class ConstellioMapCache implements ConstellioCache {
 		return map.keySet().iterator();
 	}
 
+	@Override
+	public int size() {
+		return map.size();
+	}
+
 }

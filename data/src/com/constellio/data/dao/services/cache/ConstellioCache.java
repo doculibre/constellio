@@ -16,5 +16,7 @@ public interface ConstellioCache {
 	void clear();
 	
 	Iterator<String> keySet();
+	
+	int size();
 
 }

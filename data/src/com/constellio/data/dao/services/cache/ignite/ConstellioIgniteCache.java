@@ -93,4 +93,9 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		};
 	}
 
+	@Override
+	public int size() {
+		return localCache.size();
+	}
+
 }
