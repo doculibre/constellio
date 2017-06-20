@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DecommissioningListReportModel.DecommissioningListReportModel_Folder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -55,6 +56,11 @@ public class DecommissioningListReportPresenter {
                 .sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(Schemas.LEGACY_ID).sortAsc(Schemas.IDENTIFIER);
         List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 
+        if(folderDetailTableExtension != null) {
+            model.setWithMediumType(true);
+            model.setWithMainCopyRule(true);
+        }
+
         List<DecommissioningListReportModel_Folder> foldersModel = new ArrayList<>();
         int currentFolder = 0;
         for (Folder folder : folders) {
@@ -69,13 +75,26 @@ public class DecommissioningListReportPresenter {
                 containerRecordTitle = containerRecord.getTitle();
             }
             String legacyId = folder.getLegacyId();
-            if(folderDetailTableExtension != null) {
-                legacyId = folderDetailTableExtension.getPreviousId(folder);
-            }
             String id = folder.getId();
             id = id != null? id.replaceFirst("^0+(?!$)", ""):id;
             DecommissioningListReportModel_Folder folderModel = new DecommissioningListReportModel_Folder(legacyId, id,
                     folder.getTitle(), retentionRuleCodeTitle, categoryCodeTitle, containerRecordTitle);
+            if(folderDetailTableExtension != null) {
+                folderModel.setLegacyId(folderDetailTableExtension.getPreviousId(folder));
+                List<String> mediumTypesIds = folder.getMediumTypes();
+                if(mediumTypesIds != null) {
+                    List<MediumType> mediumTypes = rm.getMediumTypes(mediumTypesIds);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String prefix = "";
+                    for(MediumType mediumType: mediumTypes) {
+                        stringBuilder.append(prefix);
+                        prefix = ",";
+                        stringBuilder.append(mediumType.getTitle());
+                    }
+                    folderModel.setMediumTypes(stringBuilder.toString());
+                }
+                folderModel.setMainCopyRule(folder.getMainCopyRule().toString());
+            }
             foldersModel.add(folderModel);
             currentFolder++;
         }
