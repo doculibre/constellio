@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -129,6 +130,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		wrappers.put(ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.class);
 		wrappers.put(StorageSpace.DEFAULT_SCHEMA, StorageSpace.class);
+		wrappers.put(StorageSpaceType.DEFAULT_SCHEMA, StorageSpaceType.class);
 		wrappers.put(PrintableLabel.SCHEMA_NAME, PrintableLabel.class);
 		wrappers.put(RMUserFolder.DEFAULT_SCHEMA, RMUserFolder.class);
 		wrappers.put(RMTask.DEFAULT_SCHEMA, RMTask.class);
