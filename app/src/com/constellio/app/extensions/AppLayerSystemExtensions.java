@@ -3,7 +3,6 @@ package com.constellio.app.extensions;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.UpdateModeExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
@@ -18,8 +17,6 @@ public class AppLayerSystemExtensions {
 	public VaultBehaviorsList<PagesComponentsExtension> pagesComponentsExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SystemSequenceExtension> systemSequenceExtensions = new VaultBehaviorsList<>();
-
-	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
 
 	public List<AvailableSequence> getAvailableSequences() {
 

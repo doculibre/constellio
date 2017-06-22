@@ -4,16 +4,16 @@ import org.jdom2.Element;
 
 import com.constellio.model.entities.records.Record;
 
-public class AddFieldInLabelXMLParams {
+public class AddFieldsInLabelXMLParams {
 
 	private Record record;
 
-	private Element container;
+	private Element recordElement;
 	private Element metadatas;
 
-	public AddFieldInLabelXMLParams(Record record, Element container, Element metadatas) {
+	public AddFieldsInLabelXMLParams(Record record, Element recordElement, Element metadatas) {
 		this.record = record;
-		this.container = container;
+		this.recordElement = recordElement;
 		this.metadatas = metadatas;
 	}
 
@@ -21,8 +21,8 @@ public class AddFieldInLabelXMLParams {
 		return record;
 	}
 
-	public Element getContainer() {
-		return container;
+	public Element getRecordElement() {
+		return recordElement;
 	}
 
 	public Element getMetadatas() {

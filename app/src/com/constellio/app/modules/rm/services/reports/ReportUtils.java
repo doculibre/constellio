@@ -22,12 +22,14 @@ import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRXmlUtils;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 
+import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -99,11 +101,11 @@ public class ReportUtils {
 	 * On cherche tous les dossiers d'une collection et crée un XML à partir
 	 * des métadonnées de ces fichiers.
 	 *
-	 * @param parameters
+	 * @param reportFields
 	 * @return String - Le document XML
 	 * @throws Exception
 	 */
-	public String convertFolderToXML(ReportField... parameters)
+	public String convertFolderToXML(ReportField... reportFields)
 			throws Exception {
 		LogicalSearchCondition condition = from(rm.folder.schemaType()).where(ALL);
 		List<Folder> foldersFound = rm.wrapFolders(searchServices.search(new LogicalSearchQuery(condition)));
@@ -116,7 +118,7 @@ public class ReportUtils {
 			container.setContent(metadatas);
 			root.addContent(container);
 		}
-		if (parameters == null) {
+		if (reportFields == null) {
 			List<ReportField> temp = new ArrayList<>();
 			for (Metadata m : rm.folder.schema().getMetadatas()) {
 				String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ?
@@ -124,40 +126,45 @@ public class ReportUtils {
 						Folder.SCHEMA_TYPE;
 				temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
 			}
-			parameters = temp.toArray(new ReportField[0]);
+			reportFields = temp.toArray(new ReportField[0]);
 		}
 		for (int i = 0; i < this.numberOfCopies; i++) {
 			for (Folder fol : foldersFound) {
 				Element folder = new Element("folder");
 				Element metadatas = new Element("metadatas");
-				for (ReportField metadonnee : parameters) {
+
+				factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
+						fol.getWrappedRecord(), folder, metadatas));
+
+				for (ReportField reportField : reportFields) {
 					MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager()
-							.getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
-					if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
-						List<String> IdsList = fol.getSchema().get(metadonnee.getCode()).isMultivalue() ?
-								asList(fol.getList(fol.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) :
-								asList((String) fol.get(fol.getSchema().getMetadata(metadonnee.getCode())));
+							.getSchemaTypes(this.collection).getSchemaType(reportField.getSchema());
+					if (reportField.getTypes().equals(MetadataValueType.REFERENCE)) {
+						List<String> IdsList = fol.getSchema().get(reportField.getCode()).isMultivalue() ?
+								asList(fol.getList(fol.getSchema().getMetadata(reportField.getCode())).toArray(new String[0])) :
+								asList((String) fol.get(fol.getSchema().getMetadata(reportField.getCode())));
 						List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
 						for (Record refRecords : referenceRecords) {
-							Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+							Element refElementCode = new Element(
+									"ref_" + reportField.getCode().replace("_default", "") + "_code");
 							refElementCode.setText(refRecords.get(Schemas.CODE) + "");
 							Element refElementTitle = new Element(
-									"ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+									"ref_" + reportField.getCode().replace("_default", "") + "_title");
 							refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
 							metadatas.addContent(asList(refElementCode, refElementTitle));
 						}
-					} else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-						if (fol.get(metadonnee.getCode()) != null) {
-							Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-							refElementCode.setText(((EnumWithSmallCode) fol.get(metadonnee.getCode())).getCode());
-							Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-							refElementTitle.setText(fol.get(metadonnee.getCode()) + "");
+					} else if (reportField.getTypes().equals(MetadataValueType.ENUM)) {
+						if (fol.get(reportField.getCode()) != null) {
+							Element refElementCode = new Element(escapeForXmlTag(reportField.getLabel()) + "_code");
+							refElementCode.setText(((EnumWithSmallCode) fol.get(reportField.getCode())).getCode());
+							Element refElementTitle = new Element(escapeForXmlTag(reportField.getLabel()) + "_title");
+							refElementTitle.setText(fol.get(reportField.getCode()) + "");
 							metadatas.addContent(asList(refElementCode, refElementTitle));
 						}
 					} else {
-						Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
-						m.setText(metadonnee
-								.formatData(fol.get(metadonnee.getCode()) != null ? fol.get(metadonnee.getCode()) + "" : null));
+						Element m = new Element(escapeForXmlTag(reportField.getLabel()));
+						m.setText(reportField
+								.formatData(fol.get(reportField.getCode()) != null ? fol.get(reportField.getCode()) + "" : null));
 						metadatas.addContent(m);
 					}
 				}
@@ -190,11 +197,11 @@ public class ReportUtils {
 	 * On cherche les dossiers correspondant aux ids dans la collection et crée un XML à partir
 	 * des métadonnées de ces dossiers.
 	 *
-	 * @param parameters
+	 * @param reportFields
 	 * @return String - Le document XML
 	 * @throws Exception
 	 */
-	public String convertFolderWithIdentifierToXML(List<String> ids, ReportField... parameters)
+	public String convertFolderWithIdentifierToXML(List<String> ids, ReportField... reportFields)
 			throws Exception {
 		if (ids == null)
 			throw new NullArgumentException("The ids list is null !");
@@ -209,7 +216,7 @@ public class ReportUtils {
 			container.setContent(metadatas);
 			root.addContent(container);
 		}
-		if (parameters == null) {
+		if (reportFields == null) {
 			List<ReportField> temp = new ArrayList<>();
 			for (Metadata m : rm.folder.schema().getMetadatas()) {
 				String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ?
@@ -217,13 +224,17 @@ public class ReportUtils {
 						Folder.SCHEMA_TYPE;
 				temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
 			}
-			parameters = temp.toArray(new ReportField[0]);
+			reportFields = temp.toArray(new ReportField[0]);
 		}
 		for (int i = 0; i < this.numberOfCopies; i++) {
 			for (Folder fol : foldersFound) {
 				Element folder = new Element("folder");
 				Element metadatas = new Element("metadatas");
-				for (ReportField reportField : parameters) {
+
+				factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
+						fol.getWrappedRecord(), folder, metadatas));
+
+				for (ReportField reportField : reportFields) {
 					MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager()
 							.getSchemaTypes(this.collection).getSchemaType(reportField.getSchema());
 					if (reportField.getTypes().equals(MetadataValueType.REFERENCE)) {
@@ -270,11 +281,11 @@ public class ReportUtils {
 	 * On cherche tous les conteneurs d'une collection et crée un XML à partir
 	 * des métadonnées de ces fichiers.
 	 *
-	 * @param parameters
+	 * @param reportFields
 	 * @return String - Le document XML
 	 * @throws Exception
 	 */
-	public String convertContainerToXML(ReportField... parameters)
+	public String convertContainerToXML(ReportField... reportFields)
 			throws Exception {
 		LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(ALL);
 		List<ContainerRecord> containersFound = rm.wrapContainerRecords(searchServices.search(new LogicalSearchQuery(condition)
@@ -288,7 +299,7 @@ public class ReportUtils {
 			container.setContent(metadatas);
 			root.addContent(container);
 		}
-		if (parameters == null) {
+		if (reportFields == null) {
 			List<ReportField> temp = new ArrayList<>();
 			for (Metadata m : rm.containerRecord.schema().getMetadatas()) {
 				String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ?
@@ -296,40 +307,46 @@ public class ReportUtils {
 						ContainerRecord.SCHEMA_TYPE;
 				temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
 			}
-			parameters = temp.toArray(new ReportField[0]);
+			reportFields = temp.toArray(new ReportField[0]);
 		}
+
 		for (int i = 0; i < this.numberOfCopies; i++) {
 			for (ContainerRecord con : containersFound) {
 				Element container = new Element("container");
 				Element metadatas = new Element("metadatas");
-				for (ReportField metadonnee : parameters) {
+
+				factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
+						con.getWrappedRecord(), container, metadatas));
+
+				for (ReportField reportField : reportFields) {
 					MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager()
-							.getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
-					if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
-						List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ?
-								asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) :
-								asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
+							.getSchemaTypes(this.collection).getSchemaType(reportField.getSchema());
+					if (reportField.getTypes().equals(MetadataValueType.REFERENCE)) {
+						List<String> IdsList = con.getSchema().get(reportField.getCode()).isMultivalue() ?
+								asList(con.getList(con.getSchema().getMetadata(reportField.getCode())).toArray(new String[0])) :
+								asList((String) con.get(con.getSchema().getMetadata(reportField.getCode())));
 						List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
 						for (Record refRecords : referenceRecords) {
-							Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+							Element refElementCode = new Element(
+									"ref_" + reportField.getCode().replace("_default", "") + "_code");
 							refElementCode.setText(refRecords.get(Schemas.CODE) + "");
 							Element refElementTitle = new Element(
-									"ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+									"ref_" + reportField.getCode().replace("_default", "") + "_title");
 							refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
 							metadatas.addContent(asList(refElementCode, refElementTitle));
 						}
-					} else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-						if (con.get(metadonnee.getCode()) != null) {
-							Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-							refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
-							Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-							refElementTitle.setText(con.get(metadonnee.getCode()) + "");
+					} else if (reportField.getTypes().equals(MetadataValueType.ENUM)) {
+						if (con.get(reportField.getCode()) != null) {
+							Element refElementCode = new Element(escapeForXmlTag(reportField.getLabel()) + "_code");
+							refElementCode.setText(((EnumWithSmallCode) con.get(reportField.getCode())).getCode());
+							Element refElementTitle = new Element(escapeForXmlTag(reportField.getLabel()) + "_title");
+							refElementTitle.setText(con.get(reportField.getCode()) + "");
 							metadatas.addContent(asList(refElementCode, refElementTitle));
 						}
 					} else {
-						Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
-						m.setText(metadonnee
-								.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
+						Element m = new Element(escapeForXmlTag(reportField.getLabel()));
+						m.setText(reportField
+								.formatData(con.get(reportField.getCode()) != null ? con.get(reportField.getCode()) + "" : null));
 						metadatas.addContent(m);
 					}
 				}
@@ -368,12 +385,13 @@ public class ReportUtils {
 	 * On cherche les conteneurs correspondants aux ids dans la collection et crée un XML à partir
 	 * des métadonnées de ces contenants.
 	 *
-	 * @param parameters
+	 * @param reportFields
 	 * @return String - Le document XML
 	 * @throws Exception
 	 */
-	public String convertContainerWithIdentifierToXML(List<String> ids, ReportField... parameters)
+	public String convertContainerWithIdentifierToXML(List<String> ids, ReportField... reportFields)
 			throws Exception {
+		reportFields = null;
 		if (ids == null)
 			throw new NullArgumentException($("listNull"));
 		LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(ids);
@@ -388,7 +406,7 @@ public class ReportUtils {
 			container.setContent(metadatas);
 			root.addContent(container);
 		}
-		if (parameters == null) {
+		if (reportFields == null) {
 			List<ReportField> temp = new ArrayList<>();
 			for (Metadata m : rm.containerRecord.schema().getMetadatas()) {
 				String schemaType = m.getType().equals(MetadataValueType.REFERENCE) ?
@@ -396,40 +414,69 @@ public class ReportUtils {
 						ContainerRecord.SCHEMA_TYPE;
 				temp.add(new ReportField(m.getType(), m.getCode().split("_")[2], schemaType, m.getCode(), factory));
 			}
-			parameters = temp.toArray(new ReportField[0]);
+			reportFields = temp.toArray(new ReportField[0]);
 		}
 		for (int i = 0; i < this.numberOfCopies; i++) {
 			for (ContainerRecord con : containersFound) {
 				Element container = new Element("container");
 				Element metadatas = new Element("metadatas");
-				for (ReportField metadonnee : parameters) {
+
+				factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
+						con.getWrappedRecord(), container, metadatas));
+
+				Element collectionCodeElement = new Element("collection_code");
+				collectionCodeElement.setText(collection);
+				metadatas.addContent(collectionCodeElement);
+
+				Element collectionTitleElement = new Element("collection_title");
+				collectionTitleElement.setText(factory.getCollectionsManager().getCollection(collection).getName());
+				metadatas.addContent(collectionTitleElement);
+
+				Element extremeDatesElement = new Element("extremeDates");
+				extremeDatesElement.setText(new DecommissioningService(collection, factory).getContainerRecordExtremeDates(con));
+				metadatas.addContent(extremeDatesElement);
+
+				Element fondsDocumentaireCodeElement = new Element("ref_fondsDocumentaire_code");
+				fondsDocumentaireCodeElement.setText(StringUtils.join(", ", asList("code1", "code2")));
+				metadatas.addContent(fondsDocumentaireCodeElement);
+
+				Element fondsDocumentaireTitleElement = new Element("ref_fondsDocumentaire_title");
+				fondsDocumentaireCodeElement.setText(StringUtils.join(", ", asList("titre1", "titre2")));
+				metadatas.addContent(fondsDocumentaireTitleElement);
+
+				Element modeDispositionElement = new Element("ref_modeDisposition");
+				modeDispositionElement.setText("Conservation permanente, Tri, Destruction");
+				metadatas.addContent(modeDispositionElement);
+
+				for (ReportField reportField : reportFields) {
 					MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager()
-							.getSchemaTypes(this.collection).getSchemaType(metadonnee.getSchema());
-					if (metadonnee.getTypes().equals(MetadataValueType.REFERENCE)) {
-						List<String> IdsList = con.getSchema().get(metadonnee.getCode()).isMultivalue() ?
-								asList(con.getList(con.getSchema().getMetadata(metadonnee.getCode())).toArray(new String[0])) :
-								asList((String) con.get(con.getSchema().getMetadata(metadonnee.getCode())));
+							.getSchemaTypes(this.collection).getSchemaType(reportField.getSchema());
+					if (reportField.getTypes().equals(MetadataValueType.REFERENCE)) {
+						List<String> IdsList = con.getSchema().get(reportField.getCode()).isMultivalue() ?
+								asList(con.getList(con.getSchema().getMetadata(reportField.getCode())).toArray(new String[0])) :
+								asList((String) con.get(con.getSchema().getMetadata(reportField.getCode())));
 						List<Record> referenceRecords = recordServices.getRecordsById(this.collection, IdsList);
 						for (Record refRecords : referenceRecords) {
-							Element refElementCode = new Element("ref_" + metadonnee.getCode().replace("_default", "") + "_code");
+							Element refElementCode = new Element(
+									"ref_" + reportField.getCode().replace("_default", "") + "_code");
 							refElementCode.setText(refRecords.get(Schemas.CODE) + "");
 							Element refElementTitle = new Element(
-									"ref_" + metadonnee.getCode().replace("_default", "") + "_title");
+									"ref_" + reportField.getCode().replace("_default", "") + "_title");
 							refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
 							metadatas.addContent(asList(refElementCode, refElementTitle));
 						}
-					} else if (metadonnee.getTypes().equals(MetadataValueType.ENUM)) {
-						if (con.get(metadonnee.getCode()) != null) {
-							Element refElementCode = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_code");
-							refElementCode.setText(((EnumWithSmallCode) con.get(metadonnee.getCode())).getCode());
-							Element refElementTitle = new Element(escapeForXmlTag(metadonnee.getLabel()) + "_title");
-							refElementTitle.setText(con.get(metadonnee.getCode()) + "");
+					} else if (reportField.getTypes().equals(MetadataValueType.ENUM)) {
+						if (con.get(reportField.getCode()) != null) {
+							Element refElementCode = new Element(escapeForXmlTag(reportField.getLabel()) + "_code");
+							refElementCode.setText(((EnumWithSmallCode) con.get(reportField.getCode())).getCode());
+							Element refElementTitle = new Element(escapeForXmlTag(reportField.getLabel()) + "_title");
+							refElementTitle.setText(con.get(reportField.getCode()) + "");
 							metadatas.addContent(asList(refElementCode, refElementTitle));
 						}
 					} else {
-						Element m = new Element(escapeForXmlTag(metadonnee.getLabel()));
-						m.setText(metadonnee
-								.formatData(con.get(metadonnee.getCode()) != null ? con.get(metadonnee.getCode()) + "" : null));
+						Element m = new Element(escapeForXmlTag(reportField.getLabel()));
+						m.setText(reportField
+								.formatData(con.get(reportField.getCode()) != null ? con.get(reportField.getCode()) + "" : null));
 						metadatas.addContent(m);
 					}
 				}
