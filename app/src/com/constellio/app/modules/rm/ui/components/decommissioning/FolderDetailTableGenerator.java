@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
@@ -147,7 +146,6 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			table.addGeneratedColumn(CATEGORY_CODE, this);
 			table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
 			visibleColumns.add(CATEGORY_CODE);
-			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
 		}
 
 		table.addGeneratedColumn(LINEAR_SIZE, this);
@@ -167,9 +165,9 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		table.setVisibleColumns(visibleColumns.toArray());
 
 		if(extension != null) {
-			boolean[] ascending = new boolean[3];
-			Arrays.fill(ascending, true);
-			table.sort(asList(CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID).toArray(new String [0]), ascending);
+			table.sort(new String[] {CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[] {true, true, true});
+		} else {
+			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
 		}
 
 		return table;
