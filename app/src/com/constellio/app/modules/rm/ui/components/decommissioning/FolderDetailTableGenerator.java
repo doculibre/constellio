@@ -20,9 +20,11 @@ import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
@@ -163,6 +165,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		}
 
 		table.setVisibleColumns(visibleColumns.toArray());
+
+		if(extension != null) {
+			boolean[] ascending = new boolean[3];
+			Arrays.fill(ascending, true);
+			table.sort(asList(CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID).toArray(new String [0]), ascending);
+		}
 
 		return table;
 	}
