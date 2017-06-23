@@ -47,4 +47,8 @@ public interface RecordsCache {
 	boolean isConfigured(String typeCode);
 
 	int getCacheObjectsCount();
+
+	int getCacheObjectsCount(String typeCode);
+
+	long getCacheObjectsSize(String typeCode);
 }
