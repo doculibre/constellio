@@ -33,6 +33,10 @@ public class CoreViews {
 		javascript.execute("window.history.back();");
 	}
 
+	public void serviceMonitoring() {
+		navigator.getUI().getPage().setLocation("/constellio/serviceMonitoring");
+	}
+
 	public void home() {
 		navigator.navigateTo(NavigatorConfigurationService.HOME);
 	}
@@ -43,7 +47,7 @@ public class CoreViews {
 		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
 		navigator.navigateTo("/" + fragment);
 	}
-	
+
 	public void home(String taxonomyCode, String expandedRecordId, String taxonomyMetadata) {
 		Map<String, String> params = new HashMap<>();
 		params.put("tab", CoreNavigationConfiguration.TAXONOMIES);
@@ -533,9 +537,9 @@ public class CoreViews {
 	public void systemCheck() {
 		navigator.navigateTo(NavigatorConfigurationService.SYSTEM_CHECK);
 	}
-	
+
 	public void batchProcesses() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_BATCH_PROCESSES);
 	}
-	
+
 }
