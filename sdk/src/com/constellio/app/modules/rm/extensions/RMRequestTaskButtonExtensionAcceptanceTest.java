@@ -21,6 +21,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -135,6 +136,9 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
                 RequestTask.APPLICANT, Task.TYPE, Task.TITLE).containsOnly(asList(records.containerId_bac13), null, records.getAdmin().getId(),
                 taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId(), "Demande d'emprunt du contenant: 10_A_06");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
+
+        //Delete task because only one borrowTask from same user can be created.
+        recordServices.physicallyDeleteNoMatterTheStatus(task.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 
 
         containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
