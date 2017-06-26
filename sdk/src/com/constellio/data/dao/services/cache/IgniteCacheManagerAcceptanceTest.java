@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.cache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ignite.Ignite;
@@ -9,10 +10,8 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
-import org.apache.ignite.cache.eviction.lru.LruEvictionPolicy;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.events.EventType;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
@@ -56,6 +55,7 @@ public class IgniteCacheManagerAcceptanceTest {
 		IgniteCache<String, Object> igniteCache = client.getOrCreateCache(MetadataSchemasManager.class.getName());
 		
 		igniteCache.remove("zeCollection");
+		igniteCache.put("test", "OneTwo! " + new Date());
 		
 		client.close();
 	}

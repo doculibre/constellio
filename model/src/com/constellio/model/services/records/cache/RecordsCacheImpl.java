@@ -301,9 +301,11 @@ public class RecordsCacheImpl implements RecordsCache {
 	public synchronized void invalidateRecordsOfType(String recordType) {
 		CacheConfig cacheConfig = cachedTypes.get(recordType);
 		if (cacheConfig.isVolatile()) {
-			volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+			VolatileCache volatileCache = volatileCaches.get(cacheConfig.getSchemaType());
+			volatileCache.invalidateAll();
 		} else {
-			permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+			PermanentCache permanentCache = permanentCaches.get(cacheConfig.getSchemaType());
+			permanentCache.invalidateAll();
 		}
 	}
 
@@ -515,8 +517,8 @@ public class RecordsCacheImpl implements RecordsCache {
 		void invalidateAll() {
 			this.recordsInCache = 0;
 			for (Iterator<String> it = holdersCache.keySet(); it.hasNext();) {
-				String holdId = it.next();
-				RecordHolder holder = holdersCache.get(holdId);
+				String recordId = it.next();
+				RecordHolder holder = holdersCache.get(recordId);
 				holder.invalidate();
 			}
 			holdersCache.clear();
@@ -544,7 +546,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	}
 
-	static class VolatileCache2 {
+	static class VolatileCacheOld {
 
 		int maxSize;
 
@@ -552,7 +554,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		int recordsInCache;
 
-		VolatileCache2(ConstellioCache holdersCache, int maxSize) {
+		VolatileCacheOld(ConstellioCache holdersCache, int maxSize) {
 			this.maxSize = maxSize;
 		}
 
