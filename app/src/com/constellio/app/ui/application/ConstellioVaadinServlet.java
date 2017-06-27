@@ -23,13 +23,11 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 	@Override
 	public void init(ServletConfig servletConfig)
 			throws ServletException {
-		System.out.println("ConstellioVaadinServlet.init");
 		super.init(servletConfig);
 
 		initThread = new Thread() {
 			@Override
 			public void run() {
-				System.out.println("ConstellioVaadinServlet.init>ConstellioFactories.getInstance()...");
 				ConstellioFactories.getInstance();
 				initialized = true;
 			}
@@ -43,7 +41,6 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 			throws ServletException, IOException {
 
 		if (!initialized) {
-			System.out.println("ConstellioVaadinServlet.service (waiting)");
 			try {
 				initThread.join();
 			} catch (InterruptedException e) {
@@ -51,7 +48,6 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 			}
 		}
 
-		System.out.println("ConstellioVaadinServlet.service");
 		super.service(request, response);
 	}
 
