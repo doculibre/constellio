@@ -1,6 +1,6 @@
 package com.constellio.app.ui.pages.management.labels;
 
-import com.constellio.app.modules.rm.services.reports.ReportUtils;
+import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -39,7 +39,7 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
     private AddEditLabelPresenter presenter = new AddEditLabelPresenter(this);
     private Component folderDisplay, containerDisplay;
     private VerticalLayout mainLayout;
-    private ReportUtils ru;
+    private ReportXMLGenerator reportXmlGenerator;
     private Button addLabelButton;
     private LabelFormImpl recordForm;
     private RecordVO recordVO;

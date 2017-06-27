@@ -51,7 +51,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 
-public class ReportUtils {
+public class ReportXMLGenerator {
 	public static final boolean DEV = true;
 
 	private RMSchemasRecordsServices rm;
@@ -65,7 +65,7 @@ public class ReportUtils {
 	private UserServices userServices;
 	private List<DataField> otherDataForContainer;
 
-	public ReportUtils(String collection, AppLayerFactory appLayerFactory, String username) {
+	public ReportXMLGenerator(String collection, AppLayerFactory appLayerFactory, String username) {
 		this.factory = appLayerFactory;
 		this.collection = collection;
 		this.rm = new RMSchemasRecordsServices(collection, factory);
@@ -133,8 +133,7 @@ public class ReportUtils {
 				Element folder = new Element("folder");
 				Element metadatas = new Element("metadatas");
 
-				factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
-						fol.getWrappedRecord(), folder, metadatas));
+
 
 				for (ReportField reportField : reportFields) {
 					MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager()
@@ -436,18 +435,6 @@ public class ReportUtils {
 				extremeDatesElement.setText(new DecommissioningService(collection, factory).getContainerRecordExtremeDates(con));
 				metadatas.addContent(extremeDatesElement);
 
-				Element fondsDocumentaireCodeElement = new Element("ref_fondsDocumentaire_code");
-				fondsDocumentaireCodeElement.setText(StringUtils.join(", ", asList("code1", "code2")));
-				metadatas.addContent(fondsDocumentaireCodeElement);
-
-				Element fondsDocumentaireTitleElement = new Element("ref_fondsDocumentaire_title");
-				fondsDocumentaireCodeElement.setText(StringUtils.join(", ", asList("titre1", "titre2")));
-				metadatas.addContent(fondsDocumentaireTitleElement);
-
-				Element modeDispositionElement = new Element("ref_modeDisposition");
-				modeDispositionElement.setText("Conservation permanente, Tri, Destruction");
-				metadatas.addContent(modeDispositionElement);
-
 				for (ReportField reportField : reportFields) {
 					MetadataSchemaType schema = factory.getModelLayerFactory().getMetadataSchemasManager()
 							.getSchemaTypes(this.collection).getSchemaType(reportField.getSchema());
@@ -495,8 +482,7 @@ public class ReportUtils {
 	}
 
 	/**
-	 * Méthode qui prend en paramètre une chaine de caractère sous format XML et un ficher .jasper.
-	 * Il créer ensuite un PDF avec les deux.
+	 * function that takes a Jasper file and a XML file to create a PDF file.
 	 *
 	 * @param xml
 	 * @param jasperFile
@@ -517,8 +503,7 @@ public class ReportUtils {
 	}
 
 	/**
-	 * Permet de définir à quelle position les étiquettes commencent
-	 * a imprimer.
+	 * Allow to select on which index the label will start printing
 	 *
 	 * @param start
 	 */
@@ -527,15 +512,14 @@ public class ReportUtils {
 	}
 
 	/**
-	 * @return la position de départ pour l'impression.
+	 * @return starting position for label printing
 	 */
 	public int getStartingPosition() {
 		return this.startingPosition;
 	}
 
 	/**
-	 * Permet de définir le nombre de copies de l'étiquette à
-	 * imprimer
+	 * allow to change the amount of copy of label to print
 	 *
 	 * @param nb
 	 */
@@ -544,7 +528,7 @@ public class ReportUtils {
 	}
 
 	/**
-	 * le nombre de copies choisi.
+	 * get the amount of copy of label to print.
 	 *
 	 * @return
 	 */
@@ -553,7 +537,7 @@ public class ReportUtils {
 	}
 
 	/**
-	 * Méthode qui prend en paramètre un String et qui resort le même string seulement il est formater pour être valide dans une balise XML
+	 * Function that checks a string and replace if needed. Used to get valid XML tag.
 	 *
 	 * @param input String
 	 * @return
