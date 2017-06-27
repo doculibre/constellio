@@ -128,7 +128,7 @@ allprojects {
     }
 }
 
-war {je
+war {
     baseName = "constellio"
     version = "7.3.0.7"
 
