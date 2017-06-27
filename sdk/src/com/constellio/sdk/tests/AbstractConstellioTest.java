@@ -401,7 +401,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return resourcesDir;
 	}
 
-	protected File getTestResourceFile(String partialName) {
+	public File getTestResourceFile(String partialName) {
 		return getTestResourceFile(null, partialName);
 	}
 
@@ -416,7 +416,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return file;
 	}
 
-	protected File getTestResourceFile(Class clazz, String partialName) {
+	public File getTestResourceFile(Class clazz, String partialName) {
 		ensureNotUnitTest();
 		return getTestResourceFileWithoutCheckingIfUnitTest(clazz == null ? getClass() : clazz, partialName);
 	}
@@ -883,6 +883,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected abstract ConstellioTestSession getCurrentTestSession();
 
+	public void markAsNotAUnitTest() {
+		notAUnitItest = true;
+	}
+
 	public abstract class SubTest {
 
 		public abstract void run();
@@ -1000,11 +1004,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return record.getId();
 	}
 
-	protected SaveStateFeature getSaveStateFeature() {
+	public SaveStateFeature getSaveStateFeature() {
 		return getCurrentTestSession().getSaveStateFeature();
 	}
 
-	protected void givenTransactionLogIsEnabled() {
+	public void givenTransactionLogIsEnabled() {
 		givenTransactionLogIsEnabled(null);
 	}
 
@@ -1393,7 +1397,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				getCurrentTestSession().getFileSystemTestFeatures());
 	}
 
-	protected ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
+	public ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
 		return ModuleEnabler.givenInstalledModule(getAppLayerFactory(), installableModuleClass);
 	}

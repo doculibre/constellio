@@ -26,7 +26,6 @@ import org.eclipse.jetty.webapp.TagLibConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 import com.constellio.model.conf.FoldersLocator;
 
@@ -69,9 +68,9 @@ public class ApplicationStarter {
 
 		handler.setParentLoaderPriority(true);
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
-		
+
 		server.setHandler(handler);
-		
+
 		try {
 			server.start();
 
@@ -91,7 +90,7 @@ public class ApplicationStarter {
 		} catch (Exception e) {
 			throw new ApplicationStarterRuntimeException(e);
 		}
-		
+
 		if (params.isJoinServerThread()) {
 			try {
 				server.join();
@@ -109,7 +108,7 @@ public class ApplicationStarter {
 			connector.setPort(params.getPort());
 			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
-			Server server =  new Server();
+			Server server = new Server();
 			server.setConnectors(new Connector[] { connector });
 			return server;
 		}

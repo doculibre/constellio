@@ -1,5 +1,23 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -9,7 +27,11 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -50,17 +72,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -391,7 +402,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord;
 		if (searchID == null) {
-			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+			tmpSearchRecord = recordServices()
+					.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		} else {
 			tmpSearchRecord = getTemporarySearchRecord();
 		}
@@ -414,6 +426,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
 			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord());
+
 			//recordServices().update(search);
 			updateUIContext(search);
 			if (refreshPage) {
@@ -448,7 +461,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
-		if(searchID != null) {
+		if (searchID != null) {
 			view.navigate().to().advancedSearchReplay(searchID);
 		} else {
 			view.navigate().to().advancedSearch();
@@ -525,7 +538,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
 		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
-		if(ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
+		if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			if (!batchProcessOnAllSearchResults) {
 				return buildUnsecuredLogicalSearchQueryWithSelectedIds();
 			} else {

@@ -20,7 +20,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 	private ConstellioTestSession testSession;
 
 	@Override
-	protected ConstellioTestSession getCurrentTestSession() {
+	public ConstellioTestSession getCurrentTestSession() {
 		return testSession;
 	}
 

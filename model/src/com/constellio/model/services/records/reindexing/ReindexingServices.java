@@ -54,6 +54,8 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class ReindexingServices {
 
+	private static SystemReindexingInfos REINDEXING_INFOS;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReindexingServices.class);
 
 	private static final String REINDEX_TYPES = "reindexTypes";
@@ -69,62 +71,70 @@ public class ReindexingServices {
 		this.logManager = dataLayerFactory.getSecondTransactionLogManager();
 	}
 
+	public static SystemReindexingInfos getReindexingInfos() {
+		return REINDEXING_INFOS;
+	}
+
 	public void reindexCollections(ReindexationMode reindexationMode) {
 		reindexCollections(new ReindexationParams(reindexationMode));
 	}
 
 	public void reindexCollections(ReindexationParams params) {
-
-		if (params.isBackground()) {
-			BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-			for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
-				BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
-				batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
-			}
-
-		} else {
-
-			if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-				logManager.regroupAndMoveInVault();
-				logManager.moveTLOGToBackup();
-				RecordDao recordDao = dataLayerFactory.newRecordDao();
-				try {
-
-					List<RecordDTO> records = new ArrayList<>();
-
-					records.add(recordDao.get("the_private_key"));
-
-					for (Map.Entry<String, Long> entry : dataLayerFactory.getSequencesManager().getSequences().entrySet()) {
-						RecordDTO sequence = recordDao.get("seq_" + entry.getKey());
-						records.add(sequence);
-					}
-
-					try {
-						recordDao.execute(
-								new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(records).withFullRewrite(true));
-					} catch (OptimisticLocking optimisticLocking) {
-						throw new RuntimeException(optimisticLocking);
-					}
-				} catch (NoSuchRecordWithId noSuchRecordWithId) {
-					//OK
+		try {
+			if (params.isBackground()) {
+				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+				for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
+					BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
+					batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
 				}
+
+			} else {
+
+				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
+					logManager.regroupAndMoveInVault();
+					logManager.moveTLOGToBackup();
+					RecordDao recordDao = dataLayerFactory.newRecordDao();
+					try {
+
+						List<RecordDTO> records = new ArrayList<>();
+
+						records.add(recordDao.get("the_private_key"));
+
+						for (Map.Entry<String, Long> entry : dataLayerFactory.getSequencesManager().getSequences().entrySet()) {
+							RecordDTO sequence = recordDao.get("seq_" + entry.getKey());
+							records.add(sequence);
+						}
+
+						try {
+							recordDao.execute(
+									new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(records).withFullRewrite(true));
+						} catch (OptimisticLocking optimisticLocking) {
+							throw new RuntimeException(optimisticLocking);
+						}
+					} catch (NoSuchRecordWithId noSuchRecordWithId) {
+						//OK
+					}
+					recordDao.expungeDeletes();
+				}
+
+				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+					reindexCollection(collection, params);
+				}
+
+				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
+					logManager.regroupAndMoveInVault();
+					logManager.deleteLastTLOGBackup();
+				}
+
+				RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 				recordDao.expungeDeletes();
+
+				deleteMetadatasMarkedForDeletion();
+
 			}
 
-			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-				reindexCollection(collection, params);
-			}
-
-			if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-				logManager.regroupAndMoveInVault();
-				logManager.deleteLastTLOGBackup();
-			}
-
-			RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
-			recordDao.expungeDeletes();
-
-			deleteMetadatasMarkedForDeletion();
-
+		} finally {
+			REINDEXING_INFOS = null;
 		}
 	}
 
@@ -225,7 +235,6 @@ public class ReindexingServices {
 			try {
 
 				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
-
 					if (isReindexingOfTypeRequired(level, types, typeCode)) {
 						if (level == 0) {
 							LOGGER.info("Indexing '" + typeCode + "'");
@@ -287,6 +296,7 @@ public class ReindexingServices {
 				Set<String> idsInCurrentBatch = new HashSet<>();
 				Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), 1000);
 				while (records.hasNext()) {
+					REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), typeCode, current, counter);
 					Record record = records.next();
 					for (Metadata metadata : metadatasMarkedForDeletion) {
 						if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {

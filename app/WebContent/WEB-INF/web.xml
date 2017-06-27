@@ -29,6 +29,7 @@
             <param-name>widgetset</param-name>
             <param-value>com.constellio.app.ui.application.widgetset.AppWidgetset</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
     </servlet>
 
     <listener>
@@ -87,6 +88,14 @@
         <servlet-name>cmisbrowser</servlet-name>
     </filter-mapping>
     -->
+
+
+    <servlet>
+        <servlet-name>serviceMonitoring</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioMonitoringServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
 
     <servlet>
         <servlet-name>cmisws10</servlet-name>
@@ -149,7 +158,7 @@
     <servlet>
         <servlet-name>Jersey REST Service</servlet-name>
         <servlet-class>com.constellio.app.servlet.ConstellioServletContainer</servlet-class>
-<!--         Register resources and providers under com.constellio.app.api.admin.services package. -->
+        <!--         Register resources and providers under com.constellio.app.api.admin.services package. -->
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>com.constellio.app.api.admin.services</param-value>
@@ -326,6 +335,12 @@
     <!--<servlet-class>com.constellio.app.modules.rm.agent.services.UpdateContentAgentServlet</servlet-class>-->
     <!--<load-on-startup>1</load-on-startup>-->
     <!--</servlet>-->
+
+
+    <servlet-mapping>
+        <servlet-name>serviceMonitoring</servlet-name>
+        <url-pattern>/serviceMonitoring/*</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>VaadinServlet</servlet-name>
