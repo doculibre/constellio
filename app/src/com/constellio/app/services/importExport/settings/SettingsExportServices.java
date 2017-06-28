@@ -14,10 +14,7 @@ import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -240,6 +237,10 @@ public class SettingsExportServices {
 			importedMetadata.setSortable(metadata.isSortable());
 
 			importedMetadata.setType(metadata.getType().name());
+
+			if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
+				importedMetadata.setReferencedType(metadata.getReferencedSchemaType());
+			}
 
 			importedMetadata.setUnique(metadata.isUniqueValue());
 
