@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -28,6 +30,7 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
@@ -133,6 +136,10 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
+
+				if(schemaTypeCode.equals(Category.SCHEMA_TYPE)) {
+					condition = condition.andWhere(type.getAllMetadatas().getMetadataWithLocalCode(Category.DEACTIVATE)).isFalseOrNull();
+				}
 			} else {
 				String caption = $("caption." + type.getCode() + ".record");
 
@@ -150,7 +157,6 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 			List<Metadata> extraMetadatas = schema.getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(schema).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
-
 			} else {
 				condition = from(schema).returnAll();
 			}
