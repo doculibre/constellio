@@ -9,10 +9,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.*;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -83,6 +81,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 				migrationResourcesProvider);
 
 		new SchemaAlteration(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		CoreMigrationTo_7_3.createKeyFileInZookeeperIfNeeded(collection, modelLayerFactory.getConfiguration());
 		CoreMigrationTo_5_1_3.initEncryption(collection, migrationResourcesProvider, appLayerFactory);
 		if (collection.equals(Collection.SYSTEM_COLLECTION)) {
 			generatedSystemMigrationCombo.applyGeneratedRoles();
