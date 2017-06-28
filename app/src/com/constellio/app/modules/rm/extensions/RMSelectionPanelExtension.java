@@ -691,7 +691,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
         InputStream inputStream = contentManager.getContentInputStream(hash, content.getCurrentVersion().getFilename());
         String mimeType = content.getCurrentVersion().getMimetype();
-        String attachmentName = document.getTitle();
+        String attachmentName = content.getCurrentVersion().getFilename();
         return new EmailServices.MessageAttachment().setMimeType(mimeType).setAttachmentName(attachmentName).setInputStream(inputStream);
     }
 

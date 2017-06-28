@@ -20,6 +20,7 @@ import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -145,7 +146,6 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			table.addGeneratedColumn(CATEGORY_CODE, this);
 			table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
 			visibleColumns.add(CATEGORY_CODE);
-			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
 		}
 
 		table.addGeneratedColumn(LINEAR_SIZE, this);
@@ -163,6 +163,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		}
 
 		table.setVisibleColumns(visibleColumns.toArray());
+
+		if(extension != null) {
+			table.sort(new String[] {CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[] {true, true, true});
+		} else {
+			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
+		}
 
 		return table;
 	}

@@ -75,7 +75,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -218,6 +218,8 @@ public class RMConfigs {
 		add(AGENT_READ_ONLY_WARNING = agent.createBooleanTrueByDefault("readOnlyWarning"));
 
 		add(AGENT_DISABLED_UNTIL_FIRST_CONNECTION = agent.createBooleanFalseByDefault("agentDisabledUntilFirstConnection"));
+		
+		add(AGENT_MOVE_IMPORTED_FILES_TO_TRASH = agent.createBooleanTrueByDefault("agentMoveImportedFilesToTrash"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -421,6 +423,10 @@ public class RMConfigs {
 
 	public boolean isAgentDisabledUntilFirstConnection() {
 		return manager.getValue(AGENT_DISABLED_UNTIL_FIRST_CONNECTION);
+	}
+
+	public boolean isAgentMoveImportedFilesToTrash() {
+		return manager.getValue(AGENT_MOVE_IMPORTED_FILES_TO_TRASH);
 	}
 
 	public int getBorrowingDurationDays() {
