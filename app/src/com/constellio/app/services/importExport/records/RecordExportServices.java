@@ -173,7 +173,7 @@ public class RecordExportServices {
 				MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 
 				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
-						record.getId());
+						record.getId(), metadataSchema.getLocalCode());
 
 				for (Metadata metadata : metadataSchema.getMetadatas()) {
 					if (!metadata.isSystemReserved()
@@ -257,7 +257,7 @@ public class RecordExportServices {
 			MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 
 			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, record.getTypeCode(),
-					record.getId());
+					record.getId(), metadataSchema.getLocalCode());
 
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
@@ -353,7 +353,7 @@ public class RecordExportServices {
 				MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 
 				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
-						record.getId());
+						record.getId(), metadataSchema.getLocalCode());
 
 				RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
