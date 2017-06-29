@@ -202,8 +202,9 @@ public class RecordExportServices {
 										Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
 										referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
 									}
-									idList.set(i, referencedObject+idList.get(i));
+									idList.set(i, referencePrefix+referencedObject);
 								}
+								modifiableImportRecord.addField(metadata.getLocalCode(), idList);
 							}
 						} else if (object != null) {
 							modifiableImportRecord.addField(metadata.getLocalCode(), object);
@@ -287,8 +288,9 @@ public class RecordExportServices {
 									Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
 									referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
 								}
-								idList.set(i, referencedObject+idList.get(i));
+								idList.set(i, referencePrefix+referencedObject);
 							}
+							modifiableImportRecord.addField(metadata.getLocalCode(), idList);
 						}
 					} else if (object != null) {
 						modifiableImportRecord.addField(metadata.getLocalCode(), object);
@@ -382,8 +384,9 @@ public class RecordExportServices {
 										Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
 										referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
 									}
-									idList.set(i, referencedObject+idList.get(i));
+									idList.set(i, referencePrefix+referencedObject);
 								}
+								modifiableImportRecord.addField(metadata.getLocalCode(), idList);
 							}
 						} else if (object != null) {
 							modifiableImportRecord.addField(metadata.getLocalCode(), object);
