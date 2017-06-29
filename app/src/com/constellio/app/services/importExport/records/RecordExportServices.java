@@ -18,6 +18,7 @@ import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.structures.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -159,6 +160,8 @@ public class RecordExportServices {
 							.setImportAsLegacyId(!options.isForSameSystem()));
 		}
 
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+
 		for (String exportedSchemaType : schemaTypeList) {
 
 			logicalSearchQuery.setCondition(from(metadataSchemaTypes.getSchemaType(exportedSchemaType)).where(Schemas.IDENTIFIER).isIn(recordsToExport));
@@ -184,12 +187,22 @@ public class RecordExportServices {
 							referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue()? "code:":referencePrefix;
 						}
 						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+object);
+							Object referencedObject = object;
+							if("code:".equals(referencePrefix)) {
+								Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+								referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
+							}
+							modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+referencedObject);
 						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
 							if(object instanceof List) {
 								List<String> idList = new ArrayList<>((List) object);
 								for(int i = 0; i < idList.size(); i++) {
-									idList.set(i, referencePrefix+idList.get(i));
+									Object referencedObject = idList.get(i);
+									if("code:".equals(referencePrefix)) {
+										Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+										referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
+									}
+									idList.set(i, referencedObject+idList.get(i));
 								}
 							}
 						} else if (object != null) {
@@ -245,6 +258,8 @@ public class RecordExportServices {
 			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, record.getTypeCode(),
 					record.getId());
 
+			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+
 			for (Metadata metadata : metadataSchema.getMetadatas()) {
 				if (!metadata.isSystemReserved()
 						&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
@@ -257,12 +272,22 @@ public class RecordExportServices {
 						referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue()? "code:":referencePrefix;
 					}
 					if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
-						modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+object);
+						Object referencedObject = object;
+						if("code:".equals(referencePrefix)) {
+							Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+							referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
+						}
+						modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+referencedObject);
 					} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
 						if(object instanceof List) {
 							List<String> idList = new ArrayList<>((List) object);
 							for(int i = 0; i < idList.size(); i++) {
-								idList.set(i, referencePrefix+idList.get(i));
+								Object referencedObject = idList.get(i);
+								if("code:".equals(referencePrefix)) {
+									Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+									referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
+								}
+								idList.set(i, referencedObject+idList.get(i));
 							}
 						}
 					} else if (object != null) {
@@ -328,6 +353,8 @@ public class RecordExportServices {
 				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
 						record.getId());
 
+				RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+
 				for (Metadata metadata : metadataSchema.getMetadatas()) {
 					if (!metadata.isSystemReserved()
 							&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
@@ -340,12 +367,22 @@ public class RecordExportServices {
 							referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue()? "code:":referencePrefix;
 						}
 						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+object);
+							Object referencedObject = object;
+							if("code:".equals(referencePrefix)) {
+								Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+								referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
+							}
+							modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+referencedObject);
 						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
 							if(object instanceof List) {
 								List<String> idList = new ArrayList<>((List) object);
 								for(int i = 0; i < idList.size(); i++) {
-									idList.set(i, referencePrefix+idList.get(i));
+									Object referencedObject = idList.get(i);
+									if("code:".equals(referencePrefix)) {
+										Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+										referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get("code"));
+									}
+									idList.set(i, referencedObject+idList.get(i));
 								}
 							}
 						} else if (object != null) {
