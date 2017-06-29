@@ -177,14 +177,19 @@ public class RecordExportServices {
 							&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
 							&& metadata.getType() != MetadataValueType.STRUCTURE) {
 						Object object = record.get(metadata);
-
-						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && !metadata.isMultivalue()) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
-						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && metadata.isMultivalue()) {
+						String referencePrefix = "id:";
+						if(metadata.getType() == MetadataValueType.REFERENCE) {
+							MetadataSchema defaultSchema = metadataSchemaTypes.getDefaultSchema(metadata.getReferencedSchemaType());
+							referencePrefix = options.isForSameSystem? "id:":"";
+							referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue()? "code:":referencePrefix;
+						}
+						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
+							modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+object);
+						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
 							if(object instanceof List) {
 								List<String> idList = new ArrayList<>((List) object);
 								for(int i = 0; i < idList.size(); i++) {
-									idList.set(i, "id:"+idList.get(i));
+									idList.set(i, referencePrefix+idList.get(i));
 								}
 							}
 						} else if (object != null) {
@@ -245,14 +250,19 @@ public class RecordExportServices {
 						&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
 						&& metadata.getType() != MetadataValueType.STRUCTURE) {
 					Object object = record.get(metadata);
-
-					if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && !metadata.isMultivalue()) {
-						modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
-					} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && metadata.isMultivalue()) {
+					String referencePrefix = "id:";
+					if(metadata.getType() == MetadataValueType.REFERENCE) {
+						MetadataSchema defaultSchema = metadataSchemaTypes.getDefaultSchema(metadata.getReferencedSchemaType());
+						referencePrefix = options.isForSameSystem? "id:":"";
+						referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue()? "code:":referencePrefix;
+					}
+					if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
+						modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+object);
+					} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
 						if(object instanceof List) {
 							List<String> idList = new ArrayList<>((List) object);
 							for(int i = 0; i < idList.size(); i++) {
-								idList.set(i, "id:"+idList.get(i));
+								idList.set(i, referencePrefix+idList.get(i));
 							}
 						}
 					} else if (object != null) {
@@ -323,14 +333,19 @@ public class RecordExportServices {
 							&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
 							&& metadata.getType() != MetadataValueType.STRUCTURE) {
 						Object object = record.get(metadata);
-
-						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && !metadata.isMultivalue()) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
-						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && metadata.isMultivalue()) {
+						String referencePrefix = "id:";
+						if(metadata.getType() == MetadataValueType.REFERENCE) {
+							MetadataSchema defaultSchema = metadataSchemaTypes.getDefaultSchema(metadata.getReferencedSchemaType());
+							referencePrefix = options.isForSameSystem? "id:":"";
+							referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue()? "code:":referencePrefix;
+						}
+						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
+							modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+object);
+						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
 							if(object instanceof List) {
 								List<String> idList = new ArrayList<>((List) object);
 								for(int i = 0; i < idList.size(); i++) {
-									idList.set(i, "id:"+idList.get(i));
+									idList.set(i, referencePrefix+idList.get(i));
 								}
 							}
 						} else if (object != null) {
