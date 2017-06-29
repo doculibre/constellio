@@ -108,7 +108,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public void cancelButtonClicked() {
 		if (StringUtils.isNotBlank(workflowId)) {
-			view.navigate().to(TaskViews.class).displayWorkflow(workflowId);
+			view.navigateToWorkflow(workflowId);
 		} else {
 			view.navigate().to(TaskViews.class).taskManagement();
 		}
@@ -135,7 +135,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 			addOrUpdate(task.getWrappedRecord());
 			if (StringUtils.isNotBlank(workflowId)) {
-				view.navigate().to(TaskViews.class).displayWorkflow(workflowId);
+				view.navigateToWorkflow(workflowId);
 			} else if (StringUtils.isNotBlank(parentId)) {
 				view.navigate().to(TaskViews.class).displayTask(parentId);
 			} else {

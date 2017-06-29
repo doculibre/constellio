@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
@@ -113,5 +114,10 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	@Override
 	public TaskForm getForm() {
 		return recordForm;
+	}
+
+	@Override
+	public void navigateToWorkflow(String workflowId) {
+		navigate().to(TaskViews.class).displayWorkflow(workflowId);
 	}
 }

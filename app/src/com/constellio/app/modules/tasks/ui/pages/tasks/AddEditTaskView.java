@@ -12,4 +12,6 @@ public interface AddEditTaskView extends BaseView, TasksViewGroup {
 	void setRecord(TaskVO taskVO);
 
 	void adjustAcceptedField(boolean b);
+
+	void navigateToWorkflow(String workflowId);
 }
