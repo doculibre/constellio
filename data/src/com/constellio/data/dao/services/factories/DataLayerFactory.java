@@ -1,6 +1,5 @@
 package com.constellio.data.dao.services.factories;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -85,10 +84,15 @@ public class DataLayerFactory extends LayerFactory {
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
+	public static int countConstructor;
+
+	public static int countInit;
+
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 
 		super(statefullServiceDecorator, instanceName);
+		countConstructor++;
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		// TODO Possibility to configure the logger
@@ -128,7 +132,8 @@ public class DataLayerFactory extends LayerFactory {
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
-					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()), settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
+					settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -155,7 +160,7 @@ public class DataLayerFactory extends LayerFactory {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
 		}
 
-        updateContentDao();
+		updateContentDao();
 
 		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
 
@@ -187,11 +192,11 @@ public class DataLayerFactory extends LayerFactory {
 	public ConfigManager getConfigManager() {
 		return configManager;
 	}
-	
+
 	public ConstellioCacheManager getSettingsCacheManager() {
 		return settingsCacheManager;
 	}
-	
+
 	public ConstellioCacheManager getRecordsCacheManager() {
 		return recordsCacheManager;
 	}
@@ -238,6 +243,7 @@ public class DataLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
+		countInit++;
 		super.initialize();
 		newRecordDao().removeOldLocks();
 	}
@@ -333,16 +339,16 @@ public class DataLayerFactory extends LayerFactory {
 		return new SolrSequencesManager(newRecordDao(), secondTransactionLogManager);
 	}
 
-    public void updateContentDao() {
-        if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
-            contentDao = add(new FileSystemContentDao(ioServicesFactory.newIOServices(), dataLayerConfiguration));
-        } else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
-            String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
-            String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
-            contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
+	public void updateContentDao() {
+		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
+			contentDao = add(new FileSystemContentDao(ioServicesFactory.newIOServices(), dataLayerConfiguration));
+		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
+			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
+			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
+			contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
 
-        } else {
-            throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
-        }
-    }
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
+		}
+	}
 }

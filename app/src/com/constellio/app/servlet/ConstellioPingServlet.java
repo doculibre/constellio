@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.records.reindexing.SystemReindexingInfos;
 
@@ -58,6 +59,10 @@ public class ConstellioPingServlet extends HttpServlet {
 			pw.println();
 			pw.append("success");
 		}
+
+		pw.println();
+		pw.append(
+				"Layers : " + DataLayerFactory.countConstructor + " constructed, " + DataLayerFactory.countInit + " initialized");
 
 		pw.close();
 	}
