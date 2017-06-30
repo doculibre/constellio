@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.jdom2.Document;
 
-import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManagerRuntimeException.LabelTemplateManagerRuntimeException_CannotCreateLabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -69,7 +68,6 @@ public class LabelTemplateManager {
 
 	public List<LabelTemplate> listExtensionTemplates(String schemaType) {
 		List<LabelTemplate> labelTemplates = new ArrayList<>();
-		addTemplatesFromExtensions(schemaType, labelTemplates);
 		addToCache(labelTemplates);
 		Collections.sort(labelTemplates, new AbstractTextComparator<LabelTemplate>() {
 			@Override
@@ -93,10 +91,10 @@ public class LabelTemplateManager {
 					}
 				}
 			}
-			
+
 			addDefaultLabelTemplates(schemaType, labelTemplates);
 		}
-		
+
 		addToCache(labelTemplates);
 		Collections.sort(labelTemplates, new AbstractTextComparator<LabelTemplate>() {
 			@Override
@@ -105,11 +103,6 @@ public class LabelTemplateManager {
 			}
 		});
 		return labelTemplates;
-	}
-	
-	private void addTemplatesFromExtensions(String schemaType, List<LabelTemplate> labelTemplates) {
-		AppLayerSystemExtensions extensions = appLayerFactory.getExtensions().getSystemWideExtensions();
-		extensions.addLabelTemplates(schemaType, labelTemplates);
 	}
 
 	private void addToCache(List<LabelTemplate> labelTemplates) {
