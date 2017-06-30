@@ -76,12 +76,20 @@ public class DataLayerFactory extends LayerFactory {
 	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
+	public int constructorCalls;
+	public int initCalls;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 
 		super(statefullServiceDecorator, instanceName);
+		constructorCalls++;
+		if (constructorCalls >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been constructed " + constructorCalls + " times")
+					.printStackTrace();
+		}
+
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		// TODO Possibility to configure the logger
@@ -214,7 +222,14 @@ public class DataLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
+		initCalls++;
 		super.initialize();
+
+		if (initCalls >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been initialized " + initCalls + " times")
+					.printStackTrace();
+		}
+
 		newRecordDao().removeOldLocks();
 	}
 
