@@ -32,6 +32,8 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 
+import javax.ws.rs.NotSupportedException;
+
 public class PathLookupField extends LookupField<String> {
 	private final TaxonomyCodeToCaptionConverter captionConverter;
 
@@ -183,6 +185,11 @@ public class PathLookupField extends LookupField<String> {
 			ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 			return new PathInputDataProvider(modelLayerFactory, sessionContext);
+		}
+
+		@Override
+		public TextInputDataProvider<String> searchWithoutDisabled() {
+			throw new NotSupportedException();
 		}
 
 		@Override
