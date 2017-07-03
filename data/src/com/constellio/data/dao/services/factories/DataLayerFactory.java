@@ -93,6 +93,11 @@ public class DataLayerFactory extends LayerFactory {
 
 		super(statefullServiceDecorator, instanceName);
 		countConstructor++;
+		if (countConstructor >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been constructed " + countConstructor + " times")
+					.printStackTrace();
+		}
+
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		// TODO Possibility to configure the logger
@@ -244,6 +249,11 @@ public class DataLayerFactory extends LayerFactory {
 	@Override
 	public void initialize() {
 		countInit++;
+
+		if (countInit >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been initialized " + countInit + " times")
+					.printStackTrace();
+		}
 		super.initialize();
 		newRecordDao().removeOldLocks();
 	}

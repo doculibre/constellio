@@ -81,9 +81,10 @@ public class RMMigrationTo7_3 implements MigrationScript {
 			MetadataSchemaBuilder schemaBuilder = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE);
 			boolean required = Boolean.TRUE == schemaBuilder.get(ADMINISTRATIVE_UNIT).getDefaultRequirement();
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ADMINISTRATIVE_UNIT)
-					.setTaxonomyRelationship(false).setDefaultRequirement(false).setEnabled(false).setEssential(false);
+					.setTaxonomyRelationship(false).setDefaultRequirement(false).setEssentialInSummary(false)
+					.setEssential(false).setEnabled(false);
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.ADMINISTRATIVE_UNITS)
-					.setTaxonomyRelationship(true).setDefaultRequirement(required).setEssential(true);
+					.setTaxonomyRelationship(true).setDefaultRequirement(required).setEnabled(true).setEssential(true);
 
 			MetadataBuilder metadataBorrowUser = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE)
 					.getMetadata(Folder.BORROW_USER);
