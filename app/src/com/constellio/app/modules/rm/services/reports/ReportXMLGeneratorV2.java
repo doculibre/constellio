@@ -11,11 +11,10 @@ import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -39,25 +38,26 @@ import static java.util.Arrays.asList;
 /**
  * Class that creates the XML for the labels.
  */
-public class ReportXMLGeneratorV2<T extends RecordWrapper> {
-
-    private static final Map<Class, String> POSSIBLE_CLASS = new HashMap<Class, String>() {{
-        put(Folder.class, "folders");
-        put(ContainerRecord.class, "containers");
-    }};
+public class ReportXMLGeneratorV2 {
 
     public static final String REFERENCE_PREFIX = "ref_";
+    private static final Map<String, String> SCHEMA_CODE_MAP= new HashMap<String, String>() {{
+        put(ContainerRecord.SCHEMA_TYPE, "containers");
+        put(Folder.SCHEMA_TYPE, "folders");
+    }};
 
     public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "").replacingRegex("[&$%]", "");
     public static LangUtils.StringReplacer replaceBracketsInValueToString = LangUtils.replacingRegex("[\\[\\]]", "");
 
-    private T[] recordElements;
+    private Record[] recordElements;
 
     private String collection;
 
     private AppLayerFactory factory;
 
     private RecordServices recordServices;
+
+    private MetadataSchemasManager metadataSchemasManager;
 
     private int startingPosition, numberOfCopies = 1;
 
@@ -67,25 +67,27 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         this.collection = collection;
         this.factory = appLayerFactory;
         this.recordServices = factory.getModelLayerFactory().newRecordServices();
+        this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
     }
 
-    public ReportXMLGeneratorV2(String collection, AppLayerFactory appLayerFactory, T... recordElements) {
+    public ReportXMLGeneratorV2(String collection, AppLayerFactory appLayerFactory, Record... recordElements) {
         this(collection, appLayerFactory);
-        this.recordElements = recordElements;
+        this.setElements(recordElements);
     }
 
-    public ReportXMLGeneratorV2(String collection, AppLayerFactory appLayerFactory, int startingPosition, int numberOfCopies, T... recordElements) {
+    public ReportXMLGeneratorV2(String collection, AppLayerFactory appLayerFactory, int startingPosition, int numberOfCopies, Record... recordElements) {
         this(collection, appLayerFactory, recordElements);
         this.startingPosition = startingPosition;
         this.numberOfCopies = numberOfCopies;
     }
 
-    public T[] getElements() {
+    public Record[] getElements() {
         return this.recordElements;
     }
 
-    public ReportXMLGeneratorV2<T> setElements(T... elements) {
+    public ReportXMLGeneratorV2 setElements(Record... elements) {
         this.recordElements = elements;
+        this.setTypeWithElements(this.recordElements[0]);
         return this;
     }
 
@@ -93,7 +95,7 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         return startingPosition;
     }
 
-    public ReportXMLGeneratorV2<T> setStartingPosition(int startingPosition) {
+    public ReportXMLGeneratorV2 setStartingPosition(int startingPosition) {
         this.startingPosition = startingPosition;
         return this;
     }
@@ -102,10 +104,14 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         return numberOfCopies;
     }
 
-    public ReportXMLGeneratorV2<T> setNumberOfCopies(int numberOfCopies) {
+    public ReportXMLGeneratorV2 setNumberOfCopies(int numberOfCopies) {
         this.numberOfCopies = numberOfCopies;
         return this;
     }
+
+    public String getCollection() { return this.collection; }
+
+    public AppLayerFactory getFactory() { return this.factory; }
 
     public String generateXML() throws Exception {
         validateInputs();
@@ -114,19 +120,19 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         xmlDocument.setRootElement(xmlRoot);
         xmlRoot.addContent(this.skipAmountOfElementNeededForStartingPosition());
         for(int i = 0; i < this.numberOfCopies; i ++ ) {
-            for (T recordElement : this.recordElements) {
+            for (Record recordElement : this.recordElements) {
                 //the xml tag singular ( folder / container )
                 Element xmlSingularElement = new Element(getTypeSingular());
 
                 //the xml tag metadatas
                 Element XMLMetadatasOfSingularElement = new Element("metadatas");
 
-                // List of all metadatas of current RecordElement
-                List<Metadata> listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement);
-
                 //Add the Extensions to the metadatas elements.
                 factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
-                        recordElement.getWrappedRecord(), xmlSingularElement, XMLMetadatasOfSingularElement));
+                        recordElement, xmlSingularElement, XMLMetadatasOfSingularElement));
+
+                // List of all metadatas of current RecordElement
+                List<Metadata> listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement);
 
                 //Add the additional informations to the metadatas.
                 XMLMetadatasOfSingularElement.addContent(getAdditionalInformations(recordElement));
@@ -152,7 +158,7 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
      * @param input String
      * @return
      */
-    private static String escapeForXmlTag(String input) {
+    public static String escapeForXmlTag(String input) {
         String inputWithoutaccent = AccentApostropheCleaner.removeAccents(input);
         String inputWithoutPonctuation = AccentApostropheCleaner.cleanPonctuation(inputWithoutaccent);
         return replaceInvalidXMLCharacter.replaceOn(inputWithoutPonctuation).toLowerCase();
@@ -171,28 +177,13 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
             throw new Exception("Elements must not be null or empty");
         }
 
-        if (!validateClassTypeOfElements(this.recordElements[0])) {
-            throw new Exception("Invalid class instance, possible input are " + getPossibleClassName());
-        }
-
-        if (this.numberOfCopies == 0) {
+        if (this.numberOfCopies <= 0) {
             throw new Exception("Number of copy must not be equals or smaller to 0");
         }
 
         if (this.startingPosition < 0) {
             throw new Exception("Starting position must not be inferior to 0");
         }
-    }
-
-    private boolean validateClassTypeOfElements(T elementToValidate) {
-        for (Map.Entry<Class, String> possibleClass : POSSIBLE_CLASS.entrySet()) {
-            if (possibleClass.getKey().isInstance(elementToValidate)) {
-                this.type = possibleClass.getValue();
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private List<Element> skipAmountOfElementNeededForStartingPosition() {
@@ -207,11 +198,12 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         return this.type.substring(0, this.type.length() - 1);
     }
 
-    private List<Metadata> getListOfMetadataForElement(T element) {
-        return element.getSchema().getMetadatas();
+    private List<Metadata> getListOfMetadataForElement(Record element) {
+        return this.factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(element).getMetadatas();
+        //return element.getSchema().getMetadatas();
     }
 
-    private List<Element> createMetadataTagsFromMetadata(Metadata metadata, T recordElement) {
+    private List<Element> createMetadataTagsFromMetadata(Metadata metadata, Record recordElement) {
         if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
             return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement);
         }
@@ -225,7 +217,7 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         return Collections.singletonList(metadataXmlElement);
     }
 
-    private List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, T recordElement) {
+    private List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement) {
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
@@ -238,7 +230,7 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         return listOfMetadataTags;
     }
 
-    private List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, T recordElement) {
+    private List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (recordElement.get(metadata) != null) {
             listOfMetadataTags.addAll(asList(
@@ -271,7 +263,7 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         return replaceBracketsInValueToString.replaceOn(finalData);
     }
 
-    private String getLabelOfMetadata(Metadata metadata) {
+    public static String getLabelOfMetadata(Metadata metadata) {
         return metadata.getCode().split("_")[2];
     }
 
@@ -299,16 +291,7 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         }
     }
 
-    private String getPossibleClassName() {
-        return Lists.transform(new ArrayList<>(POSSIBLE_CLASS.keySet()), new Function<Class, String>() {
-            @Override
-            public String apply(Class input) {
-                return input.getName();
-            }
-        }).toString();
-    }
-
-    private List<Element> getAdditionalInformations(T recordElement) {
+    private List<Element> getAdditionalInformations(Record recordElement) {
         List<Element> elementsToAdd = new ArrayList<>(asList(
                 new Element("collection_code").setText(collection),
                 new Element("collection_title").setText(factory.getCollectionsManager().getCollection(collection).getName())
@@ -320,13 +303,14 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
         return elementsToAdd;
     }
 
-    private List<Element> getSpecificDataToAddForCurrentElement(T recordElement) {
-        if(recordElement instanceof ContainerRecord) {
+    private List<Element> getSpecificDataToAddForCurrentElement(Record recordElement) {
+        if(recordElement.getSchemaCode().equals(ContainerRecord.DEFAULT_SCHEMA)) {
             DecommissioningService decommissioningService = new DecommissioningService(collection, factory);
+            ContainerRecord wrappedRecord = new ContainerRecord(recordElement, getTypes());
             return asList(
-                    new Element("extremeDates").setText(decommissioningService.getContainerRecordExtremeDates((ContainerRecord) recordElement)),
-                    new Element("dispositionDate").setText(getToStringOrNullInString(decommissioningService.getDispositionDate((ContainerRecord) recordElement))),
-                    new Element("decommissioningLabel").setText(getToStringOrNull(decommissioningService.getDecommissionningLabel((ContainerRecord) recordElement)))
+                    new Element("extremeDates").setText(decommissioningService.getContainerRecordExtremeDates(wrappedRecord)),
+                    new Element("dispositionDate").setText(getToStringOrNullInString(decommissioningService.getDispositionDate(wrappedRecord))),
+                    new Element("decommissioningLabel").setText(getToStringOrNull(decommissioningService.getDecommissionningLabel(wrappedRecord)))
             );
         }
         return Collections.emptyList();
@@ -338,5 +322,14 @@ public class ReportXMLGeneratorV2<T extends RecordWrapper> {
 
     private String getToStringOrNullInString(Object ob) {
         return ob == null ? "null" : ob.toString();
+    }
+
+    private void setTypeWithElements(Record element) {
+        String schemaType = metadataSchemasManager.getSchemaTypeOf(element).getCode();
+        this.type = SCHEMA_CODE_MAP.get(schemaType);
+    }
+
+    private MetadataSchemaTypes getTypes() {
+        return factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
     }
 }
