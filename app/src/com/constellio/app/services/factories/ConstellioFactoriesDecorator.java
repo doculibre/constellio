@@ -1,5 +1,7 @@
 package com.constellio.app.services.factories;
 
+import java.io.Serializable;
+
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
@@ -8,7 +10,7 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class ConstellioFactoriesDecorator {
+public class ConstellioFactoriesDecorator implements Serializable {
 
 	public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
 		return dataLayerConfiguration;
