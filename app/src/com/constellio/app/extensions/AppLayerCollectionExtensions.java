@@ -22,6 +22,7 @@ import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
