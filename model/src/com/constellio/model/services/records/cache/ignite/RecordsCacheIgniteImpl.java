@@ -850,4 +850,21 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	}
 
+	@Override
+	public int getCacheObjectsCount(String typeCode) {
+		CacheConfig cacheConfig = getCacheConfigOf(typeCode);
+		if (cacheConfig != null && cacheConfig.isVolatile()) {
+			return getVolatileRecordHoldersCount(typeCode);
+		} else if (cacheConfig != null && cacheConfig.isPermanent()) {
+			return getPermanentRecordHoldersCount(typeCode);
+		} else {
+			return 0;
+		}
+	}
+
+	@Override
+	public long getCacheObjectsSize(String typeCode) {
+		return 0;
+	}
+
 }

@@ -174,5 +174,15 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	public int getCacheObjectsCount() {
 		return nested.getCacheObjectsCount();
 	}
+
+	@Override
+	public int getCacheObjectsCount(String typeCode) {
+		return this.cache.size();
+	}
+
+	@Override
+	public long getCacheObjectsSize(String typeCode) {
+		return 0;
+	}
 }
 

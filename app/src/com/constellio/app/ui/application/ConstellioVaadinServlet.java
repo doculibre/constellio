@@ -22,14 +22,16 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 	public void init(ServletConfig servletConfig)
 			throws ServletException {
     	super.init(servletConfig);
-    initThread = new Thread() {
+    	initThread = new Thread() {
 			@Override
-			public void run() {	ConstellioFactories.getInstance();initialized = true;
+			public void run() {	
+				ConstellioFactories.getInstance();
+				initialized = true;
 			}
 		};
 		initThread.start();
-
 	}
+
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -42,25 +44,15 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 				throw new RuntimeException(e);
 			}
 		}
+		
+		
+		ConstellioFactories.getInstance().onRequestStarted();
 
-		super.service(request, response);
-	}
-
-	@Override
-	protected void service(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-
-		if (ConstellioFactories.isInitialized()) {
-			ConstellioFactories.getInstance().onRequestStarted();
-
-			try {
-				super.service(request, response);
-
-			} finally {
-				ConstellioFactories.getInstance().onRequestEnded();
-			}
-		} else {
+		try {
 			super.service(request, response);
+
+		} finally {
+			ConstellioFactories.getInstance().onRequestEnded();
 		}
 	}
 
