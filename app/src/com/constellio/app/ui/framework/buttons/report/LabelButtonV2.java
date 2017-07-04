@@ -13,19 +13,25 @@ import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -66,12 +72,13 @@ public class LabelButtonV2 extends WindowButton {
     private ContentManager contentManager;
     private RecordServices recordServices;
     private IOServicesFactory ioServicesFactory;
+    private RecordToVOBuilder recordToVOBuilder;
 
     //Factory
     private Factory<List<LabelTemplate>> customLabelTemplatesFactory;
     private Factory<List<LabelTemplate>> defaultLabelTemplatesFactory;
 
-    private List<RecordVO> elements;
+    private RecordVO[] elements;
 
     private List<? extends Dimensionnable> listOfAllTemplates;
 
@@ -86,6 +93,7 @@ public class LabelButtonV2 extends WindowButton {
         this.contentManager = factory.getModelLayerFactory().getContentManager();
         this.recordServices = factory.getModelLayerFactory().newRecordServices();
         this.ioServicesFactory = factory.getModelLayerFactory().getIOServicesFactory();
+        this.recordToVOBuilder = new RecordToVOBuilder();
 
         this.customLabelTemplatesFactory = customLabelTemplatesFactory;
         this.defaultLabelTemplatesFactory = defaultLabelTemplatesFactory;
@@ -99,7 +107,16 @@ public class LabelButtonV2 extends WindowButton {
     }
 
     public LabelButtonV2 setElements(RecordVO... elements) {
-        this.elements = asList(elements);
+        this.elements = elements;
+        return this;
+    }
+
+    public LabelButtonV2 setElementsWithIds(List<String> ids, String schemaType, SessionContext sessionContext) {
+        List<RecordVO> recordVOS = new ArrayList<>();
+        for(String id : ids) {
+            recordVOS.add(getRecordVoFromId(id, schemaType, sessionContext));
+        }
+        this.elements = recordVOS.toArray(new RecordVO[0]);
         return this;
     }
 
@@ -166,8 +183,11 @@ public class LabelButtonV2 extends WindowButton {
     }
 
     private List<? extends Dimensionnable> getCustomTemplateForCurrentType() {
-        LogicalSearchCondition condition = from(rm.newPrintableLabel().getSchema()).where(rm.newPrintableLabel().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(this.elements.get(0).getSchema().getCode());
-        return rm.wrapPrintableLabels(searchServices.search(new LogicalSearchQuery(condition)));
+        if(this.elements != null) {
+            LogicalSearchCondition condition = from(rm.newPrintableLabel().getSchema()).where(rm.newPrintableLabel().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(this.elements[0].getSchema().getCode().split("_")[0]);
+            return rm.wrapPrintableLabels(searchServices.search(new LogicalSearchQuery(condition)));
+        }
+        return new ArrayList<>();
     }
 
     private void calculateStartingPosition(Dimensionnable template) {
@@ -206,6 +226,13 @@ public class LabelButtonV2 extends WindowButton {
         final AppLayerCollectionExtensions extensions = this.factory.getExtensions().forCollection(collection);
         final RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
         return rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue();
+    }
+
+    private RecordVO getRecordVoFromId(String id, String schemaType, SessionContext sessionContext) {
+        MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+        LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isEqualTo(id);
+        return this.recordToVOBuilder.build(searchServices.searchSingleResult(condition), RecordVO.VIEW_MODE.DISPLAY, sessionContext);
+
     }
 
     private class TemplateValueChangeListener implements Property.ValueChangeListener {
@@ -267,7 +294,7 @@ public class LabelButtonV2 extends WindowButton {
             VerticalLayout layout = null;
                 if (validateInputs(selectedTemplate)) {
                     ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(collection, factory).setStartingPosition((Integer) startPositionField.getValue())
-                            .setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements());
+                            .setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
                     PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
                     JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(reportXMLGeneratorV2);
                     Content content = selectedTemplateAsPrintableLabel.get(PrintableLabel.JASPERFILE);
@@ -318,5 +345,6 @@ public class LabelButtonV2 extends WindowButton {
         protected String getSaveButtonCaption() {
             return $("LabelsButton.generate");
         }
+
     }
 }

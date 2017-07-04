@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -115,17 +116,15 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return presenter.getDefaultTemplates(schemaType);
 			}
 		};
-		LabelsButton labelsButton = new LabelsButton(
+		LabelButtonV2 labelsButton = new LabelButtonV2(
 				$("SearchView.labels"),
 				$("SearchView.printLabels"),
 				customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory,
 				getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(),
-				schemaType,
-				presenter.getRecordsIds(schemaType),
-				getSessionContext().getCurrentUser().getUsername()
+				getSessionContext().getCurrentCollection()
 		);
+		labelsButton.setElementsWithIds(presenter.getRecordsIds(schemaType), schemaType, getSessionContext());
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
 		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
 		return labelsButton;

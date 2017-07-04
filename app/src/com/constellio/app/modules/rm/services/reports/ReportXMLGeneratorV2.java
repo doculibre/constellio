@@ -188,7 +188,7 @@ public class ReportXMLGeneratorV2 {
 
     private List<Element> skipAmountOfElementNeededForStartingPosition() {
         List<Element> XMLelementList = new ArrayList<>();
-        for (int i = 0; i < this.startingPosition; i++) {
+        for (int i = 1; i < this.startingPosition; i++) {
             XMLelementList.add(new Element(this.getTypeSingular()).setContent(new Element("metadatas")));
         }
         return XMLelementList;

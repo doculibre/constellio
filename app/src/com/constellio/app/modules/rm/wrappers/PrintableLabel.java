@@ -31,11 +31,11 @@ public class PrintableLabel extends Printable implements Dimensionnable {
     }
 
     public int getColonne() {
-        return get(COLONNE);
+        return  ((Double) get(COLONNE)).intValue();
     }
 
     public int getLigne() {
-        return get(LIGNE);
+        return ((Double) get(LIGNE)).intValue();
     }
 
     @Override

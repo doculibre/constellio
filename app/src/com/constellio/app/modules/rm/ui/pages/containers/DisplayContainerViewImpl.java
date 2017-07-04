@@ -148,7 +148,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		slip.setStyleName(ValoTheme.BUTTON_LINK);
 		slip.setEnabled(presenter.canPrintReports());
 		buttons.add(slip);
-
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
