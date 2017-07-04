@@ -128,6 +128,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 		sb.append("</token></response>");
 
 		resp.setContentType(TEXT_XML_CHARSET_UTF_8);
+		resp.setHeader("Access-Control-Allow-Origin", "*");
 		resp.getWriter().write(sb.toString());
 
 	}
