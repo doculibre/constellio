@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.constellio.data.conf.CacheType;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -51,6 +52,7 @@ import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
+import com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteImpl;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -136,7 +138,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		systemCollectionListeners = new ArrayList<>();
 
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
-		this.recordsCaches = new RecordsCachesMemoryImpl(this);
+		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
+			this.recordsCaches = new RecordsCachesIgniteImpl(this);
+		} else {
+			this.recordsCaches = new RecordsCachesMemoryImpl(this);
+		}
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;

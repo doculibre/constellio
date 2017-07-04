@@ -222,23 +222,13 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public CacheType getSettingsCacheType() {
-		return (CacheType) getEnum("dao.settings.cache", CacheType.MEMORY);
+	public CacheType getCacheType() {
+		return (CacheType) getEnum("dao.cache", CacheType.MEMORY);
 	}
 
 	@Override
-	public String getSettingsCacheUrl() {
-		return getRequiredString("dao.settings.cache.url");
-	}
-
-	@Override
-	public CacheType getRecordsCacheType() {
-		return (CacheType) getEnum("dao.records.cache", CacheType.MEMORY);
-	}
-
-	@Override
-	public String getRecordsCacheUrl() {
-		return getRequiredString("dao.records.cache.url");
+	public String getCacheUrl() {
+		return getRequiredString("dao.cache.url");
 	}
 
 	@Override

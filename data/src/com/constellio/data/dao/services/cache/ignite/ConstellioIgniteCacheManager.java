@@ -20,22 +20,21 @@ import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
-import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	
-	private DataLayerConfiguration dataLayerConfiguration;
-
+	private String cacheUrl;
+	
 	private Map<String, ConstellioIgniteCache> caches = new ConcurrentHashMap<>();
 	
 	private Ignite client;
 	
 	private boolean initialized = false;
 
-	public ConstellioIgniteCacheManager(DataLayerConfiguration dataLayerConfiguration) {
-		this.dataLayerConfiguration = dataLayerConfiguration;
+	public ConstellioIgniteCacheManager(String cacheUrl) {
+		this.cacheUrl = cacheUrl;
 	}
 
 	@Override
@@ -45,7 +44,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	
 	private void initializeIfNecessary() {
 		if (!initialized) {
-			IgniteConfiguration igniteConfiguration = getConfiguration(dataLayerConfiguration);
+			IgniteConfiguration igniteConfiguration = getConfiguration(cacheUrl);
 			client = Ignition.getOrStart(igniteConfiguration);
 			addLocalListener();
 			initialized = true;
@@ -59,10 +58,10 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		}
 	}
 
-	private IgniteConfiguration getConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+	private IgniteConfiguration getConfiguration(String cacheUrl) {
 		TcpDiscoverySpi spi = new TcpDiscoverySpi();
 		TcpDiscoveryVmIpFinder ipFinder = new TcpDiscoveryVmIpFinder();
-		ipFinder.setAddresses(splitAddress(dataLayerConfiguration.getSettingsCacheUrl()));
+		ipFinder.setAddresses(splitAddress(cacheUrl));
 		spi.setIpFinder(ipFinder);
 
 		IgniteConfiguration cfg = new IgniteConfiguration();
@@ -98,6 +97,19 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		ConstellioIgniteCache cache = caches.get(name);
 		if (cache == null) {
 			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(name);
+			cache = new ConstellioIgniteCache(name, igniteCache);
+			caches.put(name, cache);
+		}
+		return cache;
+	}
+	
+	public synchronized ConstellioCache getCache(CacheConfiguration<String, Object> cacheConfiguration) {
+		initializeIfNecessary();
+		
+		String name = cacheConfiguration.getName();
+		ConstellioIgniteCache cache = caches.get(name);
+		if (cache == null) {
+			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(cacheConfiguration);
 			cache = new ConstellioIgniteCache(name, igniteCache);
 			caches.put(name, cache);
 		}

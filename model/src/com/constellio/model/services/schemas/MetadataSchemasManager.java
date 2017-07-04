@@ -5,8 +5,10 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jdom2.Document;
@@ -81,7 +83,6 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	@Override
 	public void initialize() {
-		typesCache = cacheManager.getCache(MetadataSchemasManager.class.getName() + ".types");
 		oneXmlConfigPerCollectionManager();
 	}
 
@@ -91,7 +92,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	 * It is disabled by default and enabled in tests
 	 */
 	public static boolean cacheEnabled = false;
-	private ConstellioCache typesCache;
+	private static Map<String, MetadataSchemaTypes> typesCache = new HashMap<>();
 
 	OneXMLConfigPerCollectionManager<MetadataSchemaTypes> newOneXMLManager(ConfigManager configManager,
 			CollectionsListManager collectionsListManager) {
@@ -116,13 +117,12 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		};
 	}
 
-	public Iterator<String> getCacheKeys() {
+	public static Set<String> getCacheKeys() {
 		return typesCache.keySet();
 	}
 
-	public void keepOnlyCacheKeys(Set<String> keys) {
-		for (Iterator<String> it = getCacheKeys(); it.hasNext();) {
-			String key = it.next();
+	public static void keepOnlyCacheKeys(Set<String> keys) {
+		for (String key : new HashSet<>(typesCache.keySet())) {
 			if (!keys.contains(key)) {
 				typesCache.remove(key);
 			}

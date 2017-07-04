@@ -101,26 +101,19 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
-		if (dataLayerConfiguration.getSettingsCacheType() == CacheType.IGNITE) {
-			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
-		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.MEMORY) {
+		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
+			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl());
+			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl());
+		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
 			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
-			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
-		} else {
-			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
-		}
-		add(settingsCacheManager);
-
-		if (dataLayerConfiguration.getRecordsCacheType() == CacheType.IGNITE) {
-			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration);
-		} else if (dataLayerConfiguration.getRecordsCacheType() == CacheType.MEMORY) {
 			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-		} else if (dataLayerConfiguration.getSettingsCacheType() == CacheType.TEST) {
+		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
+			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
+		add(settingsCacheManager);
 		add(recordsCacheManager);
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {

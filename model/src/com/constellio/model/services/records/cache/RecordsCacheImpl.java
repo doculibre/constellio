@@ -2,7 +2,6 @@ package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,8 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.services.cache.ConstellioCache;
-import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -41,7 +38,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	String collection;
 	SchemaUtils schemaUtils = new SchemaUtils();
 
-//	Map<String, RecordHolder> cacheById = new HashMap<>();
+	Map<String, RecordHolder> cacheById = new HashMap<>();
 
 	Map<String, RecordByMetadataCache> recordByMetadataCache = new HashMap<>();
 	Map<String, VolatileCache> volatileCaches = new HashMap<>();
@@ -51,15 +48,11 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	ModelLayerFactory modelLayerFactory;
 	SearchServices searchServices;
-	ConstellioCacheManager recordsCacheManager;
-	ConstellioCache cacheById;
 
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
-		this.recordsCacheManager = modelLayerFactory.getDataLayerFactory().getRecordsCacheManager();
-		cacheById = recordsCacheManager.getCache(collection + ".cacheById");
 	}
 
 	public boolean isCached(String id) {
@@ -123,7 +116,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 
 			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
-			cache.putQueryResults(signature.toStringSignature(), recordIds);
+			cache.queryResults.put(signature.toStringSignature(), recordIds);
 		}
 	}
 
@@ -168,7 +161,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cache != null) {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
-			List<String> recordIds = cache.getQueryResults(signature.toStringSignature());
+			List<String> recordIds = cache.queryResults.get(signature.toStringSignature());
 			if (recordIds != null) {
 				cachedResults = new ArrayList<>();
 
@@ -198,7 +191,6 @@ public class RecordsCacheImpl implements RecordsCache {
 			Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
 			CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
 			if (cacheConfig != null) {
-				String schemaTypeCode = cacheConfig.getSchemaType();
 				Record previousRecord = null;
 
 				synchronized (this) {
@@ -210,15 +202,15 @@ public class RecordsCacheImpl implements RecordsCache {
 						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
 						if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
 								.getVersion())) {
-							permanentCaches.get(schemaTypeCode).clearQueryResults();
+							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 						}
 					} else {
 						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
 						if (cacheConfig.isPermanent()) {
-							permanentCaches.get(schemaTypeCode).clearQueryResults();
+							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 						}
 					}
-					this.recordByMetadataCache.get(schemaTypeCode).insert(previousRecord, holder);
+					this.recordByMetadataCache.get(cacheConfig.getSchemaType()).insert(previousRecord, holder);
 				}
 
 			}
@@ -245,7 +237,6 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
 		if (cacheConfig != null) {
-			String schemaTypeCode = cacheConfig.getSchemaType();
 			Record previousRecord = null;
 
 			synchronized (this) {
@@ -257,15 +248,15 @@ public class RecordsCacheImpl implements RecordsCache {
 					insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
 					if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
 							.getVersion())) {
-						permanentCaches.get(schemaTypeCode).clearQueryResults();
+						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 					}
 				} else {
 					holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
 					if (cacheConfig.isPermanent()) {
-						permanentCaches.get(schemaTypeCode).clearQueryResults();
+						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 					}
 				}
-				this.recordByMetadataCache.get(schemaTypeCode).insert(previousRecord, holder);
+				this.recordByMetadataCache.get(cacheConfig.getSchemaType()).insert(previousRecord, holder);
 			}
 
 		}
@@ -301,11 +292,9 @@ public class RecordsCacheImpl implements RecordsCache {
 	public synchronized void invalidateRecordsOfType(String recordType) {
 		CacheConfig cacheConfig = cachedTypes.get(recordType);
 		if (cacheConfig.isVolatile()) {
-			VolatileCache volatileCache = volatileCaches.get(cacheConfig.getSchemaType());
-			volatileCache.invalidateAll();
+			volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
 		} else {
-			PermanentCache permanentCache = permanentCaches.get(cacheConfig.getSchemaType());
-			permanentCache.invalidateAll();
+			permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
 		}
 	}
 
@@ -323,12 +312,11 @@ public class RecordsCacheImpl implements RecordsCache {
 			RecordHolder holder = cacheById.get(recordId);
 			if (holder != null && holder.record != null) {
 				CacheConfig cacheConfig = getCacheConfigOf(holder.record.getSchemaCode());
-				String schemaTypeCode = cacheConfig.getSchemaType();
-				recordByMetadataCache.get(schemaTypeCode).invalidate(holder.record);
+				recordByMetadataCache.get(cacheConfig.getSchemaType()).invalidate(holder.record);
 				holder.invalidate();
 
 				if (cacheConfig.isPermanent()) {
-					permanentCaches.get(schemaTypeCode).clearQueryResults();
+					permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 				}
 			}
 		}
@@ -336,7 +324,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	public CacheConfig getCacheConfigOf(String schemaOrTypeCode) {
-		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaOrTypeCode);
+		String schemaTypeCode = schemaUtils.getSchemaTypeCode(schemaOrTypeCode);
 		return cachedTypes.get(schemaTypeCode);
 	}
 
@@ -346,31 +334,26 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cacheConfig == null) {
 			throw new IllegalArgumentException("Required parameter 'cacheConfig'");
 		}
-		String schemaTypeCode = cacheConfig.getSchemaType();
-		if (schemaTypeCode.contains("_")) {
-			throw new RecordsCacheImplRuntimeException_InvalidSchemaTypeCode(schemaTypeCode);
+		if (cacheConfig.getSchemaType().contains("_")) {
+			throw new RecordsCacheImplRuntimeException_InvalidSchemaTypeCode(cacheConfig.getSchemaType());
 		}
-		if (cachedTypes.containsKey(schemaTypeCode)) {
-			removeCache(schemaTypeCode);
+		if (cachedTypes.containsKey(cacheConfig.getSchemaType())) {
+			removeCache(cacheConfig.getSchemaType());
 		}
 
-		cachedTypes.put(schemaTypeCode, cacheConfig);
+		cachedTypes.put(cacheConfig.getSchemaType(), cacheConfig);
 		if (cacheConfig.isPermanent()) {
-			String holdersCacheKey = collection + "." + schemaTypeCode + ".permanentCache.holders"; 
-			String queryResultsCacheKey = collection + "." + schemaTypeCode + ".permanentCache.queryResults"; 
-			permanentCaches.put(schemaTypeCode, new PermanentCache(recordsCacheManager.getCache(holdersCacheKey), recordsCacheManager.getCache(queryResultsCacheKey)));
+			permanentCaches.put(cacheConfig.getSchemaType(), new PermanentCache());
 		} else {
-			String holdersCacheKey = collection + "." + schemaTypeCode + ".volatileCache.holders"; 
-			volatileCaches.put(schemaTypeCode, new VolatileCache(recordsCacheManager.getCache(holdersCacheKey), cacheConfig.getVolatileMaxSize()));
+			volatileCaches.put(cacheConfig.getSchemaType(), new VolatileCache(cacheConfig.getVolatileMaxSize()));
 		}
 
-		String recordsByMetadataCacheName = collection + "." + schemaTypeCode + ".recordsByMetadata";
-		recordByMetadataCache.put(schemaTypeCode, new RecordByMetadataCache(recordsCacheManager.getCache(recordsByMetadataCacheName), cacheConfig));
+		recordByMetadataCache.put(cacheConfig.getSchemaType(), new RecordByMetadataCache(cacheConfig));
 
 		if (cacheConfig.isLoadedInitially()) {
-			LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
+			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
-					.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
 			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000) {
 				for (Iterator<Record> it = searchServices.recordsIterator(from(schemaType).returnAll(), 1000); it.hasNext(); ) {
 					insert(it.next());
@@ -453,7 +436,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		for (VolatileCache aVolatileCache : volatileCaches.values()) {
-			cacheTotalSize += 1 + aVolatileCache.holdersSize();
+			cacheTotalSize += 1 + aVolatileCache.holders.size();
 		}
 
 		for (PermanentCache aPermanentCache : permanentCaches.values()) {
@@ -471,90 +454,11 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		int maxSize;
 
-		private ConstellioCache holdersCache;
-
-		int recordsInCache;
-
-		VolatileCache(ConstellioCache holdersCache, int maxSize) {
-			this.holdersCache = holdersCache;
-			this.maxSize = maxSize;
-		}
-
-		void insert(RecordHolder holder) {
-			holder.volatileCacheOccurences = 1;
-//			holders.add(holder);
-			holdersCache.put(holder.getRecordId(), holder);
-			recordsInCache++;
-		}
-
-		void hit(RecordHolder holder) {
-			if (holder.volatileCacheOccurences <= 2) {
-				holder.volatileCacheOccurences++;
-//				holders.add(holder);
-				holdersCache.put(holder.getRecordId(), holder);
-			}
-		}
-
-		void releaseFor(int qty) {
-			while (recordsInCache + qty > maxSize) {
-				releaseNext();
-			}
-		}
-
-		void releaseNext() {
-			String holderId = holdersCache.keySet().next();
-			RecordHolder recordHolder = holdersCache.get(holderId);
-			holdersCache.remove(holderId);
-			if (recordHolder.volatileCacheOccurences > 1) {
-				recordHolder.volatileCacheOccurences--;
-				releaseNext();
-			} else {
-				recordHolder.invalidate();
-				recordsInCache--;
-			}
-		}
-
-		void invalidateAll() {
-			this.recordsInCache = 0;
-			for (Iterator<String> it = holdersCache.keySet(); it.hasNext();) {
-				String recordId = it.next();
-				RecordHolder holder = holdersCache.get(recordId);
-				holder.invalidate();
-			}
-			holdersCache.clear();
-		}
-		
-		int holdersSize() {
-			return holdersCache.size();
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			for (Iterator<String> it = holdersCache.keySet(); it.hasNext();) {
-				String holdId = it.next();
-				RecordHolder holder = holdersCache.get(holdId);
-				if (holder.record != null) {
-					if (sb.length() > 0) {
-						sb.append(", ");
-					}
-					sb.append(holder.record.getId());
-				}
-			}
-			return sb.toString();
-		}
-
-	}
-
-	static class VolatileCacheOld {
-
-		int maxSize;
-
 		LinkedList<RecordHolder> holders = new LinkedList<>();
 
 		int recordsInCache;
 
-		VolatileCacheOld(ConstellioCache holdersCache, int maxSize) {
+		VolatileCache(int maxSize) {
 			this.maxSize = maxSize;
 		}
 
@@ -595,122 +499,50 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 			holders.clear();
 		}
-		
-		int holdersSize() {
-			return holders.size();
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			for (RecordHolder holder : holders) {
-				if (holder.record != null) {
-					if (sb.length() > 0) {
-						sb.append(", ");
-					}
-					sb.append(holder.record.getId());
-				}
-			}
-			return sb.toString();
-		}
 
 	}
 
 	static class PermanentCache {
 
-//		Map<String, List<String>> queryResults = new HashMap<>();
-//		LinkedList<RecordHolder> holders = new LinkedList<>();
-		
-		private ConstellioCache holdersCache;
-		
-		private ConstellioCache queryResultsCache;
-		
-		private PermanentCache(ConstellioCache holdersCache, ConstellioCache queryResultsCache) {
-			this.holdersCache = holdersCache;
-			this.queryResultsCache = queryResultsCache;
-		}
-		
+		Map<String, List<String>> queryResults = new HashMap<>();
+		LinkedList<RecordHolder> holders = new LinkedList<>();
+
 		void insert(RecordHolder holder) {
-			holdersCache.put(holder.getRecordId(), holder);
-		}
-		
-		List<String> getQueryResults(String schemaType) {
-			return queryResultsCache.get(schemaType);
-		}
-		
-		void putQueryResults(String signature, List<String> queryResults) {
-			queryResultsCache.put(signature, (Serializable) queryResults);
-		}
-		
-		void clearQueryResults(String schemaType) {
-			List<String> queryResults = queryResultsCache.get(schemaType);
-			queryResults.clear();
-			putQueryResults(schemaType, queryResults);
-		}
-		
-		void clearQueryResults() {
-			queryResultsCache.clear();
+			holders.add(holder);
 		}
 
 		void invalidateAll() {
-			for (Iterator<String> it = holdersCache.keySet(); it.hasNext();) {
-				String recordId = it.next();
-				RecordHolder holder = holdersCache.get(recordId);
+			for (RecordHolder holder : holders) {
 				holder.invalidate();
 			}
-			clearQueryResults();
+			queryResults.clear();
 		}
 
 		public int getCacheObjectsCount() {
-			int size = holdersCache.size();
+			int size = holders.size();
 
-			for (Iterator<String> it = queryResultsCache.keySet(); it.hasNext();) {
-				String schemaType = it.next();
-				List<String> queryResults = queryResultsCache.get(schemaType);
-				size += 1 + queryResults.size();
+			for (List<String> aQueryResults : queryResults.values()) {
+				size += 1 + aQueryResults.size();
 			}
 
 			return size;
 		}
-		
-		int holdersSize() {
-			return holdersCache.size();
-		}
-		
-		int queryResultsSize() {
-			return queryResultsCache.size();
-		}
 	}
 
 	static class RecordByMetadataCache {
-		
-		private ConstellioCache recordHolderCache;
-		
-//		Map<String, Map<String, RecordHolder>> recordHolderMap = new HashMap<>();
+
+		Map<String, Map<String, RecordHolder>> map = new HashMap<>();
 		Map<String, Metadata> supportedMetadatas = new HashMap<>();
 
-		RecordByMetadataCache(ConstellioCache recordHolderCache, CacheConfig cacheConfig) {
-			this.recordHolderCache = recordHolderCache;
+		RecordByMetadataCache(CacheConfig cacheConfig) {
 			for (Metadata indexedMetadata : cacheConfig.getIndexes()) {
 				supportedMetadatas.put(indexedMetadata.getLocalCode(), indexedMetadata);
-				putInCache(indexedMetadata.getLocalCode(), new HashMap<String, RecordHolder>());
+				map.put(indexedMetadata.getLocalCode(), new HashMap<String, RecordHolder>());
 			}
-		}
-		
-		private Map<String, RecordHolder> getFromCache(String key) {
-			return recordHolderCache.get(key);
-		}
-		
-		private void putInCache(String key, Map<String, RecordHolder> value) {
-			recordHolderCache.put(key, (Serializable) value);
-		}
-		
-		private int getCacheSize() {
-			return recordHolderCache.size();
 		}
 
 		Record getByMetadata(String localCode, String value) {
-			Map<String, RecordHolder> metadataMap = getFromCache(localCode);
+			Map<String, RecordHolder> metadataMap = map.get(localCode);
 			RecordHolder recordHolder = null;
 			if (metadataMap != null) {
 				recordHolder = metadataMap.get(value);
@@ -731,10 +563,10 @@ public class RecordsCacheImpl implements RecordsCache {
 					value = recordHolder.record.get(supportedMetadata);
 				}
 				if (previousValue != null && !previousValue.equals(value)) {
-					getFromCache(supportedMetadata.getLocalCode()).remove(previousValue);
+					map.get(supportedMetadata.getLocalCode()).remove(previousValue);
 				}
 				if (value != null && !value.equals(previousValue)) {
-					getFromCache(supportedMetadata.getLocalCode()).put(value, recordHolder);
+					map.get(supportedMetadata.getLocalCode()).put(value, recordHolder);
 				}
 			}
 		}
@@ -744,25 +576,22 @@ public class RecordsCacheImpl implements RecordsCache {
 				String value = record.get(supportedMetadata);
 
 				if (value != null) {
-					getFromCache(supportedMetadata.getLocalCode()).remove(value);
+					map.get(supportedMetadata.getLocalCode()).remove(value);
 				}
 			}
 		}
 
 		public int getCacheObjectsCount() {
-			int cacheSize = getCacheSize() + supportedMetadatas.size();
-			for (Iterator<String> it = recordHolderCache.keySet(); it.hasNext();) {
-				String key = it.next();
-				Map<String, RecordHolder> aMap = getFromCache(key);
+			int cacheSize = map.size() + supportedMetadatas.size();
+			for (Map<String, RecordHolder> aMap : map.values()) {
 				cacheSize += aMap.size();
 			}
+
 			return cacheSize;
 		}
 	}
 
-	static class RecordHolder implements Serializable {
-		
-		private String recordId;
+	static class RecordHolder {
 
 		private Record record;
 
@@ -770,10 +599,6 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		RecordHolder(Record record) {
 			set(record);
-		}
-		
-		String getRecordId() {
-			return recordId;
 		}
 
 		Record getCopy() {
@@ -785,7 +610,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void set(Record record) {
-			this.recordId = record.getId();
 			Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
 			if (logicallyDeletedStatus == null
 					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)

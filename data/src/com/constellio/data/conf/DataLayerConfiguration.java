@@ -42,13 +42,9 @@ public interface DataLayerConfiguration {
 
 	ConfigManagerType getSettingsConfigType();
 
-	CacheType getSettingsCacheType();
+	CacheType getCacheType();
 
-	String getSettingsCacheUrl();
-
-	CacheType getRecordsCacheType();
-
-	String getRecordsCacheUrl();
+	String getCacheUrl();
 
 	String getSettingsZookeeperAddress();
 
