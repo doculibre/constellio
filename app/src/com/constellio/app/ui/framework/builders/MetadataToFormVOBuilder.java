@@ -80,8 +80,10 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean duplicable = metadata.isDuplicable();
 
 		return new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable, multivalue, sortable,
-				advancedSearch, facet, entry, displayType, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask,
+				advancedSearch, facet, entry, displayType, highlight, autocomplete, enabled, metadataGroup, defaultValue,
+				inputMask,
 				duplicable,
+				metadata.getCustomAttributes(),
 				sessionContext);
 	}
 

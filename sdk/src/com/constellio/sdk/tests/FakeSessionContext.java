@@ -1,5 +1,13 @@
 package com.constellio.sdk.tests;
 
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -9,9 +17,6 @@ import com.constellio.app.ui.pages.base.BaseSessionContext;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-
-import java.security.Principal;
-import java.util.*;
 
 public class FakeSessionContext extends BaseSessionContext {
 
@@ -135,7 +140,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false, new HashSet<String>());
 	}
 
 	private static MetadataVO lastNameMetadata(MetadataSchemaVO userSchema) {
@@ -145,7 +150,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false, new HashSet<String>());
 	}
 
 	private static MetadataVO firstNameMetadata(MetadataSchemaVO userSchema) {
@@ -155,7 +160,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false, new HashSet<String>());
 	}
 
 	private static MetadataVO userNameMetadata(MetadataSchemaVO userSchema) {
@@ -165,7 +170,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false, new HashSet<String>());
 	}
 
 	@Override
@@ -207,7 +212,7 @@ public class FakeSessionContext extends BaseSessionContext {
 	public Principal getUserPrincipal() {
 		return userPrincipal;
 	}
-	
+
 	public void setUserPrincipal(Principal userPrincipal) {
 		this.userPrincipal = userPrincipal;
 	}

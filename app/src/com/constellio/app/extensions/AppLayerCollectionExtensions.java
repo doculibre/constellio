@@ -16,11 +16,20 @@ import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
-import com.constellio.app.api.extensions.params.*;
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
+import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
+import com.constellio.app.api.extensions.params.OnWriteRecordParams;
+import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
@@ -41,9 +50,12 @@ import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -71,6 +83,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<TaxonomyPageExtension> taxonomyAccessExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<GenericRecordPageExtension> schemaTypeAccessExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SchemaTypesPageExtension> schemaTypesPageExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SearchPageExtension> searchPageExtensions = new VaultBehaviorsList<>();
 
@@ -437,5 +451,38 @@ public class AppLayerCollectionExtensions {
 		for (SelectionPanelExtension extension : selectionPanelExtensions) {
 			extension.addAvailableActions(param);
 		}
+	}
+
+	public List<String> getAvailableExtraMetadataAttributes(GetAvailableExtraMetadataAttributesParam param) {
+		List<String> values = new ArrayList<>();
+		for (SchemaTypesPageExtension extensions : schemaTypesPageExtensions) {
+			List<String> extensionValues = extensions.getAvailableExtraMetadataAttributes(param);
+			if (extensionValues != null) {
+				for (String extensionValue : extensionValues) {
+					values.add(extensionValue);
+				}
+			}
+		}
+		return values;
+	}
+
+	public boolean isMetadataEnabledInRecordForm(final RecordVO recordVO, final MetadataVO metadataVO) {
+		return ExtensionUtils.getBooleanValue(recordAppExtensions, true, new BooleanCaller<RecordAppExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordAppExtension extension) {
+				return extension.isMetadataVisibleInRecordForm(new IsMetadataVisibleInRecordFormParams() {
+					@Override
+					public MetadataVO getMetadataVO() {
+						return metadataVO;
+					}
+
+					@Override
+					public RecordVO getRecordVO() {
+						return recordVO;
+					}
+				});
+			}
+		});
+
 	}
 }

@@ -39,7 +39,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
-	
+
 	private final RMSchemasRecordsServices rm;
 	private final SchemasDisplayManager schemasDisplayManager;
 	private final SearchServices searchServices;
@@ -47,7 +47,8 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	private final MetadataSchema subdivisionSchema;
 	private SessionContext sessionContext;
 
-	public RetentionRuleToVOBuilder(AppLayerFactory appLayerFactory, MetadataSchema categorySchema, MetadataSchema subdivisionSchema) {
+	public RetentionRuleToVOBuilder(AppLayerFactory appLayerFactory, MetadataSchema categorySchema,
+			MetadataSchema subdivisionSchema) {
 		this.categorySchema = categorySchema;
 		this.subdivisionSchema = subdivisionSchema;
 		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
@@ -91,7 +92,8 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getCategories(String id) {
-		LogicalSearchCondition condition = from(categorySchema).where(categorySchema.getMetadata(Category.RETENTION_RULES)).isEqualTo(id);
+		LogicalSearchCondition condition = from(categorySchema).where(categorySchema.getMetadata(Category.RETENTION_RULES))
+				.isEqualTo(id);
 		List<Record> categoryRecords = searchServices.search(new LogicalSearchQuery(condition));
 		List<Category> categories = new ArrayList<>();
 		for (Record categoryRecord : categoryRecords) {
@@ -147,7 +149,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
-				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false);
+				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>());
 	}
 
 	private void insertMetadataCodeBefore(String codeToInsert, String codeToSearch, List<String> codes) {
