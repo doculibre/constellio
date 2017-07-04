@@ -36,5 +36,6 @@ if (new File(rootDir, "./constellio-plugins").exists()) {
             "constellio-plugins:plugin025",
             "constellio-plugins:plugin026",
             "constellio-plugins:plugin027",
+            "constellio-plugins:plugin029",
             "constellio-plugins:plugin666"
 }
