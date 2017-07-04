@@ -84,6 +84,8 @@ public class LabelButtonV2 extends WindowButton {
 
     private HorizontalLayout startAndCopiesLayout;
 
+    private String schemaType;
+
     public LabelButtonV2(String caption, String windowsCaption, Factory<List<LabelTemplate>> customLabelTemplatesFactory, Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory, String collection) {
         super(caption, windowsCaption);
         this.factory = factory;
@@ -111,9 +113,14 @@ public class LabelButtonV2 extends WindowButton {
         return this;
     }
 
+    public LabelButtonV2 setSchemaType(String schemaType) {
+        this.schemaType = schemaType;
+        return this;
+    }
+
     public LabelButtonV2 setElementsWithIds(List<String> ids, String schemaType, SessionContext sessionContext) {
         List<RecordVO> recordVOS = new ArrayList<>();
-        for(String id : ids) {
+        for (String id : ids) {
             recordVOS.add(getRecordVoFromId(id, schemaType, sessionContext));
         }
         this.elements = recordVOS.toArray(new RecordVO[0]);
@@ -183,11 +190,12 @@ public class LabelButtonV2 extends WindowButton {
     }
 
     private List<? extends Dimensionnable> getCustomTemplateForCurrentType() {
-        if(this.elements != null) {
-            LogicalSearchCondition condition = from(rm.newPrintableLabel().getSchema()).where(rm.newPrintableLabel().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(this.elements[0].getSchema().getCode().split("_")[0]);
-            return rm.wrapPrintableLabels(searchServices.search(new LogicalSearchQuery(condition)));
+        if(this.elements == null && this.schemaType == null) {
+            return new ArrayList<>();
         }
-        return new ArrayList<>();
+        String schemaType = this.elements == null ? this.schemaType : this.elements[0].getSchema().getCode().split("_")[0];
+        LogicalSearchCondition condition = from(rm.newPrintableLabel().getSchema()).where(rm.newPrintableLabel().getSchema().getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(schemaType);
+        return rm.wrapPrintableLabels(searchServices.search(new LogicalSearchQuery(condition)));
     }
 
     private void calculateStartingPosition(Dimensionnable template) {
@@ -270,19 +278,19 @@ public class LabelButtonV2 extends WindowButton {
         protected void saveButtonClick(T viewObject) throws ValidationException {
             VerticalLayout preview = null;
             Dimensionnable selectedTemplate = (Dimensionnable) formatField.getValue();
-            if (selectedTemplate instanceof PrintableLabel) {
-                try {
+            try {
+                if (selectedTemplate instanceof PrintableLabel) {
                     preview = generateLabelFromPrintableLabel(selectedTemplate);
-                } catch(Exception e) {
-                    e.printStackTrace();
+                } else if (selectedTemplate instanceof LabelTemplate) {
+                    preview = generateLabelFromLabelTemplate(viewObject);
                 }
-            } else if (selectedTemplate instanceof LabelTemplate) {
-                preview = generateLabelFromLabelTemplate(viewObject);
-            } else throw new UnsupportedOperationException();
 
-            getWindow().setContent(preview);
-            getWindow().setHeight("90%");
-            getWindow().center();
+                getWindow().setContent(preview);
+                getWindow().setHeight("90%");
+                getWindow().center();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -290,37 +298,42 @@ public class LabelButtonV2 extends WindowButton {
             getWindow().close();
         }
 
-        private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception{
+        private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
             VerticalLayout layout = null;
-                if (validateInputs(selectedTemplate)) {
-                    ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(collection, factory).setStartingPosition((Integer) startPositionField.getValue())
-                            .setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
-                    PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
-                    JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(reportXMLGeneratorV2);
-                    Content content = selectedTemplateAsPrintableLabel.get(PrintableLabel.JASPERFILE);
-                    InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
-                    File jasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
+            if (validateInputs(selectedTemplate)) {
+                ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(collection, factory).setStartingPosition((Integer) startPositionField.getValue())
+                        .setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
+                PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
+                JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(reportXMLGeneratorV2);
+                Content content = selectedTemplateAsPrintableLabel.get(PrintableLabel.JASPERFILE);
+                InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
+                File jasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
+                try {
                     FileUtils.copyInputStreamToFile(inputStream, jasperFile);
                     String titleOfthePdfFile = ReportXMLGeneratorV2.escapeForXmlTag(selectedTemplateAsPrintableLabel.getTitle()) + ".pdf";
                     Content generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, titleOfthePdfFile);
                     layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile);
+                } finally {
                     ioServicesFactory.newIOServices().deleteQuietly(jasperFile);
+                    ioServicesFactory.newIOServices().closeQuietly(inputStream);
                 }
+            }
             return layout;
         }
 
         private Record[] getRecordFromElements(RecordVO... recordVOS) {
             List<Record> recordList = new ArrayList<>();
-            for(RecordVO recordVO : recordVOS) {
+            for (RecordVO recordVO : recordVOS) {
                 recordList.add(recordServices.getDocumentById(recordVO.getId()));
             }
             return recordList.toArray(new Record[0]);
         }
+
         private VerticalLayout generateLabelFromLabelTemplate(T parametersVO) {
             LabelTemplate labelTemplate = formatField.getValue() != null ? (LabelTemplate) formatField.getValue() : new LabelTemplate();
             LabelsReportParameters params = new LabelsReportParameters(getIdsFromElements(), labelTemplate,
                     parametersVO.getStartPosition(), parametersVO.getNumberOfCopies());
-            if(getLabelsReportFactory() != null) {
+            if (getLabelsReportFactory() != null) {
                 ReportWriter writer = getLabelsReportFactory().getReportBuilder(params);
                 return new ReportViewer(writer, getLabelsReportFactory().getFilename(params));
             }

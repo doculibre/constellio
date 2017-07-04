@@ -50,6 +50,7 @@ public class JasperPdfGenerator {
         jasperReportsContext.setProperty("net.sf.jasperreports.default.font.name", "Arial");
     }
 
+    //FIXME Utiliser autre chose qu'un content.
     public Content createPDFFromXmlAndJasperFile(File jasperFile, String format) throws Exception {
         Map<String, Object> params = new HashMap<>();
         org.w3c.dom.Document document = JRXmlUtils.parse(new ByteArrayInputStream(this.xmlGenerated.getBytes("UTF-8")));
