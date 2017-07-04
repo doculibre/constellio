@@ -85,10 +85,20 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
+	public static int countConstructor;
+
+	public static int countInit;
+
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 
 		super(statefullServiceDecorator, instanceName);
+		countConstructor++;
+		if (countConstructor >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been constructed " + countConstructor + " times")
+					.printStackTrace();
+		}
+
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		// TODO Possibility to configure the logger
@@ -123,7 +133,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
-					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()), settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
+					settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -187,11 +198,11 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public ConfigManager getConfigManager() {
 		return configManager;
 	}
-	
+
 	public ConstellioCacheManager getSettingsCacheManager() {
 		return settingsCacheManager;
 	}
-	
+
 	public ConstellioCacheManager getRecordsCacheManager() {
 		return recordsCacheManager;
 	}
@@ -238,6 +249,12 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	@Override
 	public void initialize() {
+		countInit++;
+
+		if (countInit >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been initialized " + countInit + " times")
+					.printStackTrace();
+		}
 		super.initialize();
 		newRecordDao().removeOldLocks();
 	}

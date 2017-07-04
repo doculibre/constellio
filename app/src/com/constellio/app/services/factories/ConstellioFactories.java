@@ -45,6 +45,10 @@ public class ConstellioFactories {
 
 	}
 
+	public static ConstellioFactories getInstanceIfAlreadyStarted() {
+		return instanceProvider.getInstance(null);
+	}
+
 	public static boolean isInitialized() {
 		return instanceProvider.isInitialized();
 	}

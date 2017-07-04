@@ -242,7 +242,7 @@ public class ContainerRecord extends RecordWrapper {
 	}
 
 	public List<String> getAdministrativeUnits() {
-		return get(ADMINISTRATIVE_UNITS);
+		return getList(ADMINISTRATIVE_UNITS);
 
 	}
 

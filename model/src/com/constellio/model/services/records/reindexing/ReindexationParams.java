@@ -9,7 +9,7 @@ public class ReindexationParams {
 
 	private boolean background;
 	private ReindexationMode reindexationMode;
-	private int batchSize = 100;
+	private int batchSize = 0;
 	private List<MetadataSchemaType> reindexedSchemaTypes = Collections.emptyList();
 
 	public ReindexationParams(ReindexationMode reindexationMode) {
@@ -53,4 +53,5 @@ public class ReindexationParams {
 		params.setReindexedSchemaTypes(schemaTypes);
 		return params;
 	}
+
 }

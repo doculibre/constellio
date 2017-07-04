@@ -1,17 +1,21 @@
 package com.constellio.app.modules.rm;
 
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
-import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.*;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
 
@@ -75,7 +79,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -218,6 +222,8 @@ public class RMConfigs {
 		add(AGENT_READ_ONLY_WARNING = agent.createBooleanTrueByDefault("readOnlyWarning"));
 
 		add(AGENT_DISABLED_UNTIL_FIRST_CONNECTION = agent.createBooleanFalseByDefault("agentDisabledUntilFirstConnection"));
+		
+		add(AGENT_MOVE_IMPORTED_FILES_TO_TRASH = agent.createBooleanTrueByDefault("agentMoveImportedFilesToTrash"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -253,7 +259,8 @@ public class RMConfigs {
 
 		add(POPULATE_BORDEREAUX_WITH_COLLECTION = decommissioning.createBooleanTrueByDefault("populateBordereauxWithCollection"));
 
-		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
+		add(POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE = decommissioning
+				.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
 
 		add(IS_CONTAINER_MULTIVALUE = decommissioning.createBooleanFalseByDefault("multipleContainerStorageSpaces")
 				.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class)
@@ -423,6 +430,10 @@ public class RMConfigs {
 		return manager.getValue(AGENT_DISABLED_UNTIL_FIRST_CONNECTION);
 	}
 
+	public boolean isAgentMoveImportedFilesToTrash() {
+		return manager.getValue(AGENT_MOVE_IMPORTED_FILES_TO_TRASH);
+	}
+
 	public int getBorrowingDurationDays() {
 		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	}
@@ -481,6 +492,10 @@ public class RMConfigs {
 
 	public boolean isContainerMultipleValue() {
 		return manager.getValue(IS_CONTAINER_MULTIVALUE);
+	}
+
+	public String getYearEndDate() {
+		return manager.getValue(YEAR_END_DATE);
 	}
 
 }
