@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -36,6 +37,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.vaadin.ui.Component;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
@@ -77,9 +79,12 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		if (isWorkflowTab(tabId)) {
 			RecordVODataProvider provider = getWorkflowInstances(tabId);
 			view.displayWorkflows(provider);
-		} else {
+		} else if (isTaskTab(tabId)) {
 			RecordVODataProvider provider = getTasks(tabId);
 			view.displayTasks(provider);
+		} else {
+			UpdateComponentExtensionParams params = new UpdateComponentExtensionParams((Component) view, view.getSelectedTab());
+			appCollectionExtentions.updateComponent(params);
 		}
 	}
 
@@ -270,6 +275,18 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private boolean isWorkflowTab(String tabId) {
 		return WORKFLOWS_STARTED.equals(tabId);
+	}
+
+	private boolean isTaskTab(String tabId) {
+		switch (tabId) {
+			case TASKS_ASSIGNED_TO_CURRENT_USER:
+			case TASKS_ASSIGNED_BY_CURRENT_USER:
+			case TASKS_NOT_ASSIGNED:
+			case TASKS_RECENTLY_COMPLETED:
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)

@@ -438,4 +438,10 @@ public class AppLayerCollectionExtensions {
 			extension.addAvailableActions(param);
 		}
 	}
+
+	public void updateComponent(UpdateComponentExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.updateComponent(params);
+		}
+	}
 }
