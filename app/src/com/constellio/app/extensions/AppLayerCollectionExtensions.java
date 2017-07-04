@@ -12,6 +12,7 @@ import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisp
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
+import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
@@ -109,6 +110,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<SystemCheckExtension> systemCheckExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordExportExtension> recordExportExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -484,5 +487,11 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 
+	}
+
+	public void addFieldsInLabelXML(AddFieldsInLabelXMLParams params) {
+		for (LabelTemplateExtension extension : labelTemplateExtensions) {
+			extension.addFieldsInLabelXML(params);
+		}
 	}
 }

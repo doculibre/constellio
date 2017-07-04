@@ -11,7 +11,7 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 
 		if (instance == null) {
 			boolean createdByThisThread = false;
-			synchronized (SingletonConstellioFactoriesInstanceProvider.class) {
+			synchronized (this) {
 				if (instance == null) {
 					ConstellioFactories instanceBeingInitialized = constellioFactoriesFactory.get();
 					instanceBeingInitialized.getAppLayerFactory().initialize();

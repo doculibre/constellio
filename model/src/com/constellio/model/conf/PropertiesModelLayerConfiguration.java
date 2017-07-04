@@ -8,7 +8,6 @@ import org.joda.time.Duration;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesConfiguration;
-import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 
@@ -165,6 +164,16 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	@Override
 	public File getContentImportThreadFolder() {
 		return getFile("content.import.thread.folder", null);
+	}
+
+	@Override
+	public int getReindexingQueryBatchSize() {
+		return getInt("reindexing.queryBatchSize", 500);
+	}
+
+	@Override
+	public int getReindexingThreadBatchSize() {
+		return getInt("reindexing.threadBatchSize", 100);
 	}
 
 	@Override
