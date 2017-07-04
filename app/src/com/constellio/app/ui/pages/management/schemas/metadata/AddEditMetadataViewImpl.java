@@ -1,7 +1,9 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +70,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private BaseTextField inputMask;
 	@PropertyId("duplicable")
 	private CheckBox duplicableField;
+
+	private List<CheckBox> customAttributesField = new ArrayList<>();
 
 	private MetadataForm metadataForm;
 	private FormMetadataVO formMetadataVO;
@@ -420,6 +424,21 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		duplicableField.addStyleName("duplicable");
 		duplicableField.setEnabled(true);
 
+		customAttributesField = new ArrayList<>();
+		for (String attribute : presenter.getAvailableExtraAttributes()) {
+			CheckBox attributeField = new CheckBox();
+			attributeField.setCaption($("CustomMetadataAttribute." + attribute));
+			attributeField.setRequired(false);
+			attributeField.setId(attribute);
+			attributeField.addStyleName(attribute);
+			attributeField.setEnabled(true);
+
+			attributeField.setValue(formMetadataVO.getCustomAttributes().contains(attribute));
+
+			customAttributesField.add(attributeField);
+			viewLayout.addComponent(attributeField);
+		}
+
 		MetadataFieldFactory factory = new MetadataFieldFactory();
 
 		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO);
@@ -452,10 +471,18 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputMask = new BaseTextField($("AddEditMetadataView.inputMask"));
 		inputMask.setEnabled(false);
 
-		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, labelsField, valueType, multivalueType,
+		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField,
-				displayType) {//, displayedHorizontallyField) {
+				advancedSearchField, highlight, autocomplete));
+
+		for (CheckBox customAttributeField : customAttributesField) {
+			fields.add(customAttributeField);
+		}
+
+		fields.add(defaultValueField);
+		fields.add(displayType);
+
+		metadataForm = new MetadataForm(formMetadataVO, this, fields.toArray(new Field[0])) {//, displayedHorizontallyField) {
 
 			@Override
 			public void reload() {
@@ -476,6 +503,15 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			protected void saveButtonClick(FormMetadataVO viewObject) {
+
+				for (CheckBox customAttributeField : customAttributesField) {
+					if (Boolean.TRUE.equals(customAttributeField.getValue())) {
+						formMetadataVO.addCustomAttribute(customAttributeField.getId());
+					} else {
+						formMetadataVO.removeCustomAttribute(customAttributeField.getId());
+					}
+				}
+
 				try {
 					labelsField.validateFields();
 				} catch (InvalidValueException e) {

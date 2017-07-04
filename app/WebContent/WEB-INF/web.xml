@@ -96,6 +96,12 @@
         <load-on-startup>0</load-on-startup>
     </servlet>
 
+    <servlet>
+        <servlet-name>ping</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioPingServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
 
     <servlet>
         <servlet-name>cmisws10</servlet-name>
@@ -343,6 +349,11 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>ping</servlet-name>
+        <url-pattern>/ping/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>VaadinServlet</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
@@ -411,7 +422,7 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>PingSystemManagementWebService</servlet-name>
+        <servlet-name>ping</servlet-name>
         <url-pattern>/systemManagement/ping</url-pattern>
     </servlet-mapping>
 

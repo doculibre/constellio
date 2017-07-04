@@ -106,6 +106,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_3_1;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -214,7 +215,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_2_0_2(),
 				new RMMigrationTo7_2_0_3(),
 				new RMMigrationTo7_2_0_4(),
-				new RMMigrationTo7_3()
+				new RMMigrationTo7_3(),
+				new RMMigrationTo7_3_1()
 		);
 	}
 
@@ -402,7 +404,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
 			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
 			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 100, FIFO));
+			cache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
 
 		}
 	}

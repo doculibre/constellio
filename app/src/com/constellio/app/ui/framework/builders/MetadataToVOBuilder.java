@@ -5,11 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -140,8 +141,9 @@ public class MetadataToVOBuilder implements Serializable {
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
 		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
-				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled, structureFactory,
-				metadataGroup, metadata.getDefaultValue(), metadata.getInputMask());
+				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
+				structureFactory,
+				metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(), metadata.getCustomAttributes());
 	}
 
 	protected MetadataVO newMetadataVO(
@@ -164,10 +166,12 @@ public class MetadataToVOBuilder implements Serializable {
 			StructureFactory structureFactory,
 			String metadataGroup,
 			Object defaultValue,
-			String inputMask) {
+			String inputMask,
+			Set<String> customAttributes) {
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
-				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled, structureFactory,
-				metadataGroup, defaultValue, inputMask);
+				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
+				structureFactory,
+				metadataGroup, defaultValue, inputMask, customAttributes);
 	}
 
 }

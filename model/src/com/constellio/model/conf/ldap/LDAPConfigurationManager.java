@@ -354,12 +354,12 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public boolean isLDAPAuthentication() {
-		PropertiesConfiguration configuration = configManager.getProperties(LDAP_CONFIGS);
-		if (configuration == null) {
+		PropertiesConfiguration properties = configManager.getProperties(LDAP_CONFIGS);
+		if (properties == null) {
 			return false;
 		} else {
-			Map<String, String> ldapProperties = configuration.getProperties();
-			return getBooleanValue(ldapProperties, "ldap.authentication.active", false);
+			Map<String, String> configs = properties.getProperties();
+			return getBooleanValue(configs, "ldap.authentication.active", false);
 		}
 	}
 

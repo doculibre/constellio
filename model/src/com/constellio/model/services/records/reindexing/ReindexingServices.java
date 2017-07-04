@@ -65,10 +65,13 @@ public class ReindexingServices {
 
 	private SecondTransactionLogManager logManager;
 
+	private int mainThreadQueryRows;
+
 	public ReindexingServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.logManager = dataLayerFactory.getSecondTransactionLogManager();
+		this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
 	}
 
 	public static SystemReindexingInfos getReindexingInfos() {
@@ -221,13 +224,18 @@ public class ReindexingServices {
 			recreateIndexes(collection);
 		}
 
+		int batchSize = params.getBatchSize();
+		if (batchSize == 0) {
+			batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
+		}
+
 		int level = 0;
 		while (isReindexingLevel(level, types)) {
 
 			BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
 					.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
 					.setTransactionOptions(transactionOptions)
-					.withRecordsPerBatch(params.getBatchSize());
+					.withRecordsPerBatch(batchSize);
 
 			BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
 					modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
@@ -241,7 +249,7 @@ public class ReindexingServices {
 						} else {
 							LOGGER.info("Indexing '" + typeCode + "' (Dependency level " + level + ")");
 						}
-						reindexCollectionType(bulkTransactionHandler, types, typeCode);
+						reindexCollectionType(bulkTransactionHandler, types, typeCode, params);
 					}
 				}
 
@@ -279,7 +287,7 @@ public class ReindexingServices {
 	}
 
 	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaTypes types,
-			String typeCode) {
+			String typeCode, ReindexationParams params) {
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemaType type = types.getSchemaType(typeCode);
@@ -294,7 +302,8 @@ public class ReindexingServices {
 			long current = 0;
 			while (true) {
 				Set<String> idsInCurrentBatch = new HashSet<>();
-				Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), 1000);
+				Iterator<Record> records = searchServices
+						.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), mainThreadQueryRows);
 				while (records.hasNext()) {
 					REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), typeCode, current, counter);
 					Record record = records.next();

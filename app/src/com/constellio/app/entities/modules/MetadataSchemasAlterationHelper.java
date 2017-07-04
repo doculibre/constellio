@@ -139,6 +139,10 @@ public abstract class MetadataSchemasAlterationHelper {
 		}
 	}
 
+	public String get(String key) {
+		return migrationResourcesProvider.get(key);
+	}
+
 	protected abstract void migrate(MetadataSchemaTypesBuilder typesBuilder);
 
 	public MetadataSchemaTypesBuilder types() {
