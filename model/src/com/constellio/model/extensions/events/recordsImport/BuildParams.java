@@ -11,13 +11,15 @@ public class BuildParams {
 	MetadataSchemaTypes types;
 	ImportData importRecord;
 	ImportDataOptions importDataOptions;
+	boolean isAllowingReferencesToNonExistingUsers;
 
 	public BuildParams(Record record, MetadataSchemaTypes types,
-			ImportData importRecord, ImportDataOptions importDataOptions) {
+					   ImportData importRecord, ImportDataOptions importDataOptions, boolean isAllowingReferencesToNonExistingUsers) {
 		this.record = record;
 		this.types = types;
 		this.importRecord = importRecord;
 		this.importDataOptions = importDataOptions;
+		this.isAllowingReferencesToNonExistingUsers = isAllowingReferencesToNonExistingUsers;
 	}
 
 	public Record getRecord() {
@@ -33,4 +35,8 @@ public class BuildParams {
 	}
 
 	public ImportDataOptions getImportDataOptions() {return this.importDataOptions;}
+
+	public boolean isAllowingReferencesToNonExistingUsers() {
+		return isAllowingReferencesToNonExistingUsers;
+	}
 }

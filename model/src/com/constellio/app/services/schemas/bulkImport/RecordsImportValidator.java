@@ -5,6 +5,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -185,6 +186,8 @@ public class RecordsImportValidator {
 				if (!unresolved.isEmpty()) {
 					for (Map.Entry<String, Set<String>> entry : unresolved.getMapEntries()) {
 						for (String usedBy : entry.getValue()) {
+							//TODO if re
+
 							String usedByMetadata = StringUtils.substringBefore(usedBy, ":");
 							String usedBySchemaTypeCode = StringUtils.substringBefore(usedByMetadata, "_");
 							MetadataSchemaType usedBySchemaType = types.getSchemaType(usedBySchemaTypeCode);
@@ -203,6 +206,8 @@ public class RecordsImportValidator {
 								parameters.put("prefix", usedBySchemaType.getLabel(language) + " : ");
 							}
 							if (params.isWarningsForInvalidFacultativeMetadatas()) {
+								errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+							} else if(User.SCHEMA_TYPE.equals(schemaType.getCode()) && params.isAllowingReferencesToNonExistingUsers()) {
 								errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
 							} else {
 								errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);

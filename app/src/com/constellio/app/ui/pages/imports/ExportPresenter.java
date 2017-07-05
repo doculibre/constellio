@@ -21,6 +21,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -123,7 +124,10 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		options.setForSameSystem(isSameCollection);
 		options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE));
 		String path = (String)((List) recordServices().getDocumentById(unitId).get(Schemas.PATH)).get(0);
-		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path));
+		MetadataSchemaType decommissioningListSchemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
+		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path)
+				.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT)).isEqualTo(unitId));
+
 		exportToXML(options, recordsIterator);
 	}
 
