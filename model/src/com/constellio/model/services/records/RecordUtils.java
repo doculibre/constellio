@@ -42,6 +42,10 @@ public class RecordUtils {
 		}
 		RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
 
+		if (recordDTO == null) {
+			return 0;
+		}
+
 		long size = 0;
 
 		if (recordDTO.getCopyFields() != null) {
