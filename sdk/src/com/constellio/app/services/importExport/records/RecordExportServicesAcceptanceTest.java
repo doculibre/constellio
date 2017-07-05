@@ -37,10 +37,9 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.*;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
-import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -1478,6 +1477,48 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertPrincipalCopyRetentionRule(currentRetentionRule.getDocumentCopyRetentionRules().get(0));
 
 		assertThat(currentRetentionRule.getDocumentCopyRetentionRules()).isNotNull();
+	}
+
+	@Test
+	public void whenExportingRecordWithCustomSchemaKeepsSchemaAndMetadataWhenImported() throws RecordServicesException {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+
+		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+				MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+				ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE));
+
+		Document documentWithCustomSchema = documentList.get(0);
+		documentWithCustomSchema.setType(rmSchemasRecordsServices.getDocumentTypeWithCode(DocumentType.EMAIL_DOCUMENT_TYPE));
+		documentWithCustomSchema.changeSchemaTo(Email.SCHEMA);
+		documentWithCustomSchema.set(Email.EMAIL_CC_TO, asList("jeff"));
+
+		recordServices.update(documentWithCustomSchema.getWrappedRecord(), records.getAdmin());
+
+
+		File file = exportToZip(recordExportOptions);
+
+		importFromZip(file, "anotherCollection");
+
+		RMSchemasRecordsServices anotherCollectionRM = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		documentList = anotherCollectionRM.searchDocuments(where(anotherCollectionRM.document_email.emailCCTo()).isNotNull());//where(Schemas.LEGACY_ID).isEqualTo(documentWithCustomSchema.getId()));
+		Document importedEmail = documentList.get(0);
+
+		assertThat(documentList).hasSize(1);
+		assertThatRecords(importedEmail).extractingMetadatas(Schemas.SCHEMA.getLocalCode(), Document.TYPE+".code" ,Email.EMAIL_CC_TO).containsOnly(
+				tuple(Email.SCHEMA, DocumentType.EMAIL_DOCUMENT_TYPE, asList("jeff"))
+		);
 	}
 
 	private CopyRetentionRule getPrimaryCopyRetentionRule() {
