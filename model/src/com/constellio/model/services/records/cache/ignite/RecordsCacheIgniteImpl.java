@@ -97,7 +97,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
         CacheConfiguration<String, Object> volatileRecordHoldersCacheCfg = new CacheConfiguration<>(volatileRecordHoldersCacheName);
         volatileRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
         volatileRecordHoldersCacheCfg.setOnheapCacheEnabled(true);
-        volatileRecordHoldersCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(3));
+        volatileRecordHoldersCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
         volatileRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
 
         CacheConfiguration<String, Object> recordByMetadataCacheCfg = new CacheConfiguration<>(recordByMetadataCacheName);
