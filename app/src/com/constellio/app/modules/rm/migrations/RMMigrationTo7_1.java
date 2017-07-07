@@ -161,7 +161,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder builder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE)
 					.createCustomSchema(PrintableLabel.SCHEMA_LABEL);
-			builder.create(PrintableLabel.TYPE_LABEL).setType(STRING).setUndeletable(true).setEssential(true).defineDataEntry()
+			builder.create(PrintableLabel.TYPE_LABEL).setType(STRING).defineDataEntry()
 					.asManual();
 			builder.create(PrintableLabel.LIGNE).setType(MetadataValueType.NUMBER).setUndeletable(true).setEssential(true)
 					.defineDataEntry().asManual();
