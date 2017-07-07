@@ -521,6 +521,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return schema(Task.DEFAULT_SCHEMA);
 	}
 
+
 	public void viewAssembled() {
 		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
 		view.setTasks(tasksDataProvider);
