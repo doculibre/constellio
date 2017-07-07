@@ -7,6 +7,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
 
@@ -50,7 +51,7 @@ public class EmailServerConfigPresenter extends BasePresenter<EmailServerConfigV
 		EmailServices emailServices = new EmailServices();
 		try {
 			Session session = emailServices.openSession(emailServerConfigVO);
-			Message message = testMessage(session, testEmail, emailServerConfigVO.getDefaultSenderEmail());
+			MimeMessage message = testMessage(session, testEmail, emailServerConfigVO.getDefaultSenderEmail());
 			emailServices.sendEmail(message);
 			return ($("EmailServerConfigView.results.success"));
 		} catch (EmailServicesException.EmailServerException e) {
@@ -74,9 +75,9 @@ public class EmailServerConfigPresenter extends BasePresenter<EmailServerConfigV
 		}
 	}
 
-	private Message testMessage(Session session, String testEmail, String defaultSenderAddress)
+	private MimeMessage testMessage(Session session, String testEmail, String defaultSenderAddress)
 			throws MessagingException {
-		Message message = new SMTPMessage(session);
+		MimeMessage message = new SMTPMessage(session);
 		InternetAddress internetAddress = new InternetAddress(testEmail, true);
 		InternetAddress fromAddress = new InternetAddress(defaultSenderAddress, true);
 		message.setFrom(fromAddress);

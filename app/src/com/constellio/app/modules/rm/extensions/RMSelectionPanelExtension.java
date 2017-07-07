@@ -1,14 +1,40 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.cart.CartEmlServiceRuntimeException;
+import com.constellio.app.modules.rm.services.cart.CartEmailService;
+import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -38,6 +64,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
+import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -51,19 +78,15 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.IOUtils;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import java.io.*;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -604,45 +627,53 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     private void emailPreparationRequested(AvailableActionsParam param) {
-        InputStream stream = createEml(param);
-        startDownload(stream);
+        EmailMessage emailMessage = createEmail(param);
+        String filename = emailMessage.getFilename();
+    	InputStream stream = emailMessage.getInputStream();
+        startDownload(stream, filename);
     }
 
-    private InputStream createEml(AvailableActionsParam param) {
-        File newTempFolder = null;
+    private EmailMessage createEmail(AvailableActionsParam param) {
+        File newTempFile = null;
         try {
-            newTempFolder = ioServices.newTemporaryFile("CartEmlService-emlFile");
-            return createEml(param, newTempFolder);
+            newTempFile = ioServices.newTemporaryFile("RMSelectionPanelExtension-emailFile");
+            return createEmail(param, newTempFile);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            ioServices.deleteQuietly(newTempFolder);
+            ioServices.deleteQuietly(newTempFile);
         }
     }
 
-    private InputStream createEml(AvailableActionsParam param, File emlFile) {
-        try {
-            OutputStream outputStream = new FileOutputStream(emlFile);
+    private EmailMessage createEmail(AvailableActionsParam param, File messageFile) {
+    	try (OutputStream outputStream = ioServices.newFileOutputStream(messageFile, RMSelectionPanelExtension.class.getSimpleName() + ".createMessage.out")) {
             User user = param.getUser();
             String signature = getSignature(user);
             String subject = "";
             String from = user.getEmail();
             List<EmailServices.MessageAttachment> attachments = getAttachments(param);
-            if(attachments == null || attachments.isEmpty()) {
+            if (attachments == null || attachments.isEmpty()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.noApplicableRecords"));
                 return null;
             } else if(attachments.size() != param.getIds().size()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.couldNotSendEmail", attachments.size(), param.getIds().size()));
             }
-            Message message = new EmailServices().createMessage(from, subject, signature, attachments);
-            message.addHeader("X-Unsent", "1");
-            message.writeTo(outputStream);
-            IOUtils.closeQuietly(outputStream);
-            closeAllInputStreams(attachments);
-            if(attachments.size() == param.getIds().size()) {
+            
+            AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage("cart", signature, subject, from, attachments);
+			if (emailMessage == null) {
+				EmailServices emailServices = new EmailServices();
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);
+				message.writeTo(outputStream);
+				String filename = "cart.eml";
+				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");
+				emailMessage = new EmailMessage(filename, inputStream);
+				closeAllInputStreams(attachments);
+			}
+            if (attachments.size() == param.getIds().size()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", attachments.size()));
             }
-            return new FileInputStream(emlFile);
+			return emailMessage;
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -677,7 +708,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         returnList.add(contentFile);
                     }
                 } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-                    throw new CartEmlServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId(e);
+                    throw new CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId(e);
                 }
             }
         }
@@ -703,13 +734,13 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     @SuppressWarnings("deprecation")
-	private void startDownload(final InputStream stream) {
+	private void startDownload(final InputStream stream, String filename) {
         Resource resource = new ReportViewer.DownloadStreamResource(new StreamResource.StreamSource() {
             @Override
             public InputStream getStream() {
                 return stream;
             }
-        }, "cart.eml");
+        }, filename);
         Page.getCurrent().open(resource, null, false);
     }
 
