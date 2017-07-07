@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -19,6 +12,13 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class SchemaTypeVODataProvider implements Serializable {
@@ -77,6 +77,9 @@ public class SchemaTypeVODataProvider implements Serializable {
 		Collections.sort(schemaTypes, new Comparator<MetadataSchemaTypeVO>() {
 			@Override
 			public int compare(MetadataSchemaTypeVO o1, MetadataSchemaTypeVO o2) {
+				if(o1.getLabel() == null || o2.getLabel() == null) {
+					return -1;
+				}
 				int result = o1.getLabel().compareTo(o2.getLabel());
 				return asc ? result : -result;
 			}

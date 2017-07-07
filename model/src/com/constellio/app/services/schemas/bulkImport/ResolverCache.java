@@ -1,16 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Record;
@@ -22,6 +11,11 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ResolverCache {
 
@@ -180,6 +174,7 @@ public class ResolverCache {
 
 		public synchronized void mapIds(String legacyId, String id) {
 			idsMapping.put(legacyId, id);
+			mapSearch(legacyId, id);
 			recordsInFile.remove(legacyId);
 			unresolvedLegacyIds.remove(legacyId);
 		}

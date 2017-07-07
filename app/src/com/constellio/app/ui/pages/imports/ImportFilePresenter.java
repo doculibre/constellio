@@ -105,6 +105,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 					} else {
 						params = BulkImportParams.STRICT();
 					}
+					params.setAllowingReferencesToNonExistingUsers(view.isAllowingReferencesToNonExistingUsers());
 //					params = params.setThreads(1);
 
 					BulkImportResults errors = importServices
