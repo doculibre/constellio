@@ -373,6 +373,22 @@ $popup-view-z-index: 3;
 		@include folder-icon(folder_purple);
 	}
 
+	.v-table-cell-content-file-icon-folder_frozen {
+		@include folder-icon(folder_frozen);
+	}
+
+	.v-table-cell-content-file-icon-folder_orange_frozen {
+		@include folder-icon(folder_orange_frozen);
+	}
+
+	.v-table-cell-content-file-icon-folder_grey_frozen {
+		@include folder-icon(folder_grey_frozen);
+	}
+
+	.v-table-cell-content-file-icon-folder_purple_frozen {
+		@include folder-icon(folder_purple_frozen);
+	}
+
 	.v-table-cell-content-error {
 		color: #FFFFFF;
 		background-color: #F5A9A9;
