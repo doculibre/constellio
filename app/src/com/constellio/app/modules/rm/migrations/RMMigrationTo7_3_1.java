@@ -21,16 +21,26 @@ public class RMMigrationTo7_3_1 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_3_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
-		setFilePlanLabel(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
+		setFilePlanTaxonomyLabel(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
+		setAdmUnitsTaxonomyLabel(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
 
 	}
 
-	private void setFilePlanLabel(String collection, ModelLayerFactory modelLayerFactory,
+	private void setFilePlanTaxonomyLabel(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 		TaxonomiesManager manager = modelLayerFactory.getTaxonomiesManager();
 		Taxonomy filePlanTaxo = manager.getEnabledTaxonomyWithCode(collection, RMTaxonomies.CLASSIFICATION_PLAN);
 		filePlanTaxo = filePlanTaxo.withTitle(migrationResourcesProvider.getDefaultLanguageString("init.rm.plan"));
 		manager.editTaxonomy(filePlanTaxo);
+
+	}
+
+	private void setAdmUnitsTaxonomyLabel(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+		TaxonomiesManager manager = modelLayerFactory.getTaxonomiesManager();
+		Taxonomy admUnitTaxo = manager.getEnabledTaxonomyWithCode(collection, RMTaxonomies.ADMINISTRATIVE_UNITS);
+		admUnitTaxo = admUnitTaxo.withTitle(migrationResourcesProvider.getDefaultLanguageString("taxo.admUnits"));
+		manager.editTaxonomy(admUnitTaxo);
 
 	}
 

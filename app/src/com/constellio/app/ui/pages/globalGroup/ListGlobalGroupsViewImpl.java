@@ -2,9 +2,8 @@ package com.constellio.app.ui.pages.globalGroup;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.vaadin.ui.*;
+import java.util.List;
+
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -13,6 +12,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.TableStringFilter;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.GlobalGroupVOLazyContainer;
@@ -23,10 +23,16 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-
-import java.util.List;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobalGroupsView {
 
@@ -39,7 +45,6 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 	private GlobalGroupStatus status;
 	private final int batchSize = 100;
 	private TabSheet sheet;
-    public static final String AJOUTER = "Ajouter";
 
 
 	public ListGlobalGroupsViewImpl() {
@@ -54,7 +59,7 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
     @Override
     protected List<Button> buildActionMenuButtons(ViewChangeEvent event){
         List<Button> buttons = super.buildActionMenuButtons(event);
-        buttons.add(new AddButton(AJOUTER) {
+        buttons.add(new AddButton($("add")) {
             @Override
             protected void buttonClick(ClickEvent event) {
                 presenter.addButtonClicked();
