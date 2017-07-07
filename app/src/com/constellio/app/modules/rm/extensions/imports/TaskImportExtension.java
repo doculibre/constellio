@@ -58,7 +58,7 @@ public class TaskImportExtension extends RecordImportExtension {
 
         for (Map<String,String> mapTaskFollower : mapTaskFollowersList)
         {
-            TaskFollower taskFollower = readTaskFollower(mapTaskFollower);
+            TaskFollower taskFollower = readTaskFollower(mapTaskFollower, event.isAllowingReferencesToNonExistingUsers());
             taskFollowerList.add(taskFollower);
         }
 
@@ -84,7 +84,7 @@ public class TaskImportExtension extends RecordImportExtension {
         return taskReminder;
     }
 
-    private TaskFollower readTaskFollower(Map<String, String> mapTaskFollower) {
+    private TaskFollower readTaskFollower(Map<String, String> mapTaskFollower, boolean allowingReferencesToNonExistingUsers) {
         TaskFollower taskFollower = new TaskFollower();
 
         if(mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID) != null) {

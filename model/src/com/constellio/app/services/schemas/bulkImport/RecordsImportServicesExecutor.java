@@ -1,36 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
-import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
-import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
-import static com.constellio.data.utils.LangUtils.replacingLiteral;
-import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.io.File.separator;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior;
@@ -57,22 +26,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.entities.structures.EmailAddress;
-import com.constellio.model.entities.structures.EmailAddressFactory;
-import com.constellio.model.entities.structures.MapStringListStringStructure;
-import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
-import com.constellio.model.entities.structures.MapStringStringStructure;
-import com.constellio.model.entities.structures.MapStringStringStructureFactory;
+import com.constellio.model.entities.structures.*;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -80,26 +38,40 @@ import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.contents.BulkUploader;
-import com.constellio.model.services.contents.BulkUploaderRuntimeException;
-import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.*;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.ContentImportVersion;
-import com.constellio.model.services.records.ImportContent;
-import com.constellio.model.services.records.RecordCachesServices;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.SimpleImportContent;
-import com.constellio.model.services.records.StructureImportContent;
+import com.constellio.model.services.records.*;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
+import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
+import static com.constellio.data.utils.LangUtils.replacingLiteral;
+import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.io.File.separator;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class RecordsImportServicesExecutor {
 
@@ -726,7 +698,7 @@ public class RecordsImportServicesExecutor {
 		}
 
 		extensions.callRecordImportBuild(typeImportContext.schemaType,
-				new BuildParams(record, types, toImport, typeBatchImportContext.options));
+				new BuildParams(record, types, toImport, typeBatchImportContext.options, params.isAllowingReferencesToNonExistingUsers()));
 
 		return record;
 	}
@@ -925,7 +897,7 @@ public class RecordsImportServicesExecutor {
 	private Content convertContent(TypeBatchImportContext typeBatchImportContext, StructureImportContent contentImport,
 			ValidationErrors errors) {
 		UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, modelLayerFactory);
-		return (Content) contentFactory.build(contentImport.getSerializedStructure());
+		return (Content) contentFactory.build(contentImport.getSerializedStructure(), params.isAllowingReferencesToNonExistingUsers());
 	}
 
 	private Content convertContent(TypeBatchImportContext typeBatchImportContext, SimpleImportContent contentImport,
