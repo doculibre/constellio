@@ -1,17 +1,17 @@
 package com.constellio.model.services.records.preparation;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 public class RecordsToReindexResolver {
 
@@ -60,14 +60,21 @@ public class RecordsToReindexResolver {
 				if (metadata.getType() == REFERENCE && schema.hasMetadataWithCode(metadata.getCode())) {
 
 					if (originalRecord != null) {
-						String wasValue = originalRecord.get(metadata);
-						if (wasValue != null) {
-							ids.add(wasValue);
+
+						if (metadata.isMultivalue()) {
+							List<String> value = originalRecord.getList(metadata);
+							ids.addAll(value);
+						} else {
+							String value = originalRecord.get(metadata);
+							if (value != null) {
+								ids.add(value);
+							}
 						}
+
 					}
 
 					if (record != null) {
-						if(metadata.isMultivalue()) {
+						if (metadata.isMultivalue()) {
 							List<String> value = record.getList(metadata);
 							ids.addAll(value);
 						} else {
