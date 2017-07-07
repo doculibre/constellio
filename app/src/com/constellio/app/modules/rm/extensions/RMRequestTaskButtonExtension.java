@@ -30,6 +30,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
@@ -156,10 +157,10 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				return false;
 			}
 		}
-
+		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollectionOf(folder);
 		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
 				.on(folder)
-				&& !(container != null && Boolean.TRUE.equals(container.getBorrowed()));
+				&& !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && extensions.isRecordModifiableBy(folder.getWrappedRecord(), currentUser);
 	}
 
 	private boolean isContainerBorrowable(ContainerRecord container, User currentUser) {

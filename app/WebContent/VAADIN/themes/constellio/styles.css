@@ -12583,6 +12583,18 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
+.constellio .v-table-cell-content-file-icon-folder_orange_locked {
+	background-image: url('images/icons/folder/folder_orange_locked.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-folder_orange_locked .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
 .constellio .v-table-cell-content-file-icon-folder_grey_frozen {
 	background-image: url('images/icons/folder/folder_grey_frozen.png');
 	background-repeat: no-repeat;
@@ -12595,6 +12607,18 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
+.constellio .v-table-cell-content-file-icon-folder_grey_locked {
+	background-image: url('images/icons/folder/folder_grey_locked.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-folder_grey_locked .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
 .constellio .v-table-cell-content-file-icon-folder_purple_frozen {
 	background-image: url('images/icons/folder/folder_purple_frozen.png');
 	background-repeat: no-repeat;
@@ -12602,6 +12626,42 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-folder_purple_frozen .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-folder_purple_locked {
+	background-image: url('images/icons/folder/folder_purple_locked.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-folder_purple_locked .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-document_frozen {
+	background-image: url('images/icons/ext/mantis/document_frozen.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-document_frozen .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-document_locked {
+	background-image: url('images/icons/ext/mantis/document_locked.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-document_locked .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;

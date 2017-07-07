@@ -343,7 +343,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		try {
 			borrowingServices.validateCanBorrow(user, folder, null);
 			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
+					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder)&& extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -437,7 +437,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder)) {
+		if (user.hasDeleteAccess().on(folder) && recordServices().isLogicallyDeletable(folder.getWrappedRecord(), user)) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -473,7 +473,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	ComponentState getAddFolderButtonState(User user, Folder folder) {
 		if (user.hasWriteAccess().on(folder) &&
-				user.hasAll(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_FOLDERS).on(folder)) {
+				user.hasAll(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_FOLDERS).on(folder) && extensions.isRecordModifiableBy(folder.getWrappedRecord(), getCurrentUser())) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -495,7 +495,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	ComponentState getAddDocumentButtonState(User user, Folder folder) {
 		if (user.hasWriteAccess().on(folder) &&
-				user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder)) {
+				user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder) && extensions.isRecordModifiableBy(folder.getWrappedRecord(), getCurrentUser())) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -662,11 +662,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		return searchServices.query(query).getNumFound() > 0;
 	}
+	
+	private Record currentFolder() {
+		return recordServices.getDocumentById(folderVO.getId());
+	}
 
 	public void contentVersionUploaded(ContentVersionVO uploadedContentVO) {
 		view.selectFolderContentTab();
 		String fileName = uploadedContentVO.getFileName();
-		if (!documentExists(fileName)) {
+		if (!documentExists(fileName) && extensions.isRecordModifiableBy(currentFolder(), getCurrentUser())) {
 			try {
 				if (Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);

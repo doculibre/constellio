@@ -9,10 +9,17 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 public class RecordAppExtension {
 
 	public void buildRecordVO(BuildRecordVOParams params) {
-
 	}
 
 	public String getIconPathForRecord(GetIconPathParams params) {
+		return null;
+	}
+
+	public String getIconPathForRecordVO(GetIconPathParams params) {
+		return null;
+	}
+
+	public String getExtensionForRecordVO(GetIconPathParams params) {
 		return null;
 	}
 
@@ -22,4 +29,5 @@ public class RecordAppExtension {
 	public ExtensionBooleanResult isMetadataVisibleInRecordForm(IsMetadataVisibleInRecordFormParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
+	
 }

@@ -376,18 +376,43 @@ $popup-view-z-index: 3;
 	.v-table-cell-content-file-icon-folder_frozen {
 		@include folder-icon(folder_frozen);
 	}
+	
+	
+	
 
 	.v-table-cell-content-file-icon-folder_orange_frozen {
 		@include folder-icon(folder_orange_frozen);
+	}
+
+	.v-table-cell-content-file-icon-folder_orange_locked {
+		@include folder-icon(folder_orange_locked);
 	}
 
 	.v-table-cell-content-file-icon-folder_grey_frozen {
 		@include folder-icon(folder_grey_frozen);
 	}
 
+	.v-table-cell-content-file-icon-folder_grey_locked {
+		@include folder-icon(folder_grey_locked);
+	}
+
 	.v-table-cell-content-file-icon-folder_purple_frozen {
 		@include folder-icon(folder_purple_frozen);
 	}
+
+	.v-table-cell-content-file-icon-folder_purple_locked {
+		@include folder-icon(folder_purple_locked);
+	}
+
+	.v-table-cell-content-file-icon-document_frozen {
+		@include file-icon(unquote("document_frozen.gif"));
+	}
+
+	.v-table-cell-content-file-icon-document_locked {
+		@include file-icon(unquote("document_locked.gif"));
+	}
+
+
 
 	.v-table-cell-content-error {
 		color: #FFFFFF;

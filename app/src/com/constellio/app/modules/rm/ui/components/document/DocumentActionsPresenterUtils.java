@@ -42,8 +42,10 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -135,9 +137,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	protected boolean isDeleteDocumentPossible() {
-		return getCurrentUser().hasDeleteAccess().on(currentDocument());
+		Record record = currentDocument();
+		User user = getCurrentUser();
+		return getCurrentUser().hasDeleteAccess().on(currentDocument()) && presenterUtils.recordServices().isLogicallyDeletable(record, user);
 	}
-
+	
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
@@ -463,7 +467,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	ComponentState getUploadButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument())) {
+		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument()) && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -510,7 +514,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	private ComponentState getCheckOutState() {
 		if (getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
-			if (isCheckOutPossible()) {
+			if (isCheckOutPossible() && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())) {
 				return ComponentState.ENABLED;
 			}
 		}
@@ -535,7 +539,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		boolean minorVersion;
 		Content content = getContent();
 		minorVersion = content != null && content.getCurrentVersion().getMinor() != 0;
-		return !borrowed && minorVersion;
+		return !borrowed && minorVersion && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser());
 	}
 
 	public void updateActionsComponent() {
