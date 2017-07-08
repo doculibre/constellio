@@ -111,7 +111,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return ComponentState.INVISIBLE;
 		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
-				&& extensions.isRecordModifiableBy(record, user));
+				&& extensions.isRecordModifiableBy(record, user) && !extensions.isModifyBlocked(record, user));
 	}
 
 	public void editDocumentButtonClicked() {
