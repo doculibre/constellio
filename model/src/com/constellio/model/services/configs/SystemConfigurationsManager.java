@@ -64,8 +64,6 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	ModelLayerFactory modelLayerFactory;
 
-	PropertiesConfiguration configValues;
-
 	static final String CONFIG_FILE_PATH = "/systemConfigs.properties";
 	ConfigManager configManager;
 
@@ -88,11 +86,6 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 			}
 		});
-		reloadConfigValues();
-	}
-
-	private void reloadConfigValues() {
-		configValues = configManager.getProperties(CONFIG_FILE_PATH);
 	}
 
 	@Override
@@ -102,7 +95,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	public boolean signalDefaultValueModification(final SystemConfiguration config, final Object previousDefaultValue) {
 		String propertyKey = config.getPropertyKey();
-		Object currentValue = toObject(config, configValues.getProperties().get(propertyKey));
+		Object currentValue = toObject(config, configManager.getProperties(CONFIG_FILE_PATH).getProperties().get(propertyKey));
 		if (currentValue == null) {
 			return reindex(config, config.getDefaultValue(), previousDefaultValue);
 		}
@@ -384,17 +377,19 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			BinaryConfiguration binaryConfiguration = configManager.getBinary("/systemConfigs/" + config.getCode());
 			return binaryConfiguration == null ? null : (T) binaryConfiguration.getInputStreamFactory();
 
-		} else if (configValues.getProperties().containsKey(propertyKey)) {
-			String value = configValues.getProperties().get(propertyKey);
-			return (T) toObject(config, value);
 		} else {
-			return (T) config.getDefaultValue();
+			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
+			if (propertiesConfig != null && propertiesConfig.getProperties().containsKey(propertyKey)) {
+				String value = propertiesConfig.getProperties().get(propertyKey);
+				return (T) toObject(config, value);
+			} else {
+				return (T) config.getDefaultValue();
+			}
 		}
 	}
 
 	@Override
 	public void onConfigUpdated(String configPath) {
-		reloadConfigValues();
 	}
 
 	public SystemConfigurationScript<Object> getInstanciatedScriptFor(SystemConfiguration config) {
