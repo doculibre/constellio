@@ -74,7 +74,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private DocumentToVOBuilder voBuilder;
 	private boolean addView;
 	private boolean addViewWithCopy;
-	private DocumentVO documentVO;
+	protected DocumentVO documentVO;
 	private String userDocumentId;
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -149,7 +149,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		setSchemaCode(currentSchemaCode);
 		view.setRecord(documentVO);
 	}
-
+	
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
@@ -371,7 +371,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 		view.navigate().to(RMViews.class).displayDocument(record.getId());
 	}
-
+	
 	private void setRecordContent(Record record, DocumentVO documentVO) {
 		Metadata contentMetadata = schema().getMetadata(Document.CONTENT);
 		Object content = record.get(contentMetadata);
