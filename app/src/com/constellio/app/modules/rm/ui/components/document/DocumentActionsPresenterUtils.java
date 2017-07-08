@@ -42,10 +42,8 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -137,9 +135,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	protected boolean isDeleteDocumentPossible() {
-		Record record = currentDocument();
-		User user = getCurrentUser();
-		return getCurrentUser().hasDeleteAccess().on(currentDocument()) && presenterUtils.recordServices().isLogicallyDeletable(record, user);
+		return getCurrentUser().hasDeleteAccess().on(currentDocument())&& !extensions.isDeleteBlocked(currentDocument(), getCurrentUser());
 	}
 	
 	private ComponentState getDeleteButtonState() {

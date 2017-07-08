@@ -160,7 +160,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollectionOf(folder);
 		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
 				.on(folder)
-				&& !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && extensions.isRecordModifiableBy(folder.getWrappedRecord(), currentUser);
+				&& !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && !extensions.isModifyBlocked(folder.getWrappedRecord(), currentUser);
 	}
 
 	private boolean isContainerBorrowable(ContainerRecord container, User currentUser) {
