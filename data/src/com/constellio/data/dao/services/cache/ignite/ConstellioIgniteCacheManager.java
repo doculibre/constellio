@@ -118,7 +118,6 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		IgniteBiPredicate<UUID, CacheEvent> localListener = new IgniteBiPredicate<UUID, CacheEvent>() {
 			@Override
 			public boolean apply(UUID uuid, CacheEvent evt) {
-				System.out.println("local event : " + evt.key());
 				String cacheName = evt.cacheName();
 				if (caches.containsKey(cacheName)) {
 					ConstellioIgniteCache cache = (ConstellioIgniteCache) getCache(cacheName);
