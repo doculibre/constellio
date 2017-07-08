@@ -565,11 +565,13 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	}
 
 	private void insertRecordIntoAnAlreadyExistingHolder(Record record, CacheConfig cacheConfig, RecordHolder currentHolder) {
+		currentHolder.set(record);
+
 		if (currentHolder.record == null && cacheConfig.isVolatile()) {
 			putInVolatileCache(currentHolder);
+		} else if (cacheConfig.isPermanent()) {
+			putInPermanentCache(currentHolder);
 		}
-
-		currentHolder.set(record);
 	}
 
 	@Override
