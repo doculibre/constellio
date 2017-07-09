@@ -271,6 +271,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				String value = record.get(metadata);
 				if (previousRecord != null) {
 					previousValue = previousRecord.get(metadata);
+					clearRecordByMetadataCacheForRecord(previousRecord);
 					if (previousValue != null && !previousValue.equals(value)) {
 						clearRecordByMetadataCacheForValue(schemaTypeCode, metadata, previousValue);
 					}
