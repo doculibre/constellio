@@ -59,7 +59,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@Override
 	public void remove(String key) {
 		localCache.remove(key);
-		igniteCache.clear(key);
+		igniteCache.remove(key);
 	}
 
 	@Override
