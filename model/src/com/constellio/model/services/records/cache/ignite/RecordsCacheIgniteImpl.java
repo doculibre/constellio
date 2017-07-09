@@ -271,7 +271,6 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				String value = record.get(metadata);
 				if (previousRecord != null) {
 					previousValue = previousRecord.get(metadata);
-					clearRecordByMetadataCacheForRecord(previousRecord);
 					if (previousValue != null && !previousValue.equals(value)) {
 						clearRecordByMetadataCacheForValue(schemaTypeCode, metadata, previousValue);
 					}
@@ -567,7 +566,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	private void insertRecordIntoAnAlreadyExistingHolder(Record record, CacheConfig cacheConfig, RecordHolder currentHolder) {
 		currentHolder.set(record);
-
+		byIdRecordHoldersCache.put(currentHolder.getRecordId(), currentHolder);
 		if (currentHolder.record == null && cacheConfig.isVolatile()) {
 			putInVolatileCache(currentHolder);
 		} else if (cacheConfig.isPermanent()) {
