@@ -463,7 +463,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	ComponentState getUploadButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument()) && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())) {
+		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument()) && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser()) && !extensions.isModifyBlocked(currentDocument(), getCurrentUser())) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -510,7 +510,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	private ComponentState getCheckOutState() {
 		if (getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
-			if (isCheckOutPossible() && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())) {
+			if (isCheckOutPossible() && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser()) && !extensions.isModifyBlocked(currentDocument(), getCurrentUser())) {
 				return ComponentState.ENABLED;
 			}
 		}
