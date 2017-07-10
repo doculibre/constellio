@@ -1,10 +1,6 @@
 package com.constellio.data.dao.services.cache.ignite;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
@@ -16,6 +12,7 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.events.CacheEvent;
 import org.apache.ignite.events.EventType;
+import org.apache.ignite.lang.IgniteBiPredicate;
 import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
@@ -46,7 +43,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		if (!initialized) {
 			IgniteConfiguration igniteConfiguration = getConfiguration(cacheUrl);
 			client = Ignition.getOrStart(igniteConfiguration);
-			addLocalListener();
+			addListener();
 			initialized = true;
 		}	
 	}
@@ -65,6 +62,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		spi.setIpFinder(ipFinder);
 
 		IgniteConfiguration cfg = new IgniteConfiguration();
+		cfg.setPeerClassLoadingEnabled(true);
 		cfg.setDiscoverySpi(spi);
 		cfg.setClientMode(true);
 		cfg.setIncludeEventTypes(EventType.EVT_CACHE_OBJECT_PUT,  EventType.EVT_CACHE_OBJECT_REMOVED);
@@ -72,7 +70,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
 		partitionedCacheCfg.setCacheMode(CacheMode.PARTITIONED);
-		partitionedCacheCfg.setBackups(1);
+		partitionedCacheCfg.setBackups(0);
 		partitionedCacheCfg.setReadFromBackup(true);
 		partitionedCacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
 
@@ -116,10 +114,10 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		return cache;
 	}
 
-	private void addLocalListener() {
-		IgnitePredicate<CacheEvent> localListener = new IgnitePredicate<CacheEvent>() {
-			@Override 
-			public boolean apply(CacheEvent evt) {
+	private void addListener() {
+		IgniteBiPredicate<UUID, CacheEvent> localListener = new IgniteBiPredicate<UUID, CacheEvent>() {
+			@Override
+			public boolean apply(UUID uuid, CacheEvent evt) {
 				String cacheName = evt.cacheName();
 				if (caches.containsKey(cacheName)) {
 					ConstellioIgniteCache cache = (ConstellioIgniteCache) getCache(cacheName);
@@ -129,7 +127,14 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 			}
 		};
 
-		client.events(client.cluster()).localListen(localListener,
+		IgnitePredicate<CacheEvent> remoteListener = new IgnitePredicate<CacheEvent>() {
+			@Override
+			public boolean apply(CacheEvent evt) {
+				return true;
+			}
+		};
+
+		client.events(client.cluster()).remoteListen(localListener, remoteListener,
 				EventType.EVT_CACHE_OBJECT_PUT,
 				EventType.EVT_CACHE_OBJECT_REMOVED);
 	}
