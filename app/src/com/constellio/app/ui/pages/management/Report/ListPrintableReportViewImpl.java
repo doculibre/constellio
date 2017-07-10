@@ -35,11 +35,16 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
     private ListPrintableReportPresenter presenter = new ListPrintableReportPresenter(this);
     private VerticalLayout mainLayout;
     private Button addLabelButton, downloadTemplateButton;
+    private GetXmlButtonV2 getXmlButtonV2;
+
+    @Override
+    protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
+        this.currentSchema = PrintableReportListPossibleView.FOLDER;
+    }
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         mainLayout = new VerticalLayout();
-        this.currentSchema = PrintableReportListPossibleView.FOLDER;
 
         tabSheet = new TabSheet();
         tabSheet.addTab(createFolderTable(), $("PrintableReport.tabs.folderTitle"));
@@ -159,6 +164,8 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
             }
         };
 
+        getXmlButtonV2 = new GetXmlButtonV2($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getCollection(), this, currentSchema);
+
         downloadTemplateButton = new Button($("DisplayLabelViewImpl.menu.getTemplate"));
         StreamResource zip = presenter.createResource();
         FileDownloader fileDownloader = new FileDownloader(zip);
@@ -167,6 +174,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
 
         actionMenuButtons.add(addLabelButton);
+        actionMenuButtons.add(getXmlButtonV2);
         actionMenuButtons.add(downloadTemplateButton);
         return actionMenuButtons;
     }
@@ -239,6 +247,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
             TabSheet eventSource = (TabSheet) event.getSource();
             currentSchema = SCHEMA_INDEX_ARRAY[tabSheet.getTabPosition(eventSource.getTab(eventSource.getSelectedTab()))];
+            ListPrintableReportViewImpl.this.getXmlButtonV2.setCurrentSchema(currentSchema);
         }
     }
 }

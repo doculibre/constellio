@@ -7,8 +7,13 @@ import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.google.common.base.Strings;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -24,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 /**
@@ -42,9 +48,10 @@ public class XmlReportGenerator extends XmlGenerator{
         Document xmlDocument = new Document();
         Element xmlRoot = new Element(XML_ROOT_RECORD_ELEMENTS);
         xmlDocument.setRootElement(xmlRoot);
-
-        for(int i = 0; i < getXmlGeneratorParameters().getNumberOfCopies(); i ++) {
-            for(Record recordElement : getXmlGeneratorParameters().getRecordsElements()) {
+        XmlReportGeneratorParameters parameters = getXmlGeneratorParameters();
+        for(int i = 0; i < parameters.getNumberOfCopies(); i ++) {
+            Record[] recordsElement = parameters.isParametersUsingIds() ? getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) : parameters.getRecordsElements();
+            for(Record recordElement : recordsElement) {
                 Element xmlSingularElement = new Element(XML_EACH_RECORD_ELEMENTS);
                 xmlSingularElement.setAttribute("schemaCode", recordElement.getSchemaCode());
 
@@ -120,5 +127,12 @@ public class XmlReportGenerator extends XmlGenerator{
         metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
         metadataXmlElement.setText(formatData(getToStringOrNull(recordElement.get(metadata)), metadata));
         return Collections.singletonList(metadataXmlElement);
+    }
+
+    private Record[] getRecordFromIds(String schemaType, List<String> ids) {
+        SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();
+        MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
+        LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType).getDefaultSchema()).where(Schemas.IDENTIFIER).isIn(ids);
+        return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
     }
 }
