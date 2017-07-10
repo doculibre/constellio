@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -50,7 +51,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
     private ReportUtils ru;
     private Button addLabelButton, downloadTemplateButton;
     private String currentSchema;
-    final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this);
+    final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this, PrintableReportListPossibleView.getValue(currentSchema));
     public static final String TYPE_TABLE = "types";
 
     @Override
@@ -204,7 +205,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
         tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
             @Override
             public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-                getXMLButton.setCurrentSchema(tabSheet.getSelectedTab().equals(tableFolder) ? Folder.SCHEMA_TYPE : ContainerRecord.SCHEMA_TYPE);
+                getXMLButton.setCurrentSchema(tabSheet.getSelectedTab().equals(tableFolder) ? PrintableReportListPossibleView.FOLDER : PrintableReportListPossibleView.CONTAINER);
                 ListLabelViewImpl.this.currentSchema = getXMLButton.getCurrentSchema();
                 System.out.println(ListLabelViewImpl.this.currentSchema);
             }

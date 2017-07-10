@@ -1,9 +1,6 @@
 package com.constellio.app.ui.pages.management.Report;
 
 import com.constellio.app.modules.reports.wrapper.Printable;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.ui.entities.PrintableReportVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
@@ -11,7 +8,6 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.labels.ListLabelViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FileDownloader;
