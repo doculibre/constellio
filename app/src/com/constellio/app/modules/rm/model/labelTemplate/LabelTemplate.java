@@ -4,9 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.ui.components.Dimensionnable;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 
-public class LabelTemplate implements Serializable {
+public class LabelTemplate implements Dimensionnable, Serializable {
 
 	private final LabelsReportLayout labelsReportLayout;
 	private final String key;
@@ -84,5 +85,10 @@ public class LabelTemplate implements Serializable {
 
 	public boolean isPrintBorders() {
 		return printBorders;
+	}
+
+	@Override
+	public int getDimension() {
+		return labelsReportLayout.getNumberOfLabelsPerPage();
 	}
 }

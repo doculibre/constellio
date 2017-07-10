@@ -16,9 +16,11 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
@@ -112,7 +114,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	protected Component buildSummary(SearchResultTable results) {
 		// TODO: Create an extension for this
 
-		String schemaType = getSchemaType();
+		final String schemaType = getSchemaType();
 		List<Component> selectionActions = new ArrayList<>();
 
 		batchProcessingButton = newBatchProcessingButton();
@@ -138,19 +140,19 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					return presenter.getDefaultTemplates();
 				}
 			};
-			final LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
+			final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.labels"),
 					$("SearchView.printLabels"),
 					customLabelTemplatesFactory,
 					defaultLabelTemplatesFactory,
 					getConstellioFactories().getAppLayerFactory(),
-					getSessionContext().getCurrentCollection(),
-					schemaType, getSelectedRecordIds(), getSessionContext().getCurrentUser().getUsername());
+					getSessionContext().getCurrentCollection());
+			labelsButton.setSchemaType(schemaType);
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
 			labelsButton.addClickListener(new Button.ClickListener() {
 				@Override
 				public void buttonClick(Button.ClickEvent event) {
-					labelsButton.setIds(getSelectedRecordIds());
+					labelsButton.setElementsWithIds(getSelectedRecordIds(), schemaType, getSessionContext());
 				}
 			});
 			selectionActions.add(labelsButton);
@@ -306,5 +308,4 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	protected String getTitle() {
 		return $("searchResults");
 	}
-
 }

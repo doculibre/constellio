@@ -2,11 +2,11 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -148,7 +148,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		slip.setStyleName(ValoTheme.BUTTON_LINK);
 		slip.setEnabled(presenter.canPrintReports());
 		buttons.add(slip);
-
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
@@ -161,10 +160,9 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				return presenter.getDefaultTemplates();
 			}
 		};
-		Button labels = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
+		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), ContainerRecord.SCHEMA_TYPE, presenter.getContainerId(),
-				getSessionContext().getCurrentUser().getUsername());
+				getSessionContext().getCurrentCollection(), presenter.getContainer());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 
