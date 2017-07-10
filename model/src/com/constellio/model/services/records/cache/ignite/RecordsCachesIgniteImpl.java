@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache.ignite;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,25 +68,29 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 	}
 
 	public Record getRecord(String id) {
+		long start = new Date().getTime();
 		for (RecordsCache cache : collectionsCache.values()) {
+
 			Record record = cache.get(id);
 			if (record != null) {
-				onCacheHit(record);
+				long end = new Date().getTime();
+				onCacheHit(record, end - start);
 				return record;
 			}
 		}
 
-		onCacheMiss(id);
+		long end = new Date().getTime();
+		onCacheMiss(id, end - start);
 
 		return null;
 	}
 
-	protected void onCacheMiss(String id) {
-		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheMiss(id, 0);
+	protected void onCacheMiss(String id, long duration) {
+		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheMiss(id, duration);
 	}
 
-	protected void onCacheHit(Record record) {
-		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheHit(record, 0);
+	protected void onCacheHit(Record record, long duration) {
+		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheHit(record, duration);
 	}
 
 	public void invalidateAll() {
