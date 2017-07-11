@@ -12,10 +12,9 @@ import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,12 +82,12 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         decommissioningList.setContainerDetails(decomListContainerDetailList);
 
         for(Map<String, String> decomListValidation : decomListValidations) {
-            decomListValidationList.add(buildDecomListValidation(decomListValidation));
+            decomListValidationList.add(buildDecomListValidation(decomListValidation, buildParams.isAllowingReferencesToNonExistingUsers()));
         }
         decommissioningList.setValidations(decomListValidationList);
     }
 
-    private DecomListValidation buildDecomListValidation(Map<String, String> mapDecomListValidation) {
+    private DecomListValidation buildDecomListValidation(Map<String, String> mapDecomListValidation, boolean allowingReferencesToNonExistingUsers) {
         DecomListValidation decomListValidation = new DecomListValidation();
 
         if(mapDecomListValidation.containsKey(USER_ID) && StringUtils.isNotEmpty(mapDecomListValidation.get(USER_ID))) {

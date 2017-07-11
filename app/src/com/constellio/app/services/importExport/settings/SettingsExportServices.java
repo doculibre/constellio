@@ -14,10 +14,7 @@ import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -129,6 +126,9 @@ public class SettingsExportServices {
 											 SchemasDisplayManager displayManager, MetadataSchemaType type, SettingsExportOptions options) {
 
 		ImportedType importedType = new ImportedType().setCode(type.getCode());
+		if (StringUtils.isNotBlank(type.getLabel(Language.French))) {
+			importedType.setLabel(type.getLabel(Language.French));
+		}
 		SchemaDisplayConfig schemaDisplayConfig = displayManager.getSchema(collection, type.getCode() + "_default");
 
 
@@ -178,9 +178,29 @@ public class SettingsExportServices {
 		MetadataSchema defaultSchema = type.getDefaultSchema();
 
 		ImportedMetadataSchema importedDefaultMetadataSchema = new ImportedMetadataSchema().setCode("default");
+		if (StringUtils.isNotBlank(defaultSchema.getLabel(Language.French))) {
+			importedDefaultMetadataSchema.setLabel(defaultSchema.getLabel(Language.French));
+		}
 		MetadataList metadata = defaultSchema.getMetadatas();
 		if(options.isOnlyUSR()) {
-			metadata = metadata.onlyUSR();
+			if(defaultSchema.getCode().startsWith("ddv")) {
+				ArrayList<Metadata> defaultMetadatasToImport = new ArrayList<>();
+				if(metadata.getMetadataWithLocalCode("code") != null) {
+					defaultMetadatasToImport.add(metadata.getMetadataWithLocalCode("code"));
+				}
+				if(metadata.getMetadataWithLocalCode("title") != null) {
+					defaultMetadatasToImport.add(metadata.getMetadataWithLocalCode("title"));
+				}
+				if(metadata.getMetadataWithLocalCode("description") != null) {
+					defaultMetadatasToImport.add(metadata.getMetadataWithLocalCode("description"));
+				}
+				metadata = metadata.onlyUSR();
+				metadata = new MetadataList(metadata);
+				metadata.addAll(defaultMetadatasToImport);
+				metadata.unModifiable();
+			} else {
+				metadata = metadata.onlyUSR();
+			}
 		}
 		List<ImportedMetadata> importedMetadata = getImportedMetadataFromList(collection, displayManager, schemaDisplayConfig,
 				metadata);
@@ -240,6 +260,10 @@ public class SettingsExportServices {
 			importedMetadata.setSortable(metadata.isSortable());
 
 			importedMetadata.setType(metadata.getType().name());
+
+			if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
+				importedMetadata.setReferencedType(metadata.getReferencedSchemaType());
+			}
 
 			importedMetadata.setUnique(metadata.isUniqueValue());
 

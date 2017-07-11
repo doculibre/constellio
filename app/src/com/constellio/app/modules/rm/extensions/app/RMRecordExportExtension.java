@@ -8,6 +8,8 @@ import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExten
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -258,6 +260,16 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		params.getModifiableImportRecord().addField(DecommissioningList.FOLDER_DETAILS, decomListFolderDetailList);
 
+		OriginStatus originArchivisticStatus = decommissioningList.getOriginArchivisticStatus();
+		if(originArchivisticStatus != null) {
+			params.getModifiableImportRecord().addField(DecommissioningList.ORIGIN_ARCHIVISTIC_STATUS, originArchivisticStatus.getCode());
+		}
+
+		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
+		if(decommissioningListType != null) {
+			params.getModifiableImportRecord().addField(DecommissioningList.TYPE, decommissioningListType.getCode());
+		}
+
 		List<Map<String, String>> decomListValidationList = new ArrayList<>();
 
 		for(DecomListValidation decomListValidation : decommissioningList.getValidations())
@@ -265,6 +277,10 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			Map<String, String> map = writeDecomListValidation(decomListValidation);
 
 			decomListValidationList.add(map);
+		}
+
+		if(!decomListValidationList.isEmpty()) {
+			params.getModifiableImportRecord().addField(DecommissioningList.VALIDATIONS, decomListValidationList);
 		}
 
 		if(decommissioningList.getDocumentsReportContent() != null) {

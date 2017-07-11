@@ -26,9 +26,11 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import jcifs.smb.ACE;
+import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * http://svn.apache.org/repos/asf/manifoldcf/trunk/connectors/jcifs/connector/src/main/java/org/apache/manifoldcf/crawler/
@@ -121,6 +123,10 @@ public class WindowsPermissions {
 				documentAces = file.getSecurity(true);
 				break;
 			} catch (IOException ioe) {
+				if (ioe instanceof SmbException && StringUtils.containsIgnoreCase(ioe.getMessage(), "The system cannot find the file specified.")) {
+					//Novell or missing file
+					break;
+				}
 				if (tries == 0) {
 					LOG.warning("Exception (NTFS PERMISSIONS)) : " + file.getCanonicalPath() + " (" + ioe.getClass()
 							.getCanonicalName() + ": " + ioe.getMessage());

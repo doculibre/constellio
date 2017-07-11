@@ -113,14 +113,16 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	}
 
 	public SolrUserCredential setAccessTokens(Map<String, LocalDateTime> tokens) {
-		List<String> keys = new ArrayList<>(tokens.size());
-		List<LocalDateTime> expirations = new ArrayList<>(tokens.size());
-		for (Entry<String, LocalDateTime> token : tokens.entrySet()) {
-			keys.add(token.getKey());
-			expirations.add(token.getValue());
+		if (tokens != null) {
+			List<String> keys = new ArrayList<>(tokens.size());
+			List<LocalDateTime> expirations = new ArrayList<>(tokens.size());
+			for (Entry<String, LocalDateTime> token : tokens.entrySet()) {
+				keys.add(token.getKey());
+				expirations.add(token.getValue());
+			}
+			set(TOKEN_KEYS, keys);
+			set(TOKEN_EXPIRATIONS, expirations);
 		}
-		set(TOKEN_KEYS, keys);
-		set(TOKEN_EXPIRATIONS, expirations);
 		return this;
 	}
 

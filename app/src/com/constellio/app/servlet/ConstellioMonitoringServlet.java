@@ -21,8 +21,6 @@ public class ConstellioMonitoringServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
-		System.out.println("ConstellioMonitoringServlet>doGet");
-
 		SystemReindexingInfos reindexingInfos = ReindexingServices.getReindexingInfos();
 		PrintWriter pw = resp.getWriter();
 

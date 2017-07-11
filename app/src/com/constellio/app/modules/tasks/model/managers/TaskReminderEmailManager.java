@@ -18,17 +18,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
-
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
-import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.StatefulService;
@@ -46,6 +44,7 @@ import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -54,8 +53,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 public class TaskReminderEmailManager implements StatefulService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TaskReminderEmailManager.class);
 	static int RECORDS_BATCH = 1000;
-	private static final long TWENTY_SECONDS = 60 * 1000l;
-	private static final Duration DURATION_BETWEEN_EXECUTION = new Duration(TWENTY_SECONDS);
+	private static final Duration DURATION_BETWEEN_EXECUTION = Duration.standardMinutes(15);
 	public static final String ID = "taskReminderEmailManager";
 	private final BackgroundThreadsManager backgroundThreadsManager;
 	private final TasksSchemasRecordsServices taskSchemas;
@@ -96,22 +94,24 @@ public class TaskReminderEmailManager implements StatefulService {
 
 	void generateReminderEmails() {
 
-		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(taskSchemas.userTask.schema()).where(taskSchemas.userTask.nextReminderOn())
-						.isLessOrEqualThan(TimeProvider.getLocalDate()));
-		do {
-			query.setNumberOfRows(RECORDS_BATCH);
-			Transaction transaction = new Transaction();
-			List<Task> readyToSendTasks = taskSchemas.searchTasks(query);
-			for (Task task : readyToSendTasks) {
-				generateReminderEmail(task, transaction);
-			}
-			try {
-				recordServices.execute(transaction);
-			} catch (RecordServicesException e) {
-				LOGGER.warn("Batch not processed", e);
-			}
-		} while (searchServices.hasResults(query));
+		if (ReindexingServices.getReindexingInfos() == null) {
+			LogicalSearchQuery query = new LogicalSearchQuery(
+					from(taskSchemas.userTask.schema()).where(taskSchemas.userTask.nextReminderOn())
+							.isLessOrEqualThan(TimeProvider.getLocalDate()));
+			do {
+				query.setNumberOfRows(RECORDS_BATCH);
+				Transaction transaction = new Transaction();
+				List<Task> readyToSendTasks = taskSchemas.searchTasks(query);
+				for (Task task : readyToSendTasks) {
+					generateReminderEmail(task, transaction);
+				}
+				try {
+					recordServices.execute(transaction);
+				} catch (RecordServicesException e) {
+					LOGGER.warn("Batch not processed", e);
+				}
+			} while (searchServices.hasResults(query));
+		}
 	}
 
 	private void generateReminderEmail(Task task, Transaction transaction) {
@@ -183,7 +183,7 @@ public class TaskReminderEmailManager implements StatefulService {
 	}
 
 	private Object formatToParameter(Object parameter) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return "";
 		}
 		return parameter;
