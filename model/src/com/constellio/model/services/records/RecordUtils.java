@@ -37,7 +37,7 @@ public class RecordUtils {
 	}
 
 	public static long estimateRecordSize(Record record) {
-		if (record == null) {
+		if (record == null || !(record instanceof RecordImpl)) {
 			return 0;
 		}
 		RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
