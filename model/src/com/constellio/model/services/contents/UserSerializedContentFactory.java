@@ -46,11 +46,16 @@ public class UserSerializedContentFactory extends ContentFactory {
 			return null;
 
 		} else {
-			Record record = recordServices.getDocumentById(value);
-			if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				return schemasRecordsServices.wrapUser(record).getUsername();
-			} else {
-				return null;
+			try {
+				Record record = recordServices.getDocumentById(value);
+				if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
+					return schemasRecordsServices.wrapUser(record).getUsername();
+				} else {
+					return null;
+				}
+			} catch (Exception e) {
+				User userInCollection = userServices.getUserInCollection(value, collection);
+				return value;
 			}
 		}
 
