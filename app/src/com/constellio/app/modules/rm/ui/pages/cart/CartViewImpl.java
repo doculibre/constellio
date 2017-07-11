@@ -522,19 +522,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		}
 	}
 
-	private class LabelsRecordSelectorImpl implements LabelsButton.RecordSelector {
-		private final String schemaType;
-
-		public LabelsRecordSelectorImpl(String schemaType) {
-			this.schemaType = schemaType;
-		}
-
-		@Override
-		public List<String> getSelectedRecordIds() {
-			return presenter.getRecordsIds(schemaType);
-		}
-	}
-
 	private class FireableTabSheet extends TabSheet {
 		public void fireTabSelectionChanged() {
 			fireSelectedTabChange();

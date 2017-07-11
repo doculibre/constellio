@@ -2,7 +2,6 @@ package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.services.reports.XmlGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;

@@ -5,7 +5,6 @@ import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.*;
@@ -35,7 +34,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, RecordSelector {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";

@@ -78,23 +78,27 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 			
 			if (acceptWindowOpen(event)) {
 				Component windowContent = buildWindowContent();
-				windowContent.addStyleName(WINDOW_CONTENT_STYLE_NAME);
-				if (!windowContent.getStyleName().contains("scroll")) {
-					windowContent.addStyleName("auto-scroll");
+				if(windowContent != null) {
+					windowContent.addStyleName(WINDOW_CONTENT_STYLE_NAME);
+					if (!windowContent.getStyleName().contains("scroll")) {
+						windowContent.addStyleName("auto-scroll");
+					}
+					if (windowContent instanceof BaseViewImpl) {
+						((BaseViewImpl) windowContent).enter(null);
+					}
+					window.setContent(windowContent);
+					if (zIndex != null) {
+						window.setZIndex(zIndex);
+					}
+
+					for (CloseListener listener : closeListeners) {
+						window.addCloseListener(listener);
+					}
+
+					UI.getCurrent().addWindow(window);
+				} else {
+					window.close();
 				}
-				if (windowContent instanceof BaseViewImpl) {
-					((BaseViewImpl) windowContent).enter(null);
-				}
-				window.setContent(windowContent);
-				if (zIndex != null) {
-					window.setZIndex(zIndex);
-				}
-				
-				for (CloseListener listener : closeListeners) {
-					window.addCloseListener(listener);
-				}
-				
-				UI.getCurrent().addWindow(window);
 			}
 		}
 	}

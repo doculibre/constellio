@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.model.PrintableReport;
 
+import com.constellio.model.entities.records.Content;
+
 import java.io.Serializable;
 
 /**
@@ -8,9 +10,11 @@ import java.io.Serializable;
 public class PrintableReportTemplate implements Serializable {
     private String title;
     private String id;
-    public PrintableReportTemplate(String id, String title) {
+    private Content jasperFile;
+    public PrintableReportTemplate(String id, String title, Content jasperFile) {
         this.title = title;
         this.id = id;
+        this.jasperFile = jasperFile;
     }
 
     public String getTitle() {
@@ -29,5 +33,9 @@ public class PrintableReportTemplate implements Serializable {
     public PrintableReportTemplate setId(String id) {
         this.id = id;
         return this;
+    }
+
+    public Content getJasperFile() {
+        return this.jasperFile;
     }
 }

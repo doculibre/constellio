@@ -189,8 +189,11 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         private PrintableReportListPossibleView currentSchema;
 
         public PrintableReportEditButton(Object itemId, PrintableReportListPossibleView currentSchema) {
-            this.itemId = presenter.getRecordsWithIndex(currentSchema, itemId + "").getId();
-            this.currentSchema = currentSchema;
+            RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
+            if(item != null) {
+                this.itemId = item.getId();
+                this.currentSchema = currentSchema;
+            }
         }
 
         @Override
@@ -210,8 +213,11 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         private PrintableReportListPossibleView currentSchema;
 
         public PrintableReportDisplayButton(Object itemId, PrintableReportListPossibleView currentSchema) {
-            this.itemId = presenter.getRecordsWithIndex(currentSchema, itemId + "").getId();
-            this.currentSchema = currentSchema;
+            RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
+            if(item != null) {
+                this.itemId = item.getId();
+                this.currentSchema = currentSchema;
+            }
         }
 
         @Override
@@ -225,8 +231,11 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         private PrintableReportListPossibleView currentSchema;
 
         public PrintableReportDeleteButton(Object itemId, PrintableReportListPossibleView currentSchema) {
-            this.itemId = presenter.getRecordsWithIndex(currentSchema, itemId + "").getId();
-            this.currentSchema = currentSchema;
+            RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
+            if(item != null) {
+                this.itemId = item.getId();
+                this.currentSchema = currentSchema;
+            }
         }
 
         @Override

@@ -45,7 +45,7 @@ public class ReportConfigViewImpl extends BaseViewImpl {
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().managePrintableReport();
             }
-        }, "printableReport");
+        }, "report-print");
     }
 
     private Button createLink(String caption, final Button.ClickListener listener, String iconName) {

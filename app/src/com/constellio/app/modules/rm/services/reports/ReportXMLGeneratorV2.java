@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -10,15 +11,13 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -38,7 +37,7 @@ import static java.util.Arrays.asList;
 /**
  * Class that creates the XML for the labels.
  */
-public class ReportXMLGeneratorV2 {
+public class ReportXMLGeneratorV2 extends  XmlGenerator {
 
     public static final String REFERENCE_PREFIX = "ref_";
     private static final Map<String, String> SCHEMA_CODE_MAP= new HashMap<String, String>() {{
@@ -64,6 +63,7 @@ public class ReportXMLGeneratorV2 {
     private String type;
 
     public ReportXMLGeneratorV2(String collection, AppLayerFactory appLayerFactory) {
+        super(appLayerFactory, collection);
         this.collection = collection;
         this.factory = appLayerFactory;
         this.recordServices = factory.getModelLayerFactory().newRecordServices();
@@ -113,6 +113,7 @@ public class ReportXMLGeneratorV2 {
 
     public AppLayerFactory getFactory() { return this.factory; }
 
+    @Override
     public String generateXML() throws Exception {
         validateInputs();
         Document xmlDocument = new Document();
@@ -198,7 +199,7 @@ public class ReportXMLGeneratorV2 {
         return this.type.substring(0, this.type.length() - 1);
     }
 
-    private List<Metadata> getListOfMetadataForElement(Record element) {
+    MetadataList getListOfMetadataForElement(Record element) {
         return this.factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(element).getMetadatas();
         //return element.getSchema().getMetadatas();
     }
@@ -217,7 +218,7 @@ public class ReportXMLGeneratorV2 {
         return Collections.singletonList(metadataXmlElement);
     }
 
-    private List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement) {
+    List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement) {
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
@@ -230,7 +231,7 @@ public class ReportXMLGeneratorV2 {
         return listOfMetadataTags;
     }
 
-    private List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
+    List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (recordElement.get(metadata) != null) {
             listOfMetadataTags.addAll(asList(
@@ -242,7 +243,7 @@ public class ReportXMLGeneratorV2 {
         return listOfMetadataTags;
     }
 
-    private String formatData(String data, Metadata metadata) {
+    String formatData(String data, Metadata metadata) {
         if (Strings.isNullOrEmpty(data)) {
             return data;
         }
@@ -261,6 +262,11 @@ public class ReportXMLGeneratorV2 {
             }
         }
         return replaceBracketsInValueToString.replaceOn(finalData);
+    }
+
+    @Override
+    public XmlGeneratorParameters getXmlGeneratorParameters() {
+        return null;
     }
 
     public static String getLabelOfMetadata(Metadata metadata) {
@@ -291,7 +297,7 @@ public class ReportXMLGeneratorV2 {
         }
     }
 
-    private List<Element> getAdditionalInformations(Record recordElement) {
+    List<Element> getAdditionalInformations(Record recordElement) {
         List<Element> elementsToAdd = new ArrayList<>(asList(
                 new Element("collection_code").setText(collection),
                 new Element("collection_title").setText(factory.getCollectionsManager().getCollection(collection).getName())
@@ -303,7 +309,7 @@ public class ReportXMLGeneratorV2 {
         return elementsToAdd;
     }
 
-    private List<Element> getSpecificDataToAddForCurrentElement(Record recordElement) {
+    List<Element> getSpecificDataToAddForCurrentElement(Record recordElement) {
         if(recordElement.getSchemaCode().equals(ContainerRecord.DEFAULT_SCHEMA)) {
             DecommissioningService decommissioningService = new DecommissioningService(collection, factory);
             ContainerRecord wrappedRecord = new ContainerRecord(recordElement, getTypes());
@@ -314,14 +320,6 @@ public class ReportXMLGeneratorV2 {
             );
         }
         return Collections.emptyList();
-    }
-
-    private String getToStringOrNull(Object ob) {
-        return ob == null ? null : ob.toString();
-    }
-
-    private String getToStringOrNullInString(Object ob) {
-        return ob == null ? "null" : ob.toString();
     }
 
     private void setTypeWithElements(Record element) {

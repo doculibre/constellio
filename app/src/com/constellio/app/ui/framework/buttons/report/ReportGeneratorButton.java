@@ -1,35 +1,47 @@
 package com.constellio.app.ui.framework.buttons.report;
 
+import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
+import com.constellio.app.modules.rm.wrappers.structures.AlertCode;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.LabelViewer;
+import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
+import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.*;
+import org.apache.commons.io.FileUtils;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.ISODateTimeFormat;
 
+import java.io.File;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 /**
  * Created by Marco on 2017-07-10.
@@ -44,46 +56,68 @@ public class ReportGeneratorButton extends WindowButton{
 
     private AppLayerFactory factory;
     private String collection;
-    private Factory<List<PrintableReportTemplate>> printableReportFactory;
+    private List<PrintableReportTemplate> printableReportFactory;
     private RecordVO[] elements;
 
     private VerticalLayout layout;
     private Button generateButton, cancelButton;
+    private PrintableReportListPossibleView currentSchema;
+    private BaseView view;
 
-    public ReportGeneratorButton(String caption, String windowCaption, Factory<List<PrintableReportTemplate>> printableReportFactory, AppLayerFactory factory, String collection) {
+    public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection, PrintableReportListPossibleView currentSchema) {
         super(caption, windowCaption);
         this.factory = factory;
         this.collection = collection;
-        this.printableReportFactory = printableReportFactory;
+        this.currentSchema = currentSchema;
+        this.view = view;
     }
 
-    public ReportGeneratorButton(String caption, String windowCaption, Factory<List<PrintableReportTemplate>> printableReportFactory, AppLayerFactory factory, String collection, RecordVO... elements) {
-        this(caption, windowCaption, printableReportFactory, factory, collection);
+    public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection, PrintableReportListPossibleView currentSchema, RecordVO... elements) {
+        this(caption, windowCaption, view, factory, collection, currentSchema);
         this.setElements(elements);
     }
 
     public void setElements(RecordVO... elements){
+        this.currentSchema = PrintableReportListPossibleView.getValue(elements[0].getSchema().getTypeCode());
         this.elements = elements;
     }
 
     private List<PrintableReportTemplate> getPrintableReportTemplate() {
-        return this.printableReportFactory.get();
+        List<PrintableReportTemplate> printableReportTemplateList = new ArrayList<>();
+        MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+        MetadataSchema printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(Printable.SCHEMA_TYPE).getCustomSchema(PrintableReport.SCHEMA_NAME);
+        LogicalSearchCondition condition = from(printableReportSchemaType).where(printableReportSchemaType.getMetadata(PrintableReport.REPORT_TYPE)).isEqualTo(currentSchema.toString());
+        List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(condition));
+        for (Record record : records) {
+            printableReportTemplateList.add(new PrintableReportTemplate(record.getId(), record.getTitle(), record.<Content>get(printableReportSchemaType.getMetadata(PrintableReport.JASPERFILE))));
+        }
+        return printableReportTemplateList;
     }
 
     @Override
     protected Component buildWindowContent() {
-        this.getWindow().setResizable(true);
-        layout = new VerticalLayout();
-        setupCopieFields();
-        setupPrintableReportTemplateSelection();
-        return new ReportGeneratorButtonForm(new LabelParametersVO(new LabelTemplate()), this, copiesField, printableItemsFields);
+        try{
+            this.getWindow().setResizable(true);
+            layout = new VerticalLayout();
+            setupCopieFields();
+            setupPrintableReportTemplateSelection();
+            return new ReportGeneratorButtonForm(new LabelParametersVO(new LabelTemplate()), this, copiesField, printableItemsFields);
+        }catch (Exception e) {
+            this.view.showErrorMessage($("ReportGeneratorButton.noReportConfigured"));
+        }
+        return null;
     }
 
-    private void setupPrintableReportTemplateSelection() {
+    private void setupPrintableReportTemplateSelection() throws Exception{
         printableItemsFields = new ComboBox();
-        for(PrintableReportTemplate printableReportTemplate : getPrintableReportTemplate()) {
-            printableItemsFields.addItem(printableReportTemplate);
-            printableItemsFields.setItemCaption(printableReportTemplate, printableReportTemplate.getTitle());
+        List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
+        if(printableReportTemplateList.size() > 0) {
+            for(PrintableReportTemplate printableReportTemplate : getPrintableReportTemplate()) {
+                printableItemsFields.addItem(printableReportTemplate);
+                printableItemsFields.setItemCaption(printableReportTemplate, printableReportTemplate.getTitle());
+            }
+        } else {
+            throw new Exception("No report generated");
         }
     }
 
@@ -91,16 +125,6 @@ public class ReportGeneratorButton extends WindowButton{
         copiesField = new TextField($("LabelsButton.numberOfCopies"));
         copiesField.setRequired(true);
         copiesField.setConverter(Integer.class);
-    }
-
-    private void setupButtonLayout() {
-        HorizontalLayout buttonLayout = new HorizontalLayout();
-        cancelButton = new BaseButton($("cancel")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                getWindow().close();
-            }
-        };
     }
 
     private class ReportGeneratorButtonForm extends BaseForm<LabelParametersVO> {
@@ -113,9 +137,26 @@ public class ReportGeneratorButton extends WindowButton{
 
         @Override
         protected void saveButtonClick(LabelParametersVO viewObject) throws ValidationException {
-            XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters((Integer) parent.copiesField.getConvertedValue());
-            xmlGeneratorParameters.setElementWithIds(elements[0].getSchema().getCode(), Arrays.stream(elements).map(RecordVO::getId).collect(Collectors.toList()));
-            XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
+            try{
+                IOServicesFactory ioServicesFactory = parent.factory.getModelLayerFactory().getIOServicesFactory();
+                ContentManager contentManager = parent.factory.getModelLayerFactory().getContentManager();
+                XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters((Integer) parent.copiesField.getConvertedValue());
+                xmlGeneratorParameters.setElementWithIds(elements[0].getSchema().getCode(), getIdsFromRecordVO());
+                XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
+                JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
+                PrintableReportTemplate value = (PrintableReportTemplate) parent.printableItemsFields.getValue();
+                InputStream inputStream = contentManager.getContentInputStream(value.getJasperFile().getCurrentVersion().getHash(), value.getJasperFile().getId());
+                File jasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
+                FileUtils.copyInputStreamToFile(inputStream, jasperFile);
+                String title = elements[0].getSchema().getCode() + "_report_" + ISODateTimeFormat.dateTime().print(new LocalDateTime()) + ".pdf";
+                File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, title);
+                VerticalLayout newLayout = new VerticalLayout();
+                newLayout.addComponents(new LabelViewer(generatedJasperFile, title));
+                newLayout.setWidth("100%");
+                getWindow().setContent(newLayout);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -123,12 +164,12 @@ public class ReportGeneratorButton extends WindowButton{
 
         }
 
-        private Record[] getRecordFromRecordVO() {
-            List<RecordVO> recordVOS = asList(parent.elements);
-            MetadataSchemasManager metadataSchemasManager = parent.factory.getModelLayerFactory().getMetadataSchemasManager();
-            SearchServices searchServices = parent.factory.getModelLayerFactory().newSearchServices();
-            LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(collection).getSchema(recordVOS.get(0).getSchema().getCode())).where(Schemas.IDENTIFIER).isIn();
-            return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
+        private List<String> getIdsFromRecordVO(){
+            List<String> ids = new ArrayList<>();
+            for(RecordVO recordVO : parent.elements) {
+                ids.add(recordVO.getId());
+            }
+            return ids;
         }
     }
 }

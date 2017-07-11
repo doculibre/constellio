@@ -132,7 +132,7 @@ public class XmlReportGenerator extends XmlGenerator{
     private Record[] getRecordFromIds(String schemaType, List<String> ids) {
         SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();
         MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
-        LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType).getDefaultSchema()).where(Schemas.IDENTIFIER).isIn(ids);
+        LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchema(schemaType)).where(Schemas.IDENTIFIER).isIn(ids);
         return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
     }
 }

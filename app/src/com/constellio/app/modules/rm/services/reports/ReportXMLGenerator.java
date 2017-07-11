@@ -8,6 +8,7 @@ import static java.util.Arrays.asList;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,7 +38,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -45,7 +45,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -489,7 +488,7 @@ public class ReportXMLGenerator {
 	 * @param jasperFile
 	 * @throws Exception
 	 */
-	public Content createPDFFromXmlAndJasperFile(String xml, File jasperFile, String format)
+	public File createPDFFromXmlAndJasperFile(String xml, File jasperFile, String format)
 			throws Exception {
 
 		Map<String, Object> params = new HashMap<>();
@@ -497,10 +496,7 @@ public class ReportXMLGenerator {
 		params.put(JRXPathQueryExecuterFactory.PARAMETER_XML_DATA_DOCUMENT, document);
 		String reportFile = JasperFillManager.fillReportToFile(jasperFile.getAbsolutePath(), params);
 		String PDFFile = JasperExportManager.exportReportToPdfFile(reportFile);
-		File file = new File(PDFFile);
-		ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file), "Etiquette")
-				.getContentVersionDataSummary();
-		return contentManager.createFileSystem(escapeForXmlTag(format) + "-" + LocalDate.now(), upload);
+		return new File(PDFFile);
 	}
 
 	/**
