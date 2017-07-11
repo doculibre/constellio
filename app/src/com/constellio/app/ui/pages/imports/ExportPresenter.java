@@ -1,7 +1,34 @@
 package com.constellio.app.ui.pages.imports;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.sis.internal.jdk7.StandardCharsets;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.importExport.records.RecordExportOptions;
 import com.constellio.app.services.importExport.records.RecordExportServices;
 import com.constellio.app.services.importExport.settings.SettingsExportOptions;
@@ -21,7 +48,9 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
@@ -29,25 +58,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.sis.internal.jdk7.StandardCharsets;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
 
 public class ExportPresenter extends BasePresenter<ExportView> {
 
@@ -72,7 +82,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	void exportWithoutContentsButtonClicked() {
-		export(false, false);
+		export(false);
 	}
 
 	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds, List<String> documentIds) {
@@ -82,10 +92,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		options.setForSameSystem(isSameCollection);
 		options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE));
 
-		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).whereAnyCondition(
-				where(Schemas.IDENTIFIER).isIn(allIds),
-				where(Schemas.PATH_PARTS).isIn(folderIds))
-		);
+		SearchResponseIterator<Record> recordsIterator = searchServices()
+				.recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).whereAnyCondition(
+						where(Schemas.IDENTIFIER).isIn(allIds),
+						where(Schemas.PATH_PARTS).isIn(folderIds))
+				);
 		exportToXML(options, recordsIterator);
 	}
 
@@ -121,9 +132,17 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, String unitId) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
-		options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE));
-		String path = (String)((List) recordServices().getDocumentById(unitId).get(Schemas.PATH)).get(0);
-		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path));
+		options.setExportedSchemaTypes(
+				asList(AdministrativeUnit.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
+						DecommissioningList.SCHEMA_TYPE));
+		String path = (String) ((List) recordServices().getDocumentById(unitId).get(Schemas.PATH)).get(0);
+		MetadataSchemaType decommissioningListSchemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
+		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(
+				LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path)
+						.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT))
+						.isEqualTo(unitId));
+
 		exportToXML(options, recordsIterator);
 	}
 
@@ -131,11 +150,13 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
 		List<Taxonomy> enabledTaxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
-		List<String> exportedSchemaTypes = new ArrayList<>(asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE));
-		for(Taxonomy taxonomy: enabledTaxonomies) {
+		List<String> exportedSchemaTypes = new ArrayList<>(
+				asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						StorageSpace.SCHEMA_TYPE));
+		for (Taxonomy taxonomy : enabledTaxonomies) {
 			List<String> linkedSchemaTypes = taxonomy.getSchemaTypes();
-			for(String schemaType: linkedSchemaTypes) {
-				if(!exportedSchemaTypes.contains(schemaType)) {
+			for (String schemaType : linkedSchemaTypes) {
+				if (!exportedSchemaTypes.contains(schemaType)) {
 					exportedSchemaTypes.add(schemaType);
 				}
 			}
@@ -184,10 +205,10 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	void exportWithContentsButtonClicked() {
-		export(true, false);
+		export(false);
 	}
 
-	private void export(boolean includeContents, boolean onlyTools) {
+	private void export(boolean onlyTools) {
 
 		String exportedIdsStr = view.getExportedIds();
 
@@ -236,8 +257,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 				try {
 
+					ConstellioEIMConfigs constellioEIMConfigs = new ConstellioEIMConfigs(
+							modelLayerFactory.getSystemConfigurationsManager());
+
 					SystemStateExportParams params = new SystemStateExportParams();
-					if (includeContents) {
+					if (constellioEIMConfigs.isIncludeContentsInSavestate()) {
 						params.setExportAllContent();
 					} else {
 						params.setExportNoContent();
@@ -306,6 +330,6 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	public void exportToolsButtonClicked() {
-		export(false, true);
+		export(true);
 	}
 }
