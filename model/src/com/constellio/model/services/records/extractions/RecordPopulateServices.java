@@ -95,9 +95,9 @@ public class RecordPopulateServices {
 
 	private String getCategory(ParsedContentProvider parsedContentProvider, List<Metadata> contentMetadatas, Record record) {
 		for (Content content : getContents(record, contentMetadatas)) {
-			ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(
-					content.getCurrentVersion().getHash());
-			String category = (String) parsedContent.getNormalizedProperty("category");
+			ParsedContent parsedContent = parsedContentProvider
+					.getParsedContentIfAlreadyParsed(content.getCurrentVersion().getHash());
+			String category = parsedContent == null ? null : (String) parsedContent.getNormalizedProperty("category");
 			if (category != null) {
 				return category;
 			}
@@ -289,9 +289,9 @@ public class RecordPopulateServices {
 			if (inputMetadata.getType().equals(MetadataValueType.CONTENT)) {
 				Content content = (Content) value;
 				try {
-					ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(
+					ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(
 							content.getCurrentVersion().getHash());
-					return populateUsingRegex(regexConfig, parsedContent.getParsedContent());
+					return parsedContent == null ? null : populateUsingRegex(regexConfig, parsedContent.getParsedContent());
 				} catch (ContentManagerRuntimeException_NoSuchContent e) {
 					if (LOG_CONTENT_MISSING) {
 						LOGGER.error("No content " + content.getCurrentVersion().getHash());
@@ -309,9 +309,14 @@ public class RecordPopulateServices {
 			for (Content content : getContents(record, contentMetadatas)) {
 				List<String> contentPopulatedValue;
 				try {
-					ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(
+					ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(
 							content.getCurrentVersion().getHash());
-					contentPopulatedValue = populateUsingStyles(parsedContent);
+
+					if (parsedContent == null) {
+						contentPopulatedValue = new ArrayList<>();
+					} else {
+						contentPopulatedValue = populateUsingStyles(parsedContent);
+					}
 
 					if (contentPopulatedValue != null) {
 						return convert(contentPopulatedValue);
@@ -329,9 +334,14 @@ public class RecordPopulateServices {
 			for (Content content : getContents(record, contentMetadatas)) {
 				List<String> contentPopulatedValue;
 				try {
-					ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(
+					ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(
 							content.getCurrentVersion().getHash());
-					contentPopulatedValue = populateUsingProperties(parsedContent);
+
+					if (parsedContent == null) {
+						contentPopulatedValue = new ArrayList<>();
+					} else {
+						contentPopulatedValue = populateUsingProperties(parsedContent);
+					}
 
 					if (contentPopulatedValue != null) {
 						return convert(contentPopulatedValue);
@@ -384,11 +394,20 @@ public class RecordPopulateServices {
 		}
 
 		private List<String> populateTitleUsingPropertiesAndStyles(Content content) {
-			ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(
+			ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(
 					content.getCurrentVersion().getHash());
 
-			List<String> propertiesValues = populateUsingProperties(parsedContent);
-			List<String> stylesValues = populateUsingStyles(parsedContent);
+			List<String> propertiesValues;
+			List<String> stylesValues;
+
+			if (parsedContent == null) {
+				propertiesValues = new ArrayList<>();
+				stylesValues = new ArrayList<>();
+
+			} else {
+				propertiesValues = populateUsingProperties(parsedContent);
+				stylesValues = populateUsingStyles(parsedContent);
+			}
 
 			for (String source : titlePriority.getPrioritizedSouces()) {
 				if (source.equals("styles")) {

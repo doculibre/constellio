@@ -35,6 +35,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.RecordRuntimeException;
@@ -120,8 +121,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 	private final RecordsCaches recordsCaches;
 
 	public RecordServicesImpl(RecordDao recordDao, RecordDao eventsDao, RecordDao notificationsDao,
-							  ModelLayerFactory modelFactory, DataStoreTypesFactory typesFactory, UniqueIdGenerator uniqueIdGenerator,
-							  RecordsCaches recordsCaches) {
+			ModelLayerFactory modelFactory, DataStoreTypesFactory typesFactory, UniqueIdGenerator uniqueIdGenerator,
+			RecordsCaches recordsCaches) {
 		super(modelFactory);
 		this.recordDao = recordDao;
 		this.eventsDao = eventsDao;
@@ -245,7 +246,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	void handleOptimisticLocking(TransactionDTO transactionDTO, Transaction transaction, RecordModificationImpactHandler handler,
-								 OptimisticLocking e, int attempt)
+			OptimisticLocking e, int attempt)
 			throws RecordServicesException {
 
 		if (attempt > 35) {
@@ -544,6 +545,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
+			boolean allParsed = true;
+			for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
+				for (Content aContent : record.<Content>getValues(contentMetadata)) {
+					allParsed &= parsedContentProvider
+							.getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
+				}
+			}
+
+			if (allParsed) {
+				record.set(Schemas.MARKED_FOR_PARSING, null);
+			} else {
+				record.set(Schemas.MARKED_FOR_PARSING, true);
+			}
+
 		}
 
 		if (!transaction.getRecordUpdateOptions().isSkipFindingRecordsToReindex()) {
@@ -649,7 +664,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	void refreshRecordsAndCaches(String collection, List<Record> records, TransactionResponseDTO transactionResponseDTO,
-								 MetadataSchemaTypes types) {
+			MetadataSchemaTypes types) {
 
 		List<Record> recordsToInsert = new ArrayList<>();
 		for (Record record : records) {
@@ -677,7 +692,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 				contentManager.silentlyMarkForDeletionIfNotReferenced(deletedContent);
 			}
 			saveTransactionDTO(transaction, modificationImpactHandler, attempt);
-
 
 		} catch (RecordServicesException | RecordServicesRuntimeException e) {
 			for (String newContent : contentModificationsBuilder.getContentsWithNewVersion()) {
@@ -943,7 +957,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public List<ModificationImpact> calculateImpactOfModification(Transaction transaction, TaxonomiesManager taxonomiesManager,
-																  SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction) {
+			SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction) {
 
 		if (transaction.getRecords().isEmpty()) {
 			return new ArrayList<>();
@@ -961,7 +975,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public ModificationImpactCalculator newModificationImpactCalculator(TaxonomiesManager taxonomiesManager,
-																		MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices) {
+			MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices) {
 		List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(metadataSchemaTypes.getCollection());
 		return new ModificationImpactCalculator(metadataSchemaTypes, taxonomies, searchServices, this);
 

@@ -39,6 +39,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	<T> List<T> getList(Metadata metadata);
 
+	<T> List<T> getValues(Metadata metadata);
+
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
 	//MetadataList getMetadatasWithValue(MetadataSchemaTypes schemaTypes);

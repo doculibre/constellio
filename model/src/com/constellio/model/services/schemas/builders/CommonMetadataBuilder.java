@@ -55,11 +55,12 @@ public class CommonMetadataBuilder {
 	public static final String LEGACY_ID = "legacyIdentifier";
 	public static final String SEARCHABLE = "searchable";
 	public static final String VISIBLE_IN_TREES = "visibleInTrees";
-	public static final String MARKED_FOR_PREVIEW_CONVERSION = "markedForPreviewConversion";
 	public static final String LOGICALLY_DELETED_ON = "logicallyDeletedOn";
 	public static final String ERROR_ON_PHYSICAL_DELETION = "errorOnPhysicalDeletion";
 	public static final String ALL_REFERENCES = "allReferences";
+	public static final String MARKED_FOR_PREVIEW_CONVERSION = "markedForPreviewConversion";
 	public static final String MARKED_FOR_REINDEXING = "markedForReindexing";
+	public static final String MARKED_FOR_PARSING = "markedForParsing";
 	public static final String ATTACHED_ANCESTORS = "attachedAncestors";
 	public static final String ALL_REMOVED_AUTHS = "allRemovedAuths";
 	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
@@ -445,6 +446,16 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(DATA_VERSION).setType(NUMBER)
 						.setEssentialInSummary(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(MARKED_FOR_PARSING, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(MARKED_FOR_PARSING).setType(BOOLEAN);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

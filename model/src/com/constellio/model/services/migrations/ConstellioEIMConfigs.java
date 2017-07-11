@@ -12,6 +12,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.SearchSortType;
@@ -26,6 +27,8 @@ public class ConstellioEIMConfigs {
 	public static List<SystemConfiguration> configurations;
 
 	//Retention calendar configs
+
+	public static final SystemConfiguration DEFAULT_PARSING_BEHAVIOR;
 
 	public static final SystemConfiguration INCLUDE_CONTENTS_IN_SAVESTATE;
 
@@ -98,6 +101,7 @@ public class ConstellioEIMConfigs {
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
+		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("asyncParsing", ParsingBehavior.class));
 		add(INCLUDE_CONTENTS_IN_SAVESTATE = others.createBooleanFalseByDefault("includeContentsInSavestate"));
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
 				.withDefaultValue("${firstName} ${lastName}"));
@@ -239,6 +243,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
+	}
+
+	public ParsingBehavior getDefaultParsingBehavior() {
+		return manager.getValue(DEFAULT_PARSING_BEHAVIOR);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {

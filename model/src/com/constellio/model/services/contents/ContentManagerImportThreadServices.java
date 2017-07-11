@@ -23,6 +23,7 @@ import com.constellio.data.utils.BigFileIterator;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
@@ -152,19 +153,23 @@ public class ContentManagerImportThreadServices {
 					ContentVersionDataSummary dataSummary = uploader.get(key);
 					newEntriesInIndex.put(key, dataSummary);
 
-					if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
-						if (fileNotExceedingParsingLimit(file)) {
-							ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
-						} else {
-							try {
-								ioServices.appendFileContent(filesExceedingParsingSizeLimit, key + "\n");
-							} catch (IOException e) {
-								throw new RuntimeException(e);
+					try {
+						if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
+							if (fileNotExceedingParsingLimit(file)) {
+								ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
+							} else {
+								try {
+									ioServices.appendFileContent(filesExceedingParsingSizeLimit, key + "\n");
+								} catch (IOException e) {
+									throw new RuntimeException(e);
+								}
+								ioServices.deleteQuietly(file);
 							}
+						} else {
 							ioServices.deleteQuietly(file);
 						}
-					} else {
-						ioServices.deleteQuietly(file);
+					} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+						throw new RuntimeException(contentManagerException_contentNotParsed);
 					}
 
 					//uploader.uploadAsync(toKey(file), ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
@@ -197,6 +202,9 @@ public class ContentManagerImportThreadServices {
 					ioServices.deleteQuietly(file);
 				}
 			}
+		} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+			throw new RuntimeException(contentManagerException_contentNotParsed);
+			
 		} finally {
 			writeNewEntriesInIndex(newEntriesInIndex);
 		}

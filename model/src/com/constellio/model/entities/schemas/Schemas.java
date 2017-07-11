@@ -1,14 +1,18 @@
 package com.constellio.model.entities.schemas;
 
-import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
-import com.constellio.model.services.schemas.SchemaUtils;
-import org.apache.commons.lang.StringUtils;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import org.apache.commons.lang.StringUtils;
+
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class
 Schemas {
@@ -18,7 +22,8 @@ Schemas {
 	public static final String TITLE_CODE = "title";
 	public static final String GLOBAL_SCHEMA_TYPE = "global";
 
-	public static final Metadata MIGRATION_DATA_VERSION = add(new Metadata("migrationDataVersion_d", MetadataValueType.NUMBER, false));
+	public static final Metadata MIGRATION_DATA_VERSION = add(
+			new Metadata("migrationDataVersion_d", MetadataValueType.NUMBER, false));
 	public static final Metadata CREATED_BY = add(new Metadata("createdById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata MODIFIED_BY = add(new Metadata("modifiedById_s", MetadataValueType.REFERENCE, false));
 	public static final Metadata IDENTIFIER = add(new Metadata("id", STRING, false));
@@ -77,6 +82,7 @@ Schemas {
 	public static final Metadata LINKED_SCHEMA = new Metadata("linkedSchema_s", STRING, false);
 	public static final Metadata ALL_REFERENCES = add(new Metadata("allReferences_ss", STRING, true));
 	public static final Metadata MARKED_FOR_REINDEXING = add(new Metadata("markedForReindexing_s", BOOLEAN, false));
+	public static final Metadata MARKED_FOR_PARSING = add(new Metadata("markedForParsing_s", BOOLEAN, false));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
 	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
 
