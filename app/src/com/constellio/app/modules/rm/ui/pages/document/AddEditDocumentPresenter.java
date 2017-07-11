@@ -60,6 +60,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -306,7 +307,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, true, true, filename);
+			UploadOptions options = new UploadOptions().setFileName(filename);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, options);
 			contentVersionSummary = uploadResponse.getContentVersionDataSummary();
 			contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
 			document.setContent(contentBeforeChange);

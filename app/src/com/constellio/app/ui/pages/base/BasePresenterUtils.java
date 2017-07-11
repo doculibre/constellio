@@ -169,27 +169,6 @@ public class BasePresenterUtils implements Serializable {
 		return appLayerFactory.getCollectionsManager();
 	}
 
-	@Deprecated
-	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
-			final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
-		UploadOptions options = new UploadOptions(fileName)
-				.setHandleDeletionOfUnreferencedHashes(handleDeletionOfUnreferencedHashes)
-				.setParse(parse);
-		try {
-			return modelLayerFactory.getContentManager().upload(inputStream, options);
-		} catch (final IcapException e) {
-			if (e instanceof IcapException.ThreatFoundException) {
-				throw new IcapException($(e, e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
-			}
-
-			if (e.getCause() == null) {
-				throw new IcapException($(e, e.getFileName()));
-			} else {
-				throw new IcapException($(e, e.getFileName()), e.getCause());
-			}
-		}
-	}
-
 	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
 		try {
 			return modelLayerFactory.getContentManager().upload(inputStream, options);

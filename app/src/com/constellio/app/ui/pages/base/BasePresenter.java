@@ -33,9 +33,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -44,15 +43,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 @SuppressWarnings("serial")
 public abstract class BasePresenter<T extends BaseView> implements Serializable {
@@ -282,12 +272,11 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 		return rmModuleExtensions.getReportBuilderFactories();
 	}
 
-	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
-			final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
-		return presenterUtils.uploadContent(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
+		return presenterUtils.uploadContent(inputStream, options);
 	}
 
-	public List<String> getConceptsWithPermissionsForCurrentUser(String...permissions) {
+	public List<String> getConceptsWithPermissionsForCurrentUser(String... permissions) {
 		return presenterUtils.getConceptsWithPermissionsForCurrentUser(permissions);
 	}
 

@@ -426,8 +426,15 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
 		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
 		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
-		assertThat(contentManager.isParsed(docx2Hash)).isTrue();
+		assertThat(contentManager.isParsed(docx2Hash)).isFalse();
 
+		contentManager.handleRecordsMarkedForParsing();
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx2Hash)).isTrue();
 	}
 
 	@Test
@@ -458,8 +465,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
 		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
 		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
-		assertThat(contentManager.isParsed(docx1Hash)).isTrue();
+		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
 
+		contentManager.handleRecordsMarkedForParsing();
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx1Hash)).isTrue();
 	}
 
 	@Test
@@ -881,9 +894,9 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentRenamedTo("ZeDoc.docx").and().
 				hasItsContentUpdatedAndFinalized(alice, uploadDocx1InputStream()).and().isSaved();
 
-		assertThat(theRecordContent().getCurrentVersion()).has(docsMimetype()).has(filename("ZeDoc.docx")).has(
-				docx1HashAndLength()).has(
-				version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+		assertThat(theRecordContent().getCurrentVersion()).has(docsMimetype()).has(filename("ZeDoc.docx"))
+				.has(docx1HashAndLength())
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(docx1Hash, pdf1Hash);

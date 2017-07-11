@@ -654,7 +654,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				for (String availableVersion : availableVersions) {
 					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument,
 							CLASSIFY_DOCUMENT, availableVersion);
-					newVersionDataSummary = contentManager.upload(versionStream, false, true, connectorDocument.getTitle())
+
+					UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+							.setHandleDeletionOfUnreferencedHashes(false);
+					newVersionDataSummary = contentManager.upload(versionStream, options)
 							.getContentVersionDataSummary();
 					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}

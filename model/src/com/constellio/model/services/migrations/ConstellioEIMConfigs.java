@@ -101,7 +101,8 @@ public class ConstellioEIMConfigs {
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
-		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("asyncParsing", ParsingBehavior.class));
+		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
+				.withDefaultValue(ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS));
 		add(INCLUDE_CONTENTS_IN_SAVESTATE = others.createBooleanFalseByDefault("includeContentsInSavestate"));
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
 				.withDefaultValue("${firstName} ${lastName}"));

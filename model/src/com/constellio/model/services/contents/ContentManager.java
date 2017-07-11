@@ -281,13 +281,6 @@ public class ContentManager implements StatefulService {
 		return upload(inputStream, new UploadOptions(filename));
 	}
 
-	@Deprecated
-	public ContentVersionDataSummaryResponse upload(InputStream inputStream, boolean handleDeletionOfUnreferencedHashes,
-			boolean parse,
-			String fileName) {
-		return upload(inputStream, new UploadOptions(handleDeletionOfUnreferencedHashes, parse, false, fileName));
-	}
-
 	public ContentVersionDataSummaryResponse upload(InputStream inputStream, UploadOptions uploadOptions) {
 		String fileName = uploadOptions.getFileName();
 		boolean handleDeletionOfUnreferencedHashes = uploadOptions.isHandleDeletionOfUnreferencedHashes();
@@ -801,6 +794,9 @@ public class ContentManager implements StatefulService {
 			return fileName;
 		}
 
+		public static UploadOptions asFastAsPossible() {
+			return new UploadOptions().setParse(false).setHandleDeletionOfUnreferencedHashes(false);
+		}
 	}
 
 	public ParsedContentResponse buildParsedContentResponse(boolean hasFoundDuplicate, ParsedContent parsedContent) {
