@@ -138,7 +138,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 
 		String metadataTypeCode = SchemaUtils.getSchemaTypeCode(metadata.getSchemaCode());
 		for (Record cachedRecord : cache.values()) {
-			if (cachedRecord.getTypeCode().equals(metadataTypeCode)) {
+			if (metadataTypeCode.equals(cachedRecord.getTypeCode())) {
 				Object recordValue = cachedRecord.get(metadata);
 				if (recordValue != null && recordValue.equals(value)) {
 					return cachedRecord;
