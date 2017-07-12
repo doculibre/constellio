@@ -6,6 +6,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.sdk.tests.annotations.PreserveState;
@@ -45,6 +46,9 @@ public class ConstellioTest extends AbstractConstellioTest {
 			}
 
 			testSession.close(true, false);
+			DataLayerFactory.countInit = 0;
+			DataLayerFactory.countConstructor = 0;
+
 			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
 			try {
