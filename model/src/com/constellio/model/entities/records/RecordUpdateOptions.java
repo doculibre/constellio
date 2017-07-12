@@ -38,6 +38,8 @@ public class RecordUpdateOptions {
 
 	boolean allowSchemaTypeLockedRecordsModification = false;
 
+	private boolean troubleshooting = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -72,6 +74,8 @@ public class RecordUpdateOptions {
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
 		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
 		this.skipFindingRecordsToReindex = copy.skipFindingRecordsToReindex;
+
+		this.troubleshooting = copy.troubleshooting;
 	}
 
 	public boolean isSkipFindingRecordsToReindex() {
@@ -241,6 +245,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setCatchBrokenReferenceErrors(boolean catchBrokenReferenceErrors) {
 		this.catchBrokenReferenceErrors = catchBrokenReferenceErrors;
+		return this;
+	}
+
+	public boolean isTroubleshooting() {
+		return troubleshooting;
+	}
+
+	public RecordUpdateOptions setTroubleshooting(boolean troubleshooting) {
+		this.troubleshooting = troubleshooting;
 		return this;
 	}
 }

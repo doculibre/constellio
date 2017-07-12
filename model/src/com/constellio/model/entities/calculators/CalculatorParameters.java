@@ -17,15 +17,17 @@ public class CalculatorParameters {
 	final MetadataSchemaType schemaType;
 	final String id;
 	final String legacyId;
+	final CalculatorLogger calculatorLogger;
 
 	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId, MetadataSchemaType schemaType,
-			String collection) {
+			String collection, CalculatorLogger calculatorLogger) {
 		super();
 		this.values = values;
 		this.id = id;
 		this.schemaType = schemaType;
 		this.legacyId = legacyId;
 		this.collection = collection;
+		this.calculatorLogger = calculatorLogger;
 	}
 
 	public MetadataSchemaType getSchemaType() {
@@ -68,4 +70,12 @@ public class CalculatorParameters {
 	public String getLegacyId() {
 		return legacyId;
 	}
+
+	public CalculatorLogger getCalculatorLogger() {
+		return calculatorLogger;
+	}
+
+//	public boolean isTroubleshootingLogging() {
+//		return calculatorLogger != null && calculatorLogger.isTroubleshooting();
+//	}
 }

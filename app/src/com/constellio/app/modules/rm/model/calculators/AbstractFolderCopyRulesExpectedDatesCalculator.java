@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.model.calculators;
 
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDate;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.joda.time.LocalDate;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.CalculatorLogger;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
@@ -16,6 +19,7 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements MetadataValueCalculator<List<LocalDate>> {
+
 	LocalDependency<List<CopyRetentionRule>> applicableCopyRulesParam = LocalDependency
 			.toAStructure(Folder.APPLICABLE_COPY_RULES).whichIsMultivalue();
 
@@ -29,6 +33,11 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 	@Override
 	public List<LocalDate> calculate(CalculatorParameters parameters) {
 
+		CalculatorLogger logger = parameters.getCalculatorLogger();
+		if (logger.isTroubleshooting()) {
+			logger.log("Calcul des dates prévues pour tous les délais applicables");
+		}
+
 		List<CopyRetentionRule> applicableCopyRules = parameters.get(applicableCopyRulesParam);
 		String yearEnd = parameters.get(configYearEndParam);
 		int requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
@@ -36,14 +45,21 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 		List<LocalDate> result = new ArrayList<>();
 		for (int i = 0; i < applicableCopyRules.size(); i++) {
 			CopyRetentionRule applicableCopyRule = applicableCopyRules.get(i);
+			CalculatorLogger copyRuleLogger = new CopyRetentionRuleCalculatorLogger(logger, applicableCopyRule);
 			LocalDate copyRuleCalculedDate = calculateForCopyRule(i, applicableCopyRule, parameters);
 			if (copyRuleCalculedDate == null) {
 				result.add(null);
 			} else if (CalculatorUtils.isEndOfYear(copyRuleCalculedDate, yearEnd)) {
 				result.add(copyRuleCalculedDate);
 			} else {
-				result.add(CalculatorUtils.toNextEndOfYearDate(copyRuleCalculedDate, yearEnd, requiredDaysBeforeYearEnd,
-						addYearIfCalculationDateIsEndOfYearParam));
+				LocalDate endOfYearDate = toNextEndOfYearDate(copyRuleCalculedDate, yearEnd, requiredDaysBeforeYearEnd,
+						addYearIfCalculationDateIsEndOfYearParam);
+				result.add(endOfYearDate);
+				if (logger.isTroubleshooting()) {
+					if (!endOfYearDate.equals(copyRuleCalculedDate)) {
+						copyRuleLogger.log("La date est ajustée à la fin de l'année : " + endOfYearDate);
+					}
+				}
 			}
 		}
 

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.CalculatorLogger;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -208,17 +209,45 @@ public class RecordAutomaticMetadataServices {
 
 	void calculateValueInRecord(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
 			MetadataSchemaTypes types, RecordUpdateOptions options) {
-		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
-		Map<Dependency, Object> values = new HashMap<>();
+		final MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
+		final Map<Dependency, Object> values = new HashMap<>();
 		boolean requiredValuesDefined = addValuesFromDependencies(record, metadataWithCalculatedDataEntry, recordProvider,
 				calculator, values, types, options);
 
 		Object calculatedValue;
 		if (requiredValuesDefined) {
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
+
+			final boolean troubleshooting = options.isTroubleshooting();
+			CalculatorLogger logger = new CalculatorLogger() {
+
+				private boolean logged;
+
+				@Override
+				public boolean isTroubleshooting() {
+					return troubleshooting;
+				}
+
+				@Override
+				public void log(String log) {
+
+					if (!logged) {
+						logged = true;
+
+						LoggerFactory.getLogger(calculator.getClass()).info("==================================================");
+						for (Map.Entry<Dependency, Object> entry : values.entrySet()) {
+							LoggerFactory.getLogger(calculator.getClass()).info("==================================================");
+						}
+
+					}
+
+					LoggerFactory.getLogger(calculator.getClass()).info(log);
+				}
+			};
+
 			calculatedValue = calculator.calculate(
 					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
-							types.getSchemaType(record.getTypeCode()), record.getCollection()));
+							types.getSchemaType(record.getTypeCode()), record.getCollection(), logger));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}

@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.calculators.CalculatorLogger;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
@@ -51,8 +52,12 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 	@Override
 	protected LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule, CalculatorParameters parameters) {
 		CalculatorInput input = new CalculatorInput(parameters);
+		CalculatorLogger logger = new CopyRetentionRuleCalculatorLogger(parameters.getCalculatorLogger(), copyRule);
 
 		if (input.archivisticStatus.isInactive()) {
+			if (logger.isTroubleshooting()) {
+				logger.log("La date n'est pas calculée, car le dossier n'est pas inactif");
+			}
 			return null;
 		}
 
@@ -61,13 +66,20 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 		LocalDate baseTransferDate;
 		LocalDate expectedTransferDate = null;
 		if (copyRule.getInactiveDisposalType() != SORT && copyRule.getInactiveDisposalType() != disposalType) {
+			if (logger.isTroubleshooting()) {
+				logger.log("La date n'est pas calculée, car le délai inactif de la règle ne le permet pas.");
+			}
 			return null;
 
 		} else if (input.archivisticStatus.isSemiActive()) {
 			baseTransferDate = input.decommissioningDate;
 			LocalDate dateSpecifiedInCopyRule = input
-					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
+					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam), logger);
 			baseTransferDate = LangUtils.min(baseTransferDate, dateSpecifiedInCopyRule);
+
+			if (logger.isTroubleshooting()) {
+				logger.log("Le calcul est basé sur la date semi-active '" + baseTransferDate + "'");
+			}
 
 		} else {
 			if (!input.copyRulesExpectedTransferDate.isEmpty()) {
@@ -75,24 +87,37 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			}
 
 			LocalDate dateSpecifiedInCopyRule = input
-					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
+					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam), logger);
 			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
+				if (logger.isTroubleshooting()) {
+					logger.log("Le calcul est basé sur la date '" + baseTransferDate
+							+ "' de la métadonnée précisée dans le délai semi-actif");
+				}
 
 			} else if (expectedTransferDate == null && input.inactiveNumberOfYearWhenVariableDelayPeriod != -1) {
 				baseTransferDate = input.decommissioningDate;
+				if (logger.isTroubleshooting()) {
+					logger.log("Le calcul est basé sur la date d'ouverture/fermeture, selon la config : " + baseTransferDate);
+				}
 
 			} else if (expectedTransferDate == null && copyRule.getActiveRetentionPeriod().isFixed()) {
 				baseTransferDate = input.decommissioningDate;
+				if (logger.isTroubleshooting()) {
+					logger.log("Le calcul est basé sur la date d'ouverture/fermeture, selon la config : " + baseTransferDate);
+				}
 
 			} else {
 				baseTransferDate = expectedTransferDate;
+				if (logger.isTroubleshooting()) {
+					logger.log("Le calcul est basé sur la date de transfert prévue : " + baseTransferDate);
+				}
 			}
 
 		}
 
 		LocalDate calculatedInactiveDate = calculateExpectedInactiveDate(copyRule, baseTransferDate,
-				input.inactiveNumberOfYearWhenVariableDelayPeriod);
+				input.inactiveNumberOfYearWhenVariableDelayPeriod, logger);
 
 		if (calculatedInactiveDate == null) {
 			return null;
@@ -132,7 +157,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
-		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd) {
+		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd, CalculatorLogger logger) {
 			String semiActiveMetadata = copy.getSemiActiveDateMetadata();
 
 			if (semiActiveMetadata != null && semiActiveMetadata.equals(copy.getActiveDateMetadata())) {
@@ -146,7 +171,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 				} else {
 
 					if (!copy.isIgnoreActivePeriod()) {
-						date = calculateExpectedTransferDate(copy, date, semiActiveNumberOfYearWhenVariableDelayPeriod);
+						date = calculateExpectedTransferDate(copy, date, semiActiveNumberOfYearWhenVariableDelayPeriod, logger);
 					}
 					date = adjustToFinancialYear(date);
 					return date;

@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.CalculatorLogger;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -133,8 +134,10 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 		RetentionRuleScope retentionRuleScope;
 		String documentType;
+		CalculatorLogger logger;
 
 		public CalculatorInput(CalculatorParameters parameters) {
+			this.logger = parameters.getCalculatorLogger();
 			this.expectedTransferDate = parameters.get(expectedTransferDateParam);
 			this.folderOpenDate = parameters.get(folderOpenDateParam);
 			this.folderCloseDate = parameters.get(folderCloseDateParam);
@@ -153,7 +156,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 		}
 
 		LocalDate calculateSemiActiveBasedOn(LocalDate baseDate) {
-			return CalculatorUtils.calculateExpectedTransferDate(copy, baseDate, numberOfYearWhenSemiActiveVariableDelay);
+			return CalculatorUtils.calculateExpectedTransferDate(copy, baseDate, numberOfYearWhenSemiActiveVariableDelay, logger);
 		}
 
 		LocalDate adjustToFinancialYear(LocalDate date) {

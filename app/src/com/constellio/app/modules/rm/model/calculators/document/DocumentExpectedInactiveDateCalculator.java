@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.CalculatorLogger;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -49,7 +50,6 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 	LocalDependency<LocalDate> actualDestructionDateParam = LocalDependency.toADate(Document.FOLDER_ACTUAL_DESTRUCTION_DATE);
 
 	LocalDependency<CopyRetentionRule> copyParam = LocalDependency.toAStructure(Document.MAIN_COPY_RULE);
-
 
 	LocalDependency<FolderStatus> archivisticTypeParam = LocalDependency.toAnEnum(Document.FOLDER_ARCHIVISTIC_STATUS);
 
@@ -108,7 +108,7 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 				LocalDate baseDateFromDelay = input.getAdjustedBaseDateFromSemiActiveDelay(parameters.get(yearEndParam));
 				if (!input.copy.isIgnoreActivePeriod()) {
 					baseDateFromDelay = CalculatorUtils.calculateExpectedTransferDate(input.copy,
-							baseDateFromDelay, input.numberOfYearWhenSemiActiveVariableDelay);
+							baseDateFromDelay, input.numberOfYearWhenSemiActiveVariableDelay, parameters.getCalculatorLogger());
 				}
 				baseDate = max(transferDate, baseDateFromDelay);
 				return input.calculateInactiveBasedOn(baseDate);
@@ -176,8 +176,10 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 		RetentionRuleScope retentionRuleScope;
 		String documentType;
+		CalculatorLogger logger;
 
 		public CalculatorInput(CalculatorParameters parameters) {
+			this.logger = parameters.getCalculatorLogger();
 			this.expectedTransferDate = parameters.get(expectedTransferDateParam);
 			this.folderOpenDate = parameters.get(folderOpenDateParam);
 			this.folderCloseDate = parameters.get(folderCloseDateParam);
@@ -202,7 +204,7 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 		}
 
 		LocalDate calculateInactiveBasedOn(LocalDate baseDate) {
-			return CalculatorUtils.calculateExpectedInactiveDate(copy, baseDate, numberOfYearWhenInactiveVariableDelay);
+			return CalculatorUtils.calculateExpectedInactiveDate(copy, baseDate, numberOfYearWhenInactiveVariableDelay, logger);
 		}
 
 		LocalDate adjustToFinancialYear(LocalDate date) {
