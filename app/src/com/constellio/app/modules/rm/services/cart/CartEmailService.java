@@ -1,50 +1,51 @@
 package com.constellio.app.modules.rm.services.cart;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.cart.CartEmlServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
+import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailServices;
+import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.emails.EmailServices.MessageAttachment;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 
-public class CartEmlService {
-	private static final String TMP_EML_FILE = "CartEmlService-emlFile";
+public class CartEmailService {
+	private static final String TMP_EML_FILE = "CartEmailService-emlFile";
 
 	private final RMSchemasRecordsServices rm;
 	private final IOServices ioServices;
 	private final ContentManager contentManager;
 	private File newTempFolder;
 
-	public CartEmlService(String collection, ModelLayerFactory modelLayerFactory) {
+	public CartEmailService(String collection, ModelLayerFactory modelLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.contentManager = modelLayerFactory.getContentManager();
 	}
 
-	public InputStream createEmlForCart(Cart cart) {
+	public EmailMessage createEmailForCart(Cart cart) {
 		try {
 			newTempFolder = ioServices.newTemporaryFile(TMP_EML_FILE);
-			return createEmlForCart(cart, newTempFolder);
+			return createEmailForCart(cart, newTempFolder);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -52,20 +53,26 @@ public class CartEmlService {
 		}
 	}
 
-	InputStream createEmlForCart(Cart cart, File emlFile) {
-		try {
-			OutputStream outputStream = new FileOutputStream(emlFile);
+	EmailMessage createEmailForCart(Cart cart, File messageFile) {
+		try (OutputStream outputStream = ioServices.newFileOutputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.out")) {
 			User user = rm.getUser(cart.getOwner());
 			String signature = getSignature(user);
 			String subject = "";
 			String from = user.getEmail();
 			List<MessageAttachment> attachments = getAttachments(cart);
-			Message message = new EmailServices().createMessage(from, subject, signature, attachments);
-			message.addHeader("X-Unsent", "1");
-			message.writeTo(outputStream);
-			IOUtils.closeQuietly(outputStream);
-			closeAllInputStreams(attachments);
-			return new FileInputStream(emlFile);
+			
+			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage("cart", signature, subject, from, attachments);
+			if (emailMessage == null) {
+				EmailServices emailServices = new EmailServices();
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);
+				message.writeTo(outputStream);
+				String filename = "cart.eml";
+				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");
+				emailMessage = new EmailMessage(filename, inputStream);
+				closeAllInputStreams(attachments);
+			}
+			return emailMessage;
 		} catch (MessagingException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
