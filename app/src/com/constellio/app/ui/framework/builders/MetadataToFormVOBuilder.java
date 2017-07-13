@@ -11,11 +11,13 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 @SuppressWarnings("serial")
@@ -79,10 +81,14 @@ public class MetadataToFormVOBuilder implements Serializable {
 
 		boolean duplicable = metadata.isDuplicable();
 
-		return new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable, multivalue, sortable,
+		FormMetadataVO formMetadataVO = new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable, multivalue, sortable,
 				advancedSearch, facet, entry, displayType, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask,
 				duplicable,
 				sessionContext);
+		if(metadata.getInheritance() != null) {
+			formMetadataVO.setInheritance(this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode,sessionContext ));
+		}
+		return formMetadataVO;
 	}
 
 	private String getValidMetadataGroup(String metadataGroupCode, SchemaTypeDisplayConfig config) {

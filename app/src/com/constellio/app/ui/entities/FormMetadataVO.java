@@ -9,7 +9,6 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.google.gwt.dom.client.Style;
 
 @SuppressWarnings("serial")
 public class FormMetadataVO implements Serializable {
@@ -35,6 +34,7 @@ public class FormMetadataVO implements Serializable {
 	String inputMask;
 	String currentLanguageCode;
 	boolean duplicable;
+	FormMetadataVO inheritance;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
 						  Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
@@ -67,6 +67,7 @@ public class FormMetadataVO implements Serializable {
 		this.inputMask = inputMask;
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = duplicable;
+		this.inheritance = null;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -92,6 +93,7 @@ public class FormMetadataVO implements Serializable {
 		this.inputMask = "";
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = false;
+		this.inheritance = null;
 	}
 
 	public String getCode() {
@@ -121,6 +123,7 @@ public class FormMetadataVO implements Serializable {
 	public boolean isFacet() {
 		return facet;
 	}
+
 
 	public String getReference() {
 		return reference;
@@ -156,6 +159,18 @@ public class FormMetadataVO implements Serializable {
 
 	public boolean isEnabled() {
 		return enabled;
+	}
+
+	public FormMetadataVO getInheritance() {
+		return this.inheritance;
+	}
+
+	public boolean isInheritance() {
+		return this.getInheritance() != null;
+	}
+
+	public void setInheritance(FormMetadataVO inheritance) {
+		this.inheritance = inheritance;
 	}
 
 	public Map<String, String> getLabels() {
