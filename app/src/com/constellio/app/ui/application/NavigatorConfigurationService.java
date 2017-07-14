@@ -28,6 +28,9 @@ import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
+import com.constellio.app.ui.pages.management.Report.AddEditPrintableReportViewImpl;
+import com.constellio.app.ui.pages.management.Report.DisplayPrintableReportViewImpl;
+import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
@@ -158,6 +161,9 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LABEL_AJOUT = "addLabel";
 	public static final String LABEL_VIEW = "viewLabel";
 	public static final String REPORT_VIEW = "viewReport";
+	public static final String PRINTABLE_REPORT_VIEW = "printableReportView";
+	public static final String PRINTABLE_REPORT_ADD = "pritnableReportAdd";
+	public static final String PRINTABLE_REPORT_MANAGE = "printableReportManage";
 
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
@@ -273,6 +279,9 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LABEL_CONFIG, ListLabelViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LABEL_AJOUT, AddEditLabelViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LABEL_VIEW, LabelViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PRINTABLE_REPORT_MANAGE, ListPrintableReportViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PRINTABLE_REPORT_ADD, AddEditPrintableReportViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PRINTABLE_REPORT_VIEW, DisplayPrintableReportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORT_VIEW, ReportConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
 	}

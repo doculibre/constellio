@@ -7,7 +7,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportField;
-import com.constellio.app.modules.rm.services.reports.ReportUtils;
+import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -207,12 +207,12 @@ public class LabelsButton extends WindowButton {
                 Object ob = formatField.getValue();
                 if (ob instanceof PrintableLabel) {
                     PrintableLabel selected = (PrintableLabel) formatField.getValue();
-                    ReportUtils ru = new ReportUtils(collection, appLayerFactory, user);
+                    ReportXMLGenerator reportXmlGenerator = new ReportXMLGenerator(collection, appLayerFactory, user);
                     try {
                         if ((Integer) startPositionField.getValue() > size) {
                             throw new Exception($("ButtonLabel.error.posisbiggerthansize"));
                         }
-                        ru.setStartingPosition((Integer) startPositionField.getValue() - 1);
+                        reportXmlGenerator.setStartingPosition((Integer) startPositionField.getValue() - 1);
                         String number = copiesField.getValue();
                         number = number.replace(" ", "");
                         int numberOfCopies = Integer.parseInt(number);
@@ -220,14 +220,14 @@ public class LabelsButton extends WindowButton {
                             showErrorMessage($("LabelsButton.cannotPrint1000Labels"));
                             return;
                         }
-                        ru.setNumberOfCopies(numberOfCopies);
-                        String xml = type.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, (ReportField[]) null) : ru.convertContainerWithIdentifierToXML(ids, null);
+                        reportXmlGenerator.setNumberOfCopies(numberOfCopies);
+                        String xml = type.equals(Folder.SCHEMA_TYPE) ? reportXmlGenerator.convertFolderWithIdentifierToXML(ids, (ReportField[]) null) : reportXmlGenerator.convertContainerWithIdentifierToXML(ids, null);
                         Content content = selected.get(PrintableLabel.JASPERFILE);
                         InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
                         FileUtils.copyInputStreamToFile(inputStream, new File("jasper.jasper"));
                         File file = new File("jasper.jasper");
-                        Content c = ru.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
-                        getWindow().setContent(new LabelViewer(c, ReportUtils.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf"));
+                        File c = reportXmlGenerator.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
+                        getWindow().setContent(new LabelViewer(c, ReportXMLGenerator.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf"));
                         Page.getCurrent().getJavaScript().execute("$('iframe').find('#print').remove()");
                         getWindow().setHeight("90%");
                         getWindow().center();

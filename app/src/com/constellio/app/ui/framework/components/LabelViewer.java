@@ -2,10 +2,7 @@ package com.constellio.app.ui.framework.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -24,21 +21,21 @@ import com.vaadin.ui.VerticalLayout;
 public class LabelViewer extends VerticalLayout {
     private ContentManager contentManager;
 
-    public LabelViewer(Content PDF, String filename) {
-        contentManager = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory().getContentManager();
-        StreamSource source = buildSource(PDF);
+    public LabelViewer(File PDF, String filename) {
+            ModelLayerFactory model = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory();
+            contentManager = model.getContentManager();
+            StreamSource source = buildSource(PDF);
+            BrowserFrame viewer = new BrowserFrame();
+            viewer.setSource(new StreamResource(source, filename));
 
-        BrowserFrame viewer = new BrowserFrame();
-        viewer.setSource(new StreamResource(source, filename));
+            viewer.setWidth("100%");
+            viewer.setHeight("1024px");
 
-        viewer.setWidth("100%");
-        viewer.setHeight("1024px");
+            Link download = new Link($("ReportViewer.download", filename),
+                    new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
 
-        Link download = new Link($("ReportViewer.download", filename),
-                new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
-
-        addComponents(download, viewer);
-        setWidth("100%");
+            addComponents(download, viewer);
+            setWidth("100%");
     }
 
     static String getMimeTypeFromFileName(String filename) {
@@ -76,11 +73,16 @@ public class LabelViewer extends VerticalLayout {
         };
     }
 
-    private StreamSource buildSource(final Content PDF) {
+    private StreamSource buildSource(final File PDF) {
         return new StreamSource() {
             @Override
             public InputStream getStream() {
-                return contentManager.getContentInputStream(PDF.getCurrentVersion().getHash(), PDF.getId());
+                try{
+                    return new FileInputStream(PDF);
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
         };
     }

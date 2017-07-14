@@ -15,8 +15,10 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,6 +31,7 @@ import java.util.List;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 import static java.util.Arrays.asList;
 
@@ -117,6 +120,12 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	public void closeButtonClicked(RecordVO entity) {
 		taskPresenterServices.closeTask(toRecord(entity), getCurrentUser());
 		reloadCurrentTask();
+	}
+
+	@Override
+	public void generateReportButtonClicked(RecordVO recordVO) {
+		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleView.TASK, recordVO);
+		button.click();
 	}
 
 	@Override
@@ -240,6 +249,11 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	@Override
 	public boolean isDeleteButtonVisible(RecordVO entity) {
 		return taskPresenterServices.isDeleteTaskButtonVisible(toRecord(entity), getCurrentUser());
+	}
+
+	@Override
+	public boolean isMetadataReportAllowed(RecordVO recordVO) {
+		return true;
 	}
 
 	public String getTaskTitle() {

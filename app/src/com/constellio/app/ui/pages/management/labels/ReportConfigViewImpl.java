@@ -22,8 +22,9 @@ public class ReportConfigViewImpl extends BaseViewImpl {
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         CssLayout layout = new CssLayout();
         Button manageLabels = newLabelManagementLink();
+        Button managePrintableReport = newPrintableReportManagementLink();
         layout.addComponents(manageLabels);
-
+        layout.addComponent(managePrintableReport);
         return layout;
     }
 
@@ -35,6 +36,16 @@ public class ReportConfigViewImpl extends BaseViewImpl {
                 navigate().to().manageLabels();
             }
         }, "labels");
+    }
+
+    private Button newPrintableReportManagementLink() {
+        return createLink($("PrintableReport.title"), new Button.ClickListener() {
+
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigate().to().managePrintableReport();
+            }
+        }, "report-print");
     }
 
     private Button createLink(String caption, final Button.ClickListener listener, String iconName) {

@@ -37,6 +37,7 @@ public class FormMetadataVO implements Serializable {
 	String currentLanguageCode;
 	boolean duplicable;
 	Set<String> customAttributes;
+	FormMetadataVO inheritance;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
 			Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
@@ -72,6 +73,7 @@ public class FormMetadataVO implements Serializable {
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = duplicable;
 		this.customAttributes = new HashSet<>(customAttributes);
+		this.inheritance = null;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -98,6 +100,7 @@ public class FormMetadataVO implements Serializable {
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = false;
 		this.customAttributes = new HashSet<>();
+		this.inheritance = null;
 	}
 
 	public String getCode() {
@@ -127,6 +130,7 @@ public class FormMetadataVO implements Serializable {
 	public boolean isFacet() {
 		return facet;
 	}
+
 
 	public String getReference() {
 		return reference;
@@ -162,6 +166,18 @@ public class FormMetadataVO implements Serializable {
 
 	public boolean isEnabled() {
 		return enabled;
+	}
+
+	public FormMetadataVO getInheritance() {
+		return this.inheritance;
+	}
+
+	public boolean isInheritance() {
+		return this.getInheritance() != null;
+	}
+
+	public void setInheritance(FormMetadataVO inheritance) {
+		this.inheritance = inheritance;
 	}
 
 	public Map<String, String> getLabels() {

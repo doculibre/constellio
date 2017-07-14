@@ -14,6 +14,8 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -33,6 +35,7 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
@@ -79,7 +82,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton;
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
@@ -336,8 +339,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 		try {
-			printLabelButton = new LabelsButton($("DisplayFolderView.printLabel"),
-					$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), Folder.SCHEMA_TYPE, recordVO.getId(), getSessionContext().getCurrentUser().getUsername());
+			printLabelButton = new LabelButtonV2($("DisplayFolderView.printLabel"),
+					$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), recordVO);
 		} catch (Exception e) {
 			showErrorMessage(e.getMessage());
 		}
@@ -359,6 +362,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				presenter.alertWhenAvailable();
 			}
 		};
+
+		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleView.FOLDER,  getRecord());
 
 		startWorkflowButton = new StartWorkflowButton();
 		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
@@ -386,6 +391,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 		if(!isAFolderAndDestroyed) {
 			actionMenuButtons.add(printLabelButton);
+			actionMenuButtons.add(reportGeneratorButton);
 			actionMenuButtons.add(borrowButton);
 		}
 			actionMenuButtons.add(returnFolderButton);

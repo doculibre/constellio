@@ -79,7 +79,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		FormMetadataVO found = null;
 
 		if (metadataCode == null || metadataCode.isEmpty()) {
-			return found;
+			return null;
 		}
 
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
@@ -92,6 +92,10 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		return found;
+	}
+
+	public FormMetadataVO getParentFormMetadataVO() {
+		return getFormMetadataVO().getInheritance();
 	}
 
 	public boolean isInherited(String metadataCode) {
@@ -252,6 +256,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			String localCode = code.substring(code.lastIndexOf("_") + 1);
 			if (defaultSchemaBuilder.hasMetadata(localCode)) {
 				defaultSchemaBuilder.getMetadata(localCode).setInputMask(formMetadataVO.getInputMask());
+				defaultSchemaBuilder.get(localCode).setSearchable(formMetadataVO.isSearchable());
 			}
 		}
 

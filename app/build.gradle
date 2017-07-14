@@ -75,6 +75,7 @@ dependencies {
     compile "nl.bitwalker:UserAgentUtils:1.2.4"
     compile "org.jasig.cas:cas-client-core:3.1.10"
     compile 'net.sf.jasperreports:jasperreports:6.4.0'
+    compile 'net.sourceforge.barbecue:barbecue:1.5-beta1'
 }
 
 war {

@@ -2,7 +2,7 @@ package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.ReportUtils;
+import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
@@ -52,7 +52,7 @@ public class GetXMLButton extends WindowButton {
     private List<String> ids;
     private AppLayerFactory factory;
     private ContentManager contentManager;
-    private ReportUtils ru;
+    private ReportXMLGenerator reportXmlGenerator;
     private BaseView view;
     private String currentSchema;
 
@@ -64,7 +64,7 @@ public class GetXMLButton extends WindowButton {
         this.ss = model.newSearchServices();
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
-        this.ru = new ReportUtils(collection, factory, view.getSessionContext().getCurrentUser().getUsername());
+        this.reportXmlGenerator = new ReportXMLGenerator(collection, factory, view.getSessionContext().getCurrentUser().getUsername());
         this.view = view;
         this.currentSchema = Folder.SCHEMA_TYPE;
     }
@@ -100,7 +100,7 @@ public class GetXMLButton extends WindowButton {
                         }
                     }
 
-                    String xml = currentSchema.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, null) : ru.convertContainerWithIdentifierToXML(ids, null);
+                    String xml = currentSchema.equals(Folder.SCHEMA_TYPE) ? reportXmlGenerator.convertFolderWithIdentifierToXML(ids, null) : reportXmlGenerator.convertContainerWithIdentifierToXML(ids, null);
                     //Embedded viewer = new Embedded();
                     StreamResource source = createResource(xml, filename);
 //                    viewer.setSource(source);

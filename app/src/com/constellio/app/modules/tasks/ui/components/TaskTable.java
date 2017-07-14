@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.model.entities.records.Record;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -103,6 +104,15 @@ public class TaskTable extends RecordVOTable {
 						}
 					}).setEnabled(presenter.isDeleteButtonEnabled(recordVO));
 				}
+
+				if(presenter.isMetadataReportAllowed(recordVO)) {
+					rootItem.addItem($("TaskTable.reportMetadata"), FontAwesome.LIST_ALT, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.generateReportButtonClicked(recordVO);
+						}
+					});
+				}
 				
 				return menuBar;
 			}
@@ -123,6 +133,8 @@ public class TaskTable extends RecordVOTable {
 
 		void closeButtonClicked(RecordVO record);
 
+		void generateReportButtonClicked(RecordVO recordVO);
+
 		boolean isTaskOverdue(TaskVO taskVO);
 
 		boolean isFinished(TaskVO taskVO);
@@ -140,6 +152,8 @@ public class TaskTable extends RecordVOTable {
 		boolean isDeleteButtonEnabled(RecordVO recordVO);
 		
 		boolean isDeleteButtonVisible(RecordVO recordVO);
+
+		boolean isMetadataReportAllowed(RecordVO recordVO);
 		
 	}
 

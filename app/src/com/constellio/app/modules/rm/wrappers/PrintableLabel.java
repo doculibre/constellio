@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.app.modules.reports.wrapper.Printable;
+import com.constellio.app.modules.rm.ui.components.Dimensionnable;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
@@ -9,7 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
  *
  * @author Nicolas D'Amours & Charles Blanchette.
  */
-public class PrintableLabel extends Printable {
+public class PrintableLabel extends Printable implements Dimensionnable {
 
     public PrintableLabel(Record record, MetadataSchemaTypes type) {
         super(record, type);
@@ -30,10 +31,15 @@ public class PrintableLabel extends Printable {
     }
 
     public int getColonne() {
-        return get(COLONNE);
+        return  ((Double) get(COLONNE)).intValue();
     }
 
     public int getLigne() {
-        return get(LIGNE);
+        return ((Double) get(LIGNE)).intValue();
+    }
+
+    @Override
+    public int getDimension() {
+        return this.getColonne() * this.getLigne();
     }
 }

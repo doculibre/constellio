@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -94,7 +93,7 @@ public class ContainersButton extends WindowButton {
 		LOGGER.warn(e.getMessage(), e);
 	}
 
-	public static interface ContainersAssigner extends Serializable, RecordSelector {
+	public static interface ContainersAssigner extends Serializable {
 		void putRecordsInContainer(String containerId);
 	}
 

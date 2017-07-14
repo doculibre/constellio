@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.services.migrations.ConstellioEIM;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -382,6 +386,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	ComponentState getPrintButtonState(User user, Folder folder) {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		AppLayerCollectionExtensions appLayerCollectionExtensions = appLayerFactory.getExtensions().forCollection(collection);
+		RMModuleExtensions rmModuleExtensions = appLayerCollectionExtensions.forModule(ConstellioRMModule.ID);
 		if (authorizationsServices.canRead(user, folder.getWrappedRecord())) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
@@ -397,6 +403,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				}
 				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
 			}
+//			if(rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue() == null) {
+//				return ComponentState.DISABLED;
+//			}
 			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
