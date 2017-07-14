@@ -429,7 +429,8 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		return !Strings.isNullOrEmpty(multivalue) && Boolean.parseBoolean(multivalue);
 	}
 
-	private XMLStreamReader newXMLStreamReader(Reader reader) {
+	private XMLStreamReader
+	newXMLStreamReader(Reader reader) {
 		try {
 			//			return XMLInputFactory.newInstance().createXMLStreamReader(reader);
 			XMLInputFactory factory = XMLInputFactory.newInstance();

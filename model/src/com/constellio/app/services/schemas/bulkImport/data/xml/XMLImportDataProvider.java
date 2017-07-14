@@ -95,9 +95,13 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	public int size(String schemaType) {
 		int size = 0;
 		ImportDataIterator iterator = newDataIterator(schemaType);
-		while (iterator.hasNext()) {
-			iterator.next();
-			size++;
+		try {
+			while (iterator.hasNext()) {
+				iterator.next();
+				size++;
+			}
+		} finally{
+			iterator.close();
 		}
 		return size;
 	}
