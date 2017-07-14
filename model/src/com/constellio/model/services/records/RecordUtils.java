@@ -37,7 +37,7 @@ public class RecordUtils {
 	}
 
 	public static long estimateRecordSize(Record record) {
-		if (record == null) {
+		if (record == null || !(record instanceof RecordImpl)) {
 			return 0;
 		}
 		RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
@@ -48,18 +48,19 @@ public class RecordUtils {
 
 		long size = 0;
 
-		if (recordDTO.getCopyFields() != null) {
-			for (Object object : recordDTO.getCopyFields().values()) {
-				size += sizeOf(object);
-			}
+		if (recordDTO != null) {
+			if (recordDTO.getCopyFields() != null) {
+				for (Object object : recordDTO.getCopyFields().values()) {
+					size += sizeOf(object);
+				}
 
-		}
-		if (recordDTO.getFields() != null) {
-			for (Object object : recordDTO.getFields().values()) {
-				size += sizeOf(object);
+			}
+			if (recordDTO.getFields() != null) {
+				for (Object object : recordDTO.getFields().values()) {
+					size += sizeOf(object);
+				}
 			}
 		}
-
 		return size;
 	}
 

@@ -1,10 +1,10 @@
 package com.constellio.app.ui.pages.imports;
 
-import java.io.File;
-import java.util.List;
-
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+
+import java.io.File;
+import java.util.List;
 
 public interface ImportFileView extends BaseView, AdminViewGroup {
 
@@ -20,4 +20,5 @@ public interface ImportFileView extends BaseView, AdminViewGroup {
 
 	ImportFileMode getImportFileMode();
 
+	boolean isAllowingReferencesToNonExistingUsers();
 }

@@ -26,6 +26,9 @@ public class ConstellioEIMConfigs {
 	public static List<SystemConfiguration> configurations;
 
 	//Retention calendar configs
+
+	public static final SystemConfiguration INCLUDE_CONTENTS_IN_SAVESTATE;
+
 	public static final SystemConfiguration USER_TITLE_PATTERN;
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
@@ -95,6 +98,7 @@ public class ConstellioEIMConfigs {
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
+		add(INCLUDE_CONTENTS_IN_SAVESTATE = others.createBooleanFalseByDefault("includeContentsInSavestate"));
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
 				.withDefaultValue("${firstName} ${lastName}"));
 
@@ -302,6 +306,10 @@ public class ConstellioEIMConfigs {
 
 	public int getLazyTreeBufferSize() {
 		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
+	}
+
+	public boolean isIncludeContentsInSavestate() {
+		return manager.getValue(INCLUDE_CONTENTS_IN_SAVESTATE);
 	}
 
 	public boolean isReplaceSpacesInSimpleSearchForAnds() {

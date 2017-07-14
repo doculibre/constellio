@@ -242,6 +242,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@org.junit.Before
 	public void logTest() {
+		DataLayerFactory.countInit = 0;
+		DataLayerFactory.countConstructor = 0;
+
 		if (LOGGER == null) {
 			LOGGER = LoggerFactory.getLogger(getClass());
 		}
@@ -1155,7 +1158,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.users != null) {
 					preparator.users.setUp(getModelLayerFactory().newUserServices());
 				}
+				for (Class<? extends InstallableModule> pluginClass : preparator.plugins) {
+					givenInstalledModule(pluginClass);
+				}
 			}
+
 		} else {
 
 			stateFolder.mkdirs();
@@ -1213,6 +1220,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 					}
 				}
 
+				for (Class<? extends InstallableModule> pluginClass : preparator.plugins) {
+					givenInstalledModule(pluginClass);
+				}
+
 			}
 			if (mode.isEnabled()) {
 				try {
@@ -1256,6 +1267,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		List<String> modules = new ArrayList<>();
 
+		List<Class<? extends InstallableModule>> plugins = new ArrayList<>();
+
 		public CollectionPreparator(String collection) {
 			this.collection = collection;
 		}
@@ -1281,6 +1294,15 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		public CollectionPreparator withRobotsModule() {
 			modules.add(ConstellioRobotsModule.ID);
 			Collections.sort(modules);
+			return this;
+		}
+
+		public CollectionPreparator withPlugins(Class<?>... pluginsToAdd) {
+
+			for (Class<?> plugin : pluginsToAdd) {
+				plugins.add((Class<? extends InstallableModule>) plugin);
+			}
+
 			return this;
 		}
 
@@ -1366,6 +1388,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				return false;
 			}
 
+			if (!plugins.equals(that.plugins)) {
+				return false;
+			}
+
 			return true;
 		}
 
@@ -1380,6 +1406,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			result = 31 * result + (allTestUsers ? 1 : 0);
 			result = 31 * result + collection.hashCode();
 			result = 31 * result + modules.hashCode();
+			result = 31 * result + plugins.hashCode();
 			return result;
 		}
 	}

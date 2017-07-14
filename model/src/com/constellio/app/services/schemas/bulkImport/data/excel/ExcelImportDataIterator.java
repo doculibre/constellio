@@ -280,7 +280,11 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 		if (cell.isDate()) {
 			Date date = cell.getDate();
 			DateTime dateTime = new DateTime(date).withZone(DateTimeZone.UTC);
-			return dateTime.toLocalDate();
+			if("dateTime".equals(type.getDateType())) {
+				return dateTime.toLocalDateTime();
+			} else {
+				return dateTime.toLocalDate();
+			}
 		} else {
 			return readValue(cellContent, type);
 		}
