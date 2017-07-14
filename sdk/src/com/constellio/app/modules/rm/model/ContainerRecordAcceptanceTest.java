@@ -4,6 +4,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,6 +17,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+
+import java.util.Arrays;
 
 public class ContainerRecordAcceptanceTest extends ConstellioTest {
 
@@ -48,7 +51,8 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 	public ContainerRecord buildContainerRecord() {
 		String type = searchServices.searchRecordIds(from(rm.containerRecordTypeSchemaType()).returnAll()).get(0);
 		ContainerRecord containerRecord = rm.newContainerRecord().setTitle("storageTest");
-		containerRecord.setIdentifier(containerRecord.getId()).setType(type);
+		containerRecord.setIdentifier(containerRecord.getId()).setType(type).setAdministrativeUnits(Arrays.asList(records.unitId_10a))
+				.setDecommissioningType(DecommissioningType.DEPOSIT);
 		return containerRecord;
 	}
 

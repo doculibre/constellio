@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.*;
@@ -238,6 +239,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		String containerRecordType = records.getContainerBac01().getType();
 
 		ContainerRecord containerRecord = rm.newContainerRecord().setTitle("ze container").setTemporaryIdentifier("42")
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT)
 				.setType(containerRecordType);
 		containerRecord.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, null);
 		DecomListContainerDetail decomListContainerDetail = new DecomListContainerDetail(containerRecord.getId());
