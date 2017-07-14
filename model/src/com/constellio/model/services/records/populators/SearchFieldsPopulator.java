@@ -1,5 +1,14 @@
 package com.constellio.model.services.records.populators;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -15,10 +24,6 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.records.FieldsPopulator;
 import com.constellio.model.services.records.RecordUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -114,7 +119,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	private void addFilenameAndParsedContent(ContentVersion currentVersion, KeyListMap<String, Object> keyListMap, String code) {
 		try {
-			ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
+			ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(currentVersion.getHash());
 
 			String contentLanguage = null;
 			if (collectionLanguages.size() == 1) {
@@ -187,16 +192,16 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableNumberMetadata(String value,
-																					  String copiedMetadataCodePrefix) {
+			String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
 		String valueLanguage = collectionLanguages.get(0);
-		if(!prefix.endsWith("_")) {
+		if (!prefix.endsWith("_")) {
 			prefix += "_";
 		}
 		int index = prefix.lastIndexOf("d_");
-		if(prefix.endsWith("d_")) {
-			prefix = new StringBuilder(prefix).replace(index, index+2,"t_").toString();
+		if (prefix.endsWith("d_")) {
+			prefix = new StringBuilder(prefix).replace(index, index + 2, "t_").toString();
 		}
 
 		Map<String, Object> copyfields = new HashMap<>();
@@ -213,16 +218,16 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableDateMetadata(Object value,
-																						String copiedMetadataCodePrefix) {
+			String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
 		String valueLanguage = collectionLanguages.get(0);
-		if(!prefix.endsWith("_")) {
+		if (!prefix.endsWith("_")) {
 			prefix += "_";
 		}
 		int index = prefix.lastIndexOf("da_");
-		if(prefix.endsWith("da_")) {
-			prefix = new StringBuilder(prefix).replace(index, index+3,"t_").toString();
+		if (prefix.endsWith("da_")) {
+			prefix = new StringBuilder(prefix).replace(index, index + 3, "t_").toString();
 		}
 
 		Map<String, Object> copyfields = new HashMap<>();
@@ -239,19 +244,19 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableDateMetadata(List<String> values,
-																					   String copiedMetadataCodePrefix) {
+			String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
 		String valueLanguage = collectionLanguages.get(0);
-		if(!prefix.contains("_")) {
+		if (!prefix.contains("_")) {
 			prefix += "_txt_";
 		}
-		if(!prefix.endsWith("_")) {
+		if (!prefix.endsWith("_")) {
 			prefix += "_";
 		}
 		int index = prefix.lastIndexOf("da_");
-		if(prefix.endsWith("da_")) {
-			prefix = new StringBuilder(prefix).replace(index, index+3,"txt_").toString();
+		if (prefix.endsWith("da_")) {
+			prefix = new StringBuilder(prefix).replace(index, index + 3, "txt_").toString();
 		}
 
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
@@ -273,19 +278,19 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableNumberMetadata(List<String> values,
-																					 String copiedMetadataCodePrefix) {
+			String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
 		String valueLanguage = collectionLanguages.get(0);
-		if(!prefix.contains("_")) {
+		if (!prefix.contains("_")) {
 			prefix += "_txt_";
 		}
-		if(!prefix.endsWith("_")) {
+		if (!prefix.endsWith("_")) {
 			prefix += "_";
 		}
 		int index = prefix.lastIndexOf("d_");
-		if(prefix.endsWith("d_")) {
-			prefix = new StringBuilder(prefix).replace(index, index+2,"txt_").toString();
+		if (prefix.endsWith("d_")) {
+			prefix = new StringBuilder(prefix).replace(index, index + 2, "txt_").toString();
 		}
 
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
@@ -334,7 +339,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		for (Content value : values) {
 			ContentVersion currentVersion = value.getCurrentVersion();
 			try {
-				ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
+				ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(currentVersion.getHash());
 
 				String contentLanguage = null;
 				if (collectionLanguages.size() == 1) {

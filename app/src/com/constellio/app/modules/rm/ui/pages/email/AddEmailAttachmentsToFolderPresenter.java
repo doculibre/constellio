@@ -1,5 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.email;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -14,22 +23,15 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import org.apache.commons.io.IOUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresenter<AddEmailAttachmentsToFolderView> {
 
-    private String userDocumentId;
+	private String userDocumentId;
 
 	private transient RecordServices recordServices;
 
@@ -91,7 +93,8 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 					try {
 						Document attachmentDocument = rmSchemasRecordsServices.newDocument();
 						attachmentDocument.setTitle(attachmentFilename);
-						ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(attachmentIn, true, true, attachmentFilename);
+						UploadOptions options = new UploadOptions().setFileName(attachmentFilename);
+						ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(attachmentIn, options);
 						ContentVersionDataSummary attachmentSummary = uploadResponse.getContentVersionDataSummary();
 						Content attachmentContent = contentManager
 								.createMajor(getCurrentUser(), attachmentFilename, attachmentSummary);
@@ -102,10 +105,10 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 						view.showErrorMessage(MessageUtils.toMessage(e));
 						noExceptionDisplayed = false;
 					} catch (final IcapException e) {
-                        view.showErrorMessage(e.getMessage());
+						view.showErrorMessage(e.getMessage());
 
 						noExceptionDisplayed = false;
-					}finally {
+					} finally {
 						IOUtils.closeQuietly(attachmentIn);
 					}
 				}

@@ -1,5 +1,24 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
+import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConnectorHelper.ClassifiedRecordPathInfo;
@@ -26,10 +45,15 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -40,20 +64,6 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
 
 public class ClassifyConnectorRecordInTaxonomyExecutor {
 
@@ -394,7 +404,6 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 		}
 
-
 		try {
 			transaction.add(rmDocument);
 			recordServices.validateRecordInTransaction(rmDocument.getWrappedRecord(), transaction);
@@ -645,7 +654,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				for (String availableVersion : availableVersions) {
 					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument,
 							CLASSIFY_DOCUMENT, availableVersion);
-					newVersionDataSummary = contentManager.upload(versionStream, false, true, connectorDocument.getTitle()).getContentVersionDataSummary();
+
+					UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+							.setHandleDeletionOfUnreferencedHashes(false);
+					newVersionDataSummary = contentManager.upload(versionStream, options)
+							.getContentVersionDataSummary();
 					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {
@@ -659,7 +672,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					version = (majorVersions ? "1.0" : "0.1");
 				}
 
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle()).getContentVersionDataSummary();
+				UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+						.setHandleDeletionOfUnreferencedHashes(false);
+				newVersionDataSummary = contentManager.upload(inputStream, options).getContentVersionDataSummary();
 				addVersionToDocument(connectorDocument, version, newVersionDataSummary, document);
 			}
 
