@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.entry;
 
 import java.util.Map;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -126,7 +127,8 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 
 	public ContainerRecord buildDefaultContainer() {
 		return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
-				.setTemporaryIdentifier("containerTestTemporary");
+				.setTemporaryIdentifier("containerTestTemporary").setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 
 	public ContainerRecordType buildDefaultContainerType() {

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.model.calculators.container;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.calculators.ContainerTitleCalculator;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -12,6 +13,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -101,6 +104,6 @@ public class ContainerRecordTitleCalculatorAcceptanceTest extends ConstellioTest
     }
 
     public ContainerRecord buildDefaultContainer() {
-        return rm.newContainerRecord().setType(records.containerTypeId_boite22x22);
+        return rm.newContainerRecord().setType(records.containerTypeId_boite22x22).setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
     }
 }

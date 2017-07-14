@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -124,7 +126,8 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 
     public ContainerRecord buildDefaultContainer() {
         return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
-                .setTemporaryIdentifier("containerTestTemporary").setCapacity(100);
+                .setTemporaryIdentifier("containerTestTemporary").setCapacity(100).setAdministrativeUnits(asList(records.unitId_10))
+                .setDecommissioningType(DecommissioningType.DEPOSIT);
     }
 
     public StorageSpace buildDefaultStorageSpace() {
