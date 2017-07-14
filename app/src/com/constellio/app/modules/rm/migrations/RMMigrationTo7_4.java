@@ -37,6 +37,7 @@ public class RMMigrationTo7_4 implements MigrationScript {
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE).createCustomSchema(PrintableReport.SCHEMA_TYPE);
             metadataSchemaBuilder.create(PrintableReport.REPORT_TYPE).setType(MetadataValueType.STRING).addLabel(Language.French, "Type de rapport").setUndeletable(true).setEssential(true).defineDataEntry().asManual();
+            metadataSchemaBuilder.create(PrintableReport.REPORT_SCHEMA).setType(MetadataValueType.STRING).addLabel(Language.French, "Schema lier au rapport").setUndeletable(true).setEssential(true).defineDataEntry().asManual();
         }
     }
 }

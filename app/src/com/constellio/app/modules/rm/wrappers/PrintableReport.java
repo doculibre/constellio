@@ -12,6 +12,7 @@ public class PrintableReport extends Printable {
     public final static String SCHEMA_NAME = Printable.SCHEMA_TYPE +  "_" + SCHEMA_TYPE;
 
     public final static String REPORT_TYPE = "reporttype";
+    public final static String REPORT_SCHEMA  = "reportschema";
 
 
     public PrintableReport(Record record, MetadataSchemaTypes types) {
@@ -25,4 +26,6 @@ public class PrintableReport extends Printable {
     public String getSchemaType() {
        return SCHEMA_TYPE;
     }
+
+    public String getReportSchema() { return get(REPORT_SCHEMA); }
 }

@@ -27,6 +27,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.*;
@@ -82,12 +83,21 @@ public class ReportGeneratorButton extends WindowButton{
         this.elements = elements;
     }
 
+    private MetadataSchema getSchemaFromRecords() {
+        MetadataSchema metadataSchema = null;
+        if(this.elements != null && this.elements.length >= 1) {
+            metadataSchema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchema(this.elements[0].getSchema().getCode());
+        }
+        return metadataSchema;
+    }
+
     private List<PrintableReportTemplate> getPrintableReportTemplate() {
         List<PrintableReportTemplate> printableReportTemplateList = new ArrayList<>();
         MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
         MetadataSchema printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(Printable.SCHEMA_TYPE).getCustomSchema(PrintableReport.SCHEMA_NAME);
-        LogicalSearchCondition condition = from(printableReportSchemaType).where(printableReportSchemaType.getMetadata(PrintableReport.REPORT_TYPE)).isEqualTo(currentSchema.toString());
-        List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(condition));
+        LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType).where(printableReportSchemaType.get(PrintableReport.REPORT_SCHEMA)).isEqualTo(getSchemaFromRecords().getCode());
+        LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType).where(printableReportSchemaType.getMetadata(PrintableReport.REPORT_TYPE)).isEqualTo(currentSchema.toString());
+        List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(from(printableReportSchemaType).whereAllConditions(conditionCustomSchema, conditionSchemaType)));
         for (Record record : records) {
             printableReportTemplateList.add(new PrintableReportTemplate(record.getId(), record.getTitle(), record.<Content>get(printableReportSchemaType.getMetadata(PrintableReport.JASPERFILE))));
         }

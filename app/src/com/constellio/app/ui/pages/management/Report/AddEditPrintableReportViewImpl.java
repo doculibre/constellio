@@ -15,15 +15,21 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.labels.CustomLabelField;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered;
+import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
+import com.vaadin.data.util.converter.Converter;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -125,23 +131,56 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
     }
 
     private class PrintableReportRecordFieldFactory extends RecordFieldFactory {
+        private ComboBox typeCombobox, schemaCombobox;
         @Override
         public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-            return metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.REPORT_TYPE) ? createComboBox(metadataVO) : new MetadataFieldFactory().build(metadataVO);
+            Field<?> field = null;
+            if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.REPORT_TYPE)) {
+                field = createComboBox(metadataVO);
+            } else if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.REPORT_SCHEMA)) {
+                field = createComboBoxForSchemaType(metadataVO);
+            } else {
+                field = new MetadataFieldFactory().build(metadataVO);
+            }
+            return field;
         }
 
         public ComboBox createComboBox(MetadataVO metadataVO) {
-            ComboBox comboBox = new BaseComboBox();
+            typeCombobox = new BaseComboBox();
             Object folderValue = PrintableReportListPossibleView.FOLDER;
             Object documentValue = PrintableReportListPossibleView.DOCUMENT;
             Object taskValue = PrintableReportListPossibleView.TASK;
-            comboBox.addItems(folderValue, documentValue, taskValue);
-            comboBox.setItemCaption(folderValue, PrintableReportListPossibleView.FOLDER.getLabel());
-            comboBox.setItemCaption(documentValue, PrintableReportListPossibleView.DOCUMENT.getLabel());
-            comboBox.setItemCaption(taskValue, PrintableReportListPossibleView.TASK.getLabel());
-            comboBox.setTextInputAllowed(false);
-            comboBox.setCaption(metadataVO.getLabel(i18n.getLocale()));
-            comboBox.setConverter(new PrintableReportListToStringConverter());
+            typeCombobox.addItems(folderValue, documentValue, taskValue);
+            typeCombobox.setItemCaption(folderValue, PrintableReportListPossibleView.FOLDER.getLabel());
+            typeCombobox.setItemCaption(documentValue, PrintableReportListPossibleView.DOCUMENT.getLabel());
+            typeCombobox.setItemCaption(taskValue, PrintableReportListPossibleView.TASK.getLabel());
+            typeCombobox.setTextInputAllowed(false);
+            typeCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+            typeCombobox.setConverter(new PrintableReportListToStringConverter());
+            typeCombobox.addValueChangeListener(new Property.ValueChangeListener() {
+                @Override
+                public void valueChange(Property.ValueChangeEvent event) {
+                    presenter.setCurrentType((PrintableReportListPossibleView) event.getProperty().getValue());
+                    schemaCombobox = fillComboBox(schemaCombobox);
+                }
+            });
+            return typeCombobox;
+        }
+
+        private ComboBox createComboBoxForSchemaType(MetadataVO metadataVO) {
+            schemaCombobox = new BaseComboBox();
+            schemaCombobox = fillComboBox(schemaCombobox);
+            schemaCombobox.setTextInputAllowed(false);
+            schemaCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+            return schemaCombobox;
+        }
+
+        private ComboBox fillComboBox(ComboBox comboBox) {
+            comboBox.removeAllItems();
+            for(MetadataSchema metadataSchema : presenter.getSchemasForCurrentType()) {
+                comboBox.addItem(metadataSchema.getCode());
+                comboBox.setItemCaption(metadataSchema.getCode(), metadataSchema.getFrenchLabel());
+            }
             return comboBox;
         }
     }

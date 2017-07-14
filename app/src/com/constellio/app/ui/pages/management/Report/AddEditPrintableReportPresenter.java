@@ -14,11 +14,15 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -28,6 +32,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class AddEditPrintableReportPresenter extends SingleSchemaBasePresenter<AddEditPrintableReportView> {
     private transient MetadataSchemasManager metadataSchemasManager;
     protected RecordVO container;
+    private PrintableReportListPossibleView currentType;
 
     AddEditPrintableReportPresenter(AddEditPrintableReportView view) {
         super(view);
@@ -68,5 +73,17 @@ public class AddEditPrintableReportPresenter extends SingleSchemaBasePresenter<A
         LogicalSearchCondition condition = from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableReport.SCHEMA_NAME)).where(Schemas.IDENTIFIER).isEqualTo(id);
         Record r = searchServices().searchSingleResult(condition);
         return new RecordToVOBuilder().build(r, mode, view.getSessionContext());
+    }
+
+    public PrintableReportListPossibleView getCurrentType() {
+        return currentType;
+    }
+
+    public void setCurrentType(PrintableReportListPossibleView type) {
+        this.currentType = type;
+    }
+
+    public List<MetadataSchema> getSchemasForCurrentType() {
+        return currentType != null ? modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(currentType.toString()).getAllSchemas() : new ArrayList<MetadataSchema>();
     }
 }
