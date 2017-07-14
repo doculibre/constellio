@@ -154,9 +154,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document);
-		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()) {
-			documentVO.set(metadata.getLocalCode(), duplicatedDocument.get(metadata));
-		}
+
+		documentVO = voBuilder.build(duplicatedDocument.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+
 		Content content = document.getContent();
 		if (content != null) {
 			ContentVersion contentVersion = content.getCurrentVersion();
@@ -513,7 +513,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		return reload;
 	}
 
-	void reloadFormAfterDocumentTypeChange() {
+	public void reloadFormAfterDocumentTypeChange() {
 		String documentTypeId = (String) view.getForm().getCustomField(Document.TYPE).getFieldValue();
 
 		String newSchemaCode;
@@ -644,6 +644,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				documentVO.setType(documentTypeId);
 				newFile = true;
 				view.getForm().reload();
+
+				if(documentTypeId != null) {
+					reloadFormAfterDocumentTypeChange();
+				}
 				// Will have been lost after reloading the form
 				addContentFieldListeners();
 			}

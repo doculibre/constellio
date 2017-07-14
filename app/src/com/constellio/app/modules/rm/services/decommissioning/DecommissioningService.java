@@ -798,7 +798,8 @@ public class DecommissioningService {
 	}
 
 	public Document createDuplicateOfDocument(Document duplicatedDocument) {
-		Document newDocument = rm.newDocument();
+		Document newDocument = rm.newDocumentWithType(duplicatedDocument.getType());
+
 		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()
 				.onlyDuplicable()) {
 			newDocument.set(metadata, duplicatedDocument.get(metadata));
