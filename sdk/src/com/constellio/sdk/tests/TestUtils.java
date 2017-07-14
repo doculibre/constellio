@@ -316,6 +316,7 @@ public class TestUtils {
 		String localCode = code.split("_")[2];
 		final Metadata metadata = mock(Metadata.class, code);
 		when(metadata.getCode()).thenReturn(code);
+		when(metadata.getSchemaCode()).thenReturn(code.replace("_" + localCode, ""));
 		when(metadata.getLocalCode()).thenReturn(localCode);
 
 		when(metadata.getInheritanceCode()).thenAnswer(new Answer<String>() {
