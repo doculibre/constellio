@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -224,10 +225,10 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 
     private void buildAutoFillContainers() throws RecordServicesException {
         recordServices.add(rm.newContainerRecordWithId("container100").setType(records.containerTypeId_boite22x22)
-                .setTemporaryIdentifier("container100").setAdministrativeUnit(records.getUnit10()).setCapacity(100));
+                .setTemporaryIdentifier("container100").setAdministrativeUnit(records.getUnit10()).setCapacity(100).setDecommissioningType(DecommissioningType.DEPOSIT));
         recordServices.add(rm.newContainerRecordWithId("container150").setType(records.containerTypeId_boite22x22)
-                .setTemporaryIdentifier("container150").setAdministrativeUnit(records.getUnit10()).setCapacity(150));
+                .setTemporaryIdentifier("container150").setAdministrativeUnit(records.getUnit10()).setCapacity(150).setDecommissioningType(DecommissioningType.DEPOSIT));
         recordServices.add(rm.newContainerRecordWithId("container25").setType(records.containerTypeId_boite22x22)
-                .setTemporaryIdentifier("container25").setAdministrativeUnit(records.getUnit10()).setCapacity(25));
+                .setTemporaryIdentifier("container25").setAdministrativeUnit(records.getUnit10()).setCapacity(25).setDecommissioningType(DecommissioningType.DEPOSIT));
     }
 }
