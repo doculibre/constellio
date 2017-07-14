@@ -26,7 +26,6 @@ import com.vaadin.ui.Button.ClickListener;
 
 public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUsersCredentialsView {
 	public static final String ADMIN = "admin";
-	public static final String AJOUTER = "Ajouter";
 	public static final String PENDING = "pending";
 	public static final String SUSPENDED = "suspended";
 	public static final String DELETED = "deleted";
@@ -54,7 +53,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
-		buttons.add(new AddButton(AJOUTER) {
+		buttons.add(new AddButton($("add")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.addButtonClicked();
