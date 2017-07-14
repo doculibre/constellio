@@ -11,11 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.assertj.core.api.ListAssert;
 import org.junit.After;
@@ -1604,7 +1600,20 @@ public class RecordsCacheIgniteTest extends ConstellioTest {
 		public boolean isOfSchemaType(String type) {
 			return false;
 		}
-		
+
+		public <T> List<T> getValues(Metadata metadata) {
+			Object value = get(metadata);
+			if (value == null) {
+				return Collections.emptyList();
+			} else {
+				if (metadata.isMultivalue()) {
+					return (List<T>) value;
+				} else {
+					List<T> values = asList((T) value);
+					return values;
+				}
+			}
+		}
 	}
 
 	private MetadataSchemaType zeType() {
