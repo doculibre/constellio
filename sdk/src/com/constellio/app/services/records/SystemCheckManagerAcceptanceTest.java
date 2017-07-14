@@ -57,6 +57,7 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
@@ -245,9 +246,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : bad",
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : notGood"
 		);
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<String>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo("bad");
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<String>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo("notGood");
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage1);
 
@@ -263,9 +266,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "notGood")
 				);
 
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<Object>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isNull();
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<Object>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isNull();
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage2);
 
@@ -322,9 +327,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : recordC",
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : recordC"
 		);
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordC", "recordA", "recordB"));
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA", "recordC"));
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage3);
 
@@ -341,9 +348,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "recordC")
 				);
 
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA", "recordB"));
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA"));
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage4);
 
@@ -465,7 +474,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		Transaction tx = new Transaction();
 		tx.add(schemas.newSolrAuthorizationDetailsWithId("zeInvalidAuth").setTarget("anInvalidRecord").setRoles(asList("R")));
-		tx.add(dakotaInZeCollection.set(Schemas.AUTHORIZATIONS, asList("zeInvalidAuth")));
+		tx.add((RecordWrapper) dakotaInZeCollection.set(Schemas.AUTHORIZATIONS, asList("zeInvalidAuth")));
 		getModelLayerFactory().newRecordServices().execute(tx);
 		assertThat(dakotaInZeCollection.getUserAuthorizations()).containsOnly("zeInvalidAuth");
 
@@ -497,12 +506,12 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		recordServices.add(rm.newFolder().setTitle("My folder").setAdministrativeUnitEntered(records.unitId_20)
 				.setOpenDate(now()).setCategoryEntered(records.categoryId_Z100).setRetentionRuleEntered(records.ruleId_1));
 		for (Category category : rm.searchCategorys(ALL)) {
-			recordServices.update(category.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
+			recordServices.update((RecordWrapper) category.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
 		}
 		recordServices.logicallyDelete(records.getUnit12c().getWrappedRecord(), User.GOD);
 		recordServices.logicallyDelete(records.getUnit20d().getWrappedRecord(), User.GOD);
 		recordServices.logicallyDelete(records.getUnit20e().getWrappedRecord(), User.GOD);
-		recordServices.update(records.getUnit20().set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
+		recordServices.update((RecordWrapper) records.getUnit20().set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
 		assertThat(records.getUnit20().isLogicallyDeletedStatus()).isTrue();
 		assertThat(records.getUnit12c().isLogicallyDeletedStatus()).isTrue();
 		assertThat(records.getCategory_X13().isLogicallyDeletedStatus()).isTrue();

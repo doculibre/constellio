@@ -1,6 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -24,7 +23,6 @@ import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
@@ -361,7 +359,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	private Roles getRoles() {
-		return modelLayerFactory.getRolesManager().getCollectionRoles(getCollection());
+		return modelLayerFactory.getRolesManager().getCollectionRoles(getCollection(), modelLayerFactory);
 	}
 
 }

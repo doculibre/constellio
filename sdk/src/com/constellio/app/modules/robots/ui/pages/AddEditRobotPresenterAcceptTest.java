@@ -1,5 +1,32 @@
 package com.constellio.app.modules.robots.ui.pages;
 
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
 import com.constellio.app.modules.complementary.esRmRobots.services.SmbClassifyServices;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDownloadSmbDocument;
@@ -26,6 +53,7 @@ import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -40,25 +68,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import java.io.File;
-import java.util.*;
-
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 /**
  * Created by Patrick on 2015-12-15.
@@ -238,7 +247,8 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAdvanceSearchThenMetadataChoiceIsLimitedByUsedSchemas() throws RecordServicesException {
+	public void givenAdvanceSearchThenMetadataChoiceIsLimitedByUsedSchemas()
+			throws RecordServicesException {
 		connectWithAdmin();
 		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
 
@@ -251,12 +261,14 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-		metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
-				.withVisibleInAdvancedSearchStatus(true));
+		metadataSchemasDisplayManager
+				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
+						.withVisibleInAdvancedSearchStatus(true));
 
 		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
 		recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
-		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true).set(AUTHORIZATIONS, new ArrayList<>()));
+		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true)
+				.set(AUTHORIZATIONS, new ArrayList<>()));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);
@@ -268,7 +280,8 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAdvanceSearchWithTaxonomiesThenIsLimitedByPermission() throws RecordServicesException {
+	public void givenAdvanceSearchWithTaxonomiesThenIsLimitedByPermission()
+			throws RecordServicesException {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -283,7 +296,8 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 				"justeadmin").withUserIds(asList(records.getAdmin().getId()));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 
-		recordServices.add(rm.newHierarchicalValueListItem("justeadmin_default").setCode("J01").set(Schemas.TITLE, "J01"));
+		recordServices.add((RecordWrapper) rm.newHierarchicalValueListItem("justeadmin_default").setCode("J01")
+				.set(Schemas.TITLE, "J01"));
 
 		connectWithAdmin();
 		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
@@ -292,13 +306,15 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).create("newSearchableMetadata")
-						.setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin")).setSearchable(true);
+						.setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin"))
+						.setSearchable(true);
 			}
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-		metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_default_newSearchableMetadata")
-				.withVisibleInAdvancedSearchStatus(true));
+		metadataSchemasDisplayManager
+				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_default_newSearchableMetadata")
+						.withVisibleInAdvancedSearchStatus(true));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);
@@ -310,7 +326,8 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAdvanceSearchThenDoNotShowDisabledMetadatas() throws RecordServicesException {
+	public void givenAdvanceSearchThenDoNotShowDisabledMetadatas()
+			throws RecordServicesException {
 		connectWithAdmin();
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override

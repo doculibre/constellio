@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 
@@ -39,6 +40,13 @@ public class ConstellioMapCache implements ConstellioCache {
 	}
 
 	@Override
+	public void removeAll(Set<String> keys) {
+		for (String key : keys) {
+			remove(key);
+		}
+	}
+
+	@Override
 	public void clear() {
 		map.clear();
 	}
@@ -46,6 +54,11 @@ public class ConstellioMapCache implements ConstellioCache {
 	@Override
 	public Iterator<String> keySet() {
 		return map.keySet().iterator();
+	}
+
+	@Override
+	public int size() {
+		return map.size();
 	}
 
 }

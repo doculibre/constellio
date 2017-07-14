@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +61,18 @@ public class RecordsCacheImpl implements RecordsCache {
 		return holder != null && holder.getCopy() != null;
 	}
 
+	static AtomicInteger compteur = new AtomicInteger();
+
+	static Set<String> ids = new HashSet<>();
+
 	@Override
 	public Record get(String id) {
+
+		compteur.incrementAndGet();
+		synchronized (RecordsCacheImpl.class) {
+			ids.add(id);
+		}
+
 		RecordHolder holder = cacheById.get(id);
 
 		Record copy = null;
@@ -131,6 +144,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				insert(record);
 			}
 
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
 			cache.queryResults.put(signature.toStringSignature(), recordIds);
 		}
 	}
@@ -184,6 +198,10 @@ public class RecordsCacheImpl implements RecordsCache {
 					cachedResults.add(get(recordId));
 				}
 				cachedResults = Collections.unmodifiableList(cachedResults);
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheHit(signature, 0);
+
+			} else {
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheMiss(signature, 0);
 			}
 
 		}
@@ -200,10 +218,10 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cacheConfig != null) {
 			Record previousRecord = null;
 
-			synchronized (this) {
-				RecordHolder holder = cacheById.get(recordCopy.getId());
-				if (holder != null) {
-					previousRecord = holder.record;
+				synchronized (this) {
+					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);RecordHolder holder = cacheById.get(recordCopy.getId());
+					if (holder != null) {
+						previousRecord = holder.record;
 
 					insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
 					if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
@@ -365,6 +383,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (recordByMetadataCache != null) {
 			foundRecord = recordByMetadataCache.getByMetadata(metadata.getLocalCode(), value);
 		}
+
+		if (foundRecord == null) {
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByUniqueMetadataCacheMiss(metadata, value, 0);
+		} else {
+			modelLayerFactory.getExtensions().getSystemWideExtensions()
+					.onGetByUniqueMetadataCacheHit(foundRecord, metadata, value, 0);
+		}
+
 		return foundRecord;
 	}
 

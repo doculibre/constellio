@@ -103,7 +103,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			@Override
 			protected MetadataSchemaTypes parse(String collection, XMLConfiguration xmlConfiguration) {
 				if (cacheEnabled) {
-					if (typesCache.containsKey(collection + xmlConfiguration.getRealHash())) {
+					if (typesCache.get(collection + xmlConfiguration.getRealHash()) != null) {
 						return typesCache.get(collection + xmlConfiguration.getRealHash());
 					}
 					MetadataSchemaTypes types = super.parse(collection, xmlConfiguration);

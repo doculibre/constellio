@@ -17,24 +17,21 @@ import com.vaadin.server.VaadinServlet;
 @VaadinServletConfiguration(productionMode = false, ui = ConstellioUI.class)
 public class ConstellioVaadinServlet extends VaadinServlet {
 
-	boolean initialized = false;
-	Thread initThread;
-
-	@Override
+    boolean initialized = false;
+	Thread initThread;@Override
 	public void init(ServletConfig servletConfig)
 			throws ServletException {
-		super.init(servletConfig);
-
-		initThread = new Thread() {
+    	super.init(servletConfig);
+    	initThread = new Thread() {
 			@Override
-			public void run() {
+			public void run() {	
 				ConstellioFactories.getInstance();
 				initialized = true;
 			}
 		};
 		initThread.start();
-
 	}
+
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -47,8 +44,16 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 				throw new RuntimeException(e);
 			}
 		}
+		
+		
+		ConstellioFactories.getInstance().onRequestStarted();
 
-		super.service(request, response);
+		try {
+			super.service(request, response);
+
+		} finally {
+			ConstellioFactories.getInstance().onRequestEnded();
+		}
 	}
 
 	/**

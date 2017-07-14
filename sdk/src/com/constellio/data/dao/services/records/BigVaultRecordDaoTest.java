@@ -186,7 +186,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 		inOrder.verify(secondTransactionLogManager)
 				.prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
 		inOrder.verify(bigVaultServer).addAll(any(BigVaultServerTransaction.class));
-		inOrder.verify(secondTransactionLogManager).flush(zeTransactionId);
+		inOrder.verify(secondTransactionLogManager).flush(zeTransactionId, null);
 
 	}
 
@@ -214,7 +214,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 				.prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
 		inOrder.verify(bigVaultServer).addAll(any(BigVaultServerTransaction.class));
 		inOrder.verify(secondTransactionLogManager).cancel(zeTransactionId);
-		verify(secondTransactionLogManager, never()).flush(zeTransactionId);
+		verify(secondTransactionLogManager, never()).flush(zeTransactionId, null);
 
 	}
 
@@ -241,7 +241,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 				.prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
 		inOrder.verify(bigVaultServer).addAll(any(BigVaultServerTransaction.class));
 		inOrder.verify(secondTransactionLogManager).cancel(zeTransactionId);
-		verify(secondTransactionLogManager, never()).flush(zeTransactionId);
+		verify(secondTransactionLogManager, never()).flush(zeTransactionId, null);
 
 	}
 

@@ -17,21 +17,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.model.entities.security.global.*;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.sdk.tests.TestUtils;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.dev.Toggle;
@@ -43,10 +38,17 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactoryUtils;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -63,6 +65,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class UserServicesAcceptanceTest extends ConstellioTest {
 
@@ -694,13 +697,17 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@SlowTest
 	public void givenTokenIsGivenToUserThenExpiresAutomatically()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
 		givenCollection(zeCollection);
 		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
-		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
+		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx", Duration.standardSeconds(5));
 
+		assertThat(userServices.getUser(user.getUsername()).getAccessTokens()).isNotEmpty();
+
+		Thread.sleep(6000);
 		user = userServices.getUser(user.getUsername());
 		for (int i = 0; i < 2000 && !userServices.getUser(user.getUsername()).getAccessTokens().isEmpty(); i++) {
 			Thread.sleep(50);
@@ -944,7 +951,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void tryingToPhysicallyDeleteUser() throws RecordServicesException {
+	public void tryingToPhysicallyDeleteUser()
+			throws RecordServicesException {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -973,13 +981,15 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			userServices.safePhysicalDeleteUserCredential(chuck.getUsername());
 			fail();
 		} catch (Exception e) {
-			assertThat(e).isInstanceOf(UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically.class);
+			assertThat(e)
+					.isInstanceOf(UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically.class);
 			e.printStackTrace();
 		}
 	}
 
 	@Test
-	public void tryingToDeleteAllUser() throws Exception {
+	public void tryingToDeleteAllUser()
+			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -1004,14 +1014,16 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			}
 		}
 
-		assertThat(userServices.safePhysicalDeleteAllUnusedUserCredentials()).extracting("username").containsExactly(chuck.getUsername());
+		assertThat(userServices.safePhysicalDeleteAllUnusedUserCredentials()).extracting("username")
+				.containsExactly(chuck.getUsername());
 	}
 
 	@Test
 	public void tryingToSafeDeleteAllUnusedGlobalGroups()
 			throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		prepareSystem(
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
@@ -1035,9 +1047,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void tryingToPhysicallyRemoveGlobalGroup() throws Exception {
+	public void tryingToPhysicallyRemoveGlobalGroup()
+			throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		prepareSystem(
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
@@ -1061,9 +1075,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void tryingToSafePhysicalDeleteAllUnusedGroups() throws Exception {
+	public void tryingToSafePhysicalDeleteAllUnusedGroups()
+			throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		prepareSystem(
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
@@ -1102,9 +1118,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void tryingToPhysicallyRemoveGroup() throws RecordServicesException {
+	public void tryingToPhysicallyRemoveGroup()
+			throws RecordServicesException {
 		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		prepareSystem(
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
@@ -1142,7 +1160,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToSafePhysicalDeleteAllUnusedUsers() throws Exception {
+	public void TryingToSafePhysicalDeleteAllUnusedUsers()
+			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -1158,7 +1177,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		assertThat(userServices.getUserInCollection("alice", zeCollection)).isNotNull();
 		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential("alice"), zeCollection);
-		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
+		userCredentialsManager
+				.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
 		userServices.safePhysicalDeleteAllUnusedUsers(zeCollection);
 		try {
 			userServices.getUserInCollection("alice", zeCollection);
@@ -1169,7 +1189,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToPhysicallyRemoveUser() throws Exception {
+	public void TryingToPhysicallyRemoveUser()
+			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -1185,7 +1206,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		t.add(c);
 		recordServices.execute(t);
 		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential("alice"), zeCollection);
-		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
+		userCredentialsManager
+				.removeUserCredentialFromCollection(userServices.getUserCredential(chuck.getUsername()), zeCollection);
 
 		try {
 			userServices.physicallyRemoveUser(chuck, zeCollection);
@@ -1205,9 +1227,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToRestoreDeletedGroup() throws Exception {
+	public void TryingToRestoreDeletedGroup()
+			throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		prepareSystem(
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
@@ -1216,14 +1240,16 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		Group heroes = records.getHeroes();
 		GlobalGroup heroesGlobalGroup = globalGroupsManager.getGlobalGroupWithCode(heroes.getCode());
 
-		userServices.removeGroupFromCollections(userCredentialsManager.getUserCredential("admin"), heroes.getCode(), asList(heroes.getCollection()));
+		userServices.removeGroupFromCollections(userCredentialsManager.getUserCredential("admin"), heroes.getCode(),
+				asList(heroes.getCollection()));
 		globalGroupsManager.logicallyRemoveGroup(heroesGlobalGroup);
 
 		Transaction t = new Transaction();
 		t.update(((SolrGlobalGroup) heroesGlobalGroup).getWrappedRecord());
 		recordServices.execute(t);
 
-		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroesGlobalGroup.getCode()).getStatus()).isEqualTo(GlobalGroupStatus.INACTIVE);
+		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroesGlobalGroup.getCode()).getStatus())
+				.isEqualTo(GlobalGroupStatus.INACTIVE);
 
 		userServices.restoreDeletedGroup(heroes.getCode(), zeCollection);
 
@@ -1231,9 +1257,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void TryingToSetAndGetNewMetadata() throws Exception {
+	public void TryingToSetAndGetNewMetadata()
+			throws Exception {
 		RMTestRecords records = new RMTestRecords(zeCollection);
-		prepareSystem(withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
+		prepareSystem(
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers().withRMTest(records));
 		userServices = getModelLayerFactory().newUserServices();
 		Users users = new Users();
 		users.setUp(userServices);
@@ -1269,8 +1297,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getJobTitle()).isEqualTo(jobTitle);
 	}
-
-
 
 	// ----- Utils methods
 

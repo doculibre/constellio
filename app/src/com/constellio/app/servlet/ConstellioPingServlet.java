@@ -23,6 +23,8 @@ public class ConstellioPingServlet extends HttpServlet {
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstanceIfAlreadyStarted();
 
+		boolean testSolr = !"false".equals(req.getParameter("pingSolr"));
+
 		SystemReindexingInfos reindexingInfos = ReindexingServices.getReindexingInfos();
 		PrintWriter pw = resp.getWriter();
 
@@ -34,7 +36,9 @@ public class ConstellioPingServlet extends HttpServlet {
 		} else {
 			if (constellioFactories != null) {
 				try {
-					constellioFactories.getDataLayerFactory().newRecordDao().documentsCount();
+					if (testSolr) {
+						constellioFactories.getDataLayerFactory().newRecordDao().documentsCount();
+					}
 					if (reindexingInfos != null) {
 						pw.append("Status : online (reindexing)");
 						online = true;

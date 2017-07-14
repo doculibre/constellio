@@ -17,6 +17,7 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 
 public class ConstellioFactories {
 
@@ -38,12 +39,18 @@ public class ConstellioFactories {
 
 	private AppLayerFactory appLayerFactory;
 
+	private ThreadLocal<AppLayerFactory> requestCachedFactories = new ThreadLocal<>();
+
 	private ConstellioFactories() {
 
 	}
 
 	public static ConstellioFactories getInstanceIfAlreadyStarted() {
 		return instanceProvider.getInstance(null);
+	}
+
+	public static boolean isInitialized() {
+		return instanceProvider.isInitialized();
 	}
 
 	public static ConstellioFactories getInstance() {
@@ -108,11 +115,11 @@ public class ConstellioFactories {
 		dataLayerFactory = decorator.decorateDataLayerFactory(new DataLayerFactory(ioServicesFactory, dataLayerConfiguration,
 				decorator.getStatefullServiceDecorator(), instanceName));
 
-		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactory(dataLayerFactory, foldersLocator,
+		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator,
 				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName,
 				new ModelLayerFactoryFactory()));
 
-		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactory(appLayerConfiguration, modelLayerFactory,
+		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory,
 				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName));
 
 		modulesManager.set(appLayerFactory.getModulesManager());
@@ -134,16 +141,28 @@ public class ConstellioFactories {
 						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator, propertyFile));
 	}
 
+	public void onRequestStarted() {
+		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
+		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
+				appLayerFactory);
+
+		requestCachedFactories.set(requestCachedAppLayerFactory);
+	}
+
+	public void onRequestEnded() {
+		requestCachedFactories.set(null);
+	}
+
 	public IOServicesFactory getIoServicesFactory() {
 		return ioServicesFactory;
 	}
 
 	public DataLayerFactory getDataLayerFactory() {
-		return dataLayerFactory;
+		return getModelLayerFactory().getDataLayerFactory();
 	}
 
 	public ModelLayerFactory getModelLayerFactory() {
-		return modelLayerFactory;
+		return getAppLayerFactory().getModelLayerFactory();
 	}
 
 	public DataLayerConfiguration getDataLayerConfiguration() {
@@ -163,6 +182,7 @@ public class ConstellioFactories {
 	}
 
 	public AppLayerFactory getAppLayerFactory() {
-		return appLayerFactory;
+		AppLayerFactory requestCachedAppLayerFactory = requestCachedFactories.get();
+		return requestCachedAppLayerFactory == null ? appLayerFactory : requestCachedAppLayerFactory;
 	}
 }

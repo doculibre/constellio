@@ -8,7 +8,7 @@ import org.joda.time.Duration;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 
-public interface DataLayerConfiguration extends Serializable {
+public interface DataLayerConfiguration {
 
 	void validate();
 
@@ -42,13 +42,9 @@ public interface DataLayerConfiguration extends Serializable {
 
 	ConfigManagerType getSettingsConfigType();
 
-	CacheType getSettingsCacheType();
+	CacheType getCacheType();
 
-	String getSettingsCacheUrl();
-
-	CacheType getRecordsCacheType();
-
-	String getRecordsCacheUrl();
+	String getCacheUrl();
 
 	String getSettingsZookeeperAddress();
 
@@ -87,4 +83,12 @@ public interface DataLayerConfiguration extends Serializable {
 	String createRandomUniqueKey();
 
 	void setHashingEncoding(HashingEncoding encoding);
+
+	String getKafkaServers();
+
+	String getSecondTransactionLogMode();
+
+	String getKafkaTopic();
+
+	long getReplayTransactionStartVersion();
 }

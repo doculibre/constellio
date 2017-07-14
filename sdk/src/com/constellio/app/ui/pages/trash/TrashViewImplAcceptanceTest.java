@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.trash;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,18 +7,13 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
@@ -93,6 +85,6 @@ public class TrashViewImplAcceptanceTest extends ConstellioTest {
 		recordServices.logicallyDelete(records.getCategory_X13().getWrappedRecord(), adminUser);
 		givenTimeIs(now.plusDays(1));
 		recordServices.logicallyDelete(records.getDocumentWithContent_A49().getWrappedRecord(), adminUser);
-		recordServices.add(folderA1.set(Schemas.ERROR_ON_PHYSICAL_DELETION.getLocalCode(), true));
+		recordServices.add((RecordWrapper) folderA1.set(Schemas.ERROR_ON_PHYSICAL_DELETION.getLocalCode(), true));
 	}
 }

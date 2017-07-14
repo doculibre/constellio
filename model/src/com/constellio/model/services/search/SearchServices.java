@@ -62,6 +62,14 @@ public class SearchServices {
 	ConstellioEIMConfigs systemConfigs;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
+		this(recordDao, modelLayerFactory, modelLayerFactory.getRecordsCaches());
+	}
+
+	public SearchServices(ModelLayerFactory modelLayerFactory, RecordsCaches recordsCaches) {
+		this(modelLayerFactory.getDataLayerFactory().newRecordDao(), modelLayerFactory, recordsCaches);
+	}
+
+	private SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory, RecordsCaches recordsCaches) {
 		this.recordDao = recordDao;
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.securityTokenManager = modelLayerFactory.getSecurityTokenManager();
@@ -69,7 +77,7 @@ public class SearchServices {
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
-		recordsCaches = modelLayerFactory.getRecordsCaches();
+		this.recordsCaches = recordsCaches;
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {

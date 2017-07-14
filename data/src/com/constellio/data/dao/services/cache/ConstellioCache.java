@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.cache;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Set;
 
 public interface ConstellioCache {
 	
@@ -13,8 +14,12 @@ public interface ConstellioCache {
 	
 	void remove(String key);
 	
+	void removeAll(Set<String> keys);
+	
 	void clear();
 	
 	Iterator<String> keySet();
+	
+	int size();
 
 }

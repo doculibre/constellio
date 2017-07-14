@@ -2,7 +2,9 @@ package com.constellio.data.dao.services.cache;
 
 import java.util.List;
 
-public interface ConstellioCacheManager {
+import com.constellio.data.dao.managers.StatefulService;
+
+public interface ConstellioCacheManager extends StatefulService {
 	
 	List<String> getCacheNames();
 	

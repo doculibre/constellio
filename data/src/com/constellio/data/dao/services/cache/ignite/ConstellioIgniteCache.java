@@ -3,6 +3,7 @@ package com.constellio.data.dao.services.cache.ignite;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.IgniteCache;
@@ -28,7 +29,12 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	public final String getName() {
 		return name;
 	}
+	
+	public IgniteCache<String, Object> getIgniteCache() {
+		return igniteCache;
+	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
 		T result = (T) localCache.get(key);
@@ -42,6 +48,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> void put(String key, T value) {
 		value = value == null ? (T) NULL : value;
@@ -52,7 +59,15 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@Override
 	public void remove(String key) {
 		localCache.remove(key);
-		igniteCache.clear(key);
+		igniteCache.remove(key);
+	}
+
+	@Override
+	public void removeAll(Set<String> keys) {
+		for (String key : keys) {
+			removeLocal(key);
+		}
+		igniteCache.removeAll(keys);
 	}
 
 	@Override
@@ -85,6 +100,11 @@ public class ConstellioIgniteCache implements ConstellioCache {
 				throw new UnsupportedOperationException();
 			}
 		};
+	}
+
+	@Override
+	public int size() {
+		return localCache.size();
 	}
 
 }

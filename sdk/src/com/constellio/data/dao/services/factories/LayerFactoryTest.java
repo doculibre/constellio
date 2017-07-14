@@ -30,8 +30,8 @@ public class LayerFactoryTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		bottomLayerFactory = new LayerFactory(statefullServiceDecorator, null);
-		layerFactory = new LayerFactory(bottomLayerFactory, statefullServiceDecorator, null);
+		bottomLayerFactory = new LayerFactoryImpl(statefullServiceDecorator, null);
+		layerFactory = new LayerFactoryImpl(bottomLayerFactory, statefullServiceDecorator, null);
 
 		bottomLayerFactory.add(bottomLayerService);
 		layerFactory.add(layerService1);

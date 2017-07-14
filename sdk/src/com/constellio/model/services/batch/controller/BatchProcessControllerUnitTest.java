@@ -18,7 +18,7 @@ import com.constellio.data.utils.LoggerUncaughtExceptionHandler;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.batch.controller.BatchProcessControllerRuntimeException.ControllerAlreadyStarted;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -31,7 +31,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	@Mock BatchProcessesManager batchProcessesManager;
 	@Mock RecordServices recordServices;
 	@Mock SearchServices searchServices;
-	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock ModelLayerFactoryImpl modelLayerFactory;
 	@Mock ModelLayerConfiguration configuration;
 	BatchProcessController controller;
 	BatchProcessController unspiedController;

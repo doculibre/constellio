@@ -525,7 +525,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		private void moveContainersInNewAdministrativeUnits(Transaction transaction) {
 			for (ContainerRecord container : rm.wrapContainerRecords(search(from(rm.containerRecord.schemaType()).returnAll()))) {
 				String unit = getNewUnit(container.<String>get("administrativeUnit"), container.getFilingSpace());
-				transaction.add(container.setFilingSpace((String) null).set("administrativeUnit", unit));
+				transaction.add((ContainerRecord) container.setFilingSpace((String) null).set("administrativeUnit", unit));
 			}
 		}
 

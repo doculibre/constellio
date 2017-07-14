@@ -272,19 +272,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGettingRecordsTitlesThenTitlesReturned()
-			throws Exception {
-		defineSchemasManager().using(schemas);
-		Record record1 = new TestRecord(zeSchema);
-		recordServices.add(record1.set(TITLE, "zeTitle1"));
-		Record record2 = new TestRecord(zeSchema);
-		recordServices.add(record2.set(TITLE, "zeTitle2"));
-
-		assertThat(recordServices.getRecordTitles(zeCollection, Arrays.asList(record1.getId(), record2.getId()))).contains(
-				"zeTitle1", "zeTitle2");
-	}
-
-	@Test
 	public void givenSchemaWithEnumListWhenAddingRecordThenValuesPersisted()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue));

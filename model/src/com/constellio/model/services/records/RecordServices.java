@@ -98,8 +98,6 @@ public interface RecordServices {
 
 	void refresh(List<?> records);
 
-	List<String> getRecordTitles(String collection, List<String> recordIds);
-
 	List<BatchProcess> updateAsync(Record record)
 			throws RecordServicesException;
 

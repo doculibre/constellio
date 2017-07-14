@@ -71,8 +71,24 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			setFile("secondTransactionLog.folder", value);
 		}
 
+		public void setSecondTransactionLogMode(String value) {
+			setString("secondTransactionLog.mode", value);
+		}
+		
+		public void setReplayTransactionStartVersion(long value) {
+			setLong("secondTransactionLog.version", value);
+		}
+
 		public void setSecondTransactionLogEnabled(boolean value) {
 			setBoolean("secondTransactionLog.enabled", value);
+		}
+		
+		public void setKafkaServers(String value) {
+			setString("kafka.servers", value);
+		}
+		
+		public void setKafkaTopic(String value) {
+			setString("kafka.topic", value);
 		}
 
 		public void setSecondTransactionLogReplayFilter(SecondTransactionLogReplayFilter filter) {
@@ -191,28 +207,28 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRequiredFile("secondTransactionLog.folder");
 	}
 
+	@Override
+	public String getSecondTransactionLogMode() {
+		return getString("secondTransactionLog.mode", "xml");
+	}
+	
+	@Override
+	public long getReplayTransactionStartVersion() {
+		return getLong("secondTransactionLog.version", 0);
+	}
+
 	public ConfigManagerType getSettingsConfigType() {
 		return (ConfigManagerType) getRequiredEnum("dao.settings.type", ConfigManagerType.class);
 	}
 
 	@Override
-	public CacheType getSettingsCacheType() {
-		return (CacheType) getEnum("dao.settings.cache", CacheType.MEMORY);
+	public CacheType getCacheType() {
+		return (CacheType) getEnum("dao.cache", CacheType.MEMORY);
 	}
 
 	@Override
-	public String getSettingsCacheUrl() {
-		return getRequiredString("dao.settings.cache.url");
-	}
-
-	@Override
-	public CacheType getRecordsCacheType() {
-		return (CacheType) getEnum("dao.records.cache", CacheType.MEMORY);
-	}
-
-	@Override
-	public String getRecordsCacheUrl() {
-		return getRequiredString("dao.records.cache.url");
+	public String getCacheUrl() {
+		return getRequiredString("dao.cache.url");
 	}
 
 	@Override
@@ -304,4 +320,13 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		setString("hashing.encoding", encoding == null ? null : encoding.name());
 	}
 
+	@Override
+	public String getKafkaServers() {
+		return getString("kafka.servers", null);
+	}
+	
+	@Override
+	public String getKafkaTopic() {
+		return getString("kafka.topic", null);
+	}
 }

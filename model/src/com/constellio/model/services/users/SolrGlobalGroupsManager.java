@@ -8,12 +8,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -74,7 +73,9 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	public void logicallyRemoveGroup(GlobalGroup group) {
 		Transaction transaction = new Transaction();
 		for (GlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
-			transaction.add(((SolrGlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE).set(Schemas.LOGICALLY_DELETED_STATUS, true));
+			RecordWrapper recordWrapper = ((SolrGlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE)
+					.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+			transaction.add(recordWrapper);
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);

@@ -258,7 +258,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
-		transactionLog.flush(secondTransactionId);
+		transactionLog.flush(secondTransactionId, null);
 
 		assertThat(firstTransactionTempFile).has(content(expectedLogOfFirstTransaction));
 		assertThat(secondTransactionTempFile).doesNotExist();
@@ -273,8 +273,8 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
-		transactionLog.flush(secondTransactionId);
-		transactionLog.flush(firstTransactionId);
+		transactionLog.flush(secondTransactionId, null);
+		transactionLog.flush(firstTransactionId, null);
 
 		assertThat(firstTransactionTempFile).doesNotExist();
 		assertThat(secondTransactionTempFile).doesNotExist();
@@ -290,7 +290,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
 		transactionLog.cancel(secondTransactionId);
-		transactionLog.flush(firstTransactionId);
+		transactionLog.flush(firstTransactionId, null);
 
 		assertThat(firstTransactionTempFile).doesNotExist();
 		assertThat(secondTransactionTempFile).doesNotExist();
@@ -305,7 +305,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		when(dataLayerConfiguration.isWriteZZRecords()).thenReturn(true);
 
 		transactionLog.prepare(firstTransactionId, firstTransaction);
-		transactionLog.flush(firstTransactionId);
+		transactionLog.flush(firstTransactionId, null);
 
 		assertThat(FileUtils.readFileToString(flushedTransaction1)).contains("record6ZZ");
 	}
@@ -319,7 +319,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		doThrow(IOException.class).when(transactionLog).doFlush(firstTransactionId);
 
 		try {
-			transactionLog.flush(firstTransactionId);
+			transactionLog.flush(firstTransactionId, null);
 			fail("SecondTransactionLogHandlerRuntimeException_CouldNotFlushTransaction expected");
 		} catch (SecondTransactionLogRuntimeException_CouldNotFlushTransaction e) {
 			//OK
@@ -589,9 +589,9 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 
 		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
-		transactionLog.flush(firstTransactionId);
+		transactionLog.flush(firstTransactionId, null);
 		transactionLog.prepare(secondTransactionId, secondTransaction);
-		transactionLog.flush(secondTransactionId);
+		transactionLog.flush(secondTransactionId, null);
 
 		String id = transactionLog.regroupAndMoveInVault();
 		assertThat(id).isEqualTo("tlogs/2345-06-07T08-09-10-011.tlog");
@@ -624,9 +624,9 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 
 		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
-		transactionLog.flush(firstTransactionId);
+		transactionLog.flush(firstTransactionId, null);
 		transactionLog.prepare(secondTransactionId, secondTransaction);
-		transactionLog.flush(secondTransactionId);
+		transactionLog.flush(secondTransactionId, null);
 
 		doThrow(ContentDaoRuntimeException.class).when(contentDao).add(anyString(), any(InputStream.class));
 
