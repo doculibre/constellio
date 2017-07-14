@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -21,6 +22,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+
+import java.util.Arrays;
 
 /**
  * Created by Constellio on 2016-12-19.
@@ -77,7 +80,8 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 	public void givenContainerWithCapacityAndLinearSizeThenAvailableSizeIsEqualToDifference()
 			throws RecordServicesException {
 
-		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(6.0);
+		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(6.0)
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
@@ -93,7 +97,8 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 	public void givenContainerWithoutCapacityThenAvailableSizeIsNull()
 			throws RecordServicesException {
 
-		ContainerRecord containerRecord = buildDefaultContainer().setLinearSizeEntered(6.0);
+		ContainerRecord containerRecord = buildDefaultContainer().setLinearSizeEntered(6.0)
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
@@ -123,7 +128,8 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 
 		ContainerRecord containerRecord = buildDefaultContainer();
 		containerRecord.setFull(Boolean.TRUE);
-		containerRecord.setCapacity(42);
+		containerRecord.setCapacity(42)
+			.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
@@ -148,6 +154,7 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 
 	public ContainerRecord buildDefaultContainer() {
 		return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
-				.setTemporaryIdentifier("containerTestTemporary");
+				.setTemporaryIdentifier("containerTestTemporary")
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 }

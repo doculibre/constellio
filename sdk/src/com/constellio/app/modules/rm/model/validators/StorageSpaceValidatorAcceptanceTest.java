@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.model.validators;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -139,7 +140,9 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
         recordServices.add(buildDefaultContainerType());
         StorageSpace storageSpace = buildParentStorageSpaces();
         recordServices.add(storageSpace.setCapacity(10L));
-        recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent"));
+        recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent")
+                .setAdministrativeUnits(asList(records.unitId_10a))
+                .setDecommissioningType(DecommissioningType.DEPOSIT));
         recordServices.recalculate(storageSpace);
         recordServices.update(storageSpace);
         try {
@@ -154,8 +157,12 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
             throws RecordServicesException {
         recordServices.add(buildDefaultContainerType());
         recordServices.add(buildParentStorageSpaces().setCapacity(10L));
-        recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent"));
-        recordServices.add(buildDefaultContainer("secondContainer").setStorageSpace("storageSpaceParent"));
+        recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent")
+                .setAdministrativeUnits(asList(records.unitId_10a))
+                .setDecommissioningType(DecommissioningType.DEPOSIT));
+        recordServices.add(buildDefaultContainer("secondContainer").setStorageSpace("storageSpaceParent")
+                .setAdministrativeUnits(asList(records.unitId_10a))
+                .setDecommissioningType(DecommissioningType.DEPOSIT));
     }
 
     @Test

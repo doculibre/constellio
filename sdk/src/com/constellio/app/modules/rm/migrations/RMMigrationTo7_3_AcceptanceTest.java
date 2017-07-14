@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import org.assertj.core.api.ListAssert;
 import org.junit.Test;
 
@@ -18,6 +20,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
+
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Test
 	public void givenSystemMigratedButBackgroundScriptsHaveNotBeenExecutedThenContainersAreUnmodified()
@@ -69,7 +73,7 @@ public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioESModule()
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withRMTest(records)
 		);
 
 		getAppLayerFactory().getModulesManager().installValidModuleAndGetInvalidOnes(new ConstellioRMModule(),
@@ -85,7 +89,8 @@ public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 		ContainerRecordType containerRecordType = rm.newContainerRecordType().setCode("test").setTitle("test");
 		rm.getModelLayerFactory().newRecordServices().add(containerRecordType);
 
-		ContainerRecord record = rm.newContainerRecord().setIdentifier("identifier").setType(containerRecordType);
+		ContainerRecord record = rm.newContainerRecord().setIdentifier("identifier").setType(containerRecordType)
+				.setDecommissioningType(DecommissioningType.DEPOSIT).setAdministrativeUnits(asList(records.unitId_10a));
 		getModelLayerFactory().newRecordServices().add(record);
 		assertThat(record.<Double>get(Schemas.MIGRATION_DATA_VERSION)).isGreaterThan(0.0);
 	}

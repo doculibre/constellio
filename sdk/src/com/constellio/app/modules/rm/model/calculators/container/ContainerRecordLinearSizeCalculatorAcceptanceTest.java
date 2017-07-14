@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +21,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+
+import java.util.Arrays;
 
 /**
  * Created by Constellio on 2016-12-19.
@@ -166,7 +169,7 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
 	public ContainerRecord buildDefaultContainer() {
 		return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
 				.setTemporaryIdentifier("containerTestTemporary")
-				.setCapacity(42);
+				.setCapacity(42).setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 
 	public void addFoldersLinkedToContainer(String containerID)
