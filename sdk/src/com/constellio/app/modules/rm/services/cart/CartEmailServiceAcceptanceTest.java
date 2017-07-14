@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
@@ -27,7 +26,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.cart.CartEmlServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
+import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.data.io.services.facades.IOServices;
@@ -44,7 +43,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
-public class CartEmlServiceAcceptanceTest extends ConstellioTest {
+public class CartEmailServiceAcceptanceTest extends ConstellioTest {
+	
 	private static final String TEST_ID = "CartEmlServiceAcceptanceTest-inputStreams";
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -61,7 +61,7 @@ public class CartEmlServiceAcceptanceTest extends ConstellioTest {
 	Cart cart;
 	private IOServices ioServices;
 	private ContentManager contentManager;
-	private CartEmlService cartEmlService;
+	private CartEmailService cartEmlService;
 
 	@Before
 	public void setUp()
@@ -77,7 +77,7 @@ public class CartEmlServiceAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 		contentManager = getModelLayerFactory().getContentManager();
 		ioServices = getDataLayerFactory().getIOServicesFactory().newIOServices();
-		cartEmlService = new CartEmlService(zeCollection, getModelLayerFactory());
+		cartEmlService = new CartEmailService(zeCollection, getModelLayerFactory());
 
 		initTestData();
 	}
@@ -197,8 +197,7 @@ public class CartEmlServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService
-				.createEmlForCart(cart);
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart).getInputStream();
 		validateEml(emlStreamFactory);
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
@@ -206,8 +205,7 @@ public class CartEmlServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenHasAdequateMimeType()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService
-				.createEmlForCart(cart);
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart).getInputStream();
 		File tempFolder = newTempFolder();
 		File file = new File(tempFolder, "test.eml");
 		FileUtils.copyInputStreamToFile(emlStreamFactory, file);
@@ -221,8 +219,7 @@ public class CartEmlServiceAcceptanceTest extends ConstellioTest {
 	public void givenEmptyCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
 		recordServices.add(cart.setDocuments(new ArrayList<String>()));
-		InputStream emlStreamFactory = cartEmlService
-				.createEmlForCart(cart);
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart).getInputStream();
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
 
@@ -230,7 +227,7 @@ public class CartEmlServiceAcceptanceTest extends ConstellioTest {
 			throws MessagingException, IOException {
 
 		Session mailSession = Session.getInstance(System.getProperties());
-		Message message = new MimeMessage(mailSession, eml);
+		MimeMessage message = new MimeMessage(mailSession, eml);
 		assertThat(message.getFrom()).containsOnly(new InternetAddress(users.alice().getEmail()));
 
 		EmailServices emailService = new EmailServices();

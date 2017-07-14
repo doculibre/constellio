@@ -349,13 +349,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
-	public void startDownload(final InputStream stream) {
+	public void startDownload(final InputStream stream, String filename) {
 		Resource resource = new DownloadStreamResource(new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				return stream;
 			}
-		}, "cart.eml");
+		}, filename);
 		Page.getCurrent().open(resource, null, false);
 	}
 

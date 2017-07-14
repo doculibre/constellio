@@ -6,6 +6,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
 
 public class UserSerializedContentFactory extends ContentFactory {
 
@@ -22,12 +23,20 @@ public class UserSerializedContentFactory extends ContentFactory {
 	}
 
 	@Override
-	protected String deserializeUser(String value) {
+	protected String deserializeUser(String value, boolean isAllowingUserToNotExist) {
 		if (value == null || value.isEmpty()) {
 			return null;
 		} else {
-			User user = userServices.getUserInCollection(value, collection);
-			return user == null ? null : user.getId();
+			try {
+				User user = userServices.getUserInCollection(value, collection);
+				return user == null ? null : user.getId();
+			} catch (UserServicesRuntimeException e) {
+				if(isAllowingUserToNotExist) {
+					return null;
+				} else {
+					throw e;
+				}
+			}
 		}
 	}
 
@@ -37,11 +46,16 @@ public class UserSerializedContentFactory extends ContentFactory {
 			return null;
 
 		} else {
-			Record record = recordServices.getDocumentById(value);
-			if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				return schemasRecordsServices.wrapUser(record).getUsername();
-			} else {
-				return null;
+			try {
+				Record record = recordServices.getDocumentById(value);
+				if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
+					return schemasRecordsServices.wrapUser(record).getUsername();
+				} else {
+					return null;
+				}
+			} catch (Exception e) {
+				User userInCollection = userServices.getUserInCollection(value, collection);
+				return value;
 			}
 		}
 

@@ -8,6 +8,8 @@ public class BulkImportParams {
 
 	boolean warningsForRequiredUSRMetadatasWithoutValue = false;
 
+	boolean isAllowingReferencesToNonExistingUsers = false;
+
 	ImportErrorsBehavior importErrorsBehavior = ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
 
 	ImportValidationErrorsBehavior importValidationErrorsBehavior = ImportValidationErrorsBehavior.STOP_IMPORT;
@@ -49,6 +51,15 @@ public class BulkImportParams {
 
 	public BulkImportParams setWarningsForInvalidFacultativeMetadatas(boolean warningsForInvalidFacultativeMetadatas) {
 		this.warningsForInvalidFacultativeMetadatas = warningsForInvalidFacultativeMetadatas;
+		return this;
+	}
+
+	public boolean isAllowingReferencesToNonExistingUsers() {
+		return isAllowingReferencesToNonExistingUsers;
+	}
+
+	public BulkImportParams setAllowingReferencesToNonExistingUsers(boolean allowingReferencesToNonExistingUsers) {
+		isAllowingReferencesToNonExistingUsers = allowingReferencesToNonExistingUsers;
 		return this;
 	}
 
