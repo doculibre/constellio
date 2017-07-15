@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.events;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -8,14 +9,16 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayWindowButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
@@ -32,6 +35,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private EventPresenter presenter;
 	private Table table;
 	private Map<String, String> parameters;
+	public static final String OPEN_SESSION = "open_session";
 
 	public EventViewImpl() {
 		this.presenter = new EventPresenter(this);
@@ -54,7 +58,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 		String title = EventTypeUtils.getEventTypeCaption(eventType) + " (" + container.size() + ")";
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
-		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent){
+		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent) {
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (presenter.isDeltaMetadata(metadataValue)) {
@@ -66,10 +70,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 			@Override
 			protected RecordVO getRecordVOForTitleColumn(Item item) {
-				if (isRecordEvent) {
-					RecordVO eventVO = ((RecordVOItem) item).getRecord();
-					return presenter.getLinkedRecordVO(eventVO);
-				} else {
+				try {
+					if (isRecordEvent) {
+						RecordVO eventVO = ((RecordVOItem) item).getRecord();
+						return presenter.getLinkedRecordVO(eventVO);
+					} else {
+						return super.getRecordVOForTitleColumn(item);
+					}
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					return super.getRecordVOForTitleColumn(item);
 				}
 			}
@@ -77,12 +85,38 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			@Override
 			protected String getTitleForRecordVO(RecordVO titleRecordVO, String prefix, String title) {
 				if (isRecordEvent) {
-					title += " (" + titleRecordVO.getId() + ")"; 
+					title += " (" + titleRecordVO.getId() + ")";
 				}
 				return super.getTitleForRecordVO(titleRecordVO, prefix, title);
 			}
+
+			@Override
+			public boolean isContextMenuPossible() {
+				return false;
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				if (OPEN_SESSION.equalsIgnoreCase(presenter.getEventType())) {
+					return new RecordVOTableColumnsManager() {
+						@Override
+						protected List<String> getDefaultVisibleColumnIds(Table table) {
+							List<String> defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
+							String usernameColumnId = "event_default_username";
+							String titleColumnId = "event_default_title";
+							if (!defaultVisibleColumnIds.contains(usernameColumnId)) {
+								defaultVisibleColumnIds.add(usernameColumnId);
+								defaultVisibleColumnIds.remove(titleColumnId);
+							}
+							return defaultVisibleColumnIds;
+						}
+					};
+				} else {
+					return super.newColumnsManager();
+				}
+			}
 		};
-		if (isRecordEvent){
+		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {
 				@Override
 				public void itemClick(ItemClickEvent event) {
@@ -93,14 +127,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				}
 			});
 		}
-		table.setPageLength(table.getItemIds().size());
+//		table.setPageLength(table.getItemIds().size());
 		table.setWidth("100%");
 		table.addStyleName(EVENT_TABLE_STYLE);
 		return table;
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {
-		final String delta = (metadataValue.getValue() != null)? metadataValue.getValue().toString(): "";
+		final String delta = (metadataValue.getValue() != null) ? metadataValue.getValue().toString() : "";
 		DisplayWindowButton displayButton = new DisplayWindowButton("", delta) {
 			@Override
 			public boolean isVisible() {
@@ -115,11 +149,15 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		return parameters;
 	}
 
-
 	@Override
-	protected String getTitle(){
-		return  EventTypeUtils.getEventTypeCaption(presenter.getEventType());
-	};
+	protected String getTitle() {
+		return EventTypeUtils.getEventTypeCaption(presenter.getEventType());
+	}
+
+	public Table getTable()
+	{
+		return table;
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
@@ -136,6 +174,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		String paramString = event.getParameters();
 		String viewNameAndParameters = NavigatorConfigurationService.EVENT_DISPLAY + "/" + paramString;
 		parameters = ParamUtils.getParamsMap(viewNameAndParameters);
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 
 }

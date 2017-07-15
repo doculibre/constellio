@@ -1,14 +1,7 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.services.factories.AppLayerFactory;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -20,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Content;
@@ -38,6 +32,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	protected final DecommissioningService decommissioningService;
@@ -56,7 +56,8 @@ public abstract class Decommissioner {
 	private LocalDate processingDate;
 	private User user;
 
-	public static Decommissioner forList(DecommissioningList decommissioningList, DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+	public static Decommissioner forList(DecommissioningList decommissioningList, DecommissioningService decommissioningService,
+			AppLayerFactory appLayerFactory) {
 		switch (decommissioningList.getDecommissioningListType()) {
 		case FOLDERS_TO_CLOSE:
 			return new ClosingDecommissioner(decommissioningService, appLayerFactory);
@@ -127,7 +128,7 @@ public abstract class Decommissioner {
 	private void markApproved() {
 		add(decommissioningList.setApprovalDate(processingDate).setApprovalUser(user));
 	}
-	
+
 	protected void removeManualArchivisticStatus(Folder folder) {
 		folder.setManualArchivisticStatus(null);
 	}
@@ -175,12 +176,13 @@ public abstract class Decommissioner {
 	}
 
 	private void processFolders() {
+		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
 			if (detail.isFolderExcluded()) {
 				continue;
 			}
 			Folder folder = rm.getFolder(detail.getFolderId());
-			preprocessFolder(folder, detail);
+			preprocessFolder(folder, detail, decommissioningListType);
 			processFolder(folder, detail);
 			add(folder);
 		}
@@ -188,8 +190,8 @@ public abstract class Decommissioner {
 
 	protected abstract void processDocuments();
 
-	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail) {
-		if (folder.getCloseDateEntered() == null) {
+	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail, DecommissioningListType decommissioningListType) {
+		if (folder.getCloseDateEntered() == null && DecommissioningListType.FOLDERS_TO_CLOSE.equals(decommissioningListType)) {
 			folder.setCloseDateEntered(processingDate);
 		}
 		if (detail.getContainerRecordId() != null) {
@@ -335,9 +337,24 @@ public abstract class Decommissioner {
 	}
 
 	private void processContainers() {
-		for (DecomListContainerDetail detail : decommissioningList.getContainerDetails()) {
-			processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+		List<String> containerIdUsed = new ArrayList<>();
+		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+			if (detail.isFolderExcluded()) {
+				continue;
+			}
+			containerIdUsed.add(detail.getContainerRecordId());
 		}
+
+		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
+		for (DecomListContainerDetail detail : containerDetails) {
+			if (containerIdUsed.contains(detail.getContainerRecordId())) {
+				processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+			} else {
+				decommissioningList.removeContainerDetail(detail.getContainerRecordId());
+			}
+		}
+
+		add(decommissioningList);
 	}
 
 	protected void updateContainer(ContainerRecord container, DecomListContainerDetail detail) {
@@ -358,11 +375,28 @@ public abstract class Decommissioner {
 	protected abstract void processContainer(ContainerRecord container, DecomListContainerDetail detail);
 
 	protected boolean isContainerEmpty(ContainerRecord container, List<String> destroyedFolders) {
+		boolean empty;
 		LogicalSearchCondition condition = from(rm.folder.schemaType()).where(rm.folder.container()).isEqualTo(container);
 		if (!destroyedFolders.isEmpty()) {
 			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(destroyedFolders);
 		}
-		return searchServices.getResultsCount(condition) == 0;
+		boolean noSearchResult = searchServices.getResultsCount(condition) == 0;
+		if (noSearchResult) {
+			empty = true;
+			// Current transaction folders would not be taken into account otherwise
+			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+				if (detail.isFolderExcluded()) {
+					continue;
+				}
+				if (container.getId().equals(detail.getContainerRecordId())) {
+					empty = false;
+					break;
+				}
+			}	
+		} else {
+			empty = false;
+		}
+		return empty;
 	}
 
 	protected DecommissioningType getDecommissioningTypeForContainer() {
@@ -378,6 +412,11 @@ public abstract class Decommissioner {
 			loggingServices.logDecommissioning(decommissioningList, user);
 		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+		if (!transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll()) {
+			transaction.removeUnchangedRecords();
+		}
+
 		try {
 			recordServices.execute(transaction);
 			for (Record record : recordsToDelete) {
@@ -488,6 +527,13 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	protected void processDeletedFolder(Folder folder, DecomListFolderDetail detail) {
 		removeFolderFromContainer(folder);
 		markFolderDestroyed(folder);
+		//TODO
+		//		try {
+		//			modelLayerFactory.newRecordServices().update(folder);
+		//		} catch (RecordServicesException e) {
+		//			e.printStackTrace();
+		//		}
+		//add(folder);
 		if (configs.deleteFolderRecordsWithDestruction()) {
 			delete(folder);
 		}
@@ -517,13 +563,11 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	}
 
 	protected boolean shouldPurgeMinorVersions() {
-		return decommissioningList.isFromActive() ?
-				configs.purgeMinorVersionsOnTransfer() :
-				configs.purgeMinorVersionsOnDeposit();
+		return configs.purgeMinorVersionsOnTransfer() || configs.purgeMinorVersionsOnDeposit();
 	}
 
 	protected boolean shouldCreatePDFa() {
-		return decommissioningList.isFromActive() ? configs.createPDFaOnTransfer() : configs.createPDFaOnDeposit();
+		return configs.createPDFaOnTransfer() || configs.createPDFaOnDeposit();
 	}
 }
 
@@ -596,7 +640,8 @@ class DestroyingDecommissioner extends DeactivatingDecommissioner {
 class SortingDecommissioner extends DeactivatingDecommissioner {
 	private final boolean depositByDefault;
 
-	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault, AppLayerFactory appLayerFactory) {
+	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault,
+			AppLayerFactory appLayerFactory) {
 		super(decommissioningService, appLayerFactory);
 		this.depositByDefault = depositByDefault;
 	}

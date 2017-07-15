@@ -1,12 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.robots.model.RegisteredAction;
@@ -32,20 +25,31 @@ import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.Search
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		implements FieldOverridePresenter, SearchCriteriaPresenter, DynamicParametersPresenter {
@@ -183,18 +187,66 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
+		MetadataSchemaType schemaType = types().getSchemaType(schemaFilter);
+		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+				.setNumberOfRows(0)
+				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+				.getFieldFacetValues("schema_s");
+		Set<String> metadataCodes = new HashSet<>();
+		if (schema_s != null) {
+			for (FacetValue facetValue : schema_s) {
+				if (facetValue.getQuantity() > 0) {
+					String schema = facetValue.getValue();
+					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
+						if(metadata.getInheritance() != null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getInheritance().getCode());
+						}
+						else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+							metadataCodes.add(metadata.getCode());
+						}
+					}
+				}
+			}
+		}
+
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
-		MetadataSchemaType schemaType = schemaType(schemaFilter);
 
 		List<MetadataVO> result = new ArrayList<>();
 		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
-		for (Metadata metadata : schemaType.getAllMetadatas()) {
-			MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-			if (config.isVisibleInAdvancedSearch()) {
-				result.add(builder.build(metadata, view.getSessionContext()));
+		MetadataList allMetadatas = schemaType.getAllMetadatas();
+		for (Metadata metadata : allMetadatas) {
+			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
+				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
+				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
+				if (config.isVisibleInAdvancedSearch()  && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString || isTextOrString && metadata.isSearchable())) {
+					result.add(builder.build(metadata, view.getSessionContext()));
+				}
 			}
 		}
 		return result;
+	}
+
+	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
+		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
+			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(collection, referencedSchemaType);
+			if(taxonomy != null) {
+				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
+				List<String> taxonomyUserIds = taxonomy.getUserIds();
+				List<String> userGroups = currentUser.getUserGroups();
+				for(String group: taxonomyGroupIds) {
+					for(String userGroup: userGroups) {
+						if(userGroup.equals(group)) {
+							return true;
+						}
+					}
+				}
+				return (taxonomyGroupIds.isEmpty() && taxonomyUserIds.isEmpty()) || taxonomyUserIds.contains(currentUser.getId());
+			} else {
+				return true;
+			}
+		}
+		return true;
 	}
 
 	@Override

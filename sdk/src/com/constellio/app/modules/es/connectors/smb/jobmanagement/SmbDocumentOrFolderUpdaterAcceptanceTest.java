@@ -605,4 +605,14 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 
 		assertThat(document.getParent()).isEqualTo(PARENT_ID);
 	}
+
+	@Test
+	public void givenFullFolderDTOWithoutParentWhenUpdatingNewRecordThenFetchstatusPartial() {
+		SmbDocumentOrFolderUpdater documentOrFolderUpdater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
+		SmbFileDTO smbFileDTO = new SmbFileDTO();
+		folder = es.newConnectorSmbFolder(connectorInstance);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, null);
+
+		assertThat(folder.getLastFetchedStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
+	}
 }

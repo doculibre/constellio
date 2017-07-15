@@ -60,16 +60,28 @@ public class RecordsToReindexResolver {
 				if (metadata.getType() == REFERENCE && schema.hasMetadataWithCode(metadata.getCode())) {
 
 					if (originalRecord != null) {
-						String wasValue = originalRecord.get(metadata);
-						if (wasValue != null) {
-							ids.add(wasValue);
+
+						if (metadata.isMultivalue()) {
+							List<String> value = originalRecord.getList(metadata);
+							ids.addAll(value);
+						} else {
+							String value = originalRecord.get(metadata);
+							if (value != null) {
+								ids.add(value);
+							}
 						}
+
 					}
 
 					if (record != null) {
-						String value = record.get(metadata);
-						if (value != null) {
-							ids.add(value);
+						if (metadata.isMultivalue()) {
+							List<String> value = record.getList(metadata);
+							ids.addAll(value);
+						} else {
+							String value = record.get(metadata);
+							if (value != null) {
+								ids.add(value);
+							}
 						}
 					}
 

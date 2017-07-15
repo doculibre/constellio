@@ -135,17 +135,31 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
 		importSettings();
 
-		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly("Ze template #1");
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1");
 
 		settings = new ImportedSettings();
 		settings.addImportedLabelTemplate(getTestResourceContent("template1b.xml"));
 		settings.addImportedLabelTemplate(getTestResourceContent("template2.xml"));
 		importSettings();
-		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name")
-				.containsOnly("Ze template #1b", "Ze template #2");
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1b", "Ze template #2");
 
-		assertThat(new LabelTemplateManager(getDataLayerFactory().getConfigManager(), appLayerFactory).listTemplates(Folder.SCHEMA_TYPE))
-				.extracting("name").containsOnly("Ze template #1b", "Ze template #2");
+		assertThat(new LabelTemplateManager(getDataLayerFactory().getConfigManager(), appLayerFactory)
+				.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly(
+				"Code de plan justifié à droite (Avery 5159)", "Code de plan justifié à droite (Avery 5161)",
+				"Code de plan justifié à droite (Avery 5162)", "Code de plan justifié à droite (Avery 5163)",
+				"Code de plan justifié à gauche (Avery 5159)", "Code de plan justifié à gauche (Avery 5161)",
+				"Code de plan justifié à gauche (Avery 5162)", "Code de plan justifié à gauche (Avery 5163)",
+				"Ze template #1b", "Ze template #2");
 
 		runTwice = false;
 	}
@@ -184,7 +198,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(dataEntry.getType()).isEqualTo(DataEntryType.COPIED);
 		CopiedDataEntry copiedDataEntry = (CopiedDataEntry) dataEntry;
 
-		assertThat(copiedDataEntry.getCopiedMetadata()).isEqualTo("folder_default_title");
+		assertThat(copiedDataEntry.getCopiedMetadata()).isEqualTo("category_default_title");
 		assertThat(copiedDataEntry.getReferenceMetadata()).isEqualTo("folder_default_category");
 
 		//newWebDriver();
@@ -452,21 +466,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
 				.contains("L'identifiant de la séquence est vide ou null")
 				.doesNotContain("The id of the sequence is null or empty");
-	}
-
-	@Test
-	public void givenEnglishLocaleWhenImportSequencesWithNonNumericalSequenceIdThenError()
-			throws Exception {
-
-		i18n.setLocale(Locale.CANADA);
-		settings.addSequence(new ImportedSequence().setKey("a").setValue("1"));
-
-		assertThatErrorsWhileImportingSettingsExtracting()
-				.contains(tuple("SettingsImportServices_sequenceIdNotNumerical"));
-
-		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
-				.contains("The id of the sequence id is non numerical")
-				.doesNotContain("L''identifiant de la séquence n''est pas numérique");
 	}
 
 	@Test
@@ -795,23 +794,24 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodePrefix"));
 	}
 
-	@Test
-	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
-			throws Exception {
-
-		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
-				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
-						.setTitle(TAXO_1_TITLE_FR)
-						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
-						.setVisibleOnHomePage(true)
-						.setUserIds(TAXO_USERS)
-						.setGroupIds(TAXO_GROUPS)
-				));
-
-		assertThatErrorsWhileImportingSettingsExtracting()
-				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodeSuffix"));
-
-	}
+	//TODO REMOVED VERIFICATION, SHOULD CHECK TAXONOMY SCHEMATYPE CODE INSTEAD OF TAXONOMY CODE
+	//	@Test
+	//	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
+	//			throws Exception {
+	//
+	//		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
+	//				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
+	//						.setTitle(TAXO_1_TITLE_FR)
+	//						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
+	//						.setVisibleOnHomePage(true)
+	//						.setUserIds(TAXO_USERS)
+	//						.setGroupIds(TAXO_GROUPS)
+	//				));
+	//
+	//		assertThatErrorsWhileImportingSettingsExtracting()
+	//				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodeSuffix"));
+	//
+	//	}
 
 	@Test
 	public void whenImportingTaxonomyConfigSettingsThenConfigsAreSaved()
@@ -819,7 +819,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
@@ -827,7 +827,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
-		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
+		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE.replace("Type", ""))
 				.setTitle(TAXO_2_TITLE_FR);
 		zeCollectionSettings.addTaxonomy(importedTaxonomy2);
 
@@ -883,7 +883,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
@@ -938,7 +938,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -975,7 +975,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setVisibleOnHomePage(false);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -1012,7 +1012,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setUserIds(asList(gandalf, robin))
 				.setGroupIds(asList("group1"));
 
@@ -1055,7 +1055,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER));
 
@@ -1553,7 +1553,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("default").getFormMetadataCodes())).isEqualTo(asList(
 				"administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m2", "m1", "type", "title", "container",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
 		assertThat(localCodes(folderSchemaDisplay("default").getDisplayMetadataCodes())).containsExactly("m3");
 		assertThat(localCodes(folderSchemaDisplay("default").getSearchResultsMetadataCodes())).containsExactly("m4", "m5", "m1");
 		assertThat(localCodes(folderSchemaDisplay("default").getTableMetadataCodes())).containsExactly("m3", "m5");
@@ -1561,7 +1561,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom1").getFormMetadataCodes())).isEqualTo(asList(
 				"m1", "type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom1").getDisplayMetadataCodes())).containsExactly("m3", "m2");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getSearchResultsMetadataCodes())).containsExactly("m3", "m4");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getTableMetadataCodes())).containsExactly("m4", "m5");
@@ -1569,7 +1569,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom2").getFormMetadataCodes())).isEqualTo(asList(
 				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getDisplayMetadataCodes())).containsExactly("m4", "m5");
 		assertThat(localCodes(folderSchemaDisplay("custom2").getSearchResultsMetadataCodes())).containsExactly("m1", "m3", "m2");
 		assertThat(localCodes(folderSchemaDisplay("custom2").getTableMetadataCodes())).containsExactly("m1", "m4");
@@ -1609,7 +1609,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("default").getFormMetadataCodes())).isEqualTo(asList(
 				"m1", "m2", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
-				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
 		assertThat(localCodes(folderSchemaDisplay("default").getDisplayMetadataCodes())).containsExactly("m5");
 		assertThat(localCodes(folderSchemaDisplay("default").getSearchResultsMetadataCodes())).containsExactly("m1", "m2", "m5");
 		assertThat(localCodes(folderSchemaDisplay("default").getTableMetadataCodes())).containsExactly("m3", "m5");
@@ -1617,7 +1617,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom1").getFormMetadataCodes())).isEqualTo(asList(
 				"m2", "m1", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
-				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"));
 		assertThat(localCodes(folderSchemaDisplay("custom1").getDisplayMetadataCodes())).containsExactly("m2", "m3");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getSearchResultsMetadataCodes())).containsExactly("m1");
 		assertThat(localCodes(folderSchemaDisplay("custom1").getTableMetadataCodes())).containsExactly("m4", "m5");
@@ -1625,7 +1625,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(localCodes(folderSchemaDisplay("custom2").getFormMetadataCodes())).isEqualTo(asList(
 				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3",
 				"openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
-				"linearSize", "mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "m1", "m4",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered", "m1", "m4",
 				"m5", "m6", "m7", "m8"));
 		assertThat(localCodes(folderSchemaDisplay("custom2").getDisplayMetadataCodes()))
 				.isEqualTo(asList("m4", "m5", "m1", "m2", "m3", "m6", "m7", "m8"));

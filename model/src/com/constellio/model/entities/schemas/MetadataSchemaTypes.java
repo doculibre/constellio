@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,7 +20,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Inv
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class MetadataSchemaTypes {
+public class MetadataSchemaTypes implements Serializable {
 
 	private static final String DEFAULT = "default";
 
@@ -50,11 +51,28 @@ public class MetadataSchemaTypes {
 		this.schemaTypes = Collections.unmodifiableList(schemaTypes);
 		this.schemaTypesSortedByDependency = schemaTypesSortedByDependency;
 		this.referenceDefaultValues = referenceDefaultValues;
-		this.searchableMetadatas = getAllMetadatas().onlySearchable();
+		this.searchableMetadatas = getSearchableMetadatas(schemaTypes);
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
 		this.metadataNetwork = metadataNetwork;
+	}
+
+	private MetadataList getSearchableMetadatas(List<MetadataSchemaType> schemaTypes) {
+		MetadataList searchableMetadatas = new MetadataList();
+		Set<String> searchableMetadatasDataStoreCodes = new HashSet<>();
+		for (MetadataSchemaType schemaType : schemaTypes) {
+			for (MetadataSchema schema : schemaType.getAllSchemas()) {
+				for (Metadata metadata : schema.getMetadatas()) {
+					if (metadata.getInheritance() == null && metadata.isSearchable()
+							&& !searchableMetadatasDataStoreCodes.contains(metadata.getDataStoreCode())) {
+						searchableMetadatasDataStoreCodes.add(metadata.getDataStoreCode());
+						searchableMetadatas.add(metadata);
+					}
+				}
+			}
+		}
+		return searchableMetadatas.unModifiable();
 	}
 
 	private Set<String> buildTypeParentOfOtherTypes(List<MetadataSchemaType> schemaTypes) {

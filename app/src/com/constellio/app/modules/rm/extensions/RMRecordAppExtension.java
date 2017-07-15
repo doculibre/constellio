@@ -14,6 +14,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.app.ui.util.ThemeUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -97,15 +98,25 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
 			Document document = new Document(record, types());
-			String mimeType = document.getMimeType();
-			if (mimeType != null && !mimeType.isEmpty()) {
-				try {
-					fileName = FileIconUtils.getIconPathForMimeType(mimeType);
-				} catch (Exception e) {
-					fileName = "document";
-				}
+
+			Content content = document.getContent();
+			if (content != null) {
+				fileName = content.getCurrentVersion().getFilename();
 			} else {
 				fileName = "document";
+			}
+			
+			if (fileName == null || !isIcon(fileName)) {
+				String mimeType = document.getMimeType();
+				if (mimeType != null && !mimeType.isEmpty()) {
+					try {
+						fileName = FileIconUtils.getIconPathForMimeType(mimeType);
+					} catch (Exception e) {
+						fileName = "document";
+					}
+				} else {
+					fileName = "document";
+				}
 			}
 		} else if (schemaTypeCode.equals(UserDocument.SCHEMA_TYPE)) {
 			UserDocument userDocument = new UserDocument(record, types());
@@ -118,6 +129,8 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
 			Folder folder = new Folder(record, types());
 			fileName = getFolderIconPath(folder, params.isExpanded());
+		} else if (schemaTypeCode.equals(UserFolder.SCHEMA_TYPE)) {
+			fileName = getFolderIconPath();
 		} else if (schemaTypeCode.equals(ContainerRecord.SCHEMA_TYPE)) {
 			fileName = getContainerIconPath();
 		}
@@ -130,6 +143,16 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	private String getDocumentIconPath() {
 		return IMAGES_DIR + "/icons/ext/document.gif";
+	}
+
+	private String getFolderIconPath() {
+		return IMAGES_DIR + "/icons/folder/folder.png";
+	}
+	
+	private boolean isIcon(String filename) {
+		String extension = FilenameUtils.getExtension(filename);
+		String path = IMAGES_DIR + "/icons/ext/mantis/" + extension + ".gif";
+		return ThemeUtils.resourceExists(path);
 	}
 
 	private String getFolderIconPath(Folder folder, boolean expanded) {

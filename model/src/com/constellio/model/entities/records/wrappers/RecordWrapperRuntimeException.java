@@ -21,6 +21,15 @@ public class RecordWrapperRuntimeException extends RuntimeException {
 		}
 	}
 
+
+	public static class WrappedRecordAndTypesCollectionMustBeTheSame extends RecordWrapperRuntimeException {
+
+		public WrappedRecordAndTypesCollectionMustBeTheSame() {
+			super("Wrapped record collection must be the same as the given schema types");
+		}
+	}
+
+
 	public static class MetadataSchemaTypesMustBeNotNull extends RecordWrapperRuntimeException {
 
 		public MetadataSchemaTypesMustBeNotNull() {

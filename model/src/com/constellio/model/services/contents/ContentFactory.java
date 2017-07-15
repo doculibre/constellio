@@ -1,15 +1,5 @@
 package com.constellio.model.services.contents;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
@@ -17,6 +7,15 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.search.query.logical.criteria.IsContainingTextCriterion;
 import com.constellio.model.utils.Lazy;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
 public class ContentFactory implements StructureFactory {
 
@@ -72,7 +71,10 @@ public class ContentFactory implements StructureFactory {
 
 	@Override
 	public ModifiableStructure build(String string) {
+		return build(string, false);
+	}
 
+	public ModifiableStructure build(String string, boolean isAllowingUserToNotExist) {
 		int version = getFactoryVersion(string);
 		Iterator<String> iterator;
 
@@ -82,15 +84,15 @@ public class ContentFactory implements StructureFactory {
 			iterator = newPartsIterator(string.substring(3));
 		}
 
-		return build(iterator, version);
+		return build(iterator, version, isAllowingUserToNotExist);
 	}
 
-	private ModifiableStructure build(Iterator<String> iterator, int version) {
+	private ModifiableStructure build(Iterator<String> iterator, int version, boolean isAllowingUserToNotExist) {
 		String id = iterator.next();
 		skipCurrentFileName(iterator);
 		skipIsCheckedOut(iterator);
-		ContentVersion current = toContentVersion(iterator.next(), version);
-		ContentVersion currentCheckedOut = toContentVersion(iterator.next(), version);
+		ContentVersion current = toContentVersion(iterator.next(), version, isAllowingUserToNotExist);
+		ContentVersion currentCheckedOut = toContentVersion(iterator.next(), version, isAllowingUserToNotExist);
 
 		String nextLine = iterator.next();
 		boolean emptyVersion = false;
@@ -99,16 +101,25 @@ public class ContentFactory implements StructureFactory {
 			nextLine = iterator.next();
 		}
 
-		String checkedOutBy = toNullableString(nextLine);
+		String checkedOutBy = deserializeUser(toNullableString(nextLine), isAllowingUserToNotExist);
 		LocalDateTime checkedOutDateTime = toDateTime(iterator.next());
-		
+
 		String lastKnownFilename = current != null ? current.getFilename() : null;
 		String lastKnownModifiedBy = current != null ? current.getModifiedBy() : null;
 		String lastKnownMimetype = current != null ? current.getMimetype() : null;
-		
-		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator, version, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype);
+
+		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator, version, lastKnownFilename,
+				lastKnownModifiedBy, lastKnownMimetype, isAllowingUserToNotExist);
 
 		return new ContentImpl(id, current, lazyLoadedHistory, currentCheckedOut, checkedOutDateTime, checkedOutBy, emptyVersion);
+	}
+
+	protected String deserializeUser(String value, boolean isAllowingUserToNotExist) {
+		return value;
+	}
+
+	protected String serializeUser(String value) {
+		return value;
 	}
 
 	private int getFactoryVersion(String string) {
@@ -128,8 +139,10 @@ public class ContentFactory implements StructureFactory {
 		iterator.next();
 	}
 
-	private Lazy<List<ContentVersion>> newLazyLoadedHistory(final Iterator<String> iterator, final int version, final String lastKnownFilename, final String lastKnownModifiedBy, final String lastKnownMimetype) {
-		
+	private Lazy<List<ContentVersion>> newLazyLoadedHistory(final Iterator<String> iterator, final int version,
+															final String lastKnownFilename, final String lastKnownModifiedBy,
+															final String lastKnownMimetype, final boolean isAllowingUserToNotExist) {
+
 		return new Lazy<List<ContentVersion>>() {
 			@Override
 			protected List<ContentVersion> load() {
@@ -139,9 +152,10 @@ public class ContentFactory implements StructureFactory {
 				String currentLastKnownModifiedBy = lastKnownModifiedBy;
 				String currentLastKnownMimetype = lastKnownMimetype;
 				while (iterator.hasNext()) {
-					ContentVersion contentVersion = toContentVersion(iterator.next(), version, currentLastKnownFilename, currentLastKnownModifiedBy, currentLastKnownMimetype);
+					ContentVersion contentVersion = toContentVersion(iterator.next(), version, currentLastKnownFilename,
+							currentLastKnownModifiedBy, currentLastKnownMimetype, isAllowingUserToNotExist);
 					currentLastKnownFilename = contentVersion.getFilename();
-					currentLastKnownModifiedBy = contentVersion.getModifiedBy();
+					currentLastKnownModifiedBy = serializeUser(contentVersion.getModifiedBy());
 					currentLastKnownMimetype = contentVersion.getMimetype();
 					versions.add(contentVersion);
 				}
@@ -169,9 +183,9 @@ public class ContentFactory implements StructureFactory {
 		ContentVersion current = contentInfo.getCurrentVersion();
 
 		String lastKnownFilename = current.getFilename();
-		String lastKnownModifiedBy = current.getModifiedBy();
+		String lastKnownModifiedBy = serializeUser(current.getModifiedBy());
 		String lastKnownMimetype = current.getMimetype();
-		
+
 		stringBuilder.append(contentInfo.getId());
 		stringBuilder.append("::cf=");
 		stringBuilder.append(current.getFilename());
@@ -185,27 +199,28 @@ public class ContentFactory implements StructureFactory {
 			stringBuilder.append("_EMPTY_VERSION_::");
 		}
 
-		stringBuilder.append(contentInfo.getCheckoutUserId());
+		stringBuilder.append(serializeUser(contentInfo.getCheckoutUserId()));
 		stringBuilder.append("::");
 		stringBuilder.append(toString(contentInfo.getCheckoutDateTime()));
 		stringBuilder.append(":");
 		for (ContentVersion historyVersion : contentInfo.getHistoryVersions()) {
 			stringBuilder.append(toString(historyVersion, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype));
 			lastKnownFilename = historyVersion.getFilename();
-			lastKnownModifiedBy = historyVersion.getModifiedBy();
+			lastKnownModifiedBy = serializeUser(historyVersion.getModifiedBy());
 			lastKnownMimetype = historyVersion.getMimetype();
 		}
 		stringBuilder.append(":");
 		return stringBuilder.toString();
 	}
 
-	private String toString(ContentVersion contentVersion, String lastKnownFilename, String lastKnownModifiedBy, String lastKnownMimetype) {
+	private String toString(ContentVersion contentVersion, String lastKnownFilename, String lastKnownModifiedBy,
+			String lastKnownMimetype) {
 		if (contentVersion == null) {
 			return ":" + NULL_STRING + ":";
 		}
-		
+
 		String filename = contentVersion.getFilename();
-		String modifiedBy = contentVersion.getModifiedBy();
+		String modifiedBy = serializeUser(contentVersion.getModifiedBy());
 		String mimetype = contentVersion.getMimetype();
 		if (filename.equals(lastKnownFilename)) {
 			filename = "";
@@ -238,19 +253,20 @@ public class ContentFactory implements StructureFactory {
 		return stringBuilder.toString();
 	}
 
-	private ContentVersion toContentVersion(String string, int version) {
-		return toContentVersion(string, version, null, null, null);
+	private ContentVersion toContentVersion(String string, int version, boolean isAllowingUserToNotExist) {
+		return toContentVersion(string, version, null, null, null, isAllowingUserToNotExist);
 	}
-	
-	private ContentVersion toContentVersion(String string, int version, String lastKnownFilename, String lastKnownModifiedBy, String lastKnownMimetype) {
+
+	private ContentVersion toContentVersion(String string, int version, String lastKnownFilename, String lastKnownModifiedBy,
+			String lastKnownMimetype, boolean isAllowingUserToNotExist) {
 		if (version == 2) {
-			return toContentVersion2(string, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype);
+			return toContentVersion2(string, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype, isAllowingUserToNotExist);
 		} else {
-			return toContentVersion1(string);
+			return toContentVersion1(string, isAllowingUserToNotExist);
 		}
 	}
 
-	private ContentVersion toContentVersion1(String string) {
+	private ContentVersion toContentVersion1(String string, boolean isAllowingUserToNotExist) {
 		if (string.equals(NULL_STRING)) {
 			return null;
 		}
@@ -260,7 +276,7 @@ public class ContentFactory implements StructureFactory {
 		String hash = afterEqual(tokenizer.nextToken());
 		String lengthStr = afterEqual(tokenizer.nextToken());
 		String mimetype = afterEqual(tokenizer.nextToken());
-		String modifiedBy = afterEqual(tokenizer.nextToken());
+		String modifiedBy = deserializeUser(afterEqual(tokenizer.nextToken()), isAllowingUserToNotExist);
 		String modifiedDateTime = afterEqual(tokenizer.nextToken());
 		String version = afterEqual(tokenizer.nextToken());
 
@@ -269,7 +285,8 @@ public class ContentFactory implements StructureFactory {
 		return new ContentVersion(contentVersionDataSummary, filename, version, modifiedBy, toDateTime(modifiedDateTime), null);
 	}
 
-	private ContentVersion toContentVersion2(String string, String lastKnownFilename, String lastKnownModifiedBy, String lastKnownMimetype) {
+	private ContentVersion toContentVersion2(String string, String lastKnownFilename, String lastKnownModifiedBy,
+			String lastKnownMimetype, boolean isAllowingUserToNotExist) {
 		if (string.equals(NULL_STRING)) {
 			return null;
 		}
@@ -279,11 +296,11 @@ public class ContentFactory implements StructureFactory {
 		String hash = afterEqual(tokenizer.nextToken());
 		String lengthStr = afterEqual(tokenizer.nextToken());
 		String mimetype = afterEqual(tokenizer.nextToken());
-		String modifiedBy = afterEqual(tokenizer.nextToken());
+		String modifiedBy = deserializeUser(afterEqual(tokenizer.nextToken()), isAllowingUserToNotExist);
 		String modifiedDateTime = afterEqual(tokenizer.nextToken());
 		String version = afterEqual(tokenizer.nextToken());
 		String comment = readComment(afterEqual(tokenizer.nextToken()));
-		
+
 		if (StringUtils.isBlank(filename)) {
 			filename = lastKnownFilename;
 		}

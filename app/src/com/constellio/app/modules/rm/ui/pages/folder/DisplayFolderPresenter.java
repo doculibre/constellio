@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -27,6 +26,7 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
@@ -41,9 +41,11 @@ import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -77,17 +79,21 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
+
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
 	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -105,6 +111,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient MetadataSchemasManager metadataSchemasManager;
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
+	private transient ConstellioEIMConfigs eimConfigs;
+
+	Boolean allItemsSelected = false;
+
+	Boolean allItemsDeselected = false;
 
 	public DisplayFolderPresenter(DisplayFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -130,6 +141,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		recordServices = modelLayerFactory.newRecordServices();
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -153,18 +165,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				documentsSchemaVO, documentVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				Record record = getRecord(folderVO.getId());
-				MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
-				MetadataSchema documentsSchema = getDocumentsSchema();
-				Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
-				LogicalSearchQuery query = new LogicalSearchQuery();
-
-				LogicalSearchCondition condition = from(documentsSchemaType).where(folderMetadata).is(record);
-				query.setCondition(condition);
-				query.filteredWithUser(getCurrentUser());
-				query.filteredByStatus(StatusFilter.ACTIVES);
-				query.sortAsc(Schemas.TITLE);
-				return query;
+				return getDocumentsQuery();
 			}
 		};
 
@@ -173,16 +174,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				foldersSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				Record record = getRecord(folderVO.getId());
-				MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
-				MetadataSchema foldersSchema = getFoldersSchema();
-				Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
-				query.filteredWithUser(getCurrentUser());
-				query.filteredByStatus(StatusFilter.ACTIVES);
-				query.sortAsc(Schemas.TITLE);
-				return query;
+				return getSubFoldersQuery();
 			}
 		};
 
@@ -191,27 +183,63 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
-				Metadata taskFolderMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_FOLDERS);
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				query.setCondition(from(tasks.userTask.schemaType()).where(taskFolderMetadata).is(folderVO.getId()));
-				query.filteredByStatus(StatusFilter.ACTIVES);
-				query.filteredWithUser(getCurrentUser());
-				query.sortDesc(Schemas.MODIFIED_ON);
-				return query;
+				return getTasksQuery();
 			}
 		};
 
 		eventsDataProvider = getEventsDataProvider();
+
+		computeAllItemsSelected();
+	}
+
+	private LogicalSearchQuery getDocumentsQuery() {
+		Record record = getRecord(folderVO.getId());
+		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
+		MetadataSchema documentsSchema = getDocumentsSchema();
+		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+
+		LogicalSearchCondition condition = from(documentsSchemaType).where(folderMetadata).is(record);
+		query.setCondition(condition);
+		query.filteredWithUser(getCurrentUser());
+		query.filteredByStatus(StatusFilter.ACTIVES);
+		query.sortAsc(Schemas.TITLE);
+		return query;
+	}
+
+	private LogicalSearchQuery getSubFoldersQuery() {
+		Record record = getRecord(folderVO.getId());
+		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
+		MetadataSchema foldersSchema = getFoldersSchema();
+		Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
+		query.filteredWithUser(getCurrentUser());
+		query.filteredByStatus(StatusFilter.ACTIVES);
+		query.sortAsc(Schemas.TITLE);
+		return query;
+	}
+
+	private LogicalSearchQuery getTasksQuery() {
+		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Metadata taskFolderMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_FOLDERS);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(tasks.userTask.schemaType()).where(taskFolderMetadata).is(folderVO.getId()));
+		query.filteredByStatus(StatusFilter.ACTIVES);
+		query.filteredWithUser(getCurrentUser());
+		query.sortDesc(Schemas.MODIFIED_ON);
+		return query;
 	}
 
 	public void selectInitialTabForUser() {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-		
+
 		String userDefaultTabInFolderDisplayCode = getCurrentUser().getDefaultTabInFolderDisplay();
 		String configDefaultTabInFolderDisplayCode = rmConfigs.getDefaultTabInFolderDisplay();
-		String defaultTabInFolderDisplayCode = StringUtils.isNotBlank(userDefaultTabInFolderDisplayCode)? userDefaultTabInFolderDisplayCode : configDefaultTabInFolderDisplayCode;
+		String defaultTabInFolderDisplayCode = StringUtils.isNotBlank(userDefaultTabInFolderDisplayCode) ?
+				userDefaultTabInFolderDisplayCode :
+				configDefaultTabInFolderDisplayCode;
 		if (isNotBlank(defaultTabInFolderDisplayCode)) {
 			if (DefaultTabInFolderDisplay.METADATA.getCode().equals(defaultTabInFolderDisplayCode)) {
 				view.selectMetadataTab();
@@ -281,27 +309,41 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	String getBorrowMessageState(Folder folder) {
-		String borrowedMessage;
+		String borrowedMessage = null;
 		if (folder.getBorrowed() != null && folder.getBorrowed()) {
 			String borrowUserEntered = folder.getBorrowUserEntered();
 			if (borrowUserEntered != null) {
 				String userTitle = rmSchemasRecordsServices.getUser(borrowUserEntered).getTitle();
 				LocalDateTime borrowDateTime = folder.getBorrowDate();
 				LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-				borrowedMessage = $("DisplayFolderview.borrowedFolder", userTitle, borrowDate);
+				borrowedMessage = $("DisplayFolderView.borrowedFolder", userTitle, borrowDate);
 			} else {
-				borrowedMessage = $("DisplayFolderview.borrowedByNullUserFolder");
+				borrowedMessage = $("DisplayFolderView.borrowedByNullUserFolder");
 			}
-		} else {
-			borrowedMessage = null;
+		} else if (folder.getContainer() != null) {
+			try {
+				ContainerRecord containerRecord = rmSchemasRecordsServices.getContainerRecord(folder.getContainer());
+				boolean borrowed = Boolean.TRUE.equals(containerRecord.getBorrowed());
+				String borrower = containerRecord.getBorrower();
+				if (borrowed && borrower != null) {
+					String userTitle = rmSchemasRecordsServices.getUser(borrower).getTitle();
+					LocalDate borrowDate = containerRecord.getBorrowDate();
+					borrowedMessage = $("DisplayFolderView.borrowedContainer", userTitle, borrowDate);
+				} else if (borrowed) {
+					borrowedMessage = $("DisplayFolderView.borrowedByNullUserContainer");
+				}
+			} catch (Exception e) {
+				LOGGER.error("Could not find linked container");
+			}
 		}
 		return borrowedMessage;
 	}
 
-	private ComponentState getBorrowButtonState(User user, Folder folder) {
+	protected ComponentState getBorrowButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanBorrow(user, folder, null);
-			return ComponentState.visibleIf(user.has(RMPermissionsTo.BORROW_FOLDER).on(folder));
+			return ComponentState
+					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -310,7 +352,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState.visibleIf(user.has(RMPermissionsTo.BORROW_FOLDER).on(folder));
+			return ComponentState
+					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -394,7 +437,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder) && isDeletable(folderVO)) {
+		if (user.hasDeleteAccess().on(folder)) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -415,7 +458,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getMoveInFolderButtonState(User user, Folder folder) {
-//		return getEditButtonState(user, folder);
+		//		return getEditButtonState(user, folder);
 		return ComponentState.INVISIBLE;
 	}
 
@@ -522,12 +565,18 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
-		appLayerFactory.getExtensions().forCollection(collection).notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
-		delete(record, reason, false);
-		if (parentId != null) {
-			view.navigate().to(RMViews.class).displayFolder(parentId);
+
+		if (recordServices.isLogicallyDeletable(record, getCurrentUser())) {
+			appLayerFactory.getExtensions().forCollection(collection)
+					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
+			delete(record, reason, false);
+			if (parentId != null) {
+				view.navigate().to(RMViews.class).displayFolder(parentId);
+			} else {
+				view.navigate().to().home();
+			}
 		} else {
-			view.navigate().to().home();
+			view.showErrorMessage($("ListSchemaRecordsView.cannotDelete"));
 		}
 	}
 
@@ -575,7 +624,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
-//			view.openAgentURL(agentURL);
+			//			view.openAgentURL(agentURL);
 			new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
 		} else {
 			view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
@@ -606,7 +655,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
 		Metadata titleMetadata = documentsSchema.getMetadata(Schemas.TITLE.getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		query.setCondition(parentCondition.andWhere(titleMetadata).is(fileName));
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -618,6 +668,27 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		String fileName = uploadedContentVO.getFileName();
 		if (!documentExists(fileName)) {
 			try {
+				if (Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
+					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+					LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
+							.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+									.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
+									.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+							)
+							.filteredWithUser(getCurrentUser());
+					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+					if (duplicateDocuments.size() > 0) {
+						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+						message.append("<br>");
+						for (Document document : duplicateDocuments) {
+							message.append("<br>-");
+							message.append(document.getTitle());
+							message.append(": ");
+							message.append(generateDisplayLink(document));
+						}
+						view.showClickableMessage(message.toString());
+					}
+				}
 				uploadedContentVO.setMajorVersion(true);
 				Record newRecord;
 				if (rmSchemasRecordsServices().isEmail(fileName)) {
@@ -641,19 +712,20 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
 			} catch (final IcapException e) {
-                view.showErrorMessage(e.getMessage());
-            } catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			} finally {
-                view.clearUploadField();
-            }
-        }
+				view.clearUploadField();
+			}
+		}
 	}
 
 	public boolean borrowFolder(LocalDate borrowingDate, LocalDate previewReturnDate, String userId, BorrowingType borrowingType,
 			LocalDate returnDate) {
 		boolean borrowed;
-		String errorMessage = borrowingServices.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
+		String errorMessage = borrowingServices
+				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
 		if (errorMessage != null) {
 			view.showErrorMessage($(errorMessage));
 			borrowed = false;
@@ -663,7 +735,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			try {
 				borrowingServices
 						.borrowFolder(folderVO.getId(), borrowingDate, previewReturnDate, getCurrentUser(), borrowerEntered,
-								borrowingType);
+								borrowingType, true);
 				view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 				borrowed = true;
 			} catch (RecordServicesException e) {
@@ -691,7 +763,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			return false;
 		}
 		try {
-			borrowingServices.returnFolder(folderVO.getId(), getCurrentUser(), returnDate);
+			borrowingServices.returnFolder(folderVO.getId(), getCurrentUser(), returnDate, true);
 			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 			return true;
 		} catch (RecordServicesException e) {
@@ -757,7 +829,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	public List<LabelTemplate> getTemplates() {
+	public List<LabelTemplate> getCustomTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Folder.SCHEMA_TYPE);
+	}
+
+	public List<LabelTemplate> getDefaultTemplates() {
 		return appLayerFactory.getLabelTemplateManager().listTemplates(Folder.SCHEMA_TYPE);
 	}
 
@@ -891,4 +967,72 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
+	void computeAllItemsSelected() {
+		SessionContext sessionContext = view.getSessionContext();
+		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+
+		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
+		for (String subFolderId : subFolderIds) {
+			if (!selectedRecordIds.contains(subFolderId)) {
+				allItemsSelected = false;
+				return;
+			}
+		}
+		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
+		for (String documentId : documentIds) {
+			if (!selectedRecordIds.contains(documentId)) {
+				allItemsSelected = false;
+				return;
+			}
+		}
+		allItemsSelected = !subFolderIds.isEmpty() || !documentIds.isEmpty();
+	}
+
+	boolean isAllItemsSelected() {
+		return allItemsSelected;
+	}
+
+	boolean isAllItemsDeselected() {
+		return allItemsDeselected;
+	}
+
+	void selectAllClicked() {
+		allItemsSelected = true;
+		allItemsDeselected = false;
+
+		SessionContext sessionContext = view.getSessionContext();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
+		for (String subFolderId : subFolderIds) {
+			sessionContext.addSelectedRecordId(subFolderId, Folder.SCHEMA_TYPE);
+		}
+		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
+		for (String documentId : documentIds) {
+			sessionContext.addSelectedRecordId(documentId, Document.SCHEMA_TYPE);
+		}
+	}
+
+	void deselectAllClicked() {
+		allItemsSelected = false;
+		allItemsDeselected = true;
+
+		SessionContext sessionContext = view.getSessionContext();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
+		for (String subFolderId : subFolderIds) {
+			sessionContext.removeSelectedRecordId(subFolderId, Folder.SCHEMA_TYPE);
+		}
+		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
+		for (String documentId : documentIds) {
+			sessionContext.removeSelectedRecordId(documentId, Document.SCHEMA_TYPE);
+		}
+	}
+
+	String generateDisplayLink(Document document) {
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
+		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
+		return "<a href=\"" + url + "\">" + url + "</a>";
+	}
 }

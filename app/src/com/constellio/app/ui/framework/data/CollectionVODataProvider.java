@@ -1,16 +1,16 @@
 package com.constellio.app.ui.framework.data;
 
+import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.records.wrappers.Collection;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.constellio.app.services.collections.CollectionsManager;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.records.wrappers.Collection;
 
 public class CollectionVODataProvider extends AbstractDataProvider {
 	
@@ -86,20 +86,25 @@ public class CollectionVODataProvider extends AbstractDataProvider {
 		private String name;
 		private Set<String> modules;
 		private Set<String> supportedLanguages;
+		private String organizationNumber;
+		private String conservationCalendarNumber;
 
-		public CollectionVO(String code, String name, List<String> supportedLanguages, List<String> installedModules) {
+		public CollectionVO(String code, String name, List<String> supportedLanguages, List<String> installedModules,
+							String organizationNumber, String conservationCalendarNumber) {
 			this.code = code;
 			this.name = name;
 			modules = new HashSet<>(installedModules);
 			this.supportedLanguages = new HashSet<>(supportedLanguages);
+			this.organizationNumber = organizationNumber;
+			this.conservationCalendarNumber = conservationCalendarNumber;
 		}
 
 		public CollectionVO(String code, String name, List<String> supportedLanguages) {
-			this(code, name, supportedLanguages, new ArrayList<String>());
+			this(code, name, supportedLanguages, new ArrayList<String>(), null, null);
 		}
 
 		public CollectionVO() {
-			this(null, null, new ArrayList<String>(), new ArrayList<String>());
+			this(null, null, new ArrayList<String>(), new ArrayList<String>(), null, null);
 		}
 
 
@@ -134,6 +139,22 @@ public class CollectionVODataProvider extends AbstractDataProvider {
 
 		public void setSupportedLanguages(Set<String> supportedLanguages) {
 			this.supportedLanguages = supportedLanguages;
+		}
+
+		public String getOrganizationNumber() {
+			return organizationNumber;
+		}
+
+		public void setOrganizationNumber(String organizationNumber) {
+			this.organizationNumber = organizationNumber;
+		}
+
+		public String getConservationCalendarNumber() {
+			return conservationCalendarNumber;
+		}
+
+		public void setConservationCalendarNumber(String conservationCalendarNumber) {
+			this.conservationCalendarNumber = conservationCalendarNumber;
 		}
 	}
 }

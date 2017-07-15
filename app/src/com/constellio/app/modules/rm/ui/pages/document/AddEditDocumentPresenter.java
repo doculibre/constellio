@@ -1,15 +1,35 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.document.fields.*;
+import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.NewFileClickListener;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentCopyRuleField;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderField;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -26,6 +46,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -35,25 +56,16 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -140,12 +152,20 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
+		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document);
+
+		documentVO = voBuilder.build(duplicatedDocument.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+
 		Content content = document.getContent();
-		ContentVersion contentVersion = content.getCurrentVersion();
-		ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
-		contentVersionVO.setMajorVersion(contentVersion.isMajor());
-		contentVersionVO.setVersion(contentVersion.getVersion());
-		documentVO.setContent(contentVersionVO);
+		if (content != null) {
+			ContentVersion contentVersion = content.getCurrentVersion();
+			ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
+			contentVersionVO.setMajorVersion(contentVersion.isMajor());
+			contentVersionVO.setVersion(contentVersion.getVersion());
+			documentVO.setContent(contentVersionVO);
+		}
+
 		documentVO.setTitle(document.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")");
 		documentVO.setFolder(document.getFolder());
 	}
@@ -214,6 +234,23 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		ContentVersion contentVersion = content.getCurrentVersion();
 		ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
 		String folderId = userDocument.getFolder();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
+				.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+						.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getHash())))
+				.filteredWithUser(getCurrentUser());
+		List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+		if (duplicateDocuments.size() > 0) {
+			StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+			message.append("<br>");
+			for (Document document : duplicateDocuments) {
+				message.append("<br>-");
+				message.append(document.getTitle());
+				message.append(": ");
+				message.append(generateDisplayLink(document));
+			}
+			view.showMessage(message.toString());
+		}
 
 		// Reset as new content
 		contentVersionVO.setHash(null);
@@ -243,10 +280,14 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	public void cancelButtonClicked() {
-		if (addView) {
+		if (userDocumentId != null) {
+			view.navigate().to(RMViews.class).listUserDocuments();
+		} else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
+			} else if (userDocumentId != null) {
+				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().home();
 			}
@@ -265,31 +306,33 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			contentVersionSummary = uploadContent(in, true, true, filename);
-            contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
-            document.setContent(contentBeforeChange);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, true, true, filename);
+			contentVersionSummary = uploadResponse.getContentVersionDataSummary();
+			contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
+			document.setContent(contentBeforeChange);
 		} finally {
 			IOUtils.closeQuietly(in);
 		}
 	}
 
 	public void saveButtonClicked() {
-        Record record;
-        Document document;
+		Record record;
+		Document document;
 
-        try {
-            record = toRecord(documentVO, newFile);
-            document = rmSchemas().wrapDocument(record);
+		try {
+			//TODO should throw message if duplicate is found
+			record = toRecord(documentVO, newFile);
+			document = rmSchemas().wrapDocument(record);
 
-            boolean editWithUserDocument = !addView && userDocumentId != null;
-            if (editWithUserDocument) {
-                setAsNewVersionOfContent(document);
-            }
-        } catch (final IcapException e) {
-            view.showErrorMessage(e.getMessage());
+			boolean editWithUserDocument = !addView && userDocumentId != null;
+			if (editWithUserDocument) {
+				setAsNewVersionOfContent(document);
+			}
+		} catch (final IcapException e) {
+			view.showErrorMessage(e.getMessage());
 
-            return;
-        }
+			return;
+		}
 
 		if (!canSaveDocument(document, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
@@ -341,7 +384,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		Boolean majorVersion = contentVO.isMajorVersion();
 		String fileName = contentVO.getFileName();
 		String hash = contentVO.getHash();
-		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash);
+		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash)
+				.getContentVersionDataSummary();
 		Content copiedContent;
 		if (majorVersion != null && majorVersion) {
 			copiedContent = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);
@@ -401,7 +445,29 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	void adjustContentField(CustomDocumentField<?> valueChangeField) {
 		if (isAddView() && valueChangeField instanceof DocumentContentField) {
 			DocumentContentField contentField = getContentField();
-			boolean newFileButtonVisible = contentField.getFieldValue() == null;
+			ContentVersionVO contentVersionVO = contentField.getFieldValue();
+			if (Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
+						.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+								.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
+						.filteredWithUser(getCurrentUser());
+				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+				if (duplicateDocuments.size() > 0) {
+					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+					message.append("<br>");
+					for (Document document : duplicateDocuments) {
+						message.append("<br>-");
+						message.append(document.getTitle());
+						message.append(": ");
+						message.append(generateDisplayLink(document));
+					}
+					view.showClickableMessage(message.toString());
+				}
+			}
+			boolean newFileButtonVisible = contentVersionVO == null;
 			contentField.setNewFileButtonVisible(newFileButtonVisible);
 			if (newFileButtonVisible) {
 				newFile = false;
@@ -447,7 +513,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		return reload;
 	}
 
-	void reloadFormAfterDocumentTypeChange() {
+	public void reloadFormAfterDocumentTypeChange() {
 		String documentTypeId = (String) view.getForm().getCustomField(Document.TYPE).getFieldValue();
 
 		String newSchemaCode;
@@ -561,7 +627,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		final DocumentContentField contentField = getContentField();
 		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
 			@Override
-			public void newFileCreated(Content content) {
+			public void newFileCreated(Content content, String documentTypeId) {
 				view.getForm().commit();
 				contentField.setNewFileButtonVisible(false);
 				contentField.setMajorVersionFieldVisible(false);
@@ -575,8 +641,13 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					filename = FilenameUtils.removeExtension(filename);
 				}
 				documentVO.setTitle(filename);
+				documentVO.setType(documentTypeId);
 				newFile = true;
 				view.getForm().reload();
+
+				if(documentTypeId != null) {
+					reloadFormAfterDocumentTypeChange();
+				}
 				// Will have been lost after reloading the form
 				addContentFieldListeners();
 			}
@@ -591,30 +662,76 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			public void newContentUploaded() {
 				ContentVersionVO contentVersionVO = contentField.getFieldValue();
 				if (contentVersionVO != null) {
+					if (Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+						RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+						LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
+								.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+										.where(rm.document.content())
+										.is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+										.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+										.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
+								.filteredWithUser(getCurrentUser());
+						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+						if (duplicateDocuments.size() > 0) {
+							StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+							message.append("<br>");
+							for (Document document : duplicateDocuments) {
+								message.append("<br>-");
+								message.append(document.getTitle());
+								message.append(": ");
+								message.append(generateDisplayLink(document));
+							}
+							view.showClickableMessage(message.toString());
+						}
+					}
 					view.getForm().commit();
 					contentVersionVO.setMajorVersion(true);
 					Record documentRecord = toRecord(documentVO);
 					Document document = new Document(documentRecord, types());
-                    try {
-                        Content content = toContent(contentVersionVO);
-                        document.setContent(content);
-                        modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
-                        documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
-                        documentVO.getContent().setMajorVersion(null);
-                        documentVO.getContent().setHash(null);
-                        String filename = contentVersionVO.getFileName();
-                        if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
-                            filename = FilenameUtils.removeExtension(filename);
-                        }
-                        documentVO.setTitle(filename);
-                        view.setRecord(documentVO);
-                        view.getForm().reload();
-                    } catch (final IcapException e) {
-                        view.showErrorMessage(e.getMessage());
+					try {
+						Content content = toContent(contentVersionVO);
+						document.setContent(content);
+						String filename = contentVersionVO.getFileName();
+						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
+						if ("eml".equals(extension) || "msg".equals(extension)) {
+							IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+							InputStream inputStream = null;
+							try {
+								inputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromEML");
+								Email email = AddEditDocumentPresenter.this.rmSchemasRecordsServices
+										.newEmail(filename, inputStream);
+								document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
 
-                        documentVO.setContent(null);
-                        getContentField().setFieldValue(null);
-                    }
+								((Email) document).setSubject(email.getSubject());
+								((Email) document).setEmailObject(email.getEmailObject());
+								((Email) document).setEmailSentOn(email.getEmailSentOn());
+								((Email) document).setEmailReceivedOn(email.getEmailReceivedOn());
+								((Email) document).setEmailFrom(email.getEmailFrom());
+								((Email) document).setEmailTo(email.getEmailTo());
+								((Email) document).setEmailCCTo(email.getEmailCCTo());
+								((Email) document).setEmailBCCTo(email.getEmailBCCTo());
+								((Email) document).setEmailContent(email.getEmailContent());
+								((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
+							} finally {
+								ioServices.closeQuietly(inputStream);
+							}
+						}
+						modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
+						documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
+						documentVO.getContent().setMajorVersion(null);
+						documentVO.getContent().setHash(null);
+						if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+							filename = FilenameUtils.removeExtension(filename);
+						}
+						documentVO.setTitle(filename);
+						view.setRecord(documentVO);
+						view.getForm().reload();
+					} catch (final IcapException e) {
+						view.showErrorMessage(e.getMessage());
+
+						documentVO.setContent(null);
+						getContentField().setFieldValue(null);
+					}
 				}
 			}
 		});
@@ -666,5 +783,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		document.setCreatedBy(currentUser.getId());
 		document.setAuthor(currentUser.getFirstName() + " " + currentUser.getLastName());
 		return document;
+	}
+
+	String generateDisplayLink(Document document) {
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
+		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
+		return "<a href=\"" + url + "\">" + url + "</a>";
 	}
 }

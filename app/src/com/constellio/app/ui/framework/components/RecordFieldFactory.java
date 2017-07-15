@@ -9,10 +9,17 @@ import com.vaadin.ui.Field;
 public class RecordFieldFactory implements Serializable {
 	
 	private MetadataFieldFactory metadataFieldFactory;
-	
+	private boolean isViewOnly;
+
 	public RecordFieldFactory() {
-		this(new MetadataFieldFactory());
+		this(false);
 	}
+
+	public RecordFieldFactory(boolean isViewOnly) {
+		this(new MetadataFieldFactory(isViewOnly));
+		this.isViewOnly = isViewOnly;
+	}
+
 
 	public RecordFieldFactory(MetadataFieldFactory metadataFieldFactory) {
 		this.metadataFieldFactory = metadataFieldFactory;

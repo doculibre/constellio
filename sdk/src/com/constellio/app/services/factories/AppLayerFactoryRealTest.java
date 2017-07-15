@@ -5,10 +5,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.constellio.data.dao.managers.StatefulService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
@@ -16,11 +16,11 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.mockito.Mockito;
 
 public class AppLayerFactoryRealTest extends ConstellioTest {
 
@@ -41,12 +41,14 @@ public class AppLayerFactoryRealTest extends ConstellioTest {
 		modelLayerFactory = getModelLayerFactory();
 		dataLayerFactory = getDataLayerFactory();
 
-		factory = spy(new AppLayerFactory(appLayerConfiguration, modelLayerFactory, dataLayerFactory, statefullServiceDecorator) {
-			@Override
-			public MigrationServices newMigrationServices() {
-				return migrationServices;
-			}
-		});
+		factory = spy(
+				new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory, dataLayerFactory, statefullServiceDecorator,
+						null) {
+					@Override
+					public MigrationServices newMigrationServices() {
+						return migrationServices;
+					}
+				});
 	}
 
 	@Test

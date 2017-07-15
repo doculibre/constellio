@@ -1,6 +1,8 @@
 package com.constellio.model.entities.schemas;
 
-public interface DataStoreField {
+import java.io.Serializable;
+
+public interface DataStoreField extends Serializable {
 
 	String getDataStoreCode();
 

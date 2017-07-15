@@ -1,5 +1,13 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.File;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.easyuploads.MultiFileUpload;
+
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -25,14 +33,11 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.MultiFileUpload;
-
-import java.io.File;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.DragAndDropWrapper;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
 	
@@ -138,6 +143,26 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		
 		userContentSelectTableAdapter = new RecordVOSelectionTableAdapter(userContentTable) {
 			@Override
+			public void selectAll() {
+				presenter.selectAllClicked();
+			}
+
+			@Override
+			public void deselectAll() {
+				presenter.deselectAllClicked();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return presenter.isAllItemsSelected();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return presenter.isAllItemsDeselected();
+			}
+
+			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) buttonsContainer.getItem(itemId);
 				RecordVO recordVO = item.getRecord();
@@ -163,7 +188,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forParams(event.getParameters());
+		String parameters = event != null ? event.getParameters() : null;
+		presenter.forParams(parameters);
 	}
 
 	@Override
@@ -213,5 +239,15 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		for (RecordVODataProvider dataProvider : dataProviders) {
 			dataProvider.fireDataRefreshEvent();
 		}
+	}
+
+	@Override
+	protected boolean isBackgroundViewMonitor() {
+		return true;
+	}
+
+	@Override
+	protected void onBackgroundViewMonitor() {
+		presenter.backgroundViewMonitor();
 	}
 }

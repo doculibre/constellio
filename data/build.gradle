@@ -1,5 +1,9 @@
 dependencies {
     compile "jodconverter-core:jodconverter-core:3.0-beta-4"
+    compile "com.google.code.gson:gson:1.7.2"
+    compile "org.apache.solr:solr-solrj:6.4.2"
+    compile "org.apache.solr:solr-core:6.4.2"
+    compile 'org.apache.kafka:kafka-clients:0.10.2.1'
 }
 
 sourceSets {
@@ -20,3 +24,16 @@ eclipse {
 jar {
     baseName = 'core-data'
 }
+
+//create a single Jar with all dependencies
+task uberJar(type: Jar) {
+    zip64 true
+	manifest {
+        attributes 'Implementation-Title': 'Constellio Data With Dependencies',
+        	'Implementation-Version': '1'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+

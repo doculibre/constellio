@@ -22,10 +22,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -209,11 +206,14 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void removeDocumentsButtonClicked(HashMap<Integer, Boolean> selected) {
+		Set<String> idsToRemove = new HashSet<>();
 		for(Map.Entry<Integer, Boolean> entry: selected.entrySet()) {
-			if(entry.getValue().booleanValue()) {
-				decommissioningList().removeDocument((getDocuments().getRecordVO(entry.getKey())).getId());
+			if(Boolean.TRUE.equals(entry.getValue())) {
+				RecordVO recordVO = getDocuments().getRecordVO(entry.getKey());
+				idsToRemove.add(recordVO.getId());
 			}
 		}
+		decommissioningList().removeDocuments(idsToRemove.toArray(new String[idsToRemove.size()]));
 		addOrUpdate(decommissioningList().getWrappedRecord());
 		refreshView();
 	}

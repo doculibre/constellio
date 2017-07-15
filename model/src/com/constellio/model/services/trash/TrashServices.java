@@ -1,18 +1,5 @@
 package com.constellio.model.services.trash;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -20,16 +7,31 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
 
 public class TrashServices {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TrashServices.class);
@@ -45,19 +47,61 @@ public class TrashServices {
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForType(String selectedType, User currentUser) {
+		if(!modelLayerFactory
+				.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(selectedType).hasSecurity()) {
+			LogicalSearchCondition deletableRecordsForUnsecuredType = getDeletableRecordsForUnsecuredType(selectedType, currentUser);
+			if(deletableRecordsForUnsecuredType != null) {
+				return new LogicalSearchQuery().setCondition(deletableRecordsForUnsecuredType).sortDesc(Schemas.LOGICALLY_DELETED_ON);
+			} else {
+				return new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.impossibleCondition(collection));
+			}
+		}
 		MetadataSchemaType schema = modelLayerFactory
 				.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(selectedType);
 		LogicalSearchCondition condition = from(schema).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
-		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortAsc(Schemas.TITLE);
-	}
-
-	public LogicalSearchQuery getTrashRecordsQueryForCollection(String collection, User currentUser) {
-		List<MetadataSchemaType> trashSchemaList = getTrashSchemaTypes(collection);
-		LogicalSearchCondition condition = from(trashSchemaList).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
 		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 
-	private List<MetadataSchemaType> getTrashSchemaTypes(String collection) {
+	private LogicalSearchCondition getDeletableRecordsForUnsecuredType(final String selectedType, final User currentUser) {
+		ModelLayerCollectionExtensions extension = modelLayerFactory.getExtensions()
+				.forCollection(collection);
+		final LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(asList(selectedType), collection).returnAll());
+		return extension.getPhysicallyDeletableQueryForSchemaType(new SchemaEvent() {
+
+			@Override
+			public String getSchemaCode() {
+				return selectedType+"_default";
+			}
+
+			@Override
+			public User getUser() {
+				return currentUser;
+			}
+		});
+	}
+
+	public LogicalSearchQuery getTrashRecordsQueryForCollection(String collection, User currentUser) {
+		List<MetadataSchemaType> trashSchemaList = getTrashSchemaTypes(collection, currentUser);
+		List<String> securedSchemaList = new ArrayList<>();
+		List<LogicalSearchCondition> conditionList = new ArrayList<>();
+		for(MetadataSchemaType schemaType: trashSchemaList) {
+			if(schemaType.hasSecurity()) {
+				securedSchemaList.add(schemaType.getCode()+"_");
+			} else {
+				LogicalSearchCondition deletableRecordsForUnsecuredType = getDeletableRecordsForUnsecuredType(schemaType.getCode(), currentUser);
+				if(deletableRecordsForUnsecuredType != null) {
+					conditionList.add(deletableRecordsForUnsecuredType);
+				}
+			}
+		}
+		LogicalSearchCondition securedSchemaTypesCondition = fromAllSchemasIn(collection).where(Schemas.SCHEMA).isStartingWithTextFromAny(securedSchemaList).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
+		conditionList.add(securedSchemaTypesCondition);
+
+		LogicalSearchCondition condition = anyConditions(conditionList);
+		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortDesc(Schemas.LOGICALLY_DELETED_ON);
+	}
+
+	private List<MetadataSchemaType> getTrashSchemaTypes(String collection, final User currentUser) {
 		List<MetadataSchemaType> returnList = new ArrayList<>();
 		ModelLayerCollectionExtensions extension = modelLayerFactory.getExtensions()
 				.forCollection(collection);
@@ -69,6 +113,11 @@ public class TrashServices {
 				@Override
 				public String getSchemaCode() {
 					return schemaTypeCode;
+				}
+
+				@Override
+				public User getUser() {
+					return currentUser;
 				}
 			};
 			if (extension.isPutInTrashBeforePhysicalDelete(schemaEvent)) {
@@ -101,7 +150,13 @@ public class TrashServices {
 	public Set<String> deleteSelection(Set<String> selectedRecords, User currentUser) {
 		Set<String> returnSet = new HashSet<>();
 		for (String recordId : selectedRecords) {
-			Record record = recordServices().getDocumentById(recordId);
+			Record record;
+			try {
+				record = recordServices().getDocumentById(recordId);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				// Already deleted, ignore
+				continue;
+			}
 			try {
 				boolean deleted = handleRecordPhysicalDelete(record, currentUser);
 				if (!deleted) {
@@ -142,7 +197,7 @@ public class TrashServices {
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection, LocalDateTime deleteDate) {
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(getTrashSchemaTypes(collection))
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(getTrashSchemaTypes(collection, null))
 				.where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
 				.andWhere(Schemas.LOGICALLY_DELETED_ON).isLessOrEqualThan(deleteDate);
 		return new LogicalSearchQuery(condition).sortDesc(Schemas.LOGICALLY_DELETED_ON);

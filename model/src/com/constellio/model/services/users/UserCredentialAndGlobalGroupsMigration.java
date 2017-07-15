@@ -240,7 +240,6 @@ public class UserCredentialAndGlobalGroupsMigration {
 			LOGGER.info("Validating users after migration : " + ++done + "/" + nbUsers);
 		}
 
-		oldUserManager.close();
 		if (oldGroupManager != null) {
 			oldGroupManager.close();
 		}

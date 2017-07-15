@@ -240,7 +240,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorEventObserver eventObserver) {
-		return runningJobsInParallel(es, new ConsoleConnectorLogger(), eventObserver);
+		return runningJobsSequentially(es, new ConsoleConnectorLogger(), eventObserver);
 	}
 
 	public void crawlUntilRecordsFound(final LogicalSearchCondition condition) {

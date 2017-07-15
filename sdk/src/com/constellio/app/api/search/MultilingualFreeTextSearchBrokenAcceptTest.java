@@ -421,7 +421,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	private void whenMODIFYINGCopiedMultivalueMetadataThenPreviousValueIsNotInAnyField()
-			throws SolrServerException, RecordServicesException {
+			throws SolrServerException, RecordServicesException, IOException {
 		assertThat(resultsIdsOf(paramsWithQ("search_txt_fr:Roger"))).hasSize(1);
 		assertThat(resultsIdsOf(paramsWithQ("search_txt_en:legend"))).hasSize(1);
 		assertThat(resultsIdsOf(paramsWithQ("search_txt_fr:mysterious"))).hasSize(0);
@@ -438,7 +438,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	private void whenMODIFYINGCopiedSingleValueMetadataThenPreviousValueIsNotInAnyField()
-			throws SolrServerException, RecordServicesException {
+			throws SolrServerException, RecordServicesException, IOException {
 		assertThat(resultsIdsOf(paramsWithQ("title_t_fr:sandy"))).hasSize(1);
 		assertThat(resultsIdsOf(paramsWithQ("title_t_fr:Java"))).hasSize(0);
 		assertThat(resultsIdsOf(paramsWithQ("title_t_en:Java"))).hasSize(0);
@@ -461,7 +461,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	private void whenAMultivalueContainsValuesOfDifferentLanguagesThenValuesAreSeparated()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 
 		assertThat(resultsIdsOf(paramsWithQ("stringMetadata_txt_fr:Roger")))
 				.containsOnly(zeCollectionRecordWithFrenchAndEnglishValuesInCustomTextMetadata);
@@ -682,7 +682,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	private void assertThatOnlyFoundFilenamesAre(SearchableQuoteWord... filenames)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		List<SearchableQuoteWord> expectedFilenamesFound = asList(filenames);
 		for (SearchableQuoteWord aSearchableQuoteWord : allFilenames) {
 			String word = aSearchableQuoteWord.word;
@@ -696,7 +696,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	private void assertThatOnlyFoundQuoteWordsAre(SearchableQuoteWord... words)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		List<SearchableQuoteWord> expectedFoundWords = asList(words);
 		for (SearchableQuoteWord aSearchableQuoteWord : allWords) {
 			String word = aSearchableQuoteWord.word;
@@ -720,7 +720,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	private List<String> resultsIdsOf(SolrParams params)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		List<String> ids = new ArrayList<>();
 		for (SolrDocument document : solrServer.query(params).getResults()) {
 			ids.add((String) document.getFieldValue("id"));

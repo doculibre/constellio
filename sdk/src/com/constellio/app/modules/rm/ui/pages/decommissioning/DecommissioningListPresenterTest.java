@@ -1,5 +1,24 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.Locale;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -18,25 +37,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.MockedNavigation;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.UI;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.util.Arrays;
-import java.util.Locale;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.*;
 
 public class DecommissioningListPresenterTest extends ConstellioTest {
 	public static final String ZE_LIST = "zeList";
@@ -53,6 +60,8 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	@Mock FolderDetailVO processable2;
 	@Mock FolderDetailVO packageable1;
 	@Mock FolderDetailVO packageable2;
+	@Mock FolderDetailVO packageable1Detail;
+	@Mock FolderDetailVO packageable2Detail;
 	@Mock ContainerVO containerVO;
 	@Mock DecomListFolderDetail folderDetail;
 	MockedNavigation navigator;
@@ -66,7 +75,8 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 		when(factories.getAppLayerFactory().newPresenterService()).thenReturn(presenterService);
-		when(factories.getModelLayerFactory().getRecordsCaches()).thenReturn(new RecordsCaches(factories.getModelLayerFactory()));
+		when(factories.getModelLayerFactory().getRecordsCaches())
+				.thenReturn(new RecordsCachesMemoryImpl(factories.getModelLayerFactory()));
 		when(presenterService.getCurrentUser(isA(SessionContext.class))).thenReturn(user);
 		factories.getRecordServices();
 
@@ -79,6 +89,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter = spy(new DecommissioningListPresenter(view).forRecordId(ZE_LIST));
 
 		doReturn(service).when(presenter).decommissioningService();
+		doReturn(false).when(presenter).isFolderPlacedInContainer(any(FolderDetailWithType.class));
 		doReturn(rm).when(presenter).rmRecordsServices();
 
 		UI.setCurrent(new UI() {
@@ -139,6 +150,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 
 	@Test
 	public void givenProcessButtonClickedThenProcessTheListAndRefreshWithMessage() {
+		doReturn(true).when(presenter).isListReadyToBeProcessed();
 		presenter.processButtonClicked();
 		verify(service, times(1)).decommission(list, user);
 		verify(view, times(1)).showMessage(anyString());
@@ -158,11 +170,12 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 
 	@Test
 	public void givenFolderPlacedInContainerThenUpdateDecommissioningListAndView()
-			throws RecordServicesException {
+			throws Exception {
 		when(folderDetailVO.getFolderId()).thenReturn("zeFolder");
 		when(containerVO.getId()).thenReturn("zeContainer");
 		when(list.getFolderDetail("zeFolder")).thenReturn(folderDetail);
 		when(folderDetail.setFolderLinearSize(any(Double.class))).thenReturn(folderDetail);
+		when(folderDetail.setContainerRecordId(any(String.class))).thenReturn(folderDetail);
 		when(service.isProcessable(list, user)).thenReturn(true);
 
 		presenter.folderPlacedInContainer(folderDetailVO, containerVO);

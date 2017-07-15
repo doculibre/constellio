@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -30,6 +31,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerSystemExtensions;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCacheImpl.RecordHolder;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
@@ -42,6 +45,9 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class RecordsCacheImplTest extends ConstellioTest {
+
+	@Mock ModelLayerSystemExtensions systemExtensions;
+	@Mock ModelLayerExtensions extensions;
 
 	@Mock User user;
 	@Mock SearchBoost searchBoost;
@@ -64,6 +70,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		zeTypeCodeMetadata = mockManualMetadata("zeType_default_code", MetadataValueType.STRING);
 		anotherTypeCodeMetadata = mockManualMetadata("anotherType_default_code", MetadataValueType.STRING);
 		anotherTypeLegacyIdMetadata = mockManualMetadata("anotherType_default_legacyId", MetadataValueType.STRING);
+
+		when(modelLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
 	}
 
 	@Test
@@ -236,6 +245,34 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		cache.insert(newRecord(zeType, 1));
 		assertThatRecords("1", "5", "6").areInCache();
 		assertThatRecords("2", "3", "4").areNotInCache();
+
+	}
+
+	@Test
+	public void givenVolatileCacheWithFirstInFirstOutInvalidationWhenARecordIsPlacedThenOldestRemoved()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata, FIFO));
+
+		cache.insert(newRecord(zeType, 1));
+		cache.insert(newRecord(zeType, 2));
+		cache.insert(newRecord(zeType, 3));
+
+		cache.get("1");
+		cache.get("2");
+
+		cache.insert(newRecord(zeType, 4));
+		cache.insert(newRecord(zeType, 5));
+
+		assertThatRecords("3", "4", "5").areInCache();
+		assertThatRecords("1", "2").areNotInCache();
+
+		cache.get("4");
+		cache.get("5");
+		cache.insert(newRecord(zeType, 6));
+
+		assertThatRecords("4", "5", "6").areInCache();
+		assertThatRecords("1", "2", "3").areNotInCache();
 
 	}
 

@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessPart;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -28,7 +28,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class BatchProcessControllerThreadTest extends ConstellioTest {
 
-	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock ModelLayerFactoryImpl modelLayerFactory;
 	@Mock MetadataSchemasManager schemasManager;
 	int numberOfRecordsPerTask = anInteger();
 	@Mock BatchProcessesManager batchProcessesManager;

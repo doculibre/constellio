@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class MetadataSchema {
+public class MetadataSchema implements Serializable {
 
 	private static final String UNDERSCORE = "_";
 

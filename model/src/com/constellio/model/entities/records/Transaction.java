@@ -42,6 +42,10 @@ public class Transaction {
 	public Transaction() {
 	}
 
+	public Transaction(RecordUpdateOptions options) {
+		this.recordUpdateOptions = new RecordUpdateOptions(options);
+	}
+
 	public Transaction(String id) {
 		this.id = id;
 	}
@@ -383,5 +387,18 @@ public class Transaction {
 
 	public Map<String, ParsedContent> getParsedContentCache() {
 		return parsedContentCache;
+	}
+
+	public void removeUnchangedRecords() {
+
+		Iterator<Record> recordIterator = records.iterator();
+		while (recordIterator.hasNext()) {
+			Record record = recordIterator.next();
+			if (!record.isDirty() && record.isSaved()) {
+				recordIterator.remove();
+				updatedRecordsMap.remove(record.getId());
+			}
+		}
+
 	}
 }

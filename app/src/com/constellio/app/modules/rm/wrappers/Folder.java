@@ -1,17 +1,7 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.model.enums.RetentionType;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.PendingAlert;
@@ -19,6 +9,13 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Folder extends RMObject {
 	public static final String SCHEMA_TYPE = "folder";
@@ -70,6 +67,7 @@ public class Folder extends RMObject {
 	public static final String MEDIA_TYPE = "mediaType";
 	public static final String CONTAINER = "container";
 	public static final String TYPE = "type";
+	public static final String TITLE = "title";
 	public static final String FOLDER_TYPE = "folderType";
 	public static final String COMMENTS = "comments";
 	public static final String BORROWED = "borrowed";
@@ -102,6 +100,12 @@ public class Folder extends RMObject {
 	//public static final String CALENDAR_YEAR = "calendarYear";
 	//TO DELETE
 	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
+
+	public static final String REACTIVATION_DECOMMISSIONING_DATE = "reactivationDecommissioningDate";
+	public static final String REACTIVATION_DATES = "reactivationDates";
+	public static final String REACTIVATION_USERS = "reactivationUsers";
+	public static final String PREVIOUS_TRANSFER_DATES = "previousTransferDates";
+	public static final String PREVIOUS_DEPOSIT_DATES = "previousDepositDates";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -635,7 +639,7 @@ public class Folder extends RMObject {
 		set(FORM_CREATED_BY, user);
 		return this;
 	}
-	
+
 	public LocalDateTime getFormCreatedOn() {
 		return get(FORM_CREATED_ON);
 	}
@@ -701,6 +705,43 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public List<LocalDate> getReactivationDates() {
+		return getList(REACTIVATION_DATES);
+	}
+
+	public List<String> getReactivationUsers() {
+		return getList(REACTIVATION_USERS);
+	}
+
+	public Folder setReactivationDates(List<LocalDate> reactivationDates) {
+		set(REACTIVATION_DATES, reactivationDates);
+		return this;
+	}
+
+	public Folder setReactivationUsers(List<String> reactivationUsers) {
+		set(REACTIVATION_USERS, reactivationUsers);
+		return this;
+	}
+
+	public Folder addReactivation(User user, LocalDate date) {
+
+		List<LocalDate> dates = new ArrayList<>(getReactivationDates());
+		List<String> usersIds = new ArrayList<>(getReactivationUsers());
+		dates.add(date);
+		usersIds.add(user.getId());
+		setReactivationDates(dates);
+		setReactivationUsers(usersIds);
+		return this;
+	}
+
+	public LocalDate getReactivationDecommissioningDate() {
+		return get(REACTIVATION_DECOMMISSIONING_DATE);
+	}
+
+	public Folder setReactivationDecommissioningDate(LocalDate date) {
+		return set(REACTIVATION_DECOMMISSIONING_DATE, date);
+	}
+
 	public String getTimeRange() {
 		return get(TIME_RANGE);
 	}
@@ -711,6 +752,42 @@ public class Folder extends RMObject {
 
 	public boolean isConfidential() {
 		return getBooleanWithDefaultValue(CONFIDENTIAL, false);
+	}
+
+	public Folder addPreviousTransferDate(LocalDate date) {
+		if (date != null) {
+			ArrayList<LocalDate> localDates = new ArrayList<>(getPreviousTransferDates());
+			localDates.add(date);
+			setPreviousTransferDate(localDates);
+		}
+		return this;
+	}
+
+	public Folder setPreviousTransferDate(List<LocalDate> dates) {
+		set(PREVIOUS_TRANSFER_DATES, dates);
+		return this;
+	}
+
+	public List<LocalDate> getPreviousTransferDates() {
+		return get(PREVIOUS_TRANSFER_DATES);
+	}
+
+	public List<LocalDate> getPreviousDepositDates() {
+		return get(PREVIOUS_DEPOSIT_DATES);
+	}
+
+	public Folder addPreviousDepositDate(LocalDate date) {
+		if (date != null) {
+			ArrayList<LocalDate> localDates = new ArrayList<>(getPreviousDepositDates());
+			localDates.add(date);
+			setPreviousDepositDate(localDates);
+		}
+		return this;
+	}
+
+	public Folder setPreviousDepositDate(List<LocalDate> dates) {
+		set(PREVIOUS_DEPOSIT_DATES, dates);
+		return this;
 	}
 }
 

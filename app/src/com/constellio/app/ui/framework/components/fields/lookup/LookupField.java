@@ -1,21 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -41,20 +25,18 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.addons.lazyquerycontainer.*;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
 	public static final String STYLE_NAME = "lookup";
@@ -72,6 +54,9 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private Button clearButton;
 	private Converter<String, T> itemConverter;
 	private int treeBufferSize = 100;
+
+	protected boolean isShowDeactivated = true;
+
 	/**
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */
@@ -115,7 +100,18 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				return suggestInputDataProvider.getData(text, 0, autoCompleteBuffer);
+				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, autoCompleteBuffer));
+				if (itemConverter != null) {
+					Collections.sort(values, new Comparator<T>() {
+						@Override
+						public int compare(T o1, T o2) {
+							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+							return s1.compareTo(s2);
+						}
+					});
+				}
+				return values;
 			}
 
 			@Override
@@ -348,7 +344,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 						public void itemClick(ItemClickEvent event) {
 							T objectClicked = (T) event.getItemId();
 							if (lookupTreeDataProvider.isSelectable(objectClicked)) {
-								LookupField.this.setValue(objectClicked);
+								if(LookupField.this.getValue() != null && LookupField.this.getValue().equals(objectClicked)) {
+									if (lookupWindowButton.getWindow() != null) {
+										Window lookupWindow = lookupWindowButton.getWindow();
+										lookupWindow.close();
+									}
+								} else {
+									LookupField.this.setValue(objectClicked);
+								}
 							}
 						}
 					});
@@ -417,8 +420,15 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 						searchResultsTable.setVisible(true);
 					}
 					LookupTreeDataProvider<T> currentDataProvider = getCurrentTreeDataProvider();
-					Container searchResultsContainer = new LookupSearchResultContainer(currentDataProvider.search(), searchField);
-					searchResultsTable.setContainerDataSource(searchResultsContainer);
+					Container searchResultsContainer;
+					if(isShowDeactivated) {
+						searchResultsContainer = new LookupSearchResultContainer(currentDataProvider.search(), searchField);
+					}
+					else {
+						searchResultsContainer = new LookupSearchResultContainer(currentDataProvider.searchWithoutDisabled(), searchField);
+					}
+
+						searchResultsTable.setContainerDataSource(searchResultsContainer);
 					replaceComponent(lookupTreeComponent, searchResultsTable);
 					setExpandRatio(searchResultsTable, 1);
 				} else {
@@ -457,6 +467,8 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {
 
 		TextInputDataProvider<T> search();
+
+		TextInputDataProvider<T> searchWithoutDisabled();
 
 		boolean isSelectable(T selection);
 	}
@@ -560,7 +572,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				selectButton.addClickListener(new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						LookupField.this.setValue(item);
+						if(LookupField.this.getValue() != null && LookupField.this.getValue().equals(item)) {
+							if (lookupWindowButton.getWindow() != null) {
+								Window lookupWindow = lookupWindowButton.getWindow();
+								lookupWindow.close();
+							}
+						} else {
+							LookupField.this.setValue(item);
+						}
 					}
 				});
 				selectButton.addStyleName(ValoTheme.BUTTON_LINK);

@@ -1,8 +1,6 @@
 package com.constellio.model.services.batch.controller;
 
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -10,18 +8,17 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import com.constellio.model.conf.ModelLayerConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.utils.LoggerUncaughtExceptionHandler;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.batch.controller.BatchProcessControllerRuntimeException.ControllerAlreadyStarted;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -34,7 +31,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	@Mock BatchProcessesManager batchProcessesManager;
 	@Mock RecordServices recordServices;
 	@Mock SearchServices searchServices;
-	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock ModelLayerFactoryImpl modelLayerFactory;
 	@Mock ModelLayerConfiguration configuration;
 	BatchProcessController controller;
 	BatchProcessController unspiedController;
@@ -70,24 +67,11 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	public void whenStartingThenCreateAndStartThread()
 			throws Exception {
 
-		controller.initialize();
+		controller.start();
 
 		verify(controller).newBatchProcessControllerThread();
 		verify(thread).setUncaughtExceptionHandler(LoggerUncaughtExceptionHandler.instance);
 		verify(thread).start();
-	}
-
-	@Test
-	public void givenThreadStartedWhenStoppingThenRequestStopAfterCurrentBatchProcessAndJoinThread()
-			throws InterruptedException {
-		givenStartedController();
-
-		controller.close();
-
-		InOrder inOrder = inOrder(thread);
-		inOrder.verify(thread).stopRequested();
-
-		verify(controller, never()).newBatchProcessControllerThread();
 	}
 
 	@Test(expected = ControllerAlreadyStarted.class)
@@ -95,7 +79,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 			throws InterruptedException {
 		givenStartedController();
 
-		controller.initialize();
+		controller.start();
 	}
 
 	@Test
@@ -103,7 +87,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 			throws InterruptedException {
 		givenStartedController();
 		controller.close();
-		controller.initialize();
+		controller.start();
 	}
 
 	@Test
@@ -120,7 +104,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	public void givenStartedManagerWhenBatchProcessesListUpdatedThenNotifyThread()
 			throws Exception {
 
-		controller.initialize();
+		controller.start();
 
 		controller.onBatchProcessesListUpdated();
 
@@ -131,7 +115,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 		controller = spy(
 				new BatchProcessController(modelLayerFactory, anInteger()));
 		doReturn(thread).when(controller).newBatchProcessControllerThread();
-		controller.initialize();
+		controller.start();
 		reset(controller);
 	}
 }

@@ -103,6 +103,10 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 		return true;
 	}
 
+	public WindowConfiguration getConfiguration() {
+		return configuration;
+	}
+
 	protected String getWindowCaption() {
 		return windowCaption;
 	}

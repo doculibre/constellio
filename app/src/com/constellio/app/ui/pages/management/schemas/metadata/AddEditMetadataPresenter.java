@@ -10,6 +10,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.services.schemas.builders.*;
+import com.vaadin.ui.UI;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -42,12 +45,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.vaadin.dialogs.ConfirmDialog;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
 	private Map<String, String> parameters;
@@ -117,7 +117,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		});
 		return typeCodes;
 	}
-	
+
 	public String getMetadataTypesCaption(String code) {
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(code);
 		return type.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
@@ -131,14 +131,15 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return !(type.equals(collectionType) || type.equals(eventType));
 	}
 
-	public void saveButtonClicked(FormMetadataVO formMetadataVO, boolean editMode) {
-		String schemaCode = getSchemaCode();
-		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
-		String code;
-		boolean reindexRequired = false;
+	public void preSaveButtonClicked(final FormMetadataVO formMetadataVO, final boolean editMode) {
 
-		MetadataBuilder builder;
+		final String schemaCode = getSchemaCode();
+		final MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+		final String code;
+		boolean isSaveButtonClicked = false;
+
+		final MetadataBuilder builder;
 		if (!editMode) {
 			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
 			builder.setMultivalue(formMetadataVO.isMultivalue());
@@ -157,17 +158,58 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				}
 			}
 			code = schemaCode + "_" + "USR" + formMetadataVO.getLocalcode();
+			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, false, builder);
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			code = formMetadataVO.getCode();
 			if (!isInherited(code)) {
-				reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
+				final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
 						builder.isSearchable() != formMetadataVO.isSearchable();
-				builder.setSortable(formMetadataVO.isSortable());
-				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
-				builder.setSearchable(formMetadataVO.isSearchable());
+				if (reindexRequired) {
+					String confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.sortable");
+
+					if (builder.isSearchable() != formMetadataVO.isSearchable()) {
+						confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.searchable");
+					}
+
+					ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.title"), confirmDialogMessage, $("confirm"), $("cancel"), new ConfirmDialog.Listener() {
+						@Override
+						public void onClose(ConfirmDialog dialog) {
+							if (dialog.isConfirmed())
+							{
+								builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+								builder.setSearchable(formMetadataVO.isSearchable());
+								builder.setSortable(formMetadataVO.isSortable());
+								saveButtonClicked(formMetadataVO, editMode, schemaCode,
+										schemasManager, types, code, reindexRequired, builder);
+							}
+						}
+					});
+				}
+				else
+				{
+					isSaveButtonClicked = true;
+				}
+			}
+			else
+			{
+				isSaveButtonClicked = true;
+			}
+
+			if (isSaveButtonClicked)
+			{
+				saveButtonClicked(formMetadataVO, editMode, schemaCode,
+						schemasManager, types, code, false, builder);
 			}
 		}
+	}
+
+	private void showConfirmDialogForReindexation(String title, String message)
+	{
+
+	}
+
+	private void saveButtonClicked(FormMetadataVO formMetadataVO, boolean editMode, String schemaCode, MetadataSchemasManager schemasManager, MetadataSchemaTypesBuilder types, String code, boolean reindexRequired, MetadataBuilder builder) {
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
 		builder.setEnabled(formMetadataVO.isEnabled());
@@ -208,7 +250,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	private void saveDisplayConfig(FormMetadataVO formMetadataVO, String code, MetadataSchemasManager schemasManager,
-			boolean editMode) {
+								   boolean editMode) {
 		SchemasDisplayManager displayManager = schemasDisplayManager();
 		MetadataInputType type = formMetadataVO.getInput();
 		MetadataDisplayType displayType = formMetadataVO.getDisplayType();
@@ -264,7 +306,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	private void saveFacetDisplay(MetadataSchemasManager schemasManager, SchemasDisplayManager displayManager, String code,
-			boolean isFacet) {
+								  boolean isFacet) {
 		Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(code);
 
 		boolean isGlobal = false;
@@ -324,6 +366,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential() || getMetadata(metadataCode).hasSameCode(Schemas.LEGACY_ID);
 	}
 
+	public boolean isFolderMediumTypes()
+	{
+		return metadataCode.startsWith(Folder.SCHEMA_TYPE) && metadataCode.endsWith(Folder.MEDIUM_TYPES) ;
+	}
+
 	public void inputTypeValueChanged(FormMetadataVO formMetadataVO) {
 		boolean noReferenceType = formMetadataVO.getValueType() == MetadataValueType.REFERENCE && StringUtils
 				.isBlank(formMetadataVO.getReference());
@@ -333,7 +380,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public void displayTypeValueChanged() {
-			view.reloadForm();
+		view.reloadForm();
 	}
 
 	public void valueTypeValueChanged() {

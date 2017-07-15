@@ -3,8 +3,8 @@ package com.constellio.model.services.factories;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +23,9 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
@@ -37,7 +40,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
 
@@ -60,9 +62,16 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Mock ConstellioModulesManager constellioModulesManager;
 	ModelLayerFactory modelLayerFactory;
 	StatefullServiceDecorator statefullServiceDecorator = new StatefullServiceDecorator();
+	@Mock ConstellioCacheManager cacheManager;
+
+	ConstellioCache zeCache;
 
 	@Before
 	public void setUp() {
+
+		zeCache = new SerializationCheckCache("zeCache");
+		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
 
 		XMLConfiguration xmlConfiguration = Mockito.mock(XMLConfiguration.class);
 		Document document = Mockito.mock(Document.class);
@@ -74,6 +83,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
 		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
@@ -81,8 +91,8 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(profiles.listFiles()).thenReturn(new File[0]);
 
 		modelLayerFactory = spy(
-				new ModelLayerFactory(dataLayerFactory, foldersLocator, modelLayerConfiguration,
-						statefullServiceDecorator, new Delayed<>(constellioModulesManager)));
+				new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator, modelLayerConfiguration,
+						statefullServiceDecorator, new Delayed<>(constellioModulesManager), null, null));
 	}
 
 	@Test
@@ -177,17 +187,6 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		GlobalGroupsManager globalGroupsManager2 = modelLayerFactory.getGlobalGroupsManager();
 
 		assertThat(globalGroupsManager1).isNotNull().isSameAs(globalGroupsManager2);
-
-	}
-
-	@Test
-	public void whenGetUserCredentialsManagerThenSameInstance()
-			throws Exception {
-
-		UserCredentialsManager userCredentialsManager1 = modelLayerFactory.getUserCredentialsManager();
-		UserCredentialsManager userCredentialsManager2 = modelLayerFactory.getUserCredentialsManager();
-
-		assertThat(userCredentialsManager1).isNotNull().isSameAs(userCredentialsManager2);
 
 	}
 

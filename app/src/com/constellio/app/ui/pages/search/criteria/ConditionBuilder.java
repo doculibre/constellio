@@ -24,8 +24,11 @@ import com.constellio.model.services.search.query.logical.criteria.MeasuringUnit
 public class ConditionBuilder {
 	private MetadataSchemaType schemaType;
 
-	public ConditionBuilder(MetadataSchemaType schemaType) {
+	private String languageCode;
+
+	public ConditionBuilder(MetadataSchemaType schemaType, String languageCode) {
 		this.schemaType = schemaType;
+		this.languageCode = languageCode;
 	}
 
 	public LogicalSearchCondition build(List<Criterion> criteria)
@@ -88,9 +91,13 @@ public class ConditionBuilder {
 			return from(schemaType).where(metadata).isEqualTo(value);
 		case CONTAINS_TEXT:
 			String stringValue = (String) criterion.getValue();
-			return metadata.getType() == MetadataValueType.STRING ?
-					from(schemaType).where(metadata).isContainingText(stringValue) :
-					from(schemaType).where(metadata).query(stringValue);
+
+			if (metadata.getType() == MetadataValueType.STRING && !metadata.isSearchable()) {
+				return from(schemaType).where(metadata).isContainingText(stringValue);
+			} else {
+				return from(schemaType).where(metadata.getAnalyzedField(languageCode)).query(stringValue.replace("-", "\\-"));
+			}
+
 		case LESSER_THAN:
 			value = getValue(criterion, metadata, false);
 			return from(schemaType).where(metadata).isLessThan(value);

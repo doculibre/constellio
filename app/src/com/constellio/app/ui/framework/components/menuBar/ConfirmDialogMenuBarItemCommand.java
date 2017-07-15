@@ -4,20 +4,31 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
-import com.vaadin.ui.UI;
 
 public abstract class ConfirmDialogMenuBarItemCommand implements Command {
+	
+	private DialogMode dialogMode;
+	
+	public ConfirmDialogMenuBarItemCommand() {
+		this(DialogMode.TEXT);
+	}
+	
+	public ConfirmDialogMenuBarItemCommand(DialogMode dialogMode) {
+		this.dialogMode = dialogMode;
+	}
 
 	@Override
 	public void menuSelected(MenuItem selectedItem) {
-		ConfirmDialog.show(
-				UI.getCurrent(),
-				getConfirmDialogTitle(),
-				getConfirmDialogMessage(),
-				getConfirmDialogOKCaption(),
-				getConfirmDialogCancelCaption(),
+		ConfirmDialogButton.showDialog(
+				dialogMode, 
+				getConfirmDialogTitle(), 
+				getConfirmDialogMessage(), 
+				getConfirmDialogOKCaption(), 
+				getConfirmDialogCancelCaption(), 
 				new ConfirmDialog.Listener() {
 					public void onClose(ConfirmDialog dialog) {
 						if (dialog.isConfirmed()) {

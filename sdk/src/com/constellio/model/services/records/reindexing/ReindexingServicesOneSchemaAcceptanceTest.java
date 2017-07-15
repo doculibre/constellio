@@ -32,6 +32,8 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -256,6 +258,62 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenExtensionThrowingExceptionsWhenReindexingThenContinue()
+			throws Exception {
+
+		givenTimeIs(shishOClock);
+		Transaction transaction = new Transaction();
+		transaction.setUser(users.dakotaLIndienIn(zeCollection));
+		transaction.add(new TestRecord(zeSchema, "000042"))
+				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+
+		transaction.add(new TestRecord(zeSchema, "000666"))
+				.set(zeSchema.metadata("referenceToZeSchema"), "000042");
+		recordServices.execute(transaction);
+
+		assertThatRecord(withId("000666"))
+				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")
+				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value2")
+				.hasMetadataValue(Schemas.CREATED_BY, dakotaId)
+				.hasMetadataValue(Schemas.CREATED_ON, shishOClock)
+				.hasMetadataValue(Schemas.MODIFIED_BY, dakotaId)
+				.hasMetadataValue(Schemas.MODIFIED_ON, shishOClock);
+
+		givenTimeIs(tockOClock);
+		Map<String, Object> modifiedValues = new HashMap<>();
+		modifiedValues.put("copiedMetadataInput_s", "value3");
+		modifiedValues.put("calculatedMetadataInput_s", "value4");
+
+		RecordDTO record = recordDao.get("000042");
+		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
+		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
+
+		assertThatRecord(withId("000666"))
+				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")
+				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value2");
+
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+			@Override
+			public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
+				throw new RuntimeException("oh bobo!");
+			}
+		});
+
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
+
+		assertThatRecord(withId("000666"))
+				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value3")
+				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value4")
+				.hasMetadataValue(Schemas.CREATED_BY, dakotaId)
+				.hasMetadataValue(Schemas.CREATED_ON, shishOClock)
+				
+				.hasMetadataValue(Schemas.MODIFIED_BY, dakotaId)
+				.hasMetadataValue(Schemas.MODIFIED_ON, shishOClock);
+
+	}
+
+	@Test
 	public void givenLogicallyDeletedRecordWhenReindexingThenStillLogicallyDeleted_1()
 			throws RecordServicesException {
 
@@ -278,7 +336,6 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		assertNoActiveIndexForRecord("000042");
 
 	}
-
 
 	@Test
 	public void givenLogicallyDeletedRecordWhenReindexingThenStillLogicallyDeleted_2()

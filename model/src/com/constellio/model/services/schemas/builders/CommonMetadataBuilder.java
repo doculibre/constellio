@@ -2,6 +2,7 @@ package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.util.HashMap;
@@ -62,6 +63,7 @@ public class CommonMetadataBuilder {
 	public static final String ATTACHED_ANCESTORS = "attachedAncestors";
 	public static final String ALL_REMOVED_AUTHS = "allRemovedAuths";
 	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
+	public static final String DATA_VERSION = "migrationDataVersion";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -432,6 +434,17 @@ public class CommonMetadataBuilder {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA_AUTOCOMPLETE_FIELD).setType(STRING)
 						.setMultivalue(true).setEssential(true)
 						.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(DATA_VERSION, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(DATA_VERSION).setType(NUMBER)
+						.setEssentialInSummary(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 
 public class FolderDetailVO implements Serializable {
 	private String folderId;
+	private String folderLegacyId;
 	private boolean folderIncluded;
 	private String containerRecordId;
 	private FolderMediaType mediumType;
@@ -23,6 +24,14 @@ public class FolderDetailVO implements Serializable {
 
 	public void setFolderId(String folderId) {
 		this.folderId = folderId;
+	}
+
+	public String getFolderLegacyId() {
+		return folderLegacyId;
+	}
+
+	public void setFolderLegacyId(String folderLegacyId) {
+		this.folderLegacyId = folderLegacyId;
 	}
 
 	public boolean isFolderIncluded() {

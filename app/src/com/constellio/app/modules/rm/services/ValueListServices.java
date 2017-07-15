@@ -12,7 +12,6 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
@@ -139,13 +138,14 @@ public class ValueListServices {
 
 	//FIXME label multilingual
 	//TODO Patrick
-	public void createAMultivalueClassificationMetadataInGroup(Taxonomy taxonomy, String schemaType, String groupLabel) {
+	public Metadata createAMultivalueClassificationMetadataInGroup(Taxonomy taxonomy, String schemaTypeCode, String groupCode,
+			String groupLabel) {
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
 
 		String localCode = taxonomy.getCode() + "Ref";
 		MetadataSchemaTypeBuilder taxonomyType = types.getSchemaType(taxonomy.getSchemaTypes().get(0));
-		MetadataBuilder metadataBuilder = types.getSchemaType(schemaType).getDefaultSchema().create(localCode)
+		MetadataBuilder metadataBuilder = types.getSchemaType(schemaTypeCode).getDefaultSchema().create(localCode)
 				.defineTaxonomyRelationshipToType(taxonomyType)
 				.setMultivalue(true);
 
@@ -160,27 +160,27 @@ public class ValueListServices {
 		}
 
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
-		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(taxonomy.getCollection(), schemaType);
-		if (!typeDisplayConfig.getMetadataGroup().keySet().contains(groupLabel)) {
+		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(taxonomy.getCollection(), schemaTypeCode);
+		if (!typeDisplayConfig.getMetadataGroup().keySet().contains(groupCode)) {
 			Map<String, Map<Language, String>> groups = new HashMap<>();
 			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
 				Map<Language, String> labels = new HashMap<>();
 				labels.put(language, groupLabel);
-				groups.put(groupLabel, labels);
+				groups.put(groupCode, labels);
 
 			}
 			transaction.add(typeDisplayConfig.withNewMetadataGroup(groups));
 		}
 
-		for (MetadataSchema schema : schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(schemaType)
-				.getAllSchemas()) {
+		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(schemaTypeCode);
+		for (MetadataSchema schema : schemaType.getAllSchemas()) {
 
 			String metadataCode = schema.getCode() + "_" + localCode;
 			MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(taxonomy.getCollection(),
 					metadataCode);
 			transaction.add(metadataDisplayConfig
 					.withInputType(MetadataInputType.LOOKUP)
-					.withMetadataGroup(groupLabel)
+					.withMetadataGroup(groupCode)
 					.withVisibleInAdvancedSearchStatus(true));
 
 			String comments = schema.getCode() + "_" + Folder.COMMENTS;
@@ -191,6 +191,8 @@ public class ValueListServices {
 		}
 
 		schemasDisplayManager.execute(transaction);
+
+		return schemaType.getDefaultSchema().get(localCode);
 	}
 
 	private MetadataSchemaType createTaxonomyType(String code, String title) {

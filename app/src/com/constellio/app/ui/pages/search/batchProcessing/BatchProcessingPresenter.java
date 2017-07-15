@@ -31,4 +31,11 @@ public interface BatchProcessingPresenter {
 	boolean hasWriteAccessOnAllRecords();
 
 	long getNumberOfRecords();
+
+	void allSearchResultsButtonClicked();
+
+	void selectedSearchResultsButtonClicked();
+
+	boolean isSearchResultsSelectionForm();
+	
 }

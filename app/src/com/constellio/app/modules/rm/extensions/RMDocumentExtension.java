@@ -2,39 +2,36 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
-import com.constellio.model.services.factories.ModelLayerFactory;
-
-import java.util.List;
 
 public class RMDocumentExtension extends RecordExtension {
 
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
-	RMSchemasRecordsServices rm;
-	DecommissioningService decommissioningService;
+	private String collection;
 
 	public RMDocumentExtension(String collection, AppLayerFactory appLayerFactory) {
-		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		this.collection = collection;
 	}
 
 	@Override
 	public void setRecordCategory(RecordSetCategoryEvent event) {
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
 
 		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(event.getRecord());
@@ -65,6 +62,9 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
 		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(event.getRecord());
 			Content content = document.getContent();
@@ -75,6 +75,9 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
 		if (event.isSchemaType(Document.SCHEMA_TYPE) && event.hasModifiedMetadata(Document.CONTENT)) {
 			Document document = rm.wrapDocument(event.getRecord());
 			Content content = document.getContent();
@@ -85,6 +88,9 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public ExtensionBooleanResult isRecordModifiableBy(IsRecordModifiableByParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
 		User user = params.getUser();
 		if (params.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(params.getRecord());
@@ -129,4 +135,24 @@ public class RMDocumentExtension extends RecordExtension {
 	@Override
 	public void recordModified(RecordModificationEvent event) {
 	}
+
+	@Override
+	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
+		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+			Document document = rm.wrapDocument(event.getRecord());
+			User user = event.getUser();
+
+			Content content = document.getContent();
+			String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
+
+			if (checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document))) {
+				return ExtensionBooleanResult.FALSE;
+			}
+		}
+		return super.isLogicallyDeletable(event);
+	}
+
 }

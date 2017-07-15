@@ -63,12 +63,22 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 
-		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
+		Transaction transaction = new Transaction();
+		final String standById = createRecordTransaction(
+				collection, migrationResourcesProvider, appLayerFactory, types, transaction);
+		recordServices.execute(transaction);
+
+		//TODO Uncomment after supporting up to 7.2 in migration combo
+		//		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
+		//			@Override
+		//			public void alter(MetadataSchemaTypesBuilder types) {
+		//				types.getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).setDefaultValue(standById);
+		//			}
+		//		});
 	}
 
-	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
-		Transaction transaction = new Transaction();
+	private String createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
+			AppLayerFactory appLayerFactory, MetadataSchemaTypes types, Transaction transaction) {
 
 		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
@@ -77,9 +87,10 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		String finishedCode = migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.F");
 		String closedCode = CLOSED_CODE;
 
-		transaction.add(schemas.newTaskStatus().setCode(standByCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
-				.setStatusType(STANDBY));
+		String standbyId =
+				transaction.add(schemas.newTaskStatus().setCode(standByCode)
+						.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
+						.setStatusType(STANDBY)).getId();
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
 				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
 				.setStatusType(IN_PROGRESS));
@@ -90,7 +101,7 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
 				.setStatusType(CLOSED));
 
-		return transaction;
+		return standbyId;
 	}
 
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {

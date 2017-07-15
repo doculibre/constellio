@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -31,6 +17,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -56,6 +43,14 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
 
@@ -66,6 +61,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
 	private RMSchemasRecordsServices rm;
+	private boolean hasWriteAccess;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
@@ -79,7 +75,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		};
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
-		rm = new RMSchemasRecordsServices(collection,appLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -91,8 +87,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		String id = params;
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
-		
+
 		Record record = getRecord(id);
+
+		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
+
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setDocumentVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
@@ -213,7 +212,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().previousView();
+		view.navigate().to().previousView();
 	}
 
 	public boolean isDeleteContentVersionPossible() {
@@ -249,9 +248,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void createPDFAButtonClicked() {
-		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDFA")) {
+		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO()
+				.getExtension().toUpperCase().equals("PDFA")) {
 			presenterUtils.createPDFA();
-			view.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 		} else {
 			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
@@ -375,6 +374,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
+	public boolean hasWritePermission()
+	{
+		return hasWriteAccess;
+	}
+
 	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
 		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
 				.on(getRecord(presenterUtils.getDocumentVO().getId()));
@@ -392,13 +396,18 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
-				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
+				return rmEventsSearchServices
+						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
 			}
 		};
 	}
 
 	protected boolean hasCurrentUserPermissionToViewEvents() {
 		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
+	}
+
+	protected boolean hasCurrentUserPermissionToViewFileSystemName() {
+		return getCurrentUser().has(RMPermissionsTo.VIEW_SYSTEM_FILENAME).globally();
 	}
 
 	public void refreshEvents() {
@@ -408,5 +417,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public boolean hasPermissionToStartWorkflow() {
 		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
+	}
+
+	public AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
 	}
 }

@@ -6,8 +6,10 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -20,6 +22,8 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionObject;
@@ -63,6 +67,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private SearchServices searchServices;
 	private ModelLayerFactory modelLayerFactory;
 	private Delayed<ConstellioModulesManager> modulesManagerDelayed;
+	private ConstellioCacheManager cacheManager; 
 
 	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory, Delayed<ConstellioModulesManager> modulesManagerDelayed) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
@@ -73,6 +78,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.modulesManagerDelayed = modulesManagerDelayed;
 		this.modelLayerFactory = modelLayerFactory;
+		this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
 	}
 
 	@Override
@@ -90,13 +96,14 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	OneXMLConfigPerCollectionManager<MetadataSchemaTypes> newOneXMLManager(ConfigManager configManager,
 			CollectionsListManager collectionsListManager) {
+		ConstellioCache cache = cacheManager.getCache(MetadataSchemasManager.class.getName());
 		return new OneXMLConfigPerCollectionManager<MetadataSchemaTypes>(configManager,
-				collectionsListManager, SCHEMAS_CONFIG_PATH, xmlConfigReader(), this) {
+				collectionsListManager, SCHEMAS_CONFIG_PATH, xmlConfigReader(), this, cache) {
 
 			@Override
 			protected MetadataSchemaTypes parse(String collection, XMLConfiguration xmlConfiguration) {
 				if (cacheEnabled) {
-					if (typesCache.containsKey(collection + xmlConfiguration.getRealHash())) {
+					if (typesCache.get(collection + xmlConfiguration.getRealHash()) != null) {
 						return typesCache.get(collection + xmlConfiguration.getRealHash());
 					}
 					MetadataSchemaTypes types = super.parse(collection, xmlConfiguration);
@@ -108,6 +115,18 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 				}
 			}
 		};
+	}
+
+	public static Set<String> getCacheKeys() {
+		return typesCache.keySet();
+	}
+
+	public static void keepOnlyCacheKeys(Set<String> keys) {
+		for (String key : new HashSet<>(typesCache.keySet())) {
+			if (!keys.contains(key)) {
+				typesCache.remove(key);
+			}
+		}
 	}
 
 	public void createCollectionSchemas(final String collection) {
@@ -229,7 +248,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 		try {
 			saveUpdateSchemaTypes(builder);
-		} catch (OptimisticLocking optimistickLocking) {
+		} catch (OptimisticLocking  optimistickLocking) {
 			modify(collection, alteration);
 		}
 
@@ -305,12 +324,17 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return new SchemaTypesAlterationImpactsCalculator().calculatePotentialImpacts(schemaTypesBuilder);
 	}
 
-	private void saveSchemaTypesDocument(MetadataSchemaTypesBuilder schemaTypesBuilder, Document document) {
+	private void saveSchemaTypesDocument(MetadataSchemaTypesBuilder schemaTypesBuilder, Document document) throws OptimisticLocking {
 		try {
 			String collection = schemaTypesBuilder.getCollection();
 			oneXmlConfigPerCollectionManager.update(collection, "" + schemaTypesBuilder.getVersion(), document);
-		} catch (OptimisticLockingConfiguration | NoSuchConfiguration e) {
+
+		} catch (NoSuchConfiguration e) {
 			throw new MetadataSchemasManagerRuntimeException.CannotUpdateDocument(document.toString(), e);
+
+		} catch (OptimisticLockingConfiguration e) {
+			throw new MetadataSchemasManagerException.OptimisticLocking( e);
+
 		}
 	}
 

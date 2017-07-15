@@ -1,17 +1,15 @@
 package com.constellio.data.dao.services.factories;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.constellio.data.threads.ConstellioJobManager;
-
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
+import com.constellio.data.conf.CacheType;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -32,6 +30,10 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
+import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.contents.HadoopContentDao;
@@ -47,15 +49,17 @@ import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
 import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFactory;
+import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
-public class DataLayerFactory extends LayerFactory {
+public class DataLayerFactory extends LayerFactoryImpl {
 
 	private static final String RECORDS_SEQUENCE_TABLE_CONFIG_PATH = "/sequence.properties";
 	private static final String SECONDARY_SEQUENCE_TABLE_CONFIG_PATH = "/secondarySequence.properties";
@@ -66,11 +70,13 @@ public class DataLayerFactory extends LayerFactory {
 
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
+	private final ConstellioCacheManager settingsCacheManager;
+	private final ConstellioCacheManager recordsCacheManager;
 	private final ConfigManager configManager;
 	private final UniqueIdGenerator idGenerator;
 	private final UniqueIdGenerator secondaryIdGenerator;
 	private final DataLayerConfiguration dataLayerConfiguration;
-	private final ContentDao contentDao;
+	private ContentDao contentDao;
 	private final BigVaultLogger bigVaultLogger;
 	private final SecondTransactionLogManager secondTransactionLogManager;
 	private final BackgroundThreadsManager backgroundThreadsManager;
@@ -79,10 +85,20 @@ public class DataLayerFactory extends LayerFactory {
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
-	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-			StatefullServiceDecorator statefullServiceDecorator) {
+	public static int countConstructor;
 
-		super(statefullServiceDecorator);
+	public static int countInit;
+
+	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
+			StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+
+		super(statefullServiceDecorator, instanceName);
+		countConstructor++;
+		if (countConstructor >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been constructed " + countConstructor + " times")
+					.printStackTrace();
+		}
+
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		// TODO Possibility to configure the logger
@@ -91,18 +107,34 @@ public class DataLayerFactory extends LayerFactory {
 		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
 		this.dataLayerLogger = new DataLayerLogger();
 
-		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration));
+		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
+		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
+			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl());
+			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl());
+		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
+			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
+			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
+		}
+		add(settingsCacheManager);
+		add(recordsCacheManager);
+
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
-			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(),
+			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
 					ioServicesFactory.newIOServices()));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
-					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding())));
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
+					settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -122,32 +154,26 @@ public class DataLayerFactory extends LayerFactory {
 			this.secondaryIdGenerator = new UUIDV1Generator();
 
 		} else if (dataLayerConfiguration.getSecondaryIdGeneratorType() == IdGeneratorType.SEQUENTIAL) {
-			this.secondaryIdGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager,
-					SECONDARY_SEQUENCE_TABLE_CONFIG_PATH));
+			this.secondaryIdGenerator = add(
+					new ZeroPaddedSequentialUniqueIdGenerator(configManager, SECONDARY_SEQUENCE_TABLE_CONFIG_PATH));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
 		}
 
-		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
-			File rootFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices(), dataLayerConfiguration));
-
-		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
-			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
-			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
-			contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
-
-		} else {
-			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
-		}
+		updateContentDao();
 
 		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
 
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
-			secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
-					ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
-					dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
+			if ("kafka".equals(dataLayerConfiguration.getSecondTransactionLogMode())) {
+				secondTransactionLogManager = add(new KafkaTransactionLogManager(dataLayerConfiguration,
+						dataLayerExtensions.getSystemWideExtensions(), newRecordDao(), dataLayerLogger));
+			} else {
+				secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
+						ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
+						dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
+			}
 		} else {
 			secondTransactionLogManager = null;
 		}
@@ -171,6 +197,14 @@ public class DataLayerFactory extends LayerFactory {
 
 	public ConfigManager getConfigManager() {
 		return configManager;
+	}
+
+	public ConstellioCacheManager getSettingsCacheManager() {
+		return settingsCacheManager;
+	}
+
+	public ConstellioCacheManager getRecordsCacheManager() {
+		return recordsCacheManager;
 	}
 
 	public ContentDao getContentsDao() {
@@ -215,6 +249,12 @@ public class DataLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
+		countInit++;
+
+		if (countInit >= 2) {
+			new IllegalStateException("Problemo : DataLayerFactory has been initialized " + countInit + " times")
+					.printStackTrace();
+		}
 		super.initialize();
 		newRecordDao().removeOldLocks();
 	}
@@ -308,5 +348,18 @@ public class DataLayerFactory extends LayerFactory {
 
 	public SequencesManager getSequencesManager() {
 		return new SolrSequencesManager(newRecordDao(), secondTransactionLogManager);
+	}
+
+	public void updateContentDao() {
+		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
+			contentDao = add(new FileSystemContentDao(ioServicesFactory.newIOServices(), dataLayerConfiguration));
+		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
+			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
+			String hadoopUser = dataLayerConfiguration.getContentDaoHadoopUser();
+			contentDao = new HadoopContentDao(hadoopUrl, hadoopUser);
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
+		}
 	}
 }

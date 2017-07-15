@@ -1,22 +1,18 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.OPEN_DATE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
-import com.constellio.sdk.tests.ConstellioTest;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.OPEN_DATE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class FolderDecommissioningDateCalculatorTest extends ConstellioTest {
 
@@ -38,7 +34,7 @@ public class FolderDecommissioningDateCalculatorTest extends ConstellioTest {
 	LocalDate april16_2014 = new LocalDate(2014, 4, 16);
 	LocalDate april16_2015 = new LocalDate(2015, 4, 16);
 
-	FolderDecommissioningDateCalculator calculator = new FolderDecommissioningDateCalculator();
+	FolderDecommissioningDateCalculator2 calculator = new FolderDecommissioningDateCalculator2();
 
 	int confiRequiredDaysBeforeYearEnd = 90;
 	String configYearEnd = "05/31";

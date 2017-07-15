@@ -59,6 +59,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
@@ -315,6 +316,7 @@ public class TestUtils {
 		String localCode = code.split("_")[2];
 		final Metadata metadata = mock(Metadata.class, code);
 		when(metadata.getCode()).thenReturn(code);
+		when(metadata.getSchemaCode()).thenReturn(code.replace("_" + localCode, ""));
 		when(metadata.getLocalCode()).thenReturn(localCode);
 
 		when(metadata.getInheritanceCode()).thenAnswer(new Answer<String>() {
@@ -585,6 +587,16 @@ public class TestUtils {
 				throw new RuntimeException("Unsupported object of class '" + actual.getClass());
 			}
 			return assertThat(asList(objects));
+		}
+
+		public void exists() {
+			RecordServices recordServices = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices();
+			try {
+				recordServices.getDocumentById(actual.getId());
+
+			} catch (Exception e) {
+				fail("Record '" + actual.getId() + "' is supposed to exist, but it does not");
+			}
 		}
 	}
 

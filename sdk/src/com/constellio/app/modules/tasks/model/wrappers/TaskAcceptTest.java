@@ -1,5 +1,20 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.assertj.core.api.BooleanAssert;
+import org.joda.time.LocalDate;
+import org.junit.Test;
+
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -14,21 +29,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.assertj.core.api.BooleanAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class TaskAcceptTest extends ConstellioTest {
 
@@ -48,10 +48,41 @@ public class TaskAcceptTest extends ConstellioTest {
 	Group legends, heroes, rumors, sidekicks;
 	String legendsId, heroesId, rumorsId, sidekicksId;
 
-	@Before
-	public void setUp()
+	public void setUpWithOneCollection()
 			throws Exception {
 		prepareSystem(withZeCollection().withTasksModule().withAllTest(users));
+		givenTimeIs(now);
+
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+
+		schemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		zeTask = schemas.newTask();
+		zeTask.setTitle("zeTask");
+
+		admin = users.adminIn(zeCollection);
+		aliceId = (alice = users.aliceIn(zeCollection)).getId();
+		bobId = (bob = users.bobIn(zeCollection)).getId();
+		chuckNorrisId = (chuckNorris = users.chuckNorrisIn(zeCollection)).getId();
+		charlesId = (charles = users.charlesIn(zeCollection)).getId();
+		dakotaId = (dakota = users.dakotaIn(zeCollection)).getId();
+		edouardId = (edouard = users.edouardIn(zeCollection)).getId();
+		gandalfId = (gandalf = users.gandalfIn(zeCollection)).getId();
+		robinId = (robin = users.robinIn(zeCollection)).getId();
+		sasquatchId = (sasquatch = users.sasquatchIn(zeCollection)).getId();
+		legendsId = (legends = users.legendsIn(zeCollection)).getId();
+		heroesId = (heroes = users.heroesIn(zeCollection)).getId();
+		rumorsId = (rumors = users.rumorsIn(zeCollection)).getId();
+		sidekicksId = (sidekicks = users.sidekicksIn(zeCollection)).getId();
+		allUsers = asList(alice, bob, chuckNorris, charles, dakota, edouard, gandalf, sasquatch, robin);
+		recordServices.update(alice.setCollectionReadAccess(true));
+	}
+
+	public void setUpWithTwoCollections()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withTasksModule().withAllTest(users),
+				withCollection("anotherCollection").withTasksModule().withAllTest(users));
 		givenTimeIs(now);
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -82,6 +113,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test(expected = RecordServicesException.ValidationException.class)
 	public void whenSaveTaskWithoutTitleThenValidationException()
 			throws Exception {
+		setUpWithOneCollection();
 		zeTask.setTitle(null);
 		saveAndReload(zeTask);
 	}
@@ -89,6 +121,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test(expected = RecordServicesException.ValidationException.class)
 	public void givenTaskWithAssigneeAndNoAssignationDateWhenSaveThenValidationException()
 			throws Exception {
+		setUpWithOneCollection();
 		zeTask.setAssignee(users.aliceIn(zeCollection).getId());
 		saveAndReload(zeTask);
 	}
@@ -96,6 +129,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test(expected = RecordServicesException.ValidationException.class)
 	public void givenTaskWithoutAssigneeAndWithAssignationDateWhenSaveThenValidationException()
 			throws Exception {
+		setUpWithOneCollection();
 		zeTask.setAssignationDate(now);
 		saveAndReload(zeTask);
 	}
@@ -103,6 +137,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void givenTaskWithAssigneeAndWithAssignationDateWhenSaveThenOk()
 			throws Exception {
+		setUpWithOneCollection();
 		zeTask.setAssignationDate(now).setAssignee(aliceId).setAssigner(aliceId);
 		saveAndReload(zeTask);
 	}
@@ -110,6 +145,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void whenSaveTaskThenMetadataValuesSaved()
 			throws Exception {
+		setUpWithOneCollection();
 		String zeAssignee = users.aliceIn(zeCollection).getId();
 		String zeCreator = users.chuckNorrisIn(zeCollection).getId();
 
@@ -157,6 +193,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void whenStatusNotSetThenTaskWithStandbyStatus()
 			throws Exception {
+		setUpWithOneCollection();
 		zeTask = saveAndReload(zeTask);
 		String standbyStatusId = schemas.getTaskStatusWithCode(STANDBY_CODE).getId();
 		assertThat(zeTask.getStatus()).isEqualTo(standbyStatusId);
@@ -165,6 +202,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test(expected = RecordRuntimeException.CannotSetManualValueInAutomaticField.class)
 	public void whenTrySetCalculatedMetadataThenThrowUnsupportedSetOnCalculatedMetadata()
 			throws Exception {
+		setUpWithOneCollection();
 		try {
 			zeTask.set(Task.FOLLOWERS_IDS, null);
 			fail("");
@@ -177,6 +215,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void givenTaskWithReminderHavingFixedDateWhenGetNextReminderOnThenReminderFixedDate()
 			throws Exception {
+		setUpWithOneCollection();
 		TaskReminder reminder1 = new TaskReminder().setFixedDate(now.plusDays(1000));
 		zeTask.setReminders(asList(reminder1));
 		zeTask = saveAndReload(zeTask);
@@ -186,6 +225,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void whenTrySetInvalidPercentageThenThrowInvalidPercentage()
 			throws Exception {
+		setUpWithOneCollection();
 		zeTask.set(Task.PROGRESS_PERCENTAGE, null);
 		saveAndReload(zeTask);
 		zeTask.set(Task.PROGRESS_PERCENTAGE, 0);
@@ -214,7 +254,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAssignedTaskWithFollowersThenUsersHaveGoodAccess()
 			throws Exception {
-
+		setUpWithOneCollection();
 		zeTask.setCreatedBy(dakotaId);
 		zeTask.setAssigner(dakotaId);
 		zeTask.setAssignee(bobId);
@@ -234,7 +274,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAssignedTaskWithMultipleCandidatesAndFollowersThenUsersHaveGoodAccess()
 			throws Exception {
-
+		setUpWithOneCollection();
 		zeTask.setCreatedBy(charlesId);
 		zeTask.setAssigner(charlesId);
 		zeTask.setAssignee(bobId);
@@ -255,7 +295,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAssignedTaskWithMultipleCandidateGroupsAndFollowersThenUsersHaveGoodAccess()
 			throws Exception {
-
+		setUpWithOneCollection();
 		zeTask.setCreatedBy(charlesId);
 		zeTask.setAssignee(bobId);
 		zeTask.setAssigner(charlesId);
@@ -275,7 +315,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void givenTaskHasADueDateSettedAfterItsParentThenException()
 			throws Exception {
-
+		setUpWithOneCollection();
 		Task rootTask = schemas.newTaskWithId("rootTask");
 		rootTask.setTitle("root task");
 		rootTask.setCreatedBy(charlesId);
@@ -318,7 +358,7 @@ public class TaskAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAMultilevelTasksHierarchyThenGoodAccessToUsersAndCreatorOfRootTaskCanDeleteCompleteHierarchy()
 			throws Exception {
-
+		setUpWithOneCollection();
 		Task rootTask = schemas.newTaskWithId("rootTask");
 		rootTask.setTitle("root task");
 		rootTask.setCreatedBy(charlesId);
@@ -372,6 +412,25 @@ public class TaskAcceptTest extends ConstellioTest {
 
 		assertThat(searchServices.searchRecordIds(new LogicalSearchQuery(from(schemas.userTask.schemaType()).returnAll())))
 				.doesNotContain("rootTask", "childTask", "childChildTask");
+
+	}
+
+	@Test
+	public void givenTwoCollectionsWithTaskModuleThenBothHasValidDefaultStatus()
+			throws Exception {
+		setUpWithTwoCollections();
+
+		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		TaskStatus status = tasks.getTaskStatusWithCode(TaskStatus.STANDBY_CODE);
+		System.out.println(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).getDefaultValue());
+		assertThat(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS)
+				.getDefaultValue()).isEqualTo(status.getId());
+
+		tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		status = tasks.getTaskStatusWithCode(TaskStatus.STANDBY_CODE);
+		System.out.println(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).getDefaultValue());
+		assertThat(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS)
+				.getDefaultValue()).isEqualTo(status.getId());
 
 	}
 

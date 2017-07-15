@@ -2,8 +2,11 @@ package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
 
+import org.apache.poi.ss.formula.functions.T;
+
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class RMTask extends Task {
@@ -42,6 +45,7 @@ public class RMTask extends Task {
 		return getList(LINKED_FOLDERS);
 	}
 
+	@Override
 	public RMTask setLinkedFolders(List<?> linkedFolders) {
 		set(LINKED_FOLDERS, linkedFolders);
 		return this;
@@ -51,8 +55,23 @@ public class RMTask extends Task {
 		return getList(LINKED_DOCUMENTS);
 	}
 
+	@Override
 	public RMTask setLinkedDocuments(List<?> linkedDocuments) {
 		set(LINKED_DOCUMENTS, linkedDocuments);
 		return this;
+	}
+
+	public List<String> getLinkedContainers() {
+		return getList(LINKED_CONTAINERS);
+	}
+
+	@Override
+	public RMTask setLinkedContainers(List<?> linkedContainers) {
+		set(LINKED_CONTAINERS, linkedContainers);
+		return this;
+	}
+
+	public RMTask set(Metadata metadata, T value) {
+		return super.set(metadata, value);
 	}
 }

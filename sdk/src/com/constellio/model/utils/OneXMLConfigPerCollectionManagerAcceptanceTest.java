@@ -18,6 +18,8 @@ import org.mockito.Mock;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -34,11 +36,14 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	CollectionsListManager collectionsListManager;
 	@Mock OneXMLConfigPerCollectionManagerListener managerListener, otherManagerListener;
 	List<String> languages = Arrays.asList("fr");
+	SerializationCheckCache cache;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
+		cache = new SerializationCheckCache("zeCache");
+		
 		configReader = new XMLConfigReader<String>() {
 			@Override
 			public String read(String collection, Document document) {
@@ -58,7 +63,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 
 		IOServices ioServices = getIOLayerFactory().newIOServices();
 		HashingService hashingServices = getIOLayerFactory().newHashingService(BASE64);
-		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices);
+		ConstellioCache cache = new SerializationCheckCache("zeCache");
+		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices, cache);
 
 		collectionsListManager = new CollectionsListManager(configManager);
 		collectionsListManager.initialize();
@@ -187,7 +193,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	}
 
 	private OneXMLConfigPerCollectionManager<String> newManager(OneXMLConfigPerCollectionManagerListener listener) {
-		return new OneXMLConfigPerCollectionManager(configManager, collectionsListManager, filePath, configReader, listener);
+		return new OneXMLConfigPerCollectionManager(configManager, collectionsListManager, filePath, configReader, listener, cache);
 	}
 
 	private void updateCollectionValue(String collection, final String newValue) {

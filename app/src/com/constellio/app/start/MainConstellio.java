@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.services.factories.ConstellioFactories;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -47,7 +46,12 @@ public final class MainConstellio {
 			PluginManagementUtils utils = new PluginManagementUtils(folderLocator);
 			Set<String> pluginsToMove = utils.getPluginsToMove();
 			if (pluginsToMove.isEmpty()) {
-				runApplication();
+				Map<String, String> configs = PropertyFileUtils.loadKeyValues(folderLocator.getConstellioProperties());
+				boolean initOnStartup = true;
+				if ("false".equals(configs.get("init.startup"))) {
+					initOnStartup = false;
+				}
+				runApplication(initOnStartup);
 			} else {
 				utils.movePlugins(pluginsToMove);
 				ensureApplicationWillRestartInCorrectState(utils);
@@ -98,9 +102,11 @@ public final class MainConstellio {
 		installationService.launchInstallation();
 	}
 
-	private static void runApplication()
+	private static void runApplication(boolean initOnStartup)
 			throws IOException {
-		ConstellioFactories.getInstance();
+		//		if (initOnStartup) {
+		//			ConstellioFactories.getInstance();
+		//		}
 
 		Map<String, String> properties = readProperties();
 

@@ -2,12 +2,14 @@ package com.constellio.app.modules.rm.ui.components.contextmenu;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -18,6 +20,7 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
@@ -31,6 +34,7 @@ import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 
@@ -54,7 +58,6 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
-	private View parentView;
 
 	protected DocumentContextMenuPresenter presenter;
 
@@ -149,7 +152,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (deleteDocumentButtonVisible) {
 			ContextMenuItem deleteDocumentItem = addItem($("DocumentContextMenu.deleteDocument"));
-			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener() {
+			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmDelete");
@@ -174,9 +177,14 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 		if (createPDFAButtonVisible) {
 			ContextMenuItem createPDFAItem = addItem($("DocumentActionsComponent.createPDFA"));
-			createPDFAItem.addItemClickListener(new BaseContextMenuItemClickListener() {
+			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.WARNING) {
 				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+				protected String getConfirmDialogMessage() {
+					return $("ConfirmDialog.confirmCreatePDFA");
+				}
+
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.createPDFA();
 				}
 			});
@@ -228,13 +236,14 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.checkOutButtonClicked(getSessionContext());
+					refreshParent();
 				}
 			});
 		}
 
 		if (finalizeButtonVisible) {
 			ContextMenuItem finalizeItem = addItem($("DocumentActionsComponent.finalize"));
-			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener() {
+			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("DocumentActionsComponent.finalize.confirm");
@@ -297,13 +306,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	public void postClose() {
-		if(parentView instanceof HomeViewImpl) {
-			navigateTo().home("checkedOutDocuments");
-		}
-	}
-
-	public void setParentView(View view) {
-		parentView = view;
+		refreshParent();
 	}
 
 	@Override
@@ -392,6 +395,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void open(Component component) {
+		super.open(component);
+	}
+
+	@Override
 	public void open(int x, int y) {
 		if (visible) {
 			super.open(x, y);
@@ -412,4 +420,19 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, "_top");
 	}
+
+	@Override
+	public void refreshParent() {
+		View parentView = ConstellioUI.getCurrent().getCurrentView();
+		if (parentView instanceof HomeViewImpl) {
+			HomeViewImpl homeView = (HomeViewImpl) parentView;
+			String selectedTabCode = homeView.getSelectedTabCode();
+			if (Arrays.asList(
+					RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS, 
+					RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS).contains(selectedTabCode)) {
+				navigateTo().home(selectedTabCode);
+			}
+		}
+	}
+	
 }

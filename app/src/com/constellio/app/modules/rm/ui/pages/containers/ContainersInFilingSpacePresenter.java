@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import java.util.List;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -67,10 +69,18 @@ public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersIn
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		boolean access;
+		if (user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+			access = true;
+		} else {
+			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.MANAGE_CONTAINERS);
+			access = adminUnitIdsWithPermissions.contains(adminUnitId);
+		}
+		return access;
 	}
 
 	public void displayContainerButtonClicked(RecordVO container) {
 		view.navigate().to(RMViews.class).displayContainer(container.getId());
 	}
+	
 }

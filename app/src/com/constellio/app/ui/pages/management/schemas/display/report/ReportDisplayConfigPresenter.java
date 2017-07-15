@@ -31,6 +31,8 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 	private Map<String, String> parameters;
 
+	private boolean isAddMode = true;
+
 	public ReportDisplayConfigPresenter(ReportConfigurationView view) {
 		super(view);
 	}
@@ -107,6 +109,17 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		return returnList;
 	}
 
+	public void deleteButtonClicked()
+	{
+		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+		String schemaTypeCode = getSchemaTypeCode();
+		String reportTile = getSelectedReport();
+		Report report = reportServices.getReport(schemaTypeCode, reportTile);
+		reportServices.deleteReport(getCurrentUser(), report);
+
+		view.navigate().to().listSchemaTypes();
+	}
+
 	public void cancelButtonClicked() {
 		view.navigate().to().listSchemaTypes();
 	}
@@ -156,5 +169,13 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		int index = metadataCode.lastIndexOf("_");
 		return metadataSchemasManager.getSchemaTypes(collection).getSchema(metadataCode.substring(0, index))
 				.getLabel(language);
+	}
+
+	public boolean isAddMode() {
+		return isAddMode;
+	}
+
+	public void setAddMode(boolean addMode) {
+		isAddMode = addMode;
 	}
 }

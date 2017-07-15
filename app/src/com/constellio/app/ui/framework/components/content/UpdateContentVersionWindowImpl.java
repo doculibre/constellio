@@ -47,8 +47,18 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	private OptionGroup majorVersionField;
 	
 	private UpdateContentVersionPresenter presenter;
-	
+
+	public boolean isCancel() {
+		return isCancel;
+	}
+
+	private boolean isCancel = false;
+
 	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records) {
+		this(records, false);
+	}
+
+	public UpdateContentVersionWindowImpl(Map<RecordVO, MetadataVO> records, boolean isEditView) {
 		setModal(true);
 		setWidth("70%");
 		setZIndex(null);
@@ -64,7 +74,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		errorLabel.addStyleName("error-label");
 		errorLabel.setVisible(false);
 		
-		uploadField = new ContentVersionUploadField(false) {
+		uploadField = new ContentVersionUploadField(false, false, isEditView) {
 			@Override
 			protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
 				return false;
@@ -147,6 +157,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 				@Override
 				protected void cancelButtonClick(RecordVO viewObject) {
+					isCancel = true;
 					close();
 				}
 			};

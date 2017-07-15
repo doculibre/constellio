@@ -2,11 +2,12 @@ package com.constellio.app.entities.schemasDisplay;
 
 import static java.util.Arrays.asList;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SchemaDisplayConfig {
+public class SchemaDisplayConfig implements Serializable {
 
 	private final String schemaCode;
 
@@ -82,6 +83,11 @@ public class SchemaDisplayConfig {
 
 	public SchemaDisplayConfig withNewDisplayMetadataBefore(String metadataCode, String before) {
 		int index = displayMetadataCodes.indexOf(before);
+		if (index < 0 && !displayMetadataCodes.isEmpty()) {
+			index = displayMetadataCodes.size() - 1;
+		} else if (index < 0) {
+			index = 0;
+		}
 		List<String> displayMetadataCodes = new ArrayList<>();
 		displayMetadataCodes.addAll(this.displayMetadataCodes);
 		displayMetadataCodes.add(index, metadataCode);

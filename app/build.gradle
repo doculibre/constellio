@@ -37,8 +37,8 @@ dependencies {
     compile "net.sourceforge.htmlunit:htmlunit:2.18"
     compile "com.cybozu.labs:langdetect:1.1-20120112"
     compile "org.glassfish:javax.json:1.0.4"
-    compile "org.glassfish.jersey.media:jersey-media-json-jackson:2.13"
-    compile "org.glassfish.jersey.containers:jersey-container-servlet:2.13"
+    compile "org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1"
+    compile "org.glassfish.jersey.containers:jersey-container-servlet:2.25.1"
     compile "javax.ws.rs:javax.ws.rs-api:2.0.1"
     compile "org.apache.chemistry.opencmis:chemistry-opencmis-server-bindings:0.12.0"
     compile "org.apache.chemistry.opencmis:chemistry-opencmis-server-support:0.12.0"
@@ -49,8 +49,8 @@ dependencies {
     compile "javax.servlet:javax.servlet-api:3.1.0"
     compile "org.peimari:maddon:1.20"
     compile "commons-io:commons-io:2.4"
-    compile "org.apache.solr:solr-solrj:5.0.0"
-    compile "org.apache.solr:solr-core:5.0.0"
+    compile "org.apache.solr:solr-solrj:6.3.0"
+    compile "org.apache.solr:solr-core:6.3.0"
     compile "org.apache.commons:commons-lang3:3.0"
     compile "org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:1.0.2.Final"
     compile "commons-beanutils:commons-beanutils:1.9.2"
@@ -80,8 +80,8 @@ dependencies {
     compile "vaadin:mediaelementjs-player:1.2.6"
     compile "org.apache.commons:commons-jexl3:3.0"
 
-    //compile "com.vaadin:vaadin-client-compiler:7.7.4"
-    //compile files("libs/vaadin-breadcrumb-1.7.3.jar")
+    compile "com.vaadin:vaadin-client-compiler:7.7.4"
+    compile files("libs/vaadin-breadcrumb-1.7.3.jar")
 
     compile "juh:juh:3.2.1"
     compile "jurt:jurt:3.2.1"

@@ -2,14 +2,14 @@ package com.constellio.app.modules.rm.ui.components.menuBar;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -20,11 +20,11 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
@@ -57,7 +57,6 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
-	private View parentView;
 
 	protected DocumentMenuBarPresenter presenter;
 
@@ -141,7 +140,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 
 		if (deleteDocumentButtonVisible) {
 			MenuItem deleteDocumentItem = rootItem.addItem($("DocumentContextMenu.deleteDocument"), null);
-			deleteDocumentItem.setCommand(new ConfirmDialogMenuBarItemCommand() {
+			deleteDocumentItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("ConfirmDialog.confirmDelete");
@@ -166,9 +165,14 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 
 		if (createPDFAButtonVisible) {
 			MenuItem createPDFAItem = rootItem.addItem($("DocumentActionsComponent.createPDFA"), null);
-			createPDFAItem.setCommand(new Command() {
+			createPDFAItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
-				public void menuSelected(MenuItem selectedItem) {
+				protected String getConfirmDialogMessage() {
+					return $("ConfirmDialog.confirmCreatePDFA");
+				}
+
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.createPDFA();
 				}
 			});
@@ -220,13 +224,14 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					presenter.checkOutButtonClicked(getSessionContext());
+					refreshParent();
 				}
 			});
 		}
 
 		if (finalizeButtonVisible) {
 			MenuItem finalizeItem = rootItem.addItem($("DocumentActionsComponent.finalize"), null);
-			finalizeItem.setCommand(new ConfirmDialogMenuBarItemCommand() {
+			finalizeItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
 					return $("DocumentActionsComponent.finalize.confirm");
@@ -289,13 +294,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	}
 
 	public void postClose() {
-		if(parentView instanceof HomeViewImpl) {
-			navigateTo().home("checkedOutDocuments");
-		}
-	}
-
-	public void setParentView(View view) {
-		parentView = view;
+		refreshParent();
 	}
 
 	@Override
@@ -391,6 +390,20 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	@Override
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, "_top");
+	}
+
+	@Override
+	public void refreshParent() {
+		View parentView = ConstellioUI.getCurrent().getCurrentView();
+		if (parentView instanceof HomeViewImpl) {
+			HomeViewImpl homeView = (HomeViewImpl) parentView;
+			String selectedTabCode = homeView.getSelectedTabCode();
+			if (Arrays.asList(
+					RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS, 
+					RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS).contains(selectedTabCode)) {
+				navigateTo().home(selectedTabCode);
+			}
+		}
 	}
 
 }

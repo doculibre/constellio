@@ -103,19 +103,27 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildLabelsButton(final String schemaType) {
-		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
-				return presenter.getTemplates(schemaType);
+				return presenter.getCustomTemplates(schemaType);
+			}
+		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates(schemaType);
 			}
 		};
 		LabelsButton labelsButton = new LabelsButton(
 				$("SearchView.labels"),
 				$("SearchView.printLabels"),
+				customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory,
 				getConstellioFactories().getAppLayerFactory(),
 				getSessionContext().getCurrentCollection(),
-				Folder.SCHEMA_TYPE,
-				presenter.getRecordsIds(Folder.SCHEMA_TYPE),
+				schemaType,
+				presenter.getRecordsIds(schemaType),
 				getSessionContext().getCurrentUser().getUsername()
 		);
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
@@ -231,6 +239,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 						showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
 					} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
 						showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
+					} else if (presenter.isAnyFolderBorrowed()) {
+						showErrorMessage($("CartView.aFolderIsBorrowed"));
+					} else if (presenter.isAnyFolderInDecommissioningList()) {
+						showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
 					} else {
 						super.buttonClick(event);
 					}
@@ -269,7 +281,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		TabSheet tabSheet = new TabSheet();
+		FireableTabSheet tabSheet = new FireableTabSheet();
 		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
@@ -299,8 +311,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		});
 		if(!folderTab.isVisible() && !documentTab.isVisible() && !containerTab.isVisible()) {
 			mainLayout.addComponent(new Label($("CartView.emptyCart")));
+			reportSelector.setVisible(false);
 		} else {
 			mainLayout.addComponent(tabSheet);
+			tabSheet.fireTabSelectionChanged();
 		}
 		return mainLayout;
 	}
@@ -335,13 +349,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
-	public void startDownload(final InputStream stream) {
+	public void startDownload(final InputStream stream, String filename) {
 		Resource resource = new DownloadStreamResource(new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				return stream;
 			}
-		}, "cart.eml");
+		}, filename);
 		Page.getCurrent().open(resource, null, false);
 	}
 
@@ -521,5 +535,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			return presenter.getRecordsIds(schemaType);
 		}
 	}
-	
+
+	private class FireableTabSheet extends TabSheet {
+		public void fireTabSelectionChanged() {
+			fireSelectedTabChange();
+		}
+	}
 }

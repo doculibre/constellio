@@ -8,5 +8,4 @@ public abstract class RecordExportExtension {
 	public void onWriteRecord(OnWriteRecordParams params) {
 
 	}
-
 }

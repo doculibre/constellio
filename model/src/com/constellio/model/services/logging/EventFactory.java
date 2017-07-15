@@ -1,13 +1,5 @@
 package com.constellio.model.services.logging;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
@@ -27,6 +19,13 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class EventFactory {
 
@@ -65,7 +64,7 @@ public class EventFactory {
 	}
 
 	public Event newRecordEvent(Record record, User currentUser, String eventType, String reason, LocalDateTime eventDateTime) {
-		if (record.getCollection().endsWith(currentUser.getCollection())) {
+		if (currentUser != User.GOD && record.getCollection().endsWith(currentUser.getCollection())) {
 			return createRecordEvent(record, currentUser, eventType, reason, eventDateTime, currentUser.getCollection());
 		} else {
 			return null;
@@ -143,6 +142,15 @@ public class EventFactory {
 		}
 
 		return event;
+	}
+
+	public String getBorrowDurationDelta(LocalDateTime oldValue, LocalDateTime newValue) {
+		StringBuilder delta = new StringBuilder();
+		if (!oldValue.toString().equals(newValue.toString())) {
+			delta.append("\tAvant : " + limitContentLength(oldValue.toString()) + "\n");
+			delta.append("\tAprès : " + limitContentLength(newValue.toString()));
+		}
+		return delta.toString();
 	}
 
 	private void setDeltaMetadata(Event event, Record record) {

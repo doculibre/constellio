@@ -18,10 +18,7 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.StreamResource;
 import org.apache.commons.io.FileUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.List;
 
 
@@ -86,9 +83,12 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 		}
 	}
 
-	File getReferencesFor(final String id) {
+	File getReferencesFor(String id) {
 		File file = new File("referenceReport.txt");
 		try {
+			PrintWriter writer = new PrintWriter(file);
+			writer.print("");
+			writer.close();
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(view.getCollection()).where(Schemas.ALL_REFERENCES).isEqualTo(id);
 			List<Record> recordLists = modelLayerFactory.newSearchServices().search(new LogicalSearchQuery(condition));
 			for (Record record : recordLists) {

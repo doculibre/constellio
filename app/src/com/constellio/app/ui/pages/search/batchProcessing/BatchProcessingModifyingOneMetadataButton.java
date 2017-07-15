@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
@@ -28,8 +29,59 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
         this.view = view;
     }
 
-    @Override
-    protected Component buildWindowContent() {
+	@Override
+	protected Component buildWindowContent() {
+		Component windowContent;
+		if (!presenter.hasWriteAccessOnAllRecords()) {
+			windowContent = new Label($("AdvancedSearchView.requireWriteAccess"));
+		} else if (presenter.isSearchResultsSelectionForm()) {
+			windowContent = buildSearchResultsSelectionForm();
+		} else {
+			windowContent = buildBatchProcessingForm();
+		}
+		return windowContent;
+	}
+	
+	private Component buildSearchResultsSelectionForm() {
+		getWindow().setHeight("220px");
+
+        VerticalLayout layout = new VerticalLayout(buildMetadataComponent());
+        
+		Panel panel = new Panel();
+		layout = new VerticalLayout();
+		layout.setSizeFull();
+		layout.setSpacing(true);
+		
+		Label questionLabel = new Label($("AdvancedSearch.batchProcessingRecordSelection"));
+		
+		BaseButton allSearchResultsButton = new BaseButton($("AdvancedSearchView.allSearchResults")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.allSearchResultsButtonClicked();
+				getWindow().setContent(buildBatchProcessingForm());
+				getWindow().setHeight(BatchProcessingModifyingOneMetadataButton.this.getConfiguration().getHeight());
+				getWindow().center();
+			}
+		};
+		
+		BaseButton selectedSearchResultsButton = new BaseButton($("AdvancedSearchView.selectedSearchResults")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.selectedSearchResultsButtonClicked();
+				getWindow().setContent(buildBatchProcessingForm());
+				getWindow().setHeight(BatchProcessingModifyingOneMetadataButton.this.getConfiguration().getHeight());
+				getWindow().center();
+			}
+		};
+		
+		layout.addComponents(questionLabel, allSearchResultsButton, selectedSearchResultsButton);
+
+		panel.setContent(layout);
+		panel.setSizeFull();
+		return panel;
+	}
+	
+	private Component buildBatchProcessingForm() {
         Label label = new Label($("AdvancedSearchView.batchProcessValue"));
         value = null;
 

@@ -7,6 +7,8 @@ import org.jdom2.Document;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -25,17 +27,20 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	private ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;
 	private ModelLayerFactory modelLayerFactory;
+	private ConstellioCacheManager cacheManager;
 
 	public RolesManager(ModelLayerFactory modelLayerFactory) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
 	}
 
 	@Override
 	public void initialize() {
+		ConstellioCache cache = cacheManager.getCache(RolesManager.class.getName());
 		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager,
-				ROLES_CONFIG, xmlConfigReader(), this);
+				ROLES_CONFIG, xmlConfigReader(), this, cache);
 	}
 
 	public void createCollectionRole(String collection) {
@@ -95,6 +100,10 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	}
 
 	public Roles getCollectionRoles(String collection) {
+		return getCollectionRoles(collection, modelLayerFactory);
+	}
+
+	public Roles getCollectionRoles(String collection, ModelLayerFactory modelLayerFactory) {
 		return new Roles(getAllRoles(collection), new SchemasRecordsServices(collection, modelLayerFactory));
 	}
 

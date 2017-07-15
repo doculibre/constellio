@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +34,68 @@ public class RecordUtils {
 
 	public RecordUtils() {
 		schemaUtils = newSchemaUtils();
+	}
+
+	public static long estimateRecordSize(Record record) {
+		if (record == null || !(record instanceof RecordImpl)) {
+			return 0;
+		}
+		RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
+
+		if (recordDTO == null) {
+			return 0;
+		}
+
+		long size = 0;
+
+		if (recordDTO != null) {
+			if (recordDTO.getCopyFields() != null) {
+				for (Object object : recordDTO.getCopyFields().values()) {
+					size += sizeOf(object);
+				}
+
+			}
+			if (recordDTO.getFields() != null) {
+				for (Object object : recordDTO.getFields().values()) {
+					size += sizeOf(object);
+				}
+			}
+		}
+		return size;
+	}
+
+	/**
+	 * This method is far, very far from being complete!
+	 * Since the most important part of the data are strings
+	 * @param object
+	 * @return
+	 */
+	private static long sizeOf(Object object) {
+
+		if (object == null) {
+			return 0;
+
+		} else if (object instanceof Integer) {
+			return 8;
+
+		} else if (object instanceof Float) {
+			return 8;
+
+		} else if (object instanceof Double) {
+			return 8;
+
+		} else if (object instanceof String) {
+			return 16 + 2 * ((String) object).length();
+
+		} else if (object instanceof List) {
+			int size = 4;
+			for (Object element : ((List) object)) {
+				size += sizeOf(element);
+			}
+			return size;
+		}
+
+		return 0;
 	}
 
 	public Set<String> toIdSet(List<Record> records) {

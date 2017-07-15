@@ -1,5 +1,10 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -17,12 +22,12 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.VerticalLayout;
 
 public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMetadataView {
 	final AddEditMetadataPresenter presenter;
@@ -113,6 +118,25 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				multivalue = false;
 			}
 
+			if (value == MetadataValueType.STRING || value == MetadataValueType.TEXT) {
+				searchableField.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						if (!searchableField.getValue()) {
+							advancedSearchField.setValue(false);
+						}
+
+						advancedSearchField.setEnabled(searchableField.getValue());
+					}
+				});
+
+				advancedSearchField.setEnabled(searchableField.getValue());
+
+				if (!searchableField.getValue()) {
+					advancedSearchField.setValue(false);
+				}
+			}
+
 			inputType.setEnabled(false);
 			inputType.removeAllItems();
 			inputType.setEnabled(true);
@@ -193,7 +217,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			multivalueType.setEnabled(true);
 			sortableField.setEnabled(false);
 			refType.setEnabled(true);
-			refType.setRequired(true);
+			refType.setRequired(!editMode);
 			break;
 		case STRING:
 			multivalueType.setEnabled(true);
@@ -248,7 +272,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		//$("AddEditMetadataView.title")
 		labelsField = new MultilingualTextField(true);
-//		labelsField.setRequired(true);
+		//		labelsField.setRequired(true);
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 
@@ -345,7 +369,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		requiredField.setRequired(false);
 		requiredField.setId("required");
 		requiredField.addStyleName("required");
-		requiredField.setEnabled(presenter.isMetadataRequiredStatusModifiable());
+		requiredField.setEnabled(presenter.isMetadataRequiredStatusModifiable() || presenter.isFolderMediumTypes());
 
 		enabledField = new CheckBox();
 		enabledField.setCaption($("AddEditMetadataView.enabled"));
@@ -353,13 +377,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		enabledField.setId("enabled");
 		enabledField.addStyleName("enabled");
 		enabledField.setEnabled(presenter.isMetadataEnableStatusModifiable());
-
-		searchableField = new CheckBox();
-		searchableField.setCaption($("AddEditMetadataView.searchable"));
-		searchableField.setRequired(false);
-		searchableField.setId("searchable");
-		searchableField.addStyleName("searchable");
-		searchableField.setEnabled(!inherited);
 
 		sortableField = new CheckBox();
 		sortableField.setCaption($("AddEditMetadataView.sortable"));
@@ -374,6 +391,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		advancedSearchField.setId("advancedSearch");
 		advancedSearchField.addStyleName("advancedSearch");
 		advancedSearchField.setEnabled(!inherited);
+
+		searchableField = new CheckBox();
+		searchableField.setCaption($("AddEditMetadataView.searchable"));
+		searchableField.setRequired(false);
+		searchableField.setId("searchable");
+		searchableField.addStyleName("searchable");
+		searchableField.setEnabled(!inherited);
 
 		highlight = new CheckBox();
 		highlight.setCaption($("AddEditMetadataView.highlight"));
@@ -458,7 +482,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					showErrorMessage(e.getMessage());
 					return;
 				}
-				presenter.saveButtonClicked(formMetadataVO, editMode);
+				presenter.preSaveButtonClicked(formMetadataVO, editMode);
 			}
 
 			@Override

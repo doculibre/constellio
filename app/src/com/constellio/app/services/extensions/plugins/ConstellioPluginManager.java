@@ -55,4 +55,6 @@ public interface ConstellioPluginManager extends StatefulService {
 			throws ClassNotFoundException;
 
 	void removePlugin(String code);
+
+	void configure();
 }

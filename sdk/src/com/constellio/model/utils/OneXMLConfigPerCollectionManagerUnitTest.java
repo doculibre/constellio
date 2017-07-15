@@ -15,6 +15,7 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -32,10 +33,14 @@ public class OneXMLConfigPerCollectionManagerUnitTest extends ConstellioTest {
 	OneXMLConfigPerCollectionManager manager;
 
 	@Mock OneXMLConfigPerCollectionManagerListener listener;
+	
+	SerializationCheckCache cache;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		cache = new SerializationCheckCache("zeCache");
 		when(collectionsListManager.getCollections()).thenReturn(new ArrayList<String>());
 		manager = newManager();
 
@@ -54,7 +59,7 @@ public class OneXMLConfigPerCollectionManagerUnitTest extends ConstellioTest {
 			throws Exception {
 
 		manager = new OneXMLConfigPerCollectionManager(
-				configManager, collectionsListManager, "subFolder/zeConfig.xml", configReader, listener);
+				configManager, collectionsListManager, "subFolder/zeConfig.xml", configReader, listener, cache);
 		assertThat(manager.getConfigPath("zeUltimateCollection")).isEqualTo("/zeUltimateCollection/subFolder/zeConfig.xml");
 
 	}
@@ -132,6 +137,6 @@ public class OneXMLConfigPerCollectionManagerUnitTest extends ConstellioTest {
 
 	private OneXMLConfigPerCollectionManager newManager() {
 		return new OneXMLConfigPerCollectionManager(configManager, collectionsListManager,
-				collectionFolderRelativeConfigPath, configReader, listener);
+				collectionFolderRelativeConfigPath, configReader, listener, cache);
 	}
 }

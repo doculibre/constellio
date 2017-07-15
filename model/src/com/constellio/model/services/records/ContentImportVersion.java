@@ -14,6 +14,12 @@ public class ContentImportVersion {
 
 	LocalDateTime lastModification;
 
+	String hash;
+
+	String mimetype;
+
+	long length;
+
 	public ContentImportVersion(String url, String fileName, boolean major, String comment, LocalDateTime lastModification) {
 		this.url = url;
 		this.fileName = fileName;

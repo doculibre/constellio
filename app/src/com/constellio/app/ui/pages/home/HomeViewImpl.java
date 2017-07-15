@@ -1,17 +1,31 @@
 package com.constellio.app.ui.pages.home;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
-import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
+import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
+import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -38,17 +52,14 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	
@@ -101,6 +112,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		return tabSheet;
 	}
 
+	@Override
+	public String getSelectedTabCode() {
+		return presenter.getCurrentTab();
+	}
+
 	private void selectTab(Tab tab) {
 		if (tab == null) {
 			return;
@@ -145,6 +161,26 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		recentTable.addStyleName("record-table");
 		return new RecordVOSelectionTableAdapter(recentTable) {
 			@Override
+			public void selectAll() {
+				selectAllByItemId();
+			}
+
+			@Override
+			public void deselectAll() {
+				deselectAllByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return isAllItemsSelectedByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return isAllItemsDeselectedByItemId();
+			}
+			
+			@Override
 			public void setSelected(Object itemId, boolean selected) {
 				RecordVO recordVO = recentTable.getRecordVO(itemId);
 				String recordId = recordVO.getId();
@@ -165,9 +201,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
-		if ((DocumentContextMenuImpl) table.getContextMenu() != null) {
-			((DocumentContextMenuImpl) table.getContextMenu()).setParentView(this);
-		}
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
@@ -189,6 +222,26 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			}
 		});
 		return new RecordVOSelectionTableAdapter(table) {
+			@Override
+			public void selectAll() {
+				selectAllByItemId();
+			}
+
+			@Override
+			public void deselectAll() {
+				deselectAllByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return isAllItemsSelectedByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return isAllItemsDeselectedByItemId();
+			}
+			
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
@@ -289,6 +342,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		public void setCompositionRoot(Component compositionRoot) {
 			super.setCompositionRoot(compositionRoot);
 		}
+
+		@Override
+		public Component getCompositionRoot() {
+			return super.getCompositionRoot();
+		}
 	}
 
 	private class RecentTable extends BaseTable {
@@ -337,7 +395,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			});
 			
-			addMenuBarColumn(recentItems);
+			addContextMenuAndMenuBarColumn(recentItems);
 		}
 
 		@Override
@@ -358,12 +416,13 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return recordVO;
 		}
 		
-		protected void addMenuBarColumn(List<RecentItem> recentItems) {
+		protected void addContextMenuAndMenuBarColumn(List<RecentItem> recentItems) {
 			boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null; 
 			if (!menuBarColumnGenerated) {
 				boolean menuBarRequired = false;
+				String schemaCode = null;
 				for (RecentItem recentItem : recentItems) {
-					String schemaCode = recentItem.getRecord().getSchema().getCode();
+					schemaCode = recentItem.getRecord().getSchema().getCode();
 					List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
 					for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
 						if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
@@ -373,6 +432,36 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					}
 				}
 				if (menuBarRequired) {
+					RecordContextMenu contextMenu = null;
+					List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
+					for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
+						if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
+							contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
+							break;
+						}
+					}
+					if (contextMenu != null) {
+						contextMenu.setAsContextMenuOf(this);
+						final RecordContextMenu finalContextMenu = contextMenu;
+						BaseContextMenuTableListener contextMenuTableListener = new BaseContextMenuTableListener() {
+							@Override
+							public void onContextMenuOpenFromFooter(ContextMenuOpenedOnTableFooterEvent event) {
+							}
+
+							@Override
+							public void onContextMenuOpenFromHeader(ContextMenuOpenedOnTableHeaderEvent event) {
+							}
+
+							@Override
+							public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
+								Object itemId = event.getItemId();
+								RecordVO recordVO = getRecordVO(itemId);
+								finalContextMenu.openFor(recordVO);
+							}
+						};
+						contextMenu.addContextMenuTableListener(contextMenuTableListener);
+					}
+					
 					addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
 						@Override
 						public Object generateCell(Table source, Object itemId, Object columnId) {
@@ -398,6 +487,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	@Override
 	public void openURL(String url) {
 		Page.getCurrent().open(url, null);
-	}
+	}	
 
 }

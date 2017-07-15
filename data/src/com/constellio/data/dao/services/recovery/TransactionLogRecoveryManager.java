@@ -38,7 +38,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LazyIterator;
 
 public class TransactionLogRecoveryManager implements RecoveryService, BigVaultServerAddEditListener,
-													  BigVaultServerQueryListener {
+		BigVaultServerQueryListener {
 	private final static Logger LOGGER = LoggerFactory.getLogger(TransactionLogRecoveryManager.class);
 	private static final String RECOVERY_WORK_DIR = TransactionLogRecoveryManager.class.getName() + "recoveryWorkDir";
 
@@ -333,7 +333,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	//TODO test me
 	private List<SolrInputDocument> getDocumentsHavingIds(List<SolrInputDocument> solrInputDocuments,
-			final Collection<String> ids) {
+														  final Collection<String> ids) {
 		List<SolrInputDocument> returnList = new ArrayList<>();
 		for (SolrInputDocument document : solrInputDocuments) {
 			String id = (String) document.getFieldValue("id");
@@ -362,7 +362,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 			QueryResponse response = null;
 			try {
 				response = server.query(solrParams);
-			} catch (SolrServerException e) {
+			} catch (IOException | SolrServerException e) {
 				throw new RuntimeException(e);
 			}
 			SolrDocumentList result = response.getResults();

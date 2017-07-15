@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,6 +57,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
 
 public class JSPFConstellioPluginManager implements StatefulService, ConstellioPluginManager {
@@ -94,9 +94,12 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	public void detectPlugins() {
+		detectPluginsInDirectory(pluginsDirectory);
+	}
+
+	public void detectPluginsInDirectory(File pluginsDirectory) {
 		initialize();
 		this.pluginManager = PluginManagerFactory.createPluginManager();
-
 		if (pluginsDirectory != null && pluginsDirectory.isDirectory()) {
 			try {
 				newPluginServices().replaceOldPluginVersionsByNewOnes(pluginsDirectory,
@@ -501,6 +504,13 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public void removePlugin(String code) {
 		this.validUploadedPlugins.remove(code);
 		this.pluginConfigManger.removePlugin(code);
+	}
+
+	@Override
+	public void configure() {
+		if (pluginManager != null) {
+			pluginManager.getPluginConfiguration().setConfiguration(ConstellioPlugin.class, "singletonInitializeMode", "true");
+		}
 	}
 
 	private void ensureStarted() {

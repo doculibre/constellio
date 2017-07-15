@@ -1,12 +1,12 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
@@ -14,7 +14,9 @@ import com.constellio.app.ui.framework.components.converters.JodaDateToStringCon
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
@@ -56,7 +58,9 @@ public class MetadataDisplayFactory implements Serializable {
 
 		MetadataValueType metadataValueType = metadataVO.getType();
 
-		if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
+		if (!metadataVO.isEnabled()) {
+			displayComponent = null;
+		} else if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
 			displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
 			displayComponent.setWidthUndefined();
 		} else if (displayValue == null) {
@@ -69,16 +73,19 @@ public class MetadataDisplayFactory implements Serializable {
 				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
+				boolean hasAVisibleComponent = false;
 				for (Object elementDisplayValue : collectionDisplayValue) {
 					Component elementDisplayComponent = buildSingleValue(recordVO,
 							metadataValue.getMetadata(), elementDisplayValue);
 					if (elementDisplayComponent != null) {
 						elementDisplayComponent.setSizeFull();
 						elementDisplayComponents.add(elementDisplayComponent);
+						hasAVisibleComponent = hasAVisibleComponent || elementDisplayComponent.isVisible();
 					}
 				}
 				if (!elementDisplayComponents.isEmpty()) {
 					displayComponent = newCollectionValueDisplayComponent(elementDisplayComponents);
+					displayComponent.setVisible(hasAVisibleComponent);
 				} else {
 					displayComponent = null;
 				}
@@ -161,7 +168,7 @@ public class MetadataDisplayFactory implements Serializable {
 					displayComponent = null;
 				} else if (MetadataInputType.URL.equals(metadataInputType)) {
 					String url = displayValue.toString();
-					if(!url.startsWith("http://")) {
+					if (!url.startsWith("http://")) {
 						url = "http://" + url;
 					}
 					Link link = new Link(url, new ExternalResource(url));
@@ -205,6 +212,9 @@ public class MetadataDisplayFactory implements Serializable {
 					}
 					break;
 				}
+				if(displayComponent != null && taxonomyCodes != null && taxonomyCodes.length > 0) {
+					displayComponent.setVisible(hasCurrentUserRightsOnTaxonomy(taxonomyCodes[0]));
+				}
 				break;
 			case ENUM:
 				if (displayValue instanceof EnumWithSmallCode) {
@@ -222,7 +232,7 @@ public class MetadataDisplayFactory implements Serializable {
 		}
 		return displayComponent;
 	}
-	
+
 	protected Component newStringCollectionValueDisplayComponent(Collection<String> stringCollectionValue) {
 		StringBuilder sb = new StringBuilder();
 		for (String stringValue : stringCollectionValue) {
@@ -244,5 +254,30 @@ public class MetadataDisplayFactory implements Serializable {
 			verticalLayout.addComponent(elementDisplayComponent);
 		}
 		return verticalLayout;
+	}
+
+	private boolean hasCurrentUserRightsOnTaxonomy(String taxonomyCode) {
+		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(currentSessionContext.getCurrentCollection(), taxonomyCode);
+		UserVO currentUser = currentSessionContext.getCurrentUser();
+		String userid = currentUser.getId();
+
+		if(taxonomy != null) {
+			RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(currentSessionContext.getCurrentCollection(), appLayerFactory);
+			List<String> taxonomyGroupIds = taxonomy.getGroupIds();
+			List<String> taxonomyUserIds = taxonomy.getUserIds();
+			List<String> userGroups = rmSchemasRecordsServices.getUser(currentUser.getId()).getUserGroups();
+			for(String group: taxonomyGroupIds) {
+				for(String userGroup: userGroups) {
+					if(userGroup.equals(group)) {
+						return true;
+					}
+				}
+			}
+			return (taxonomyGroupIds.isEmpty() && taxonomyUserIds.isEmpty()) || taxonomyUserIds.contains(userid);
+		} else {
+			return true;
+		}
 	}
 }

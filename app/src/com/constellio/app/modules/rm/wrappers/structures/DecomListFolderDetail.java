@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class DecomListFolderDetail implements ModifiableStructure {
 	String folderId;
@@ -11,13 +11,19 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	String containerRecordId;
 	boolean reversedSort;
 	Double folderLinearSize;
+	boolean isPlacedInContainer;
 	boolean dirty;
 
+	@Deprecated
 	public DecomListFolderDetail() {
+		isPlacedInContainer = false;
 	}
 
-	public DecomListFolderDetail(String folderId) {
-		this.folderId = folderId;
+	public DecomListFolderDetail(Folder folder) {
+		this.folderId = folder.getId();
+		this.containerRecordId = folder.getContainer();
+		this.folderLinearSize = folder.getLinearSize();
+		this.isPlacedInContainer = false;
 	}
 
 	public String getFolderId() {
@@ -74,6 +80,16 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		return this;
 	}
 
+	public boolean isPlacedInContainer() {
+		return isPlacedInContainer;
+	}
+
+	public DecomListFolderDetail setIsPlacedInContainer(boolean isPlacedInContainer) {
+		dirty = true;
+		this.isPlacedInContainer = isPlacedInContainer;
+		return this;
+	}
+
 	@Override
 	public boolean isDirty() {
 		return dirty;
@@ -87,6 +103,7 @@ public class DecomListFolderDetail implements ModifiableStructure {
 				", containerRecordId='" + containerRecordId + '\'' +
 				", reversedSort=" + reversedSort +
 				", dirty=" + dirty +
+				", isPlacedInContainer=" + isPlacedInContainer +
 				'}';
 	}
 

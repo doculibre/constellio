@@ -1,14 +1,40 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.cart.CartEmlServiceRuntimeException;
+import com.constellio.app.modules.rm.services.cart.CartEmailService;
+import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsView;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -26,6 +52,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -35,7 +62,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
+import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -44,23 +73,20 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.data.Property;
-import com.vaadin.navigator.View;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.IOUtils;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import java.io.*;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -84,13 +110,14 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addMoveButton(final AvailableActionsParam param) {
         WindowButton moveInFolderButton = new WindowButton($("ConstellioHeader.selection.actions.moveInFolder"), $("ConstellioHeader.selection.actions.moveInFolder")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "220px")) {
+                , WindowButton.WindowConfiguration.modalDialog("50%", "140px")) {
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField();
+                final LookupFolderField field = new LookupFolderField(true);
+                field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
                 BaseButton saveButton = new BaseButton($("save")) {
@@ -141,7 +168,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField();
+                final LookupFolderField field = new LookupFolderField(true);
+                field.focus();
                 field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 verticalLayout.addComponent(field);
                 BaseButton saveButton = new BaseButton($("save")) {
@@ -179,18 +207,27 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addClassifyButton(final AvailableActionsParam param) {
         WindowButton classifyButton = new WindowButton($("ConstellioHeader.selection.actions.classify"), $("ConstellioHeader.selection.actions.classify")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "220px")) {
+                , WindowButton.WindowConfiguration.modalDialog("90%", "300px")) {
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
                 verticalLayout.addStyleName("no-scroll");
                 verticalLayout.setSpacing(true);
-                final LookupFolderField folderField = new LookupFolderField();
+                
+                final LookupFolderField folderField = new LookupFolderField(true);
                 folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 folderField.setVisible(true);
+                folderField.setRequired(true);
+                folderField.focus();
+                
                 final FolderCategoryFieldImpl categoryField = new FolderCategoryFieldImpl();
                 categoryField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
                 categoryField.setVisible(false);
+                categoryField.setRequired(false);
+                
+                final FolderRetentionRuleFieldImpl retentionRuleField = new FolderRetentionRuleFieldImpl(collection);
+                retentionRuleField.setVisible(false);
+                
                 final ListOptionGroup classificationOption = new ListOptionGroup($("ConstellioHeader.selection.actions.classificationChoice"), asList(true, false));
                 classificationOption.addStyleName("horizontal");
                 classificationOption.setNullSelectionAllowed(false);
@@ -200,29 +237,60 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 classificationOption.addValueChangeListener(new Property.ValueChangeListener() {
                     @Override
                     public void valueChange(Property.ValueChangeEvent event) {
-                        folderField.setVisible(!Boolean.TRUE.equals(event.getProperty().getValue()));
-                        categoryField.setVisible(Boolean.TRUE.equals(event.getProperty().getValue()));
+                    	boolean categoryClassification = Boolean.TRUE.equals(event.getProperty().getValue());
+                        folderField.setVisible(!categoryClassification);
+                        folderField.setRequired(!categoryClassification);
+                        categoryField.setVisible(categoryClassification);
+                        categoryField.setRequired(categoryClassification);
+                        if (categoryClassification) {
+                        	String categoryId = categoryField.getValue();
+    						adjustRetentionRuleField(categoryId, retentionRuleField);
+                        } else {
+                        	retentionRuleField.setVisible(false);
+                        }
+                        if (categoryClassification) {
+                        	categoryField.focus();
+                        } else {
+                        	folderField.focus();
+                        }
                     }
                 });
                 classificationOption.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(UserFolder.SCHEMA_TYPE)));
+                
+                categoryField.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						String categoryId = (String) event.getProperty().getValue();
+						adjustRetentionRuleField(categoryId, retentionRuleField);
+					}
+				});
 
-
-                verticalLayout.addComponents(classificationOption, folderField, categoryField);
+                verticalLayout.addComponents(classificationOption, folderField, categoryField, retentionRuleField);
                 BaseButton saveButton = new BaseButton($("save")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         String parentId = folderField.getValue();
                         String categoryId = categoryField.getValue();
+                        String retentionRuleId = retentionRuleField.getValue();
+                        if(parentId == null && categoryId == null) {
+                            if(folderField.isVisible()) {
+                                showErrorMessage($("ConstellioHeader.noParentFolderSelectedForClassification"));
+                                return;
+                            } else {
+                                showErrorMessage($("ConstellioHeader.noCategorySelectedForClassification"));
+                                return;
+                            }
+                        }
                         boolean isClassifiedInFolder = !Boolean.TRUE.equals(classificationOption.getValue());
                         try {
-                            classifyButtonClicked(parentId, categoryId, isClassifiedInFolder, param);
-                            ConstellioUI.getCurrent().updateContent();
+                            classifyButtonClicked(parentId, categoryId, retentionRuleId, isClassifiedInFolder, param);
                         } catch (Throwable e) {
 //                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
 //                            showErrorMessage("DisplayFolderView.parentFolderException");
                             e.printStackTrace();
                         }
                         getWindow().close();
+                        ConstellioUI.getCurrent().updateContent();
                     }
                 };
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -233,6 +301,26 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_CENTER);
                 verticalLayout.addComponent(hLayout);
                 return verticalLayout;
+            }
+            
+            private void adjustRetentionRuleField(String categoryId, FolderRetentionRuleFieldImpl retentionRuleField) {
+            	if (categoryId != null) {
+    	            RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+    	            Category category = rm.getCategory(categoryId);
+    	            List<String> retentionRules = category.getRententionRules();
+    	            boolean manyRetentionRules = retentionRules.size() > 1;
+    	            if (manyRetentionRules) {
+        	            retentionRuleField.setVisible(true);
+        	            retentionRuleField.setOptions(retentionRules);
+        	            retentionRuleField.setRequired(true);
+    	            } else {
+        	            retentionRuleField.setVisible(false);
+        	            retentionRuleField.setRequired(false);
+    	            }
+            	} else {
+    	            retentionRuleField.setRequired(false);
+            		retentionRuleField.setVisible(false);
+            	}
             }
 
             @Override
@@ -255,7 +343,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         Button checkInButton = new Button($("ConstellioHeader.selection.actions.checkIn")) {
             @Override
             public boolean isVisible() {
-                return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE));
+                return containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)) && areAllCheckedOut(param.getIds());
             }
 
             @Override
@@ -283,16 +371,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     final int numberOfRecords = records.size();
                     if(numberOfRecords > 0) {
                         final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(records) {
+
                             @Override
                             public void close() {
                                 super.close();
-                                if(numberOfRecords != param.getIds().size()) {
-                                    RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
-                                } else {
-                                    RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
+                                if(!this.isCancel()) {
+                                    if (numberOfRecords != param.getIds().size()) {
+                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
+                                    } else {
+                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
+                                    }
                                 }
                             }
                         };
+
                         uploadWindow.open(true);
                     } else {
                         showErrorMessage($("ConstellioHeader.selection.actions.noApplicableRecords"));
@@ -304,9 +396,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         });
 
         setStyles(checkInButton);
-        checkInButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
-        checkInButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
+        checkInButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)) && areAllCheckedOut(param.getIds()));
+        checkInButton.setVisible(checkInButton.isEnabled());
         ((VerticalLayout) param.getComponent()).addComponent(checkInButton);
+    }
+
+    private boolean areAllCheckedOut(List<String> ids) {
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+        List<Document> documents = rm.getDocuments(ids);
+        for(Document document: documents) {
+            if(document.getContent() == null || document.getContent().getCheckoutUserId() == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void addSendEmailButton(final AvailableActionsParam param) {
@@ -367,14 +470,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
         }
 
-        if(couldNotMove.isEmpty()) {
+        if (couldNotMove.isEmpty()) {
             showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
         } else {
-            showErrorMessage($("ConstellioHeader.selection.actions.couldNotMove", couldNotMove.size(), recordIds.size()));
+        	int successCount = recordIds.size() - couldNotMove.size();
+            showErrorMessage($("ConstellioHeader.selection.actions.couldNotMove", successCount, recordIds.size()));
         }
     }
 
-    public void duplicateButtonClicked(String parentId, AvailableActionsParam param) {
+    public void duplicateButtonClicked(String parentId, final AvailableActionsParam param) {
         List<String> recordIds = param.getIds();
         List<String> couldNotDuplicate = new ArrayList<>();
         if (isNotBlank(parentId)) {
@@ -391,9 +495,24 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             break;
                         case Document.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
-                            for(Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            for (Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
                             }
+                            if (newDocument.getContent() != null) {
+                            	User user = param.getUser();
+                            	Content content = newDocument.getContent();
+                            	ContentVersion contentVersion = content.getCurrentVersion();
+                            	String filename = contentVersion.getFilename();
+                            	ContentManager contentManager = rmSchemas.getModelLayerFactory().getContentManager();
+                            	ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(contentVersion.getHash()).getContentVersionDataSummary();
+                            	Content newContent = contentManager.createMajor(user, filename, contentVersionDataSummary);
+                            	newDocument.setContent(newContent);
+                            }
+                            if (Boolean.TRUE == newDocument.getBorrowed()) {
+                                newDocument.setBorrowed(false);
+                            }
+                            String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
+                            newDocument.setTitle(title);
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
                             break;
@@ -409,31 +528,32 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         if(couldNotDuplicate.isEmpty()) {
             showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
         } else {
-            showErrorMessage($("ConstellioHeader.selection.actions.couldNotDuplicate", couldNotDuplicate.size(), recordIds.size()));
+        	int successCount = recordIds.size() - couldNotDuplicate.size();
+            showErrorMessage($("ConstellioHeader.selection.actions.couldNotDuplicate", successCount, recordIds.size()));
         }
     }
 
-    public void classifyButtonClicked(String parentId, String categoryId, boolean isClassifiedInFolder, AvailableActionsParam param)
+    public void classifyButtonClicked(String parentId, String categoryId, String retentionRuleId, boolean isClassifiedInFolder, AvailableActionsParam param)
             throws RecordServicesException {
 
         List<String> recordIds = param.getIds();
         List<String> couldNotMove = new ArrayList<>();
         if ((isClassifiedInFolder && isNotBlank(parentId)) || (!isClassifiedInFolder && isNotBlank(categoryId))) {
-            RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-            RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+            RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+            RecordServices recordServices = recordServices();
             for (String id: recordIds) {
             	Record record = null;
                 try {
                     record = recordServices.getDocumentById(id);
                     switch (record.getTypeCode()) {
                         case UserFolder.SCHEMA_TYPE:
-                            Folder newFolder = rmSchemas.newFolder();
-                            RMUserFolder userFolder = rmSchemas.wrapUserFolder(record);
-                            if(!isClassifiedInFolder) {
-                                classifyUserFolderInCategory(param, categoryId, userFolder);
+                            Folder newFolder = rm.newFolder();
+                            RMUserFolder userFolder = rm.wrapUserFolder(record);
+                            if (!isClassifiedInFolder) {
+                                classifyUserFolderInCategory(param, categoryId, retentionRuleId, userFolder);
                             }
                             decommissioningService(param).populateFolderFromUserFolder(newFolder, userFolder, param.getUser());
-                            if(isClassifiedInFolder) {
+                            if (isClassifiedInFolder) {
                                 newFolder.setParentFolder(parentId);
                             }
                             recordServices.add(newFolder);
@@ -441,12 +561,12 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             deleteUserFolder(param, userFolder, param.getUser());
                             break;
                         case UserDocument.SCHEMA_TYPE:
-                            Document newDocument = rmSchemas.newDocument();
-                            UserDocument userDocument = rmSchemas.wrapUserDocument(record);
+                            Document newDocument = rm.newDocument();
+                            UserDocument userDocument = rm.wrapUserDocument(record);
                             decommissioningService(param).populateDocumentFromUserDocument(newDocument, userDocument, param.getUser());
                             newDocument.setFolder(parentId);
                             recordServices.add(newDocument);
-                            deleteUserDocument(param, rmSchemas.wrapUserDocument(record), param.getUser());
+                            deleteUserDocument(param, rm.wrapUserDocument(record), param.getUser());
                             break;
                         default:
                             couldNotMove.add(record.getTitle());
@@ -465,11 +585,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
         }
 
-        if(couldNotMove.isEmpty()) {
+        if (couldNotMove.isEmpty()) {
             showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
         } else {
-            showErrorMessage($("ConstellioHeader.selection.actions.couldNotClassify", couldNotMove.size(), recordIds.size()));
+        	int successCount = recordIds.size() - couldNotMove.size();
+            showErrorMessage($("ConstellioHeader.selection.actions.couldNotClassify", successCount, recordIds.size()));
         }
+    }
+
+    protected RecordServices recordServices() {
+        return appLayerFactory.getModelLayerFactory().newRecordServices();
     }
 
     protected void deleteUserFolder(AvailableActionsParam param, RMUserFolder rmUserFolder, User user) {
@@ -495,52 +620,60 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             	}
             }
 		}
-        View currentView = ConstellioUI.getCurrent().getCurrentView();
-        if (currentView instanceof ListUserDocumentsView) {
-        	((ListUserDocumentsView) currentView).refresh();
-        }
+//        View currentView = ConstellioUI.getCurrent().getCurrentView();
+//        if (currentView instanceof ListUserDocumentsView) {
+//        	((ListUserDocumentsView) currentView).refresh();
+//        }
     }
 
     private void emailPreparationRequested(AvailableActionsParam param) {
-        InputStream stream = createEml(param);
-        startDownload(stream);
+        EmailMessage emailMessage = createEmail(param);
+        String filename = emailMessage.getFilename();
+    	InputStream stream = emailMessage.getInputStream();
+        startDownload(stream, filename);
     }
 
-    private InputStream createEml(AvailableActionsParam param) {
-        File newTempFolder = null;
+    private EmailMessage createEmail(AvailableActionsParam param) {
+        File newTempFile = null;
         try {
-            newTempFolder = ioServices.newTemporaryFile("CartEmlService-emlFile");
-            return createEml(param, newTempFolder);
+            newTempFile = ioServices.newTemporaryFile("RMSelectionPanelExtension-emailFile");
+            return createEmail(param, newTempFile);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            ioServices.deleteQuietly(newTempFolder);
+            ioServices.deleteQuietly(newTempFile);
         }
     }
 
-    private InputStream createEml(AvailableActionsParam param, File emlFile) {
-        try {
-            OutputStream outputStream = new FileOutputStream(emlFile);
+    private EmailMessage createEmail(AvailableActionsParam param, File messageFile) {
+    	try (OutputStream outputStream = ioServices.newFileOutputStream(messageFile, RMSelectionPanelExtension.class.getSimpleName() + ".createMessage.out")) {
             User user = param.getUser();
             String signature = getSignature(user);
             String subject = "";
             String from = user.getEmail();
             List<EmailServices.MessageAttachment> attachments = getAttachments(param);
-            if(attachments == null || attachments.isEmpty()) {
+            if (attachments == null || attachments.isEmpty()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.noApplicableRecords"));
                 return null;
             } else if(attachments.size() != param.getIds().size()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.couldNotSendEmail", attachments.size(), param.getIds().size()));
             }
-            Message message = new EmailServices().createMessage(from, subject, signature, attachments);
-            message.addHeader("X-Unsent", "1");
-            message.writeTo(outputStream);
-            IOUtils.closeQuietly(outputStream);
-            closeAllInputStreams(attachments);
-            if(attachments.size() == param.getIds().size()) {
+            
+            AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage("cart", signature, subject, from, attachments);
+			if (emailMessage == null) {
+				EmailServices emailServices = new EmailServices();
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);
+				message.writeTo(outputStream);
+				String filename = "cart.eml";
+				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");
+				emailMessage = new EmailMessage(filename, inputStream);
+				closeAllInputStreams(attachments);
+			}
+            if (attachments.size() == param.getIds().size()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", attachments.size()));
             }
-            return new FileInputStream(emlFile);
+			return emailMessage;
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -571,19 +704,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 try {
                     Document document = rmSchemasRecordsServices.wrapDocument(record);
                     if (document.getContent() != null) {
-                        EmailServices.MessageAttachment contentFile = createAttachment(document.getContent());
+                        EmailServices.MessageAttachment contentFile = createAttachment(document);
                         returnList.add(contentFile);
                     }
                 } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-                    throw new CartEmlServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId(e);
+                    throw new CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId(e);
                 }
             }
         }
         return returnList;
     }
 
-    private EmailServices.MessageAttachment createAttachment(Content content)
+    private EmailServices.MessageAttachment createAttachment(Document document)
             throws IOException {
+        Content content = document.getContent();
         String hash = content.getCurrentVersion().getHash();
         ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
         InputStream inputStream = contentManager.getContentInputStream(hash, content.getCurrentVersion().getFilename());
@@ -600,13 +734,13 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     @SuppressWarnings("deprecation")
-	private void startDownload(final InputStream stream) {
+	private void startDownload(final InputStream stream, String filename) {
         Resource resource = new ReportViewer.DownloadStreamResource(new StreamResource.StreamSource() {
             @Override
             public InputStream getStream() {
                 return stream;
             }
-        }, "cart.eml");
+        }, filename);
         Page.getCurrent().open(resource, null, false);
     }
 
@@ -648,13 +782,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         return true && list.size() > 0;
     }
 
-    public void classifyUserFolderInCategory(AvailableActionsParam param, String categoryId, RMUserFolder userFolder) {
+    public void classifyUserFolderInCategory(AvailableActionsParam param, String categoryId, String retentionRuleId, RMUserFolder userFolder) {
         User currentUser = param.getUser();
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
         Category category = rm.getCategory(categoryId);
         userFolder.setCategory(category);
         List<String> retentionRules = category.getRententionRules();
-        if (!retentionRules.isEmpty()) {
+        if (retentionRuleId != null) {
+        	userFolder.setRetentionRule(retentionRuleId);
+        } else if (retentionRules.size() == 1) {
             userFolder.setRetentionRule(retentionRules.get(0));
         }
         AdministrativeUnit administrativeUnit = getDefaultAdministrativeUnit(currentUser);

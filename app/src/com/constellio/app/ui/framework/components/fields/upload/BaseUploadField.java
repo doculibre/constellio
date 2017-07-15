@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.FileBuffer;
-
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -22,15 +12,13 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.easyuploads.FileBuffer;
+
+import java.io.File;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class BaseUploadField extends CustomField<Object> implements DropHandler {
@@ -48,15 +36,28 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	private ButtonsContainer<IndexedContainer> fileUploadsContainer;
 
 	private Table fileUploadsTable;
-	
+
 	private Map<Object, Component> itemCaptions = new HashMap<>();
-	
+
 	private ViewChangeListener viewChangeListener;
 
-	public BaseUploadField() {
+	private boolean isViewOnly;
+
+	private boolean haveDeleteButton;
+
+	public BaseUploadField()
+	{
+		this(true, false);
+	}
+
+	public BaseUploadField(boolean haveDeleteButton, boolean isViewOnly) {
 		super();
-		
+
+		this.isViewOnly = isViewOnly;
+
 		setSizeFull();
+
+		this.haveDeleteButton = haveDeleteButton;
 
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
@@ -136,44 +137,51 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 		fileUploadsContainer = new ButtonsContainer<>(new IndexedContainer());
 		fileUploadsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
-		fileUploadsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				DeleteButton deleteButton = new DeleteButton() {
-					@SuppressWarnings("unchecked")
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						if (itemId instanceof TempFileUpload) {
-							TempFileUpload tempFileUpload = (TempFileUpload) itemId;
-							tempFileUpload.delete();
-						} else {
-							deleteTempFile(itemId);
-						}
-						if (!isMultiValue()) {
-							BaseUploadField.this.setValue(null);
-						} else {
-							List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
-							List<Object> newListValue = new ArrayList<Object>(previousListValue);
-							newListValue.remove(itemId);
-							BaseUploadField.this.setValue(newListValue);
-						}
-					}
-				};
-				deleteButton.setReadOnly(BaseUploadField.this.isReadOnly());
-				deleteButton.setEnabled(BaseUploadField.this.isEnabled());
-				deleteButton.setVisible(isDeleteLink(itemId));
-				return deleteButton;
-			}
-		});
 
+		if (haveDeleteButton)
+		{
+				fileUploadsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+
+					DeleteButton deleteButton = new DeleteButton() {
+						@SuppressWarnings("unchecked")
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							if (itemId instanceof TempFileUpload) {
+								TempFileUpload tempFileUpload = (TempFileUpload) itemId;
+								tempFileUpload.delete();
+							} else {
+								deleteTempFile(itemId);
+							}
+							if (!isMultiValue()) {
+								BaseUploadField.this.setValue(null);
+							} else {
+								List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
+								List<Object> newListValue = new ArrayList<Object>(previousListValue);
+								newListValue.remove(itemId);
+								BaseUploadField.this.setValue(newListValue);
+							}
+						}
+					};
+					deleteButton.setReadOnly(BaseUploadField.this.isReadOnly());
+					deleteButton.setEnabled(BaseUploadField.this.isEnabled());
+					deleteButton.setVisible(isDeleteLink(itemId));
+					return deleteButton;
+				}
+			});
+		}
 		fileUploadsTable = new Table();
+
 		fileUploadsTable.setContainerDataSource(fileUploadsContainer);
 		fileUploadsTable.setPageLength(0);
 		fileUploadsTable.setWidth("100%");
 		fileUploadsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		fileUploadsTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 47);
 
-		mainLayout.addComponents(multiFileUpload, fileUploadsTable);
+		multiFileUpload.setVisible(!isViewOnly);
+
+		mainLayout.addComponents(multiFileUpload,fileUploadsTable);
 	}
 	
 	@Override
@@ -239,6 +247,10 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	@Override
 	public void drop(DragAndDropEvent event) {
+		if(isViewOnly) {
+			return;
+		}
+
 		multiFileUpload.drop(event);
 	}
 

@@ -455,6 +455,12 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public long getDataMigrationVersion() {
+		Double value = get(Schemas.MIGRATION_DATA_VERSION);
+		return value == null ? 0 : value.longValue();
+	}
+
+	@Override
 	public String getSchemaCode() {
 		return schemaCode;
 	}
@@ -581,14 +587,17 @@ public class RecordImpl implements Record {
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
 			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
+
 			try {
 				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
 			} catch (NoSuchMetadata e) {
-				Record originalRecord = getCopyOfOriginalRecord();
-				try {
-					modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
-				} catch (NoSuchMetadata e2) {
+				if (isSaved()) {
+					Record originalRecord = getCopyOfOriginalRecord();
+					try {
+						modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
+					} catch (NoSuchMetadata e2) {
 
+					}
 				}
 			}
 		}
@@ -604,9 +613,6 @@ public class RecordImpl implements Record {
 
 		for (FieldsPopulator populator : copyfieldsPopulators) {
 			for (Map.Entry<String, Object> entry : populator.populateCopyfields(schema, this).entrySet()) {
-				if (entry.getValue() == null) {
-					throw new RecordImplException_PopulatorReturnedNullValue(populator, entry.getKey());
-				}
 				copyfields.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -628,7 +634,7 @@ public class RecordImpl implements Record {
 					}
 				}
 			} catch (NoSuchMetadata e) {
-				convertedValues.put(entry.getKey(), "");
+				convertedValues.put(entry.getKey(), null);
 			}
 
 		}

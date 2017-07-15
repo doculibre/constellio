@@ -37,6 +37,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -58,15 +59,25 @@ public class SearchServices {
 	RecordsCaches recordsCaches;
 	MetadataSchemasManager metadataSchemasManager;
 	String mainDataLanguage;
+	ConstellioEIMConfigs systemConfigs;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
+		this(recordDao, modelLayerFactory, modelLayerFactory.getRecordsCaches());
+	}
+
+	public SearchServices(ModelLayerFactory modelLayerFactory, RecordsCaches recordsCaches) {
+		this(modelLayerFactory.getDataLayerFactory().newRecordDao(), modelLayerFactory, recordsCaches);
+	}
+
+	private SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory, RecordsCaches recordsCaches) {
 		this.recordDao = recordDao;
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.securityTokenManager = modelLayerFactory.getSecurityTokenManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
-		recordsCaches = modelLayerFactory.getRecordsCaches();
+		this.systemConfigs = modelLayerFactory.getSystemConfigs();
+		this.recordsCaches = recordsCaches;
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {
@@ -208,17 +219,21 @@ public class SearchServices {
 
 	public String getLanguage(LogicalSearchQuery query) {
 		if (query.getCondition().isCollectionSearch()) {
-			String collection = query.getCondition().getCollection();
-			String language;
-			try {
-				language = collectionsListManager.getCollectionLanguages(collection).get(0);
-			} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-				language = mainDataLanguage;
-			}
-			return language;
+			return getLanguageCode(query.getCondition().getCollection());
+
 		} else {
 			return mainDataLanguage;
 		}
+	}
+
+	public String getLanguageCode(String collection) {
+		String language;
+		try {
+			language = collectionsListManager.getCollectionLanguages(collection).get(0);
+		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+			language = mainDataLanguage;
+		}
+		return language;
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
@@ -239,7 +254,11 @@ public class SearchServices {
 			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
-			params.add(DisMaxParams.MM, "1");
+			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
+				params.add(DisMaxParams.MM, "100%");
+			} else {
+				params.add(DisMaxParams.MM, "1");
+			}
 			params.add("defType", "edismax");
 			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
 
@@ -370,6 +389,10 @@ public class SearchServices {
 			fieldsWithBoosts.add(boost.getKey());
 		}
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
+			if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
+				sb.append("^20 ");
+			}
 			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
 			if (!fieldsWithBoosts.contains(analyzedField)) {
 				sb.append(analyzedField + " ");

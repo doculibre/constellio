@@ -138,7 +138,7 @@ public class POJOEntitiesTest extends ConstellioTest {
 		Metadata o = Schemas.IDENTIFIER;
 		Metadata o2 = Schemas.IDENTIFIER;
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
-		assertThat(o).isNotInstanceOf(Serializable.class);
+		assertThat(o).isInstanceOf(Serializable.class);
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class POJOEntitiesTest extends ConstellioTest {
 		MetadataSchema o2 = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
 				true, new HashSet<RecordValidator>(), null);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
-		assertThat(o).isNotInstanceOf(Serializable.class);
+		assertThat(o).isInstanceOf(Serializable.class);
 	}
 
 	@Test
@@ -158,12 +158,11 @@ public class POJOEntitiesTest extends ConstellioTest {
 		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
 				true, new HashSet<RecordValidator>(), null);
 		MetadataSchemaType o = new MetadataSchemaType("a", "a", labels, new ArrayList<MetadataSchema>(), defaultSchema, true,
-				true,
-				true);
+				true, true, false);
 		MetadataSchemaType o2 = new MetadataSchemaType("a", "a", labels, new ArrayList<MetadataSchema>(), defaultSchema2, true,
-				true, true);
+				true, true, false);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
-		assertThat(o).isNotInstanceOf(Serializable.class);
+		assertThat(o).isInstanceOf(Serializable.class);
 	}
 
 	@Test
@@ -173,7 +172,7 @@ public class POJOEntitiesTest extends ConstellioTest {
 		MetadataSchemaTypes o2 = new MetadataSchemaTypes(zeCollection, 1, new ArrayList<MetadataSchemaType>(),
 				new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French), MetadataNetwork.EMPTY());
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
-		assertThat(o).isNotInstanceOf(Serializable.class);
+		assertThat(o).isInstanceOf(Serializable.class);
 	}
 
 	@Test

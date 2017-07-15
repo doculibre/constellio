@@ -40,7 +40,9 @@ public class MetadataSchemaTypeBuilder {
 	private MetadataSchemaBuilder defaultSchema;
 	private Set<MetadataSchemaBuilder> customSchemas = new HashSet<MetadataSchemaBuilder>();
 	private Boolean undeletable = false;
+	private boolean readOnlyLocked;
 	private ClassProvider classProvider;
+	private Set<String> flags = new HashSet<>();
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -73,6 +75,7 @@ public class MetadataSchemaTypeBuilder {
 
 	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType, ClassProvider classProvider) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
+		builder.readOnlyLocked = schemaType.isReadOnlyLocked();
 		builder.classProvider = classProvider;
 		builder.code = schemaType.getCode();
 		builder.collection = schemaType.getCollection();
@@ -208,7 +211,8 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, collection, labels, schemas, defaultSchema, undeletable, security, inTransactionLog);
+		return new MetadataSchemaType(code, collection, labels, schemas, defaultSchema, undeletable, security, inTransactionLog,
+				readOnlyLocked);
 	}
 
 	public MetadataBuilder getMetadata(String metadataCode) {
@@ -279,6 +283,15 @@ public class MetadataSchemaTypeBuilder {
 
 	public MetadataSchemaTypeBuilder setSecurity(boolean security) {
 		this.security = security;
+		return this;
+	}
+
+	public boolean isReadOnlyLocked() {
+		return readOnlyLocked;
+	}
+
+	public MetadataSchemaTypeBuilder setReadOnlyLocked(boolean readOnlyLocked) {
+		this.readOnlyLocked = readOnlyLocked;
 		return this;
 	}
 

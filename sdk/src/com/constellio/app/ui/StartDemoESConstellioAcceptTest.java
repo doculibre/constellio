@@ -69,7 +69,8 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 	@MainTestDefaultStart
 	public void startOnHomePageAsAdmin()
 			throws Exception {
-		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		/*driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));*/
+		driver = newWebDriver();
 		waitUntilICloseTheBrowsers();
 	}
 

@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 
 import com.constellio.model.entities.security.global.UserCredential;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,7 +157,7 @@ public class LDAPConfigManagementPresenter extends
 	public boolean isForceSynchVisible() {
 		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
 				.getLdapAuthenticationActive()
-				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null;
+				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || CollectionUtils.isNotEmpty(getLDAPUserSyncConfiguration().getScheduleTime());
 	}
 
 	public void deleteUsedUserButtonClick() {

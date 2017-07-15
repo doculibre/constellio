@@ -10,6 +10,9 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class Toggle {
 
+	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
+
+	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();
 	public static AvailableToggle USE_LATEST_BATCH_INSTEAD_OF_EXCEPTION = newToggle();
 
 	public static AvailableToggle NEW_USERCREDENTIAL_SERVICES = newToggle();
@@ -21,6 +24,9 @@ public class Toggle {
 	public static AvailableToggle EXTERNAL_TOKENS_DISABLED = newToggle();
 	public static AvailableToggle NO_WEBSERVICES_PASSWORDS_VALIDATIONS = newToggle();
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
+	public static AvailableToggle CACHES_ENABLED = newToggle(true);
+
+	public static AvailableToggle RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS = newToggle(true);
 
 	// ------------------------------------------------
 

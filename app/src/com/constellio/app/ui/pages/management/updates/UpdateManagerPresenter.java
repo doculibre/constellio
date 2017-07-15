@@ -10,31 +10,30 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.services.records.RecordServicesException;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
+import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.utils.GradleFileVersionParser;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 
@@ -128,6 +127,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		} catch (AppManagementServiceException | RecordServicesException ase) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
+		ConstellioMonitoringServlet.systemRestarting = true;
+		view.navigate().to().serviceMonitoring();
 	}
 
 	public void restartAndReindex() {
@@ -165,12 +166,39 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			}
 		} else {
 			appLayerFactory.newApplicationService().markForReindexing();
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			Record eventRestarting = rm.newEvent()
+					.setType(EventType.RESTARTING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("Redémarrage")
+					.getWrappedRecord();
+			Record eventReindexing = rm.newEvent()
+					.setType(EventType.REINDEXING)
+					.setUsername(getCurrentUser().getUsername())
+					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+					.setIp(getCurrentUser().getLastIPAddress())
+					.setCreatedOn(TimeProvider.getLocalDateTime())
+					.setTitle("Réindexation")
+					.getWrappedRecord();
+			Transaction t = new Transaction();
+			t.addAll(asList(eventReindexing, eventRestarting));
+			try {
+				appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
+			} catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			}
+
 			try {
 				appLayerFactory.newApplicationService().restart();
 			} catch (AppManagementServiceException ase) {
 				view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 			}
 		}
+		ConstellioMonitoringServlet.systemRestarting = true;
+		view.navigate().to().serviceMonitoring();
 	}
 
 	public void licenseUpdateRequested() {

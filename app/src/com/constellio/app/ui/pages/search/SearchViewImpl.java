@@ -29,6 +29,7 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -50,6 +51,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
+	private HashMap<Integer,Boolean> hashMapAllSelection = new HashMap<>();
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -147,6 +149,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
+		zipButton.setVisible(presenter.isAllowDownloadZip());
 		return results.createSummary(actions, zipButton);
 	}
 
@@ -187,12 +190,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable() {
 		SearchResultContainer container = buildResultContainer();
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container);
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip());
 
 		int totalResults = container.size();
 		int totalAmountOfPages =  srTable.getTotalAmountOfPages();
 		int currentPage = presenter.getPageNumber();
-		
+
 		int selectedPageLength = presenter.getSelectedPageLength();
 		if (selectedPageLength == 0) {
 			selectedPageLength = Math.min(totalResults, SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
@@ -202,13 +205,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
-		
+
+
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
+
 				presenter.saveTemporarySearch(false);
 				if (selectDeselectAllButton != null) {
-					selectDeselectAllButton.setSelectAllMode(true);
+					hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+					Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+					boolean isSelectAllMode = true;
+					if (objIsSelectAllMode != null) {
+						isSelectAllMode = objIsSelectAllMode;
+					}
+					selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
 				}
 			}
 		});
@@ -216,6 +227,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				presenter.setSelectedPageLength((int) event.getProperty().getValue());
+				hashMapAllSelection = new HashMap<>();
 			}
 		});
 
@@ -265,12 +277,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		criterion.setWidth("100%");
 
-		@SuppressWarnings("unchecked") List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
+		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
 		for (MetadataVO metadata : sortableMetadata) {
 			criterion.addItem(metadata.getCode());
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
-		criterion.setPageLength(criterion.size());
+//		criterion.setPageLength(criterion.size());
 		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();
@@ -400,13 +412,22 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected Button buildSelectAllButton() {
-		selectDeselectAllButton = new SelectDeselectAllButton() {
+		String selectAllCaption;
+		String deselectAllCaption;
+		if (isDetailedView()) {
+			selectAllCaption = $("SearchView.selectCurrentPage");
+			deselectAllCaption = $("SearchView.deselectCurrentPage");
+		} else {
+			selectAllCaption = $("SearchView.selectRange");
+			deselectAllCaption = $("SearchView.selectRange");
+		}
+		selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {
 					((SearchResultDetailedTable) results).selectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).selectAll();
+					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
 
@@ -415,7 +436,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				if (isDetailedView()) {
 					((SearchResultDetailedTable) results).deselectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).deselectAll();
+					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
 		};

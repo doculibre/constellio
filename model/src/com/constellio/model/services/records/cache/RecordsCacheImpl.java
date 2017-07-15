@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +22,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -57,8 +61,18 @@ public class RecordsCacheImpl implements RecordsCache {
 		return holder != null && holder.getCopy() != null;
 	}
 
+	static AtomicInteger compteur = new AtomicInteger();
+
+	static Set<String> ids = new HashSet<>();
+
 	@Override
 	public Record get(String id) {
+
+		compteur.incrementAndGet();
+		synchronized (RecordsCacheImpl.class) {
+			ids.add(id);
+		}
+
 		RecordHolder holder = cacheById.get(id);
 
 		Record copy = null;
@@ -79,6 +93,34 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		return copy;
+	}
+
+	@Override
+	public int getCacheObjectsCount(String typeCode) {
+		CacheConfig cacheConfig = getCacheConfigOf(typeCode);
+		if (cacheConfig != null && cacheConfig.isVolatile()) {
+			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
+			return cache.getCacheObjectsCount();
+		} else if (cacheConfig != null && cacheConfig.isPermanent()) {
+			PermanentCache cache = permanentCaches.get(cacheConfig.getSchemaType());
+			return cache.getCacheObjectsCount();
+		} else {
+			return 0;
+		}
+	}
+
+	@Override
+	public long getCacheObjectsSize(String typeCode) {
+		CacheConfig cacheConfig = getCacheConfigOf(typeCode);
+		if (cacheConfig != null && cacheConfig.isVolatile()) {
+			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
+			return cache.getCacheObjectsSize();
+		} else if (cacheConfig != null && cacheConfig.isPermanent()) {
+			PermanentCache cache = permanentCaches.get(cacheConfig.getSchemaType());
+			return cache.getCacheObjectsSize();
+		} else {
+			return 0;
+		}
 	}
 
 	public synchronized void insert(List<Record> records) {
@@ -102,6 +144,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				insert(record);
 			}
 
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
 			cache.queryResults.put(signature.toStringSignature(), recordIds);
 		}
 	}
@@ -129,7 +172,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				&& query.getFieldBoosts().isEmpty()
 				&& query.getQueryBoosts().isEmpty()
 				&& query.getStartRow() == 0
-				&& query.getNumberOfRows() == 10000000
+				&& query.getNumberOfRows() == 100000
 				&& query.getStatisticFields().isEmpty()
 				&& !query.isPreferAnalyzedFields()
 				&& query.getResultsProjection() == null
@@ -155,6 +198,10 @@ public class RecordsCacheImpl implements RecordsCache {
 					cachedResults.add(get(recordId));
 				}
 				cachedResults = Collections.unmodifiableList(cachedResults);
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheHit(signature, 0);
+
+			} else {
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheMiss(signature, 0);
 			}
 
 		}
@@ -164,55 +211,6 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public Record forceInsert(Record insertedRecord) {
-		if (!insertedRecord.isFullyLoaded()) {
-			invalidate(insertedRecord.getId());
-			return insertedRecord;
-		}
-
-		try {
-			Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
-			CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
-			if (cacheConfig != null) {
-				Record previousRecord = null;
-
-				synchronized (this) {
-					RecordHolder holder = cacheById.get(recordCopy.getId());
-					if (holder != null) {
-						previousRecord = holder.record;
-
-						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
-						if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
-								.getVersion())) {
-							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
-						}
-					} else {
-						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
-						if (cacheConfig.isPermanent()) {
-							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
-						}
-					}
-					this.recordByMetadataCache.get(cacheConfig.getSchemaType()).insert(previousRecord, holder);
-				}
-
-			}
-			return insertedRecord;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return insertedRecord;
-	}
-
-	@Override
-	public Record insert(Record insertedRecord) {
-
-		if (insertedRecord == null || insertedRecord.isDirty() || !insertedRecord.isSaved()) {
-			return insertedRecord;
-		}
-
-		if (!insertedRecord.isFullyLoaded()) {
-			invalidate(insertedRecord.getId());
-			return insertedRecord;
-		}
 
 		Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
 
@@ -220,10 +218,10 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cacheConfig != null) {
 			Record previousRecord = null;
 
-			synchronized (this) {
-				RecordHolder holder = cacheById.get(recordCopy.getId());
-				if (holder != null) {
-					previousRecord = holder.record;
+				synchronized (this) {
+					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);RecordHolder holder = cacheById.get(recordCopy.getId());
+					if (holder != null) {
+						previousRecord = holder.record;
 
 					insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
 					if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
@@ -241,6 +239,21 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		}
 		return insertedRecord;
+	}
+
+	@Override
+	public Record insert(Record insertedRecord) {
+
+		if (insertedRecord == null || insertedRecord.isDirty() || !insertedRecord.isSaved()) {
+			return insertedRecord;
+		}
+
+		if (!insertedRecord.isFullyLoaded()) {
+			invalidate(insertedRecord.getId());
+			return insertedRecord;
+		}
+
+		return forceInsert(insertedRecord);
 	}
 
 	private RecordHolder insertRecordIntoAnANewHolder(Record record, CacheConfig cacheConfig) {
@@ -325,7 +338,8 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cacheConfig.isPermanent()) {
 			permanentCaches.put(cacheConfig.getSchemaType(), new PermanentCache());
 		} else {
-			volatileCaches.put(cacheConfig.getSchemaType(), new VolatileCache(cacheConfig.getVolatileMaxSize()));
+			volatileCaches.put(cacheConfig.getSchemaType(),
+					new VolatileCache(cacheConfig.getVolatileMaxSize(), cacheConfig.getInvalidationMethod()));
 		}
 
 		recordByMetadataCache.put(cacheConfig.getSchemaType(), new RecordByMetadataCache(cacheConfig));
@@ -369,6 +383,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (recordByMetadataCache != null) {
 			foundRecord = recordByMetadataCache.getByMetadata(metadata.getLocalCode(), value);
 		}
+
+		if (foundRecord == null) {
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByUniqueMetadataCacheMiss(metadata, value, 0);
+		} else {
+			modelLayerFactory.getExtensions().getSystemWideExtensions()
+					.onGetByUniqueMetadataCacheHit(foundRecord, metadata, value, 0);
+		}
+
 		return foundRecord;
 	}
 
@@ -430,20 +452,37 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		int recordsInCache;
 
-		VolatileCache(int maxSize) {
+		VolatileCacheInvalidationMethod invalidationMethod;
+
+		VolatileCache(int maxSize, VolatileCacheInvalidationMethod invalidationMethod) {
 			this.maxSize = maxSize;
+			this.invalidationMethod = invalidationMethod;
 		}
 
 		void insert(RecordHolder holder) {
+
+			if (holder != null && holder.getCopy() != null && holder.getCopy().getTypeCode() != null
+					&& holder.getCopy().getTypeCode().equals("savedSearch")) {
+				System.out.println("inserting savedSearch " + holder.getCopy().getId());
+			}
+
 			holder.volatileCacheOccurences = 1;
 			holders.add(holder);
 			recordsInCache++;
 		}
 
 		void hit(RecordHolder holder) {
-			if (holder.volatileCacheOccurences <= 2) {
-				holder.volatileCacheOccurences++;
-				holders.add(holder);
+
+			if (invalidationMethod == VolatileCacheInvalidationMethod.LRU) {
+				if (holder != null && holder.getCopy() != null && holder.getCopy().getTypeCode() != null
+						&& holder.getCopy().getTypeCode().equals("savedSearch")) {
+					System.out.println("hit on savedSearch " + holder.getCopy().getId());
+				}
+
+				if (holder.volatileCacheOccurences <= 2) {
+					holder.volatileCacheOccurences++;
+					holders.add(holder);
+				}
 			}
 		}
 
@@ -465,6 +504,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void invalidateAll() {
+
 			this.recordsInCache = 0;
 			for (RecordHolder holder : holders) {
 				holder.invalidate();
@@ -472,6 +512,20 @@ public class RecordsCacheImpl implements RecordsCache {
 			holders.clear();
 		}
 
+		public int getCacheObjectsCount() {
+			return recordsInCache;
+		}
+
+		public long getCacheObjectsSize() {
+
+			long size = 0;
+
+			for (RecordHolder holder : holders) {
+				size += RecordUtils.estimateRecordSize(holder.record);
+			}
+
+			return size;
+		}
 	}
 
 	static class PermanentCache {
@@ -495,6 +549,17 @@ public class RecordsCacheImpl implements RecordsCache {
 
 			for (List<String> aQueryResults : queryResults.values()) {
 				size += 1 + aQueryResults.size();
+			}
+
+			return size;
+		}
+
+		public long getCacheObjectsSize() {
+
+			long size = 0;
+
+			for (RecordHolder holder : holders) {
+				size += RecordUtils.estimateRecordSize(holder.record);
 			}
 
 			return size;
@@ -582,8 +647,10 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void set(Record record) {
-			Boolean logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
-			if (logicallyDeletedStatus == null || !logicallyDeletedStatus) {
+			Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+			if (logicallyDeletedStatus == null
+					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
+					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
 				this.record = record.getCopyOfOriginalRecord();
 			} else {
 				this.record = null;

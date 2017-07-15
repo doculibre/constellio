@@ -1,7 +1,6 @@
 package com.constellio.data.dao.services.factories;
 
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,8 +30,8 @@ public class LayerFactoryTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		bottomLayerFactory = new LayerFactory(statefullServiceDecorator);
-		layerFactory = new LayerFactory(bottomLayerFactory, statefullServiceDecorator);
+		bottomLayerFactory = new LayerFactoryImpl(statefullServiceDecorator, null);
+		layerFactory = new LayerFactoryImpl(bottomLayerFactory, statefullServiceDecorator, null);
 
 		bottomLayerFactory.add(bottomLayerService);
 		layerFactory.add(layerService1);

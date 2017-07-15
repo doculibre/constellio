@@ -4,36 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_5;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_6_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_7;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_1_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_7;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_4_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_14;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_19;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_21;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_22;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_42;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_50;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_0_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_1_1;
+import com.constellio.app.services.migrations.scripts.*;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
@@ -73,7 +44,11 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_7_0_1());
 		scripts.add(new CoreMigrationTo_7_1());
 		scripts.add(new CoreMigrationTo_7_1_1());
-		
+		scripts.add(new CoreMigrationTo_7_1_3_1());
+		scripts.add(new CoreMigrationTo_7_2());
+		scripts.add(new CoreMigrationTo_7_3());
+		scripts.add(new CoreMigrationTo_7_3_0_1());
+
 		return scripts;
 	}
 

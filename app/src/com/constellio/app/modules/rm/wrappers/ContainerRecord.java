@@ -1,5 +1,12 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -7,9 +14,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.joda.time.LocalDate;
-
-import java.util.List;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
@@ -17,8 +21,6 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String LOCALIZATION = "localization";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String ADMINISTRATIVE_UNITS = "administrativeUnits";
-	public static final String BORROW_DATE = "borrowDate";
-	public static final String BORROWER = "borrower";
 	public static final String COMPLETION_DATE = "completionDate";
 	public static final String DECOMMISSIONING_TYPE = "decommissioningType";
 	public static final String DESCRIPTION = "description";
@@ -31,16 +33,24 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String REAL_TRANSFER_DATE = "realTransferDate";
 	public static final String STORAGE_SPACE = "storageSpace";
 	public static final String TEMPORARY_IDENTIFIER = "temporaryIdentifier";
+	public static final String TEMPORARY_IDENTIFIER_ENTERED = "temporaryIdentifierEntered";
+	public static final String TEMPORARY_IDENTIFIER_SEQUENCE = "temporaryIdentifierSequence";
 	public static final String TYPE = "type";
 	public static final String POSITION = "position";
 	public static final String COMMENTS = "comments";
 	public static final String BORROWED = "borrowed";
+	public static final String BORROW_DATE = "borrowDate";
+	public static final String BORROWER = "borrower";
+	public static final String BORROW_RETURN_DATE = "borrowReturnDate";
 	public static final String CAPACITY = "capacity";
 	public static final String FILL_RATIO_ENTRED = "fillRatioEntered";
 	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";
 	public static final String LINEAR_SIZE = "linearSize";
 	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
 	public static final String AVAILABLE_SIZE = "availableSize";
+	public static final String FIRST_TRANSFER_REPORT_DATE = "firstTransferReportDate";
+	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
+	public static final String DOCUMENT_RESPONSIBLE = "documentResponsible";
 
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
@@ -129,18 +139,42 @@ public class ContainerRecord extends RecordWrapper {
 		return get(STORAGE_SPACE);
 	}
 
+	public List<String> getStorageSpaceList() {
+		boolean isMultivalue = getMetadataSchemaTypes().getDefaultSchema(SCHEMA_TYPE).get(STORAGE_SPACE).isMultivalue();
+		if (isMultivalue) {
+			return get(STORAGE_SPACE);
+		} else {
+			String storageSpaceId = get(STORAGE_SPACE);
+			if (storageSpaceId != null) {
+				return asList(storageSpaceId);
+			} else {
+				return new ArrayList<>();
+			}
+		}
+	}
+
 	public ContainerRecord setStorageSpace(Record storageSpace) {
 		set(STORAGE_SPACE, storageSpace);
 		return this;
 	}
 
 	public ContainerRecord setStorageSpace(String storageSpace) {
-		set(STORAGE_SPACE, storageSpace);
+		boolean isMultivalue = getMetadataSchemaTypes().getDefaultSchema(SCHEMA_TYPE).get(STORAGE_SPACE).isMultivalue();
+		if (isMultivalue) {
+			set(STORAGE_SPACE, asList(storageSpace));
+		} else {
+			set(STORAGE_SPACE, storageSpace);
+		}
 		return this;
 	}
 
 	public ContainerRecord setStorageSpace(StorageSpace storageSpace) {
-		set(STORAGE_SPACE, storageSpace);
+		boolean isMultivalue = getMetadataSchemaTypes().getDefaultSchema(SCHEMA_TYPE).get(STORAGE_SPACE).isMultivalue();
+		if (isMultivalue) {
+			set(STORAGE_SPACE, asList(storageSpace));
+		} else {
+			set(STORAGE_SPACE, storageSpace);
+		}
 		return this;
 	}
 
@@ -182,28 +216,33 @@ public class ContainerRecord extends RecordWrapper {
 		return this;
 	}
 
+	@Deprecated
 	public String getAdministrativeUnit() {
-		return get(ADMINISTRATIVE_UNIT);
+		List<String> admUnits = getList(ADMINISTRATIVE_UNITS);
+		return admUnits.isEmpty() ? null : admUnits.get(0);
 
 	}
 
+	@Deprecated
 	public ContainerRecord setAdministrativeUnit(Record administrativeUnit) {
-		set(ADMINISTRATIVE_UNIT, administrativeUnit);
+		set(ADMINISTRATIVE_UNITS, administrativeUnit == null ? new ArrayList<>() : asList(administrativeUnit));
 		return this;
 	}
 
+	@Deprecated
 	public ContainerRecord setAdministrativeUnit(String administrativeUnit) {
-		set(ADMINISTRATIVE_UNIT, administrativeUnit);
+		set(ADMINISTRATIVE_UNITS, administrativeUnit == null ? new ArrayList<>() : asList(administrativeUnit));
 		return this;
 	}
 
+	@Deprecated
 	public ContainerRecord setAdministrativeUnit(AdministrativeUnit administrativeUnit) {
-		set(ADMINISTRATIVE_UNIT, administrativeUnit);
+		set(ADMINISTRATIVE_UNITS, administrativeUnit == null ? new ArrayList<>() : asList(administrativeUnit));
 		return this;
 	}
 
 	public List<String> getAdministrativeUnits() {
-		return get(ADMINISTRATIVE_UNITS);
+		return getList(ADMINISTRATIVE_UNITS);
 
 	}
 
@@ -317,7 +356,7 @@ public class ContainerRecord extends RecordWrapper {
 		return get(LINEAR_SIZE_ENTERED);
 	}
 
-	public ContainerRecord setLinearSizeEntered(double linearSizeEntered) {
+	public ContainerRecord setLinearSizeEntered(Double linearSizeEntered) {
 		set(LINEAR_SIZE_ENTERED, linearSizeEntered);
 		return this;
 	}
@@ -332,6 +371,39 @@ public class ContainerRecord extends RecordWrapper {
 
 	public Double getAvailableSize() {
 		return get(AVAILABLE_SIZE);
+	}
+
+	public LocalDate getFirstTransferReportDate() {
+		return get(FIRST_TRANSFER_REPORT_DATE);
+	}
+
+	public ContainerRecord setFirstTransferReportDate(LocalDate firstTransferReportDate) {
+		if (getFirstTransferReportDate() == null) {
+			set(FIRST_TRANSFER_REPORT_DATE, firstTransferReportDate);
+		}
+		return this;
+	}
+
+	public LocalDate getFirstDepositReportDate() {
+		return get(FIRST_DEPOSIT_REPORT_DATE);
+	}
+
+	public ContainerRecord setFirstDepositReportDate(LocalDate firstDepositReportDate) {
+		if (getFirstDepositReportDate() == null) {
+			set(FIRST_DEPOSIT_REPORT_DATE, firstDepositReportDate);
+		}
+		return this;
+	}
+
+	public String getDocumentResponsible() {
+		return get(DOCUMENT_RESPONSIBLE);
+	}
+
+	public ContainerRecord setDocumentResponsible(String userId) {
+		if (getDocumentResponsible() == null) {
+			set(DOCUMENT_RESPONSIBLE, userId);
+		}
+		return this;
 	}
 
 	public static ContainerRecord wrap(Record record, MetadataSchemaTypes types) {

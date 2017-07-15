@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -216,7 +217,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	private void flushOrCancelPreparedTransactions() {
 		for (File unflushedFile : findUnflushedFiles()) {
 			if (isCommitted(unflushedFile, recordDao)) {
-				flush(unflushedFile.getName());
+				flush(unflushedFile.getName(), null);
 			} else {
 				cancel(unflushedFile.getName());
 			}
@@ -225,7 +226,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	@Override
 	public void close() {
-
+		started = false;
 	}
 
 	public File getFlushedFolder() {
@@ -264,7 +265,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void flush(String transactionId) {
+	public void flush(String transactionId, TransactionResponseDTO transactionInfo) {
 		ensureStarted();
 		try {
 			doFlush(transactionId);
@@ -549,7 +550,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void setSequence(String sequenceId, long value) {
+	public void setSequence(String sequenceId, long value, TransactionResponseDTO transactionInfo) {
 		ensureStarted();
 		ensureNoExceptionOccured();
 		String transactionId = UUIDV1Generator.newRandomId();
@@ -566,7 +567,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	@Override
-	public void nextSequence(String sequenceId) {
+	public void nextSequence(String sequenceId, TransactionResponseDTO transactionInfo) {
 		ensureStarted();
 		ensureNoExceptionOccured();
 		String transactionId = UUIDV1Generator.newRandomId();

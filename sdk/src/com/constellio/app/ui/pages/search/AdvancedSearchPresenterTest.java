@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
@@ -35,6 +36,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 	@Mock SchemaTypesDisplayConfig typesDisplayConfig;
 	@Mock RecordServices recordServices;
 	@Mock SearchServices searchServices;
+	@Mock ConstellioModulesManager modulesManager;
 	MockedFactories factories = new MockedFactories();
 
 	AdvancedSearchPresenter presenter;
@@ -60,6 +62,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getSchemaType()).thenReturn("zeSchemaType");
 		when(factories.getModelLayerFactory().getSystemConfigs()).thenReturn(mockedConfigs);
 		when(mockedConfigs.getSearchSortType()).thenReturn(SearchSortType.RELEVENCE);
+		when(factories.getAppLayerFactory().getModulesManager()).thenReturn(modulesManager);
 
 		presenter = spy(new AdvancedSearchPresenter(view));
 
@@ -115,7 +118,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		presenter.forRequestParameters("");
 
-		presenter.getTemplates();
+		presenter.getDefaultTemplates();
 
 		verify(labelTemplateManager).listTemplates(Folder.SCHEMA_TYPE);
 	}
@@ -126,7 +129,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getSchemaType()).thenReturn(ContainerRecord.SCHEMA_TYPE);
 		presenter.forRequestParameters("");
 
-		presenter.getTemplates();
+		presenter.getDefaultTemplates();
 
 		verify(labelTemplateManager).listTemplates(ContainerRecord.SCHEMA_TYPE);
 	}
