@@ -120,10 +120,8 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 		}
 		return url;
 	}
-
 	@Override
-	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument,
-			String availableVersion) {
+	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument, String availableVersion) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

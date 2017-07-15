@@ -1,6 +1,7 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
+import com.constellio.app.modules.es.connectors.smb.cache.ContextUtils;
 import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
 import com.constellio.app.modules.es.connectors.smb.jobs.*;
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
@@ -9,12 +10,12 @@ import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 public class SmbJobFactoryImpl implements SmbJobFactory {
 	public static enum SmbJobCategory {
@@ -61,32 +62,25 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 				job = new SmbDispatchJob(params);
 				break;
 			case RETRIEVAL:
+				//Duplicates
+				if (this.connector.getDuplicateUrls().contains(url)) {
+					job = new SmbDeleteJob(params);
+					break;
+				}
+
 				SmbConnectorContext context = this.connector.getContext();
 				SmbModificationIndicator contextIndicator = context.getModificationIndicator(url);
+				SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
 
-				if (smbUtils.isFolder(url)) {
-					if (contextIndicator == null) {
-						job = new SmbNewFolderRetrievalJob(params);
-					} else {
-						SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
-						if (shareIndicator == null) {
-							job = new SmbDeleteJob(params);
-						} else if (contextIndicator.getParentId() == null || !contextIndicator.equals(shareIndicator)) {
-							job = new SmbNewFolderRetrievalJob(params);
-						}
-					}
+				if (shareIndicator == null) {
+					job = new SmbDeleteJob(params);
+				} else if (contextIndicator == null ||
+						(contextIndicator.getParentId() == null && !connectorInstance.getSeeds().contains(url))) {
+					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
 				} else {
-					if (contextIndicator == null) {
-						job = new SmbNewDocumentRetrievalJob(params);
-					} else {
-						SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
-						if (shareIndicator == null) {
-							//Multiple urls in database or no documents on share
-							job = new SmbDeleteJob(params);
-						} else if (contextIndicator.getParentId() == null || !contextIndicator.equals(shareIndicator)) {
-							//Misplaced document or document modified
-							job = new SmbNewDocumentRetrievalJob(params);
-						}
+					boolean folder = smbUtils.isFolder(url);
+					if (!ContextUtils.equals(contextIndicator, shareIndicator, folder)) {
+						job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
 					}
 				}
 				if (job instanceof SmbNullJob) {

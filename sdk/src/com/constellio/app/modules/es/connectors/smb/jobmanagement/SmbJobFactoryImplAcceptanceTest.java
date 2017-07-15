@@ -35,6 +35,7 @@ import java.util.concurrent.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
@@ -95,8 +96,9 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenAnAcceptedNewDocumentUrlWhenCreatingRetrievalJobThenGetRetrievalJob() {
-		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + "newFile.txt", "");
-		assertThat(job).isInstanceOf(SmbNewDocumentRetrievalJob.class);
+		when(smbService.getModificationIndicator(anyString())).thenReturn(mock(SmbModificationIndicator.class));
+		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + "newFile.txt", SmbTestParams.EXISTING_SHARE);
+		assertThat(job).isInstanceOf(SmbNewRetrievalJob.class);
 	}
 
 	@Test
@@ -124,7 +126,7 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, "");
 
-		assertThat(job).isInstanceOf(SmbNewDocumentRetrievalJob.class);
+		assertThat(job).isInstanceOf(SmbNewRetrievalJob.class);
 	}
 
 	@Test
@@ -192,13 +194,14 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 				.flush();
 
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, "");
-		assertThat(job).isInstanceOf(SmbNewDocumentRetrievalJob.class);
+		assertThat(job).isInstanceOf(SmbNewRetrievalJob.class);
 	}
 
 	@Test
 	public void givenAnAcceptedFolderUrlWhenCreatingRetrievalJobThenGetRetrievalJob() {
+		when(smbService.getModificationIndicator(anyString())).thenReturn(mock(SmbModificationIndicator.class));
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FOLDER, "");
-		assertThat(job).isInstanceOf(SmbNewFolderRetrievalJob.class);
+		assertThat(job).isInstanceOf(SmbNewRetrievalJob.class);
 	}
 
 	@Test
@@ -231,15 +234,46 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, "");
 		assertThat(job).isNotNull()
 				.isNotInstanceOf(SmbNullJob.class);
+		when(smbService.getModificationIndicator(anyString())).thenReturn(mock(SmbModificationIndicator.class));
 		ConnectorJob job2 = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, "");
 		assertThat(job2).isNotInstanceOf(SmbNullJob.class);
-		assertThat(job2).isInstanceOf(SmbNewDocumentRetrievalJob.class);
+		assertThat(job2).isInstanceOf(SmbNewRetrievalJob.class);
 	}
 
 	@Test
 	public void givenAnAcceptedUrlWhenCreatingSeedJobThenGetSeedJob() {
 		ConnectorJob job = jobFactory.get(SmbJobCategory.SEED, SmbTestParams.EXISTING_SHARE, "");
 		assertThat(job).isInstanceOf(SmbSeedJob.class);
+	}
+
+	@Test
+	public void givenDuplicatesFoldersThenGetDeleteJob()
+			throws RecordServicesException {
+		String url = SmbTestParams.EXISTING_SHARE + "test/";
+		String permissionsHash = "someHash";
+		long lastModified = System.currentTimeMillis();
+
+		context.traverseModified(url, new SmbModificationIndicator(permissionsHash, 0, lastModified), "001", "code");
+		when(connector.getDuplicateUrls()).thenReturn(Collections.singleton(url));
+
+		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance);
+		folder.setUrl(url);
+		folder.setLastModified(new LocalDateTime(lastModified));
+
+		ConnectorSmbFolder folder2 = es.newConnectorSmbFolder(connectorInstance);
+		folder2.setUrl(url);
+		folder2.setLastModified(new LocalDateTime(lastModified));
+
+		es.getRecordServices()
+				.update(folder.getWrappedRecord());
+		es.getRecordServices()
+				.update(folder2.getWrappedRecord());
+		es.getRecordServices()
+				.flush();
+
+		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, "");
+
+		assertThat(job).isInstanceOf(SmbDeleteJob.class);
 	}
 
 	@After
