@@ -55,6 +55,9 @@ subprojects {
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
         compile "org.apache.ignite:ignite-core:2.0.0"
         compile "org.apache.ignite:ignite-indexing:2.0.0"
+        compile "org.apache.kafka:kafka-clients:0.11.0.0"
+        compile "com.google.code.gson:gson:2.8.1"
+
     }
 
     configurations {
