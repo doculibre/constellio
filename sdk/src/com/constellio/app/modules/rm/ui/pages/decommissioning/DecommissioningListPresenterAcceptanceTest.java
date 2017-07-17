@@ -225,10 +225,10 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 
     private void buildAutoFillContainers() throws RecordServicesException {
         recordServices.add(rm.newContainerRecordWithId("container100").setType(records.containerTypeId_boite22x22)
-                .setTemporaryIdentifier("container100").setAdministrativeUnit(records.getUnit10()).setCapacity(100).setDecommissioningType(DecommissioningType.DEPOSIT));
+                .setTemporaryIdentifier("container100").setAdministrativeUnit(records.getUnit10()).setCapacity(100).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
         recordServices.add(rm.newContainerRecordWithId("container150").setType(records.containerTypeId_boite22x22)
-                .setTemporaryIdentifier("container150").setAdministrativeUnit(records.getUnit10()).setCapacity(150).setDecommissioningType(DecommissioningType.DEPOSIT));
+                .setTemporaryIdentifier("container150").setAdministrativeUnit(records.getUnit10()).setCapacity(150).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
         recordServices.add(rm.newContainerRecordWithId("container25").setType(records.containerTypeId_boite22x22)
-                .setTemporaryIdentifier("container25").setAdministrativeUnit(records.getUnit10()).setCapacity(25).setDecommissioningType(DecommissioningType.DEPOSIT));
+                .setTemporaryIdentifier("container25").setAdministrativeUnit(records.getUnit10()).setCapacity(25).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
     }
 }
