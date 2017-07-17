@@ -7,13 +7,13 @@ import com.constellio.app.api.extensions.EmailExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.UpdateModeExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
 import com.constellio.app.extensions.sequence.SystemSequenceExtension;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
-import com.constellio.model.services.emails.EmailServices.MessageAttachment;
 
 public class AppLayerSystemExtensions {
 
@@ -65,10 +65,10 @@ public class AppLayerSystemExtensions {
 
 	public UpdateModeExtension alternateUpdateMode = new UpdateModeExtension();
 	
-	public EmailMessage newEmailMessage(String filenamePrefix, String signature, String subject, String from, List<MessageAttachment> attachments) {
+	public EmailMessage newEmailMessage(EmailMessageParams params) {
 		EmailMessage emailMessage = null;
 		for (EmailExtension emailExtension : emailExtensions) {
-			emailMessage = emailExtension.newEmailMessage(filenamePrefix, signature, subject, from, attachments);
+			emailMessage = emailExtension.newEmailMessage(params);
 			if (emailMessage != null) {
 				break;
 			}
