@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.model.validators;
 
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -31,8 +32,9 @@ public class TaskValidator implements RecordValidator {
 			validationErrors.add(getClass(), DUE_DATE_MUST_BE_LESSER_OR_EQUAL_THAN_PARENT_DUE_DATE);
 		}
 
-		if (task.getWorkflowInstance() != null && task.getStatusType().isFinishedOrClosed()) {
-			if (task.hasDecisions() && !task.getNextTasksDecisionsCodes().contains(task.getDecision())) {
+		BetaWorkflowTask betaWorkflowTask = new BetaWorkflowTask(task);
+		if (betaWorkflowTask.getWorkflowInstance() != null && task.getStatusType().isFinishedOrClosed()) {
+			if (betaWorkflowTask.hasDecisions() && !betaWorkflowTask.getNextTasksDecisionsCodes().contains(task.getDecision())) {
 				validationErrors.add(getClass(), TASK_DECISION_IS_REQUIRED);
 			}
 		}

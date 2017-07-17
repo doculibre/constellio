@@ -67,7 +67,6 @@ import com.constellio.model.services.security.authentification.CombinedAuthentic
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.trash.TrashQueueManager;
@@ -78,11 +77,6 @@ import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
-import com.constellio.model.services.workflows.WorkflowExecutor;
-import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
-import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
-import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexManager;
-import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
@@ -102,9 +96,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final GlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
-	private final WorkflowsConfigManager workflowsConfigManager;
-	private final WorkflowExecutionIndexManager workflowExecutionIndexManager;
-	private final WorkflowExecutor workflowExecutor;
 	private final ModelLayerConfiguration modelLayerConfiguration;
 	private final ContentManager contentsManager;
 	private AuthenticationService authenticationManager;
@@ -177,13 +168,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
 
 		this.contentsManager = add(new ContentManager(this));
-
-		workflowsConfigManager = add(new WorkflowsConfigManager(configManager, collectionsListManager,
-				newWorkflowBPMNDefinitionsService(), cacheManager));
-		workflowExecutionIndexManager = add(
-				new WorkflowExecutionIndexManager(configManager, collectionsListManager, cacheManager));
-
-		this.workflowExecutor = new WorkflowExecutor(this);
 
 		securityTokenManager = add(new SecurityTokenManager(this));
 
@@ -343,31 +327,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public IOServicesFactory getIOServicesFactory() {
 		return ioServicesFactory;
-	}
-
-	public WorkflowBPMNDefinitionsService newWorkflowBPMNDefinitionsService() {
-		return new WorkflowBPMNDefinitionsService(getFoldersLocator(), getIOServicesFactory().newFileService());
-	}
-
-	public WorkflowExecutionService newWorkflowExecutionService() {
-		return new WorkflowExecutionService(workflowExecutionIndexManager, dataLayerFactory);
-	}
-
-	public WorkflowsConfigManager getWorkflowsConfigManager() {
-		return workflowsConfigManager;
-	}
-
-	public WorkflowExecutionIndexManager getWorkflowExecutionIndexManager() {
-		return workflowExecutionIndexManager;
-	}
-
-	public WorkflowExecutor getWorkflowsManager() {
-		return workflowExecutor;
-	}
-
-	public TaskServices newTaskServices() {
-		return new TaskServices(newRecordServices(), newSearchServices(), newWorkflowExecutionService(),
-				getMetadataSchemasManager());
 	}
 
 	public ModelLayerConfiguration getConfiguration() {

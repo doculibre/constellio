@@ -38,8 +38,12 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -182,7 +186,11 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		// Task
 		wrappers.put(Task.DEFAULT_SCHEMA, Task.class);
+		wrappers.put(BetaWorkflowTask.DEFAULT_SCHEMA, BetaWorkflowTask.class);
+		wrappers.put(TaskType.DEFAULT_SCHEMA, TaskType.class);
 		wrappers.put(TaskStatus.DEFAULT_SCHEMA, TaskStatus.class);
+		wrappers.put(BetaWorkflow.DEFAULT_SCHEMA, BetaWorkflow.class);
+		wrappers.put(BetaWorkflowInstance.DEFAULT_SCHEMA, BetaWorkflowInstance.class);
 
 		System.out.println(header());
 

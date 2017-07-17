@@ -144,7 +144,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				}
 			}
 
-			protected void setServices() {
+			public void setServices() {
 				recordServices = getModelLayerFactory().newRecordServices();
 				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 				searchServices = getModelLayerFactory().newSearchServices();
@@ -211,6 +211,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	@After
 	public void checkIfNoBatchProcessRequired() {
+		if(initialFinishedBatchProcesses != null) {
+
+
+
 		List<String> finishedBatchProcesses = new ArrayList<>();
 		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
 			finishedBatchProcesses.add(batchProcess.getId());
@@ -218,6 +222,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		int batchProcessCount = finishedBatchProcesses.size() - initialFinishedBatchProcesses.size();
 		totalBatchProcessCount += batchProcessCount;
+		}
 	}
 
 	@AfterClass
@@ -514,11 +519,11 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return verifiers;
 	}
 
-	protected VerifiedAuthorization authOnRecord(String recordId) {
+	public VerifiedAuthorization authOnRecord(String recordId) {
 		return new VerifiedAuthorization(recordId);
 	}
 
-	protected class VerifiedAuthorization {
+	public class VerifiedAuthorization {
 
 		String recordId;
 
@@ -532,51 +537,57 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		LocalDate end;
 
-		protected VerifiedAuthorization(String recordId) {
+		public VerifiedAuthorization(String recordId) {
 			this.recordId = recordId;
 		}
 
-		protected VerifiedAuthorization forPrincipals(String... principals) {
+		public VerifiedAuthorization forPrincipals(String... principals) {
 			this.principals = new HashSet<>(asList(principals));
 			return this;
 		}
 
-		protected VerifiedAuthorization forPrincipalIds(List<String> principals) {
+		public VerifiedAuthorization forPrincipalIds(List<String> principals) {
 			this.principals = new HashSet<>(toPrincipalCodes(principals.toArray(new String[] {})));
 			return this;
 		}
 
-		protected VerifiedAuthorization removedOnRecords(String... removedOnRecords) {
+		public VerifiedAuthorization removedOnRecords(String... removedOnRecords) {
 			this.removedOnRecords = new HashSet<>(asList(removedOnRecords));
 			return this;
 		}
 
-		protected VerifiedAuthorization givingRoles(String... roles) {
+		public VerifiedAuthorization givingRoles(String... roles) {
 			this.roles = asList(roles);
 			return this;
 		}
 
-		protected VerifiedAuthorization givingRead() {
+		public VerifiedAuthorization givingRead() {
 			this.roles = asList(READ);
 			return this;
 		}
 
-		protected VerifiedAuthorization givingReadWrite() {
+		public VerifiedAuthorization givingReadWrite() {
 			this.roles = asList(READ, WRITE);
 			return this;
 		}
 
-		protected VerifiedAuthorization givingReadWriteDelete() {
+		public VerifiedAuthorization givingReadDelete() {
+			this.roles = asList(READ, DELETE);
+			return this;
+		}
+
+
+		public VerifiedAuthorization givingReadWriteDelete() {
 			this.roles = asList(READ, WRITE, DELETE);
 			return this;
 		}
 
-		protected VerifiedAuthorization startingOn(LocalDate start) {
+		public VerifiedAuthorization startingOn(LocalDate start) {
 			this.start = start;
 			return this;
 		}
 
-		protected VerifiedAuthorization endingOn(LocalDate end) {
+		public VerifiedAuthorization endingOn(LocalDate end) {
 			this.end = end;
 			return this;
 		}

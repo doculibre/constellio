@@ -58,6 +58,7 @@ subprojects {
         compile "org.apache.kafka:kafka-clients:0.11.0.0"
         compile "com.google.code.gson:gson:2.8.1"
 
+        compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
     }
 
     configurations {

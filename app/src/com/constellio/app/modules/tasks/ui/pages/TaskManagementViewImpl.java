@@ -5,7 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -78,6 +78,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	}
 
 	@Override
+	public Component getSelectedTab() {
+		return sheet.getSelectedTab();
+	}
+
+	@Override
 	public void displayTasks(RecordVODataProvider provider) {
 		VerticalLayout layout = getEmptiedSelectedTab();
 		layout.addComponent(new TaskTable(provider, presenter));
@@ -101,6 +106,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		VerticalLayout tab = (VerticalLayout) sheet.getSelectedTab();
 		tab.removeAllComponents();
 		return tab;
+	}
+
+	public TabSheet getSheet() {
+		return sheet;
 	}
 
 	private class StartWorkflowButton extends WindowButton {

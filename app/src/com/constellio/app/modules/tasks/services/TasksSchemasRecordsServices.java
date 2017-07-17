@@ -1,12 +1,29 @@
 package com.constellio.app.modules.tasks.services;
 
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
-import com.constellio.app.modules.tasks.model.wrappers.request.*;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -19,21 +36,10 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
-	private final AppLayerFactory appLayerFactory;
+	protected final AppLayerFactory appLayerFactory;
 
 	public TasksSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory) {
 		super(collection, appLayerFactory.getModelLayerFactory());
@@ -220,18 +226,6 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("nextReminderOn");
 		}
 
-		public Metadata nextTaskCreated() {
-			return metadata("nextTaskCreated");
-		}
-
-		public Metadata nextTasks() {
-			return metadata("nextTasks");
-		}
-
-		public Metadata nextTasksDecisions() {
-			return metadata("nextTasksDecisions");
-		}
-
 		public Metadata parentTask() {
 			return metadata("parentTask");
 		}
@@ -272,67 +266,122 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 
-		public Metadata workflow() {
+		public Metadata betaNextTaskCreated() {
+			return metadata("nextTaskCreated");
+		}
+
+		public Metadata betaNextTasks() {
+			return metadata("nextTasks");
+		}
+
+		public Metadata betaNextTasksDecisions() {
+			return metadata("nextTasksDecisions");
+		}
+
+		public Metadata betaWorkflow() {
 			return metadata("workflow");
 		}
 
-		public Metadata workflowInstance() {
+		public Metadata betaWorkflowInstance() {
 			return metadata("workflowInstance");
 		}
 
-		public Metadata workflowTaskSort() {
+		public Metadata betaWorkflowTaskSort() {
 			return metadata("workflowTaskSort");
 		}
 	}
 
-	public Workflow wrapWorkflow(Record record) {
-		return record == null ? null : new Workflow(record, getTypes());
+	public BetaWorkflowTask wrapBetaWorkflowTask(Record record) {
+		return record == null ? null : new BetaWorkflowTask(record, getTypes());
 	}
 
-	public List<Workflow> wrapWorkflows(List<Record> records) {
-		List<Workflow> wrapped = new ArrayList<>();
+	public List<BetaWorkflowTask> wrapBetaWorkflowTasks(List<Record> records) {
+		List<BetaWorkflowTask> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new Workflow(record, getTypes()));
+			wrapped.add(new BetaWorkflowTask(record, getTypes()));
 		}
 
 		return wrapped;
 	}
 
-	public List<Workflow> searchWorkflows(LogicalSearchQuery query) {
-		return wrapWorkflows(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	public List<BetaWorkflowTask> searchBetaWorkflowTasks(LogicalSearchQuery query) {
+		return wrapBetaWorkflowTasks(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
 	}
 
-	public List<Workflow> searchWorkflows(LogicalSearchCondition condition) {
-		MetadataSchemaType type = workflow.schemaType();
+	public List<BetaWorkflowTask> searchBetaWorkflowTasks(LogicalSearchCondition condition) {
+		MetadataSchemaType type = userTask.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
-		return wrapWorkflows(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+		return wrapBetaWorkflowTasks(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
 	}
 
-	public Workflow getWorkflow(String id) {
-		return wrapWorkflow(get(id));
+	public BetaWorkflowTask getBetaWorkflowTask(String id) {
+		return wrapBetaWorkflowTask(get(id));
 	}
 
-	public List<Workflow> getWorkflows(List<String> ids) {
-		return wrapWorkflows(get(ids));
+	public List<BetaWorkflowTask> getBetaWorkflowTasks(List<String> ids) {
+		return wrapBetaWorkflowTasks(get(ids));
 	}
 
-	public Workflow getWorkflowWithCode(String code) {
-		return wrapWorkflow(getByCode(workflow.schemaType(), code));
+	public BetaWorkflowTask getBetaWorkflowTaskWithLegacyId(String legacyId) {
+		return wrapBetaWorkflowTask(getByLegacyId(userTask.schemaType(), legacyId));
 	}
 
-	public Workflow getWorkflowWithLegacyId(String legacyId) {
-		return wrapWorkflow(getByLegacyId(workflow.schemaType(), legacyId));
+	public BetaWorkflowTask newBetaWorkflowTask() {
+		return wrapBetaWorkflowTask(create(userTask.schema()));
 	}
 
-	public Workflow newWorkflow() {
-		return wrapWorkflow(create(workflow.schema()));
+	public BetaWorkflowTask newBetaWorkflowTaskWithId(String id) {
+		return wrapBetaWorkflowTask(create(userTask.schema(), id));
 	}
 
-	public Workflow newWorkflowWithId(String id) {
-		return wrapWorkflow(create(workflow.schema(), id));
+	public BetaWorkflow wrapBetaWorkflow(Record record) {
+		return record == null ? null : new BetaWorkflow(record, getTypes());
 	}
 
-	public final SchemaTypeShortcuts_workflow_default workflow
+	public List<BetaWorkflow> wrapBetaWorkflows(List<Record> records) {
+		List<BetaWorkflow> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new BetaWorkflow(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<BetaWorkflow> searchBetaWorkflows(LogicalSearchQuery query) {
+		return wrapBetaWorkflows(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public List<BetaWorkflow> searchBetaWorkflows(LogicalSearchCondition condition) {
+		MetadataSchemaType type = betaWorkflow.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapBetaWorkflows(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public BetaWorkflow getBetaWorkflow(String id) {
+		return wrapBetaWorkflow(get(id));
+	}
+
+	public List<BetaWorkflow> getBetaWorkflows(List<String> ids) {
+		return wrapBetaWorkflows(get(ids));
+	}
+
+	public BetaWorkflow getBetaWorkflowWithCode(String code) {
+		return wrapBetaWorkflow(getByCode(betaWorkflow.schemaType(), code));
+	}
+
+	public BetaWorkflow getBetaWorkflowWithLegacyId(String legacyId) {
+		return wrapBetaWorkflow(getByLegacyId(betaWorkflow.schemaType(), legacyId));
+	}
+
+	public BetaWorkflow newBetaWorkflow() {
+		return wrapBetaWorkflow(create(betaWorkflow.schema()));
+	}
+
+	public BetaWorkflow newBetaWorkflowWithId(String id) {
+		return wrapBetaWorkflow(create(betaWorkflow.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_workflow_default betaWorkflow
 			= new SchemaTypeShortcuts_workflow_default("workflow_default");
 
 	public class SchemaTypeShortcuts_workflow_default extends SchemaTypeShortcuts {
@@ -345,55 +394,59 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		}
 	}
 
-	public WorkflowInstance wrapWorkflowInstance(Record record) {
-		return record == null ? null : new WorkflowInstance(record, getTypes());
+	public BetaWorkflowInstance wrapBetaWorkflowInstance(Record record) {
+		return record == null ? null : new BetaWorkflowInstance(record, getTypes());
 	}
 
-	public List<WorkflowInstance> wrapWorkflowInstances(List<Record> records) {
-		List<WorkflowInstance> wrapped = new ArrayList<>();
+	public List<BetaWorkflowInstance> wrapBetaWorkflowInstances(List<Record> records) {
+		List<BetaWorkflowInstance> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new WorkflowInstance(record, getTypes()));
+			wrapped.add(new BetaWorkflowInstance(record, getTypes()));
 		}
 
 		return wrapped;
 	}
 
-	public List<WorkflowInstance> searchWorkflowInstances(LogicalSearchQuery query) {
-		return wrapWorkflowInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	public List<BetaWorkflowInstance> searchBetaWorkflowInstances(LogicalSearchQuery query) {
+		return wrapBetaWorkflowInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
 	}
 
-	public List<WorkflowInstance> searchWorkflowInstances(LogicalSearchCondition condition) {
-		MetadataSchemaType type = workflowInstance.schemaType();
+	public List<BetaWorkflowInstance> searchBetaWorkflowInstances(LogicalSearchCondition condition) {
+		MetadataSchemaType type = betaWorkflowInstance.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
-		return wrapWorkflowInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+		return wrapBetaWorkflowInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
 	}
 
-	public WorkflowInstance getWorkflowInstance(String id) {
-		return wrapWorkflowInstance(get(id));
+	public BetaWorkflowInstance getBetaWorkflowInstance(String id) {
+		return wrapBetaWorkflowInstance(get(id));
 	}
 
-	public List<WorkflowInstance> getWorkflowInstances(List<String> ids) {
-		return wrapWorkflowInstances(get(ids));
+	public List<BetaWorkflowInstance> getBetaWorkflowInstances(List<String> ids) {
+		return wrapBetaWorkflowInstances(get(ids));
 	}
 
-	public WorkflowInstance getWorkflowInstanceWithLegacyId(String legacyId) {
-		return wrapWorkflowInstance(getByLegacyId(workflowInstance.schemaType(), legacyId));
+	public BetaWorkflowInstance getBetaWorkflowInstanceWithLegacyId(String legacyId) {
+		return wrapBetaWorkflowInstance(getByLegacyId(betaWorkflowInstance.schemaType(), legacyId));
 	}
 
-	public WorkflowInstance newWorkflowInstance() {
-		return wrapWorkflowInstance(create(workflowInstance.schema()));
+	public BetaWorkflowInstance newBetaWorkflowInstance() {
+		return wrapBetaWorkflowInstance(create(betaWorkflowInstance.schema()));
 	}
 
-	public WorkflowInstance newWorkflowInstanceWithId(String id) {
-		return wrapWorkflowInstance(create(workflowInstance.schema(), id));
+	public BetaWorkflowInstance newBetaWorkflowInstanceWithId(String id) {
+		return wrapBetaWorkflowInstance(create(betaWorkflowInstance.schema(), id));
 	}
 
-	public final SchemaTypeShortcuts_workflowInstance_default workflowInstance
+	public final SchemaTypeShortcuts_workflowInstance_default betaWorkflowInstance
 			= new SchemaTypeShortcuts_workflowInstance_default("workflowInstance_default");
 
 	public class SchemaTypeShortcuts_workflowInstance_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_workflowInstance_default(String schemaCode) {
 			super(schemaCode);
+		}
+
+		public Metadata extraFields() {
+			return metadata("extraFields");
 		}
 
 		public Metadata startedBy() {
@@ -412,6 +465,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("workflow");
 		}
 	}
+
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
 
@@ -476,19 +530,19 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return new Task(record, getTypes()).setType(typeId);
 	}
 
-	public Task newWorkflowModelTask(Workflow workflow) {
-		return wrapTask(create(userTask.schema())).setModel(true).setWorkflow(workflow);
+	public BetaWorkflowTask newWorkflowModelTask(BetaWorkflow workflow) {
+		return wrapBetaWorkflowTask(create(userTask.schema())).setModel(true).setWorkflow(workflow);
 	}
 
-	public Task newWorkflowModelTaskWithType(Workflow workflow, String typeId) {
-		Task task = wrapTask(create(taskSchemaFor(typeId))).setModel(true).setWorkflow(workflow);
+	public BetaWorkflowTask newWorkflowModelTaskWithType(BetaWorkflow workflow, String typeId) {
+		BetaWorkflowTask task = wrapBetaWorkflowTask(create(taskSchemaFor(typeId))).setModel(true).setWorkflow(workflow);
 		TaskType taskType = getTaskType(typeId);
 		task.setType(taskType);
 		return task;
 	}
 
-	public Task newWorkflowModelTaskWithId(String id, Workflow workflow) {
-		return wrapTask(create(userTask.schema(), id)).setModel(true).setWorkflow(workflow);
+	public BetaWorkflowTask newWorkflowModelTaskWithId(String id, BetaWorkflow workflow) {
+		return wrapBetaWorkflowTask(create(userTask.schema(), id)).setModel(true).setWorkflow(workflow);
 	}
 
 	public List<TaskStatus> getFinishedOrClosedStatuses() {
@@ -503,59 +557,76 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId, int numberOfDays, String recordTitle) {
+	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId, int numberOfDays,
+			String recordTitle) {
 		Task task = newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME));
-		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-					.setLinkedFolders(asList(folderId)).set(BorrowRequest.BORROW_DURATION, numberOfDays).set(RequestTask.APPLICANT, assignerId);
+		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
+				.setLinkedFolders(asList(folderId)).set(BorrowRequest.BORROW_DURATION, numberOfDays)
+				.set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle){
+	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
-					.setTitle($("TaskSchemasRecordsServices.returnFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
+				.setTitle($("TaskSchemasRecordsServices.returnFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle, LocalDate localDate){
+	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle,
+			LocalDate localDate) {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
-					.setTitle($("TaskSchemasRecordsServices.reactivationFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId).set(ReactivationRequest.REACTIVATION_DATE, localDate);
+				.setTitle($("TaskSchemasRecordsServices.reactivationFolderRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
+				.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId)
+				.set(ReactivationRequest.REACTIVATION_DATE, localDate);
 	}
 
 	//KEEP
-	public Task newBorrowFolderExtensionRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle, LocalDate value) {
+	public Task newBorrowFolderExtensionRequestTask(String assignerId, List<String> assignees, String folderId,
+			String recordTitle, LocalDate value) {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
-					.setTitle($("TaskSchemasRecordsServices.borrowFolderExtensionRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-					.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId)
+				.setTitle($("TaskSchemasRecordsServices.borrowFolderExtensionRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
+				.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ExtensionRequest.EXTENSION_VALUE, value);
 	}
 
 	//KEEP
-	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId, int numberOfDays, String recordTitle) {
+	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId, int numberOfDays,
+			String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME))
-				.setTitle($("TaskSchemasRecordsServices.borrowContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-				.setLinkedContainers(asList(containerId)).set(BorrowRequest.BORROW_DURATION, numberOfDays).set(RequestTask.APPLICANT, assignerId);
+				.setTitle($("TaskSchemasRecordsServices.borrowContainerRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
+				.setLinkedContainers(asList(containerId)).set(BorrowRequest.BORROW_DURATION, numberOfDays)
+				.set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
 	public Task newReturnContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
-				.setTitle($("TaskSchemasRecordsServices.returnContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setTitle($("TaskSchemasRecordsServices.returnContainerRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP
-	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle, LocalDate localDate) {
+	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId,
+			String recordTitle, LocalDate localDate) {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
-				.setTitle($("TaskSchemasRecordsServices.reactivationContainerRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
-				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId).set(ReactivationRequest.REACTIVATION_DATE, localDate);
+				.setTitle($("TaskSchemasRecordsServices.reactivationContainerRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
+				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId)
+				.set(ReactivationRequest.REACTIVATION_DATE, localDate);
 	}
 
 	//KEEP
-	public Task newBorrowContainerExtensionRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle, LocalDate value) {
+	public Task newBorrowContainerExtensionRequestTask(String assignerId, List<String> assignees, String containerId,
+			String recordTitle, LocalDate value) {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
-				.setTitle($("TaskSchemasRecordsServices.borrowContainerExtensionRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setTitle($("TaskSchemasRecordsServices.borrowContainerExtensionRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ExtensionRequest.EXTENSION_VALUE, value);
 	}

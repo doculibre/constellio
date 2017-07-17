@@ -457,6 +457,12 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public void updateComponent(UpdateComponentExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.updateComponent(params);
+		}
+	}
+
 	public List<String> getAvailableExtraMetadataAttributes(GetAvailableExtraMetadataAttributesParam param) {
 		List<String> values = new ArrayList<>();
 		for (SchemaTypesPageExtension extensions : schemaTypesPageExtensions) {

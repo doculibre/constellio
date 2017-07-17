@@ -5,11 +5,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -23,18 +24,18 @@ public class WorkflowRecordExtension extends RecordExtension {
 
 	RecordServices recordServices;
 	TasksSchemasRecordsServices tasks;
-	WorkflowServices workflowServices;
+	BetaWorkflowServices workflowServices;
 
 	public WorkflowRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		this.workflowServices = new WorkflowServices(collection, appLayerFactory);
+		this.workflowServices = new BetaWorkflowServices(collection, appLayerFactory);
 	}
 
 	@Override
 	public void recordModified(RecordModificationEvent event) {
 		if (event.isSchemaType(Task.SCHEMA_TYPE)) {
-			Task task = tasks.wrapTask(event.getRecord());
+			BetaWorkflowTask task = tasks.wrapBetaWorkflowTask(event.getRecord());
 			if (event.hasModifiedMetadata(tasks.userTask.status().getLocalCode())
 					&& advanceWorkflow(task)
 					&& task.getWorkflowInstance() != null) {
@@ -48,15 +49,15 @@ public class WorkflowRecordExtension extends RecordExtension {
 		}
 	}
 
-	private boolean advanceWorkflow(Task task) {
+	private boolean advanceWorkflow(BetaWorkflowTask task) {
 		List<String> finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		return finishedOrClosedStatuses.contains(task.getStatus()) && !task.isNextTaskCreated();
 	}
 
-	private void taskStatusModified(Task task)
+	private void taskStatusModified(BetaWorkflowTask task)
 			throws RecordServicesException {
 
-		WorkflowInstance workflowInstance = tasks.getWorkflowInstance(task.getWorkflowInstance());
+		BetaWorkflowInstance workflowInstance = tasks.getBetaWorkflowInstance(task.getWorkflowInstance());
 		String nextModelTaskId = task.getNextTask(task.getDecision());
 		if (nextModelTaskId != null) {
 			Transaction transaction = new Transaction();
