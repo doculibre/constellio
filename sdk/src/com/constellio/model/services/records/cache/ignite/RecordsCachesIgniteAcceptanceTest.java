@@ -16,14 +16,14 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class RecordsCachesIgniteTest extends ConstellioTest {
-	
+public class RecordsCachesIgniteAcceptanceTest extends ConstellioTest {
+
 	@Mock DataLayerConfiguration dataLayerConfiguration;
 
 	@Mock ModelLayerFactory modelLayerFactory;
-	
+
 	@Mock DataLayerFactory dataLayerFactory;
-	
+
 	ConstellioIgniteCacheManager cacheManager;
 
 	@Before
@@ -31,11 +31,11 @@ public class RecordsCachesIgniteTest extends ConstellioTest {
 			throws Exception {
 		when(dataLayerConfiguration.getCacheType()).thenReturn(CacheType.IGNITE);
 		cacheManager = new ConstellioIgniteCacheManager("localhost:47500");
-		
+
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(cacheManager);
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
-		
+
 		cacheManager.initialize();
 	}
 

@@ -49,7 +49,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class RecordsCacheIgniteTest extends ConstellioTest {
+public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 	@Mock ModelLayerSystemExtensions systemExtensions;
 	@Mock ModelLayerExtensions extensions;

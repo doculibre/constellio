@@ -4,20 +4,13 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.reports.wrapper.Printable;
-import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
 
 /**
  * Created by constellios on 2017-07-13.

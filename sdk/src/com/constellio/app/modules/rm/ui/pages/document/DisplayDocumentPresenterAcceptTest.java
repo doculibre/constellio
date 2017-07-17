@@ -117,13 +117,13 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(modifiedContent.getHistoryVersions()).hasSize(2);
 		assertThat(modifiedContent.getHistoryVersions().get(0).getMimetype())
-				.isEqualTo("application/zip");
+				.isEqualTo("application/vnd.oasis.opendocument.text");
 		assertThat(modifiedContent.getHistoryVersions().get(0).getHash())
 				.isEqualTo(initialOlderVersionHash);
 		assertThat(modifiedContent.getHistoryVersions().get(0).getFilename())
 				.isEqualTo("Chevreuil.odt");
 		assertThat(modifiedContent.getHistoryVersions().get(1).getMimetype())
-				.isEqualTo("application/zip");
+				.isEqualTo("application/vnd.oasis.opendocument.text");
 		assertThat(modifiedContent.getHistoryVersions().get(1).getHash())
 				.isEqualTo(initialHash);
 		assertThat(modifiedContent.getHistoryVersions().get(1).getFilename())
