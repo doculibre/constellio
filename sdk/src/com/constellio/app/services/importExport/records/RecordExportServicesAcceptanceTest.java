@@ -1,5 +1,29 @@
 package com.constellio.app.services.importExport.records;
 
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Condition;
+import org.assertj.core.groups.Tuple;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -8,7 +32,15 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
@@ -30,12 +62,21 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.structures.*;
+import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
+import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -50,26 +91,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Condition;
-import org.assertj.core.groups.Tuple;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
 
 public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
@@ -96,13 +117,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	public static final String NAME_1 = "constelio1";
 	public static final String EMAIL_2 = "constelio12@constellio.com";
 	public static final String NAME_2 = "constelio2";
-	public static final LocalDateTime LOCAL_DATE_TIME =new LocalDateTime();
+	public static final LocalDateTime LOCAL_DATE_TIME = new LocalDateTime();
 	public static final String EMAIL_TEMPLATE = "Template";
 	public static final String EMAIL_SUBJECT = "Subject";
 
 	@Before
-	public void setup()
-	{
+	public void setup() {
 
 	}
 
@@ -118,7 +138,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingMapStringStringStructure() throws Exception {
+	public void whenExportingAndImportingMapStringStringStructure()
+			throws Exception {
 		final String MAP_STRING_STRING_STRUCTURE = "mapStringListStringStucture";
 		final String MAP_STRING_STRING_STRUCTURE_MULTIVALUE = "mapStringListStringStructure";
 
@@ -130,9 +151,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE)
+						.setType(MetadataValueType.STRUCTURE)
 						.defineStructureFactory(MapStringStringStructureFactory.class);
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE_MULTIVALUE)
+						.setType(MetadataValueType.STRUCTURE)
 						.defineStructureFactory(MapStringStringStructureFactory.class).setMultivalue(true);
 			}
 		});
@@ -140,10 +163,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify("anotherCollection", new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
-				.defineStructureFactory(MapStringStringStructureFactory.class);
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
-				.defineStructureFactory(MapStringStringStructureFactory.class).setMultivalue(true);
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE)
+						.setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringStringStructureFactory.class);
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_STRING_STRUCTURE_MULTIVALUE)
+						.setType(MetadataValueType.STRUCTURE)
+						.defineStructureFactory(MapStringStringStructureFactory.class).setMultivalue(true);
 			}
 		});
 
@@ -173,17 +198,22 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
 
-		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
 		List<EmailToSend> emailToSendFromAnOtherCollectionList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
 
 		EmailToSend emailToSendFromAnOtherCollection = emailToSendFromAnOtherCollectionList.get(0);
-		List<MapStringStringStructure> mapStringStringStructureListFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_STRING_STRUCTURE_MULTIVALUE);
+		List<MapStringStringStructure> mapStringStringStructureListFromAnOtherCollection = emailToSendFromAnOtherCollection
+				.get(MAP_STRING_STRING_STRUCTURE_MULTIVALUE);
 
-		MapStringStringStructure mapStringStringStructureFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_STRING_STRUCTURE);
+		MapStringStringStructure mapStringStringStructureFromAnOtherCollection = emailToSendFromAnOtherCollection
+				.get(MAP_STRING_STRING_STRUCTURE);
 
 		// Assert MultiValued
-		MapStringStringStructure mapStringStringStructureFromAnOtherCollection1 = mapStringStringStructureListFromAnOtherCollection.get(0);
-		MapStringStringStructure mapStringStringStructureFromAnOtherCollection2 = mapStringStringStructureListFromAnOtherCollection.get(1);
+		MapStringStringStructure mapStringStringStructureFromAnOtherCollection1 = mapStringStringStructureListFromAnOtherCollection
+				.get(0);
+		MapStringStringStructure mapStringStringStructureFromAnOtherCollection2 = mapStringStringStructureListFromAnOtherCollection
+				.get(1);
 
 		assertThat(mapStringStringStructureFromAnOtherCollection2.get("key4")).isEqualTo("value4");
 		assertThat(mapStringStringStructureFromAnOtherCollection2.get("key3")).isEqualTo("value3");
@@ -195,7 +225,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingMapStringListStringStructure() throws Exception {
+	public void whenExportingAndImportingMapStringListStringStructure()
+			throws Exception {
 		final String MAP_STRING_LIST_STRING_STRUCTURE = "mapStringListStringStucture";
 		final String MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE = "mapStringListStringStructure";
 
@@ -207,9 +238,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE)
+						.setType(MetadataValueType.STRUCTURE)
 						.defineStructureFactory(MapStringListStringStructureFactory.class);
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE)
+						.setType(MetadataValueType.STRUCTURE)
 						.defineStructureFactory(MapStringListStringStructureFactory.class).setMultivalue(true);
 			}
 		});
@@ -217,9 +250,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify("anotherCollection", new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE).setType(MetadataValueType.STRUCTURE)
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE)
+						.setType(MetadataValueType.STRUCTURE)
 						.defineStructureFactory(MapStringListStringStructureFactory.class);
-				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE).setType(MetadataValueType.STRUCTURE)
+				types.getSchema(EmailToSend.DEFAULT_SCHEMA).create(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE)
+						.setType(MetadataValueType.STRUCTURE)
 						.defineStructureFactory(MapStringListStringStructureFactory.class).setMultivalue(true);
 				;
 			}
@@ -231,7 +266,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		MapStringListStringStructure mapStringListStringStructure = new MapStringListStringStructure();
 		List<MapStringListStringStructure> mapStringListStringStructureList = new ArrayList<>();
 		MapStringListStringStructure mapStringListStringStructure2 = new MapStringListStringStructure();
-
 
 		List<String> listString = asList("Hello1", "Hello2", "Hello3");
 		List<String> listString2 = asList("Sup1", "Sup2", "Sup3");
@@ -253,13 +287,16 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
 
-		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
 		List<EmailToSend> emailToSendFromAnOtherCollectionList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
 
 		EmailToSend emailToSendFromAnOtherCollection = emailToSendFromAnOtherCollectionList.get(0);
-		List<MapStringListStringStructure> mapStringListStringStructureListFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE);
+		List<MapStringListStringStructure> mapStringListStringStructureListFromAnOtherCollection = emailToSendFromAnOtherCollection
+				.get(MAP_STRING_LIST_STRING_STRUCTURE_MULTIVALUE);
 
-		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection = emailToSendFromAnOtherCollection.get(MAP_STRING_LIST_STRING_STRUCTURE);
+		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection = emailToSendFromAnOtherCollection
+				.get(MAP_STRING_LIST_STRING_STRUCTURE);
 
 		List<String> listStringFromAnOtherCollection = mapStringListStringStructureFromAnOtherCollection.get("list1");
 		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Hello1", "Hello2", "Hello3");
@@ -268,8 +305,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Sup1", "Sup2", "Sup3");
 
 		// Assert MultiValued
-		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection1 = mapStringListStringStructureListFromAnOtherCollection.get(0);
-		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection2 = mapStringListStringStructureListFromAnOtherCollection.get(1);
+		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection1 = mapStringListStringStructureListFromAnOtherCollection
+				.get(0);
+		MapStringListStringStructure mapStringListStringStructureFromAnOtherCollection2 = mapStringListStringStructureListFromAnOtherCollection
+				.get(1);
 
 		listStringFromAnOtherCollection = mapStringListStringStructureFromAnOtherCollection1.get("list1");
 		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Hello1", "Hello2", "Hello3");
@@ -281,9 +320,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(listStringFromAnOtherCollection).containsOnly("Sup1", "Sup2", "Sup3");
 	}
 
-
 	@Test
-	public void whenExportingAndImportingEmailAddress() throws Exception {
+	public void whenExportingAndImportingEmailAddress()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withTasksModule(),
@@ -300,7 +339,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		emailAddress2.setName(NAME_2);
 		emailAddress2.setEmail(EMAIL_2);
 
-
 		List<EmailAddress> emailAddressList = asList(emailAddress1, emailAddress2);
 
 		emailToSend.setFrom(emailAddress1).setBCC(emailAddressList).setCC(emailAddressList).setTo(emailAddressList)
@@ -315,7 +353,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
 
-		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
 
 		List<EmailToSend> emailToSendFromAnOtherCollectionList = rmFromAnOtherCollection.searchEmailToSends(returnAll());
 
@@ -329,10 +368,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertEmailAddress(emailToSendFromAnOtherCollection.getBCC().get(0),
 				emailToSendFromAnOtherCollection.getBCC().get(1));
 
-
 		assertEmailAddress(emailToSendFromAnOtherCollection.getCC().get(0),
 				emailToSendFromAnOtherCollection.getCC().get(1));
-
 
 		assertEmailAddress(emailToSendFromAnOtherCollection.getTo().get(0),
 				emailToSendFromAnOtherCollection.getTo().get(1));
@@ -357,10 +394,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingTask() throws Exception {
+	public void whenExportingAndImportingTask()
+			throws Exception {
 		prepareSystem(
-		withZeCollection().withConstellioRMModule().withAllTest(users)
-				.withRMTest(records).withTasksModule(),
+				withZeCollection().withConstellioRMModule().withAllTest(users)
+						.withRMTest(records).withTasksModule(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users).withTasksModule());
 
 		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -406,7 +444,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		reminders1.setFixedDate(LocalDate.parse("2017-05-16"));
 		reminders2.setRelativeDateMetadataCode(RMTask.START_DATE);
 
-		rmTask.setReminders(asList(reminders1,reminders2));
+		rmTask.setReminders(asList(reminders1, reminders2));
 
 		recordServices.add(rmTask);
 
@@ -417,7 +455,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<Tuple> exportedTasksIds = new ArrayList<>();
 		List<List<TaskReminder>> exportedReminders = new ArrayList<>();
 		List<List<TaskFollower>> exportedFollowers = new ArrayList<>();
-		for(Task task: zeCollectionTasks) {
+		for (Task task : zeCollectionTasks) {
 			exportedTasksIds.add(new Tuple(task.getId()));
 			exportedReminders.add(task.getReminders());
 			exportedFollowers.add(task.getTaskFollowers());
@@ -430,7 +468,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(listSearchTask).hasSize(0);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, TaskStatus.SCHEMA_TYPE, RMTask.SCHEMA_TYPE)));
+				options.setExportedSchemaTypes(
+						asList(AdministrativeUnit.SCHEMA_TYPE, TaskStatus.SCHEMA_TYPE, RMTask.SCHEMA_TYPE)));
 
 		listSearchTask = rmAnotherCollection.searchRMTasks(returnAll());
 
@@ -444,12 +483,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingReport() throws Exception {
+	public void whenExportingAndImportingReport()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
-
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -486,7 +525,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		List<Record> listRecordReport;
 
-		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
 		MetadataSchemasManager schemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchema metadataSchemaTypes = schemasManager.getSchemaTypes("anotherCollection").getSchema(Report.DEFAULT_SCHEMA);
 
@@ -508,12 +548,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingSameSystemReport() throws Exception {
+	public void whenExportingAndImportingSameSystemReport()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
-
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -577,7 +617,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(reportFromAnOtherCollection.getReportedMetadata().get(1).getYPosition()).isEqualTo(4);
 	}
 
-
 	@Test
 	public void whenExportingAndImportingEvent() {
 		prepareSystem(
@@ -588,8 +627,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(Event.SCHEMA_TYPE, Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
-						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE)));
-
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
+						DocumentType.SCHEMA_TYPE)));
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
@@ -608,10 +647,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						tuple("00000000462", null), tuple("00000000463", null));
 	}
 
-
-	 // TODO Ne fonctionne pas dans le moment.
-	 //@Test
-	public void whenExportingAndImportingEventInSameSystem() throws Exception {
+	// TODO Ne fonctionne pas dans le moment.
+	//@Test
+	public void whenExportingAndImportingEventInSameSystem()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
 						.withRMTest(records).withEvents(),
@@ -651,7 +690,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingFolder() throws Exception {
+	public void whenExportingAndImportingFolder()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
@@ -666,9 +706,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		boolean isFound = false;
 
-		for(Folder folderFromZeCollection : folderList) {
+		for (Folder folderFromZeCollection : folderList) {
 			isFound = false;
-			if(folderFromZeCollection.getTitle().equals("Abeille")) {
+			if (folderFromZeCollection.getTitle().equals("Abeille")) {
 				abeilleFolderFromZeCollection = folderFromZeCollection;
 				isFound = true;
 				break;
@@ -683,31 +723,30 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(abeilleFolderFromZeCollection.getWrappedRecord());
 
-		if(!isFound) {
+		if (!isFound) {
 			fail("Folder abeille not found.");
 		}
 
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
-						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE)));
-
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
+						DocumentType.SCHEMA_TYPE)));
 
 		SearchServices searchService = getModelLayerFactory().newSearchServices();
 
-		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
 
 		List<Folder> folderListFromAnOtherCollection = rmSchemasRecordsServicesAnOtherCollection.searchFolders(ALL);
 
-
-
-		for(Folder folderFromAnOtherCollection : folderListFromAnOtherCollection) {
+		for (Folder folderFromAnOtherCollection : folderListFromAnOtherCollection) {
 			isFound = false;
 
-			for(Folder folderFromZeCollection : folderList) {
+			for (Folder folderFromZeCollection : folderList) {
 
-				if(folderFromAnOtherCollection.getTitle().equals(folderFromZeCollection.getTitle())){
-					if(folderFromAnOtherCollection.getTitle().equals("Abeille")) {
+				if (folderFromAnOtherCollection.getTitle().equals(folderFromZeCollection.getTitle())) {
+					if (folderFromAnOtherCollection.getTitle().equals("Abeille")) {
 						abeillefolderFromAnOtherCollection = folderFromAnOtherCollection;
 					}
 
@@ -719,22 +758,25 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(abeillefolderFromAnOtherCollection.getRetentionRule()).isNotNull();
-		assertThat(abeillefolderFromAnOtherCollection.getArchivisticStatus()).isEqualTo(abeilleFolderFromZeCollection.getArchivisticStatus());
-		assertThat(abeillefolderFromAnOtherCollection.getFormCreatedOn()).isEqualTo(abeilleFolderFromZeCollection.getFormCreatedOn().withMillisOfSecond(0));
-		assertThat(abeillefolderFromAnOtherCollection.getFormModifiedOn()).isEqualTo(abeilleFolderFromZeCollection.getFormModifiedOn().withMillisOfSecond(0));
+		assertThat(abeillefolderFromAnOtherCollection.getArchivisticStatus())
+				.isEqualTo(abeilleFolderFromZeCollection.getArchivisticStatus());
+		assertThat(abeillefolderFromAnOtherCollection.getFormCreatedOn())
+				.isEqualTo(abeilleFolderFromZeCollection.getFormCreatedOn().withMillisOfSecond(0));
+		assertThat(abeillefolderFromAnOtherCollection.getFormModifiedOn())
+				.isEqualTo(abeilleFolderFromZeCollection.getFormModifiedOn().withMillisOfSecond(0));
 		//sertThat(abeillefolderFromAnOtherCollection.getFormCreatedBy()).isEqualTo(abeilleFolderFromZeCollection.getFormCreatedBy());
 		//assertThat(abeillefolderFromAnOtherCollection.getFormModifiedBy()).isEqualTo(abeilleFolderFromZeCollection.getFormModifiedBy());
 	}
 
 	@Test
-	public void whenExportingAndImportingFolderSameSystem() throws Exception {
+	public void whenExportingAndImportingFolderSameSystem()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
 
 		List<Folder> folderList = rmSchemasRecordsServices.searchFolders(returnAll());
 
@@ -759,7 +801,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		File file = exportToZip(recordExportOptions);
 
-
 		recordServices.logicallyDelete(deletedFolder.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(deletedFolder.getWrappedRecord(), User.GOD);
 
@@ -775,13 +816,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		SearchServices searchService = getModelLayerFactory().newSearchServices();
 
 		assertThat(folderList.size()).isEqualTo(originalSize);
-		assertThat(findRecordByTitle(deletedFolder.getTitle(),folderList)).isNotNull();
+		assertThat(findRecordByTitle(deletedFolder.getTitle(), folderList)).isNotNull();
 		Folder revertedFolder = (Folder) findRecordByTitle(originalTitle, folderList);
 
 		assertThat(revertedFolder.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
 		assertThat(revertedFolder.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
 		assertThat(revertedFolder.getTitle()).isEqualTo(originalTitle);
-
 
 		assertThat(revertedFolder.getRetentionRule()).isNotNull();
 		assertThat(revertedFolder.getArchivisticStatus()).isEqualTo(updatedFolder.getArchivisticStatus());
@@ -790,18 +830,18 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	private List<Document> getDocumentWithContent(List<Document> documentList) {
 		List<Document> arrayListDocument = new ArrayList<>();
 
-		for(Document document : documentList) {
-			if(document.getContent() != null) {
+		for (Document document : documentList) {
+			if (document.getContent() != null) {
 				arrayListDocument.add(document);
 			}
 		}
-
 
 		return arrayListDocument;
 	}
 
 	@Test
-	public void whenExportingAndImportingDocument() throws Exception {
+	public void whenExportingAndImportingDocument()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withDocumentsHavingContent().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
@@ -832,17 +872,17 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
-						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE)));
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
+						DocumentType.SCHEMA_TYPE)));
 
-		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
 
 		List<Document> documentListFromAnOtherCollection = rmSchemasRecordsServicesAnOtherCollection.searchDocuments(ALL);
-
 
 		List<Document> documentListWithContentAnOtherCollection = getDocumentWithContent(documentListFromAnOtherCollection);
 
 		assertThat(documentListWithContentAnOtherCollection.size()).isEqualTo(documentWithContentZeCollection.size());
-
 
 		Document updatedDocument = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
 
@@ -851,8 +891,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		for (Document documentZeCollection : documentList) {
 			boolean found = false;
 
-			for(Document documentAnOtherCollection : documentListFromAnOtherCollection) {
-				if(documentAnOtherCollection.getTitle().equals(documentZeCollection.getTitle())) {
+			for (Document documentAnOtherCollection : documentListFromAnOtherCollection) {
+				if (documentAnOtherCollection.getTitle().equals(documentZeCollection.getTitle())) {
 					found = true;
 				}
 			}
@@ -864,12 +904,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(updatedDocument.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
 	}
 
-
-
 	@Test
-	public void whenExportingAndImportingDocumentSameSystem() throws Exception {
+	public void whenExportingAndImportingDocumentSameSystem()
+			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withAllTest(users)
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
@@ -877,7 +917,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
 		List<Document> documentWithContentZeCollection = getDocumentWithContent(documentList);
-
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
@@ -900,7 +939,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		File file = exportToZip(recordExportOptions);
 
-
 		recordServices.logicallyDelete(deletedDocument.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(deletedDocument.getWrappedRecord(), User.GOD);
 
@@ -916,7 +954,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<Document> documentListWithContentAnOtherCollection = getDocumentWithContent(documentListFromAnOtherCollection);
 		assertThat(documentListWithContentAnOtherCollection.size()).isEqualTo(documentWithContentZeCollection.size());
 
-
 		assertThat(documentListFromAnOtherCollection.size()).isEqualTo(originalSize);
 		assertThat(findRecordByTitle(deletedDocument.getTitle(), documentListFromAnOtherCollection)).isNotNull();
 		Document revertedFolder = (Document) findRecordByTitle(originalTitle, documentListFromAnOtherCollection);
@@ -925,17 +962,15 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(revertedFolder.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
 		assertThat(revertedFolder.getTitle()).isEqualTo(originalTitle);
 
-
 		assertThat(revertedFolder.getRetentionRule()).isNotNull();
 		assertThat(revertedFolder.getArchivisticStatus()).isEqualTo(updatedDocument.getArchivisticStatus());
 	}
 
-	private RecordWrapper findRecordByTitle(String title, List<? extends RecordWrapper> list)
-	{
+	private RecordWrapper findRecordByTitle(String title, List<? extends RecordWrapper> list) {
 		RecordWrapper record = null;
 
-		for(RecordWrapper currentRecord : list) {
-			if(currentRecord.getTitle().equals(title)){
+		for (RecordWrapper currentRecord : list) {
+			if (currentRecord.getTitle().equals(title)) {
 				record = currentRecord;
 				break;
 			}
@@ -945,8 +980,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingDecommissionList() throws Exception {
- 		prepareSystem(
+	public void whenExportingAndImportingDecommissionList()
+			throws Exception {
+		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -958,7 +994,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<List<DecomListFolderDetail>> exportedDecommissiongListsFolderDetailss = new ArrayList<>();
 		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
 		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
-		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
+		for (DecommissioningList decommissioningList : exportedDecommissiongLists) {
 			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
 			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
 			exportedDecommissiongListsContainerDetailss.add(decommissioningList.getContainerDetails());
@@ -967,15 +1003,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		DecommissioningList decommissioningListWithContent = exportedDecommissiongLists.get(0);
 
-
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
 		List<DecommissioningList> listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
 
-   		assertThat(listSearchDecommissiongList).hasSize(0);
+		assertThat(listSearchDecommissiongList).hasSize(0);
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
-		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.upload("contrat.docx"));
-		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.upload("proces.docx"));
+		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.uploadUnparsed("contrat.docx"));
+		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.uploadUnparsed("proces.docx"));
 
 		decommissioningListWithContent.setDocumentsReportContent(content);
 		decommissioningListWithContent.setFoldersReportContent(content2);
@@ -987,15 +1022,18 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(exportedDecommissiongLists.get(0));
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
-						Folder.SCHEMA_TYPE,	DecommissioningList.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
-						ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+				options.setExportedSchemaTypes(
+						asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
+								Folder.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+								Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
+								ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
 
 		listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
 
-		List<DecommissioningList> decomListWithDocumentsReportContent = getDecomListWIthDocumentsReportContent(listSearchDecommissiongList);
-		List<DecommissioningList> decomListWithFoldersReportContent = getDecomListWithFoldersReportContent(listSearchDecommissiongList);
+		List<DecommissioningList> decomListWithDocumentsReportContent = getDecomListWIthDocumentsReportContent(
+				listSearchDecommissiongList);
+		List<DecommissioningList> decomListWithFoldersReportContent = getDecomListWithFoldersReportContent(
+				listSearchDecommissiongList);
 
 		assertThat(decomListWithDocumentsReportContent).hasSize(1);
 		assertThat(decomListWithFoldersReportContent).hasSize(1);
@@ -1003,31 +1041,40 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(decomListWithDocumentsReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
 		assertThat(decomListWithFoldersReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
-				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash());
+		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
-				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash());
+		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
-				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename());
+		assertThat(
+				decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
-				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename());
-
+		assertThat(
+				decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename());
 
 		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
 				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
 
 		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
 
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+		assertThatRecords(listSearchDecommissiongList)
+				.is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
+		assertThatRecords(listSearchDecommissiongList)
+				.is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
+		assertThatRecords(listSearchDecommissiongList)
+				.is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
 	}
 
 	@Test
-	public void whenExportingDeletingAndImportingSameSystemDecommissionList() throws Exception {
+	public void whenExportingDeletingAndImportingSameSystemDecommissionList()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
@@ -1040,7 +1087,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		List<List<DecomListContainerDetail>> exportedDecommissiongListsContainerDetailss = new ArrayList<>();
 		List<List<DecomListValidation>> exportedDecommissiongListsValidations = new ArrayList<>();
 		List<DecommissioningList> decommissioningListList = new ArrayList<>();
-		for(DecommissioningList decommissioningList: exportedDecommissiongLists) {
+		for (DecommissioningList decommissioningList : exportedDecommissiongLists) {
 			decommissioningListList.add(decommissioningList);
 			exportedDecommissiongListsIds.add(new Tuple(decommissioningList.getId()));
 			exportedDecommissiongListsFolderDetailss.add(decommissioningList.getFolderDetails());
@@ -1052,8 +1099,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
-		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.upload("contrat.docx"));
-		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.upload("proces.docx"));
+		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.uploadUnparsed("contrat.docx"));
+		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.uploadUnparsed("proces.docx"));
 
 		DecommissioningList decommissioningListWithContent = exportedDecommissiongLists.get(0);
 
@@ -1066,7 +1113,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		File file = exportToZip(recordExportOptions);
 
-
 		// Delete rows.
 		recordService.logicallyDelete(decommissioningListWithContent.getWrappedRecord(), User.GOD);
 		recordService.physicallyDelete(decommissioningListWithContent.getWrappedRecord(), User.GOD);
@@ -1075,44 +1121,53 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		List<DecommissioningList> listSearchDecommissiongList = rmZeCollection.searchDecommissioningLists(returnAll());
 
-		List<DecommissioningList> decomListWithDocumentsReportContent = getDecomListWIthDocumentsReportContent(listSearchDecommissiongList);
-		List<DecommissioningList> decomListWithFoldersReportContent = getDecomListWithFoldersReportContent(listSearchDecommissiongList);
+		List<DecommissioningList> decomListWithDocumentsReportContent = getDecomListWIthDocumentsReportContent(
+				listSearchDecommissiongList);
+		List<DecommissioningList> decomListWithFoldersReportContent = getDecomListWithFoldersReportContent(
+				listSearchDecommissiongList);
 
 		assertThat(decomListWithDocumentsReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
 		assertThat(decomListWithFoldersReportContent.get(0).getTitle()).isEqualTo(exportedDecommissiongLists.get(0).getTitle());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
-				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash());
+		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getHash());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash()).isEqualTo(
-				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash());
+		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getHash());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
-				exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename());
+		assertThat(
+				decomListWithDocumentsReportContent.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getDocumentsReportContent().getLastMajorContentVersion().getFilename());
 
-		assertThat(decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename()).isEqualTo(
-				exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename());
-
+		assertThat(
+				decomListWithDocumentsReportContent.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename())
+				.isEqualTo(
+						exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename());
 
 		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
 				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
 
 		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());
 
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
-		assertThatRecords(listSearchDecommissiongList).is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
+		assertThatRecords(listSearchDecommissiongList)
+				.is((Condition<? super List<Object>>) containingAllFolderDetails(exportedDecommissiongListsFolderDetailss));
+		assertThatRecords(listSearchDecommissiongList)
+				.is((Condition<? super List<Object>>) containingAllContainerDetails(exportedDecommissiongListsContainerDetailss));
+		assertThatRecords(listSearchDecommissiongList)
+				.is((Condition<? super List<Object>>) containingAllValidations(exportedDecommissiongListsValidations));
 	}
 
 	private List<DecommissioningList> getDecomListWIthDocumentsReportContent(List<DecommissioningList> documentList) {
 		List<DecommissioningList> arrayListDocument = new ArrayList<>();
 
-		for(DecommissioningList decommissioningList : documentList) {
-			if(decommissioningList.getDocumentsReportContent() != null) {
+		for (DecommissioningList decommissioningList : documentList) {
+			if (decommissioningList.getDocumentsReportContent() != null) {
 				arrayListDocument.add(decommissioningList);
 			}
 		}
-
 
 		return arrayListDocument;
 	}
@@ -1120,18 +1175,18 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	private List<DecommissioningList> getDecomListWithFoldersReportContent(List<DecommissioningList> documentList) {
 		List<DecommissioningList> arrayListDocument = new ArrayList<>();
 
-		for(DecommissioningList decommissioningList : documentList) {
-			if(decommissioningList.getFoldersReportContent() != null) {
-					arrayListDocument.add(decommissioningList);
+		for (DecommissioningList decommissioningList : documentList) {
+			if (decommissioningList.getFoldersReportContent() != null) {
+				arrayListDocument.add(decommissioningList);
 			}
 		}
-
 
 		return arrayListDocument;
 	}
 
 	@Test
-	public void whenExportingAndImportingSameSystemCategory() throws Exception {
+	public void whenExportingAndImportingSameSystemCategory()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -1149,19 +1204,20 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 
 		Category category = records.getCategory_X().setComments(asList(comment));
-		List<Category> childCategories = rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
+		List<Category> childCategories = rmZeCollection
+				.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 		transaction.update(category.getWrappedRecord());
 
 		recordServices.execute(transaction);
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE))
+		RecordExportOptions recordExportOptions = options
+				.setExportedSchemaTypes(asList(Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE))
 				.setForSameSystem(true);
 
 		File file = exportToZip(recordExportOptions);
 
-		recordServices.physicallyDeleteNoMatterTheStatus(category.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
-
-
+		recordServices
+				.physicallyDeleteNoMatterTheStatus(category.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 
 		importFromZip(file, zeCollection);
 
@@ -1172,13 +1228,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
-		List<Category> childCategories2 = rmZeCollection.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
+		List<Category> childCategories2 = rmZeCollection
+				.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 
-		for(Category categorie1 : childCategories) {
+		for (Category categorie1 : childCategories) {
 			boolean isFound = false;
 
-			for(Category categorie2 : childCategories2) {
-				if(categorie1.getId().equals(categorie2.getId())) {
+			for (Category categorie2 : childCategories2) {
+				if (categorie1.getId().equals(categorie2.getId())) {
 					isFound = true;
 					break;
 				}
@@ -1189,9 +1246,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-
 	@Test
-	public void whenExportingAndImportingComment() throws Exception {
+	public void whenExportingAndImportingComment()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -1201,7 +1258,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		Comment comment = new Comment();
 		comment.setUser(records.getAdmin());
 		comment.setMessage(MESSAGE);
-
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
@@ -1216,7 +1272,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				options.setExportedSchemaTypes(asList(User.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
 						Category.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
 
-
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
 		Category categoryFromAnOtherCollection = rmAnotherCollection.getCategoryWithCode("X");
@@ -1229,7 +1284,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingAndImportingSingleValueComment() throws Exception {
+	public void whenExportingAndImportingSingleValueComment()
+			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -1252,13 +1308,13 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		comment.setUser(records.getAdmin());
 		comment.setMessage(MESSAGE);
 
-
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Transaction transaction = new Transaction();
 
 		Category category = records.getCategory_X();
-		category.getWrappedRecord().set(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getMetadata(Category.DEFAULT_SCHEMA+"_"+Category.COMMENTS), comment);
+		category.getWrappedRecord().set(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getMetadata(Category.DEFAULT_SCHEMA + "_" + Category.COMMENTS), comment);
 		transaction.update(category.getWrappedRecord());
 
 		recordServices.execute(transaction);
@@ -1325,7 +1381,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		retentionRule.setCode(CODE);
 		retentionRule.setResponsibleAdministrativeUnits(true);
 
-
 		retentionRule.setCopyRetentionRules(arrayList);
 
 		RecordServices recordService = getModelLayerFactory().newRecordServices();
@@ -1353,7 +1408,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertPrincipalCopyRetentionRule(retentionRuleList.get(0));
 		assertSecondaryCopyRetentionRule(retentionRuleList.get(1));
 
-
 		assertThatRecords(rmAnOtherCollection.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code")
 				.containsOnly(
 						tuple("10A", "Unité 10-A", "10"), tuple("11B", "Unité 11-B", "11"), tuple("11", "Unité 11", "10"),
@@ -1375,7 +1429,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		RetentionRule retentionRule = rm.newRetentionRule();
-
 
 		ArrayList<CopyRetentionRule> arrayList = new ArrayList<>();
 
@@ -1423,7 +1476,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingDocumentRetentionRuleThenExported() throws RecordServicesException {
+	public void whenExportingDocumentRetentionRuleThenExported()
+			throws RecordServicesException {
 		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
@@ -1523,26 +1577,26 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	private CopyRetentionRule getPrimaryCopyRetentionRule() {
 		return new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE)
-                    .setTitle(TITLE)
-                    .setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
-                    .setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
-                    .setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
-                    .setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
-                    .setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
-                    .setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
-                    .setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(records.PA_MD).setIgnoreActivePeriod(false);
+				.setTitle(TITLE)
+				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
+				.setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
+				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
+				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
+				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
+				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
+				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(records.PA_MD).setIgnoreActivePeriod(false);
 	}
 
 	private CopyRetentionRule getCopySecondaryRetentionRule() {
 		return new CopyRetentionRule().setCopyType(CopyType.SECONDARY).setCode(CODE)
-                    .setTitle(TITLE)
-                    .setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
-                    .setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
-                    .setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
-                    .setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
-                    .setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
-                    .setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
-                    .setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(records.PA_MD).setIgnoreActivePeriod(true);
+				.setTitle(TITLE)
+				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
+				.setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
+				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
+				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
+				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
+				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
+				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(records.PA_MD).setIgnoreActivePeriod(true);
 	}
 
 	public void assertSecondaryCopyRetentionRule(CopyRetentionRule copyRetentionRule) {
@@ -1587,8 +1641,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(copyRetentionRule.isIgnoreActivePeriod()).isFalse();
 	}
 
-	private File exportToZip(RecordExportOptions optios)
-	{
+	private File exportToZip(RecordExportOptions optios) {
 		return new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
 	}
 
@@ -1636,21 +1689,22 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private Condition<? super List<DecommissioningList>> containingAllFolderDetails(final List<List<DecomListFolderDetail>> comparator) {
+	private Condition<? super List<DecommissioningList>> containingAllFolderDetails(
+			final List<List<DecomListFolderDetail>> comparator) {
 		return new Condition<List<DecommissioningList>>() {
 			@Override
 			public boolean matches(List<DecommissioningList> comparedLists) {
-				for(DecommissioningList list: comparedLists) {
+				for (DecommissioningList list : comparedLists) {
 					boolean wasFound = false;
 					List<DecomListFolderDetail> folderDetails = list.getFolderDetails();
-					for(List<DecomListFolderDetail> comparatorDetailList: comparator) {
-						if(folderDetails.containsAll(comparatorDetailList)) {
+					for (List<DecomListFolderDetail> comparatorDetailList : comparator) {
+						if (folderDetails.containsAll(comparatorDetailList)) {
 							wasFound = true;
 							break;
 						}
 					}
 
-					if(!wasFound) {
+					if (!wasFound) {
 						return false;
 					}
 				}
@@ -1659,21 +1713,22 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		}.describedAs("containing all folderDetails in " + comparator);
 	}
 
-	private Condition<? super List<DecommissioningList>> containingAllContainerDetails(final List<List<DecomListContainerDetail>> comparator) {
+	private Condition<? super List<DecommissioningList>> containingAllContainerDetails(
+			final List<List<DecomListContainerDetail>> comparator) {
 		return new Condition<List<DecommissioningList>>() {
 			@Override
 			public boolean matches(List<DecommissioningList> comparedLists) {
-				for(DecommissioningList list: comparedLists) {
+				for (DecommissioningList list : comparedLists) {
 					boolean wasFound = false;
 					List<DecomListContainerDetail> containerDetails = list.getContainerDetails();
-					for(List<DecomListContainerDetail> comparatorDetailList: comparator) {
-						if(containerDetails.containsAll(comparatorDetailList)) {
+					for (List<DecomListContainerDetail> comparatorDetailList : comparator) {
+						if (containerDetails.containsAll(comparatorDetailList)) {
 							wasFound = true;
 							break;
 						}
 					}
 
-					if(!wasFound) {
+					if (!wasFound) {
 						return false;
 					}
 				}
@@ -1682,21 +1737,22 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		}.describedAs("containing all containerDetails in " + comparator);
 	}
 
-	private Condition<? super List<DecommissioningList>> containingAllValidations(final List<List<DecomListValidation>> comparator) {
+	private Condition<? super List<DecommissioningList>> containingAllValidations(
+			final List<List<DecomListValidation>> comparator) {
 		return new Condition<List<DecommissioningList>>() {
 			@Override
 			public boolean matches(List<DecommissioningList> comparedLists) {
-				for(DecommissioningList list: comparedLists) {
+				for (DecommissioningList list : comparedLists) {
 					boolean wasFound = false;
 					List<DecomListValidation> validations = list.getValidations();
-					for(List<DecomListValidation> comparatorDetailList: comparator) {
-						if(validations.containsAll(comparatorDetailList)) {
+					for (List<DecomListValidation> comparatorDetailList : comparator) {
+						if (validations.containsAll(comparatorDetailList)) {
 							wasFound = true;
 							break;
 						}
 					}
 
-					if(!wasFound) {
+					if (!wasFound) {
 						return false;
 					}
 				}
@@ -1709,17 +1765,17 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		return new Condition<List<Task>>() {
 			@Override
 			public boolean matches(List<Task> comparedTasks) {
-				for(Task task: comparedTasks) {
+				for (Task task : comparedTasks) {
 					boolean wasFound = false;
 					List<TaskReminder> reminders = task.getReminders();
-					for(List<TaskReminder> comparatorReminders: comparator) {
-						if(reminders.containsAll(comparatorReminders)) {
+					for (List<TaskReminder> comparatorReminders : comparator) {
+						if (reminders.containsAll(comparatorReminders)) {
 							wasFound = true;
 							break;
 						}
 					}
 
-					if(!wasFound) {
+					if (!wasFound) {
 						return false;
 					}
 				}
@@ -1732,17 +1788,17 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		return new Condition<List<Task>>() {
 			@Override
 			public boolean matches(List<Task> comparedTasks) {
-				for(Task task: comparedTasks) {
+				for (Task task : comparedTasks) {
 					boolean wasFound = false;
 					List<TaskFollower> followers = task.getTaskFollowers();
-					for(List<TaskFollower> comparatorFollowers: comparator) {
-						if(followers.containsAll(comparatorFollowers)) {
+					for (List<TaskFollower> comparatorFollowers : comparator) {
+						if (followers.containsAll(comparatorFollowers)) {
 							wasFound = true;
 							break;
 						}
 					}
 
-					if(!wasFound) {
+					if (!wasFound) {
 						return false;
 					}
 				}

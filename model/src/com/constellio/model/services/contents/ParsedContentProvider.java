@@ -6,6 +6,8 @@ import java.util.Map;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 
+import com.constellio.model.entities.records.ParsedContent;
+
 public class ParsedContentProvider {
 
 	Map<String, ParsedContent> cache = new HashMap<>();
