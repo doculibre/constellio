@@ -224,28 +224,32 @@ public class RecordsImportServicesExecutor {
 			while (!typeImportFinished) {
 
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
-				int skipped;
-				if (params.getThreads() == 1) {
-					skipped = bulkImport(context, importDataIterator, typeImportErrors);
-				} else {
-					skipped = bulkImportInParallel(context, importDataIterator, typeImportErrors);
-				}
-				if (skipped > 0 && skipped == previouslySkipped) {
-
-					if (!typeImportErrors.hasDecoratedErrors()) {
-						Set<String> cyclicDependentIds = resolverCache
-								.getNotYetImportedLegacyIds(schemaType, importDataIterator.getOptions().isImportAsLegacyId());
-						addCyclicDependenciesValidationError(typeImportErrors, types.getSchemaType(schemaType),
-								cyclicDependentIds);
-
+				try {
+					int skipped;
+					if (params.getThreads() == 1) {
+						skipped = bulkImport(context, importDataIterator, typeImportErrors);
+					} else {
+						skipped = bulkImportInParallel(context, importDataIterator, typeImportErrors);
 					}
+					if (skipped > 0 && skipped == previouslySkipped) {
 
-					throwIfNonEmpty(typeImportErrors);
+						if (!typeImportErrors.hasDecoratedErrors()) {
+							Set<String> cyclicDependentIds = resolverCache
+									.getNotYetImportedLegacyIds(schemaType, importDataIterator.getOptions().isImportAsLegacyId());
+							addCyclicDependenciesValidationError(typeImportErrors, types.getSchemaType(schemaType),
+									cyclicDependentIds);
+
+						}
+
+						throwIfNonEmpty(typeImportErrors);
+					}
+					if (skipped == 0) {
+						typeImportFinished = true;
+					}
+					previouslySkipped = skipped;
+				} finally {
+					importDataIterator.close();
 				}
-				if (skipped == 0) {
-					typeImportFinished = true;
-				}
-				previouslySkipped = skipped;
 			}
 			if (params.importErrorsBehavior == STOP_ON_FIRST_ERROR
 					|| params.importErrorsBehavior == CONTINUE_FOR_RECORD_OF_SAME_TYPE) {

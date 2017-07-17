@@ -91,21 +91,25 @@ public class RecordsImportValidator {
 			throws ValidationException {
 
 		ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
-		importDataIterator.getOptions().isImportAsLegacyId();
-		DecoratedValidationsErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
-			@Override
-			public void buildExtraParams(Map<String, Object> parameters) {
-				if (!parameters.containsKey("schemaType")) {
-					parameters.put("schemaType", schemaType);
+		try {
+			importDataIterator.getOptions().isImportAsLegacyId();
+			DecoratedValidationsErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
+				@Override
+				public void buildExtraParams(Map<String, Object> parameters) {
+					if (!parameters.containsKey("schemaType")) {
+						parameters.put("schemaType", schemaType);
+					}
 				}
+			};
+
+			AtomicBoolean fatalError = new AtomicBoolean();
+			validate(importDataIterator, decoratedValidationsErrors, fatalError);
+
+			if (fatalError.get()) {
+				errors.throwIfNonEmpty();
 			}
-		};
-
-		AtomicBoolean fatalError = new AtomicBoolean();
-		validate(importDataIterator, decoratedValidationsErrors, fatalError);
-
-		if (fatalError.get()) {
-			errors.throwIfNonEmpty();
+		} finally {
+			importDataIterator.close();
 		}
 	}
 
