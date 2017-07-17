@@ -160,12 +160,21 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		recordServices.refresh(record);
 
 		markForReindexing(idsMarkedForReindexing);
+		recordServices.flush();
 
 		record.set(Schemas.TITLE, "New title!");
 		record.set(Schemas.MARKED_FOR_REINDEXING, true);
 
+		recordServices.flush();
+		Thread.sleep(1000);
+
 		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(1);
+		Thread.sleep(1000);
+		recordServices.flush();
 		new RecordsReindexingBackgroundAction(getModelLayerFactory()).run();
+
+		recordServices.flush();
+		Thread.sleep(1000);
 		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(0);
 
 		Transaction transaction = new Transaction();
