@@ -37,6 +37,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -1009,8 +1010,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(listSearchDecommissiongList).hasSize(0);
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
-		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.uploadUnparsed("contrat.docx"));
-		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.uploadUnparsed("proces.docx"));
+		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.upload("contrat.docx"));
+		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.upload("proces.docx"));
 
 		decommissioningListWithContent.setDocumentsReportContent(content);
 		decommissioningListWithContent.setFoldersReportContent(content2);
@@ -1099,8 +1100,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
-		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.uploadUnparsed("contrat.docx"));
-		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.uploadUnparsed("proces.docx"));
+		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.upload("contrat.docx"));
+		Content content2 = contentManager.createMajor(records.getAdmin(), "proces.docx", records.upload("proces.docx"));
 
 		DecommissioningList decommissioningListWithContent = exportedDecommissiongLists.get(0);
 
@@ -1534,7 +1535,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingRecordWithCustomSchemaKeepsSchemaAndMetadataWhenImported() throws RecordServicesException {
+	public void whenExportingRecordWithCustomSchemaKeepsSchemaAndMetadataWhenImported()
+			throws RecordServicesException {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
@@ -1543,14 +1545,15 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-
 		List<Document> documentList = rmSchemasRecordsServices.searchDocuments(returnAll());
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
-				MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
-				ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE));
+		RecordExportOptions recordExportOptions = options
+				.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
+						DocumentType.SCHEMA_TYPE));
 
 		Document documentWithCustomSchema = documentList.get(0);
 		documentWithCustomSchema.setType(rmSchemasRecordsServices.getDocumentTypeWithCode(DocumentType.EMAIL_DOCUMENT_TYPE));
@@ -1559,18 +1562,19 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(documentWithCustomSchema.getWrappedRecord(), records.getAdmin());
 
-
 		File file = exportToZip(recordExportOptions);
 
 		importFromZip(file, "anotherCollection");
 
 		RMSchemasRecordsServices anotherCollectionRM = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-		documentList = anotherCollectionRM.searchDocuments(where(anotherCollectionRM.document_email.emailCCTo()).isNotNull());//where(Schemas.LEGACY_ID).isEqualTo(documentWithCustomSchema.getId()));
+		documentList = anotherCollectionRM.searchDocuments(where(anotherCollectionRM.document_email.emailCCTo())
+				.isNotNull());//where(Schemas.LEGACY_ID).isEqualTo(documentWithCustomSchema.getId()));
 		Document importedEmail = documentList.get(0);
 
 		assertThat(documentList).hasSize(1);
-		assertThatRecords(importedEmail).extractingMetadatas(Schemas.SCHEMA.getLocalCode(), Document.TYPE+".code" ,Email.EMAIL_CC_TO).containsOnly(
+		assertThatRecords(importedEmail)
+				.extractingMetadatas(Schemas.SCHEMA.getLocalCode(), Document.TYPE + ".code", Email.EMAIL_CC_TO).containsOnly(
 				tuple(Email.SCHEMA, DocumentType.EMAIL_DOCUMENT_TYPE, asList("jeff"))
 		);
 	}
