@@ -76,7 +76,7 @@ public class SystemConfigurationVO implements Serializable {
 				value = Boolean.valueOf(stringValue.toString());
 				break;
 			case INTEGER:
-				value = Integer.valueOf(stringValue.toString().replace(" ", ""));
+				value = Integer.valueOf(stringValue.toString().replace(" ", "").replace(",", ""));
 				break;
 			case STRING:
 				value = stringValue;

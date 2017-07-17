@@ -111,7 +111,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return ComponentState.INVISIBLE;
 		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
-				&& extensions.isRecordModifiableBy(record, user));
+				&& extensions.isRecordModifiableBy(record, user) && !extensions.isModifyBlocked(record, user));
 	}
 
 	public void editDocumentButtonClicked() {
@@ -135,9 +135,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	protected boolean isDeleteDocumentPossible() {
-		return getCurrentUser().hasDeleteAccess().on(currentDocument());
+		return getCurrentUser().hasDeleteAccess().on(currentDocument())&& !extensions.isDeleteBlocked(currentDocument(), getCurrentUser());
 	}
-
+	
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
@@ -463,7 +463,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	ComponentState getUploadButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument())) {
+		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument()) && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser()) && !extensions.isModifyBlocked(currentDocument(), getCurrentUser())) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -510,7 +510,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	private ComponentState getCheckOutState() {
 		if (getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
-			if (isCheckOutPossible()) {
+			if (isCheckOutPossible() && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser()) && !extensions.isModifyBlocked(currentDocument(), getCurrentUser())) {
 				return ComponentState.ENABLED;
 			}
 		}
@@ -535,7 +535,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		boolean minorVersion;
 		Content content = getContent();
 		minorVersion = content != null && content.getCurrentVersion().getMinor() != 0;
-		return !borrowed && minorVersion;
+		return !borrowed && minorVersion && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser());
 	}
 
 	public void updateActionsComponent() {

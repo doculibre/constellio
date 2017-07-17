@@ -152,6 +152,26 @@ public class AppLayerCollectionExtensions {
 		return null;
 	}
 
+	public String getIconForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			String icon = recordAppExtension.getIconPathForRecordVO(params);
+			if (icon != null) {
+				return icon;
+			}
+		}
+		return null;
+	}
+
+	public String getExtensionForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			String icon = recordAppExtension.getExtensionForRecordVO(params);
+			if (icon != null) {
+				return icon;
+			}
+		}
+		return null;
+	}
+
 	public void buildCMISObjectFromConstellioRecord(BuildCmisObjectFromConstellioRecordParams params) {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.buildCMISObjectFromConstellioRecord(params);

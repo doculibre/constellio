@@ -183,6 +183,28 @@ public class ModelLayerCollectionExtensions {
 			extension.recordRestored(event);
 		}
 	}
+	
+	public boolean isModifyBlocked(Record record, User user) {
+		boolean deleteBlocked = false;
+		for (RecordExtension extension : recordExtensions) {
+			deleteBlocked = extension.isModifyBlocked(record, user);
+			if (deleteBlocked) {
+				break;
+			}
+		}
+		return deleteBlocked;
+	}
+	
+	public boolean isDeleteBlocked(Record record, User user) {
+		boolean deleteBlocked = false;
+		for (RecordExtension extension : recordExtensions) {
+			deleteBlocked = extension.isDeleteBlocked(record, user);
+			if (deleteBlocked) {
+				break;
+			}
+		}
+		return deleteBlocked;
+	}
 
 	public boolean isLogicallyDeletable(final RecordLogicalDeletionValidationEvent event) {
 		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {

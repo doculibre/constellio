@@ -23,7 +23,11 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	private DocumentFormImpl recordForm;
 
 	public AddEditDocumentViewImpl() {
-		presenter = new AddEditDocumentPresenter(this);
+		presenter = newPresenter();
+	}
+	
+	protected AddEditDocumentPresenter newPresenter() {
+		return new AddEditDocumentPresenter(this);
 	}
 
 	@Override
