@@ -1,18 +1,18 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.ObjectProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class SchemaTypeVOLazyContainer extends LazyQueryContainer {
@@ -62,7 +62,7 @@ public class SchemaTypeVOLazyContainer extends LazyQueryContainer {
 					List<MetadataSchemaTypeVO> schemaVOs = dataProvider.listSchemaTypeVO();
 					for (MetadataSchemaTypeVO schemaVO : schemaVOs) {
 						Item item = new BeanItem<>(schemaVO);
-						item.addItemProperty("caption", new ObjectProperty<>(schemaVO.getLabel()));
+						item.addItemProperty("caption", new ObjectProperty<>(StringUtils.defaultIfBlank(schemaVO.getLabel(), schemaVO.getCode())));
 						items.add(item);
 					}
 					return items;
