@@ -1,5 +1,34 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -20,9 +49,11 @@ import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -34,26 +65,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
 public class ContentManagerTest extends ConstellioTest {
@@ -158,6 +169,8 @@ public class ContentManagerTest extends ConstellioTest {
 		when(parsingResults.getParsedContent()).thenReturn(theParsedContent);
 		when(parsingResults.getMimeType()).thenReturn(theMimetype);
 		doReturn(parsedContentConverter).when(contentManager).newParsedContentConverter();
+
+		when(constellioEIMConfigs.getDefaultParsingBehavior()).thenReturn(ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 	}
 
 	@Test
@@ -181,7 +194,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 	}
 
-	@Test(expected = ContentManagerRuntimeException_NoSuchContent.class)
+	@Test(expected = ContentManagerException_ContentNotParsed.class)
 	public void givenNoParsedContentWhenGetParsedContentThenThrowException()
 			throws Exception {
 
@@ -213,7 +226,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 	}
 
-	@Test(expected = ContentManagerRuntimeException_NoSuchContent.class)
+	@Test(expected = ContentManagerException_ContentNotParsed.class)
 	public void givenNoSuchContentContentDaoExceptionWhenGetParsedContentThenThrowNoSuchContentContentServicesException()
 			throws Exception {
 		when(contentDao.getContentInputStream(newContentId + "__parsed", ContentManager.READ_PARSED_CONTENT))
@@ -260,7 +273,8 @@ public class ContentManagerTest extends ConstellioTest {
 		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		when(closeableStreamFactory.length()).thenReturn(42L);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		ContentManager.ParsedContentResponse parsedContentResponse = contentManager.buildParsedContentResponse(false, parsingResults);
+		ContentManager.ParsedContentResponse parsedContentResponse = contentManager
+				.buildParsedContentResponse(false, parsingResults);
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doNothing().when(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
@@ -331,7 +345,8 @@ public class ContentManagerTest extends ConstellioTest {
 
 		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		ContentManager.ParsedContentResponse parsedContentResponse = contentManager.buildParsedContentResponse(false, parsingResults);
+		ContentManager.ParsedContentResponse parsedContentResponse = contentManager
+				.buildParsedContentResponse(false, parsingResults);
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(ContentManagerRuntimeException.class).when(contentManager)
@@ -353,7 +368,8 @@ public class ContentManagerTest extends ConstellioTest {
 
 		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		ContentManager.ParsedContentResponse parsedContentResponse = contentManager.buildParsedContentResponse(false, parsingResults);
+		ContentManager.ParsedContentResponse parsedContentResponse = contentManager
+				.buildParsedContentResponse(false, parsingResults);
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(IOException.class).when(contentManager)
@@ -441,7 +457,8 @@ public class ContentManagerTest extends ConstellioTest {
 
 		doReturn(parsingResults).when(contentManager).getParsedContent(aContentHash);
 
-		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory).getParsedContent();
+		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
+				.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager, never()).saveParsedContent(aContentHash, parsingResults);
@@ -454,10 +471,11 @@ public class ContentManagerTest extends ConstellioTest {
 	public void givenNewContentParsedWhenGetPreviouslyParsedContentOrParseFromStreamThenReturnParseAndSaveParsedContent()
 			throws Exception {
 
-		doThrow(ContentManagerRuntimeException_NoSuchContent.class).when(contentManager).getParsedContent(aContentHash);
+		doThrow(ContentManagerException_ContentNotParsed.class).when(contentManager).getParsedContent(aContentHash);
 		doReturn(parsingResults).when(contentManager).tryToParse(streamFactory);
 
-		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory).getParsedContent();
+		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
+				.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager).saveParsedContent(aContentHash, parsingResults);

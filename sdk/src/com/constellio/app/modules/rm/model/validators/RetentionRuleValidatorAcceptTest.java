@@ -246,7 +246,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		assertThat(frenchMessages(errors)).containsOnly(
 				"Il est nécessaire de définir une unité administrative détentrice ou d'activer l'option 'Toutes unités administratives responsables'.");
 		assertThat(englishMessages(errors)).containsOnly(
-				"It is required to define a department or to activate the 'Responsible administrative unit' status.");
+				"It is required to define a department or to activate the 'Responsible department' status.");
 
 	}
 
@@ -264,7 +264,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		assertThat(frenchMessages(errors)).containsOnly(
 				"La liste d'unités administratives détentrices doit être vide si 'Toutes unités administratives responsables' est activé.");
 		assertThat(englishMessages(errors)).containsOnly(
-				"The Field 'Name of department responsible for main folder' must be empty if the field 'Responsible administrative unit' is checked.");
+				"The Field 'Name of department responsible for main folder' must be empty if the field 'Responsible department' is checked.");
 
 	}
 

@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -11,6 +25,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -18,6 +33,7 @@ import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -27,19 +43,6 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
@@ -65,6 +68,8 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
+
 		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
 
 		schemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -252,7 +257,8 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE)).where(rm.emailToSend.template()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
+				.where(rm.emailToSend.template()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		long numberOfPreExistingEmails = searchServices.getResultsCount(query);
@@ -293,21 +299,28 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEventsThenEventsDataProviderReturnValidEvents() throws Exception {
+	public void givenEventsThenEventsDataProviderReturnValidEvents()
+			throws Exception {
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		Transaction transaction = new Transaction();
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A19)
-				.setTitle(rmRecords.document_A19).setUsername(users.adminIn(zeCollection).getUsername()).setType(EventType.MODIFY_DOCUMENT)
+				.setTitle(rmRecords.document_A19).setUsername(users.adminIn(zeCollection).getUsername())
+				.setType(EventType.MODIFY_DOCUMENT)
 				.setCreatedOn(LocalDateTime.now()));
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A49)
-				.setTitle(rmRecords.document_A49).setUsername(users.adminIn(zeCollection).getUsername()).setType(EventType.MODIFY_DOCUMENT)
+				.setTitle(rmRecords.document_A49).setUsername(users.adminIn(zeCollection).getUsername())
+				.setType(EventType.MODIFY_DOCUMENT)
 				.setCreatedOn(LocalDateTime.now()));
 		recordServices.execute(transaction);
 
 		getDataLayerFactory().newEventsDao().flush();
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19))).isEqualTo(1);
-		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19))).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19)))
+				.isEqualTo(1);
+		assertThat(searchServices.getResultsCount(
+				rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19)))
+				.isEqualTo(1);
 
 		presenter.forParams(rmRecords.document_A19);
 		RecordVODataProvider provider = presenter.getEventsDataProvider();

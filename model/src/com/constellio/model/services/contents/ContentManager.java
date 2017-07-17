@@ -70,7 +70,6 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.icap.IcapService;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.records.RecordServices;
@@ -285,8 +284,8 @@ public class ContentManager implements StatefulService {
 		String fileName = uploadOptions.getFileName();
 		boolean handleDeletionOfUnreferencedHashes = uploadOptions.isHandleDeletionOfUnreferencedHashes();
 
-		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		boolean defaultParsing = configs.getDefaultParsingBehavior() == SYNC_PARSING_FOR_ALL_CONTENTS;
+		boolean defaultParsing = modelLayerFactory.getSystemConfigs()
+				.getDefaultParsingBehavior() == SYNC_PARSING_FOR_ALL_CONTENTS;
 
 		boolean parse = uploadOptions.isParse(defaultParsing);
 

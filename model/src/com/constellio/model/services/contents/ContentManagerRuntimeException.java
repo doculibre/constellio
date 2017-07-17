@@ -66,23 +66,4 @@ public class ContentManagerRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class ContentManagerRuntimeException_ContentNotParsed extends ContentManagerRuntimeException {
-
-		String id;
-
-		public ContentManagerRuntimeException_ContentNotParsed(String id) {
-			super("Content with id '" + id + "' has not been parsed");
-			this.id = id;
-		}
-
-		public ContentManagerRuntimeException_ContentNotParsed(String id, Throwable cause) {
-			super("Content with id '" + id + "' has not been parsed", cause);
-			this.id = id;
-		}
-
-		public String getId() {
-			return id;
-		}
-	}
-
 }
