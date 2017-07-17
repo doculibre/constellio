@@ -1,16 +1,14 @@
 package com.constellio.app.modules.rm.reports.model.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import org.joda.time.LocalDate;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import com.constellio.app.ui.util.DateFormatUtils;
-import com.constellio.data.io.streamFactories.StreamFactory;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FoldersCertificateReportModel {
 
@@ -18,6 +16,7 @@ public class FoldersCertificateReportModel {
 	private String certificateCreationDate = "";
 	private String destructionDate = "";
 	private String hash = "";
+	private String decommissioningListAdministrativeUnitCodeAndTitle = "";
 	private boolean cellBorder = false;
 	private List<FoldersCertificateReportModel_Folder> folders = new ArrayList<>();
 
@@ -57,6 +56,14 @@ public class FoldersCertificateReportModel {
 
 	public void setDestructionDate(String destructionDate) {
 		this.destructionDate = destructionDate;
+	}
+
+	public void setDecommissioningListAdministrativeUnitCodeAndTitle(String decommissioningListAdministrativeUnitCodeAndTitle) {
+		this.decommissioningListAdministrativeUnitCodeAndTitle = decommissioningListAdministrativeUnitCodeAndTitle;
+	}
+
+	public String getDecommissioningListAdministrativeUnitCodeAndTitle() {
+		return decommissioningListAdministrativeUnitCodeAndTitle;
 	}
 
 	public String getHash() {

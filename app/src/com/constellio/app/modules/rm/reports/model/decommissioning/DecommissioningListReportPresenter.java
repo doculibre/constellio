@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
@@ -52,14 +53,18 @@ public class DecommissioningListReportPresenter {
         LogicalSearchQuery foldersQuery = new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(folderSchemaType)
                         .where(Schemas.IDENTIFIER)
-                        .isIn(decommissioningList.getFolders()))
-                .sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(Schemas.LEGACY_ID).sortAsc(Schemas.IDENTIFIER);
-        List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
+                        .isIn(decommissioningList.getFolders()));
 
         if(folderDetailTableExtension != null) {
             model.setWithMediumType(true);
             model.setWithMainCopyRule(true);
+            Metadata ancienNumeroMetadata = folderSchemaType.getDefaultSchema().get("USRancienNumeroDossier");
+            foldersQuery.sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(ancienNumeroMetadata).sortAsc(Schemas.IDENTIFIER);
+        } else {
+            foldersQuery.sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(Schemas.LEGACY_ID).sortAsc(Schemas.IDENTIFIER);
         }
+
+        List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 
         List<DecommissioningListReportModel_Folder> foldersModel = new ArrayList<>();
         int currentFolder = 0;
