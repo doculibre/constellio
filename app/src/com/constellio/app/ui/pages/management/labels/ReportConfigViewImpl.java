@@ -12,9 +12,6 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Marco on 2017-01-26.
- */
 public class ReportConfigViewImpl extends BaseViewImpl {
     public static final String CATEGORY_BUTTON = "seleniumCategoryButton";
 

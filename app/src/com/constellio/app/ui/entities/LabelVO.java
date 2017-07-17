@@ -7,9 +7,6 @@ import static com.constellio.app.modules.rm.wrappers.PrintableLabel.*;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * Created by Marco on 2017-01-19.
- */
 public class LabelVO extends RecordVO implements Serializable {
 
     public LabelVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {

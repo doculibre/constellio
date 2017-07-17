@@ -6,9 +6,6 @@ import com.constellio.app.ui.pages.management.labels.CustomLabelField;
 
 import java.io.Serializable;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public interface PrintableReportFrom extends Serializable {
 
     void reload();

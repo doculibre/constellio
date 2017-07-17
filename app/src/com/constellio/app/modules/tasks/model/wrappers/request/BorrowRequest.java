@@ -4,9 +4,6 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-/**
- * Created by Marco on 2017-03-28.
- */
 public class BorrowRequest extends RequestTask {
 
     public static final String SCHEMA_NAME = "borrowRequest";

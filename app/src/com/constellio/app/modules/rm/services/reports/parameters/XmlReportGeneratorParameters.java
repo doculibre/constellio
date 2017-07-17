@@ -4,9 +4,6 @@ import com.constellio.model.entities.records.Record;
 
 import java.util.List;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public class XmlReportGeneratorParameters extends XmlGeneratorParameters {
     private int numberOfCopies;
 

@@ -32,9 +32,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public class XmlReportGenerator extends XmlGenerator{
 
     public XmlReportGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {

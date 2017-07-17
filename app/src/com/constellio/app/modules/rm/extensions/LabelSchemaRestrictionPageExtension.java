@@ -6,9 +6,6 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
-/**
- * Created by Marco on 2017-01-24.
- */
 public class LabelSchemaRestrictionPageExtension extends GenericRecordPageExtension {
     @Override
     public ExtensionBooleanResult canManageSchema(User user, MetadataSchemaType schemaType) {

@@ -32,7 +32,7 @@ public class RMMigrationTo5_1_9_AcceptanceTest extends ConstellioTest {
 				String code = metadataSchema.getCode();
 				List<String> tableMetadataCodes = metadataSchemasDisplayManager
 						.getSchema(zeCollection, code).getTableMetadataCodes();
-				if (code.contains("default") || code.equals("printable_label") || (code.startsWith("userTask") && code
+				if (code.contains("default") || code.equals("printable_label") || code.equals("printable_report") || (code.startsWith("userTask") && code
 						.contains("Request"))) {
 					if (!code.startsWith("event_") && !code.startsWith("printable_")) {
 						assertThat(tableMetadataCodes).isEqualTo(metadataSchemasDisplayManager

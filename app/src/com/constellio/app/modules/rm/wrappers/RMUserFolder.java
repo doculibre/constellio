@@ -4,9 +4,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-/**
- * Created by Marco on 2017-02-13.
- */
 public class RMUserFolder extends UserFolder {
 
     public static final String RETENTION_RULE = "retentionRule";

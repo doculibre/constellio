@@ -27,16 +27,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddEditPrintableReportView {
     private AddEditPrintableReportPresenter presenter = new AddEditPrintableReportPresenter(this);
     private RecordVO recordVO;
@@ -135,9 +129,9 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
         @Override
         public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
             Field<?> field = null;
-            if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.REPORT_TYPE)) {
+            if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE)) {
                 field = createComboBox(metadataVO);
-            } else if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.REPORT_SCHEMA)) {
+            } else if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_SCHEMA)) {
                 field = createComboBoxForSchemaType(metadataVO);
             } else {
                 field = new MetadataFieldFactory().build(metadataVO);

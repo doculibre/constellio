@@ -13,9 +13,6 @@ import com.constellio.model.entities.records.wrappers.User;
 
 import java.io.Serializable;
 
-/**
- * Created by Marco on 2017-01-24.
- */
 public class ReportNavigationConfiguration implements Serializable {
     public static final String LABEL_MANAGEMENT = "labelManagement";
     public static final String ADD_LABEL_TEMPLATE = "addLabelTemplate";

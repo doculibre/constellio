@@ -42,9 +42,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-/**
- * Created by Marco on 2017-07-10.
- */
 public class GetXmlButtonV2 extends WindowButton{
     private ModelLayerFactory model;
     private String collection;

@@ -40,9 +40,6 @@ import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     RMSchemasRecordsServices rm;
     RMTestRecords records = new RMTestRecords(zeCollection);
@@ -107,7 +104,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
             Document xmlDocument = saxBuilder.build(inputStream);
             // Assert that document contains correct tags;
             assertThat(xmlDocument.getRootElement().getName()).isEqualTo(XmlGenerator.XML_ROOT_RECORD_ELEMENTS);
-            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(1);
+            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
 
             Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS);
             List<Tuple> xmlRecordValues = new ArrayList<>();
@@ -143,19 +140,25 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
             Document xmlDocument = saxBuilder.build(inputStream);
             // Assert that document contains correct tags;
             assertThat(xmlDocument.getRootElement().getName()).isEqualTo(XmlGenerator.XML_ROOT_RECORD_ELEMENTS);
-            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(1);
+            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
 
             Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS);
             List<Tuple> xmlRecordValues = new ArrayList<>();
             for(Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
                 Element element = (Element) ob;
-                xmlRecordValues.add(tuple(element.getName(), element.getText()));
+                //exclude content because it changes every time,
+                if(!element.getName().equals("content")) {
+                    xmlRecordValues.add(tuple(element.getName(), element.getText()));
+                }
             }
             List<Tuple> listOfMetadataInFolder = new ArrayList<>();
             for(Metadata metadata : metadataSchemasManager.getSchemaOf(records.getDocumentWithContent_A19().getWrappedRecord()).getMetadatas()) {
                 List<Element> elementOfMetadata = xmlReportGenerator.createMetadataTagsFromMetadata(metadata, records.getDocumentWithContent_A19().getWrappedRecord());
                 for(Element element : elementOfMetadata) {
-                    listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
+                    //exclude content because it changes every time,
+                    if(!element.getName().equals("content")) {
+                        listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
+                    }
                 }
             }
             assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
@@ -201,7 +204,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
             Document xmlDocument = saxBuilder.build(inputStream);
             // Assert that document contains correct tags;
             assertThat(xmlDocument.getRootElement().getName()).isEqualTo(XmlGenerator.XML_ROOT_RECORD_ELEMENTS);
-            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(1);
+            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
 
             Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS);
             List<Tuple> xmlRecordValues = new ArrayList<>();

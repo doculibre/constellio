@@ -20,9 +20,6 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Marco on 2017-06-28.
- */
 public class JasperPdfGenerator {
 
     private String collection;

@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
@@ -18,21 +19,6 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocu
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
-import com.constellio.app.modules.reports.wrapper.Printable;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
@@ -132,6 +118,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(StorageSpace.DEFAULT_SCHEMA, StorageSpace.class);
 		wrappers.put(StorageSpaceType.DEFAULT_SCHEMA, StorageSpaceType.class);
 		wrappers.put(PrintableLabel.SCHEMA_NAME, PrintableLabel.class);
+		wrappers.put(PrintableReport.SCHEMA_NAME, PrintableReport.class);
 		wrappers.put(RMUserFolder.DEFAULT_SCHEMA, RMUserFolder.class);
 		wrappers.put(RMTask.DEFAULT_SCHEMA, RMTask.class);
 

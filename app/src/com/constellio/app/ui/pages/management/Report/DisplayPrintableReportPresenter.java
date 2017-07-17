@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -12,9 +13,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public class DisplayPrintableReportPresenter extends SingleSchemaBasePresenter<DisplayPrintableReportView> {
 
     public DisplayPrintableReportPresenter(DisplayPrintableReportView view) {
@@ -30,7 +28,7 @@ public class DisplayPrintableReportPresenter extends SingleSchemaBasePresenter<D
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return true;
+        return user.has(CorePermissions.MANAGE_PRINTABLE_REPORT).globally();
     }
 
     protected void backButtonClicked() {

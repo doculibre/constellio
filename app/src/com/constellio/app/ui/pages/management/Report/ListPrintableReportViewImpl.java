@@ -20,9 +20,6 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPrintableReportView{
 
     public static final String TYPE_TABLE = "types";

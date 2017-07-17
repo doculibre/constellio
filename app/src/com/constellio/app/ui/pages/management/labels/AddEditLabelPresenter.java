@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -31,9 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-/**
- * Created by Marco on 2017-01-19.
- */
 public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabelView> {
     private MetadataSchemaToVOBuilder schemaVOBuilder;
     private transient RMConfigs rmConfigs;
@@ -69,7 +67,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return true;
+        return user.has(CorePermissions.MANAGE_LABELS).globally();
     }
 
     public RecordVODataProvider getLabelFolderDataProvider() {

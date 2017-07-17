@@ -1,4 +1,4 @@
-package com.constellio.app.modules.reports.wrapper;
+package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;

@@ -9,11 +9,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
-import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
@@ -45,9 +46,6 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
-/**
- * Created by Marco on 2017-07-10.
- */
 public class ReportGeneratorButton extends WindowButton {
 	//Window property
 	@PropertyId("printableReportItems")
@@ -100,9 +98,9 @@ public class ReportGeneratorButton extends WindowButton {
 		MetadataSchema printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection)
 				.getSchemaType(Printable.SCHEMA_TYPE).getCustomSchema(PrintableReport.SCHEMA_NAME);
 		LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType)
-				.where(printableReportSchemaType.get(PrintableReport.REPORT_SCHEMA)).isEqualTo(getSchemaFromRecords().getCode());
+				.where(printableReportSchemaType.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(getSchemaFromRecords().getCode());
 		LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType)
-				.where(printableReportSchemaType.getMetadata(PrintableReport.REPORT_TYPE)).isEqualTo(currentSchema.toString());
+				.where(printableReportSchemaType.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.toString());
 		List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
 				from(printableReportSchemaType).whereAllConditions(conditionCustomSchema, conditionSchemaType)));
 		for (Record record : records) {

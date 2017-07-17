@@ -20,9 +20,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-/**
- * Created by Marco on 2017-03-20.
- */
 public class ReindexAndRestartEventDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
     private List<EventStatistics> events;
 

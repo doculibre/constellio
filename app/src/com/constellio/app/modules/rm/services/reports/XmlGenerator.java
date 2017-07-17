@@ -18,9 +18,6 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public abstract class XmlGenerator {
     /**
      * First element of the XMl document, usually in plural form.

@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.Report;
 
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
@@ -16,12 +13,10 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.StreamResource;
 import net.didion.jwnl.data.POS;
@@ -36,9 +31,6 @@ import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<ListPrintableReportView> {
     private  Map<PrintableReportListPossibleView, String>  POSSIBLE_SCHEMA_TYPE = new HashMap<PrintableReportListPossibleView, String>(){{
         put(PrintableReportListPossibleView.FOLDER, Folder.SCHEMA_TYPE);
@@ -68,7 +60,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
             @Override
             protected LogicalSearchQuery getQuery() {
                 MetadataSchema metadataSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableReport.SCHEMA_NAME);
-                return new LogicalSearchQuery(from(metadataSchema).where(metadataSchema.getMetadata(PrintableReport.REPORT_TYPE)).isEqualTo(schemaType));
+                return new LogicalSearchQuery(from(metadataSchema).where(metadataSchema.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType));
             }
         };
     }
@@ -87,7 +79,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return true;
+        return user.has(CorePermissions.MANAGE_PRINTABLE_REPORT).globally();
     }
 
     protected void addLabelButtonClicked() {
