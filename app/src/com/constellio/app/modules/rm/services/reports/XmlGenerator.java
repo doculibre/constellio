@@ -126,7 +126,7 @@ public abstract class XmlGenerator {
         return ob == null ? "null" : ob.toString();
     }
 
-    public abstract String generateXML() throws Exception;
+    public abstract String generateXML();
 
     abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 

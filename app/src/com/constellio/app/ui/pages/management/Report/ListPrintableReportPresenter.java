@@ -19,7 +19,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.StreamResource;
-import net.didion.jwnl.data.POS;
 import org.apache.commons.io.FileUtils;
 
 import java.io.ByteArrayInputStream;
@@ -32,10 +31,10 @@ import java.util.Map;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<ListPrintableReportView> {
-    private  Map<PrintableReportListPossibleView, String>  POSSIBLE_SCHEMA_TYPE = new HashMap<PrintableReportListPossibleView, String>(){{
-        put(PrintableReportListPossibleView.FOLDER, Folder.SCHEMA_TYPE);
-        put(PrintableReportListPossibleView.DOCUMENT, Document.SCHEMA_TYPE);
-        put(PrintableReportListPossibleView.TASK, Task.SCHEMA_TYPE);
+    private  Map<PrintableReportListPossibleType, String>  POSSIBLE_SCHEMA_TYPE = new HashMap<PrintableReportListPossibleType, String>(){{
+        put(PrintableReportListPossibleType.FOLDER, Folder.SCHEMA_TYPE);
+        put(PrintableReportListPossibleType.DOCUMENT, Document.SCHEMA_TYPE);
+        put(PrintableReportListPossibleType.TASK, Task.SCHEMA_TYPE);
     }};
 
     private MetadataSchemaToVOBuilder schemaVOBuilder;
@@ -60,7 +59,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
             @Override
             protected LogicalSearchQuery getQuery() {
                 MetadataSchema metadataSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableReport.SCHEMA_NAME);
-                return new LogicalSearchQuery(from(metadataSchema).where(metadataSchema.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType));
+                return schemaType == null ? null : new LogicalSearchQuery(from(metadataSchema).where(metadataSchema.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType.toUpperCase()));
             }
         };
     }
@@ -86,22 +85,22 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
         view.navigate().to().addPrintableReport();
     }
 
-    protected void editButtonClicked(String id, PrintableReportListPossibleView schema) {
+    protected void editButtonClicked(String id, PrintableReportListPossibleType schema) {
         view.navigate().to().editPrintableReport(id);
     }
 
-    protected void displayButtonClicked(String id, PrintableReportListPossibleView schema) {
+    protected void displayButtonClicked(String id, PrintableReportListPossibleType schema) {
         view.navigate().to().displayPrintableReport(id);
     }
 
-    protected void removeRecord(String id, PrintableReportListPossibleView schema) {
+    protected void removeRecord(String id, PrintableReportListPossibleType schema) {
         SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
         Record record = utils.toRecord(getRecordsWithIndex(schema, id));
         delete(record);
         view.navigate().to().managePrintableReport();
     }
 
-    public RecordVO getRecordsWithIndex(PrintableReportListPossibleView schema, String itemId) {
+    public RecordVO getRecordsWithIndex(PrintableReportListPossibleType schema, String itemId) {
         RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(POSSIBLE_SCHEMA_TYPE.get(schema));
         return itemId == null ?  null : dataProvider.getRecordVO(Integer.parseInt(itemId));
     }

@@ -1,32 +1,18 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.XmlGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
-import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
-import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldLookupImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
@@ -35,11 +21,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class GetXmlButtonV2 extends WindowButton{
@@ -47,12 +30,12 @@ public class GetXmlButtonV2 extends WindowButton{
     private String collection;
     private AppLayerFactory factory;
     private ContentManager contentManager;
-    private PrintableReportListPossibleView currentSchema;
+    private PrintableReportListPossibleType currentSchema;
 
     private ListAddRemoveRecordLookupField elementLookUpField;
 
 
-    public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, BaseView view, PrintableReportListPossibleView currentSchema) {
+    public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, BaseView view, PrintableReportListPossibleType currentSchema) {
         super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
         this.factory = appLayerFactory;
         this.model = factory.getModelLayerFactory();
@@ -61,7 +44,7 @@ public class GetXmlButtonV2 extends WindowButton{
         this.currentSchema = currentSchema;
     }
 
-    public void setCurrentSchema(PrintableReportListPossibleView schema) {
+    public void setCurrentSchema(PrintableReportListPossibleType schema) {
         this.currentSchema = schema;
     }
 
@@ -72,7 +55,7 @@ public class GetXmlButtonV2 extends WindowButton{
     }
 
     private ListAddRemoveRecordLookupField getLookupFieldForCurrentSchema() {
-        return new ListAddRemoveRecordLookupField(currentSchema.toString());
+        return new ListAddRemoveRecordLookupField(currentSchema.getSchemaType());
     }
 
     private class GetXmlFrom extends BaseForm<LabelParametersVO> {
@@ -86,7 +69,7 @@ public class GetXmlButtonV2 extends WindowButton{
             try{
                 ListAddRemoveRecordLookupField lookupField = (ListAddRemoveRecordLookupField) fields.get(0);
                 XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters(1);
-                xmlGeneratorParameters.setElementWithIds(currentSchema.toString(), lookupField.getValue());
+                xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), lookupField.getValue());
                 XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
                 String xml = xmlGenerator.generateXML();
                 String filename = "Constellio-Test.xml";

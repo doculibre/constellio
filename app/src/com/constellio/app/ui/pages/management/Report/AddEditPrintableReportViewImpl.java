@@ -20,7 +20,6 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
-import com.vaadin.data.util.converter.Converter;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -141,20 +140,20 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 
         public ComboBox createComboBox(MetadataVO metadataVO) {
             typeCombobox = new BaseComboBox();
-            Object folderValue = PrintableReportListPossibleView.FOLDER;
-            Object documentValue = PrintableReportListPossibleView.DOCUMENT;
-            Object taskValue = PrintableReportListPossibleView.TASK;
+            Object folderValue = PrintableReportListPossibleType.FOLDER;
+            Object documentValue = PrintableReportListPossibleType.DOCUMENT;
+            Object taskValue = PrintableReportListPossibleType.TASK;
             typeCombobox.addItems(folderValue, documentValue, taskValue);
-            typeCombobox.setItemCaption(folderValue, PrintableReportListPossibleView.FOLDER.getLabel());
-            typeCombobox.setItemCaption(documentValue, PrintableReportListPossibleView.DOCUMENT.getLabel());
-            typeCombobox.setItemCaption(taskValue, PrintableReportListPossibleView.TASK.getLabel());
+            typeCombobox.setItemCaption(folderValue, PrintableReportListPossibleType.FOLDER.getLabel());
+            typeCombobox.setItemCaption(documentValue, PrintableReportListPossibleType.DOCUMENT.getLabel());
+            typeCombobox.setItemCaption(taskValue, PrintableReportListPossibleType.TASK.getLabel());
             typeCombobox.setTextInputAllowed(false);
             typeCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
             typeCombobox.setConverter(new PrintableReportListToStringConverter());
             typeCombobox.addValueChangeListener(new Property.ValueChangeListener() {
                 @Override
                 public void valueChange(Property.ValueChangeEvent event) {
-                    presenter.setCurrentType((PrintableReportListPossibleView) event.getProperty().getValue());
+                    presenter.setCurrentType((PrintableReportListPossibleType) event.getProperty().getValue());
                     schemaCombobox = fillComboBox(schemaCombobox);
                 }
             });
@@ -166,6 +165,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
             schemaCombobox = fillComboBox(schemaCombobox);
             schemaCombobox.setTextInputAllowed(false);
             schemaCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+            //schemaCombobox.setConverter(new CustomSchemaToStringConverter(getCollection(), getConstellioFactories().getAppLayerFactory()));
             return schemaCombobox;
         }
 

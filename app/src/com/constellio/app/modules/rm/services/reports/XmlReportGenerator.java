@@ -40,7 +40,7 @@ public class XmlReportGenerator extends XmlGenerator{
     }
 
     @Override
-    public String generateXML() throws Exception{
+    public String generateXML(){
         xmlGeneratorParameters.validateInputs();
         Document xmlDocument = new Document();
         Element xmlRoot = new Element(XML_ROOT_RECORD_ELEMENTS);

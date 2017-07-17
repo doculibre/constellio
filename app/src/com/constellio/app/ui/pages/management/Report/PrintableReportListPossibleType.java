@@ -4,37 +4,33 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.vaadin.data.util.converter.Converter;
-
-import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public enum PrintableReportListPossibleView {
+public enum PrintableReportListPossibleType {
     FOLDER(Folder.SCHEMA_TYPE), DOCUMENT(Document.SCHEMA_TYPE), TASK(Task.SCHEMA_TYPE), CONTAINER(ContainerRecord.SCHEMA_TYPE);
 
-    private final String value;
+    private final String schemaType;
 
-    PrintableReportListPossibleView(String value) {
-        this.value = value;
+    PrintableReportListPossibleType(String schemaType) {
+        this.schemaType = schemaType;
     }
 
     public String getLabel() {
-        return $("PrintableReportListPossibleView." + value);
+        return $("PrintableReportListPossibleType." + schemaType);
     }
 
-    public static PrintableReportListPossibleView getValue(String value) {
-            for(PrintableReportListPossibleView e: PrintableReportListPossibleView.values()) {
-                if(e.value.equals(value)) {
+    public static PrintableReportListPossibleType getValue(String value) {
+            for(PrintableReportListPossibleType e: PrintableReportListPossibleType.values()) {
+                if(e.name().equals(value)) {
                     return e;
                 }
             }
             return null;// not found
     }
 
-    @Override
-    public String toString() {
-        return this.value;
+    public String getSchemaType() {
+        return this.schemaType;
     }
 
 

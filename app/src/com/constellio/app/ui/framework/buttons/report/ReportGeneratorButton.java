@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import net.sf.jasperreports.engine.JRException;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -28,7 +31,6 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -60,11 +62,11 @@ public class ReportGeneratorButton extends WindowButton {
 
 	private VerticalLayout layout;
 	private Button generateButton, cancelButton;
-	private PrintableReportListPossibleView currentSchema;
+	private PrintableReportListPossibleType currentSchema;
 	private BaseView view;
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
-			PrintableReportListPossibleView currentSchema) {
+			PrintableReportListPossibleType currentSchema) {
 		super(caption, windowCaption);
 		this.factory = factory;
 		this.collection = collection;
@@ -73,13 +75,13 @@ public class ReportGeneratorButton extends WindowButton {
 	}
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
-			PrintableReportListPossibleView currentSchema, RecordVO... elements) {
+								 PrintableReportListPossibleType currentSchema, RecordVO... elements) {
 		this(caption, windowCaption, view, factory, collection, currentSchema);
 		this.setElements(elements);
 	}
 
 	public void setElements(RecordVO... elements) {
-		this.currentSchema = PrintableReportListPossibleView.getValue(elements[0].getSchema().getTypeCode());
+		this.currentSchema = PrintableReportListPossibleType.getValue(elements[0].getSchema().getTypeCode());
 		this.elements = elements;
 	}
 
@@ -93,6 +95,7 @@ public class ReportGeneratorButton extends WindowButton {
 	}
 
 	private List<PrintableReportTemplate> getPrintableReportTemplate() {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, view);
 		List<PrintableReportTemplate> printableReportTemplateList = new ArrayList<>();
 		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchema printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection)
@@ -100,7 +103,7 @@ public class ReportGeneratorButton extends WindowButton {
 		LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType)
 				.where(printableReportSchemaType.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(getSchemaFromRecords().getCode());
 		LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType)
-				.where(printableReportSchemaType.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.toString());
+				.where(printableReportSchemaType.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.getSchemaType());
 		List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
 				from(printableReportSchemaType).whereAllConditions(conditionCustomSchema, conditionSchemaType)));
 		for (Record record : records) {
@@ -156,6 +159,8 @@ public class ReportGeneratorButton extends WindowButton {
 		@Override
 		protected void saveButtonClick(LabelParametersVO viewObject)
 				throws ValidationException {
+			InputStream selectedJasperFileContentInputStream = null;
+			File temporaryJasperFile = null;
 			try {
 				IOServicesFactory ioServicesFactory = parent.factory.getModelLayerFactory().getIOServicesFactory();
 				ContentManager contentManager = parent.factory.getModelLayerFactory().getContentManager();
@@ -165,22 +170,26 @@ public class ReportGeneratorButton extends WindowButton {
 				XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(parent.factory, parent.collection,
 						xmlGeneratorParameters);
 				JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
-				PrintableReportTemplate value = (PrintableReportTemplate) parent.printableItemsFields.getValue();
-				InputStream inputStream = contentManager
-						.getContentInputStream(value.getJasperFile().getCurrentVersion().getHash(),
-								value.getJasperFile().getId());
-				File jasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
-				FileUtils.copyInputStreamToFile(inputStream, jasperFile);
+				PrintableReportTemplate selectedPrintableReportTemplate = (PrintableReportTemplate) parent.printableItemsFields.getValue();
+				selectedJasperFileContentInputStream = contentManager
+						.getContentInputStream(selectedPrintableReportTemplate.getJasperFile().getCurrentVersion().getHash(),
+								"ReportGeneratorButtonReport#GeneratorButtonForm#saveButtonClick");
+				temporaryJasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
+				FileUtils.copyInputStreamToFile(selectedJasperFileContentInputStream, temporaryJasperFile);
 				String title =
-						elements[0].getSchema().getCode() + "_report_" + ISODateTimeFormat.dateTime().print(new LocalDateTime())
+						selectedPrintableReportTemplate.getTitle() + ISODateTimeFormat.dateTime().print(new LocalDateTime())
 								+ ".pdf";
-				File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, title);
+				File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile, title);
 				VerticalLayout newLayout = new VerticalLayout();
 				newLayout.addComponents(new LabelViewer(generatedJasperFile, title));
 				newLayout.setWidth("100%");
 				getWindow().setContent(newLayout);
-			} catch (Exception e) {
+			} catch (JRException | IOException e) {
+				//JRException check what it is.
 				e.printStackTrace();
+			} finally {
+				factory.getModelLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(selectedJasperFileContentInputStream);
+				factory.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(temporaryJasperFile);
 			}
 		}
 

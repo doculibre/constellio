@@ -5,8 +5,8 @@ public class PrintableReport extends Printable {
 	public final static String SCHEMA_TYPE = "report";
 	public final static String SCHEMA_NAME = Printable.SCHEMA_TYPE + "_" + SCHEMA_TYPE;
 
-	public final static String RECORD_TYPE = "reportType";
-	public final static String RECORD_SCHEMA = "reportSchema";
+	public final static String RECORD_TYPE = "recordType";
+	public final static String RECORD_SCHEMA = "recordSchema";
 
 	public PrintableReport(Record record, MetadataSchemaTypes types) {
 		super(record, types);

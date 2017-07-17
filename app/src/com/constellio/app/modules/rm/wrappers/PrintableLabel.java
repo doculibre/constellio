@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.ui.components.Dimensionnable;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
