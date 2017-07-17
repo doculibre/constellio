@@ -14,6 +14,15 @@ public class VersionsComparator implements Comparator<String> {
 
 	@Override
 	public int compare(String versionOne, String versionTwo) {
+
+		if (versionOne.contains("beta")) {
+			versionOne = versionOne.replace("beta.", "beta").replace("beta", "beta.");
+		}
+
+		if (versionTwo.contains("beta")) {
+			versionTwo = versionTwo.replace("beta.", "beta").replace("beta", "beta.");
+		}
+
 		String[] version1VersionAndSubVersion = versionOne.split("-");
 		String[] version2VersionAndSubVersion = versionTwo.split("-");
 
@@ -21,9 +30,9 @@ public class VersionsComparator implements Comparator<String> {
 		String[] versionsTwoWithoutSubVersion = split(version2VersionAndSubVersion[0]);
 
 		for (int i = 0; i < Math.min(versionsOneWithoutSubVersion.length, versionsTwoWithoutSubVersion.length); i++) {
-			if (Integer.parseInt(versionsOneWithoutSubVersion[i]) > Integer.parseInt(versionsTwoWithoutSubVersion[i])) {
+			if (parseVersionDigit(versionsOneWithoutSubVersion[i]) > parseVersionDigit(versionsTwoWithoutSubVersion[i])) {
 				return 1;
-			} else if (Integer.parseInt(versionsOneWithoutSubVersion[i]) < Integer.parseInt(versionsTwoWithoutSubVersion[i])) {
+			} else if (parseVersionDigit(versionsOneWithoutSubVersion[i]) < parseVersionDigit(versionsTwoWithoutSubVersion[i])) {
 				return -1;
 			}
 		}
@@ -43,7 +52,7 @@ public class VersionsComparator implements Comparator<String> {
 			if (subVersion1.isEmpty()) {
 				return -1;
 			} else {
-				return Integer.valueOf(subVersion1).compareTo(Integer.valueOf(subVersion2));
+				return Integer.compare(parseVersionDigit(subVersion1), parseVersionDigit(subVersion2));
 			}
 		} else {
 			if (subVersion1.isEmpty()) {
@@ -51,6 +60,14 @@ public class VersionsComparator implements Comparator<String> {
 			} else {
 				return 1;
 			}
+		}
+	}
+
+	private int parseVersionDigit(String str) {
+		if ("beta".equals(str)) {
+			return -1;
+		} else {
+			return Integer.parseInt(str);
 		}
 	}
 

@@ -10,14 +10,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class VersionsComparatorTest extends ConstellioTest {
 	VersionsComparator versionsComparator;
 
-	String version111 = "1.1.1";
-	String version1 = "1";
-	String version213 = "2.1.3";
-	String version254 = "2.5.4";
-	String version4 = "4";
-	String version011 = "0.1.1";
-	String version001 = "0.0.1";
-
 	@Before
 	public void setUp() {
 		versionsComparator = new VersionsComparator();
@@ -26,15 +18,21 @@ public class VersionsComparatorTest extends ConstellioTest {
 	@Test
 	public void whenCompareTwoVersionsThenZeroIfEqualsOneIfGreaterNegativeOneIfLower() {
 
-		assertThat(versionsComparator.compare(version1, version4)).isEqualTo(-1);
-		assertThat(versionsComparator.compare(version1, version111)).isEqualTo(-1);
-		assertThat(versionsComparator.compare(version111, version4)).isEqualTo(-1);
-		assertThat(versionsComparator.compare(version1, version001)).isEqualTo(1);
-		assertThat(versionsComparator.compare(version001, version011)).isEqualTo(-1);
-		assertThat(versionsComparator.compare(version213, version254)).isEqualTo(-1);
-		assertThat(versionsComparator.compare(version1, version1)).isEqualTo(0);
-		assertThat(versionsComparator.compare(version1, version254)).isEqualTo(-1);
-		assertThat(versionsComparator.compare(version254, version1)).isEqualTo(1);
+		assertThat(versionsComparator.compare("1", "4")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("1", "1.1.1")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("1.1.1", "4")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("1", "0.0.1")).isEqualTo(1);
+		assertThat(versionsComparator.compare("0.0.1", "0.1.1")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("2.1.3", "2.5.4")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("1", "1")).isEqualTo(0);
+		assertThat(versionsComparator.compare("1", "2.5.4")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("2.5.4", "1")).isEqualTo(1);
+
+		assertThat(versionsComparator.compare("2.5.beta1", "2.5.beta.1")).isEqualTo(0);
+		assertThat(versionsComparator.compare("2.5.beta1", "2.5.beta.2")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("2.5.beta2", "2.5.beta.1")).isEqualTo(1);
+		assertThat(versionsComparator.compare("2.5.beta2", "2.5")).isEqualTo(-1);
+		assertThat(versionsComparator.compare("2.5", "2.5.beta2")).isEqualTo(1);
 
 		assertThat(versionsComparator.compare("5.1-1", "5.1")).isEqualTo(1);
 		assertThat(versionsComparator.compare("5.1", "5.1-1")).isEqualTo(-1);
