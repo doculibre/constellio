@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -20,6 +21,7 @@ import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaType
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.data.utils.Factory;
@@ -88,6 +90,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
 		buttons.add(buildDecommissionButton());
+		buttons.add(buildPrintMetadataReportButton());
 		return buttons;
 	}
 
@@ -227,6 +230,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 		filterComponent.addComponents(containerFilterField, filterButton);
 		return filterComponent;
+	}
+
+	private Button buildPrintMetadataReportButton() {
+		ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleView.ANY);
+		return reportGeneratorButton;
 	}
 
 		private Button buildDecommissionButton() {
