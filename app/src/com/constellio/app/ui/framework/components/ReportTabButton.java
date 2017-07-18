@@ -186,7 +186,6 @@ public class ReportTabButton extends WindowButton {
 
     private void showNoDefinedReportTemplateForConditionError() {
         //TODO remove tab
-        tabSheet.removeTab(tabSheet.getTab(PDFTabLayout));
         tabSheet.setSelectedTab(0);
         view.showErrorMessage($("ReportTabButton.noReportTemplateForCondition"));
     }

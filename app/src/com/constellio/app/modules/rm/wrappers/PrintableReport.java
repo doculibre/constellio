@@ -20,7 +20,5 @@ public class PrintableReport extends Printable {
 		return SCHEMA_TYPE;
 	}
 
-	public String getReportSchema() {
-		return get(RECORD_SCHEMA);
-	}
+    public String getReportSchema() { return get(RECORD_SCHEMA); }
 }

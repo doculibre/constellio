@@ -1,7 +1,6 @@
 package com.constellio.app.utils;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;

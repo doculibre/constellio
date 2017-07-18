@@ -21,7 +21,6 @@ import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaType
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.data.utils.Factory;
@@ -90,7 +89,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
 		buttons.add(buildDecommissionButton());
-		buttons.add(buildPrintMetadataReportButton());
+		//buttons.add(buildPrintMetadataReportButton());
 		return buttons;
 	}
 
@@ -233,8 +232,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildPrintMetadataReportButton() {
-		ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleView.ANY);
-		return reportGeneratorButton;
+		//ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), Print.ANY);
+		return null;
 	}
 
 		private Button buildDecommissionButton() {
