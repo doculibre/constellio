@@ -27,6 +27,7 @@ import com.constellio.app.ui.framework.components.content.ContentVersionVOResour
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.navigator.View;
@@ -268,6 +269,11 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	@Override
 	public void showErrorMessage(String errorMessage) {
 		Notification.show(errorMessage, Type.ERROR_MESSAGE);
+	}
+
+	@Override
+	public UIContext getUIContext() {
+		return ConstellioUI.getCurrent();
 	}
 
 	@Override

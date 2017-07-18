@@ -61,6 +61,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
@@ -364,6 +365,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("00000000053"));
+
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
 
@@ -621,6 +624,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenUser(robin).isRemovedFromGroup(sidekicks);
 		givenUser(sasquatch).isAddedInGroup(heroes);
 		givenUser(edouard).isAddedInGroup(sidekicks);
+
+		//TODO Optimistic locking exception should occur
+		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
@@ -991,6 +997,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForPrincipals(heroes, dakota).on(FOLDER2).givingReadWriteAccess());
 		auth3 = add(authorizationForUser(dakota).on(TAXO1_CATEGORY1).givingReadAccess());
 
+		//TODO Optimistic locking exception should occur
+		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+
 		assertThatAuthorizationsOn(FOLDER2).containsOnly(
 				authOnRecord(FOLDER2).givingReadWrite().forPrincipals(heroes, dakota),
 				authOnRecord(TAXO1_CATEGORY1).givingRead().forPrincipals(dakota));
@@ -1033,9 +1042,14 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1);
 
 		givenUser(alice).isRemovedFromGroup(legends);
+
 		forUser(alice).assertThatRecordsWithReadAccess().containsOnly(FOLDER1, FOLDER1_DOC1);
 
 		givenUser(alice).isAddedInGroup(heroes);
+
+		//TODO Optimistic locking exception should occur
+		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+
 		forUser(alice).assertThatRecordsWithReadAccess().containsOnly(
 				FOLDER1, FOLDER1_DOC1, FOLDER2, FOLDER2_1, FOLDER2_2, FOLDER2_2_DOC1, FOLDER2_2_DOC2);
 	}

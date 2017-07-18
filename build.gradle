@@ -58,6 +58,7 @@ subprojects {
         compile "org.apache.kafka:kafka-clients:0.11.0.0"
         compile "com.google.code.gson:gson:2.8.1"
 
+        compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
     }
 
     configurations {
@@ -66,13 +67,13 @@ subprojects {
     }
 
     jar {
-        version = '7.3.1.16'
+        version = '7.4.beta6'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "7.3.1.16"
+    version = "7.4.beta6"
 
     webInf {
         from("resources_i18n/") {

@@ -13,16 +13,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable.WorkflowPresenter;
@@ -38,6 +39,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.vaadin.ui.Component;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
@@ -49,7 +51,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private transient TasksSearchServices tasksSearchServices;
 	private transient TaskPresenterServices taskPresenterServices;
-	private transient WorkflowServices workflowServices;
+	private transient BetaWorkflowServices workflowServices;
 
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -79,9 +81,12 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		if (isWorkflowTab(tabId)) {
 			RecordVODataProvider provider = getWorkflowInstances(tabId);
 			view.displayWorkflows(provider);
-		} else {
+		} else if (isTaskTab(tabId)) {
 			RecordVODataProvider provider = getTasks(tabId);
 			view.displayTasks(provider);
+		} else {
+			UpdateComponentExtensionParams params = new UpdateComponentExtensionParams((Component) view, view.getSelectedTab());
+			appCollectionExtentions.updateComponent(params);
 		}
 	}
 
@@ -177,8 +182,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void cancelWorkflowInstanceRequested(RecordVO record) {
-		WorkflowInstance instance = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
-				.getWorkflowInstance(record.getId());
+		BetaWorkflowInstance instance = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
+				.getBetaWorkflowInstance(record.getId());
 		workflowServices.cancel(instance);
 		refreshCurrentTab();
 	}
@@ -191,7 +196,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public RecordVODataProvider getWorkflows() {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
-				schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+				schema(BetaWorkflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -202,7 +207,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	public void workflowStartRequested(RecordVO record) {
-		Workflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getWorkflow(record.getId());
+		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getBetaWorkflow(record.getId());
 		Map<String, List<String>> parameters = new HashMap<>();
 		workflowServices.start(workflow, getCurrentUser(), parameters);
 		refreshCurrentTab();
@@ -248,7 +253,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private RecordVODataProvider getWorkflowInstances(String tabId) {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
-				.build(schema(WorkflowInstance.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+				.build(schema(BetaWorkflowInstance.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 
 		switch (tabId) {
 		case WORKFLOWS_STARTED:
@@ -280,6 +285,18 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		return WORKFLOWS_STARTED.equals(tabId);
 	}
 
+	private boolean isTaskTab(String tabId) {
+		switch (tabId) {
+			case TASKS_ASSIGNED_TO_CURRENT_USER:
+			case TASKS_ASSIGNED_BY_CURRENT_USER:
+			case TASKS_NOT_ASSIGNED:
+			case TASKS_RECENTLY_COMPLETED:
+				return true;
+			default:
+				return false;
+		}
+	}
+
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
@@ -288,7 +305,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private void initTransientObjects() {
 		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		workflowServices = new WorkflowServices(collection, appLayerFactory);
+		workflowServices = new BetaWorkflowServices(collection, appLayerFactory);
 		tasksSearchServices = new TasksSearchServices(schemas);
 		taskPresenterServices = new TaskPresenterServices(
 				schemas, recordServices(), tasksSearchServices, modelLayerFactory.newLoggingServices());

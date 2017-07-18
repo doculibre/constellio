@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
@@ -660,7 +661,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
             
             AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage("cart", signature, subject, from, attachments);
+            EmailMessageParams params = new EmailMessageParams("selection", signature, subject, from, attachments);
+			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
 				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);

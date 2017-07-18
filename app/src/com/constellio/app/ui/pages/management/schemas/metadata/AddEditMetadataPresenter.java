@@ -55,6 +55,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.vaadin.ui.UI;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
+	
+	private String schemaCode;
+	private String schemaTypeCode;
 	private Map<String, String> parameters;
 	private String metadataCode;
 
@@ -69,6 +72,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setParameters(Map<String, String> params) {
 		this.parameters = params;
+		this.schemaCode = parameters.get("schemaCode"); 
+		this.schemaTypeCode = parameters.get("schemaTypeCode"); 
 	}
 
 	public void setMetadataCode(String metadataCode) {
@@ -88,7 +93,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Metadata metadata = types.getMetadata(metadataCode);
 
 			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
-			found = voBuilder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
+			found = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
 		}
 
 		return found;
@@ -147,19 +152,19 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					@Override
 					public Metadata getMetadata() {
 						MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-						return types.getMetadata(metadataCode);
+						return StringUtils.isNotBlank(metadataCode) ? types.getMetadata(metadataCode) : null;
 					}
 
 					@Override
 					public MetadataSchema getSchema() {
 						MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-						return types.getSchema(new SchemaUtils().getSchemaCode(metadataCode));
+						return types.getSchema(schemaCode);
 					}
 
 					@Override
 					public MetadataSchemaType getSchemaType() {
 						MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-						return types.getSchemaType(SchemaUtils.getSchemaTypeCode(metadataCode));
+						return types.getSchemaType(schemaTypeCode);
 					}
 				});
 	}
@@ -376,12 +381,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public List<String> getMetadataGroupList() {
-		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
+		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
 		return new ArrayList<>(schemaConfig.getMetadataGroup().keySet());
 	}
 
 	public String getGroupLabel(String code) {
-		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
+		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		return schemaConfig.getMetadataGroup().get(code).get(language);
 	}

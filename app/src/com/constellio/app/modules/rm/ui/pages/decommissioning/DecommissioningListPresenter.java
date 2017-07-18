@@ -686,7 +686,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public LogicalSearchQuery buildContainerQuery(Double minimumSize) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).whereAllConditions(
-				where(rm.containerRecord.administrativeUnits()).isEqualTo(decommissioningList().getAdministrativeUnit()),
+				where(rm.containerRecord.administrativeUnits()).isContaining(asList(decommissioningList().getAdministrativeUnit())),
 				where(rm.containerRecord.availableSize()).isGreaterOrEqualThan(minimumSize),
 				anyConditions(
 						where(rm.containerRecord.decommissioningType())

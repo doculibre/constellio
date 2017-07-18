@@ -56,6 +56,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 					executeTransaction(transaction);
 				}
 			}
+		} else {
+			System.out.println("Reindexing!");
 		}
 	}
 

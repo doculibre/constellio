@@ -44,7 +44,6 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.trash.TrashQueueManager;
@@ -54,11 +53,6 @@ import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
-import com.constellio.model.services.workflows.WorkflowExecutor;
-import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
-import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
-import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexManager;
-import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
 
 public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory {
 
@@ -92,13 +86,19 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 
 	@Override
 	public RecordServices newRecordServices() {
-		RecordServices nestedRecordServices = modelLayerFactory.newRecordServices();
-		return new CachedRecordServices(this, nestedRecordServices, requestCache);
+		//RecordServices nestedRecordServices = modelLayerFactory.newRecordServices();
+		//RecordServices nestedRecordServices = new CachedRecordServices(this, , requestCache);
+		return new CachedRecordServices(this, newCachelessRecordServices(requestCache), requestCache);
 	}
 
 	@Override
 	public RecordServicesImpl newCachelessRecordServices() {
 		return modelLayerFactory.newCachelessRecordServices();
+	}
+
+	@Override
+	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
+		return modelLayerFactory.newCachelessRecordServices(recordsCaches);
 	}
 
 	@Override
@@ -223,36 +223,6 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public IOServicesFactory getIOServicesFactory() {
 		return modelLayerFactory.getIOServicesFactory();
-	}
-
-	@Override
-	public WorkflowBPMNDefinitionsService newWorkflowBPMNDefinitionsService() {
-		return modelLayerFactory.newWorkflowBPMNDefinitionsService();
-	}
-
-	@Override
-	public WorkflowExecutionService newWorkflowExecutionService() {
-		return modelLayerFactory.newWorkflowExecutionService();
-	}
-
-	@Override
-	public WorkflowsConfigManager getWorkflowsConfigManager() {
-		return modelLayerFactory.getWorkflowsConfigManager();
-	}
-
-	@Override
-	public WorkflowExecutionIndexManager getWorkflowExecutionIndexManager() {
-		return modelLayerFactory.getWorkflowExecutionIndexManager();
-	}
-
-	@Override
-	public WorkflowExecutor getWorkflowsManager() {
-		return modelLayerFactory.getWorkflowsManager();
-	}
-
-	@Override
-	public TaskServices newTaskServices() {
-		return modelLayerFactory.newTaskServices();
 	}
 
 	@Override

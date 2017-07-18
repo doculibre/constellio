@@ -61,25 +61,29 @@ public class FileIconUtils implements Serializable {
 	}
 
 	public static String getExtension(RecordVO recordVO) {
-		String extension;
-		String fileName = null;
-		for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
-			Object value = metadataValueVO.getValue();
-			if (value instanceof ContentVersionVO) {
-				fileName = ((ContentVersionVO) value).getFileName();
-				break;
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		String collection = recordVO.getSchema().getCollection();
+		String extension = appLayerFactory.getExtensions().forCollection(collection).getExtensionForRecordVO(new GetIconPathParams(recordVO, false));
+		if (extension == null) {
+			String fileName = null;
+			for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
+				Object value = metadataValueVO.getValue();
+				if (value instanceof ContentVersionVO) {
+					fileName = ((ContentVersionVO) value).getFileName();
+					break;
+				}
 			}
-		}
-		if (fileName != null) {
-			String iconPath = getIconPath(fileName);
-			if (DEFAULT_ICON_PATH.equals(iconPath)) {
-				extension = DEFAULT_VALUE;
+			if (fileName != null) {
+				String iconPath = getIconPath(fileName);
+				if (DEFAULT_ICON_PATH.equals(iconPath)) {
+					extension = DEFAULT_VALUE;
+				} else {
+					extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+				}
 			} else {
-				extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+				extension = getExtensionForRecordVO(recordVO);
 			}
-		} else {
-			extension = getExtensionForRecordVO(recordVO);
-		}
+		}	
 		return extension;
 	}
 
@@ -92,12 +96,16 @@ public class FileIconUtils implements Serializable {
 	}
 
 	public static Resource getIcon(RecordVO recordVO) {
-		String fileName = null;
-		for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
-			Object value = metadataValueVO.getValue();
-			if (value instanceof ContentVersionVO) {
-				fileName = ((ContentVersionVO) value).getFileName();
-				break;
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		String collection = recordVO.getSchema().getCollection();
+		String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecordVO(new GetIconPathParams(recordVO, false));
+		if (fileName == null) {
+			for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
+				Object value = metadataValueVO.getValue();
+				if (value instanceof ContentVersionVO) {
+					fileName = ((ContentVersionVO) value).getFileName();
+					break;
+				}
 			}
 		}
 		if (fileName != null) {
@@ -110,13 +118,10 @@ public class FileIconUtils implements Serializable {
 	@Deprecated
 	public static Resource getIconForRecordId(String recordId) {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-
 		try {
 			return getIconForRecordId(recordServices.getDocumentById(recordId), false);
-
 		} catch (Exception e) {
 			return null;
 		}

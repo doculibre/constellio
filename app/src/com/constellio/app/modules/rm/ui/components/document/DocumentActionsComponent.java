@@ -1,23 +1,25 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.ViewComponent;
 
-public interface DocumentActionsComponent extends Serializable {
+public interface DocumentActionsComponent extends ViewComponent {
 
 	@Deprecated
 	CoreViews navigateTo();
 
+	@Override
 	Navigation navigate();
 
+	@Override
 	void showMessage(String message);
 
+	@Override
 	void showErrorMessage(String errorMessage);
 
 	SessionContext getSessionContext();
