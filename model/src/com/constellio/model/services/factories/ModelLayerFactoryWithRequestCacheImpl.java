@@ -86,13 +86,19 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 
 	@Override
 	public RecordServices newRecordServices() {
-		RecordServices nestedRecordServices = modelLayerFactory.newRecordServices();
-		return new CachedRecordServices(this, nestedRecordServices, requestCache);
+		//RecordServices nestedRecordServices = modelLayerFactory.newRecordServices();
+		//RecordServices nestedRecordServices = new CachedRecordServices(this, , requestCache);
+		return new CachedRecordServices(this, newCachelessRecordServices(requestCache), requestCache);
 	}
 
 	@Override
 	public RecordServicesImpl newCachelessRecordServices() {
 		return modelLayerFactory.newCachelessRecordServices();
+	}
+
+	@Override
+	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
+		return modelLayerFactory.newCachelessRecordServices(recordsCaches);
 	}
 
 	@Override

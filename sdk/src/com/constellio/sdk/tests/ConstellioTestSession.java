@@ -135,35 +135,40 @@ public class ConstellioTestSession {
 		if (afterTestValidationsTestFeature != null) {
 			exception = afterTestValidationsTestFeature.afterTest(firstClean, failed);
 		}
-		if (factoriesTestFeatures != null) {
-			factoriesTestFeatures.afterTest();
-		}
-		if (streamsTestFeatures != null) {
-			streamsTestFeatures.afterTest();
-		}
-		if (fileSystemTestFeatures != null) {
-			fileSystemTestFeatures.close();
-		}
-		if (schemaTestFeatures != null) {
-			schemaTestFeatures.afterTest(firstClean);
-		}
 
-		if (streamsTestFeatures != null) {
-			List<String> unClosedResources = streamsTestFeatures.getUnClosedResources();
-			if (!unClosedResources.isEmpty()) {
-				throw new RuntimeException("Resources were not closed : " + unClosedResources.toString());
+		try {
+			if (factoriesTestFeatures != null) {
+				factoriesTestFeatures.afterTest();
+			}
+		} finally {
+			if (streamsTestFeatures != null) {
+				streamsTestFeatures.afterTest();
+			}
+			if (fileSystemTestFeatures != null) {
+				fileSystemTestFeatures.close();
+			}
+			if (schemaTestFeatures != null) {
+				schemaTestFeatures.afterTest(firstClean);
+			}
+
+			if (streamsTestFeatures != null) {
+				List<String> unClosedResources = streamsTestFeatures.getUnClosedResources();
+				if (!unClosedResources.isEmpty()) {
+					throw new RuntimeException("Resources were not closed : " + unClosedResources.toString());
+				}
+			}
+
+			TimeProvider.setTimeProvider(new DefaultTimeProvider());
+			if (TimeProvider.getLocalDate().getYear() < 2015) {
+				throw new RuntimeException(
+						"The local date returned by the system is invalid : " + TimeProvider.getLocalDate());
+			}
+
+			if (exception != null) {
+				throw new RuntimeException(exception);
 			}
 		}
 
-		TimeProvider.setTimeProvider(new DefaultTimeProvider());
-		if (TimeProvider.getLocalDate().getYear() < 2015) {
-			throw new RuntimeException(
-					"The local date returned by the system is invalid : " + TimeProvider.getLocalDate());
-		}
-
-		if (exception != null) {
-			throw new RuntimeException(exception);
-		}
 	}
 
 	public AfterTestValidationsTestFeature getAfterTestValidationsTestFeature() {

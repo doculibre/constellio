@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -28,6 +29,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
@@ -107,6 +109,12 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				configuration.setTokenRemovalThreadDelayBetweenChecks(oneSecond);
 			}
 		});
+	}
+
+	@After
+	public void tearDown()
+			throws Exception {
+		ConstellioFactories.getInstance().onRequestEnded();
 	}
 
 	@Test
@@ -1163,6 +1171,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void TryingToSafePhysicalDeleteAllUnusedUsers()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
+		ConstellioFactories.getInstance().onRequestStarted();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -1394,6 +1403,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
 		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
+		ConstellioFactories.getInstance().onRequestStarted();
 	}
 
 	private List<String> groups(String... groups) {
