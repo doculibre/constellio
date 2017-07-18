@@ -37,6 +37,9 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private Map<String, String> parameters;
 	public static final String OPEN_SESSION = "open_session";
 
+	public static final String EVENT_DEFAULT_TYPE = "event_default_type";
+	public static final String EVENT_DEFAULT_USERNAME = "event_default_username";
+
 	public EventViewImpl() {
 		this.presenter = new EventPresenter(this);
 	}
@@ -112,7 +115,15 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 						}
 					};
 				} else {
-					return super.newColumnsManager();
+					return new RecordVOTableColumnsManager() {
+						@Override
+						protected List<String> getDefaultVisibleColumnIds(Table table) {
+							List<String> defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
+							defaultVisibleColumnIds.add(EVENT_DEFAULT_TYPE);
+							defaultVisibleColumnIds.add(EVENT_DEFAULT_USERNAME);
+							return defaultVisibleColumnIds;
+						}
+					};
 				}
 			}
 		};
