@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
+import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +29,8 @@ import java.util.Map;
 public class DecommissioningListImportExtension extends RecordImportExtension {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DecommissioningListImportExtension.class);
+
+    public static final String NON_EXISTING_FOLDER = "nonExistingFolder";
 
     public static final String FOLDER_ID = "folderId";
     public static final String FOLDER_EXCLUDED = "folderExcluded";
@@ -53,6 +58,41 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
         return DecommissioningList.SCHEMA_TYPE;
     }
 
+
+    @Override
+    public void validate(ValidationParams event) {
+        ValidationErrors errors = event.getErrors();
+        List<Map<String, String>> decomListFolderDetails = event.getImportRecord().getList(DecommissioningList.FOLDER_DETAILS);
+        for(Map<String, String> details: decomListFolderDetails) {
+            if (details.containsKey(FOLDER_ID) && StringUtils
+                    .isNotEmpty(details.get(FOLDER_ID))) {
+
+                Folder folder;
+
+                if(event.getOptions().isImportAsLegacyId()) {
+                    folder = rm.getFolderWithLegacyId(details.get(FOLDER_ID));
+                } else {
+                    folder = rm.getFolder(details.get(FOLDER_ID));
+                }
+
+                if(folder == null) {
+                    if(event.isWarningsForInvalidFacultativeMetadatas()) {
+                        errors.addWarning(DecommissioningListImportExtension.class, NON_EXISTING_FOLDER, asMap("folderId", details.get(FOLDER_ID), "listId", event.getImportRecord().getLegacyId()));
+                    } else {
+                        errors.add(DecommissioningListImportExtension.class, NON_EXISTING_FOLDER, asMap("folderId", details.get(FOLDER_ID), "listId", event.getImportRecord().getLegacyId()));
+                    }
+                }
+            }
+        }
+        super.validate(event);
+    }
+
+    private Map<String, Object> asMap(String key1, String value1, String key2, String value2) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(key1, value1);
+        parameters.put(key2, value2);
+        return parameters;
+    }
 
     @Override
     public void build(BuildParams buildParams) {
@@ -124,7 +164,11 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
                 folder = rm.getFolder(mapDecomListFolderDetail.get(FOLDER_ID));
             }
 
-            decomListFolderDetail = new DecomListFolderDetail(folder);
+            if(folder == null) {
+                decomListFolderDetail = new DecomListFolderDetail();
+            } else {
+                decomListFolderDetail = new DecomListFolderDetail(folder);
+            }
         } else {
             decomListFolderDetail = new DecomListFolderDetail();
         }

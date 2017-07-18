@@ -238,7 +238,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
 
 
 		importExtension.prevalidate(new PrevalidationParams(errors, importData));
-		importExtension.validate(new ValidationParams(errors, importData,importDataOptions));
+		importExtension.validate(new ValidationParams(errors, importData,importDataOptions, false));
 		importExtension.build(new BuildParams(retentionRule.getWrappedRecord(), rm.getTypes(), importData, importDataOptions, false));
 
 		assertThat(asList(retentionRule.getSecondaryCopy())).extracting("code", "activeRetentionPeriod",
