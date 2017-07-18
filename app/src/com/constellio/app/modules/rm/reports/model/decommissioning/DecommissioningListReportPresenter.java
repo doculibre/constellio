@@ -58,7 +58,7 @@ public class DecommissioningListReportPresenter {
         if(folderDetailTableExtension != null) {
             model.setWithMediumType(true);
             model.setWithMainCopyRule(true);
-            Metadata ancienNumeroMetadata = folderSchemaType.getDefaultSchema().get("USRancienNumeroDossier");
+            Metadata ancienNumeroMetadata = folderDetailTableExtension.getPreviousIdMetadata();
             foldersQuery.sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(ancienNumeroMetadata).sortAsc(Schemas.IDENTIFIER);
         } else {
             foldersQuery.sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(Schemas.LEGACY_ID).sortAsc(Schemas.IDENTIFIER);

@@ -1,12 +1,13 @@
 package com.constellio.app.modules.rm.ui.entities;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+
+import java.io.Serializable;
 
 public class FolderDetailVO implements Serializable {
 	private String folderId;
 	private String folderLegacyId;
+	private String previousId;
 	private boolean folderIncluded;
 	private String containerRecordId;
 	private FolderMediaType mediumType;
@@ -112,5 +113,14 @@ public class FolderDetailVO implements Serializable {
 
 	public void setLinearSize(Double linearSize) {
 		this.linearSize = linearSize;
+	}
+
+	public String getPreviousId() {
+		return previousId;
+	}
+
+	public FolderDetailVO setPreviousId(String previousId) {
+		this.previousId = previousId;
+		return this;
 	}
 }
