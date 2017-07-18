@@ -127,13 +127,17 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
         private ComboBox typeCombobox, schemaCombobox;
         @Override
         public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-            Field<?> field = null;
-            if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE)) {
-                field = createComboBox(metadataVO);
-            } else if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_SCHEMA)) {
-                field = createComboBoxForSchemaType(metadataVO);
-            } else {
-                field = new MetadataFieldFactory().build(metadataVO);
+            Field<?> field;
+            switch (metadataVO.getCode()) {
+                case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE:
+                    field = createComboBox(metadataVO);
+                    break;
+                case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_SCHEMA:
+                    field = createComboBoxForSchemaType(metadataVO);
+                    break;
+                default:
+                    field = new MetadataFieldFactory().build(metadataVO);
+                    break;
             }
             return field;
         }

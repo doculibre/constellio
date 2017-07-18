@@ -36,6 +36,4 @@ public enum PrintableReportListPossibleType {
     public String getSchemaTypeUpperCase() {
         return this.getSchemaType().toUpperCase();
     }
-
-
 }

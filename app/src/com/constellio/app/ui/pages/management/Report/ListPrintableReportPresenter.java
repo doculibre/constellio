@@ -65,15 +65,15 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
     }
 
     protected RecordVODataProvider getPrintableReportFolderDataProvider() {
-        return getDataProviderForSchemaType(Folder.SCHEMA_TYPE);
+        return getDataProviderForSchemaType(PrintableReportListPossibleType.FOLDER.toString());
     }
 
     protected RecordVODataProvider getPrintableReportDocumentDataProvider() {
-        return getDataProviderForSchemaType(Document.SCHEMA_TYPE);
+        return getDataProviderForSchemaType(PrintableReportListPossibleType.DOCUMENT.toString());
     }
 
     protected RecordVODataProvider getPrintableReportTaskDataProvider() {
-        return getDataProviderForSchemaType(Task.SCHEMA_TYPE);
+        return getDataProviderForSchemaType(PrintableReportListPossibleType.TASK.toString());
     }
 
     @Override

@@ -100,9 +100,9 @@ public class ReportGeneratorButton extends WindowButton {
 		try {
 			this.getWindow().setResizable(true);
 			layout = new VerticalLayout();
-			setupCopieFields();
+			//setupCopieFields();
 			setupPrintableReportTemplateSelection();
-			return new ReportGeneratorButtonForm(new LabelParametersVO(new LabelTemplate()), this, copiesField,
+			return new ReportGeneratorButtonForm(new LabelParametersVO(new LabelTemplate()), this,
 					printableItemsFields);
 		} catch (Exception e) {
 			this.view.showErrorMessage($("ReportGeneratorButton.noReportConfigured"));
@@ -123,6 +123,7 @@ public class ReportGeneratorButton extends WindowButton {
         } else {
             throw new Exception("No report generated");
         }
+        printableItemsFields.setCaption($("ReportTabButton.selectTemplate"));
     }
 
 	private void setupCopieFields() {
@@ -142,7 +143,7 @@ public class ReportGeneratorButton extends WindowButton {
 		@Override
 		protected void saveButtonClick(LabelParametersVO viewObject)
 				throws ValidationException {
-			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getCode(), (PrintableReportTemplate) parent.printableItemsFields.getValue(), (Integer) parent.copiesField.getConvertedValue(), getIdsFromRecordVO()));
+			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getCode(), (PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO()));
 		}
 
 		@Override
