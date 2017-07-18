@@ -33,7 +33,7 @@ public class TaskValidator implements RecordValidator {
 			validationErrors.add(getClass(), DUE_DATE_MUST_BE_LESSER_OR_EQUAL_THAN_PARENT_DUE_DATE);
 		}
 
-		if (configProvider.get(RMConfigs.WORKFLOWS_ENABLED)) {
+		if (Boolean.TRUE.equals(configProvider.get(RMConfigs.WORKFLOWS_ENABLED))) {
 			BetaWorkflowTask betaWorkflowTask = new BetaWorkflowTask(task);
 			if (betaWorkflowTask.getWorkflowInstance() != null && task.getStatusType().isFinishedOrClosed()) {
 				if (betaWorkflowTask.hasDecisions() && !betaWorkflowTask.getNextTasksDecisionsCodes()

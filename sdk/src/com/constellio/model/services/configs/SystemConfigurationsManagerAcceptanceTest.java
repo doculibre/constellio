@@ -112,7 +112,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		manager.setValue(text, "dakota");
 
 		SystemConfigurationsManager otherManager = new SystemConfigurationsManager(getModelLayerFactory(),
-				getDataLayerFactory().getConfigManager(), new Delayed<>(getAppLayerFactory().getModulesManager()));
+				getDataLayerFactory().getConfigManager(), new Delayed<>(getAppLayerFactory().getModulesManager()), getDataLayerFactory().getSettingsCacheManager());
 		otherManager.initialize();
 
 		assertThat(otherManager.getValue(text)).isEqualTo("dakota");
