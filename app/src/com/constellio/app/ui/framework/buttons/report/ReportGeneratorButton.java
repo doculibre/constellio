@@ -1,6 +1,24 @@
 package com.constellio.app.ui.framework.buttons.report;
 
-import com.constellio.app.modules.reports.wrapper.Printable;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.utils.ReportGeneratorUtils;
+import net.sf.jasperreports.engine.JRException;
+import org.apache.commons.io.FileUtils;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.ISODateTimeFormat;
+
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
@@ -79,7 +97,7 @@ public class ReportGeneratorButton extends WindowButton{
     }
 
     public void setElements(RecordVO... elements){
-        this.currentSchema = PrintableReportListPossibleView.getValue(elements[0].getSchema().getTypeCode());
+        this.currentSchema = PrintableReportListPossibleView.getValue(elements[0].getSchema().getTypeCode().toUpperCase());
         this.elements = elements;
     }
 
@@ -91,45 +109,36 @@ public class ReportGeneratorButton extends WindowButton{
         return metadataSchema;
     }
 
-    private List<PrintableReportTemplate> getPrintableReportTemplate() {
-        List<PrintableReportTemplate> printableReportTemplateList = new ArrayList<>();
-        MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-        MetadataSchema printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(Printable.SCHEMA_TYPE).getCustomSchema(PrintableReport.SCHEMA_NAME);
-        LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType).where(printableReportSchemaType.get(PrintableReport.REPORT_SCHEMA)).isEqualTo(getSchemaFromRecords().getCode());
-        LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType).where(printableReportSchemaType.getMetadata(PrintableReport.REPORT_TYPE)).isEqualTo(currentSchema.toString());
-        List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(from(printableReportSchemaType).whereAllConditions(conditionCustomSchema, conditionSchemaType)));
-        for (Record record : records) {
-            printableReportTemplateList.add(new PrintableReportTemplate(record.getId(), record.getTitle(), record.<Content>get(printableReportSchemaType.getMetadata(PrintableReport.JASPERFILE))));
-        }
-        return printableReportTemplateList;
-    }
+	@Override
+	protected Component buildWindowContent() {
+		try {
+			this.getWindow().setResizable(true);
+			layout = new VerticalLayout();
+			setupCopieFields();
+			setupPrintableReportTemplateSelection();
+			return new ReportGeneratorButtonForm(new LabelParametersVO(new LabelTemplate()), this, copiesField,
+					printableItemsFields);
+		} catch (Exception e) {
+			this.view.showErrorMessage($("ReportGeneratorButton.noReportConfigured"));
+		}
+		return null;
+	}
 
-    @Override
-    protected Component buildWindowContent() {
-        try{
-            this.getWindow().setResizable(true);
-            layout = new VerticalLayout();
-            setupCopieFields();
-            setupPrintableReportTemplateSelection();
-            return new ReportGeneratorButtonForm(new LabelParametersVO(new LabelTemplate()), this, copiesField, printableItemsFields);
-        }catch (Exception e) {
-            this.view.showErrorMessage($("ReportGeneratorButton.noReportConfigured"));
-        }
-        return null;
-    }
-
-    private void setupPrintableReportTemplateSelection() throws Exception{
-        printableItemsFields = new ComboBox();
-        List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
-        if(printableReportTemplateList.size() > 0) {
-            for(PrintableReportTemplate printableReportTemplate : getPrintableReportTemplate()) {
-                printableItemsFields.addItem(printableReportTemplate);
-                printableItemsFields.setItemCaption(printableReportTemplate, printableReportTemplate.getTitle());
-            }
-        } else {
-            throw new Exception("No report generated");
-        }
-    }
+	private List<PrintableReportTemplate> getPrintableReportTemplate(){
+		return ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, getSchemaFromRecords().getCode(), currentSchema);
+	}private void setupPrintableReportTemplateSelection()
+			throws Exception {
+		printableItemsFields = new ComboBox();
+		List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
+		if (printableReportTemplateList.size() > 0) {
+			for (PrintableReportTemplate printableReportTemplate : getPrintableReportTemplate()) {
+				printableItemsFields.addItem(printableReportTemplate);
+				printableItemsFields.setItemCaption(printableReportTemplate, printableReportTemplate.getTitle());
+			}
+		} else {
+			throw new Exception("No report generated");
+		}
+	}
 
     private void setupCopieFields() {
         copiesField = new TextField($("LabelsButton.numberOfCopies"));
@@ -145,29 +154,11 @@ public class ReportGeneratorButton extends WindowButton{
             parent = ReportGeneratorButton.this;
         }
 
-        @Override
-        protected void saveButtonClick(LabelParametersVO viewObject) throws ValidationException {
-            try{
-                IOServicesFactory ioServicesFactory = parent.factory.getModelLayerFactory().getIOServicesFactory();
-                ContentManager contentManager = parent.factory.getModelLayerFactory().getContentManager();
-                XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters((Integer) parent.copiesField.getConvertedValue());
-                xmlGeneratorParameters.setElementWithIds(elements[0].getSchema().getCode(), getIdsFromRecordVO());
-                XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
-                JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
-                PrintableReportTemplate value = (PrintableReportTemplate) parent.printableItemsFields.getValue();
-                InputStream inputStream = contentManager.getContentInputStream(value.getJasperFile().getCurrentVersion().getHash(), value.getJasperFile().getId());
-                File jasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
-                FileUtils.copyInputStreamToFile(inputStream, jasperFile);
-                String title = elements[0].getSchema().getCode() + "_report_" + ISODateTimeFormat.dateTime().print(new LocalDateTime()) + ".pdf";
-                File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, title);
-                VerticalLayout newLayout = new VerticalLayout();
-                newLayout.addComponents(new LabelViewer(generatedJasperFile, title));
-                newLayout.setWidth("100%");
-                getWindow().setContent(newLayout);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+		@Override
+		protected void saveButtonClick(LabelParametersVO viewObject)
+				throws ValidationException {
+			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getCode(), (PrintableReportTemplate) parent.printableItemsFields.getValue(), (Integer) parent.copiesField.getConvertedValue(), getIdsFromRecordVO()));
+		}
 
         @Override
         protected void cancelButtonClick(LabelParametersVO viewObject) {

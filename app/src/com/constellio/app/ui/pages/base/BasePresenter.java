@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Observable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ import java.util.List;
 import java.util.Locale;
 
 @SuppressWarnings("serial")
-public abstract class BasePresenter<T extends BaseView> implements Serializable {
+public abstract class BasePresenter<T extends BaseView> extends Observable implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BasePresenter.class);
 	protected final T view;
 	protected final String collection;
