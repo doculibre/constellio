@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Observable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 
 @SuppressWarnings("serial")
-public abstract class BasePresenter<T extends BaseView> implements Serializable {
+public abstract class BasePresenter<T extends BaseView> extends Observable implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BasePresenter.class);
 	protected final T view;
 	protected final String collection;

@@ -2,9 +2,7 @@ package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
 import java.util.List;
-/**
- * Created by Marco on 2017-07-07.
- */
+
 public class PrintableReportVO extends RecordVO implements Serializable {
     private String title;
     private String jasperFile;

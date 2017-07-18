@@ -17,7 +17,7 @@ import com.constellio.app.ui.framework.components.table.columns.TableColumnsMana
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
@@ -189,7 +189,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		};
 		actionMenuButtons.add(deleteTask);
 
-		ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleView.FOLDER,  presenter.getTask());
+		ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.FOLDER,  presenter.getTask());
 		actionMenuButtons.add(reportGeneratorButton);
 
 		return actionMenuButtons;

@@ -13,7 +13,7 @@ public class PrintableReportListToStringConverter implements Converter<Object, S
 
     @Override
     public Object convertToPresentation(String value, Class<?> targetType, Locale locale) throws ConversionException {
-        return StringUtils.isEmpty(value) ? null : PrintableReportListPossibleView.getValue(value);
+        return StringUtils.isEmpty(value) ? null : PrintableReportListPossibleType.getValue(value);
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BasePopupView;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -91,6 +92,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	private int selectionCount;
 	
 	private Boolean delayedSelectionButtonEnabled;
+	private BaseView currentView;
 	
     private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 
@@ -172,6 +174,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
+				currentView = (BaseView) event.getNewView();
 				return true;
 			}
 
@@ -528,7 +531,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
 		WindowButton addToCartButton = buildAddToCartButton(actionMenuLayout);
 		SelectionPanelExtension.setStyles(addToCartButton);
-		actionMenuLayout.addComponent(addToCartButton);
+		actionMenuLayout.addComponents(addToCartButton);
 		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
 	}
 
@@ -600,6 +603,8 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		windowButton.setVisible(isEnabled());
 		return windowButton;
 	}
+
+
 
 	@Override
 	public void setSearchExpression(String expression) {
