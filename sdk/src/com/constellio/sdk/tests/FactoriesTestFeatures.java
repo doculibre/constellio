@@ -31,11 +31,9 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -120,7 +118,7 @@ public class FactoriesTestFeatures {
 			if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
 				deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
 			}
-		}	
+		}
 
 		deleteFromCaches();
 
@@ -129,7 +127,8 @@ public class FactoriesTestFeatures {
 
 	private void deleteFromCaches() {
 		try {
-			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory().getSettingsCacheManager();
+			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory()
+					.getSettingsCacheManager();
 			if (settingsCacheManager != null) {
 				for (String cacheName : settingsCacheManager.getCacheNames()) {
 					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
@@ -191,6 +190,10 @@ public class FactoriesTestFeatures {
 		vaultServer.disableLogger();
 		vaultServer.setExtensions(new DataLayerSystemExtensions());
 
+		clearSolrData(vaultServer, 0);
+	}
+
+	private void clearSolrData(BigVaultServer vaultServer, int attempt) {
 		ModifiableSolrParams allRecordsSolrParams = new ModifiableSolrParams();
 		allRecordsSolrParams.set("q", "*:*");
 
@@ -203,7 +206,16 @@ public class FactoriesTestFeatures {
 		try {
 
 			if (!vaultServer.query(allRecordsSolrParams).getResults().isEmpty()) {
-				throw new RuntimeException("Invalid solr core initial state ");
+				if (attempt < 10) {
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					clearSolrData(vaultServer, attempt + 1);
+				} else {
+					throw new RuntimeException("Invalid solr core initial state ");
+				}
 			}
 
 		} catch (CouldNotExecuteQuery couldNotExecuteQuery) {

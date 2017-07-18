@@ -217,13 +217,17 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
 	}
 
-	public RecordServicesImpl newCachelessRecordServices() {
+	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
 		RecordDao recordDao = dataLayerFactory.newRecordDao();
 		RecordDao eventsDao = dataLayerFactory.newEventsDao();
 		RecordDao notificationsDao = dataLayerFactory.newNotificationsDao();
 		DataStoreTypesFactory typesFactory = dataLayerFactory.newTypesFactory();
 		return new RecordServicesImpl(recordDao, eventsDao, notificationsDao, this, typesFactory,
 				dataLayerFactory.getUniqueIdGenerator(), recordsCaches);
+	}
+
+	public RecordServicesImpl newCachelessRecordServices() {
+		return newCachelessRecordServices(recordsCaches);
 	}
 
 	public SearchServices newSearchServices() {

@@ -176,7 +176,9 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 
 		MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
 		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze folder");
+		//typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).setLabels(asMap(Language.French, "Folder"));
 		typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze document");
+		//typesBuilder.getSchemaType(Document.SCHEMA_TYPE).setLabels(asMap(Language.French, "Document"));
 		getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("schema_s").setTitle("Ze type"));
@@ -228,7 +230,6 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
 		assertThat(facets.get(0).isOpen()).isTrue();
 	}
-
 
 	// ----------------------------------------------------
 
