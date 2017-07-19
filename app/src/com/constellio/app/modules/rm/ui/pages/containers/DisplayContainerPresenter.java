@@ -178,9 +178,6 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public boolean canPrintReports() {
-		if (!searchServices().hasResults(getFoldersQuery())) {
-			return false;
-		}
 		try {
 			getReport("");
 		} catch (RuntimeException e) {
