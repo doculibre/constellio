@@ -68,6 +68,9 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
+
+	private boolean testWithRequestCache = false;
+
 	protected String anotherCollection = "anotherCollection";
 	protected SecurityAcceptanceTestSetup anothercollectionSetup = new SecurityAcceptanceTestSetup(anotherCollection);
 	protected String ZE_ROLE = "zeRoleCode";
@@ -146,7 +149,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			}
 
 			public void setServices() {
-				ConstellioFactories.getInstance().onRequestStarted();
+				if (testWithRequestCache) {
+					ConstellioFactories.getInstance().onRequestStarted();
+				}
 				recordServices = getModelLayerFactory().newRecordServices();
 				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 				searchServices = getModelLayerFactory().newSearchServices();
@@ -223,7 +228,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			int batchProcessCount = finishedBatchProcesses.size() - initialFinishedBatchProcesses.size();
 			totalBatchProcessCount += batchProcessCount;
 		}
-		ConstellioFactories.getInstance().onRequestEnded();
+		if (testWithRequestCache) {
+			ConstellioFactories.getInstance().onRequestEnded();
+		}
 	}
 
 	@AfterClass

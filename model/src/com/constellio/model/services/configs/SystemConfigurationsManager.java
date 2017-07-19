@@ -88,16 +88,22 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	@Override
 	public void initialize() {
+		clearCache();
 		configManager.createPropertiesDocumentIfInexistent(CONFIG_FILE_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
 			}
 		});
 	}
+	
+	private void clearCache() {
+		cache.clear();
+		readPropertiesFileRequired = true;
+	}
 
 	@Override
 	public void close() {
-
+		clearCache();
 	}
 
 	public boolean signalDefaultValueModification(final SystemConfiguration config, final Object previousDefaultValue) {
@@ -170,8 +176,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 				}
 			}
 		} finally {
-			cache.clear();
-			readPropertiesFileRequired = true;
+			clearCache();
 		}
 		return false;
 	}
