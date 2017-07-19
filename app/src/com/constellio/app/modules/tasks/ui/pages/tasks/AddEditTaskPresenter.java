@@ -198,6 +198,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public void viewAssembled() {
 		adjustProgressPercentageField();
 		adjustDecisionField();
+		adjustInclusiveDecisionField();
 		adjustRelativeDueDate();
 		adjustAcceptedField();
 		adjustReasonField();
@@ -232,6 +233,26 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			}
 		}
+
+		if(listAddRemoveWorkflowInclusiveDecision != null) {
+			BetaWorkflowTask task = loadTask();
+
+			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
+				listAddRemoveWorkflowInclusiveDecision.setVisible(false);
+				return;
+			}
+
+			listAddRemoveWorkflowInclusiveDecision.setRequired(true);
+			listAddRemoveWorkflowInclusiveDecision.setVisible(true);
+
+			for (String code : task.getNextTasksDecisionsCodes()) {
+				listAddRemoveWorkflowInclusiveDecision.addItem(code);
+			}
+		}
+	}
+
+	private void adjustInclusiveDecisionField() {
+		ListAddRemoveWorkflowInclusiveDecision listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecision) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
 
 		if(listAddRemoveWorkflowInclusiveDecision != null) {
 			BetaWorkflowTask task = loadTask();
