@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecision;
+import com.constellio.app.ui.framework.components.RecordForm;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -208,6 +211,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustDecisionField() {
 		TaskDecisionField field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
+		ListAddRemoveWorkflowInclusiveDecision listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecision) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
+
 		if (field != null) {
 			try {
 				BetaWorkflowTask task = loadTask();
@@ -224,7 +229,23 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				}
 
 			} catch (NoSuchRecordWithId e) {
-				field.setVisible(false);
+
+			}
+		}
+
+		if(listAddRemoveWorkflowInclusiveDecision != null) {
+			BetaWorkflowTask task = loadTask();
+
+			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
+				listAddRemoveWorkflowInclusiveDecision.setVisible(false);
+				return;
+			}
+
+			listAddRemoveWorkflowInclusiveDecision.setRequired(true);
+			listAddRemoveWorkflowInclusiveDecision.setVisible(true);
+
+			for (String code : task.getNextTasksDecisionsCodes()) {
+				listAddRemoveWorkflowInclusiveDecision.addItem(code);
 			}
 		}
 	}

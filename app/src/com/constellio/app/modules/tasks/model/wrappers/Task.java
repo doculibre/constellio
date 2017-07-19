@@ -48,6 +48,7 @@ public class Task extends RecordWrapper {
 	public static final String IS_MODEL = "isModel";
 	public static final String MODEL_TASK = "modelTask";
 	public static final String DECISION = "decision";
+
 	public static final String RELATIVE_DUE_DATE = "relativeDueDate";
 
 	/**
