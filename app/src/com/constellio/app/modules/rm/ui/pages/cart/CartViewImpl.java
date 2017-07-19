@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -88,6 +89,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
 		buttons.add(buildDecommissionButton());
+		//buttons.add(buildPrintMetadataReportButton());
 		return buttons;
 	}
 
@@ -227,6 +229,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 		filterComponent.addComponents(containerFilterField, filterButton);
 		return filterComponent;
+	}
+
+	private Button buildPrintMetadataReportButton() {
+		//ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), Print.ANY);
+		return null;
 	}
 
 		private Button buildDecommissionButton() {

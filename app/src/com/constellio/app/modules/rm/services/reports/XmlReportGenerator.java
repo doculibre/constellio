@@ -32,9 +32,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public class XmlReportGenerator extends XmlGenerator{
 
     public XmlReportGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
@@ -43,7 +40,7 @@ public class XmlReportGenerator extends XmlGenerator{
     }
 
     @Override
-    public String generateXML() throws Exception{
+    public String generateXML(){
         xmlGeneratorParameters.validateInputs();
         Document xmlDocument = new Document();
         Element xmlRoot = new Element(XML_ROOT_RECORD_ELEMENTS);

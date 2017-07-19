@@ -114,43 +114,48 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
     public AppLayerFactory getFactory() { return this.factory; }
 
     @Override
-    public String generateXML() throws Exception {
-        validateInputs();
-        Document xmlDocument = new Document();
-        Element xmlRoot = new Element(this.type);
-        xmlDocument.setRootElement(xmlRoot);
-        xmlRoot.addContent(this.skipAmountOfElementNeededForStartingPosition());
-        for(int i = 0; i < this.numberOfCopies; i ++ ) {
-            for (Record recordElement : this.recordElements) {
-                //the xml tag singular ( folder / container )
-                Element xmlSingularElement = new Element(getTypeSingular());
+    public String generateXML(){
+        try{
+            validateInputs();
+            Document xmlDocument = new Document();
+            Element xmlRoot = new Element(this.type);
+            xmlDocument.setRootElement(xmlRoot);
+            xmlRoot.addContent(this.skipAmountOfElementNeededForStartingPosition());
+            for(int i = 0; i < this.numberOfCopies; i ++ ) {
+                for (Record recordElement : this.recordElements) {
+                    //the xml tag singular ( folder / container )
+                    Element xmlSingularElement = new Element(getTypeSingular());
 
-                //the xml tag metadatas
-                Element XMLMetadatasOfSingularElement = new Element("metadatas");
+                    //the xml tag metadatas
+                    Element XMLMetadatasOfSingularElement = new Element("metadatas");
 
-                //Add the Extensions to the metadatas elements.
-                factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
-                        recordElement, xmlSingularElement, XMLMetadatasOfSingularElement));
+                    //Add the Extensions to the metadatas elements.
+                    factory.getExtensions().forCollection(collection).addFieldsInLabelXML(new AddFieldsInLabelXMLParams(
+                            recordElement, xmlSingularElement, XMLMetadatasOfSingularElement));
 
-                // List of all metadatas of current RecordElement
-                List<Metadata> listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement);
+                    // List of all metadatas of current RecordElement
+                    List<Metadata> listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement);
 
-                //Add the additional informations to the metadatas.
-                XMLMetadatasOfSingularElement.addContent(getAdditionalInformations(recordElement));
+                    //Add the additional informations to the metadatas.
+                    XMLMetadatasOfSingularElement.addContent(getAdditionalInformations(recordElement));
 
-                //Iterate through metadatas
-                for (Metadata metadata : listOfMetadataOfRecordElement) {
-                    //Create the metadata tags.
-                    List<Element> metadataTags = createMetadataTagsFromMetadata(metadata, recordElement);
-                    //add them to the childrens.
-                    XMLMetadatasOfSingularElement.addContent(metadataTags);
+                    //Iterate through metadatas
+                    for (Metadata metadata : listOfMetadataOfRecordElement) {
+                        //Create the metadata tags.
+                        List<Element> metadataTags = createMetadataTagsFromMetadata(metadata, recordElement);
+                        //add them to the childrens.
+                        XMLMetadatasOfSingularElement.addContent(metadataTags);
+                    }
+
+                    xmlSingularElement.setContent(XMLMetadatasOfSingularElement);
+                    xmlRoot.addContent(xmlSingularElement);
                 }
-
-                xmlSingularElement.setContent(XMLMetadatasOfSingularElement);
-                xmlRoot.addContent(xmlSingularElement);
             }
+            return new XMLOutputter(Format.getPrettyFormat()).outputString(xmlDocument);
+        }catch (Exception e) {
+            //error in validation
         }
-        return new XMLOutputter(Format.getPrettyFormat()).outputString(xmlDocument);
+       return "";
     }
 
     /**
